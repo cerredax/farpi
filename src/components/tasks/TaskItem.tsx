@@ -1,8 +1,9 @@
 import { parseISO, isBefore, isToday, startOfDay, format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Check, Repeat2, Trash2 } from 'lucide-react'
+import { Repeat2, Trash2 } from 'lucide-react'
 import type { Task, TaskPriority } from '@/types'
 import { TASK_RECURRENCES } from '@/lib/constants'
+import { CircleCheck } from '@/components/ui/CircleCheck'
 
 interface TaskItemProps {
   task: Task
@@ -32,26 +33,11 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
     <div
       className={`bg-white rounded-2xl border border-[#F0EDE8] shadow-sm flex overflow-hidden border-l-4 ${PRIORITY_BORDER[task.priority]}`}
     >
-      {/* Checkbox */}
-      <button
+      <CircleCheck
+        checked={task.completed}
         onClick={onToggle}
-        aria-label={task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
-        className="flex-shrink-0 flex items-center justify-center w-12 min-h-[44px] active:bg-[#F0F7F0] transition-colors group"
-      >
-        <span
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-            task.completed
-              ? 'bg-[#8BA888] border-[#8BA888]'
-              : 'border-[#C4BFB9] group-hover:border-[#8BA888] group-active:border-[#8BA888]'
-          }`}
-        >
-          <Check
-            size={13}
-            strokeWidth={3}
-            className={task.completed ? 'text-white' : 'text-[#C4BFB9] group-hover:text-[#8BA888] transition-colors'}
-          />
-        </span>
-      </button>
+        ariaLabel={task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
+      />
 
       {/* Content — tap to edit */}
       <button

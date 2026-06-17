@@ -2,32 +2,15 @@
 
 import { useState } from 'react'
 import { Plus, ChevronDown, ChevronRight, Repeat2 } from 'lucide-react'
-import { isBefore, isToday, startOfDay, parseISO, format } from 'date-fns'
+import { isToday, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
+import { selectTaskGroups } from '@/lib/selectors'
 import { TaskItem } from './TaskItem'
 import { TaskSheet } from './TaskSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
-import type { Task, TaskDraft, TaskPriority } from '@/types'
-
-const PRIORITY_WEIGHT = Object.fromEntries(
-  TASK_PRIORITIES.map((p, i) => [p.value, i])
-) as Record<TaskPriority, number>
-
-function sortPending(tasks: Task[]): Task[] {
-  const today = startOfDay(new Date())
-  return [...tasks].sort((a, b) => {
-    const aOver = a.due_date ? isBefore(parseISO(a.due_date), today) : false
-    const bOver = b.due_date ? isBefore(parseISO(b.due_date), today) : false
-    if (aOver !== bOver) return aOver ? -1 : 1
-    if (!a.due_date && !b.due_date) return PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority]
-    if (!a.due_date) return 1
-    if (!b.due_date) return -1
-    const dc = a.due_date.localeCompare(b.due_date)
-    return dc !== 0 ? dc : PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority]
-  })
-}
+import { TASK_RECURRENCES } from '@/lib/constants'
+import type { Task, TaskDraft } from '@/types'
 
 function RecurringConfirmDialog({ task, onConfirm, onCancel }: { task: Task; onConfirm: () => void; onCancel: () => void }) {
   const recLabel = TASK_RECURRENCES.find(r => r.value === task.recurrence)?.label ?? ''
@@ -74,10 +57,7 @@ export function TasksView() {
   const [showCompleted, setShowCompleted]     = useState(false)
   const [confirmTask, setConfirmTask]         = useState<Task | null>(null)
 
-  const pending   = sortPending(tasks.filter(t => !t.completed))
-  const completed = tasks.filter(t => t.completed).sort(
-    (a, b) => (b.completed_at ?? '').localeCompare(a.completed_at ?? '')
-  )
+  const { pending, completed } = selectTaskGroups(tasks)
 
   function openCreate() { setEditingTask(null); setSheetOpen(true) }
   function openEdit(task: Task) { setEditingTask(task); setSheetOpen(true) }

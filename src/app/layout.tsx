@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: 'Nido',
   description: 'Tu espacio familiar privado',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icon.svg',
+  },
 }
 
 export const viewport: Viewport = {

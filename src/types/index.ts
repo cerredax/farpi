@@ -52,6 +52,7 @@ export interface Event {
   end_at: string | null
   all_day: boolean
   color: string | null
+  recurrence_group_id: string | null
   created_by: string
   created_at: string
   updated_at: string

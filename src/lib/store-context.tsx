@@ -1,27 +1,39 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import * as store from './mock-store'
 import { DEFAULT_FAMILY_ID, writeActiveFamilyId } from './family-config'
-import { selectTodayMeals, selectPendingItems } from './selectors'
+import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import type {
-  Family, FamilyMember, FamilyInvite, Child, Event, Task, MealPlan, List, ListItem, Document,
-  ChildDraft, EventDraft, TaskDraft, MealDraft, ListDraft, ListItemDraft, DocumentDraft,
+  Child,
+  ChildDraft,
+  Document,
+  DocumentDraft,
+  Event,
+  EventDraft,
+  Family,
+  FamilyInvite,
+  FamilyMember,
+  List,
+  ListDraft,
+  ListItem,
+  ListItemDraft,
+  MealDraft,
+  MealPlan,
   PendingItem,
+  Task,
+  TaskDraft,
 } from '@/types'
 
-// Cargar localStorage una vez en el cliente al importar el módulo
 if (typeof window !== 'undefined') {
   store.loadFromStorage()
 }
 
 interface StoreValue {
-  // Familia activa
   activeFamilyId: string
   families: Family[]
   switchFamily: (id: string) => void
   createFamily: (name: string) => void
-  // Estado
   family: Family
   members: FamilyMember[]
   invites: FamilyInvite[]
@@ -32,30 +44,25 @@ interface StoreValue {
   allListItems: ListItem[]
   meals: MealPlan[]
   documents: Document[]
-  // Derivados
   todayMeals: MealPlan[]
+  pendingTasks: Task[]
   pendingItems: PendingItem[]
-  // Familia
   updateFamilyName: (name: string) => void
-  // Miembros
   inviteMember: (email: string) => void
   updateMember: (id: string, name: string) => void
   removeMember: (id: string) => void
   cancelInvite: (id: string) => void
-  // Hijos
   createKid: (draft: ChildDraft) => void
   updateKid: (id: string, draft: ChildDraft) => void
   deleteKid: (id: string) => void
-  // Eventos
   createEvent: (draft: EventDraft) => Event
+  createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) => Event[]
   updateEvent: (id: string, draft: EventDraft) => void
   deleteEvent: (id: string) => void
-  // Tareas
   createTask: (draft: TaskDraft) => void
   updateTask: (id: string, draft: TaskDraft) => void
   deleteTask: (id: string) => void
   toggleTask: (id: string) => void
-  // Listas
   createList: (draft: ListDraft) => void
   updateList: (id: string, draft: ListDraft) => void
   deleteList: (id: string) => void
@@ -63,15 +70,48 @@ interface StoreValue {
   updateListItem: (id: string, draft: ListItemDraft) => void
   deleteListItem: (id: string) => void
   toggleListItem: (id: string) => void
-  // Comidas
   createMeal: (draft: MealDraft) => void
   updateMeal: (id: string, draft: MealDraft) => void
   deleteMeal: (id: string) => void
-  // Documentos
   createDocument: (draft: DocumentDraft) => void
   updateDocument: (id: string, draft: DocumentDraft) => void
   deleteDocument: (id: string) => void
 }
+
+type StoreActions = Pick<
+  StoreValue,
+  | 'switchFamily'
+  | 'createFamily'
+  | 'updateFamilyName'
+  | 'inviteMember'
+  | 'updateMember'
+  | 'removeMember'
+  | 'cancelInvite'
+  | 'createKid'
+  | 'updateKid'
+  | 'deleteKid'
+  | 'createEvent'
+  | 'createEventSeries'
+  | 'updateEvent'
+  | 'deleteEvent'
+  | 'createTask'
+  | 'updateTask'
+  | 'deleteTask'
+  | 'toggleTask'
+  | 'createList'
+  | 'updateList'
+  | 'deleteList'
+  | 'createListItem'
+  | 'updateListItem'
+  | 'deleteListItem'
+  | 'toggleListItem'
+  | 'createMeal'
+  | 'updateMeal'
+  | 'deleteMeal'
+  | 'createDocument'
+  | 'updateDocument'
+  | 'deleteDocument'
+>
 
 const StoreCtx = createContext<StoreValue>(null!)
 
@@ -82,213 +122,128 @@ interface StoreProviderProps {
 }
 
 export function StoreProvider({ children, familyId, switchFamily }: StoreProviderProps) {
-  // Validate familyId — fall back to DEFAULT if the stored ID no longer exists
   const effectiveFid = store.getFamily(familyId) ? familyId : DEFAULT_FAMILY_ID
   if (effectiveFid !== familyId && typeof window !== 'undefined') {
     writeActiveFamilyId(effectiveFid)
   }
   const fid = effectiveFid
 
-  const [family,       setFamily]    = useState<Family>(() => store.getFamily(fid)!)
-  const [families,     setFamilies]  = useState<Family[]>(() => store.getFamilies())
-  const [members,      setMembers]   = useState<FamilyMember[]>(() => store.getMembers(fid))
-  const [invites,      setInvites]   = useState<FamilyInvite[]>(() => store.getInvites(fid))
-  const [kids,         setKids]      = useState<Child[]>(() => store.getKids(fid))
-  const [allEvents,    setEvents]    = useState<Event[]>(() => store.getEvents(fid))
-  const [tasks,        setTasks]     = useState<Task[]>(() => store.getTasks(fid))
-  const [lists,        setLists]     = useState<List[]>(() => store.getLists(fid))
+  const [family, setFamily] = useState<Family>(() => store.getFamily(fid)!)
+  const [families, setFamilies] = useState<Family[]>(() => store.getFamilies())
+  const [members, setMembers] = useState<FamilyMember[]>(() => store.getMembers(fid))
+  const [invites, setInvites] = useState<FamilyInvite[]>(() => store.getInvites(fid))
+  const [kids, setKids] = useState<Child[]>(() => store.getKids(fid))
+  const [allEvents, setEvents] = useState<Event[]>(() => store.getEvents(fid))
+  const [tasks, setTasks] = useState<Task[]>(() => store.getTasks(fid))
+  const [lists, setLists] = useState<List[]>(() => store.getLists(fid))
   const [allListItems, setListItems] = useState<ListItem[]>(() => store.getListItems(fid))
-  const [meals,        setMeals]     = useState<MealPlan[]>(() => store.getMeals(fid))
-  const [documents,    setDocuments] = useState<Document[]>(() => store.getDocuments(fid))
+  const [meals, setMeals] = useState<MealPlan[]>(() => store.getMeals(fid))
+  const [documents, setDocuments] = useState<Document[]>(() => store.getDocuments(fid))
 
-  // Derivados calculados en cada render
-  const todayMeals   = selectTodayMeals(meals)
-  const pendingItems = selectPendingItems(allListItems, lists)
+  const todayMeals = useMemo(() => selectTodayMeals(meals), [meals])
+  const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
+  const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
 
-  // ── Familias (gestión multi-familia) ──────────────────────────────────────
-  const createFamily = (name: string) => {
-    const f = store.createFamily(name)
-    setFamilies(store.getFamilies())
-    store.persistAll()
-    switchFamily(f.id)
-  }
+  const actions = useMemo<StoreActions>(() => {
+    function mutate<T>(action: () => T, ...refresh: Array<() => void>): T {
+      const result = action()
+      for (const refreshSlice of refresh) refreshSlice()
+      store.persistAll()
+      return result
+    }
 
-  // ── Familia ────────────────────────────────────────────────────────────────
-  const updateFamilyName = (name: string) => {
-    setFamily(store.setFamilyName(fid, name))
-    store.persistAll()
-  }
+    const refreshFamily = () => setFamily(store.getFamily(fid)!)
+    const refreshFamilies = () => setFamilies(store.getFamilies())
+    const refreshMembers = () => setMembers(store.getMembers(fid))
+    const refreshInvites = () => setInvites(store.getInvites(fid))
+    const refreshKids = () => setKids(store.getKids(fid))
+    const refreshEvents = () => setEvents(store.getEvents(fid))
+    const refreshTasks = () => setTasks(store.getTasks(fid))
+    const refreshLists = () => setLists(store.getLists(fid))
+    const refreshListItems = () => setListItems(store.getListItems(fid))
+    const refreshMeals = () => setMeals(store.getMeals(fid))
+    const refreshDocuments = () => setDocuments(store.getDocuments(fid))
 
-  // ── Miembros ───────────────────────────────────────────────────────────────
-  const inviteMember = (email: string) => {
-    store.createInvite(fid, email)
-    setInvites(store.getInvites(fid))
-    store.persistAll()
-  }
-  const cancelInvite = (id: string) => {
-    store.cancelInvite(id)
-    setInvites(store.getInvites(fid))
-    store.persistAll()
-  }
-  const updateMember = (id: string, name: string) => {
-    store.updateMemberName(id, name)
-    setMembers(store.getMembers(fid))
-    store.persistAll()
-  }
-  const removeMember = (id: string) => {
-    store.removeMember(id)
-    setMembers(store.getMembers(fid))
-    store.persistAll()
-  }
+    return {
+      switchFamily,
+      createFamily: (name: string) => {
+        const created = mutate(() => store.createFamily(name), refreshFamilies)
+        switchFamily(created.id)
+      },
+      updateFamilyName: (name: string) => mutate(() => store.setFamilyName(fid, name), refreshFamily),
+      inviteMember: (email: string) => mutate(() => store.createInvite(fid, email), refreshInvites),
+      updateMember: (id: string, name: string) => mutate(() => store.updateMemberName(id, name), refreshMembers),
+      removeMember: (id: string) => mutate(() => store.removeMember(id), refreshMembers),
+      cancelInvite: (id: string) => mutate(() => store.cancelInvite(id), refreshInvites),
+      createKid: (draft: ChildDraft) => mutate(() => store.createKid(fid, draft), refreshKids),
+      updateKid: (id: string, draft: ChildDraft) => mutate(() => store.updateKid(id, draft), refreshKids),
+      deleteKid: (id: string) => mutate(() => store.deleteKid(id), refreshKids, refreshEvents, refreshDocuments),
+      createEvent: (draft: EventDraft) => mutate(() => store.createEvent(fid, draft), refreshEvents),
+      createEventSeries: (draft: EventDraft, days: number[], end: string) =>
+        mutate(() => store.createEventSeries(fid, draft, days, end), refreshEvents),
+      updateEvent: (id: string, draft: EventDraft) => mutate(() => store.updateEvent(id, draft), refreshEvents),
+      deleteEvent: (id: string) => mutate(() => store.deleteEvent(id), refreshEvents),
+      createTask: (draft: TaskDraft) => mutate(() => store.createTask(fid, draft), refreshTasks),
+      updateTask: (id: string, draft: TaskDraft) => mutate(() => store.updateTask(id, draft), refreshTasks),
+      deleteTask: (id: string) => mutate(() => store.deleteTask(id), refreshTasks),
+      toggleTask: (id: string) => mutate(() => store.toggleTask(id), refreshTasks),
+      createList: (draft: ListDraft) => mutate(() => store.createList(fid, draft), refreshLists),
+      updateList: (id: string, draft: ListDraft) => mutate(() => store.updateList(id, draft), refreshLists),
+      deleteList: (id: string) => mutate(() => store.deleteList(id), refreshLists, refreshListItems),
+      createListItem: (listId: string, draft: ListItemDraft) =>
+        mutate(() => store.createListItem(listId, fid, draft), refreshListItems),
+      updateListItem: (id: string, draft: ListItemDraft) =>
+        mutate(() => store.updateListItem(id, draft), refreshListItems),
+      deleteListItem: (id: string) => mutate(() => store.deleteListItem(id), refreshListItems),
+      toggleListItem: (id: string) => mutate(() => store.toggleListItem(id), refreshListItems),
+      createMeal: (draft: MealDraft) => mutate(() => store.createMeal(fid, draft), refreshMeals),
+      updateMeal: (id: string, draft: MealDraft) => mutate(() => store.updateMeal(id, draft), refreshMeals),
+      deleteMeal: (id: string) => mutate(() => store.deleteMeal(id), refreshMeals),
+      createDocument: (draft: DocumentDraft) => mutate(() => store.createDocument(fid, draft), refreshDocuments),
+      updateDocument: (id: string, draft: DocumentDraft) =>
+        mutate(() => store.updateDocument(id, draft), refreshDocuments),
+      deleteDocument: (id: string) => mutate(() => store.deleteDocument(id), refreshDocuments),
+    }
+  }, [fid, switchFamily])
 
-  // ── Hijos ──────────────────────────────────────────────────────────────────
-  const createKid = (draft: ChildDraft) => {
-    store.createKid(fid, draft)
-    setKids(store.getKids(fid))
-    store.persistAll()
-  }
-  const updateKid = (id: string, draft: ChildDraft) => {
-    store.updateKid(id, draft)
-    setKids(store.getKids(fid))
-    store.persistAll()
-  }
-  const deleteKid = (id: string) => {
-    store.deleteKid(id)
-    setKids(store.getKids(fid))
-    // deleteKid nullifies child_id in events and documents (mirrors ON DELETE SET NULL)
-    setEvents(store.getEvents(fid))
-    setDocuments(store.getDocuments(fid))
-    store.persistAll()
-  }
-
-  // ── Eventos ────────────────────────────────────────────────────────────────
-  const createEvent = (draft: EventDraft): Event => {
-    const e = store.createEvent(fid, draft)
-    setEvents(store.getEvents(fid))
-    store.persistAll()
-    return e
-  }
-  const updateEvent = (id: string, draft: EventDraft) => {
-    store.updateEvent(id, draft)
-    setEvents(store.getEvents(fid))
-    store.persistAll()
-  }
-  const deleteEvent = (id: string) => {
-    store.deleteEvent(id)
-    setEvents(store.getEvents(fid))
-    store.persistAll()
-  }
-
-  // ── Tareas ─────────────────────────────────────────────────────────────────
-  const createTask = (draft: TaskDraft) => {
-    store.createTask(fid, draft)
-    setTasks(store.getTasks(fid))
-    store.persistAll()
-  }
-  const updateTask = (id: string, draft: TaskDraft) => {
-    store.updateTask(id, draft)
-    setTasks(store.getTasks(fid))
-    store.persistAll()
-  }
-  const deleteTask = (id: string) => {
-    store.deleteTask(id)
-    setTasks(store.getTasks(fid))
-    store.persistAll()
-  }
-  const toggleTask = (id: string) => {
-    store.toggleTask(id)
-    setTasks(store.getTasks(fid))
-    store.persistAll()
-  }
-
-  // ── Listas ─────────────────────────────────────────────────────────────────
-  const createList = (draft: ListDraft) => {
-    store.createList(fid, draft)
-    setLists(store.getLists(fid))
-    store.persistAll()
-  }
-  const updateList = (id: string, draft: ListDraft) => {
-    store.updateList(id, draft)
-    setLists(store.getLists(fid))
-    store.persistAll()
-  }
-  const deleteList = (id: string) => {
-    store.deleteList(id)
-    setLists(store.getLists(fid))
-    setListItems(store.getListItems(fid))
-    store.persistAll()
-  }
-  const createListItem = (listId: string, draft: ListItemDraft) => {
-    store.createListItem(listId, fid, draft)
-    setListItems(store.getListItems(fid))
-    store.persistAll()
-  }
-  const updateListItem = (id: string, draft: ListItemDraft) => {
-    store.updateListItem(id, draft)
-    setListItems(store.getListItems(fid))
-    store.persistAll()
-  }
-  const deleteListItem = (id: string) => {
-    store.deleteListItem(id)
-    setListItems(store.getListItems(fid))
-    store.persistAll()
-  }
-  const toggleListItem = (id: string) => {
-    store.toggleListItem(id)
-    setListItems(store.getListItems(fid))
-    store.persistAll()
-  }
-
-  // ── Comidas ────────────────────────────────────────────────────────────────
-  const createMeal = (draft: MealDraft) => {
-    store.createMeal(fid, draft)
-    setMeals(store.getMeals(fid))
-    store.persistAll()
-  }
-  const updateMeal = (id: string, draft: MealDraft) => {
-    store.updateMeal(id, draft)
-    setMeals(store.getMeals(fid))
-    store.persistAll()
-  }
-  const deleteMeal = (id: string) => {
-    store.deleteMeal(id)
-    setMeals(store.getMeals(fid))
-    store.persistAll()
-  }
-
-  // ── Documentos ─────────────────────────────────────────────────────────────
-  const createDocument = (draft: DocumentDraft) => {
-    store.createDocument(fid, draft)
-    setDocuments(store.getDocuments(fid))
-    store.persistAll()
-  }
-  const updateDocument = (id: string, draft: DocumentDraft) => {
-    store.updateDocument(id, draft)
-    setDocuments(store.getDocuments(fid))
-    store.persistAll()
-  }
-  const deleteDocument = (id: string) => {
-    store.deleteDocument(id)
-    setDocuments(store.getDocuments(fid))
-    store.persistAll()
-  }
+  const value = useMemo<StoreValue>(() => ({
+    activeFamilyId: fid,
+    families,
+    family,
+    members,
+    invites,
+    kids,
+    allEvents,
+    tasks,
+    lists,
+    allListItems,
+    meals,
+    documents,
+    todayMeals,
+    pendingTasks,
+    pendingItems,
+    ...actions,
+  }), [
+    fid,
+    families,
+    family,
+    members,
+    invites,
+    kids,
+    allEvents,
+    tasks,
+    lists,
+    allListItems,
+    meals,
+    documents,
+    todayMeals,
+    pendingTasks,
+    pendingItems,
+    actions,
+  ])
 
   return (
-    <StoreCtx.Provider value={{
-      activeFamilyId: fid, families, switchFamily, createFamily,
-      family, members, invites, kids, allEvents, tasks,
-      lists, allListItems, meals, documents,
-      todayMeals, pendingItems,
-      updateFamilyName,
-      inviteMember, updateMember, removeMember, cancelInvite,
-      createKid, updateKid, deleteKid,
-      createEvent, updateEvent, deleteEvent,
-      createTask, updateTask, deleteTask, toggleTask,
-      createList, updateList, deleteList,
-      createListItem, updateListItem, deleteListItem, toggleListItem,
-      createMeal, updateMeal, deleteMeal,
-      createDocument, updateDocument, deleteDocument,
-    }}>
+    <StoreCtx.Provider value={value}>
       {children}
     </StoreCtx.Provider>
   )

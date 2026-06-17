@@ -6,7 +6,7 @@ import { TASK_RECURRENCES } from '@/lib/constants'
 
 interface TaskItemProps {
   task: Task
-  onToggle: (id: string) => void
+  onToggle: () => void
   onEdit: (task: Task) => void
   onDelete: (id: string) => void
 }
@@ -34,7 +34,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
     >
       {/* Checkbox */}
       <button
-        onClick={() => onToggle(task.id)}
+        onClick={onToggle}
         aria-label={task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
         className="flex-shrink-0 flex items-center justify-center w-12 group"
       >

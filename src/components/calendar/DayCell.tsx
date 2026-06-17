@@ -1,4 +1,5 @@
 import { compareAsc, format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 import type { Event, Child } from '@/types'
 
 interface DayCellProps {
@@ -62,22 +63,72 @@ export function DayCell({
   })()
 
   if (density === 'compact') {
+    const MAX_DOTS = 3
+    const dots = sortedEvents.slice(0, MAX_DOTS)
+    const totalCount = sortedEvents.length
     return (
-      <button
-        onClick={() => onSelect(day)}
-        aria-label={day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-        aria-pressed={isSelected}
-        className="flex flex-col items-center gap-0.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA888] rounded-xl"
-      >
-        <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}>
-          {dayNumber}
-        </span>
-        <div className="h-2 flex items-center justify-center gap-[3px]">
-          {visibleEvents.map((event, i) => (
-            <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: getEventColor(event, kids) }} />
-          ))}
-        </div>
-      </button>
+      <div className="relative group flex flex-col items-center">
+        <button
+          onClick={() => onSelect(day)}
+          aria-label={day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+          aria-pressed={isSelected}
+          className="flex flex-col items-center gap-0.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8BA888] rounded-xl w-full"
+        >
+          <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}>
+            {dayNumber}
+          </span>
+          <div className="h-3 flex items-center justify-center gap-[3px]">
+            {totalCount > MAX_DOTS ? (
+              <span className="text-[9px] font-black text-[#8BA888] leading-none">{totalCount}</span>
+            ) : (
+              dots.map((event, i) => (
+                <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: getEventColor(event, kids) }} />
+              ))
+            )}
+          </div>
+        </button>
+
+        {/* Tooltip — visible only on hover, desktop only */}
+        {sortedEvents.length > 0 && (
+          <div
+            role="tooltip"
+            className="
+              pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
+              opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100
+              transition-all duration-150 origin-bottom
+              hidden lg:block
+            "
+          >
+            <div className="bg-white border border-[#EDE9E3] rounded-2xl shadow-xl p-3 w-52 text-left">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#77716A] mb-2 capitalize">
+                {format(day, "EEEE d MMM", { locale: es })}
+              </p>
+              <div className="space-y-1.5">
+                {sortedEvents.map(event => {
+                  const color = getEventColor(event, kids)
+                  const child = kids.find(c => c.id === event.child_id)
+                  return (
+                    <div key={event.id} className="flex items-start gap-2">
+                      <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-[#252525] leading-tight truncate">{event.title}</p>
+                        <p className="text-[10px] text-[#77716A] leading-tight">
+                          {event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')}
+                          {child ? ` · ${child.name}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            {/* Arrow */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 w-3 h-1.5 overflow-hidden">
+              <div className="w-3 h-3 bg-white border-r border-b border-[#EDE9E3] rotate-45 -mt-1.5 mx-auto shadow-sm" />
+            </div>
+          </div>
+        )}
+      </div>
     )
   }
 

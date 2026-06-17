@@ -81,7 +81,7 @@ function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit
   )
 }
 
-export function AgendaList({ mode, selectedDay, currentMonth, events, kids, onSelectDay, onEdit, onAdd }: AgendaListProps) {
+export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdit, onAdd }: AgendaListProps) {
   const rangeStart = mode === 'week'
     ? startOfWeek(selectedDay, { weekStartsOn: 1 })
     : selectedDay

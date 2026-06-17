@@ -1,26 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --nido-cream:     #FAF7F2;
+  --nido-white:     #FFFFFF;
+  --nido-charcoal:  #252525;
+  --nido-gray:      #77716A;
+  --nido-sage:      #8BA888;
+  --nido-terracota: #D8A48F;
+  --nido-sand:      #E9C46A;
+  --nido-red:       #D96C6C;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--nido-cream);
+  --color-foreground: var(--nido-charcoal);
+  --font-sans: var(--font-nunito), system-ui, sans-serif;
+
+  --color-nido-cream:     var(--nido-cream);
+  --color-nido-white:     var(--nido-white);
+  --color-nido-charcoal:  var(--nido-charcoal);
+  --color-nido-gray:      var(--nido-gray);
+  --color-nido-sage:      var(--nido-sage);
+  --color-nido-terracota: var(--nido-terracota);
+  --color-nido-sand:      var(--nido-sand);
+  --color-nido-red:       var(--nido-red);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-nunito), system-ui, sans-serif;
+  background-color: var(--nido-cream);
+  color: var(--nido-charcoal);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--nido-cream);
+  color: var(--nido-charcoal);
+  min-height: 100dvh;
 }
+
+/* Suavizar scrollbar en webkit */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4cfc9; border-radius: 2px; }

@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nido
 
-## Getting Started
+Nido es una app familiar privada para ver de un vistazo el calendario, las listas, las comidas y los documentos importantes de casa.
 
-First, run the development server:
+La pantalla principal debe responder con claridad a una pregunta:
+
+> ¿Qué tenemos que saber hoy en casa?
+
+## En una frase
+
+Una app familiar, mobile-first y privada para organizar el día a día sin convertirlo en un SaaS complejo.
+
+## Stack
+
+- Next.js con App Router.
+- React.
+- TypeScript.
+- Tailwind CSS.
+- Supabase, previsto para Auth, PostgreSQL, Storage y RLS.
+
+## Ejecutar en local
+
+```bash
+npm install
+npm run dev
+```
+
+Abrir:
+
+```text
+http://localhost:3000
+```
+
+Si Supabase no está configurado, la app funciona en modo demo con datos mock guardados en `localStorage`.
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run build
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Documentación interna
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [Estado del proyecto](./docs/project-status.md): qué está hecho, qué falta y cuál es el siguiente paso.
+- [Arquitectura](./docs/architecture.md): decisiones técnicas, modo demo, Supabase, repositorios y datos.
+- [Roadmap](./docs/roadmap.md): orden recomendado de trabajo por fases.
+- [Checklist de pruebas](./docs/testing-checklist.md): QA manual del MVP mock.
+- [Reglas para agentes](./AGENTS.md): normas para Codex, Claude u otros asistentes.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estructura principal
 
-## Learn More
+```text
+src/app                    Rutas de Next.js
+src/components             Componentes UI y pantallas
+src/lib/mock-store.ts      Store mock del modo demo
+src/lib/store-context.tsx  Contexto global actual
+src/lib/constants.ts       Constantes compartidas
+src/lib/date-utils.ts      Helpers de fecha local
+src/lib/validators.ts      Validaciones ligeras
+src/lib/selectors.ts       Selectores derivados
+src/lib/repos              Contratos y repositorios preparados para Supabase
+supabase/migrations        Esquema, RLS, RPCs, invitaciones y Storage
+docs                       Documentación de proyecto, QA y roadmap
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Principios
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Mobile-first.
+- Diseño cálido, limpio y familiar.
+- Arquitectura simple y mantenible.
+- Modo demo funcional hasta conectar Supabase.
+- Nada de ERP, backend complejo, Docker, NestJS o funcionalidades fuera del MVP.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

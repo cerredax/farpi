@@ -24,14 +24,23 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
         onClick={onClose}
       />
 
-      {/* Panel */}
+      {/* Panel — bottom sheet en móvil, modal centrado en desktop */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out max-h-[92dvh] flex flex-col ${
-          open ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        className={[
+          'fixed z-[60] bg-white shadow-2xl max-h-[92dvh] flex flex-col',
+          'transition-all duration-300 ease-out',
+          // Móvil: desliza desde abajo
+          'bottom-0 left-0 right-0 rounded-t-3xl',
+          // Desktop: modal centrado con ancho fijo
+          'md:bottom-auto md:left-1/2 md:right-auto md:top-1/2',
+          'md:w-[480px] md:max-h-[85dvh] md:rounded-3xl',
+          open
+            ? 'translate-y-0 md:-translate-x-1/2 md:-translate-y-1/2 md:opacity-100 md:scale-100'
+            : 'translate-y-full md:-translate-x-1/2 md:-translate-y-1/2 md:opacity-0 md:scale-95 md:pointer-events-none',
+        ].join(' ')}
       >
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+        {/* Handle — solo móvil */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0 md:hidden">
           <div className="w-10 h-1 rounded-full bg-[#E0DDD8]" />
         </div>
 

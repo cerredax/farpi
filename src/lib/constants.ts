@@ -18,8 +18,8 @@ export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
 export const MEAL_SLOTS: { key: MealSlot; label: string; emoji: string; order: number }[] = [
   { key: 'breakfast', label: 'Desayuno', emoji: '☀️',  order: 0 },
   { key: 'lunch',     label: 'Comida',   emoji: '🍽️', order: 1 },
-  { key: 'dinner',    label: 'Cena',     emoji: '🌙',  order: 2 },
-  { key: 'snack',     label: 'Merienda', emoji: '🍎',  order: 3 },
+  { key: 'snack',     label: 'Merienda', emoji: '🍎',  order: 2 },
+  { key: 'dinner',    label: 'Cena',     emoji: '🌙',  order: 3 },
 ]
 
 // ─── Tareas ───────────────────────────────────────────────────────────────────

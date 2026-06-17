@@ -2,13 +2,11 @@ import {
   addDays,
   compareAsc,
   eachDayOfInterval,
-  endOfMonth,
   endOfWeek,
   format,
   isSameDay,
   isToday,
   parseISO,
-  startOfMonth,
   startOfWeek,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -16,7 +14,7 @@ import { Clock, Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child } from '@/types'
 
-type AgendaMode = 'week' | 'month' | 'agenda'
+type AgendaMode = 'week' | 'agenda'
 
 interface AgendaListProps {
   mode: AgendaMode
@@ -86,39 +84,29 @@ function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit
 export function AgendaList({ mode, selectedDay, currentMonth, events, kids, onSelectDay, onEdit, onAdd }: AgendaListProps) {
   const rangeStart = mode === 'week'
     ? startOfWeek(selectedDay, { weekStartsOn: 1 })
-    : mode === 'agenda'
-      ? selectedDay
-      : startOfMonth(currentMonth)
+    : selectedDay
 
   const rangeEnd = mode === 'week'
     ? endOfWeek(selectedDay, { weekStartsOn: 1 })
-    : mode === 'agenda'
-      ? addDays(selectedDay, 45)
-      : endOfMonth(currentMonth)
+    : addDays(selectedDay, 45)
 
   const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => ({
     day,
     events: sortEvents(events.filter(event => isSameDay(parseISO(event.start_at), day))),
   }))
 
-  const visibleGroups = mode !== 'week'
-    ? dayGroups.filter(group => group.events.length > 0)
-    : dayGroups
+  const visibleGroups = mode === 'week'
+    ? dayGroups
+    : dayGroups.filter(group => group.events.length > 0 || isSameDay(group.day, selectedDay))
 
-  const headerTitle = mode === 'week'
-    ? 'Agenda semanal'
-    : mode === 'month'
-      ? 'Resumen mensual'
-      : 'Próximos eventos'
+  const headerTitle = mode === 'week' ? 'Agenda semanal' : 'Próximos eventos'
 
   const headerSubtitle = mode === 'week'
     ? `Del ${format(rangeStart, 'd MMM', { locale: es })} al ${format(rangeEnd, 'd MMM', { locale: es })}`
-    : mode === 'month'
-      ? capitalize(format(currentMonth, 'MMMM yyyy', { locale: es }))
-      : `Desde ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
+    : `Desde ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
 
   return (
-    <div className="flex-1 px-4 pt-4">
+    <div className="flex-1 px-4 pt-4 lg:px-0 lg:pt-0">
       <div className="flex items-center justify-between mb-3 px-1">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-[#77716A]">{headerTitle}</p>
@@ -140,7 +128,7 @@ export function AgendaList({ mode, selectedDay, currentMonth, events, kids, onSe
         >
           <EmptyState
             emoji="✨"
-            title={mode === 'week' ? 'Semana libre' : mode === 'month' ? 'Mes sin eventos' : 'Sin próximos eventos'}
+            title={mode === 'week' ? 'Semana libre' : 'Sin próximos eventos'}
             description="Toca para añadir un evento"
           />
         </button>
@@ -192,6 +180,16 @@ export function AgendaList({ mode, selectedDay, currentMonth, events, kids, onSe
                     {group.events.map(event => (
                       <EventRow key={event.id} event={event} kids={kids} onEdit={onEdit} />
                     ))}
+                  </div>
+                )}
+                {group.events.length === 0 && isSameDay(group.day, selectedDay) && (
+                  <div className="px-3 pb-3">
+                    <button
+                      onClick={() => onAdd(group.day)}
+                      className="w-full text-center text-xs text-[#8BA888] font-bold py-2.5 rounded-xl border border-dashed border-[#8BA888]/40 hover:border-[#8BA888] hover:bg-[#F1F5EF] transition-colors"
+                    >
+                      + Añadir evento este día
+                    </button>
                   </div>
                 )}
               </section>

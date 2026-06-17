@@ -14,6 +14,7 @@ interface MealSheetProps {
   mode: 'create' | 'edit'
   initial?: MealPlan | null
   defaultDate?: string
+  defaultSlot?: MealSlot
   occupiedSlots?: MealSlot[]
   onClose: () => void
   onCreate: (draft: MealDraft) => void
@@ -21,15 +22,31 @@ interface MealSheetProps {
   onDelete: (id: string) => void
 }
 
-function initDraft(mode: 'create' | 'edit', initial: MealPlan | null | undefined, defaultDate?: string): MealDraft {
+function initDraft(
+  mode: 'create' | 'edit',
+  initial: MealPlan | null | undefined,
+  defaultDate?: string,
+  defaultSlot: MealSlot = 'lunch',
+): MealDraft {
   if (mode === 'edit' && initial) {
     return { date: initial.date, slot: initial.slot, name: initial.name, notes: initial.notes ?? '' }
   }
-  return { date: defaultDate ?? getLocalDateString(), slot: 'lunch', name: '', notes: '' }
+  return { date: defaultDate ?? getLocalDateString(), slot: defaultSlot, name: '', notes: '' }
 }
 
-export function MealSheet({ open, mode, initial, defaultDate, occupiedSlots = [], onClose, onCreate, onUpdate, onDelete }: MealSheetProps) {
-  const [draft, setDraft] = useState<MealDraft>(() => initDraft(mode, initial, defaultDate))
+export function MealSheet({
+  open,
+  mode,
+  initial,
+  defaultDate,
+  defaultSlot,
+  occupiedSlots = [],
+  onClose,
+  onCreate,
+  onUpdate,
+  onDelete,
+}: MealSheetProps) {
+  const [draft, setDraft] = useState<MealDraft>(() => initDraft(mode, initial, defaultDate, defaultSlot))
   const { confirming: confirmDel, requestConfirm } = useConfirmAction()
   const inputRef = useRef<HTMLInputElement>(null)
 

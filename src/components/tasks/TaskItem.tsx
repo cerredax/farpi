@@ -36,16 +36,19 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
       <button
         onClick={onToggle}
         aria-label={task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
-        className="flex-shrink-0 flex items-center justify-center w-12 group"
+        className="flex-shrink-0 flex items-center justify-center w-12 min-h-[44px] active:bg-[#F0F7F0] transition-colors group"
       >
         <span
-          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
             task.completed
               ? 'bg-[#8BA888] border-[#8BA888]'
-              : 'border-[#C4BFB9] group-hover:border-[#8BA888]'
+              : 'border-[#C4BFB9] group-hover:border-[#8BA888] group-active:border-[#8BA888]'
           }`}
         >
-          {task.completed && <Check size={11} strokeWidth={3} className="text-white" />}
+          {task.completed
+            ? <Check size={13} strokeWidth={3} className="text-white" />
+            : <Check size={13} strokeWidth={3} className="text-[#C4BFB9] opacity-0 group-hover:opacity-60 group-active:opacity-60 transition-opacity" />
+          }
         </span>
       </button>
 

@@ -78,12 +78,16 @@ function ListDetailView({
         )}
 
         {pending.map(item => (
-          <div key={item.id} className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm flex items-center gap-3 px-3 py-3">
+          <div key={item.id} className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm flex items-center gap-2 px-2 py-2">
             <button
               onClick={() => onToggle(item.id)}
               aria-label="Marcar como hecho"
-              className="w-6 h-6 rounded-full border-2 border-[#C4BFB9] hover:border-[#8BA888] flex items-center justify-center flex-shrink-0 transition-colors"
-            />
+              className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 active:bg-[#F0F7F0] transition-colors group"
+            >
+              <span className="w-6 h-6 rounded-full border-2 border-[#C4BFB9] group-hover:border-[#8BA888] group-active:border-[#8BA888] flex items-center justify-center transition-colors">
+                <Check size={13} strokeWidth={3} className="text-[#C4BFB9] opacity-0 group-hover:opacity-60 group-active:opacity-60 transition-opacity" />
+              </span>
+            </button>
             <button
               onClick={() => onOpenEditItem(item)}
               className="flex-1 text-left text-sm font-medium text-[#252525] leading-snug"
@@ -104,13 +108,15 @@ function ListDetailView({
           <>
             <p className="text-xs font-bold text-[#77716A] uppercase tracking-widest pt-2 px-1">Hecho</p>
             {completed.map(item => (
-              <div key={item.id} className="bg-white rounded-2xl border border-[#F0EDE8] flex items-center gap-3 px-3 py-3 opacity-60">
+              <div key={item.id} className="bg-white rounded-2xl border border-[#F0EDE8] flex items-center gap-2 px-2 py-2 opacity-60">
                 <button
                   onClick={() => onToggle(item.id)}
                   aria-label="Marcar como pendiente"
-                  className="w-6 h-6 rounded-full bg-[#8BA888] border-2 border-[#8BA888] flex items-center justify-center flex-shrink-0"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 active:bg-[#F0F7F0] transition-colors"
                 >
-                  <Check size={12} strokeWidth={3} className="text-white" />
+                  <span className="w-6 h-6 rounded-full bg-[#8BA888] border-2 border-[#8BA888] flex items-center justify-center">
+                    <Check size={13} strokeWidth={3} className="text-white" />
+                  </span>
                 </button>
                 <button
                   onClick={() => onOpenEditItem(item)}

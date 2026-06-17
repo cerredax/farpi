@@ -45,10 +45,11 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
               : 'border-[#C4BFB9] group-hover:border-[#8BA888] group-active:border-[#8BA888]'
           }`}
         >
-          {task.completed
-            ? <Check size={13} strokeWidth={3} className="text-white" />
-            : <Check size={13} strokeWidth={3} className="text-[#C4BFB9] opacity-0 group-hover:opacity-60 group-active:opacity-60 transition-opacity" />
-          }
+          <Check
+            size={13}
+            strokeWidth={3}
+            className={task.completed ? 'text-white' : 'text-[#C4BFB9] group-hover:text-[#8BA888] transition-colors'}
+          />
         </span>
       </button>
 

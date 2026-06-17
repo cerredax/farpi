@@ -85,7 +85,7 @@ function ListDetailView({
               className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 active:bg-[#F0F7F0] transition-colors group"
             >
               <span className="w-6 h-6 rounded-full border-2 border-[#C4BFB9] group-hover:border-[#8BA888] group-active:border-[#8BA888] flex items-center justify-center transition-colors">
-                <Check size={13} strokeWidth={3} className="text-[#C4BFB9] opacity-0 group-hover:opacity-60 group-active:opacity-60 transition-opacity" />
+                <Check size={13} strokeWidth={3} className="text-[#C4BFB9] group-hover:text-[#8BA888] transition-colors" />
               </span>
             </button>
             <button

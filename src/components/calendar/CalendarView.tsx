@@ -4,14 +4,12 @@ import { useState } from 'react'
 import {
   addDays,
   addMonths,
-  endOfWeek,
   format,
   isSameMonth,
   isWithinInterval,
   parseISO,
   startOfDay,
   startOfMonth,
-  startOfWeek,
   subMonths,
 } from 'date-fns'
 import { useStore } from '@/lib/store-context'
@@ -69,8 +67,8 @@ export function CalendarView() {
   }
 
   const weekRange = {
-    start: startOfWeek(selectedDay, { weekStartsOn: 1 }),
-    end: endOfWeek(selectedDay, { weekStartsOn: 1 }),
+    start: startOfDay(today),
+    end: addDays(startOfDay(today), 7),
   }
 
   const agendaEvents = allEvents.filter(event => {

@@ -1,13 +1,15 @@
+'use client'
+
+import { useEffect } from 'react'
 import {
   addDays,
   compareAsc,
   eachDayOfInterval,
-  endOfWeek,
   format,
   isSameDay,
   isToday,
   parseISO,
-  startOfWeek,
+  startOfDay,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Clock, Plus } from 'lucide-react'
@@ -82,13 +84,15 @@ function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit
 }
 
 export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdit, onAdd }: AgendaListProps) {
-  const rangeStart = mode === 'week'
-    ? startOfWeek(selectedDay, { weekStartsOn: 1 })
-    : selectedDay
+  const todayStart = startOfDay(new Date())
+  const rangeStart = mode === 'week' ? todayStart : startOfDay(selectedDay)
+  const rangeEnd = mode === 'week' ? addDays(todayStart, 7) : addDays(startOfDay(selectedDay), 45)
 
-  const rangeEnd = mode === 'week'
-    ? endOfWeek(selectedDay, { weekStartsOn: 1 })
-    : addDays(selectedDay, 45)
+  useEffect(() => {
+    if (mode !== 'week') return
+    const el = document.getElementById(`day-${format(selectedDay, 'yyyyMMdd')}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [selectedDay, mode])
 
   const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => ({
     day,
@@ -102,7 +106,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
   const headerTitle = mode === 'week' ? 'Agenda semanal' : 'Próximos eventos'
 
   const headerSubtitle = mode === 'week'
-    ? `Del ${format(rangeStart, 'd MMM', { locale: es })} al ${format(rangeEnd, 'd MMM', { locale: es })}`
+    ? `Del ${format(rangeStart, "d 'de' MMMM", { locale: es })} al ${format(rangeEnd, "d 'de' MMMM", { locale: es })}`
     : `Desde ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
 
   return (
@@ -142,6 +146,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
             return (
               <section
                 key={group.day.toISOString()}
+                id={`day-${format(group.day, 'yyyyMMdd')}`}
                 className={`rounded-3xl border bg-white shadow-sm overflow-hidden transition-all ${
                   isSelected ? 'border-[#8BA888] ring-2 ring-[#8BA888]/10' : 'border-[#F0EDE8]'
                 }`}

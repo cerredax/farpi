@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Plus, Pencil, ChevronLeft, ChevronRight, Copy } from 'lucide-react'
 import { format, startOfWeek, addDays, isSameDay, addWeeks } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectMealsByCell, selectOccupiedMealSlots, selectSortedMeals } from '@/lib/selectors'
 import { MealSheet } from './MealSheet'
+import { CopyMealSheet } from './CopyMealSheet'
 import { Card } from '@/components/ui/Card'
 import { MEAL_SLOTS } from '@/lib/constants'
 import type { MealPlan, MealSlot } from '@/types'
@@ -46,12 +47,16 @@ function WeekGrid({
   mealsByCell,
   onCreate,
   onEdit,
+  onCopyDay,
+  hasMealsForDate,
   cellMinHeight = 118,
 }: {
   weekDays: Date[]
   mealsByCell: Map<string, MealPlan>
   onCreate: (date: string, slot: MealSlot) => void
   onEdit: (meal: MealPlan) => void
+  onCopyDay: (date: string) => void
+  hasMealsForDate: (date: string) => boolean
   cellMinHeight?: number
 }) {
   const today = new Date()
@@ -70,6 +75,7 @@ function WeekGrid({
             {weekDays.map(day => {
               const dayKey = format(day, 'yyyy-MM-dd')
               const todayColumn = isSameDay(day, today)
+              const hasMeals = hasMealsForDate(dayKey)
               return (
                 <div
                   key={dayKey}
@@ -83,6 +89,20 @@ function WeekGrid({
                   <p className="text-sm font-extrabold mt-0.5 text-[#252525]">
                     {format(day, 'd')}
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => onCopyDay(dayKey)}
+                    disabled={!hasMeals}
+                    className={`mx-auto mt-2 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold transition-colors ${
+                      hasMeals
+                        ? 'bg-white text-[#8BA888] shadow-sm hover:bg-[#F1F5EF]'
+                        : 'bg-white/50 text-[#C4BFB9] cursor-not-allowed'
+                    }`}
+                    aria-label={`Copiar menu del ${format(day, 'd MMM', { locale: es })}`}
+                  >
+                    <Copy size={10} strokeWidth={2.4} />
+                    Copiar
+                  </button>
                   {todayColumn && (
                     <span className="inline-block w-1 h-1 rounded-full bg-[#8BA888] mt-1" />
                   )}
@@ -168,7 +188,7 @@ function WeekGrid({
 type ViewMode = 'today' | 'week'
 
 export function MealsView() {
-  const { todayMeals, meals, createMeal, updateMeal, deleteMeal } = useStore()
+  const { todayMeals, meals, createMeal, copyMealDay, updateMeal, deleteMeal } = useStore()
 
   const [viewMode, setViewMode] = useState<ViewMode>('today')
   const [desktopWeekOffset, setDesktopWeekOffset] = useState(0)
@@ -177,6 +197,8 @@ export function MealsView() {
   const [sheetMode, setSheetMode] = useState<'create' | 'edit'>('create')
   const [sheetDate, setSheetDate] = useState<string | undefined>()
   const [sheetSlot, setSheetSlot] = useState<MealSlot | undefined>()
+  const [copySheetOpen, setCopySheetOpen] = useState(false)
+  const [copySourceDate, setCopySourceDate] = useState<string | null>(null)
 
   const sheetKey = editingMeal
     ? `edit-${editingMeal.id}`
@@ -184,6 +206,11 @@ export function MealsView() {
   const sortedTodayMeals = selectSortedMeals(todayMeals)
   const mealsByCell = selectMealsByCell(meals)
   const occupiedSlots = selectOccupiedMealSlots(meals, sheetDate)
+  const mealDates = useMemo(() => new Set(meals.map(meal => meal.date)), [meals])
+  const copySourceMeals = useMemo(
+    () => copySourceDate ? meals.filter(meal => meal.date === copySourceDate) : [],
+    [copySourceDate, meals],
+  )
 
   function openCreate(date?: string, slot?: MealSlot) {
     setEditingMeal(null)
@@ -201,6 +228,15 @@ export function MealsView() {
     setSheetOpen(true)
   }
 
+  function openCopyDay(date: string) {
+    setCopySourceDate(date)
+    setCopySheetOpen(true)
+  }
+
+  function handleCopyMenu(sourceDate: string, targetDate: string, repeatUntil?: string) {
+    copyMealDay(sourceDate, targetDate, repeatUntil)
+  }
+
   // Semana móvil (siempre la actual)
   const mobileWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
   const mobileWeekDays  = Array.from({ length: 7 }, (_, i) => addDays(mobileWeekStart, i))
@@ -215,19 +251,29 @@ export function MealsView() {
   const isCurrentDesktopWeek = desktopWeekOffset === 0
 
   const sharedSheet = (
-    <MealSheet
-      key={sheetKey}
-      open={sheetOpen}
-      mode={sheetMode}
-      initial={editingMeal}
-      defaultDate={sheetDate}
-      defaultSlot={sheetSlot}
-      occupiedSlots={occupiedSlots}
-      onClose={() => setSheetOpen(false)}
-      onCreate={createMeal}
-      onUpdate={updateMeal}
-      onDelete={deleteMeal}
-    />
+    <>
+      <MealSheet
+        key={sheetKey}
+        open={sheetOpen}
+        mode={sheetMode}
+        initial={editingMeal}
+        defaultDate={sheetDate}
+        defaultSlot={sheetSlot}
+        occupiedSlots={occupiedSlots}
+        onClose={() => setSheetOpen(false)}
+        onCreate={createMeal}
+        onUpdate={updateMeal}
+        onDelete={deleteMeal}
+      />
+      <CopyMealSheet
+        key={`copy-${copySheetOpen ? 'open' : 'closed'}-${copySourceDate ?? 'none'}`}
+        open={copySheetOpen}
+        sourceDate={copySourceDate}
+        sourceMeals={copySourceMeals}
+        onClose={() => setCopySheetOpen(false)}
+        onCopy={handleCopyMenu}
+      />
+    </>
   )
 
   return (
@@ -306,6 +352,8 @@ export function MealsView() {
               mealsByCell={mealsByCell}
               onCreate={openCreate}
               onEdit={openEdit}
+              onCopyDay={openCopyDay}
+              hasMealsForDate={(date) => mealDates.has(date)}
             />
           </div>
         )}
@@ -362,6 +410,8 @@ export function MealsView() {
           mealsByCell={mealsByCell}
           onCreate={openCreate}
           onEdit={openEdit}
+          onCopyDay={openCopyDay}
+          hasMealsForDate={(date) => mealDates.has(date)}
           cellMinHeight={96}
         />
       </div>

@@ -27,7 +27,7 @@ Persistencia:
 
 - Clave: `nido_store_v1`
 - Ubicación: `localStorage`
-- Versión interna: `SCHEMA_VER = 3`
+- Versión interna: `SCHEMA_VER = 6`
 
 El mock debe comportarse lo más parecido posible a Supabase:
 
@@ -51,6 +51,10 @@ Migraciones:
 - `002_rls_policies.sql` — RLS + función `my_family_ids()` (security definer, search_path fijo)
 - `003_rpc.sql` — `create_family_with_admin`, `update_my_family_profile`
 - `004_family_invites_storage.sql` — tabla `family_invites`, policies, bucket `documents`
+- `005_task_recurrence.sql` — columnas `recurrence` y `recurrence_end` en `tasks`
+- `006_event_recurrence.sql` — columna `recurrence_group_id` en `events`
+- `007_cross_family_integrity.sql` — triggers que impiden que `list_items`, `events` y `documents` crucen familias
+- `008_admin_rpcs.sql` — `remove_family_member`, `update_family_member_role` (security definer); reemplaza policy `Admin gestiona miembros` por `Admin inserta miembros`
 
 Regla central de RLS:
 
@@ -68,29 +72,12 @@ Detalles de seguridad:
 
 **Implementación:** No se implementa con policies RLS (que no tienen acceso fácil a recuentos de roles). Se implementará mediante RPCs `security definer` en Supabase.
 
-### RPCs previstas (Fase 4)
+### RPCs implementadas (migración 008)
 
-```sql
--- Eliminar miembro de una familia
--- Valida: llamante es admin, no se elimina el último admin
-create or replace function public.remove_family_member(member_id uuid)
-returns void ...
+- `remove_family_member(p_member_id uuid)` — elimina un miembro; valida que el llamante es admin y que no es el único admin.
+- `update_family_member_role(p_member_id uuid, p_role text)` — cambia el rol; mismas validaciones.
 
--- Cambiar rol de un miembro
--- Valida: llamante es admin, no degrada al último admin
-create or replace function public.update_family_member_role(member_id uuid, role text)
-returns void ...
-```
-
-Ambas RPCs deberán:
-
-1. Verificar que `auth.uid()` es admin de la familia del miembro objetivo.
-2. Contar los admins restantes antes de aplicar el cambio.
-3. Rechazar la operación si quedaría 0 admins.
-4. No permitir cambiar `family_id` ni `user_id`.
-5. Usar `security definer` + `set search_path = public`.
-
-La policy `Admin gestiona miembros` (`for all`) de `002_rls_policies.sql` puede mantenerse mientras no haya UI real para borrar/degradar miembros. En Fase 4 se sustituirá por policies más granulares o se dependerá solo de las RPCs.
+Ambas son `security definer` con `set search_path = public, auth`. La policy `Admin gestiona miembros` (`for all`) ha sido reemplazada por `Admin inserta miembros` (`for insert`) — UPDATE y DELETE solo se hacen vía RPC.
 
 ## Repositorios
 

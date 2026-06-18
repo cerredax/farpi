@@ -2,6 +2,16 @@ import type { MealPlan, MealDraft } from '@/types'
 import { getLocalDateString } from '../date-utils'
 import { db } from './db'
 
+function parseLocalDate(date: string): Date {
+  return new Date(`${date}T00:00:00`)
+}
+
+function nextLocalDate(date: string): string {
+  const d = parseLocalDate(date)
+  d.setDate(d.getDate() + 1)
+  return getLocalDateString(d)
+}
+
 export function getMeals(familyId: string): MealPlan[] {
   return db.mealPlans.filter(m => m.family_id === familyId)
 }
@@ -51,4 +61,30 @@ export function updateMeal(id: string, draft: MealDraft): void {
 
 export function deleteMeal(id: string): void {
   db.mealPlans = db.mealPlans.filter(m => m.id !== id)
+}
+
+export function copyMealDay(familyId: string, sourceDate: string, targetDate: string, repeatUntil?: string): MealPlan[] {
+  const sourceMeals = getMeals(familyId).filter(m => m.date === sourceDate)
+  if (sourceMeals.length === 0) return []
+
+  const copied: MealPlan[] = []
+  const endDate = repeatUntil && repeatUntil >= targetDate ? repeatUntil : targetDate
+  let currentDate = targetDate
+
+  while (currentDate <= endDate) {
+    if (currentDate !== sourceDate) {
+      db.mealPlans = db.mealPlans.filter(m => !(m.family_id === familyId && m.date === currentDate))
+      for (const meal of sourceMeals) {
+        copied.push(createMeal(familyId, {
+          date: currentDate,
+          slot: meal.slot,
+          name: meal.name,
+          notes: meal.notes ?? '',
+        }))
+      }
+    }
+    currentDate = nextLocalDate(currentDate)
+  }
+
+  return copied
 }

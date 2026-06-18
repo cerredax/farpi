@@ -20,6 +20,7 @@ export interface MembersRepo {
   getMembers(familyId: string): Promise<FamilyMember[]>
   updateMemberName(id: string, name: string): Promise<void>
   removeMember(id: string): Promise<void>
+  // TODO: updateMemberRole(id: string, role: 'admin' | 'member') — vía RPC update_family_member_role
 }
 
 export interface InvitesRepo {
@@ -40,6 +41,10 @@ export interface EventsRepo {
   createEvent(familyId: string, draft: EventDraft): Promise<Event>
   updateEvent(id: string, draft: EventDraft): Promise<void>
   deleteEvent(id: string): Promise<void>
+  // TODO: createEventSeries(familyId, draft, weekdays, endDate) — serie semanal
+  // TODO: createYearlySeries(familyId, draft, endYear) — serie anual (cumpleaños)
+  // TODO: getTodayEvents(familyId) — filtro por fecha local hoy
+  // TODO: getUpcomingEvents(familyId, limit) — próximos eventos
 }
 
 export interface TasksRepo {
@@ -71,6 +76,7 @@ export interface MealsRepo {
   createMeal(familyId: string, draft: MealDraft): Promise<MealPlan>
   updateMeal(id: string, draft: MealDraft): Promise<void>
   deleteMeal(id: string): Promise<void>
+  // TODO: copyMealDay(familyId, sourceDate, targetDate, repeatUntil?) — copiar/repetir comidas
 }
 
 export interface DocumentsRepo {

@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { ExternalLink, HeartHandshake, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useStore } from '@/lib/store-context'
 import { resetDemoData } from '@/lib/family-config'
+import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
@@ -10,6 +13,8 @@ import { FamilySheet } from './FamilySheet'
 import { MemberSheet } from './MemberSheet'
 import { ChildSheet } from './ChildSheet'
 import type { FamilyMember, Child, ChildDraft, Family } from '@/types'
+
+const DONATION_URL = process.env.NEXT_PUBLIC_DONATION_URL?.trim() ?? ''
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -20,6 +25,52 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   )
 }
 
+function DonationCard() {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-[#F0EDE8] bg-[#FFF8EF] px-4 py-4 shadow-sm">
+      <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-[#D8A48F]/25" />
+      <div className="absolute -bottom-10 left-8 h-20 w-20 rounded-full bg-[#8BA888]/20" />
+      <div className="relative space-y-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white text-[#8BA888] shadow-sm">
+            <HeartHandshake size={20} strokeWidth={2.3} />
+          </span>
+          <div>
+            <p className="text-sm font-black text-[#252525]">Apoya Nido</p>
+            <p className="mt-1 text-xs text-[#77716A] leading-relaxed">
+              Nido es gratuito. Si quieres ayudar a mantener el proyecto, puedes hacer una aportacion voluntaria.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white/75 px-3 py-3 text-[11px] text-[#77716A] leading-relaxed">
+          No es una compra ni una suscripcion. No desbloquea funciones premium y no es deducible fiscalmente para el donante.
+        </div>
+
+        {DONATION_URL ? (
+          <a
+            href={DONATION_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#5C7A59] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#4e6b4c]"
+          >
+            Apoyar el proyecto
+            <ExternalLink size={14} strokeWidth={2.4} />
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="w-full rounded-2xl bg-[#F0EDE8] px-4 py-3 text-sm font-bold text-[#A39B93] cursor-not-allowed"
+          >
+            Enlace de donacion pendiente
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function SettingsView() {
   const {
     family, families, activeFamilyId, switchFamily, createFamily,
@@ -27,6 +78,8 @@ export function SettingsView() {
     updateFamilyName, inviteMember, updateMember, removeMember, cancelInvite,
     createKid, updateKid, deleteKid,
   } = useStore()
+
+  const router = useRouter()
 
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
@@ -130,6 +183,24 @@ export function SettingsView() {
               {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
             </button>
           </div>
+        </Section>
+
+        {!IS_DEMO_MODE && (
+          <Section label="Cuenta">
+            <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4">
+              <button
+                onClick={async () => { await signOut(); router.replace('/auth/login') }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-[#77716A] border border-[#EDE9E3] hover:bg-[#F0EDE8] transition-colors"
+              >
+                <LogOut size={15} strokeWidth={2.2} />
+                Cerrar sesión
+              </button>
+            </div>
+          </Section>
+        )}
+
+        <Section label="Proyecto">
+          <DonationCard />
         </Section>
       </div>
 

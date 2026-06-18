@@ -30,6 +30,10 @@ if (typeof window !== 'undefined') {
 }
 
 interface StoreValue {
+  // SUPABASE SWAP: isLoading/error/reload are populated by async repo calls; mock always resolves.
+  isLoading: boolean
+  error: string | null
+  reload: () => void
   activeFamilyId: string
   families: Family[]
   switchFamily: (id: string) => void
@@ -215,6 +219,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   }, [fid, switchFamily])
 
   const value = useMemo<StoreValue>(() => ({
+    isLoading: false,
+    error: null,
+    reload: () => {},
     activeFamilyId: fid,
     families,
     family,

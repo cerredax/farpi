@@ -19,8 +19,8 @@ export interface FamilyRepo {
 export interface MembersRepo {
   getMembers(familyId: string): Promise<FamilyMember[]>
   updateMemberName(id: string, name: string): Promise<void>
+  updateMemberRole(id: string, role: 'admin' | 'member'): Promise<void>
   removeMember(id: string): Promise<void>
-  // TODO: updateMemberRole(id: string, role: 'admin' | 'member') — vía RPC update_family_member_role
 }
 
 export interface InvitesRepo {
@@ -38,13 +38,13 @@ export interface ChildrenRepo {
 
 export interface EventsRepo {
   getEvents(familyId: string): Promise<Event[]>
+  getTodayEvents(familyId: string): Promise<Event[]>
+  getUpcomingEvents(familyId: string, limit?: number): Promise<Event[]>
   createEvent(familyId: string, draft: EventDraft): Promise<Event>
+  createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string): Promise<Event[]>
+  createYearlySeries(familyId: string, draft: EventDraft, endYear: number): Promise<Event[]>
   updateEvent(id: string, draft: EventDraft): Promise<void>
   deleteEvent(id: string): Promise<void>
-  // TODO: createEventSeries(familyId, draft, weekdays, endDate) — serie semanal
-  // TODO: createYearlySeries(familyId, draft, endYear) — serie anual (cumpleaños)
-  // TODO: getTodayEvents(familyId) — filtro por fecha local hoy
-  // TODO: getUpcomingEvents(familyId, limit) — próximos eventos
 }
 
 export interface TasksRepo {
@@ -76,7 +76,7 @@ export interface MealsRepo {
   createMeal(familyId: string, draft: MealDraft): Promise<MealPlan>
   updateMeal(id: string, draft: MealDraft): Promise<void>
   deleteMeal(id: string): Promise<void>
-  // TODO: copyMealDay(familyId, sourceDate, targetDate, repeatUntil?) — copiar/repetir comidas
+  copyMealDay(familyId: string, sourceDate: string, targetDate: string, repeatUntil?: string): Promise<void>
 }
 
 export interface DocumentsRepo {
@@ -84,4 +84,19 @@ export interface DocumentsRepo {
   createDocument(familyId: string, draft: DocumentDraft): Promise<Document>
   updateDocument(id: string, draft: DocumentDraft): Promise<void>
   deleteDocument(id: string): Promise<void>
+}
+
+// ─── Aggregate ────────────────────────────────────────────────────────────────
+
+export interface Repos {
+  family: FamilyRepo
+  members: MembersRepo
+  invites: InvitesRepo
+  children: ChildrenRepo
+  events: EventsRepo
+  tasks: TasksRepo
+  lists: ListsRepo
+  listItems: ListItemsRepo
+  meals: MealsRepo
+  documents: DocumentsRepo
 }

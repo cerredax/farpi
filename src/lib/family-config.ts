@@ -16,6 +16,15 @@ export function writeActiveFamilyId(id: string): void {
   localStorage.setItem(ACTIVE_FAMILY_KEY, id)
 }
 
+/**
+ * Resuelve la familia activa para un usuario autenticado.
+ * SUPABASE SWAP: query family_members WHERE user_id = userId LIMIT 1
+ * and return the family_id. For now returns the stored local value.
+ */
+export function resolveActiveFamily(_userId?: string): string {
+  return readActiveFamilyId()
+}
+
 // Limpia todo el estado demo y recarga la página.
 // Útil para pruebas o cuando el esquema localStorage cambia de versión.
 export function resetDemoData(): void {

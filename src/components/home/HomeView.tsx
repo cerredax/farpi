@@ -1,9 +1,9 @@
 'use client'
 
-import { format } from 'date-fns'
+import { format, isToday, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CalendarDays, Heart, ListChecks, Utensils } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useStore } from '@/lib/store-context'
 import { selectTodayEvents, selectUpcomingEvents } from '@/lib/selectors'
@@ -12,6 +12,7 @@ import { TodayMeals } from './TodayMeals'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
+import type { Task } from '@/types'
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -41,8 +42,51 @@ function HomeStat({ icon, value, label }: { icon: ReactNode; value: number; labe
   )
 }
 
+function OffDayConfirmSheet({ task, onConfirm, onCancel }: { task: Task; onConfirm: () => void; onCancel: () => void }) {
+  const dueLabel = task.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/40" onClick={onCancel} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl px-5 pt-5 pb-8 max-w-lg mx-auto">
+        <div className="flex justify-center mb-4">
+          <span className="w-10 h-1 rounded-full bg-[#E0DDD8]" />
+        </div>
+        <h3 className="font-extrabold text-[#252525] text-base mb-2">Confirmar tarea</h3>
+        <p className="text-sm text-[#77716A] mb-1">
+          Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
+        </p>
+        <p className="text-sm text-[#77716A] mb-6">¿Marcarla como hecha hoy igualmente?</p>
+        <div className="space-y-2">
+          <button
+            onClick={onConfirm}
+            className="w-full py-3 rounded-2xl bg-[#8BA888] text-white text-sm font-semibold hover:bg-[#7a9877] transition-colors"
+          >
+            Sí, marcar como hecha
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full py-3 rounded-2xl text-sm font-semibold text-[#77716A] hover:bg-[#F0EDE8] transition-colors"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 export function HomeView() {
   const { kids, allEvents, pendingTasks, todayMeals, pendingItems, toggleTask, toggleListItem } = useStore()
+  const [confirmTask, setConfirmTask] = useState<Task | null>(null)
+
+  function handleTaskToggle(id: string) {
+    const task = pendingTasks.find(t => t.id === id)
+    if (task && task.due_date && !isToday(parseISO(task.due_date))) {
+      setConfirmTask(task)
+    } else {
+      toggleTask(id)
+    }
+  }
 
   const today       = new Date()
   const dayLabel    = capitalize(format(today, "EEEE, d 'de' MMMM", { locale: es }))
@@ -107,7 +151,14 @@ export function HomeView() {
 
       <TodayEvents events={todayEvents} kids={kids} />
       <TodayMeals meals={todayMeals} />
-      <HomeTasks pendingTasks={pendingTasks} onToggle={toggleTask} />
+      {confirmTask && (
+        <OffDayConfirmSheet
+          task={confirmTask}
+          onConfirm={() => { toggleTask(confirmTask.id); setConfirmTask(null) }}
+          onCancel={() => setConfirmTask(null)}
+        />
+      )}
+      <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <UpcomingEvents events={upcoming} kids={kids} />
 

@@ -10,7 +10,7 @@ import { useConfirmAction } from '@/hooks/useConfirmAction'
 import type { Event, Child, EventDraft } from '@/types'
 
 type Mode = 'create' | 'edit'
-type Recurrence = 'none' | 'weekly'
+type Recurrence = 'none' | 'weekly' | 'yearly'
 
 interface EventSheetProps {
   open: boolean
@@ -21,6 +21,7 @@ interface EventSheetProps {
   onClose: () => void
   onCreate: (draft: EventDraft) => void
   onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string) => void
+  onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
   onUpdate: (id: string, draft: EventDraft) => void
   onDelete: (id: string) => void
 }
@@ -93,11 +94,12 @@ function initDraft(mode: Mode, initial: Event | null | undefined, defaultDate: D
   }
 }
 
-export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, onCreate, onCreateSeries, onUpdate, onDelete }: EventSheetProps) {
+export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete }: EventSheetProps) {
   const [draft, setDraft] = useState<EventDraft>(() => initDraft(mode, initial, defaultDate))
   const [recurrence, setRecurrence] = useState<Recurrence>('none')
   const [recurrenceWeekdays, setRecurrenceWeekdays] = useState<number[]>([])
   const [recurrenceEnd, setRecurrenceEnd] = useState('')
+  const [recurrenceEndYear, setRecurrenceEndYear] = useState<number>(() => new Date().getFullYear() + 5)
   const weekdaysTouchedRef = useRef(false)
   const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
   const titleRef = useRef<HTMLInputElement>(null)
@@ -123,6 +125,10 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     setRecurrence('weekly')
   }
 
+  function handleSetYearly() {
+    setRecurrence('yearly')
+  }
+
   function toggleWeekday(day: number) {
     weekdaysTouchedRef.current = true
     setRecurrenceWeekdays(prev =>
@@ -141,6 +147,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     if (recurrence === 'weekly') {
       if (seriesError) return
       onCreateSeries?.(draft, recurrenceWeekdays, recurrenceEnd)
+    } else if (recurrence === 'yearly') {
+      if (yearlyError) return
+      onCreateYearlySeries?.(draft, recurrenceEndYear)
     } else {
       onCreate(draft)
     }
@@ -152,7 +161,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     requestConfirm(() => { onDelete(initial.id); onClose() })
   }
 
-  // ── Cálculos para la sección de series ──────────────────────────────────────
+  // ── Cálculos para series semanales ──────────────────────────────────────────
   const seriesCount = recurrence === 'weekly'
     ? countSeriesEvents(draft.date, recurrenceEnd, recurrenceWeekdays)
     : 0
@@ -166,9 +175,16 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     return null
   })() : null
 
-  const canSubmit = draft.title.trim().length > 0 && seriesError === null
+  // ── Cálculos para series anuales ─────────────────────────────────────────────
+  const startYear = parseInt(draft.date.slice(0, 4), 10)
+  const yearlyCount = recurrence === 'yearly' ? recurrenceEndYear - startYear + 1 : 0
+  const yearlyError: string | null = recurrence === 'yearly'
+    ? (recurrenceEndYear < startYear ? 'El año final debe ser igual o posterior al año de inicio' : null)
+    : null
 
-  // Preview text
+  const canSubmit = draft.title.trim().length > 0 && seriesError === null && yearlyError === null
+
+  // Preview text — semanal
   const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && recurrenceEnd && seriesCount > 0
   const previewDaysText = joinDayNames(recurrenceWeekdays)
   const previewEndText = recurrenceEnd
@@ -179,7 +195,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     ? 'Guardar cambios'
     : recurrence === 'weekly' && seriesCount > 0
       ? `Crear ${seriesCount} eventos`
-      : 'Crear evento'
+      : recurrence === 'yearly' && yearlyCount > 0
+        ? `Crear ${yearlyCount} evento${yearlyCount !== 1 ? 's' : ''}`
+        : 'Crear evento'
 
   const familyOption = { id: null as string | null, name: 'Familia', color: '#E9C46A' }
   const assignees = [familyOption, ...kids.map(c => ({ id: c.id as string | null, name: c.name, color: c.color }))]
@@ -270,20 +288,27 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
               <div className="space-y-3">
                 <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetición</label>
 
-                <div className="grid grid-cols-2 gap-1 rounded-2xl bg-[#F2EEE8] p-1">
+                <div className="grid grid-cols-3 gap-1 rounded-2xl bg-[#F2EEE8] p-1">
                   <button
                     type="button"
                     onClick={handleSetNone}
-                    className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${recurrence === 'none' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'none' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
                   >
                     No se repite
                   </button>
                   <button
                     type="button"
                     onClick={handleSetWeekly}
-                    className={`rounded-xl px-3 py-2 text-sm font-bold transition-colors ${recurrence === 'weekly' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'weekly' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
                   >
                     Cada semana
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSetYearly}
+                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'yearly' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+                  >
+                    Cada año
                   </button>
                 </div>
 
@@ -341,6 +366,38 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                     {/* Error de validación */}
                     {seriesError && (
                       <p className="text-xs font-bold text-[#D96C6C]">{seriesError}</p>
+                    )}
+                  </div>
+                )}
+
+                {recurrence === 'yearly' && (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetir hasta el año</label>
+                      <select
+                        value={recurrenceEndYear}
+                        onChange={e => setRecurrenceEndYear(Number(e.target.value))}
+                        className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+                      >
+                        {Array.from({ length: 31 }, (_, i) => startYear + i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {yearlyCount > 0 && !yearlyError && (
+                      <div className="rounded-2xl bg-[#F1F5EF] border border-[#8BA888]/25 p-3.5 space-y-1">
+                        <p className="text-sm text-[#252525] leading-snug">
+                          <span className="font-semibold">{draft.title.trim() || 'El evento'}</span>
+                          {' '}se añadirá cada año el mismo día hasta {recurrenceEndYear}.
+                        </p>
+                        <p className="text-sm font-bold text-[#8BA888]">Se crearán {yearlyCount} evento{yearlyCount !== 1 ? 's' : ''}.</p>
+                        <p className="text-xs text-[#77716A]">Podrás editar cada evento por separado.</p>
+                      </div>
+                    )}
+
+                    {yearlyError && (
+                      <p className="text-xs font-bold text-[#D96C6C]">{yearlyError}</p>
                     )}
                   </div>
                 )}

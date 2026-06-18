@@ -28,7 +28,7 @@ const VIEW_OPTIONS: Array<{ mode: CalendarViewMode; label: string; hint: string 
 ]
 
 export function CalendarView() {
-  const { kids, allEvents, createEvent, createEventSeries, updateEvent, deleteEvent } = useStore()
+  const { kids, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent } = useStore()
 
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
@@ -36,6 +36,11 @@ export function CalendarView() {
   const [viewMode, setViewMode]         = useState<CalendarViewMode>('week')
   const [sheetOpen, setSheetOpen]       = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+
+  const weekRange = {
+    start: startOfDay(today),
+    end: addDays(startOfDay(today), 7),
+  }
 
   function openCreate(day = selectedDay) {
     setSelectedDay(day)
@@ -48,6 +53,9 @@ export function CalendarView() {
   function selectDay(day: Date) {
     setSelectedDay(day)
     if (!isSameMonth(day, currentMonth)) setCurrentMonth(startOfMonth(day))
+    if (viewMode === 'week' && !isWithinInterval(startOfDay(day), weekRange)) {
+      setViewMode('agenda')
+    }
   }
 
   function handleCreate(draft: EventDraft) {
@@ -66,9 +74,13 @@ export function CalendarView() {
     }
   }
 
-  const weekRange = {
-    start: startOfDay(today),
-    end: addDays(startOfDay(today), 7),
+  function handleCreateYearlySeries(draft: EventDraft, endYear: number) {
+    const created = createYearlySeries(draft, endYear)
+    if (created.length > 0) {
+      const firstDate = parseISO(created[0].start_at)
+      setSelectedDay(firstDate)
+      setCurrentMonth(startOfMonth(firstDate))
+    }
   }
 
   const agendaEvents = allEvents.filter(event => {
@@ -166,6 +178,7 @@ export function CalendarView() {
         onClose={() => setSheetOpen(false)}
         onCreate={handleCreate}
         onCreateSeries={handleCreateSeries}
+        onCreateYearlySeries={handleCreateYearlySeries}
         onUpdate={updateEvent}
         onDelete={deleteEvent}
       />

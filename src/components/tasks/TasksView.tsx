@@ -12,9 +12,10 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { TASK_RECURRENCES } from '@/lib/constants'
 import type { Task, TaskDraft } from '@/types'
 
-function RecurringConfirmDialog({ task, onConfirm, onCancel }: { task: Task; onConfirm: () => void; onCancel: () => void }) {
-  const recLabel = TASK_RECURRENCES.find(r => r.value === task.recurrence)?.label ?? ''
+function OffDayConfirmDialog({ task, onConfirm, onCancel }: { task: Task; onConfirm: () => void; onCancel: () => void }) {
   const dueLabel = task.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
+  const isRecurring = task.recurrence !== 'none'
+  const recLabel = isRecurring ? TASK_RECURRENCES.find(r => r.value === task.recurrence)?.label ?? '' : ''
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/40" onClick={onCancel} />
@@ -24,11 +25,17 @@ function RecurringConfirmDialog({ task, onConfirm, onCancel }: { task: Task; onC
         </div>
         <div className="flex items-center gap-2 mb-2">
           <Repeat2 size={18} className="text-[#8BA888]" />
-          <h3 className="font-extrabold text-[#252525] text-base">Tarea recurrente</h3>
+          <h3 className="font-extrabold text-[#252525] text-base">Confirmar tarea</h3>
         </div>
-        <p className="text-sm text-[#77716A] mb-1">
-          Esta tarea es <strong>{recLabel.toLowerCase()}</strong> y toca el <strong>{dueLabel}</strong>.
-        </p>
+        {isRecurring ? (
+          <p className="text-sm text-[#77716A] mb-1">
+            Esta tarea es <strong>{recLabel.toLowerCase()}</strong> y toca el <strong>{dueLabel}</strong>.
+          </p>
+        ) : (
+          <p className="text-sm text-[#77716A] mb-1">
+            Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
+          </p>
+        )}
         <p className="text-sm text-[#77716A] mb-6">¿Marcarla como hecha hoy igualmente?</p>
         <div className="space-y-2">
           <button
@@ -63,8 +70,8 @@ export function TasksView() {
   function openEdit(task: Task) { setEditingTask(task); setSheetOpen(true) }
 
   function handleToggle(task: Task) {
-    const isOffDay = task.recurrence !== 'none' && !task.completed && task.due_date && !isToday(parseISO(task.due_date))
-    if (isOffDay) { setConfirmTask(task); return }
+    const needsConfirm = !task.completed && task.due_date && !isToday(parseISO(task.due_date))
+    if (needsConfirm) { setConfirmTask(task); return }
     toggleTask(task.id)
   }
 
@@ -73,7 +80,7 @@ export function TasksView() {
   return (
     <>
       {confirmTask && (
-        <RecurringConfirmDialog
+        <OffDayConfirmDialog
           task={confirmTask}
           onConfirm={() => { toggleTask(confirmTask.id); setConfirmTask(null) }}
           onCancel={() => setConfirmTask(null)}

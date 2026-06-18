@@ -69,6 +69,25 @@ export function deleteEvent(id: string): void {
   db.events = db.events.filter(e => e.id !== id)
 }
 
+export function createYearlySeries(
+  familyId: string,
+  draft: EventDraft,
+  endYear: number,
+): Event[] {
+  const groupId = crypto.randomUUID()
+  const created: Event[] = []
+  const startYear = parseInt(draft.date.slice(0, 4), 10)
+  const mmdd = draft.date.slice(5) // "MM-DD"
+
+  for (let year = startYear; year <= endYear; year++) {
+    const e = buildEventFromDraft(familyId, { ...draft, date: `${year}-${mmdd}` }, groupId)
+    db.events = [...db.events, e]
+    created.push(e)
+  }
+
+  return created
+}
+
 export function createEventSeries(
   familyId: string,
   draft: EventDraft,

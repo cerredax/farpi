@@ -57,6 +57,7 @@ interface StoreValue {
   deleteKid: (id: string) => void
   createEvent: (draft: EventDraft) => Event
   createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) => Event[]
+  createYearlySeries: (draft: EventDraft, endYear: number) => Event[]
   updateEvent: (id: string, draft: EventDraft) => void
   deleteEvent: (id: string) => void
   createTask: (draft: TaskDraft) => void
@@ -71,6 +72,7 @@ interface StoreValue {
   deleteListItem: (id: string) => void
   toggleListItem: (id: string) => void
   createMeal: (draft: MealDraft) => void
+  copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => void
   updateMeal: (id: string, draft: MealDraft) => void
   deleteMeal: (id: string) => void
   createDocument: (draft: DocumentDraft) => void
@@ -92,6 +94,7 @@ type StoreActions = Pick<
   | 'deleteKid'
   | 'createEvent'
   | 'createEventSeries'
+  | 'createYearlySeries'
   | 'updateEvent'
   | 'deleteEvent'
   | 'createTask'
@@ -106,6 +109,7 @@ type StoreActions = Pick<
   | 'deleteListItem'
   | 'toggleListItem'
   | 'createMeal'
+  | 'copyMealDay'
   | 'updateMeal'
   | 'deleteMeal'
   | 'createDocument'
@@ -181,6 +185,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createEvent: (draft: EventDraft) => mutate(() => store.createEvent(fid, draft), refreshEvents),
       createEventSeries: (draft: EventDraft, days: number[], end: string) =>
         mutate(() => store.createEventSeries(fid, draft, days, end), refreshEvents),
+      createYearlySeries: (draft: EventDraft, endYear: number) =>
+        mutate(() => store.createYearlySeries(fid, draft, endYear), refreshEvents),
       updateEvent: (id: string, draft: EventDraft) => mutate(() => store.updateEvent(id, draft), refreshEvents),
       deleteEvent: (id: string) => mutate(() => store.deleteEvent(id), refreshEvents),
       createTask: (draft: TaskDraft) => mutate(() => store.createTask(fid, draft), refreshTasks),
@@ -197,6 +203,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       deleteListItem: (id: string) => mutate(() => store.deleteListItem(id), refreshListItems),
       toggleListItem: (id: string) => mutate(() => store.toggleListItem(id), refreshListItems),
       createMeal: (draft: MealDraft) => mutate(() => store.createMeal(fid, draft), refreshMeals),
+      copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) =>
+        mutate(() => store.copyMealDay(fid, sourceDate, targetDate, repeatUntil), refreshMeals),
       updateMeal: (id: string, draft: MealDraft) => mutate(() => store.updateMeal(id, draft), refreshMeals),
       deleteMeal: (id: string) => mutate(() => store.deleteMeal(id), refreshMeals),
       createDocument: (draft: DocumentDraft) => mutate(() => store.createDocument(fid, draft), refreshDocuments),

@@ -5,7 +5,7 @@ export async function updateSession(request: NextRequest) {
   // Sin credenciales de Supabase, dejamos pasar todas las rutas (modo desarrollo)
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!supabaseUrl || supabaseUrl === 'your-supabase-project-url') {
+  if (!supabaseUrl || supabaseUrl === 'your-supabase-project-url' || !supabaseKey) {
     return NextResponse.next({ request })
   }
 

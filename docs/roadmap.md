@@ -19,7 +19,7 @@ Objetivo: dejar el MVP mock y las migraciones listas para una primera subida seg
 - ✅ `npm run lint` sin warnings.
 - ✅ `npm run build` sin errores.
 
-## Fase 2 - QA visual del MVP mock ← ACTUAL
+## Fase 2 - QA visual del MVP mock
 
 Objetivo: detectar problemas baratos de corregir antes de depender de datos reales.
 
@@ -32,20 +32,26 @@ Objetivo: detectar problemas baratos de corregir antes de depender de datos real
 
 Documento guía: `docs/testing-checklist.md`
 
-## Fase 3 - Subir Supabase
+## Fase 3 - Supabase aislado ← ACTUAL
 
-Objetivo: validar base de datos, RLS, RPCs y Storage sin conectar todavía toda la UI.
+Objetivo: validar base de datos, RLS, RPCs y Storage en el proyecto Supabase ya creado, sin conectar todavía toda la UI.
 
-- Crear proyecto Supabase.
-- Ejecutar migraciones 001–004.
-- Revisar tablas y columnas.
-- Revisar policies RLS.
-- Probar RPC `create_family_with_admin`.
-- Probar RPC `update_my_family_profile`.
-- Crear dos usuarios.
-- Crear dos familias.
-- Verificar aislamiento por RLS.
-- Verificar bucket privado `documents`.
+- ✅ Crear proyecto Supabase.
+- ✅ Subir migraciones base.
+- [ ] Confirmar orden y aplicación de migraciones 001–009.
+- [ ] Revisar tablas, columnas, índices y triggers.
+- [ ] Revisar policies RLS.
+- [ ] Probar RPC `create_family_with_admin`.
+- [ ] Probar RPC `update_my_family_profile`.
+- [ ] Probar RPC `remove_family_member`.
+- [ ] Probar RPC `update_family_member_role`.
+- [ ] Probar RPC `accept_family_invite`.
+- [ ] Crear dos usuarios.
+- [ ] Crear dos familias.
+- [ ] Verificar aislamiento por RLS.
+- [ ] Verificar bucket privado `documents`.
+- [ ] Ejecutar o completar `supabase/validate_rls.sql`.
+- [ ] Documentar resultados en `docs/supabase-validation.md`.
 
 ## Fase 4 - Repositorios Supabase
 
@@ -55,8 +61,9 @@ Objetivo: implementar acceso a datos real sin reescribir pantallas.
 - Familia, miembros, invitaciones.
 - Hijos, eventos, tareas.
 - Listas e ítems, comidas, documentos (metadata).
-- Implementar RPC `remove_family_member` con control de último admin.
-- Implementar RPC `update_family_member_role` con control de último admin.
+- Usar RPC `remove_family_member` para borrar miembros.
+- Usar RPC `update_family_member_role` para cambiar roles.
+- Usar RPC `accept_family_invite` para aceptar invitaciones.
 - Reemplazar `useFamily.ts` experimental por el patrón definitivo.
 
 ## Fase 5 - StoreProvider async

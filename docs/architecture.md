@@ -2,7 +2,7 @@
 
 ## Objetivo técnico
 
-Mantener Nido simple: una app web privada, mobile-first y preparada para Supabase sin introducir backend complejo.
+Mantener Nido simple: una app web privada, mobile-first, con Supabase como backend base y sin introducir backend complejo.
 
 ## Capas actuales
 
@@ -13,7 +13,7 @@ UI / Pantallas
       -> localStorage
 ```
 
-La app todavía no consume Supabase desde la UI. El modo demo es la fuente de datos activa.
+La app todavía no consume Supabase desde la UI de forma general. El modo demo sigue siendo la fuente de datos activa mientras se validan RLS, RPCs y Storage.
 
 ## Modo demo
 
@@ -36,14 +36,21 @@ El mock debe comportarse lo más parecido posible a Supabase:
 - Comidas sin duplicados por familia, fecha y slot.
 - Invitaciones separadas de miembros reales.
 
-## Supabase previsto
+## Supabase
 
-Usos previstos:
+Usos:
 
 - Auth.
 - PostgreSQL.
 - Row Level Security.
 - Storage privado para documentos.
+
+Estado:
+
+- Proyecto Supabase creado.
+- Migraciones base subidas/preparadas.
+- Validación aislada en curso.
+- UI todavía pendiente de conectar mediante repositorios reales.
 
 Migraciones:
 
@@ -55,6 +62,7 @@ Migraciones:
 - `006_event_recurrence.sql` — columna `recurrence_group_id` en `events`
 - `007_cross_family_integrity.sql` — triggers que impiden que `list_items`, `events` y `documents` crucen familias
 - `008_admin_rpcs.sql` — `remove_family_member`, `update_family_member_role` (security definer); reemplaza policy `Admin gestiona miembros` por `Admin inserta miembros`
+- `009_accept_invite_rpc.sql` — `accept_family_invite(invite_id)` (security definer): crea `family_member` y marca la invitación como aceptada; devuelve el `family_id`
 
 Regla central de RLS:
 
@@ -70,14 +78,28 @@ Detalles de seguridad:
 
 **Decisión de producto:** Una familia debe tener siempre al menos un admin. Está prohibido eliminar o degradar al único admin de una familia.
 
-**Implementación:** No se implementa con policies RLS (que no tienen acceso fácil a recuentos de roles). Se implementará mediante RPCs `security definer` en Supabase.
+**Implementación:** No se implementa con policies RLS (que no tienen acceso fácil a recuentos de roles). Se implementa mediante RPCs `security definer` en Supabase.
 
 ### RPCs implementadas (migración 008)
 
 - `remove_family_member(p_member_id uuid)` — elimina un miembro; valida que el llamante es admin y que no es el único admin.
 - `update_family_member_role(p_member_id uuid, p_role text)` — cambia el rol; mismas validaciones.
 
-Ambas son `security definer` con `set search_path = public, auth`. La policy `Admin gestiona miembros` (`for all`) ha sido reemplazada por `Admin inserta miembros` (`for insert`) — UPDATE y DELETE solo se hacen vía RPC.
+Ambas son `security definer` con `set search_path = public, auth`. La policy `Admin gestiona miembros` (`for all`) queda reemplazada por `Admin inserta miembros` (`for insert`) — UPDATE y DELETE deben hacerse vía RPC.
+
+### Invitaciones
+
+La migración `009_accept_invite_rpc.sql` añade `accept_family_invite(invite_id uuid)`.
+
+Esta RPC:
+
+1. Verifica que el usuario está autenticado.
+2. Busca una invitación pendiente para el email del usuario.
+3. Crea el `family_member`.
+4. Marca la invitación como `accepted`.
+5. Devuelve el `family_id`.
+
+Pendiente de producto: decidir el canal de entrega de invitaciones (magic link, deep link o email con instrucciones).
 
 ## Repositorios
 
@@ -94,7 +116,7 @@ UI / Pantallas
       -> mockRepository o supabaseRepository
 ```
 
-Esto permitirá mantener modo demo y Supabase sin duplicar la UI.
+Esto permitirá mantener modo demo y Supabase sin duplicar la UI. La siguiente etapa técnica es implementar repositorios reales y hacer que `StoreProvider` consuma la frontera async de repositorios en lugar del store mock directo.
 
 El hook `src/hooks/useFamily.ts` es experimental y no está conectado a ninguna UI. Será reemplazado por los repositorios definitivos en Fase 4.
 
@@ -136,7 +158,7 @@ Los sheets deben funcionar bien en móvil pequeño:
 
 ## Decisiones pendientes
 
-- Cómo aceptar invitaciones reales (email + deep link o magic link).
+- Cómo entregar invitaciones reales (email + deep link o magic link).
 - Cómo representar familia activa con Supabase (sesión + tabla de miembros).
 - Si el modo demo será permanente o solo de desarrollo.
 - Cuándo migrar `StoreProvider` a acciones async (Fase 5).

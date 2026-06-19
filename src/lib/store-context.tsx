@@ -1,8 +1,9 @@
 'use client'
 
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import * as store from './mock-store'
 import { DEFAULT_FAMILY_ID, writeActiveFamilyId } from './family-config'
+import { IS_DEMO_MODE } from './supabase/client'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import type {
   Child,
@@ -52,7 +53,7 @@ interface StoreValue {
   pendingTasks: Task[]
   pendingItems: PendingItem[]
   updateFamilyName: (name: string) => void
-  inviteMember: (email: string) => void
+  inviteMember: (email: string) => Promise<void>
   updateMember: (id: string, name: string) => void
   removeMember: (id: string) => void
   cancelInvite: (id: string) => void
@@ -148,6 +149,21 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [meals, setMeals] = useState<MealPlan[]>(() => store.getMeals(fid))
   const [documents, setDocuments] = useState<Document[]>(() => store.getDocuments(fid))
 
+  // SUPABASE SWAP: reload will re-fetch all slices from Supabase; mock re-reads from in-memory store.
+  const reload = useCallback(() => {
+    setFamily(store.getFamily(fid)!)
+    setFamilies(store.getFamilies())
+    setMembers(store.getMembers(fid))
+    setInvites(store.getInvites(fid))
+    setKids(store.getKids(fid))
+    setEvents(store.getEvents(fid))
+    setTasks(store.getTasks(fid))
+    setLists(store.getLists(fid))
+    setListItems(store.getListItems(fid))
+    setMeals(store.getMeals(fid))
+    setDocuments(store.getDocuments(fid))
+  }, [fid])
+
   const todayMeals = useMemo(() => selectTodayMeals(meals), [meals])
   const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
   const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
@@ -179,7 +195,20 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         switchFamily(created.id)
       },
       updateFamilyName: (name: string) => mutate(() => store.setFamilyName(fid, name), refreshFamily),
-      inviteMember: (email: string) => mutate(() => store.createInvite(fid, email), refreshInvites),
+      inviteMember: IS_DEMO_MODE
+        ? (email: string) => Promise.resolve(void mutate(() => store.createInvite(fid, email), refreshInvites))
+        : async (email: string) => {
+            const res = await fetch('/api/invite', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ familyId: fid, email }),
+            })
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({})) as { error?: string }
+              throw new Error(body.error ?? 'Error al enviar la invitación')
+            }
+            // SUPABASE SWAP: refreshInvites aquí leerá de Supabase cuando repos estén conectados.
+          },
       updateMember: (id: string, name: string) => mutate(() => store.updateMemberName(id, name), refreshMembers),
       removeMember: (id: string) => mutate(() => store.removeMember(id), refreshMembers),
       cancelInvite: (id: string) => mutate(() => store.cancelInvite(id), refreshInvites),
@@ -221,7 +250,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const value = useMemo<StoreValue>(() => ({
     isLoading: false,
     error: null,
-    reload: () => {},
+    reload,
     activeFamilyId: fid,
     families,
     family,
@@ -254,6 +283,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     todayMeals,
     pendingTasks,
     pendingItems,
+    reload,
     actions,
   ])
 

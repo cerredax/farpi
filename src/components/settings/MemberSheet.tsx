@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
@@ -15,7 +15,7 @@ interface MemberSheetProps {
   mode: Mode
   initial?: FamilyMember | null
   onClose: () => void
-  onInvite: (email: string) => void
+  onInvite: (email: string) => Promise<void>
   onUpdate: (id: string, name: string) => void
   onRemove: (id: string) => void
 }
@@ -29,6 +29,8 @@ function initDraft(mode: Mode, initial: FamilyMember | null | undefined) {
 
 export function MemberSheet({ open, mode, initial, onClose, onInvite, onUpdate, onRemove }: MemberSheetProps) {
   const [draft, setDraft] = useState(() => initDraft(mode, initial))
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
   const { confirming: confirmRemove, requestConfirm } = useConfirmAction()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -40,12 +42,20 @@ export function MemberSheet({ open, mode, initial, onClose, onInvite, onUpdate, 
     e.preventDefault()
     if (mode === 'invite') {
       if (!isValidEmail(draft.email)) return
-      onInvite(draft.email.trim())
+      setInviteError(null)
+      startTransition(async () => {
+        try {
+          await onInvite(draft.email.trim())
+          onClose()
+        } catch (err) {
+          setInviteError(err instanceof Error ? err.message : 'Error al enviar la invitación')
+        }
+      })
     } else {
       if (!draft.name.trim() || !initial) return
       onUpdate(initial.id, draft.name.trim())
+      onClose()
     }
-    onClose()
   }
 
   function handleRemove() {
@@ -60,9 +70,9 @@ export function MemberSheet({ open, mode, initial, onClose, onInvite, onUpdate, 
         form="member-form"
         fullWidth
         size="lg"
-        disabled={mode === 'invite' ? !isValidEmail(draft.email) : !draft.name.trim()}
+        disabled={isPending || (mode === 'invite' ? !isValidEmail(draft.email) : !draft.name.trim())}
       >
-        {mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
+        {isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
       </Button>
       {mode === 'edit' && (
         <button
@@ -94,14 +104,18 @@ export function MemberSheet({ open, mode, initial, onClose, onInvite, onUpdate, 
               ref={inputRef}
               type="email"
               value={draft.email}
-              onChange={e => setDraft(d => ({ ...d, email: e.target.value }))}
+              onChange={e => { setDraft(d => ({ ...d, email: e.target.value })); setInviteError(null) }}
               placeholder="correo@ejemplo.com"
               required
               className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
             />
-            <p className="text-[10px] text-[#C4BFB9]">
-              En modo demo, la invitación no se envía. El email queda guardado como referencia.
-            </p>
+            {inviteError ? (
+              <p className="text-[11px] text-[#D96C6C] font-medium">{inviteError}</p>
+            ) : (
+              <p className="text-[10px] text-[#C4BFB9]">
+                En modo demo, la invitación no se envía. El email queda guardado como referencia.
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-1.5">

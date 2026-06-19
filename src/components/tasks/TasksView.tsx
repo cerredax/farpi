@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, ChevronDown, ChevronRight, Repeat2 } from 'lucide-react'
+import { Plus, ChevronDown, ChevronRight } from 'lucide-react'
 import { isToday, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
@@ -9,35 +9,21 @@ import { selectTaskGroups } from '@/lib/selectors'
 import { TaskItem } from './TaskItem'
 import { TaskSheet } from './TaskSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { BottomSheet } from '@/components/ui/BottomSheet'
 import { TASK_RECURRENCES } from '@/lib/constants'
 import type { Task, TaskDraft } from '@/types'
 
-function OffDayConfirmDialog({ task, onConfirm, onCancel }: { task: Task; onConfirm: () => void; onCancel: () => void }) {
-  const dueLabel = task.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
-  const isRecurring = task.recurrence !== 'none'
-  const recLabel = isRecurring ? TASK_RECURRENCES.find(r => r.value === task.recurrence)?.label ?? '' : ''
+function OffDayConfirmDialog({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
+  const dueLabel = task?.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
+  const isRecurring = task ? task.recurrence !== 'none' : false
+  const recLabel = isRecurring && task ? TASK_RECURRENCES.find(r => r.value === task.recurrence)?.label ?? '' : ''
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/40" onClick={onCancel} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl px-5 pt-5 pb-8 max-w-lg mx-auto">
-        <div className="flex justify-center mb-4">
-          <span className="w-10 h-1 rounded-full bg-[#E0DDD8]" />
-        </div>
-        <div className="flex items-center gap-2 mb-2">
-          <Repeat2 size={18} className="text-[#8BA888]" />
-          <h3 className="font-extrabold text-[#252525] text-base">Confirmar tarea</h3>
-        </div>
-        {isRecurring ? (
-          <p className="text-sm text-[#77716A] mb-1">
-            Esta tarea es <strong>{recLabel.toLowerCase()}</strong> y toca el <strong>{dueLabel}</strong>.
-          </p>
-        ) : (
-          <p className="text-sm text-[#77716A] mb-1">
-            Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
-          </p>
-        )}
-        <p className="text-sm text-[#77716A] mb-6">¿Marcarla como hecha hoy igualmente?</p>
-        <div className="space-y-2">
+    <BottomSheet
+      open={open}
+      title="Confirmar tarea"
+      onClose={onCancel}
+      footer={
+        <div className="px-5 py-4 space-y-2">
           <button
             onClick={onConfirm}
             className="w-full py-3 rounded-2xl bg-[#8BA888] text-white text-sm font-semibold hover:bg-[#7a9877] transition-colors"
@@ -51,8 +37,21 @@ function OffDayConfirmDialog({ task, onConfirm, onCancel }: { task: Task; onConf
             Cancelar
           </button>
         </div>
+      }
+    >
+      <div className="px-5 pb-4">
+        {isRecurring ? (
+          <p className="text-sm text-[#77716A] mb-1">
+            Esta tarea es <strong>{recLabel.toLowerCase()}</strong> y toca el <strong>{dueLabel}</strong>.
+          </p>
+        ) : (
+          <p className="text-sm text-[#77716A] mb-1">
+            Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
+          </p>
+        )}
+        <p className="text-sm text-[#77716A]">¿Marcarla como hecha hoy igualmente?</p>
       </div>
-    </>
+    </BottomSheet>
   )
 }
 
@@ -79,13 +78,12 @@ export function TasksView() {
 
   return (
     <>
-      {confirmTask && (
-        <OffDayConfirmDialog
-          task={confirmTask}
-          onConfirm={() => { toggleTask(confirmTask.id); setConfirmTask(null) }}
-          onCancel={() => setConfirmTask(null)}
-        />
-      )}
+      <OffDayConfirmDialog
+        open={!!confirmTask}
+        task={confirmTask}
+        onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}
+        onCancel={() => setConfirmTask(null)}
+      />
       <div className="max-w-lg mx-auto px-4 py-4 pb-28">
         <section className="space-y-2">
           <div className="flex items-center justify-between px-1 mb-3">

@@ -16,7 +16,7 @@ Una app familiar, mobile-first y privada para organizar el día a día sin conve
 - React.
 - TypeScript.
 - Tailwind CSS.
-- Supabase, previsto para Auth, PostgreSQL, Storage y RLS.
+- Supabase para Auth, PostgreSQL, Storage y RLS.
 
 ## Ejecutar en local
 
@@ -31,7 +31,7 @@ Abrir:
 http://localhost:3000
 ```
 
-Si Supabase no está configurado, la app funciona en modo demo con datos mock guardados en `localStorage`.
+La UI sigue pudiendo funcionar en modo demo con datos mock guardados en `localStorage`. Supabase ya está subido como backend base y se valida de forma aislada antes de conectar toda la app a datos reales.
 
 ## Scripts
 
@@ -48,6 +48,7 @@ npm run start
 - [Arquitectura](./docs/architecture.md): decisiones técnicas, modo demo, Supabase, repositorios y datos.
 - [Roadmap](./docs/roadmap.md): orden recomendado de trabajo por fases.
 - [Checklist de pruebas](./docs/testing-checklist.md): QA manual del MVP mock.
+- [Validación Supabase](./docs/supabase-validation.md): pruebas de migraciones, RLS, RPCs y Storage.
 - [Reglas para agentes](./AGENTS.md): normas para Codex, Claude u otros asistentes.
 
 ## Estructura principal
@@ -62,7 +63,7 @@ src/lib/date-utils.ts      Helpers de fecha local
 src/lib/validators.ts      Validaciones ligeras
 src/lib/selectors.ts       Selectores derivados
 src/lib/repos              Contratos y repositorios preparados para Supabase
-supabase/migrations        Esquema, RLS, RPCs, invitaciones y Storage
+supabase/migrations        Esquema, RLS, RPCs, integridad, invitaciones y Storage
 docs                       Documentación de proyecto, QA y roadmap
 ```
 
@@ -73,4 +74,3 @@ docs                       Documentación de proyecto, QA y roadmap
 - Arquitectura simple y mantenible.
 - Modo demo funcional hasta conectar Supabase.
 - Nada de ERP, backend complejo, Docker, NestJS o funcionalidades fuera del MVP.
-

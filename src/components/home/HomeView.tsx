@@ -12,6 +12,7 @@ import { TodayMeals } from './TodayMeals'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
+import { BottomSheet } from '@/components/ui/BottomSheet'
 import type { Task } from '@/types'
 
 function capitalize(s: string) {
@@ -42,21 +43,15 @@ function HomeStat({ icon, value, label }: { icon: ReactNode; value: number; labe
   )
 }
 
-function OffDayConfirmSheet({ task, onConfirm, onCancel }: { task: Task; onConfirm: () => void; onCancel: () => void }) {
-  const dueLabel = task.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
+function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
+  const dueLabel = task?.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/40" onClick={onCancel} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl px-5 pt-5 pb-8 max-w-lg mx-auto">
-        <div className="flex justify-center mb-4">
-          <span className="w-10 h-1 rounded-full bg-[#E0DDD8]" />
-        </div>
-        <h3 className="font-extrabold text-[#252525] text-base mb-2">Confirmar tarea</h3>
-        <p className="text-sm text-[#77716A] mb-1">
-          Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
-        </p>
-        <p className="text-sm text-[#77716A] mb-6">¿Marcarla como hecha hoy igualmente?</p>
-        <div className="space-y-2">
+    <BottomSheet
+      open={open}
+      title="Confirmar tarea"
+      onClose={onCancel}
+      footer={
+        <div className="px-5 py-4 space-y-2">
           <button
             onClick={onConfirm}
             className="w-full py-3 rounded-2xl bg-[#8BA888] text-white text-sm font-semibold hover:bg-[#7a9877] transition-colors"
@@ -70,8 +65,15 @@ function OffDayConfirmSheet({ task, onConfirm, onCancel }: { task: Task; onConfi
             Cancelar
           </button>
         </div>
+      }
+    >
+      <div className="px-5 pb-4">
+        <p className="text-sm text-[#77716A] mb-1">
+          Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
+        </p>
+        <p className="text-sm text-[#77716A]">¿Marcarla como hecha hoy igualmente?</p>
       </div>
-    </>
+    </BottomSheet>
   )
 }
 
@@ -151,13 +153,12 @@ export function HomeView() {
 
       <TodayEvents events={todayEvents} kids={kids} />
       <TodayMeals meals={todayMeals} />
-      {confirmTask && (
-        <OffDayConfirmSheet
-          task={confirmTask}
-          onConfirm={() => { toggleTask(confirmTask.id); setConfirmTask(null) }}
-          onCancel={() => setConfirmTask(null)}
-        />
-      )}
+      <OffDayConfirmSheet
+        open={!!confirmTask}
+        task={confirmTask}
+        onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}
+        onCancel={() => setConfirmTask(null)}
+      />
       <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <UpcomingEvents events={upcoming} kids={kids} />

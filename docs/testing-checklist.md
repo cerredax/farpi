@@ -133,3 +133,25 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Cambiar de familia conserva datos por familia.
 - [ ] Reset limpia `localStorage` correctamente.
 
+## 15. Supabase aislado
+
+Ejecutar en proyecto Supabase de prueba, sin conectar todavía toda la UI.
+
+- [ ] Migraciones 001–009 aplicadas en orden.
+- [ ] Tablas, índices y triggers existen.
+- [ ] RLS está activado en tablas privadas.
+- [ ] RPC `create_family_with_admin` crea familia y miembro admin.
+- [ ] RPC `update_my_family_profile` solo permite editar el propio perfil.
+- [ ] RPC `remove_family_member` no permite borrar al último admin.
+- [ ] RPC `update_family_member_role` no permite degradar al último admin.
+- [ ] RPC `accept_family_invite` acepta una invitación pendiente del email autenticado.
+- [ ] Usuario A no puede leer datos de familia B.
+- [ ] Usuario B no puede leer datos de familia A.
+- [ ] Miembro no admin no puede gestionar miembros ni invitaciones.
+- [ ] Trigger rechaza `list_item` con `family_id` y `list_id` de familias distintas.
+- [ ] Trigger rechaza `event` con `child_id` de otra familia.
+- [ ] Trigger rechaza `document` con `child_id` de otra familia.
+- [ ] Bucket `documents` es privado.
+- [ ] Usuario de la familia puede leer su documento.
+- [ ] Usuario de otra familia no puede leer el documento aunque conozca el path.
+- [ ] Resultados documentados en `docs/supabase-validation.md`.

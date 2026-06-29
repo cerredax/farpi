@@ -1,10 +1,12 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as store from './mock-store'
-import { DEFAULT_FAMILY_ID, writeActiveFamilyId } from './family-config'
+import { mockRepos } from './mock-repos'
+import { supabaseRepos } from './supabase-repos'
 import { IS_DEMO_MODE } from './supabase/client'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
+import type { Repos } from './repos/types'
 import type {
   Child,
   ChildDraft,
@@ -26,19 +28,18 @@ import type {
   TaskDraft,
 } from '@/types'
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && IS_DEMO_MODE) {
   store.loadFromStorage()
 }
 
 interface StoreValue {
-  // SUPABASE SWAP: isLoading/error/reload are populated by async repo calls; mock always resolves.
   isLoading: boolean
   error: string | null
-  reload: () => void
+  reload: () => Promise<void>
   activeFamilyId: string
   families: Family[]
   switchFamily: (id: string) => void
-  createFamily: (name: string) => void
+  createFamily: (name: string) => Promise<void>
   family: Family
   members: FamilyMember[]
   invites: FamilyInvite[]
@@ -52,75 +53,38 @@ interface StoreValue {
   todayMeals: MealPlan[]
   pendingTasks: Task[]
   pendingItems: PendingItem[]
-  updateFamilyName: (name: string) => void
+  updateFamilyName: (name: string) => Promise<void>
   inviteMember: (email: string) => Promise<void>
-  updateMember: (id: string, name: string) => void
-  removeMember: (id: string) => void
-  cancelInvite: (id: string) => void
-  createKid: (draft: ChildDraft) => void
-  updateKid: (id: string, draft: ChildDraft) => void
-  deleteKid: (id: string) => void
-  createEvent: (draft: EventDraft) => Event
-  createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) => Event[]
-  createYearlySeries: (draft: EventDraft, endYear: number) => Event[]
-  updateEvent: (id: string, draft: EventDraft) => void
-  deleteEvent: (id: string) => void
-  createTask: (draft: TaskDraft) => void
-  updateTask: (id: string, draft: TaskDraft) => void
-  deleteTask: (id: string) => void
-  toggleTask: (id: string) => void
-  createList: (draft: ListDraft) => void
-  updateList: (id: string, draft: ListDraft) => void
-  deleteList: (id: string) => void
-  createListItem: (listId: string, draft: ListItemDraft) => void
-  updateListItem: (id: string, draft: ListItemDraft) => void
-  deleteListItem: (id: string) => void
-  toggleListItem: (id: string) => void
-  createMeal: (draft: MealDraft) => void
-  copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => void
-  updateMeal: (id: string, draft: MealDraft) => void
-  deleteMeal: (id: string) => void
-  createDocument: (draft: DocumentDraft) => void
-  updateDocument: (id: string, draft: DocumentDraft) => void
-  deleteDocument: (id: string) => void
+  updateMember: (id: string, name: string) => Promise<void>
+  removeMember: (id: string) => Promise<void>
+  cancelInvite: (id: string) => Promise<void>
+  createKid: (draft: ChildDraft) => Promise<void>
+  updateKid: (id: string, draft: ChildDraft) => Promise<void>
+  deleteKid: (id: string) => Promise<void>
+  createEvent: (draft: EventDraft) => Promise<Event>
+  createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) => Promise<Event[]>
+  createYearlySeries: (draft: EventDraft, endYear: number) => Promise<Event[]>
+  updateEvent: (id: string, draft: EventDraft) => Promise<void>
+  deleteEvent: (id: string) => Promise<void>
+  createTask: (draft: TaskDraft) => Promise<void>
+  updateTask: (id: string, draft: TaskDraft) => Promise<void>
+  deleteTask: (id: string) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
+  createList: (draft: ListDraft) => Promise<void>
+  updateList: (id: string, draft: ListDraft) => Promise<void>
+  deleteList: (id: string) => Promise<void>
+  createListItem: (listId: string, draft: ListItemDraft) => Promise<void>
+  updateListItem: (id: string, draft: ListItemDraft) => Promise<void>
+  deleteListItem: (id: string) => Promise<void>
+  toggleListItem: (id: string) => Promise<void>
+  createMeal: (draft: MealDraft) => Promise<void>
+  copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => Promise<void>
+  updateMeal: (id: string, draft: MealDraft) => Promise<void>
+  deleteMeal: (id: string) => Promise<void>
+  createDocument: (draft: DocumentDraft) => Promise<void>
+  updateDocument: (id: string, draft: DocumentDraft) => Promise<void>
+  deleteDocument: (id: string) => Promise<void>
 }
-
-type StoreActions = Pick<
-  StoreValue,
-  | 'switchFamily'
-  | 'createFamily'
-  | 'updateFamilyName'
-  | 'inviteMember'
-  | 'updateMember'
-  | 'removeMember'
-  | 'cancelInvite'
-  | 'createKid'
-  | 'updateKid'
-  | 'deleteKid'
-  | 'createEvent'
-  | 'createEventSeries'
-  | 'createYearlySeries'
-  | 'updateEvent'
-  | 'deleteEvent'
-  | 'createTask'
-  | 'updateTask'
-  | 'deleteTask'
-  | 'toggleTask'
-  | 'createList'
-  | 'updateList'
-  | 'deleteList'
-  | 'createListItem'
-  | 'updateListItem'
-  | 'deleteListItem'
-  | 'toggleListItem'
-  | 'createMeal'
-  | 'copyMealDay'
-  | 'updateMeal'
-  | 'deleteMeal'
-  | 'createDocument'
-  | 'updateDocument'
-  | 'deleteDocument'
->
 
 const StoreCtx = createContext<StoreValue>(null!)
 
@@ -130,129 +94,196 @@ interface StoreProviderProps {
   switchFamily: (id: string) => void
 }
 
+const EMPTY_SLICES = {
+  families: [] as Family[],
+  members: [] as FamilyMember[],
+  invites: [] as FamilyInvite[],
+  kids: [] as Child[],
+  allEvents: [] as Event[],
+  tasks: [] as Task[],
+  lists: [] as List[],
+  allListItems: [] as ListItem[],
+  meals: [] as MealPlan[],
+  documents: [] as Document[],
+}
+
 export function StoreProvider({ children, familyId, switchFamily }: StoreProviderProps) {
-  const effectiveFid = store.getFamily(familyId) ? familyId : DEFAULT_FAMILY_ID
-  if (effectiveFid !== familyId && typeof window !== 'undefined') {
-    writeActiveFamilyId(effectiveFid)
-  }
-  const fid = effectiveFid
+  const repos: Repos = IS_DEMO_MODE ? mockRepos : supabaseRepos
 
-  const [family, setFamily] = useState<Family>(() => store.getFamily(fid)!)
-  const [families, setFamilies] = useState<Family[]>(() => store.getFamilies())
-  const [members, setMembers] = useState<FamilyMember[]>(() => store.getMembers(fid))
-  const [invites, setInvites] = useState<FamilyInvite[]>(() => store.getInvites(fid))
-  const [kids, setKids] = useState<Child[]>(() => store.getKids(fid))
-  const [allEvents, setEvents] = useState<Event[]>(() => store.getEvents(fid))
-  const [tasks, setTasks] = useState<Task[]>(() => store.getTasks(fid))
-  const [lists, setLists] = useState<List[]>(() => store.getLists(fid))
-  const [allListItems, setListItems] = useState<ListItem[]>(() => store.getListItems(fid))
-  const [meals, setMeals] = useState<MealPlan[]>(() => store.getMeals(fid))
-  const [documents, setDocuments] = useState<Document[]>(() => store.getDocuments(fid))
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [family, setFamily] = useState<Family | null>(null)
+  const [families, setFamilies] = useState<Family[]>(EMPTY_SLICES.families)
+  const [members, setMembers] = useState<FamilyMember[]>(EMPTY_SLICES.members)
+  const [invites, setInvites] = useState<FamilyInvite[]>(EMPTY_SLICES.invites)
+  const [kids, setKids] = useState<Child[]>(EMPTY_SLICES.kids)
+  const [allEvents, setEvents] = useState<Event[]>(EMPTY_SLICES.allEvents)
+  const [tasks, setTasks] = useState<Task[]>(EMPTY_SLICES.tasks)
+  const [lists, setLists] = useState<List[]>(EMPTY_SLICES.lists)
+  const [allListItems, setListItems] = useState<ListItem[]>(EMPTY_SLICES.allListItems)
+  const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
+  const [documents, setDocuments] = useState<Document[]>(EMPTY_SLICES.documents)
 
-  // SUPABASE SWAP: reload will re-fetch all slices from Supabase; mock re-reads from in-memory store.
-  const reload = useCallback(() => {
-    setFamily(store.getFamily(fid)!)
-    setFamilies(store.getFamilies())
-    setMembers(store.getMembers(fid))
-    setInvites(store.getInvites(fid))
-    setKids(store.getKids(fid))
-    setEvents(store.getEvents(fid))
-    setTasks(store.getTasks(fid))
-    setLists(store.getLists(fid))
-    setListItems(store.getListItems(fid))
-    setMeals(store.getMeals(fid))
-    setDocuments(store.getDocuments(fid))
-  }, [fid])
+  const reload = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const [
+        nextFamily,
+        nextFamilies,
+        nextMembers,
+        nextInvites,
+        nextKids,
+        nextEvents,
+        nextTasks,
+        nextLists,
+        nextListItems,
+        nextMeals,
+        nextDocuments,
+      ] = await Promise.all([
+        repos.family.getFamily(familyId),
+        repos.family.getFamilies(),
+        repos.members.getMembers(familyId),
+        repos.invites.getInvites(familyId),
+        repos.children.getKids(familyId),
+        repos.events.getEvents(familyId),
+        repos.tasks.getTasks(familyId),
+        repos.lists.getLists(familyId),
+        repos.listItems.getListItems(familyId),
+        repos.meals.getMeals(familyId),
+        repos.documents.getDocuments(familyId),
+      ])
+
+      if (!nextFamily) throw new Error('No se ha encontrado la familia activa')
+
+      setFamily(nextFamily)
+      setFamilies(nextFamilies)
+      setMembers(nextMembers)
+      setInvites(nextInvites)
+      setKids(nextKids)
+      setEvents(nextEvents)
+      setTasks(nextTasks)
+      setLists(nextLists)
+      setListItems(nextListItems)
+      setMeals(nextMeals)
+      setDocuments(nextDocuments)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando los datos')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [familyId, repos])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void reload()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [reload])
 
   const todayMeals = useMemo(() => selectTodayMeals(meals), [meals])
   const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
   const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
 
-  const actions = useMemo<StoreActions>(() => {
-    function mutate<T>(action: () => T, ...refresh: Array<() => void>): T {
-      const result = action()
-      for (const refreshSlice of refresh) refreshSlice()
-      store.persistAll()
-      return result
+  const runMutation = useCallback(async (action: () => Promise<unknown>): Promise<void> => {
+    setError(null)
+    try {
+      await action()
+      await reload()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'No se pudo guardar el cambio'
+      setError(message)
+      throw err
     }
+  }, [reload])
 
-    const refreshFamily = () => setFamily(store.getFamily(fid)!)
-    const refreshFamilies = () => setFamilies(store.getFamilies())
-    const refreshMembers = () => setMembers(store.getMembers(fid))
-    const refreshInvites = () => setInvites(store.getInvites(fid))
-    const refreshKids = () => setKids(store.getKids(fid))
-    const refreshEvents = () => setEvents(store.getEvents(fid))
-    const refreshTasks = () => setTasks(store.getTasks(fid))
-    const refreshLists = () => setLists(store.getLists(fid))
-    const refreshListItems = () => setListItems(store.getListItems(fid))
-    const refreshMeals = () => setMeals(store.getMeals(fid))
-    const refreshDocuments = () => setDocuments(store.getDocuments(fid))
+  const value = useMemo<StoreValue | null>(() => {
+    if (!family) return null
 
     return {
+      isLoading,
+      error,
+      reload,
+      activeFamilyId: familyId,
+      families,
       switchFamily,
-      createFamily: (name: string) => {
-        const created = mutate(() => store.createFamily(name), refreshFamilies)
-        switchFamily(created.id)
+      family,
+      members,
+      invites,
+      kids,
+      allEvents,
+      tasks,
+      lists,
+      allListItems,
+      meals,
+      documents,
+      todayMeals,
+      pendingTasks,
+      pendingItems,
+      createFamily: async (name: string) => {
+        setError(null)
+        try {
+          const created = await repos.family.createFamily(name)
+          switchFamily(created.id)
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'No se pudo crear la familia'
+          setError(message)
+          throw err
+        }
       },
-      updateFamilyName: (name: string) => mutate(() => store.setFamilyName(fid, name), refreshFamily),
-      inviteMember: IS_DEMO_MODE
-        ? (email: string) => Promise.resolve(void mutate(() => store.createInvite(fid, email), refreshInvites))
-        : async (email: string) => {
-            const res = await fetch('/api/invite', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ familyId: fid, email }),
-            })
-            if (!res.ok) {
-              const body = await res.json().catch(() => ({})) as { error?: string }
-              throw new Error(body.error ?? 'Error al enviar la invitación')
-            }
-            // SUPABASE SWAP: refreshInvites aquí leerá de Supabase cuando repos estén conectados.
-          },
-      updateMember: (id: string, name: string) => mutate(() => store.updateMemberName(id, name), refreshMembers),
-      removeMember: (id: string) => mutate(() => store.removeMember(id), refreshMembers),
-      cancelInvite: (id: string) => mutate(() => store.cancelInvite(id), refreshInvites),
-      createKid: (draft: ChildDraft) => mutate(() => store.createKid(fid, draft), refreshKids),
-      updateKid: (id: string, draft: ChildDraft) => mutate(() => store.updateKid(id, draft), refreshKids),
-      deleteKid: (id: string) => mutate(() => store.deleteKid(id), refreshKids, refreshEvents, refreshDocuments),
-      createEvent: (draft: EventDraft) => mutate(() => store.createEvent(fid, draft), refreshEvents),
-      createEventSeries: (draft: EventDraft, days: number[], end: string) =>
-        mutate(() => store.createEventSeries(fid, draft, days, end), refreshEvents),
-      createYearlySeries: (draft: EventDraft, endYear: number) =>
-        mutate(() => store.createYearlySeries(fid, draft, endYear), refreshEvents),
-      updateEvent: (id: string, draft: EventDraft) => mutate(() => store.updateEvent(id, draft), refreshEvents),
-      deleteEvent: (id: string) => mutate(() => store.deleteEvent(id), refreshEvents),
-      createTask: (draft: TaskDraft) => mutate(() => store.createTask(fid, draft), refreshTasks),
-      updateTask: (id: string, draft: TaskDraft) => mutate(() => store.updateTask(id, draft), refreshTasks),
-      deleteTask: (id: string) => mutate(() => store.deleteTask(id), refreshTasks),
-      toggleTask: (id: string) => mutate(() => store.toggleTask(id), refreshTasks),
-      createList: (draft: ListDraft) => mutate(() => store.createList(fid, draft), refreshLists),
-      updateList: (id: string, draft: ListDraft) => mutate(() => store.updateList(id, draft), refreshLists),
-      deleteList: (id: string) => mutate(() => store.deleteList(id), refreshLists, refreshListItems),
+      updateFamilyName: (name: string) => runMutation(() => repos.family.setFamilyName(familyId, name)),
+      inviteMember: (email: string) => runMutation(() => repos.invites.createInvite(familyId, email)),
+      updateMember: (id: string, name: string) => runMutation(() => repos.members.updateMemberName(id, name)),
+      removeMember: (id: string) => runMutation(() => repos.members.removeMember(id)),
+      cancelInvite: (id: string) => runMutation(() => repos.invites.cancelInvite(id)),
+      createKid: (draft: ChildDraft) => runMutation(() => repos.children.createKid(familyId, draft)),
+      updateKid: (id: string, draft: ChildDraft) => runMutation(() => repos.children.updateKid(id, draft)),
+      deleteKid: (id: string) => runMutation(() => repos.children.deleteKid(id)),
+      createEvent: async (draft: EventDraft) => {
+        const event = await repos.events.createEvent(familyId, draft)
+        await reload()
+        return event
+      },
+      createEventSeries: async (draft: EventDraft, weekdays: number[], endDate: string) => {
+        const events = await repos.events.createEventSeries(familyId, draft, weekdays, endDate)
+        await reload()
+        return events
+      },
+      createYearlySeries: async (draft: EventDraft, endYear: number) => {
+        const events = await repos.events.createYearlySeries(familyId, draft, endYear)
+        await reload()
+        return events
+      },
+      updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft)),
+      deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id)),
+      createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft)),
+      updateTask: (id: string, draft: TaskDraft) => runMutation(() => repos.tasks.updateTask(id, draft)),
+      deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id)),
+      toggleTask: (id: string) => runMutation(() => repos.tasks.toggleTask(id)),
+      createList: (draft: ListDraft) => runMutation(() => repos.lists.createList(familyId, draft)),
+      updateList: (id: string, draft: ListDraft) => runMutation(() => repos.lists.updateList(id, draft)),
+      deleteList: (id: string) => runMutation(() => repos.lists.deleteList(id)),
       createListItem: (listId: string, draft: ListItemDraft) =>
-        mutate(() => store.createListItem(listId, fid, draft), refreshListItems),
-      updateListItem: (id: string, draft: ListItemDraft) =>
-        mutate(() => store.updateListItem(id, draft), refreshListItems),
-      deleteListItem: (id: string) => mutate(() => store.deleteListItem(id), refreshListItems),
-      toggleListItem: (id: string) => mutate(() => store.toggleListItem(id), refreshListItems),
-      createMeal: (draft: MealDraft) => mutate(() => store.createMeal(fid, draft), refreshMeals),
+        runMutation(() => repos.listItems.createListItem(listId, familyId, draft)),
+      updateListItem: (id: string, draft: ListItemDraft) => runMutation(() => repos.listItems.updateListItem(id, draft)),
+      deleteListItem: (id: string) => runMutation(() => repos.listItems.deleteListItem(id)),
+      toggleListItem: (id: string) => runMutation(() => repos.listItems.toggleListItem(id)),
+      createMeal: (draft: MealDraft) => runMutation(() => repos.meals.createMeal(familyId, draft)),
       copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) =>
-        mutate(() => store.copyMealDay(fid, sourceDate, targetDate, repeatUntil), refreshMeals),
-      updateMeal: (id: string, draft: MealDraft) => mutate(() => store.updateMeal(id, draft), refreshMeals),
-      deleteMeal: (id: string) => mutate(() => store.deleteMeal(id), refreshMeals),
-      createDocument: (draft: DocumentDraft) => mutate(() => store.createDocument(fid, draft), refreshDocuments),
-      updateDocument: (id: string, draft: DocumentDraft) =>
-        mutate(() => store.updateDocument(id, draft), refreshDocuments),
-      deleteDocument: (id: string) => mutate(() => store.deleteDocument(id), refreshDocuments),
+        runMutation(() => repos.meals.copyMealDay(familyId, sourceDate, targetDate, repeatUntil)),
+      updateMeal: (id: string, draft: MealDraft) => runMutation(() => repos.meals.updateMeal(id, draft)),
+      deleteMeal: (id: string) => runMutation(() => repos.meals.deleteMeal(id)),
+      createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
+      updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
+      deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),
     }
-  }, [fid, switchFamily])
-
-  const value = useMemo<StoreValue>(() => ({
-    isLoading: false,
-    error: null,
+  }, [
+    isLoading,
+    error,
     reload,
-    activeFamilyId: fid,
+    familyId,
     families,
+    switchFamily,
     family,
     members,
     invites,
@@ -266,31 +297,38 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     todayMeals,
     pendingTasks,
     pendingItems,
-    ...actions,
-  }), [
-    fid,
-    families,
-    family,
-    members,
-    invites,
-    kids,
-    allEvents,
-    tasks,
-    lists,
-    allListItems,
-    meals,
-    documents,
-    todayMeals,
-    pendingTasks,
-    pendingItems,
-    reload,
-    actions,
+    repos,
+    runMutation,
   ])
+
+  if (isLoading && !value) {
+    return <ShellState title="Cargando Nido" description="Preparando los datos de la familia..." />
+  }
+
+  if (!value) {
+    return (
+      <ShellState
+        title="No se pudo cargar la familia"
+        description={error ?? 'Revisa la sesión o la configuración de Supabase.'}
+      />
+    )
+  }
 
   return (
     <StoreCtx.Provider value={value}>
       {children}
     </StoreCtx.Provider>
+  )
+}
+
+function ShellState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-[#FAF7F2] px-6 text-center">
+      <div className="max-w-sm">
+        <p className="text-lg font-extrabold text-[#252525]">{title}</p>
+        <p className="mt-2 text-sm leading-relaxed text-[#77716A]">{description}</p>
+      </div>
+    </div>
   )
 }
 

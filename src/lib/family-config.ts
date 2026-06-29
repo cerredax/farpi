@@ -21,7 +21,7 @@ export function writeActiveFamilyId(id: string): void {
  * SUPABASE SWAP: query family_members WHERE user_id = userId LIMIT 1
  * and return the family_id. For now returns the stored local value.
  */
-export function resolveActiveFamily(_userId?: string): string {
+export function resolveActiveFamily(): string {
   return readActiveFamilyId()
 }
 

@@ -57,6 +57,7 @@ interface DocSheetProps {
 export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete }: DocSheetProps) {
   const [draft,    setDraft]    = useState<DocumentDraft>(() => initDraft(mode, initial))
   const [fileName, setFileName] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState('')
   const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -72,6 +73,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete 
     const validation = validateDocumentFile(file)
     if (!validation.ok) { setFileError(validation.message); return }
     setFileError('')
+    setSelectedFile(file)
     setFileName(file.name)
     setDraft(d => ({
       ...d,
@@ -84,10 +86,15 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!draft.name.trim()) return
-    onSave(draft)
+    if (mode === 'create' && !selectedFile) {
+      setFileError('Selecciona un archivo.')
+      return
+    }
+    onSave({ ...draft, file: selectedFile ?? undefined })
     if (mode === 'create') {
       setDraft({ ...EMPTY_DRAFT })
       setFileName('')
+      setSelectedFile(null)
     }
     onClose()
   }
@@ -139,7 +146,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete 
                 <input ref={fileRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFile} />
                 {fileError
                   ? <p className="text-[10px] text-[#D96C6C] font-semibold">{fileError}</p>
-                  : <p className="text-[10px] text-[#C4BFB9]">Demo — solo se guarda el nombre y tipo, no el contenido.</p>
+                  : <p className="text-[10px] text-[#C4BFB9]">PDF, JPG o PNG. Tamano maximo: 20 MB.</p>
                 }
               </>
             ) : (
@@ -229,7 +236,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete 
           </div>
 
           <div className="space-y-2 pt-1">
-            <Button type="submit" fullWidth size="lg" disabled={!draft.name.trim() || !!fileError}>
+            <Button type="submit" fullWidth size="lg" disabled={!draft.name.trim() || !!fileError || (mode === 'create' && !selectedFile)}>
               {mode === 'create' ? 'Guardar documento' : 'Guardar cambios'}
             </Button>
             {mode === 'edit' && onDelete && (

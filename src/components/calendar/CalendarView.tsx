@@ -58,15 +58,15 @@ export function CalendarView() {
     }
   }
 
-  function handleCreate(draft: EventDraft) {
-    const event = createEvent(draft)
+  async function handleCreate(draft: EventDraft) {
+    const event = await createEvent(draft)
     const eventDate = parseISO(event.start_at)
     setSelectedDay(eventDate)
     setCurrentMonth(startOfMonth(eventDate))
   }
 
-  function handleCreateSeries(draft: EventDraft, weekdays: number[], endDate: string) {
-    const created = createEventSeries(draft, weekdays, endDate)
+  async function handleCreateSeries(draft: EventDraft, weekdays: number[], endDate: string) {
+    const created = await createEventSeries(draft, weekdays, endDate)
     if (created.length > 0) {
       const firstDate = parseISO(created[0].start_at)
       setSelectedDay(firstDate)
@@ -74,8 +74,8 @@ export function CalendarView() {
     }
   }
 
-  function handleCreateYearlySeries(draft: EventDraft, endYear: number) {
-    const created = createYearlySeries(draft, endYear)
+  async function handleCreateYearlySeries(draft: EventDraft, endYear: number) {
+    const created = await createYearlySeries(draft, endYear)
     if (created.length > 0) {
       const firstDate = parseISO(created[0].start_at)
       setSelectedDay(firstDate)

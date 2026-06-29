@@ -166,6 +166,7 @@ export interface DocumentDraft {
   child_id: string | null
   mime_type: DocMimeType
   size_bytes: number
+  file?: File
 }
 
 // ─── Entity types ─────────────────────────────────────────────────────────────

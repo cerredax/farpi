@@ -4,16 +4,20 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CalendarDays,
+  CheckCircle2,
   Eye,
   EyeOff,
+  FileText,
+  Heart,
+  Home,
   ListChecks,
   Loader2,
   Lock,
   Mail,
+  ShieldCheck,
   Sparkles,
   User,
   Utensils,
-  FileText,
 } from 'lucide-react'
 import { createClient, IS_DEMO_MODE } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
@@ -23,33 +27,19 @@ type AuthMode = 'signin' | 'signup'
 const PASSWORD_MIN_LENGTH = 8
 
 const benefits = [
-  {
-    icon: Utensils,
-    title: 'Comidas de la semana',
-    desc: 'Planifica desayunos, comidas y cenas sin improvisar cada dia.',
-  },
-  {
-    icon: ListChecks,
-    title: 'Tareas de casa',
-    desc: 'Compras, recados y pendientes compartidos con toda la familia.',
-  },
-  {
-    icon: CalendarDays,
-    title: 'Agenda familiar',
-    desc: 'Citas medicas, cole, actividades y planes, todos en el mismo sitio.',
-  },
-  {
-    icon: FileText,
-    title: 'Documentos importantes',
-    desc: 'Cartillas, seguros y papeles del colegio siempre a mano.',
-  },
+  { icon: CalendarDays, title: 'Agenda', text: 'Citas, planes y recordatorios familiares.' },
+  { icon: ListChecks, title: 'Pendientes', text: 'Tareas y listas compartidas sin ruido.' },
+  { icon: Utensils, title: 'Comidas', text: 'Menús semanales y compras mejor ordenadas.' },
+  { icon: FileText, title: 'Documentos', text: 'Papeles importantes siempre localizados.' },
 ]
+
+const assurances = ['Gratis', 'Privado', 'Sin anuncios']
 
 function authErrorMessage(message: string) {
   const normalized = message.toLowerCase()
-  if (normalized.includes('invalid login credentials')) return 'Correo o contrasena incorrectos.'
+  if (normalized.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
   if (normalized.includes('email not confirmed')) return 'Confirma tu correo desde el enlace que te hemos enviado.'
-  if (normalized.includes('password')) return 'La contrasena debe tener al menos 8 caracteres.'
+  if (normalized.includes('password')) return 'La contraseña debe tener al menos 8 caracteres.'
   if (normalized.includes('already registered') || normalized.includes('already exists')) return 'Ese correo ya tiene cuenta. Prueba a entrar directamente.'
   return message
 }
@@ -104,7 +94,7 @@ export default function LoginPage() {
       if (signUpError) { setError(authErrorMessage(signUpError.message)); return }
       if (data.session) { router.replace('/home'); router.refresh(); return }
 
-      setNotice('Revisa tu correo — te hemos enviado un enlace para confirmar la cuenta.')
+      setNotice('Revisa tu correo. Te hemos enviado un enlace para confirmar la cuenta.')
       return
     }
 
@@ -130,104 +120,97 @@ export default function LoginPage() {
 
     setLoading(false)
     if (resetError) { setError(authErrorMessage(resetError.message)); return }
-    setNotice('Te hemos enviado un enlace para recuperar la contrasena.')
+    setNotice('Te hemos enviado un enlace para recuperar la contraseña.')
   }
 
   return (
-    <div className="min-h-dvh bg-[#FAF7F2]">
-      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px]">
-
-        {/* ── Columna izquierda ── */}
-        <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-[#3D5C3A] px-14 py-14 xl:px-20">
-          {/* Decoración de fondo */}
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-[#8BA888]/20 blur-3xl" />
-            <div className="absolute bottom-0 right-0 h-80 w-96 rounded-full bg-[#D8A48F]/15 blur-3xl" />
-            <div className="absolute top-1/2 left-1/3 h-48 w-48 -translate-y-1/2 rounded-full bg-white/5 blur-2xl" />
-          </div>
-
-          {/* Logo */}
-          <div className="relative">
+    <div className="min-h-dvh bg-[#F7F3EC] text-[#252525]">
+      <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[minmax(0,1fr)_480px] xl:grid-cols-[minmax(0,1fr)_520px]">
+        <section className="flex min-h-[52dvh] flex-col justify-between px-6 py-7 sm:px-10 lg:min-h-dvh lg:px-14 lg:py-12 xl:px-20">
+          <header className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/20">
-                <span className="text-lg font-black text-white">N</span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#3D5C3A] text-white shadow-sm">
+                <Home size={21} strokeWidth={2.4} />
               </div>
-              <span className="text-sm font-black uppercase tracking-[0.25em] text-white/60">Nido</span>
-            </div>
-          </div>
-
-          {/* Titular principal */}
-          <div className="relative">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 ring-1 ring-white/20">
-              <span className="h-2 w-2 rounded-full bg-[#A8D4A5]" />
-              <span className="text-xs font-bold text-white/80">Completamente gratuita</span>
+              <div>
+                <p className="text-lg font-black leading-none tracking-tight">Nido</p>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#77716A]">Familia en calma</p>
+              </div>
             </div>
 
-            <h1 className="text-5xl xl:text-[3.5rem] font-extrabold leading-[1.08] text-white">
-              El orden de casa,<br />sin el caos de casa.
-            </h1>
-            <p className="mt-5 text-base leading-relaxed text-white/60 max-w-md">
-              Nido es el espacio privado de tu familia para organizarlo todo — comidas, tareas, citas y documentos — sin grupitos de WhatsApp ni notas perdidas.
-            </p>
-
-            {/* Beneficios */}
-            <div className="mt-10 grid grid-cols-2 gap-3">
-              {benefits.map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="rounded-2xl bg-white/8 p-4 ring-1 ring-white/10 backdrop-blur-sm">
-                  <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-xl bg-white/15">
-                    <Icon size={16} className="text-white" strokeWidth={2.2} />
-                  </div>
-                  <p className="text-sm font-bold text-white leading-snug mb-1">{title}</p>
-                  <p className="text-xs text-white/55 leading-relaxed">{desc}</p>
-                </div>
+            <div className="hidden items-center gap-2 sm:flex">
+              {assurances.map(item => (
+                <span key={item} className="rounded-full border border-[#E5DED4] bg-white/70 px-3 py-1 text-xs font-bold text-[#5C6854]">
+                  {item}
+                </span>
               ))}
             </div>
-          </div>
+          </header>
 
-          {/* Pie */}
-          <div className="relative">
-            <p className="text-xs text-white/35">Acceso privado · Solo tu familia puede ver tus datos.</p>
-          </div>
-        </div>
+          <div className="py-12 lg:py-0">
+            <div className="max-w-2xl">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#DDEAD9] bg-[#EEF4ED] px-3 py-1.5 text-xs font-bold text-[#4F6A4C]">
+                <Heart size={14} fill="currentColor" strokeWidth={2.2} />
+                Un espacio privado para tu casa
+              </div>
+              <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
+                Todo lo importante de tu familia, en un solo lugar.
+              </h1>
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-[#676159] sm:text-lg">
+                Nido reúne comidas, tareas, citas y documentos para que la semana sea más clara y la casa se sienta un poco más ligera.
+              </p>
 
-        {/* ── Columna derecha (formulario) ── */}
-        <div className="flex min-h-dvh flex-col items-center justify-center px-6 py-12 lg:min-h-0 lg:px-10">
-
-          {/* Cabecera móvil */}
-          <div className="mb-8 text-center lg:hidden">
-            <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-[#3D5C3A]">
-              <span className="text-xl font-black text-white">N</span>
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                {benefits.map(({ icon: Icon, title, text }) => (
+                  <div key={title} className="flex items-start gap-3 rounded-2xl border border-[#E8E1D8] bg-white/75 px-4 py-3 shadow-sm">
+                    <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4ED] text-[#5C7A59]">
+                      <Icon size={18} strokeWidth={2.25} />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-black text-[#252525]">{title}</span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-[#77716A]">{text}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h1 className="text-2xl font-extrabold text-[#252525]">Bienvenido a Nido</h1>
-            <p className="mt-1.5 text-sm text-[#77716A]">La app gratuita de tu familia</p>
           </div>
 
+          <footer className="hidden items-center gap-2 text-xs font-semibold text-[#77716A] lg:flex">
+            <ShieldCheck size={15} strokeWidth={2.3} />
+            Solo tu familia puede ver sus datos.
+          </footer>
+        </section>
+
+        <aside className="flex items-center justify-center border-t border-[#E9E2D8] bg-[#FFFCF8] px-6 py-8 lg:border-l lg:border-t-0 lg:px-10">
           <div className="w-full max-w-sm">
-            {/* Cabecera desktop */}
-            <div className="mb-7 hidden lg:block">
-              <h2 className="text-2xl font-extrabold text-[#252525]">
-                {isSignup ? 'Crear cuenta' : 'Bienvenido de nuevo'}
-              </h2>
-              <p className="mt-1.5 text-sm text-[#77716A]">
+            <div className="mb-6">
+              <p className="text-2xl font-black tracking-tight text-[#252525]">
+                {isSignup ? 'Crea tu cuenta' : 'Entra a Nido'}
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#77716A]">
                 {isSignup
-                  ? 'Gratis para siempre. Sin tarjetas, sin suscripciones.'
-                  : 'Entra con tu correo y contrasena.'}
+                  ? 'Gratis, privado y pensado para el día a día de una familia.'
+                  : 'Accede a tu espacio familiar privado.'}
               </p>
             </div>
 
             {IS_DEMO_MODE ? (
-              <div className="rounded-[1.75rem] border border-[#EDE9E3] bg-white p-6 shadow-sm">
-                <div className="rounded-2xl bg-[#FFF8EF] border border-[#F0EDE8] px-4 py-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#77716A] mb-1">Modo local</p>
-                  <p className="text-sm text-[#252525] leading-relaxed">
-                    Configura las variables de entorno de Supabase para activar el acceso real.
-                  </p>
+              <div className="rounded-[1.5rem] border border-[#EDE9E3] bg-white p-5 shadow-sm">
+                <div className="flex items-start gap-3 rounded-2xl bg-[#FFF8EF] px-4 py-4">
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white text-[#8BA888] shadow-sm">
+                    <CheckCircle2 size={18} strokeWidth={2.4} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-black text-[#252525]">Modo local activo</p>
+                    <p className="mt-1 text-sm leading-relaxed text-[#77716A]">
+                      Configura Supabase para activar cuentas reales, invitaciones y sincronización.
+                    </p>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="rounded-[1.75rem] border border-[#EDE9E3] bg-white p-6 shadow-[0_4px_32px_rgba(37,37,37,0.08)]">
-
-                {/* Selector Entrar / Crear cuenta */}
+              <div className="rounded-[1.5rem] border border-[#EDE9E3] bg-white p-5 shadow-[0_12px_45px_rgba(37,37,37,0.08)]">
                 <div className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-[#F0EDE8] p-1">
                   {(['signin', 'signup'] as const).map(mode => (
                     <button
@@ -245,11 +228,10 @@ export default function LoginPage() {
                   ))}
                 </div>
 
-                {/* Pill gratuita — solo en signup */}
                 {isSignup && (
-                  <div className="mb-4 flex items-center justify-center gap-1.5 rounded-2xl bg-[#EEF4ED] border border-[#DDEAD9] py-2.5 px-4">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#5C7A59]" />
-                    <p className="text-xs font-bold text-[#5C7A59]">Gratuita · Sin tarjeta · Sin suscripcion</p>
+                  <div className="mb-4 flex items-center gap-2 rounded-2xl border border-[#DDEAD9] bg-[#EEF4ED] px-4 py-3 text-xs font-bold text-[#4F6A4C]">
+                    <CheckCircle2 size={15} strokeWidth={2.4} />
+                    Sin tarjeta, sin anuncios y gratis para empezar.
                   </div>
                 )}
 
@@ -271,7 +253,7 @@ export default function LoginPage() {
                     </Field>
                   )}
 
-                  <Field label="Correo electronico" htmlFor="email">
+                  <Field label="Correo electrónico" htmlFor="email">
                     <InputIcon icon={<Mail size={15} />}>
                       <input
                         id="email"
@@ -286,15 +268,15 @@ export default function LoginPage() {
                     </InputIcon>
                   </Field>
 
-                  <Field label="Contrasena" htmlFor="password">
+                  <Field label="Contraseña" htmlFor="password">
                     <InputIcon
                       icon={<Lock size={15} />}
                       after={
                         <button
                           type="button"
                           onClick={() => setShowPassword(v => !v)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A39B93] hover:text-[#77716A]"
-                          aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A39B93] transition-colors hover:text-[#77716A]"
+                          aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                         >
                           {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                         </button>
@@ -307,17 +289,17 @@ export default function LoginPage() {
                         autoComplete={isSignup ? 'new-password' : 'current-password'}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        placeholder="Minimo 8 caracteres"
+                        placeholder="Mínimo 8 caracteres"
                         className="form-input pr-11"
                       />
                     </InputIcon>
                     {password && !passwordIsValid && (
-                      <p className="mt-1 text-[11px] font-semibold text-[#D96C6C]">Minimo 8 caracteres.</p>
+                      <p className="mt-1 text-[11px] font-semibold text-[#D96C6C]">Mínimo 8 caracteres.</p>
                     )}
                   </Field>
 
                   {isSignup && (
-                    <Field label="Repite la contrasena" htmlFor="confirm-password">
+                    <Field label="Repite la contraseña" htmlFor="confirm-password">
                       <InputIcon icon={<Lock size={15} />}>
                         <input
                           id="confirm-password"
@@ -326,24 +308,24 @@ export default function LoginPage() {
                           autoComplete="new-password"
                           value={confirmPassword}
                           onChange={e => setConfirmPassword(e.target.value)}
-                          placeholder="Misma contrasena"
+                          placeholder="Misma contraseña"
                           className="form-input"
                         />
                       </InputIcon>
                       {confirmPassword && !passwordsMatch && (
-                        <p className="mt-1 text-[11px] font-semibold text-[#D96C6C]">Las contrasenas no coinciden.</p>
+                        <p className="mt-1 text-[11px] font-semibold text-[#D96C6C]">Las contraseñas no coinciden.</p>
                       )}
                     </Field>
                   )}
 
-                  {error  && <Alert tone="error">{error}</Alert>}
+                  {error && <Alert tone="error">{error}</Alert>}
                   {notice && <Alert tone="success">{notice}</Alert>}
 
                   <Button type="submit" fullWidth size="lg" disabled={loading || !formIsValid}>
                     {loading ? (
                       <span className="inline-flex items-center gap-2">
                         <Loader2 size={15} className="animate-spin" />
-                        Un momento…
+                        Un momento
                       </span>
                     ) : isSignup ? (
                       <span className="inline-flex items-center gap-2">
@@ -360,20 +342,20 @@ export default function LoginPage() {
                       type="button"
                       onClick={handlePasswordReset}
                       disabled={loading}
-                      className="w-full pt-1 text-center text-xs font-semibold text-[#8BA888] hover:underline disabled:opacity-40"
+                      className="w-full pt-1 text-center text-xs font-semibold text-[#5C7A59] hover:underline disabled:opacity-40"
                     >
-                      He olvidado mi contrasena
+                      Recuperar contraseña
                     </button>
                   )}
                 </form>
               </div>
             )}
 
-            <p className="mt-5 text-center text-[11px] text-[#B8B3AC]">
-              Acceso privado · Solo tu familia ve tus datos
+            <p className="mt-5 text-center text-[11px] font-medium text-[#A39B93]">
+              Nido es gratuito y privado para tu familia.
             </p>
           </div>
-        </div>
+        </aside>
       </div>
 
       <style jsx>{`
@@ -387,11 +369,12 @@ export default function LoginPage() {
           font-weight: 500;
           color: #252525;
           outline: none;
-          transition: border-color 150ms, box-shadow 150ms;
+          transition: border-color 150ms, box-shadow 150ms, background 150ms;
         }
         .form-input::placeholder { color: #c4bfb9; }
         .form-input:focus {
           border-color: #8ba888;
+          background: #fffdf9;
           box-shadow: 0 0 0 3px rgba(139,168,136,0.18);
         }
       `}</style>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Home, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +12,12 @@ export default function OnboardingPage() {
   const [familyName, setFamilyName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabaseRepos.family.getFamilies().then(families => {
+      if (families.length > 0) router.replace('/home')
+    }).catch(() => { /* si falla, dejamos al usuario crear familia */ })
+  }, [router])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -75,9 +75,11 @@ export function SettingsView() {
   const {
     family, families, activeFamilyId, switchFamily, createFamily,
     members, invites, kids,
-    updateFamilyName, inviteMember, updateMember, removeMember, cancelInvite,
+    updateFamilyName, inviteMember, updateMember, updateMemberRole, removeMember, cancelInvite,
     createKid, updateKid, deleteKid,
   } = useStore()
+
+  const adminCount = members.filter(m => m.role === 'admin').length
 
   const router = useRouter()
 
@@ -213,9 +215,11 @@ export function SettingsView() {
         open={memberSheetOpen}
         mode={memberMode}
         initial={editingMember}
+        isOnlyAdmin={editingMember?.role === 'admin' && adminCount <= 1}
         onClose={() => setMemberSheetOpen(false)}
         onInvite={(email) => inviteMember(email)}
         onUpdate={updateMember}
+        onChangeRole={updateMemberRole}
         onRemove={removeMember}
       />
 

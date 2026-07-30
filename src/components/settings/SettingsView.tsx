@@ -10,6 +10,7 @@ import { FamilyCard } from './FamilyCard'
 import { NotificationsCard } from './NotificationsCard'
 import { AccountActions } from './AccountActions'
 import { DataExport } from './DataExport'
+import { InstallPWA } from './InstallPWA'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
 import { FamilySheet } from './FamilySheet'
@@ -123,6 +124,8 @@ export function SettingsView() {
     <>
       <div className="max-w-lg mx-auto px-4 py-4 pb-10 space-y-6">
         <p className="text-sm text-muted px-1">Gestiona tu familia y sus miembros</p>
+
+        <InstallPWA />
 
         <Section label="Familia">
           <FamilyCard family={family} members={members} kids={kids} onEdit={() => setFamilySheetOpen(true)} />

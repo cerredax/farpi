@@ -1,37 +1,55 @@
 # Estado del proyecto
 
-Última revisión: 2026-06-19.
+Última revisión: 2026-07-30.
 
 ## Resumen
 
-Nido tiene un MVP mock funcional y Supabase ya está subido como backend base. La UI sigue funcionando principalmente con modo demo/mock; Supabase está en fase de validación aislada antes de conectar repositorios reales.
+Nido está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding, invitaciones por magic link y documentos reales en Storage. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
 ## Implementado
 
+### Pantallas / producto
+
 - Inicio / Hoy.
-- Calendario.
-- Tareas.
-- Listas.
-- Comidas.
-- Documentos mock.
-- Ajustes de familia: miembros, invitaciones, hijos.
+- Calendario (eventos, series semanales y anuales).
+- Tareas (con recurrencia).
+- Listas e ítems.
+- Comidas (día/semana, copiar día).
+- Documentos: subir, abrir/descargar (signed URL 60 s), editar y borrar.
+- Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro.
 - Modo demo con persistencia en `localStorage`.
+
+### Conexión Supabase (completada)
+
+- Auth real (login/signup, recuperación de contraseña, logout).
+- Repositorios reales en `src/lib/supabase-repos.ts` + mock en `src/lib/mock-repos.ts`, tras el contrato `src/lib/repos/types.ts`.
+- `StoreProvider` async con estados loading/error y `reload()`.
+- Onboarding real (`/onboarding` → `create_family_with_admin`) y resolución de familia activa en `AppShell`.
+- Invitaciones por email vía magic link (`/api/invite` con service role) y aceptación automática en `/auth/callback` (`accept_family_invite`).
+- Documentos reales en Storage con path `{family_id}/{document_id}/{filename}`, subida con rollback y descarga por signed URL.
+- Gestión de roles desde Ajustes (`update_family_member_role`) con bloqueo del último admin en la UI.
+- Detección de modo demo unificada en `src/lib/supabase/env.ts` (cliente, servidor, proxy y API).
+
+### Backend / migraciones
+
 - Migraciones Supabase aplicadas/preparadas (001–009).
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_my_family_profile` para editar solo campos seguros del perfil.
 - Tabla de invitaciones con policies idempotentes y `with check`.
-- Bucket privado `documents` preparado con policies completas.
-- Triggers de integridad cross-family para evitar cruces entre `family_id`, `list_id` y `child_id`.
+- Bucket privado `documents` con policies completas (SELECT por familia habilita signed URLs).
+- Triggers de integridad cross-family (`family_id`, `list_id`, `child_id`).
 - RPCs admin `remove_family_member` y `update_family_member_role` con control de último admin.
-- RPC `accept_family_invite(invite_id uuid)` para aceptar invitaciones pendientes.
+- RPC `accept_family_invite(invite_id uuid)`.
 - Script `supabase/validate_rls.sql` para validar RLS, RPCs, triggers e invitaciones desde SQL Editor.
-- Refactor: constantes, validadores, fechas, selectores, BottomSheet, repos contracts.
-- Validación de documentos corregida (MIME, tamaño, sin conversión silenciosa).
-- `Child.birth_date` nullable en types, mock y UI.
-- `TaskSheet` corregido: botón de acción en footer fijo, accesible con teclado abierto.
-- `.gitignore` actualizado para excluir `.claude/`.
-- Playwright eliminado (no había tests; se añadirá en Fase 8 con `@playwright/test`).
+
+### Calidad / infraestructura
+
+- Refactor: constantes, validadores, fechas, selectores, contratos de repos.
+- Los 5 sheets con overlay propio (Event, Doc, Task, Item, List) unificados en el `BottomSheet` compartido.
+- Código muerto eliminado: stubs `src/lib/repos/*` (salvo `types.ts`), hook `useFamily.ts`, endpoint temporal `/api/check-config`.
+- PWA: iconos any + maskable + apple-touch y `manifest.json` con purposes (script `scripts/gen-icons.cjs`).
+- Tests e2e smoke con `@playwright/test` (login demo → /home). Ejecutar con `npm run test:e2e`.
 
 ## Correcciones de seguridad
 
@@ -41,27 +59,21 @@ Nido tiene un MVP mock funcional y Supabase ya está subido como backend base. L
 
 ## Regla del último admin — DECISIÓN TOMADA
 
-Una familia debe tener siempre al menos un admin. Las siguientes operaciones están prohibidas cuando quedaría cero admins:
+Una familia debe tener siempre al menos un admin. Están prohibidas cuando quedaría cero admins:
 
 - Eliminar al único admin de una familia.
 - Degradar al único admin de `admin` a `member`.
 
-**Aplicación actual (mock):** No implementada en el mock. El modo demo no valida este caso porque se asume que el usuario que prueba la app es el único admin. Impacto: bajo para QA.
+**Aplicación en Supabase:** validación mediante RPCs `security definer` (`remove_family_member`, `update_family_member_role`), no mediante policies RLS. Ver `architecture.md`.
 
-**Aplicación en Supabase:** La validación se hace mediante RPCs `security definer`, no mediante policies RLS. Ver sección de RPCs implementadas en `architecture.md`.
+**Aplicación en la UI:** `MemberSheet` bloquea degradar al único admin (calculado en `SettingsView`); el servidor es la validación autoritativa.
 
-**Nota sobre policies:** La policy genérica `Admin gestiona miembros` queda sustituida por `Admin inserta miembros`; UPDATE y DELETE de miembros deben pasar por RPCs con control de último admin.
-
-## Cambios recientes
-
-- `FamilySheet`, `OffDayConfirmDialog` y `OffDayConfirmSheet` migrados a `BottomSheet` compartido.
-- `reload()` en `StoreProvider` funcional: re-lee todos los slices del store.
+**Nota sobre policies:** `Admin gestiona miembros` queda sustituida por `Admin inserta miembros`; UPDATE y DELETE de miembros pasan por RPCs.
 
 ## Estado Supabase
 
-- Proyecto Supabase creado y migraciones base subidas.
-- Validación aislada pendiente de cerrar/documentar completamente.
-- La UI no debe considerarse conectada a Supabase todavía.
+- Proyecto Supabase creado, migraciones subidas y UI conectada.
+- La validación aislada (RLS con dos usuarios, RPCs, Storage) sigue **pendiente de ejecutar y documentar**.
 - No documentar URLs privadas, anon keys ni secretos en el repositorio.
 
 ## Pendientes de validación Supabase
@@ -74,18 +86,8 @@ Una familia debe tener siempre al menos un admin. Las siguientes operaciones est
 - Verificar constraints/triggers cross-family con intentos inválidos.
 - Documentar resultados en `docs/supabase-validation.md`.
 
-## Pendientes para conectar Supabase
-
-- Implementar repositorios reales usando interfaces de `src/lib/repos/types.ts`.
-- Cambiar `StoreProvider` para consumir repos async.
-- Crear onboarding real: formulario "crea tu familia" + lista de invitaciones pendientes (llamar a `create_family_with_admin` o `accept_family_invite`).
-- Cargar familia activa desde Supabase.
-- Añadir estado para usuario autenticado sin familia.
-- Añadir logout visible.
-- Implementar upload, descarga y borrado real de documentos en Storage.
-- Decidir flujo de invitaciones por email (magic link vs. deep link con `invite_id`).
-- ✅ `useFamily.ts` experimental y stubs `src/lib/repos/*` (salvo `types.ts`) eliminados; endpoint diagnóstico temporal `/api/check-config` retirado.
-
 ## Siguiente paso recomendado
 
-Cerrar validación Supabase aislada (`validate_rls.sql`, usuarios A/B, Storage) → documentar resultados → empezar conexión progresiva de repositorios reales.
+1. Cerrar la validación Supabase aislada (usuarios A/B, RPCs, Storage) y documentarla.
+2. Revisión de accesibilidad (labels, foco, contraste, roles).
+3. Refactor de tokens de color (con la UI congelada).

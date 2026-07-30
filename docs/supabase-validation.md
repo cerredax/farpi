@@ -1,10 +1,10 @@
 # Validación Supabase
 
-Última revisión: 2026-06-19.
+Última revisión: 2026-07-30.
 
 ## Estado
 
-Supabase ya está creado y las migraciones base de Nido se han subido/preparado para validación. La UI sigue funcionando principalmente en modo demo/mock; este documento registra la validación aislada del backend antes de conectar repositorios reales.
+Supabase está creado, las migraciones subidas y la UI ya conectada mediante repositorios reales. Lo que **sigue pendiente** es la validación aislada del backend (RLS con dos usuarios, RPCs, Storage e integridad) y documentar aquí sus resultados. Los checklists de abajo siguen sin marcar hasta ejecutarlos en el Dashboard / SQL Editor.
 
 No incluir en este documento URLs privadas, anon keys, service role keys ni datos personales reales.
 
@@ -75,11 +75,11 @@ Casos obligatorios:
 
 Pendiente de completar con los resultados reales de `supabase/validate_rls.sql` y pruebas manuales en Dashboard.
 
-## Pendientes Antes De Conectar UI
+## Conexión UI — completada
 
-- Implementar repositorios Supabase reales.
-- Preparar `StoreProvider` async con loading/error.
-- Crear onboarding para usuario sin familia.
-- Añadir logout visible.
-- Implementar documentos reales con Storage.
-- Decidir entrega de invitaciones reales: magic link, deep link o flujo interno.
+- ✅ Repositorios Supabase reales (`supabase-repos.ts`).
+- ✅ `StoreProvider` async con loading/error.
+- ✅ Onboarding para usuario sin familia.
+- ✅ Logout visible.
+- ✅ Documentos reales con Storage (subida, signed URL, borrado).
+- ✅ Invitaciones por magic link.

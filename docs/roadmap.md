@@ -32,9 +32,9 @@ Objetivo: detectar problemas baratos de corregir antes de depender de datos real
 
 Documento guía: `docs/testing-checklist.md`
 
-## Fase 3 - Supabase aislado ← ACTUAL
+## Fase 3 - Validación Supabase ← PENDIENTE (manual)
 
-Objetivo: validar base de datos, RLS, RPCs y Storage en el proyecto Supabase ya creado, sin conectar todavía toda la UI.
+Objetivo: validar base de datos, RLS, RPCs y Storage en el Dashboard / SQL Editor. La UI ya está conectada; esto es la verificación de seguridad, aún sin ejecutar/documentar.
 
 - ✅ Crear proyecto Supabase.
 - ✅ Subir migraciones base.
@@ -53,27 +53,27 @@ Objetivo: validar base de datos, RLS, RPCs y Storage en el proyecto Supabase ya 
 - [ ] Ejecutar o completar `supabase/validate_rls.sql`.
 - [ ] Documentar resultados en `docs/supabase-validation.md`.
 
-## Fase 4 - Repositorios Supabase
+## Fase 4 - Repositorios Supabase ✅
 
 Objetivo: implementar acceso a datos real sin reescribir pantallas.
 
-- Implementar repos reales con interfaces de `src/lib/repos/types.ts`.
-- Familia, miembros, invitaciones.
-- Hijos, eventos, tareas.
-- Listas e ítems, comidas, documentos (metadata).
-- Usar RPC `remove_family_member` para borrar miembros.
-- Usar RPC `update_family_member_role` para cambiar roles.
-- Usar RPC `accept_family_invite` para aceptar invitaciones.
+- ✅ Repos reales con interfaces de `src/lib/repos/types.ts` (`supabase-repos.ts`).
+- ✅ Familia, miembros, invitaciones.
+- ✅ Hijos, eventos, tareas.
+- ✅ Listas e ítems, comidas, documentos (metadata).
+- ✅ RPC `remove_family_member` para borrar miembros.
+- ✅ RPC `update_family_member_role` para cambiar roles.
+- ✅ RPC `accept_family_invite` para aceptar invitaciones.
 - ✅ `useFamily.ts` experimental eliminado; patrón de repositorios definitivo en uso.
 
-## Fase 5 - StoreProvider async
+## Fase 5 - StoreProvider async ✅
 
 Objetivo: cambiar de mock síncrono a datos async.
 
-- Añadir estados loading y error.
-- Cargar familia activa.
-- Soportar usuario sin familia (onboarding real).
-- Mantener modo demo como fallback o modo explícito.
+- ✅ Estados loading y error.
+- ✅ Cargar familia activa (resuelta en `AppShell`).
+- ✅ Soportar usuario sin familia (onboarding real).
+- ✅ Mantener modo demo como fallback.
 
 ## Fase 6 - Documentos reales
 
@@ -84,14 +84,13 @@ Objetivo: conectar Supabase Storage.
 - ✅ Descargar o abrir documento (signed URLs, 60 s).
 - ✅ Borrar archivo y metadata.
 
-## Fase 7 - Invitaciones reales
+## Fase 7 - Invitaciones reales ✅
 
 Objetivo: convertir invitaciones mock en flujo usable.
 
-- Crear invitación por email.
-- Detectar invitaciones pendientes al iniciar sesión.
-- Aceptar invitación → crear `family_member` → marcar `accepted`.
-- Cancelar invitación.
+- ✅ Crear invitación por email (magic link vía `/api/invite`).
+- ✅ Aceptar invitación en `/auth/callback` → `accept_family_invite` crea `family_member` y marca `accepted`.
+- ✅ Cancelar invitación.
 
 ## Fase 8 - Pulido
 

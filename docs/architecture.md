@@ -8,12 +8,14 @@ Mantener Nido simple: una app web privada, mobile-first, con Supabase como backe
 
 ```text
 UI / Pantallas
-  -> StoreProvider (store-context.tsx)
-    -> mock-store.ts
-      -> localStorage
+  -> StoreProvider (store-context.tsx)   [async: loading / error / reload]
+    -> Repos (contrato src/lib/repos/types.ts)
+       ├─ supabaseRepos (src/lib/supabase-repos.ts)   ← IS_DEMO_MODE = false
+       └─ mockRepos     (src/lib/mock-repos.ts)        ← IS_DEMO_MODE = true
+            -> mock-store.ts -> localStorage
 ```
 
-La app todavía no consume Supabase desde la UI de forma general. El modo demo sigue siendo la fuente de datos activa mientras se validan RLS, RPCs y Storage.
+La UI ya consume Supabase de forma general a través de la frontera de repositorios. `StoreProvider` selecciona `supabaseRepos` o `mockRepos` según `IS_DEMO_MODE` (definido en `src/lib/supabase/env.ts`), sin duplicar pantallas. El modo demo persiste en `localStorage` y sirve como fallback y como entorno de pruebas e2e.
 
 ## Modo demo
 
@@ -47,10 +49,12 @@ Usos:
 
 Estado:
 
-- Proyecto Supabase creado.
-- Migraciones base subidas/preparadas.
-- Validación aislada en curso.
-- UI todavía pendiente de conectar mediante repositorios reales.
+- Proyecto Supabase creado y migraciones subidas.
+- UI conectada mediante repositorios reales (`supabase-repos.ts`).
+- Auth, invitaciones por magic link, roles y documentos en Storage operativos.
+- Validación aislada (RLS con dos usuarios, RPCs, Storage) pendiente de ejecutar y documentar en `docs/supabase-validation.md`.
+
+La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
 Migraciones:
 
@@ -99,26 +103,21 @@ Esta RPC:
 4. Marca la invitación como `accepted`.
 5. Devuelve el `family_id`.
 
-Pendiente de producto: decidir el canal de entrega de invitaciones (magic link, deep link o email con instrucciones).
+Canal de entrega elegido: **magic link** vía `admin.auth.admin.inviteUserByEmail` en `/api/invite`, con `redirectTo` a `/auth/callback?invite_id=...`.
 
 ## Repositorios
 
-Ya existen contratos en:
-
-- `src/lib/repos/types.ts`
-
-Objetivo futuro:
+Frontera de datos ya implementada:
 
 ```text
 UI / Pantallas
-  -> StoreProvider o hooks de datos
-    -> repositorios
-      -> mockRepository o supabaseRepository
+  -> StoreProvider (async)
+    -> Repos (contrato src/lib/repos/types.ts)
+       ├─ supabaseRepos (src/lib/supabase-repos.ts)
+       └─ mockRepos     (src/lib/mock-repos.ts)
 ```
 
-Esto permitirá mantener modo demo y Supabase sin duplicar la UI. La siguiente etapa técnica es implementar repositorios reales y hacer que `StoreProvider` consuma la frontera async de repositorios en lugar del store mock directo.
-
-Los repositorios reales ya están implementados en `src/lib/supabase-repos.ts` y `src/lib/mock-repos.ts`, consumidos por `StoreProvider` según `IS_DEMO_MODE`. El hook experimental `src/hooks/useFamily.ts` y los stubs sueltos de `src/lib/repos/*` (salvo `types.ts`) se han eliminado por quedar obsoletos.
+`StoreProvider` consume la frontera async de repositorios y elige implementación según `IS_DEMO_MODE`, manteniendo modo demo y Supabase sin duplicar la UI. El hook experimental `src/hooks/useFamily.ts` y los stubs sueltos de `src/lib/repos/*` (salvo `types.ts`) se eliminaron por quedar obsoletos.
 
 ## Fechas
 
@@ -150,16 +149,20 @@ Componentes clave:
 - `src/components/ui/BottomSheet.tsx`
 - `src/hooks/useConfirmAction.ts`
 
-Los sheets deben funcionar bien en móvil pequeño:
+Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), que ya resuelve el comportamiento en móvil pequeño y aporta modal centrado en escritorio:
 
 - Altura máxima con `max-h-[92dvh]`.
 - Scroll interno con `flex-1 overflow-y-auto min-h-0`.
-- Botón principal en `flex-shrink-0` footer, siempre visible aunque el teclado esté abierto.
+- Botón principal en el `footer` fijo, siempre visible aunque el teclado esté abierto.
+
+## Decisiones tomadas
+
+- Invitaciones: **magic link** (`inviteUserByEmail` + `/auth/callback?invite_id`).
+- Familia activa: sesión Supabase + tabla `family_members`, resuelta en `AppShell` y persistida con `family-config`.
+- `StoreProvider` migrado a acciones async (Fase 5, hecho).
+- Tests e2e smoke con `@playwright/test` añadidos (Fase 8).
 
 ## Decisiones pendientes
 
-- Cómo entregar invitaciones reales (email + deep link o magic link).
-- Cómo representar familia activa con Supabase (sesión + tabla de miembros).
-- Si el modo demo será permanente o solo de desarrollo.
-- Cuándo migrar `StoreProvider` a acciones async (Fase 5).
-- Cuándo añadir tests e2e con `@playwright/test` (Fase 8).
+- Si el modo demo será permanente o solo de desarrollo/pruebas.
+- Alcance de la migración a tokens de color (refactor de UI, sin urgencia).

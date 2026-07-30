@@ -30,17 +30,17 @@ Con `NEXT_PUBLIC_VAPID_PUBLIC_KEY` presente, la tarjeta de Ajustes ya deja **act
 ### 3. Aplicar la migración
 Ejecutar `010_push_subscriptions.sql` (o el `all_in_one.sql` actualizado) en Supabase.
 
-### 4. El emisor de recordatorios (lo que envía)
-Falta el proceso que, periódicamente, mira eventos/tareas próximos y envía el push. Opciones:
+### 4. El emisor de recordatorios (hecho)
+Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `vercel.json` (**cron diario a las 07:00 UTC**). Cada ejecución:
+1. Hace un **keep-alive** a Supabase (evita la pausa por inactividad del plan free).
+2. Lee `push_subscriptions`, agrupa por usuario y busca sus eventos de hoy y tareas pendientes que vencen (o vencidas).
+3. Envía el push con `web-push` (payload `{ title, body, url }`).
+4. Borra las suscripciones caducadas (respuesta 404/410).
 
-- **Vercel Cron** → una ruta `/api/cron/reminders` (protegida) que:
-  1. Busca eventos de hoy / tareas que vencen.
-  2. Para cada usuario afectado, lee sus filas de `push_subscriptions`.
-  3. Envía con la librería `web-push` usando las claves VAPID.
-  4. Borra las suscripciones que devuelvan 404/410 (caducadas).
-- **Supabase Edge Function + pg_cron** como alternativa.
+Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
+- `CRON_SECRET` — Vercel añade `Authorization: Bearer <CRON_SECRET>` a las llamadas del cron; el endpoint lo verifica.
 
-Payload esperado por el SW: `{ "title": "...", "body": "...", "url": "/home" }`.
+> Nota: el plan **Hobby de Vercel** permite crons **una vez al día**, justo lo que usamos. La zona horaria del "hoy" es la del servidor (UTC); a las 07:00 UTC coincide con la mañana en España.
 
 ## Notas
 - iOS soporta Web Push solo si la PWA está **instalada** en la pantalla de inicio (iOS 16.4+).

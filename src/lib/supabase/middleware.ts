@@ -1,19 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { IS_DEMO_MODE, SUPABASE_URL, SUPABASE_ANON_KEY } from './env'
 
 export async function updateSession(request: NextRequest) {
-  // Sin credenciales de Supabase, dejamos pasar todas las rutas (modo desarrollo)
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!supabaseUrl || supabaseUrl === 'your-supabase-project-url' || !supabaseKey) {
+  // Sin credenciales de Supabase reales, dejamos pasar todas las rutas (modo demo).
+  if (IS_DEMO_MODE) {
     return NextResponse.next({ request })
   }
 
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey!,
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {

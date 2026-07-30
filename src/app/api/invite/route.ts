@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-
-const PLACEHOLDER_URLS = ['your-supabase-project-url', 'placeholder', 'https://placeholder.supabase.co']
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-const IS_DEMO_MODE =
-  !SUPABASE_URL ||
-  PLACEHOLDER_URLS.some(p => SUPABASE_URL.includes(p)) ||
-  !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'your-anon-key'
+import { IS_DEMO_MODE } from '@/lib/supabase/env'
 
 export async function POST(req: NextRequest) {
   if (IS_DEMO_MODE) {

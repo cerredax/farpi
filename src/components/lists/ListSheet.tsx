@@ -76,8 +76,9 @@ export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
       <form id="list-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         {/* Nombre */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="list-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
           <input
+            id="list-name"
             ref={inputRef}
             type="text"
             value={draft.name}

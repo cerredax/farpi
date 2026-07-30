@@ -210,8 +210,9 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
 
         {/* Nombre */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="doc-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
           <input
+            id="doc-name"
             ref={inputRef}
             type="text"
             value={draft.name}
@@ -270,10 +271,11 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
 
         {/* Descripción */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+          <label htmlFor="doc-description" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
             Descripción <span className="normal-case font-normal">(opcional)</span>
           </label>
           <input
+            id="doc-description"
             type="text"
             value={draft.description}
             onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}

@@ -73,8 +73,9 @@ export function ItemSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
     >
       <form id="item-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Ítem</label>
+          <label htmlFor="item-text" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Ítem</label>
           <input
+            id="item-text"
             ref={inputRef}
             type="text"
             value={draft.text}

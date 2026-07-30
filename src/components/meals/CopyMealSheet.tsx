@@ -105,8 +105,9 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Copiar al dia</label>
+          <label htmlFor="copy-target" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Copiar al dia</label>
           <input
+            id="copy-target"
             type="date"
             value={targetDate}
             onChange={e => {
@@ -141,8 +142,9 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
 
         {repeatEveryDay && (
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha fin</label>
+            <label htmlFor="copy-until" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha fin</label>
             <input
+              id="copy-until"
               type="date"
               value={repeatUntil}
               min={targetDate}

@@ -234,21 +234,21 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
             {/* Título */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Título</label>
-              <input ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+              <label htmlFor="event-title" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Título</label>
+              <input id="event-title" ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
             </div>
 
             {/* Descripción */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Descripción</label>
-              <textarea value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition resize-none" />
+              <label htmlFor="event-description" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Descripción</label>
+              <textarea id="event-description" value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition resize-none" />
             </div>
 
             {/* Fecha + todo el día */}
             <div className="flex gap-3 items-end">
               <div className="flex-1 space-y-1.5">
-                <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha</label>
-                <input type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+                <label htmlFor="event-date" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha</label>
+                <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
               </div>
               <div className="flex flex-col items-center gap-1.5 pb-0.5">
                 <span className="text-[10px] font-bold text-[#77716A] uppercase tracking-widest whitespace-nowrap">Todo el día</span>
@@ -262,12 +262,12 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
             {!draft.all_day && (
               <div className="flex gap-3">
                 <div className="flex-1 space-y-1.5">
-                  <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Inicio</label>
-                  <input type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+                  <label htmlFor="event-start" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Inicio</label>
+                  <input id="event-start" type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fin</label>
-                  <input type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+                  <label htmlFor="event-end" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fin</label>
+                  <input id="event-end" type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
                 </div>
               </div>
             )}
@@ -345,8 +345,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
                     {/* Fecha de fin */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Termina el</label>
+                      <label htmlFor="event-rec-end" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Termina el</label>
                       <input
+                        id="event-rec-end"
                         type="date"
                         value={recurrenceEnd}
                         min={draft.date}
@@ -378,8 +379,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                 {recurrence === 'yearly' && (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetir hasta el año</label>
+                      <label htmlFor="event-rec-year" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetir hasta el año</label>
                       <select
+                        id="event-rec-year"
                         value={recurrenceEndYear}
                         onChange={e => setRecurrenceEndYear(Number(e.target.value))}
                         className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"

@@ -87,8 +87,9 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
     >
       <form id="child-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="child-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
           <input
+            id="child-name"
             ref={inputRef}
             type="text"
             value={draft.name}
@@ -99,8 +100,9 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha de nacimiento</label>
+          <label htmlFor="child-birth" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha de nacimiento</label>
           <input
+            id="child-birth"
             type="date"
             value={draft.birth_date}
             onChange={e => setDraft(d => ({ ...d, birth_date: e.target.value }))}

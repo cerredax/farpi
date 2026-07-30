@@ -89,8 +89,9 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
 
         {/* Título */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Tarea</label>
+          <label htmlFor="task-title" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Tarea</label>
           <input
+            id="task-title"
             ref={titleRef}
             type="text"
             value={draft.title}
@@ -103,8 +104,9 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
 
         {/* Notas */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Notas</label>
+          <label htmlFor="task-notes" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Notas</label>
           <textarea
+            id="task-notes"
             value={draft.notes}
             onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))}
             placeholder="Detalles opcionales…"
@@ -170,10 +172,11 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
 
         {/* Fecha de inicio / vencimiento */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+          <label htmlFor="task-due" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
             {hasRecurrence ? 'Empieza el' : 'Vencimiento'}
           </label>
           <input
+            id="task-due"
             type="date"
             value={draft.due_date}
             onChange={e => setDraft(d => ({ ...d, due_date: e.target.value }))}
@@ -184,10 +187,11 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
         {/* Fecha fin (solo si hay recurrencia) */}
         {hasRecurrence && (
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+            <label htmlFor="task-rec-end" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
               Termina el <span className="font-normal normal-case">(opcional)</span>
             </label>
             <input
+              id="task-rec-end"
               type="date"
               value={draft.recurrence_end}
               min={draft.due_date || undefined}

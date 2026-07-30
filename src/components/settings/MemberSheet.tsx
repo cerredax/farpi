@@ -121,8 +121,9 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
       <form id="member-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
         {mode === 'invite' ? (
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Email</label>
+            <label htmlFor="member-email" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Email</label>
             <input
+              id="member-email"
               ref={inputRef}
               type="email"
               value={draft.email}
@@ -141,8 +142,9 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
           </div>
         ) : (
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+            <label htmlFor="member-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
             <input
+              id="member-name"
               ref={inputRef}
               type="text"
               value={draft.name}

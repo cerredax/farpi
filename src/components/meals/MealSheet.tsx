@@ -103,8 +103,9 @@ export function MealSheet({
       <form id="meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         {/* Fecha */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha</label>
+          <label htmlFor="meal-date" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha</label>
           <input
+            id="meal-date"
             type="date"
             value={draft.date}
             onChange={e => setDraft(d => ({ ...d, date: e.target.value }))}
@@ -145,8 +146,9 @@ export function MealSheet({
 
         {/* Plato */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Plato</label>
+          <label htmlFor="meal-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Plato</label>
           <input
+            id="meal-name"
             ref={inputRef}
             type="text"
             value={draft.name}
@@ -159,10 +161,11 @@ export function MealSheet({
 
         {/* Notas */}
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+          <label htmlFor="meal-notes" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
             Notas <span className="normal-case font-normal">(opcional)</span>
           </label>
           <input
+            id="meal-notes"
             type="text"
             value={draft.notes}
             onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))}

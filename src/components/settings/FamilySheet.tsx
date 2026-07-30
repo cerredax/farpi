@@ -31,8 +31,9 @@ export function FamilySheet({ open, family, onClose, onSave }: FamilySheetProps)
     <BottomSheet open={open} title="Nombre de la familia" onClose={onClose}>
       <form onSubmit={handleSubmit} className="px-5 py-4 pb-8 space-y-5">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="family-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
           <input
+            id="family-name"
             ref={inputRef}
             type="text"
             value={name}

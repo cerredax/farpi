@@ -69,6 +69,10 @@ export function deleteEvent(id: string): void {
   db.events = db.events.filter(e => e.id !== id)
 }
 
+export function deleteEventSeries(groupId: string): void {
+  db.events = db.events.filter(e => e.recurrence_group_id !== groupId)
+}
+
 export function createYearlySeries(
   familyId: string,
   draft: EventDraft,

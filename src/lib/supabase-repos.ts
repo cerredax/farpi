@@ -306,6 +306,12 @@ export const supabaseRepos: Repos = {
       const { error } = await supabase.from('events').delete().eq('id', id)
       assertNoError(error)
     },
+
+    async deleteEventSeries(groupId: string): Promise<void> {
+      const supabase = createClient()
+      const { error } = await supabase.from('events').delete().eq('recurrence_group_id', groupId)
+      assertNoError(error)
+    },
   },
 
   tasks: {

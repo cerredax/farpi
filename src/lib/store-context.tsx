@@ -67,6 +67,7 @@ interface StoreValue {
   createYearlySeries: (draft: EventDraft, endYear: number) => Promise<Event[]>
   updateEvent: (id: string, draft: EventDraft) => Promise<void>
   deleteEvent: (id: string) => Promise<void>
+  deleteEventSeries: (groupId: string) => Promise<void>
   createTask: (draft: TaskDraft) => Promise<void>
   updateTask: (id: string, draft: TaskDraft) => Promise<void>
   deleteTask: (id: string) => Promise<void>
@@ -259,6 +260,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       },
       updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft)),
       deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id)),
+      deleteEventSeries: (groupId: string) => runMutation(() => repos.events.deleteEventSeries(groupId)),
       createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft)),
       updateTask: (id: string, draft: TaskDraft) => runMutation(() => repos.tasks.updateTask(id, draft)),
       deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id)),

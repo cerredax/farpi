@@ -28,7 +28,7 @@ const VIEW_OPTIONS: Array<{ mode: CalendarViewMode; label: string; hint: string 
 ]
 
 export function CalendarView() {
-  const { kids, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent } = useStore()
+  const { kids, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
 
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
@@ -181,6 +181,7 @@ export function CalendarView() {
         onCreateYearlySeries={handleCreateYearlySeries}
         onUpdate={updateEvent}
         onDelete={deleteEvent}
+        onDeleteSeries={deleteEventSeries}
       />
     </>
   )

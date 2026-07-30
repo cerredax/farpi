@@ -25,6 +25,7 @@ interface EventSheetProps {
   onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
   onUpdate: (id: string, draft: EventDraft) => void
   onDelete: (id: string) => void
+  onDeleteSeries?: (groupId: string) => void
 }
 
 // L M X J V S D → JS getDay() values: Mon=1 Tue=2 Wed=3 Thu=4 Fri=5 Sat=6 Sun=0
@@ -95,8 +96,9 @@ function initDraft(mode: Mode, initial: Event | null | undefined, defaultDate: D
   }
 }
 
-export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete }: EventSheetProps) {
+export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete, onDeleteSeries }: EventSheetProps) {
   const [draft, setDraft] = useState<EventDraft>(() => initDraft(mode, initial, defaultDate))
+  const [seriesDeleteOpen, setSeriesDeleteOpen] = useState(false)
   const [recurrence, setRecurrence] = useState<Recurrence>('none')
   const [recurrenceWeekdays, setRecurrenceWeekdays] = useState<number[]>([])
   const [recurrenceEnd, setRecurrenceEnd] = useState('')
@@ -203,9 +205,18 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
   const familyOption = { id: null as string | null, name: 'Familia', color: '#E9C46A' }
   const assignees = [familyOption, ...kids.map(c => ({ id: c.id as string | null, name: c.name, color: c.color }))]
 
-  const headerActions = mode === 'edit' ? (
+  const isSeries = mode === 'edit' && !!initial?.recurrence_group_id && !!onDeleteSeries
+  const headerActions = mode !== 'edit' ? undefined : isSeries ? (
+    <button
+      type="button"
+      onClick={() => setSeriesDeleteOpen(v => !v)}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${seriesDeleteOpen ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
+    >
+      Eliminar
+    </button>
+  ) : (
     <DeleteButton variant="header" confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
-  ) : undefined
+  )
 
   const footer = (
     <div className="px-5 pb-8 pt-3">
@@ -224,6 +235,34 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
       footer={footer}
     >
       <form id="event-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
+
+            {seriesDeleteOpen && initial?.recurrence_group_id && onDeleteSeries && (
+              <div className="rounded-2xl border border-[#F1C9C9] bg-[#FDF6F6] p-3.5 space-y-2">
+                <p className="text-sm font-bold text-ink">Este evento se repite</p>
+                <p className="text-xs text-muted">¿Qué quieres eliminar?</p>
+                <button
+                  type="button"
+                  onClick={() => { onDelete(initial.id); onClose() }}
+                  className="w-full rounded-xl border border-[#F1C9C9] py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
+                >
+                  Eliminar solo este
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { onDeleteSeries(initial.recurrence_group_id!); onClose() }}
+                  className="w-full rounded-xl bg-danger py-2.5 text-sm font-semibold text-white transition-colors"
+                >
+                  Eliminar toda la serie
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSeriesDeleteOpen(false)}
+                  className="w-full rounded-xl py-2 text-sm font-semibold text-muted"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
 
             {/* Título */}
             <div className="space-y-1.5">

@@ -47,6 +47,7 @@ export const mockRepos: Repos = {
       Promise.resolve(store.createYearlySeries(familyId, draft, endYear)),
     updateEvent: (id, draft) => Promise.resolve(store.updateEvent(id, draft)),
     deleteEvent: (id) => Promise.resolve(store.deleteEvent(id)),
+    deleteEventSeries: (groupId) => Promise.resolve(store.deleteEventSeries(groupId)),
   },
 
   tasks: {

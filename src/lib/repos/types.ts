@@ -45,6 +45,7 @@ export interface EventsRepo {
   createYearlySeries(familyId: string, draft: EventDraft, endYear: number): Promise<Event[]>
   updateEvent(id: string, draft: EventDraft): Promise<void>
   deleteEvent(id: string): Promise<void>
+  deleteEventSeries(groupId: string): Promise<void>
 }
 
 export interface TasksRepo {

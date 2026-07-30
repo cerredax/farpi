@@ -84,6 +84,7 @@ interface StoreValue {
   createDocument: (draft: DocumentDraft) => Promise<void>
   updateDocument: (id: string, draft: DocumentDraft) => Promise<void>
   deleteDocument: (id: string) => Promise<void>
+  getDocumentUrl: (document: Document) => Promise<string>
 }
 
 const StoreCtx = createContext<StoreValue>(null!)
@@ -276,6 +277,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
       updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),
+      getDocumentUrl: (document: Document) => repos.documents.getDownloadUrl(document),
     }
   }, [
     isLoading,

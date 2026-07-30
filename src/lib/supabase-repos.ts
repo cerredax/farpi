@@ -626,5 +626,14 @@ export const supabaseRepos: Repos = {
         assertNoError(storageError)
       }
     },
+
+    async getDownloadUrl(document: Document): Promise<string> {
+      const supabase = createClient()
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(document.storage_path, 60)
+      assertNoError(error)
+      return data?.signedUrl ?? fail('No se pudo generar el enlace del documento')
+    },
   },
 }

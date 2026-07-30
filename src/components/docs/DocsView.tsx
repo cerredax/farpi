@@ -87,7 +87,7 @@ const ALL_FILTERS = [
 ]
 
 export function DocsView() {
-  const { documents, kids, createDocument, updateDocument, deleteDocument } = useStore()
+  const { documents, kids, createDocument, updateDocument, deleteDocument, getDocumentUrl } = useStore()
 
   const [sheetOpen,    setSheetOpen]    = useState(false)
   const [sheetMode,    setSheetMode]    = useState<'create' | 'edit'>('create')
@@ -184,6 +184,7 @@ export function DocsView() {
         onClose={() => setSheetOpen(false)}
         onSave={handleSave}
         onDelete={deleteDocument}
+        onOpenFile={getDocumentUrl}
       />
     </div>
   )

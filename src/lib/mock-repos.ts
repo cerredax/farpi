@@ -88,5 +88,6 @@ export const mockRepos: Repos = {
     createDocument:  (familyId, draft) => Promise.resolve(store.createDocument(familyId, draft)),
     updateDocument:  (id, draft) => Promise.resolve(store.updateDocument(id, draft)),
     deleteDocument:  (id) => Promise.resolve(store.deleteDocument(id)),
+    getDownloadUrl:  () => Promise.reject(new Error('En modo demo no se guardan archivos reales, así que no hay nada que abrir.')),
   },
 }

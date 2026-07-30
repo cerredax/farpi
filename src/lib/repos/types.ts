@@ -84,6 +84,7 @@ export interface DocumentsRepo {
   createDocument(familyId: string, draft: DocumentDraft): Promise<Document>
   updateDocument(id: string, draft: DocumentDraft): Promise<void>
   deleteDocument(id: string): Promise<void>
+  getDownloadUrl(document: Document): Promise<string>
 }
 
 // ─── Aggregate ────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { X, Trash2, Upload, FileText, ImageIcon, File } from 'lucide-react'
+import { X, Trash2, Upload, FileText, ImageIcon, File, ExternalLink, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import type { Child, Document, DocumentDraft, DocMimeType } from '@/types'
 import { DOC_CATEGORIES } from '@/lib/constants'
@@ -52,13 +52,16 @@ interface DocSheetProps {
   onClose: () => void
   onSave: (draft: DocumentDraft) => void
   onDelete?: (id: string) => void
+  onOpenFile?: (doc: Document) => Promise<string>
 }
 
-export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete }: DocSheetProps) {
+export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete, onOpenFile }: DocSheetProps) {
   const [draft,    setDraft]    = useState<DocumentDraft>(() => initDraft(mode, initial))
   const [fileName, setFileName] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState('')
+  const [opening, setOpening] = useState(false)
+  const [openError, setOpenError] = useState('')
   const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
   const inputRef = useRef<HTMLInputElement>(null)
   const fileRef  = useRef<HTMLInputElement>(null)
@@ -102,6 +105,25 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete 
   function handleDelete() {
     if (!initial || !onDelete) return
     requestConfirm(() => { onDelete(initial.id); onClose() })
+  }
+
+  async function handleOpen() {
+    if (!initial || !onOpenFile || opening) return
+    // Abrir la pestaña de forma síncrona evita que el bloqueador de popups
+    // la cancele tras el await de la URL firmada.
+    const win = window.open('', '_blank')
+    setOpening(true)
+    setOpenError('')
+    try {
+      const url = await onOpenFile(initial)
+      if (win) win.location.href = url
+      else window.location.href = url
+    } catch (err) {
+      win?.close()
+      setOpenError(err instanceof Error ? err.message : 'No se pudo abrir el documento')
+    } finally {
+      setOpening(false)
+    }
   }
 
   const fileName_display = mode === 'edit' && initial
@@ -150,14 +172,30 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete 
                 }
               </>
             ) : (
-              /* En edición: mostrar info del archivo actual (solo lectura) */
-              <div className="flex items-center gap-3 bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-4 py-3">
-                <FileTypeIcon mime={draft.mime_type} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#252525] font-medium truncate">{fileName_display}</p>
-                  <p className="text-xs text-[#77716A]">{formatSize(draft.size_bytes)}</p>
+              /* En edición: mostrar info del archivo actual + abrir */
+              <>
+                <div className="flex items-center gap-3 bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-4 py-3">
+                  <FileTypeIcon mime={draft.mime_type} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#252525] font-medium truncate">{fileName_display}</p>
+                    <p className="text-xs text-[#77716A]">{formatSize(draft.size_bytes)}</p>
+                  </div>
                 </div>
-              </div>
+                {onOpenFile && (
+                  <button
+                    type="button"
+                    onClick={handleOpen}
+                    disabled={opening}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#EDE9E3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5C7A59] transition-colors hover:bg-[#F5F9F5] disabled:opacity-60"
+                  >
+                    {opening
+                      ? <><Loader2 size={15} className="animate-spin" /> Abriendo…</>
+                      : <><ExternalLink size={15} strokeWidth={2.3} /> Abrir documento</>
+                    }
+                  </button>
+                )}
+                {openError && <p className="text-[10px] text-[#D96C6C] font-semibold">{openError}</p>}
+              </>
             )}
           </div>
 

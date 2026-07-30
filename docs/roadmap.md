@@ -79,10 +79,10 @@ Objetivo: cambiar de mock síncrono a datos async.
 
 Objetivo: conectar Supabase Storage.
 
-- Upload real con validación MIME y tamaño.
-- Metadata en tabla `documents`.
-- Descargar o abrir documento (signed URLs).
-- Borrar archivo y metadata.
+- ✅ Upload real con validación MIME y tamaño.
+- ✅ Metadata en tabla `documents`.
+- ✅ Descargar o abrir documento (signed URLs, 60 s).
+- ✅ Borrar archivo y metadata.
 
 ## Fase 7 - Invitaciones reales
 

@@ -97,7 +97,7 @@ Objetivo: convertir invitaciones mock en flujo usable.
 
 Objetivo: preparar uso diario.
 
-- PWA básica (iconos y manifest ya preparados).
+- ✅ PWA básica: iconos any + maskable + apple-touch y manifest con purposes.
 - Mejoras responsive.
 - Tests e2e con `@playwright/test` (smoke: login demo → /home).
 - Revisión de accesibilidad.

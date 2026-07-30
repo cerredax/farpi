@@ -7,6 +7,7 @@ import { useStore } from '@/lib/store-context'
 import { resetDemoData } from '@/lib/family-config'
 import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
+import { NotificationsCard } from './NotificationsCard'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
 import { FamilySheet } from './FamilySheet'
@@ -186,6 +187,12 @@ export function SettingsView() {
                 {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
               </button>
             </div>
+          </Section>
+        )}
+
+        {!IS_DEMO_MODE && (
+          <Section label="Notificaciones">
+            <NotificationsCard />
           </Section>
         )}
 

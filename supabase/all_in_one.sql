@@ -1,5 +1,5 @@
 -- ============================================================
--- NIDO — Esquema completo (migraciones 001–009 concatenadas)
+-- NIDO — Esquema completo (migraciones 001–010 concatenadas)
 -- Generado para pegar de una vez en Supabase → SQL Editor.
 -- Ejecuta este bloque en un proyecto Supabase nuevo/vacío.
 -- ============================================================
@@ -897,4 +897,33 @@ end;
 $$;
 
 grant execute on function public.accept_family_invite(uuid) to authenticated;
+
+
+-- ─────────────────────────────────────────────────────────
+-- 010_push_subscriptions.sql
+-- ─────────────────────────────────────────────────────────
+-- ============================================================
+-- NIDO — Suscripciones a notificaciones push (Web Push)
+-- Cada fila es un dispositivo/navegador suscrito de un usuario.
+-- ============================================================
+
+create table public.push_subscriptions (
+  id          uuid primary key default uuid_generate_v4(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  endpoint    text not null unique,
+  p256dh      text not null,
+  auth        text not null,
+  created_at  timestamptz not null default now()
+);
+
+create index push_subscriptions_user_idx on public.push_subscriptions(user_id);
+
+alter table public.push_subscriptions enable row level security;
+
+-- Cada usuario gestiona solo sus propias suscripciones.
+drop policy if exists "Usuario gestiona sus push" on public.push_subscriptions;
+create policy "Usuario gestiona sus push"
+  on public.push_subscriptions for all
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
 

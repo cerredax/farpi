@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useId, useRef } from 'react'
 import { X } from 'lucide-react'
 
 interface BottomSheetProps {
@@ -14,6 +15,23 @@ interface BottomSheetProps {
 }
 
 export function BottomSheet({ open, title, onClose, children, footer, headerActions }: BottomSheetProps) {
+  const titleId = useId()
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // Cerrar con Escape y llevar el foco al panel al abrir (accesibilidad).
+  useEffect(() => {
+    if (!open) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    const focusTimer = window.setTimeout(() => panelRef.current?.focus(), 0)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      window.clearTimeout(focusTimer)
+    }
+  }, [open, onClose])
+
   return (
     <>
       {/* Overlay */}
@@ -26,8 +44,16 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
 
       {/* Panel — bottom sheet en móvil, modal centrado en desktop */}
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        // inert (React 19): cuando está cerrado lo saca del orden de tabulación
+        // y lo oculta a lectores de pantalla sin dejar descendientes focusables.
+        inert={!open}
+        tabIndex={-1}
         className={[
-          'fixed z-[60] bg-white shadow-2xl max-h-[92dvh] flex flex-col',
+          'fixed z-[60] bg-white shadow-2xl max-h-[92dvh] flex flex-col outline-none',
           'transition-all duration-300 ease-out',
           // Móvil: desliza desde abajo
           'bottom-0 left-0 right-0 rounded-t-3xl',
@@ -46,11 +72,13 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
-          <h3 className="font-extrabold text-[#252525] text-base">{title}</h3>
+          <h3 id={titleId} className="font-extrabold text-[#252525] text-base">{title}</h3>
           <div className="flex items-center gap-2">
             {headerActions}
             <button
+              type="button"
               onClick={onClose}
+              aria-label="Cerrar"
               className="w-8 h-8 flex items-center justify-center rounded-full text-[#77716A] hover:bg-[#F0EDE8] transition-colors"
             >
               <X size={18} />

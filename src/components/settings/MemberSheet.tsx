@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef, useTransition } from 'react'
-import { Trash2, ShieldCheck, User } from 'lucide-react'
+import { ShieldCheck, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { DeleteButton } from '@/components/ui/DeleteButton'
 import { isValidEmail } from '@/lib/validators'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 import type { FamilyMember } from '@/types'
@@ -97,16 +98,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
         {isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
       </Button>
       {mode === 'edit' && (
-        <button
-          type="button"
-          onClick={handleRemove}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmRemove ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
-        >
-          <span className="flex items-center justify-center gap-2">
-            <Trash2 size={15} />
-            {confirmRemove ? 'Confirmar eliminación' : 'Quitar miembro'}
-          </span>
-        </button>
+        <DeleteButton confirming={confirmRemove} onClick={handleRemove} idleLabel="Quitar miembro" confirmLabel="Confirmar eliminación" />
       )}
     </div>
   )

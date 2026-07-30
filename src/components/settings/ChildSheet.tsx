@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { DeleteButton } from '@/components/ui/DeleteButton'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 import type { Child, ChildDraft } from '@/types'
 
@@ -51,16 +51,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
   }
 
   const deleteAction = mode === 'edit' ? (
-    <button
-      type="button"
-      onClick={handleDelete}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-        confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'
-      }`}
-    >
-      <Trash2 size={13} />
-      {confirmDelete ? 'Confirmar' : 'Eliminar'}
-    </button>
+    <DeleteButton variant="header" confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
   ) : undefined
 
   const footer = (

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { DeleteButton } from '@/components/ui/DeleteButton'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 import type { ListItem, ListItemDraft } from '@/types'
 
@@ -50,16 +50,7 @@ export function ItemSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
         {mode === 'create' ? 'Añadir' : 'Guardar'}
       </Button>
       {mode === 'edit' && (
-        <button
-          type="button"
-          onClick={handleDelete}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
-        >
-          <span className="flex items-center justify-center gap-2">
-            <Trash2 size={15} />
-            {confirmDelete ? 'Confirmar' : 'Eliminar ítem'}
-          </span>
-        </button>
+        <DeleteButton confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar ítem" confirmLabel="Confirmar" />
       )}
     </div>
   )

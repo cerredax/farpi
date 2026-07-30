@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { DeleteButton } from '@/components/ui/DeleteButton'
 import { extractTime, getLocalDateString } from '@/lib/date-utils'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 import type { Event, Child, EventDraft } from '@/types'
@@ -204,14 +204,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
   const assignees = [familyOption, ...kids.map(c => ({ id: c.id as string | null, name: c.name, color: c.color }))]
 
   const headerActions = mode === 'edit' ? (
-    <button
-      type="button"
-      onClick={handleDelete}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
-    >
-      <Trash2 size={13} />
-      {confirmDelete ? 'Confirmar' : 'Eliminar'}
-    </button>
+    <DeleteButton variant="header" confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
   ) : undefined
 
   const footer = (

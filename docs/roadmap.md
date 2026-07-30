@@ -96,7 +96,7 @@ Objetivo: convertir invitaciones mock en flujo usable.
 
 Objetivo: preparar uso diario.
 
-- ✅ PWA básica: iconos any + maskable + apple-touch y manifest con purposes.
+- ✅ PWA: iconos any + maskable + apple-touch, manifest con purposes y service worker offline (fallback `/offline`).
 - Mejoras responsive.
 - ✅ Tests e2e con `@playwright/test` (smoke demo: login → /home). Ejecutar con `npm run test:e2e`.
 - ✅ Revisión de accesibilidad: BottomSheet como diálogo (role/aria/Escape/foco/inert), botones de icono etiquetados y label↔input asociados en los sheets.

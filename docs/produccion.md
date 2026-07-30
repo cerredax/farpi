@@ -100,7 +100,7 @@ Sigue la guía **`docs/supabase-validation-guide.md`**. En resumen:
 - [ ] Revisar límites de envío de email del proveedor (invitaciones).
 
 ### Mejoras futuras (opcional)
-- [ ] PWA **offline** real (service worker); hoy es instalable pero no offline.
+- [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).
 - [ ] Backup/export de datos de la familia.
 - [ ] Tokenizar los ~70 colores one-off restantes (login/degradados) — retorno bajo.
 - [ ] Tests e2e de flujos CRUD completos (hoy hay smoke + apertura de sheets).

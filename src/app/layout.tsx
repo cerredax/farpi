@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Nunito } from 'next/font/google'
 import './globals.css'
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 
 const nunito = Nunito({
   subsets: ['latin'],
@@ -26,7 +27,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={nunito.variable}>
-      <body className="font-[family-name:var(--font-nunito)]">{children}</body>
+      <body className="font-[family-name:var(--font-nunito)]">
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   )
 }

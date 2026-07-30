@@ -1,7 +1,8 @@
 -- ============================================================
 -- NIDO — Esquema completo (migraciones 001–011 concatenadas)
--- Generado para pegar de una vez en Supabase → SQL Editor.
--- Ejecuta este bloque en un proyecto Supabase nuevo/vacío.
+-- Para un proyecto NUEVO/VACÍO. Si el proyecto YA tiene tablas,
+-- no ejecutes esto entero: aplica solo las migraciones que falten
+-- (p. ej. 010 y 011).
 -- ============================================================
 
 
@@ -907,7 +908,7 @@ grant execute on function public.accept_family_invite(uuid) to authenticated;
 -- Cada fila es un dispositivo/navegador suscrito de un usuario.
 -- ============================================================
 
-create table public.push_subscriptions (
+create table if not exists public.push_subscriptions (
   id          uuid primary key default uuid_generate_v4(),
   user_id     uuid not null references auth.users(id) on delete cascade,
   endpoint    text not null unique,
@@ -916,7 +917,7 @@ create table public.push_subscriptions (
   created_at  timestamptz not null default now()
 );
 
-create index push_subscriptions_user_idx on public.push_subscriptions(user_id);
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions(user_id);
 
 alter table public.push_subscriptions enable row level security;
 

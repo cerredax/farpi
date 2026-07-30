@@ -89,7 +89,7 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
 
         {/* Título */}
         <div className="space-y-1.5">
-          <label htmlFor="task-title" className="text-xs font-bold text-muted uppercase tracking-widest">Tarea</label>
+          <label htmlFor="task-title" className="field-label">Tarea</label>
           <input
             id="task-title"
             ref={titleRef}
@@ -98,26 +98,26 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
             onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
             placeholder="¿Qué hay que hacer?"
             required
-            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
+            className="field-input"
           />
         </div>
 
         {/* Notas */}
         <div className="space-y-1.5">
-          <label htmlFor="task-notes" className="text-xs font-bold text-muted uppercase tracking-widest">Notas</label>
+          <label htmlFor="task-notes" className="field-label">Notas</label>
           <textarea
             id="task-notes"
             value={draft.notes}
             onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))}
             placeholder="Detalles opcionales…"
             rows={2}
-            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition resize-none"
+            className="field-input resize-none"
           />
         </div>
 
         {/* Prioridad */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted uppercase tracking-widest">Prioridad</label>
+          <label className="field-label">Prioridad</label>
           <div className="flex gap-3">
             {TASK_PRIORITIES.map(opt => {
               const selected = draft.priority === opt.value
@@ -148,7 +148,7 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
 
         {/* Repetición */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted uppercase tracking-widest">Repetición</label>
+          <label className="field-label">Repetición</label>
           <div className="grid grid-cols-4 gap-1.5">
             {TASK_RECURRENCES.map(opt => {
               const selected = draft.recurrence === opt.value
@@ -172,7 +172,7 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
 
         {/* Fecha de inicio / vencimiento */}
         <div className="space-y-1.5">
-          <label htmlFor="task-due" className="text-xs font-bold text-muted uppercase tracking-widest">
+          <label htmlFor="task-due" className="field-label">
             {hasRecurrence ? 'Empieza el' : 'Vencimiento'}
           </label>
           <input
@@ -180,14 +180,14 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
             type="date"
             value={draft.due_date}
             onChange={e => setDraft(d => ({ ...d, due_date: e.target.value }))}
-            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
+            className="field-input"
           />
         </div>
 
         {/* Fecha fin (solo si hay recurrencia) */}
         {hasRecurrence && (
           <div className="space-y-1.5">
-            <label htmlFor="task-rec-end" className="text-xs font-bold text-muted uppercase tracking-widest">
+            <label htmlFor="task-rec-end" className="field-label">
               Termina el <span className="font-normal normal-case">(opcional)</span>
             </label>
             <input
@@ -196,7 +196,7 @@ export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
               value={draft.recurrence_end}
               min={draft.due_date || undefined}
               onChange={e => setDraft(d => ({ ...d, recurrence_end: e.target.value }))}
-              className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
+              className="field-input"
             />
           </div>
         )}

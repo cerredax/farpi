@@ -161,7 +161,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
       <form id="doc-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         {/* Archivo */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted uppercase tracking-widest">Archivo</label>
+          <label className="field-label">Archivo</label>
           {mode === 'create' ? (
             <>
               <button
@@ -210,7 +210,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
 
         {/* Nombre */}
         <div className="space-y-1.5">
-          <label htmlFor="doc-name" className="text-xs font-bold text-muted uppercase tracking-widest">Nombre</label>
+          <label htmlFor="doc-name" className="field-label">Nombre</label>
           <input
             id="doc-name"
             ref={inputRef}
@@ -219,13 +219,13 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             placeholder="Ej: Cartilla vacunas Ana"
             required
-            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
+            className="field-input"
           />
         </div>
 
         {/* Categoría */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted uppercase tracking-widest">Categoría</label>
+          <label className="field-label">Categoría</label>
           <div className="flex flex-wrap gap-2">
             {DOC_CATEGORIES.map(cat => (
               <button
@@ -243,7 +243,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
         {/* Hijo (opcional) */}
         {kids.length > 0 && (
           <div className="space-y-2">
-            <label className="text-xs font-bold text-muted uppercase tracking-widest">
+            <label className="field-label">
               De quién <span className="normal-case font-normal">(opcional)</span>
             </label>
             <div className="flex flex-wrap gap-2">
@@ -271,7 +271,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
 
         {/* Descripción */}
         <div className="space-y-1.5">
-          <label htmlFor="doc-description" className="text-xs font-bold text-muted uppercase tracking-widest">
+          <label htmlFor="doc-description" className="field-label">
             Descripción <span className="normal-case font-normal">(opcional)</span>
           </label>
           <input
@@ -280,7 +280,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
             value={draft.description}
             onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}
             placeholder="Ej: Revisión 2026"
-            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
+            className="field-input"
           />
         </div>
       </form>

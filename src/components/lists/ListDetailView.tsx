@@ -61,7 +61,7 @@ export function ListDetailView({
 
         {completed.length > 0 && (
           <>
-            <p className="text-xs font-bold text-muted uppercase tracking-widest pt-2 px-1">Hecho</p>
+            <p className="field-label pt-2 px-1">Hecho</p>
             {completed.map(item => (
               <div key={item.id} className="bg-white rounded-2xl border border-surface flex items-center gap-2 px-2 py-2 opacity-60">
                 <CircleCheck checked={true} onClick={() => onToggle(item.id)} ariaLabel="Marcar como pendiente" />

@@ -234,21 +234,21 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
             {/* Título */}
             <div className="space-y-1.5">
-              <label htmlFor="event-title" className="text-xs font-bold text-muted uppercase tracking-widest">Título</label>
-              <input id="event-title" ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition" />
+              <label htmlFor="event-title" className="field-label">Título</label>
+              <input id="event-title" ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="field-input" />
             </div>
 
             {/* Descripción */}
             <div className="space-y-1.5">
-              <label htmlFor="event-description" className="text-xs font-bold text-muted uppercase tracking-widest">Descripción</label>
-              <textarea id="event-description" value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition resize-none" />
+              <label htmlFor="event-description" className="field-label">Descripción</label>
+              <textarea id="event-description" value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
             </div>
 
             {/* Fecha + todo el día */}
             <div className="flex gap-3 items-end">
               <div className="flex-1 space-y-1.5">
-                <label htmlFor="event-date" className="text-xs font-bold text-muted uppercase tracking-widest">Fecha</label>
-                <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition" />
+                <label htmlFor="event-date" className="field-label">Fecha</label>
+                <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="field-input" />
               </div>
               <div className="flex flex-col items-center gap-1.5 pb-0.5">
                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
@@ -262,19 +262,19 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
             {!draft.all_day && (
               <div className="flex gap-3">
                 <div className="flex-1 space-y-1.5">
-                  <label htmlFor="event-start" className="text-xs font-bold text-muted uppercase tracking-widest">Inicio</label>
-                  <input id="event-start" type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition" />
+                  <label htmlFor="event-start" className="field-label">Inicio</label>
+                  <input id="event-start" type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="field-input" />
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <label htmlFor="event-end" className="text-xs font-bold text-muted uppercase tracking-widest">Fin</label>
-                  <input id="event-end" type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition" />
+                  <label htmlFor="event-end" className="field-label">Fin</label>
+                  <input id="event-end" type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="field-input" />
                 </div>
               </div>
             )}
 
             {/* Asignar a */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-muted uppercase tracking-widest">Asignar a</label>
+              <label className="field-label">Asignar a</label>
               <div className="flex gap-3">
                 {assignees.map(a => {
                   const selected = draft.child_id === a.id
@@ -291,7 +291,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
             {/* Repetición — solo en crear */}
             {mode === 'create' && (
               <div className="space-y-3">
-                <label className="text-xs font-bold text-muted uppercase tracking-widest">Repetición</label>
+                <label className="field-label">Repetición</label>
 
                 <div className="grid grid-cols-3 gap-1 rounded-2xl bg-[#F2EEE8] p-1">
                   <button
@@ -321,7 +321,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                   <div className="space-y-4">
                     {/* Selector de días */}
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-muted uppercase tracking-widest">Repetir los días</label>
+                      <label className="field-label">Repetir los días</label>
                       <div className="flex gap-1">
                         {WEEKDAY_BUTTONS.map(({ label, day }) => {
                           const active = recurrenceWeekdays.includes(day)
@@ -345,7 +345,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
                     {/* Fecha de fin */}
                     <div className="space-y-1.5">
-                      <label htmlFor="event-rec-end" className="text-xs font-bold text-muted uppercase tracking-widest">Termina el</label>
+                      <label htmlFor="event-rec-end" className="field-label">Termina el</label>
                       <input
                         id="event-rec-end"
                         type="date"
@@ -353,7 +353,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                         min={draft.date}
                         max={maxEndDateStr(draft.date)}
                         onChange={e => setRecurrenceEnd(e.target.value)}
-                        className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
+                        className="field-input"
                       />
                     </div>
 
@@ -379,12 +379,12 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                 {recurrence === 'yearly' && (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label htmlFor="event-rec-year" className="text-xs font-bold text-muted uppercase tracking-widest">Repetir hasta el año</label>
+                      <label htmlFor="event-rec-year" className="field-label">Repetir hasta el año</label>
                       <select
                         id="event-rec-year"
                         value={recurrenceEndYear}
                         onChange={e => setRecurrenceEndYear(Number(e.target.value))}
-                        className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
+                        className="field-input"
                       >
                         {Array.from({ length: 31 }, (_, i) => startYear + i).map(year => (
                           <option key={year} value={year}>{year}</option>

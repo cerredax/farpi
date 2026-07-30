@@ -52,6 +52,18 @@
   --color-grip:           #E0DDD8; /* asa del sheet */
 }
 
+/* ── Clases de formulario reutilizables ─────────────────────────
+   Evitan repetir la misma cadena de utilidades en cada sheet.
+   Los <textarea> añaden `resize-none` junto a `field-input`. */
+@layer components {
+  .field-label {
+    @apply text-xs font-bold uppercase tracking-widest text-muted;
+  }
+  .field-input {
+    @apply w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink transition placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

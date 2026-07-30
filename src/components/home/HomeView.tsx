@@ -107,7 +107,7 @@ export function HomeView() {
         <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
         <div className="relative space-y-4">
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-widest mb-1">{dayLabel}</p>
+            <p className="field-label mb-1">{dayLabel}</p>
             <h1 className="text-3xl font-black text-ink leading-tight">{greeting}</h1>
             <p className="mt-2 text-sm text-[#6F6A62] leading-relaxed">
               Un vistazo tranquilo a los planes, comidas y pequenas cosas de casa.

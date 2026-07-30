@@ -9,6 +9,7 @@ import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
 import { NotificationsCard } from './NotificationsCard'
 import { AccountActions } from './AccountActions'
+import { DataExport } from './DataExport'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
 import { FamilySheet } from './FamilySheet'
@@ -170,6 +171,10 @@ export function SettingsView() {
 
         <Section label="Hijos">
           <ChildrenList kids={kids} onEdit={openEditChild} onAdd={openAddChild} />
+        </Section>
+
+        <Section label="Tus datos">
+          <DataExport />
         </Section>
 
         {IS_DEMO_MODE && (

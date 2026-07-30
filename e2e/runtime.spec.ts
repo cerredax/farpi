@@ -12,6 +12,8 @@ const ROUTES = [
   '/docs',
   '/settings',
   '/auth/login',
+  '/privacidad',
+  '/terminos',
 ]
 
 for (const route of ROUTES) {

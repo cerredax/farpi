@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { ExternalLink, HeartHandshake, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useStore } from '@/lib/store-context'
@@ -212,6 +213,17 @@ export function SettingsView() {
 
         <Section label="Proyecto">
           <DonationCard />
+        </Section>
+
+        <Section label="Legal">
+          <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm overflow-hidden">
+            <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-[#F0EDE8]">
+              Política de privacidad <span className="text-faint">›</span>
+            </Link>
+            <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
+              Términos de servicio <span className="text-faint">›</span>
+            </Link>
+          </div>
         </Section>
       </div>
 

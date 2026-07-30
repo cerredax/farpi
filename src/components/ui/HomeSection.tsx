@@ -11,9 +11,9 @@ interface HomeSectionProps {
 export function HomeSection({ label, isEmpty, emptyState, footer, children }: HomeSectionProps) {
   return (
     <CardSection label={label}>
-      <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
         {isEmpty ? emptyState : children}
-        <div className="border-t border-[#F5F2EE] px-4 py-2.5">
+        <div className="border-t border-hairline px-4 py-2.5">
           {footer}
         </div>
       </div>

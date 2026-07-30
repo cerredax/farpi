@@ -17,9 +17,9 @@ function formatSize(bytes: number): string {
 }
 
 function FileTypeIcon({ mime }: { mime: string }) {
-  if (mime.startsWith('image/')) return <ImageIcon size={18} className="text-[#D8A48F]" />
-  if (mime === 'application/pdf') return <FileText size={18} className="text-[#8BA888]" />
-  return <File size={18} className="text-[#77716A]" />
+  if (mime.startsWith('image/')) return <ImageIcon size={18} className="text-accent" />
+  if (mime === 'application/pdf') return <FileText size={18} className="text-primary" />
+  return <File size={18} className="text-muted" />
 }
 
 const EMPTY_DRAFT: DocumentDraft = {
@@ -140,7 +140,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
         <button
           type="button"
           onClick={handleDelete}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
         >
           <span className="flex items-center justify-center gap-2">
             <Trash2 size={15} />
@@ -161,33 +161,33 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
       <form id="doc-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         {/* Archivo */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Archivo</label>
+          <label className="text-xs font-bold text-muted uppercase tracking-widest">Archivo</label>
           {mode === 'create' ? (
             <>
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center gap-3 bg-[#FAF7F2] border-2 border-dashed border-[#D8D4CE] rounded-xl px-4 py-3 hover:border-[#8BA888] hover:bg-[#F5F9F5] transition-colors text-left"
+                className="w-full flex items-center gap-3 bg-canvas border-2 border-dashed border-[#D8D4CE] rounded-xl px-4 py-3 hover:border-primary hover:bg-primary-tint transition-colors text-left"
               >
-                <Upload size={18} className="text-[#8BA888] flex-shrink-0" />
-                <span className="text-sm text-[#77716A] truncate flex-1">
+                <Upload size={18} className="text-primary flex-shrink-0" />
+                <span className="text-sm text-muted truncate flex-1">
                   {fileName || 'Seleccionar archivo…'}
                 </span>
               </button>
               <input ref={fileRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFile} />
               {fileError
-                ? <p className="text-[10px] text-[#D96C6C] font-semibold">{fileError}</p>
-                : <p className="text-[10px] text-[#C4BFB9]">PDF, JPG o PNG. Tamano maximo: 20 MB.</p>
+                ? <p className="text-[10px] text-danger font-semibold">{fileError}</p>
+                : <p className="text-[10px] text-faint">PDF, JPG o PNG. Tamano maximo: 20 MB.</p>
               }
             </>
           ) : (
             /* En edición: mostrar info del archivo actual + abrir */
             <>
-              <div className="flex items-center gap-3 bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-4 py-3">
+              <div className="flex items-center gap-3 bg-canvas border border-line rounded-xl px-4 py-3">
                 <FileTypeIcon mime={draft.mime_type} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#252525] font-medium truncate">{fileName_display}</p>
-                  <p className="text-xs text-[#77716A]">{formatSize(draft.size_bytes)}</p>
+                  <p className="text-sm text-ink font-medium truncate">{fileName_display}</p>
+                  <p className="text-xs text-muted">{formatSize(draft.size_bytes)}</p>
                 </div>
               </div>
               {onOpenFile && (
@@ -195,7 +195,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
                   type="button"
                   onClick={handleOpen}
                   disabled={opening}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#EDE9E3] bg-white px-4 py-2.5 text-sm font-semibold text-[#5C7A59] transition-colors hover:bg-[#F5F9F5] disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary-strong transition-colors hover:bg-primary-tint disabled:opacity-60"
                 >
                   {opening
                     ? <><Loader2 size={15} className="animate-spin" /> Abriendo…</>
@@ -203,14 +203,14 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
                   }
                 </button>
               )}
-              {openError && <p className="text-[10px] text-[#D96C6C] font-semibold">{openError}</p>}
+              {openError && <p className="text-[10px] text-danger font-semibold">{openError}</p>}
             </>
           )}
         </div>
 
         {/* Nombre */}
         <div className="space-y-1.5">
-          <label htmlFor="doc-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="doc-name" className="text-xs font-bold text-muted uppercase tracking-widest">Nombre</label>
           <input
             id="doc-name"
             ref={inputRef}
@@ -219,20 +219,20 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             placeholder="Ej: Cartilla vacunas Ana"
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
 
         {/* Categoría */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Categoría</label>
+          <label className="text-xs font-bold text-muted uppercase tracking-widest">Categoría</label>
           <div className="flex flex-wrap gap-2">
             {DOC_CATEGORIES.map(cat => (
               <button
                 key={cat.key}
                 type="button"
                 onClick={() => setDraft(d => ({ ...d, category: cat.key }))}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${draft.category === cat.key ? 'bg-[#8BA888] text-white' : 'bg-[#FAF7F2] text-[#77716A] border border-[#EDE9E3] hover:bg-[#F0EDE8]'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${draft.category === cat.key ? 'bg-primary text-white' : 'bg-canvas text-muted border border-line hover:bg-surface'}`}
               >
                 <span>{cat.emoji}</span> {cat.label}
               </button>
@@ -243,14 +243,14 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
         {/* Hijo (opcional) */}
         {kids.length > 0 && (
           <div className="space-y-2">
-            <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+            <label className="text-xs font-bold text-muted uppercase tracking-widest">
               De quién <span className="normal-case font-normal">(opcional)</span>
             </label>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setDraft(d => ({ ...d, child_id: null }))}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${!draft.child_id ? 'bg-[#8BA888] text-white' : 'bg-[#FAF7F2] text-[#77716A] border border-[#EDE9E3] hover:bg-[#F0EDE8]'}`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${!draft.child_id ? 'bg-primary text-white' : 'bg-canvas text-muted border border-line hover:bg-surface'}`}
               >
                 Familia
               </button>
@@ -259,7 +259,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
                   key={kid.id}
                   type="button"
                   onClick={() => setDraft(d => ({ ...d, child_id: kid.id }))}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${draft.child_id === kid.id ? 'text-white' : 'bg-[#FAF7F2] text-[#77716A] border border-[#EDE9E3] hover:bg-[#F0EDE8]'}`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${draft.child_id === kid.id ? 'text-white' : 'bg-canvas text-muted border border-line hover:bg-surface'}`}
                   style={draft.child_id === kid.id ? { backgroundColor: kid.color } : {}}
                 >
                   {kid.name}
@@ -271,7 +271,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
 
         {/* Descripción */}
         <div className="space-y-1.5">
-          <label htmlFor="doc-description" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+          <label htmlFor="doc-description" className="text-xs font-bold text-muted uppercase tracking-widest">
             Descripción <span className="normal-case font-normal">(opcional)</span>
           </label>
           <input
@@ -280,7 +280,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
             value={draft.description}
             onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}
             placeholder="Ej: Revisión 2026"
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
       </form>

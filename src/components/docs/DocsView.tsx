@@ -21,9 +21,9 @@ function formatSize(bytes: number): string {
 }
 
 function DocTypeIcon({ mime }: { mime: string }) {
-  if (mime.startsWith('image/')) return <ImageIcon size={20} className="text-[#D8A48F]" />
-  if (mime === 'application/pdf') return <FileText size={20} className="text-[#8BA888]" />
-  return <File size={20} className="text-[#77716A]" />
+  if (mime.startsWith('image/')) return <ImageIcon size={20} className="text-accent" />
+  if (mime === 'application/pdf') return <FileText size={20} className="text-primary" />
+  return <File size={20} className="text-muted" />
 }
 
 function DocCard({
@@ -42,22 +42,22 @@ function DocCard({
   return (
     <button
       onClick={onEdit}
-      className="w-full bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-3.5 flex items-start gap-3 text-left hover:bg-[#FDFBF8] active:bg-[#FAF7F2] transition-colors"
+      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-3.5 flex items-start gap-3 text-left hover:bg-[#FDFBF8] active:bg-canvas transition-colors"
     >
       {/* Icono de tipo */}
-      <div className="w-10 h-10 rounded-xl bg-[#FAF7F2] flex items-center justify-center flex-shrink-0 mt-0.5">
+      <div className="w-10 h-10 rounded-xl bg-canvas flex items-center justify-center flex-shrink-0 mt-0.5">
         <DocTypeIcon mime={doc.mime_type} />
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-[#252525] text-sm leading-tight truncate">{doc.name}</p>
+        <p className="font-bold text-ink text-sm leading-tight truncate">{doc.name}</p>
         {doc.description && (
-          <p className="text-xs text-[#77716A] mt-0.5 truncate">{doc.description}</p>
+          <p className="text-xs text-muted mt-0.5 truncate">{doc.description}</p>
         )}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           {cat && (
-            <span className="text-[10px] font-bold bg-[#F0EDE8] text-[#77716A] px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold bg-surface text-muted px-2 py-0.5 rounded-full">
               {cat.emoji} {cat.label}
             </span>
           )}
@@ -69,14 +69,14 @@ function DocCard({
               {childName}
             </span>
           )}
-          <span className="text-[10px] text-[#C4BFB9]">
+          <span className="text-[10px] text-faint">
             {formatSize(doc.size_bytes)} · {format(parseISO(doc.created_at), 'd MMM yyyy', { locale: es })}
           </span>
         </div>
       </div>
 
       {/* Indicador de que es editable */}
-      <span className="text-[#C4BFB9] text-xs mt-1 flex-shrink-0">›</span>
+      <span className="text-faint text-xs mt-1 flex-shrink-0">›</span>
     </button>
   )
 }
@@ -122,15 +122,15 @@ export function DocsView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#252525] leading-tight">Documentos</h1>
-          <p className="text-xs text-[#77716A] mt-0.5">
+          <h1 className="text-2xl font-extrabold text-ink leading-tight">Documentos</h1>
+          <p className="text-xs text-muted mt-0.5">
             {documents.length} documento{documents.length !== 1 ? 's' : ''} guardados
           </p>
         </div>
         <button
           onClick={openCreate}
           aria-label="Añadir documento"
-          className="w-10 h-10 bg-[#8BA888] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#7a9877] transition-colors"
+          className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
         >
           <Plus size={20} />
         </button>
@@ -142,7 +142,7 @@ export function DocsView() {
           <button
             key={String(f.key)}
             onClick={() => setActiveFilter(f.key)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${activeFilter === f.key ? 'bg-[#8BA888] text-white' : 'bg-white border border-[#EDE9E3] text-[#77716A] hover:bg-[#F0EDE8]'}`}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${activeFilter === f.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
           >
             {f.label}
           </button>
@@ -153,8 +153,8 @@ export function DocsView() {
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-4xl mb-3">📄</p>
-          <p className="font-bold text-[#252525]">Sin documentos</p>
-          <p className="text-sm text-[#77716A] mt-1">
+          <p className="font-bold text-ink">Sin documentos</p>
+          <p className="text-sm text-muted mt-1">
             {activeFilter ? 'No hay documentos en esta categoría' : 'Guarda el primer documento de la familia'}
           </p>
         </div>

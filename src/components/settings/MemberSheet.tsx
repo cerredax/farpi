@@ -100,7 +100,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
         <button
           type="button"
           onClick={handleRemove}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmRemove ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmRemove ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
         >
           <span className="flex items-center justify-center gap-2">
             <Trash2 size={15} />
@@ -121,7 +121,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
       <form id="member-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
         {mode === 'invite' ? (
           <div className="space-y-1.5">
-            <label htmlFor="member-email" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Email</label>
+            <label htmlFor="member-email" className="text-xs font-bold text-muted uppercase tracking-widest">Email</label>
             <input
               id="member-email"
               ref={inputRef}
@@ -130,19 +130,19 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
               onChange={e => { setDraft(d => ({ ...d, email: e.target.value })); setInviteError(null) }}
               placeholder="correo@ejemplo.com"
               required
-              className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+              className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
             />
             {inviteError ? (
-              <p className="text-[11px] text-[#D96C6C] font-medium">{inviteError}</p>
+              <p className="text-[11px] text-danger font-medium">{inviteError}</p>
             ) : (
-              <p className="text-[10px] text-[#C4BFB9]">
+              <p className="text-[10px] text-faint">
                 En modo demo, la invitación no se envía. El email queda guardado como referencia.
               </p>
             )}
           </div>
         ) : (
           <div className="space-y-1.5">
-            <label htmlFor="member-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+            <label htmlFor="member-name" className="text-xs font-bold text-muted uppercase tracking-widest">Nombre</label>
             <input
               id="member-name"
               ref={inputRef}
@@ -151,12 +151,12 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
               onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
               placeholder="Nombre visible"
               required
-              className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+              className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
             />
 
             {onChangeRole && (
               <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Rol</label>
+                <label className="text-xs font-bold text-muted uppercase tracking-widest">Rol</label>
                 <div className="grid grid-cols-2 gap-2">
                   {([
                     { value: 'admin' as Role, label: 'Administrador', icon: ShieldCheck },
@@ -167,7 +167,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
                       type="button"
                       onClick={() => handleRoleChange(value)}
                       aria-pressed={role === value}
-                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${role === value ? 'border-[#8BA888] bg-[#F5F9F5] text-[#5C7A59]' : 'border-[#EDE9E3] bg-[#FAF7F2] text-[#77716A] hover:bg-[#F0EDE8]'}`}
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${role === value ? 'border-primary bg-primary-tint text-primary-strong' : 'border-line bg-canvas text-muted hover:bg-surface'}`}
                     >
                       <Icon size={15} strokeWidth={2.3} />
                       {label}
@@ -175,8 +175,8 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
                   ))}
                 </div>
                 {roleError
-                  ? <p className="text-[11px] text-[#D96C6C] font-medium">{roleError}</p>
-                  : <p className="text-[10px] text-[#C4BFB9]">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
+                  ? <p className="text-[11px] text-danger font-medium">{roleError}</p>
+                  : <p className="text-[10px] text-faint">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
                 }
               </div>
             )}

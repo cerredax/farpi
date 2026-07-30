@@ -25,12 +25,12 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
       isEmpty={items.length === 0}
       emptyState={<EmptyState emoji="✓" title="Listas al dia" description="No falta nada importante por ahora" />}
       footer={
-        <Link href="/lists" className="text-xs font-semibold text-[#8BA888] hover:underline">
+        <Link href="/lists" className="text-xs font-semibold text-primary hover:underline">
           Ver todas las listas
         </Link>
       }
     >
-      <ul className="divide-y divide-[#F5F2EE]">
+      <ul className="divide-y divide-hairline">
         {visible.map(item => (
           <li key={item.id} className="flex items-center gap-3 px-4 py-3">
             <CircleCheck
@@ -40,13 +40,13 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
               className="w-auto"
             />
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-[#252525] text-sm leading-snug">{item.text}</p>
-              <span className="text-[10px] text-[#77716A]">{item.list_name}</span>
+              <p className="font-medium text-ink text-sm leading-snug">{item.text}</p>
+              <span className="text-[10px] text-muted">{item.list_name}</span>
             </div>
           </li>
         ))}
         {items.length > 5 && (
-          <li className="px-4 py-2.5 text-xs text-[#77716A] font-semibold">
+          <li className="px-4 py-2.5 text-xs text-muted font-semibold">
             +{items.length - 5} mas en las listas
           </li>
         )}

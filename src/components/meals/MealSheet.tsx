@@ -82,7 +82,7 @@ export function MealSheet({
         <button
           type="button"
           onClick={handleDelete}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDel ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDel ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
         >
           <span className="flex items-center justify-center gap-2">
             <Trash2 size={15} />
@@ -103,20 +103,20 @@ export function MealSheet({
       <form id="meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         {/* Fecha */}
         <div className="space-y-1.5">
-          <label htmlFor="meal-date" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha</label>
+          <label htmlFor="meal-date" className="text-xs font-bold text-muted uppercase tracking-widest">Fecha</label>
           <input
             id="meal-date"
             type="date"
             value={draft.date}
             onChange={e => setDraft(d => ({ ...d, date: e.target.value }))}
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
 
         {/* Franja horaria */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Franja</label>
+          <label className="text-xs font-bold text-muted uppercase tracking-widest">Franja</label>
           <div className="grid grid-cols-4 gap-2">
             {MEAL_SLOTS.map(slot => {
               const occupied = mode === 'create' && occupiedSlots.includes(slot.key)
@@ -126,19 +126,19 @@ export function MealSheet({
                   key={slot.key}
                   type="button"
                   onClick={() => setDraft(d => ({ ...d, slot: slot.key }))}
-                  className={`py-2.5 rounded-xl text-center transition-colors flex flex-col items-center gap-1 relative ${selected ? 'bg-[#8BA888] text-white' : 'bg-[#FAF7F2] text-[#77716A] hover:bg-[#F0EDE8]'}`}
+                  className={`py-2.5 rounded-xl text-center transition-colors flex flex-col items-center gap-1 relative ${selected ? 'bg-primary text-white' : 'bg-canvas text-muted hover:bg-surface'}`}
                 >
                   <span className="text-base">{slot.emoji}</span>
                   <span className="text-[10px] font-bold">{slot.label}</span>
                   {occupied && (
-                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${selected ? 'bg-white/70' : 'bg-[#D8A48F]'}`} />
+                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${selected ? 'bg-white/70' : 'bg-accent'}`} />
                   )}
                 </button>
               )
             })}
           </div>
           {mode === 'create' && occupiedSlots.includes(draft.slot) && (
-            <p className="text-[11px] text-[#D8A48F] font-semibold flex items-center gap-1">
+            <p className="text-[11px] text-accent font-semibold flex items-center gap-1">
               <span>↻</span> Este horario ya tiene plato — se reemplazará
             </p>
           )}
@@ -146,7 +146,7 @@ export function MealSheet({
 
         {/* Plato */}
         <div className="space-y-1.5">
-          <label htmlFor="meal-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Plato</label>
+          <label htmlFor="meal-name" className="text-xs font-bold text-muted uppercase tracking-widest">Plato</label>
           <input
             id="meal-name"
             ref={inputRef}
@@ -155,13 +155,13 @@ export function MealSheet({
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             placeholder="Ej: Arroz con pollo"
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
 
         {/* Notas */}
         <div className="space-y-1.5">
-          <label htmlFor="meal-notes" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">
+          <label htmlFor="meal-notes" className="text-xs font-bold text-muted uppercase tracking-widest">
             Notas <span className="normal-case font-normal">(opcional)</span>
           </label>
           <input
@@ -170,7 +170,7 @@ export function MealSheet({
             value={draft.notes}
             onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))}
             placeholder="Ej: Sin cebolla"
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
       </form>

@@ -67,19 +67,19 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
       >
         {/* Handle — solo móvil */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0 md:hidden">
-          <div className="w-10 h-1 rounded-full bg-[#E0DDD8]" />
+          <div className="w-10 h-1 rounded-full bg-grip" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
-          <h3 id={titleId} className="font-extrabold text-[#252525] text-base">{title}</h3>
+          <h3 id={titleId} className="font-extrabold text-ink text-base">{title}</h3>
           <div className="flex items-center gap-2">
             {headerActions}
             <button
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-[#77716A] hover:bg-[#F0EDE8] transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors"
             >
               <X size={18} />
             </button>
@@ -93,7 +93,7 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
 
         {/* Footer fijo */}
         {footer && (
-          <div className="flex-shrink-0 border-t border-[#F5F2EE]">
+          <div className="flex-shrink-0 border-t border-hairline">
             {footer}
           </div>
         )}

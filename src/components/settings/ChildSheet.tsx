@@ -55,7 +55,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
       type="button"
       onClick={handleDelete}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-        confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'
+        confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'
       }`}
     >
       <Trash2 size={13} />
@@ -87,7 +87,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
     >
       <form id="child-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         <div className="space-y-1.5">
-          <label htmlFor="child-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="child-name" className="text-xs font-bold text-muted uppercase tracking-widest">Nombre</label>
           <input
             id="child-name"
             ref={inputRef}
@@ -96,21 +96,21 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             placeholder="Nombre del niño o niña"
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="child-birth" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha de nacimiento</label>
+          <label htmlFor="child-birth" className="text-xs font-bold text-muted uppercase tracking-widest">Fecha de nacimiento</label>
           <input
             id="child-birth"
             type="date"
             value={draft.birth_date}
             onChange={e => setDraft(d => ({ ...d, birth_date: e.target.value }))}
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
         <div className="space-y-2">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Color</label>
+          <label className="text-xs font-bold text-muted uppercase tracking-widest">Color</label>
           <div className="grid grid-cols-8 gap-2">
             {PALETTE.map(color => {
               const selected = draft.color === color
@@ -131,7 +131,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
             })}
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-[#FAF7F2] rounded-2xl px-4 py-3">
+        <div className="flex items-center gap-3 bg-canvas rounded-2xl px-4 py-3">
           <span
             className="w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0"
             style={{ backgroundColor: draft.color }}
@@ -139,8 +139,8 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
             {draft.name ? draft.name.charAt(0).toUpperCase() : '?'}
           </span>
           <div>
-            <p className="font-bold text-[#252525] text-sm">{draft.name || 'Nombre del hijo'}</p>
-            <p className="text-xs text-[#77716A]">{draft.birth_date || 'Fecha de nacimiento'}</p>
+            <p className="font-bold text-ink text-sm">{draft.name || 'Nombre del hijo'}</p>
+            <p className="text-xs text-muted">{draft.birth_date || 'Fecha de nacimiento'}</p>
           </div>
         </div>
       </form>

@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // key={familyId} garantiza que StoreProvider se remonta al cambiar de familia,
     // re-ejecutando todos los useState initializers con el nuevo familyId.
     <StoreProvider key={familyId} familyId={familyId} switchFamily={switchFamily}>
-      <div className="flex flex-col min-h-dvh bg-[#FAF7F2]">
+      <div className="flex flex-col min-h-dvh bg-canvas">
         <TopBar />
         <main className="flex-1 overflow-y-auto pb-20 pt-14">
           {children}
@@ -85,10 +85,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function ShellMessage({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#FAF7F2] px-6 text-center">
+    <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 text-center">
       <div className="max-w-sm">
-        <p className="text-lg font-extrabold text-[#252525]">{title}</p>
-        <p className="mt-2 text-sm leading-relaxed text-[#77716A]">{description}</p>
+        <p className="text-lg font-extrabold text-ink">{title}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
       </div>
     </div>
   )

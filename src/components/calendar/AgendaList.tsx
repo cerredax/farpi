@@ -55,23 +55,23 @@ function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit
   return (
     <button
       onClick={() => onEdit(event)}
-      className="w-full rounded-2xl border border-[#F0EDE8] bg-white flex overflow-hidden text-left hover:border-[#C4BFB9] active:scale-[0.99] transition-all"
+      className="w-full rounded-2xl border border-surface bg-white flex overflow-hidden text-left hover:border-faint active:scale-[0.99] transition-all"
     >
       <div className="w-1 flex-shrink-0" style={{ backgroundColor: color }} />
       <div className="flex items-start gap-3 px-3 py-3 flex-1 min-w-0">
         <div className="flex items-center gap-1 min-w-[58px] pt-0.5">
           {event.all_day ? (
-            <span className="text-[10px] font-bold text-[#77716A] leading-none">Todo el día</span>
+            <span className="text-[10px] font-bold text-muted leading-none">Todo el día</span>
           ) : (
             <>
-              <Clock size={12} className="text-[#77716A] flex-shrink-0" strokeWidth={2} />
-              <span className="text-xs font-bold text-[#77716A]">{format(parseISO(event.start_at), 'HH:mm')}</span>
+              <Clock size={12} className="text-muted flex-shrink-0" strokeWidth={2} />
+              <span className="text-xs font-bold text-muted">{format(parseISO(event.start_at), 'HH:mm')}</span>
             </>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[#252525] text-sm leading-snug">{event.title}</p>
-          {event.description && <p className="text-xs text-[#77716A] mt-0.5 leading-snug">{event.description}</p>}
+          <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
+          {event.description && <p className="text-xs text-muted mt-0.5 leading-snug">{event.description}</p>}
           {child && (
             <span className="inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: child.color }}>
               {child.name}
@@ -113,13 +113,13 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
     <div className="flex-1 px-4 pt-4 lg:px-0 lg:pt-0">
       <div className="flex items-center justify-between mb-3 px-1">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-[#77716A]">{headerTitle}</p>
-          <p className="text-sm font-bold text-[#252525]">{headerSubtitle}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted">{headerTitle}</p>
+          <p className="text-sm font-bold text-ink">{headerSubtitle}</p>
         </div>
         <button
           onClick={() => onAdd(selectedDay)}
           aria-label="Añadir evento"
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-[#8BA888] text-white hover:bg-[#7a9877] active:scale-95 transition-all"
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover active:scale-95 transition-all"
         >
           <Plus size={16} strokeWidth={2.5} />
         </button>
@@ -128,7 +128,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
       {visibleGroups.length === 0 ? (
         <button
           onClick={() => onAdd(selectedDay)}
-          className="w-full bg-white rounded-2xl border border-[#F0EDE8] shadow-sm text-left hover:border-[#8BA888] transition-colors"
+          className="w-full bg-white rounded-2xl border border-surface shadow-sm text-left hover:border-primary transition-colors"
         >
           <EmptyState
             emoji="✨"
@@ -148,23 +148,23 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
                 key={group.day.toISOString()}
                 id={`day-${format(group.day, 'yyyyMMdd')}`}
                 className={`rounded-3xl border bg-white shadow-sm overflow-hidden transition-all ${
-                  isSelected ? 'border-[#8BA888] ring-2 ring-[#8BA888]/10' : 'border-[#F0EDE8]'
+                  isSelected ? 'border-primary ring-2 ring-primary/10' : 'border-surface'
                 }`}
               >
-                <div className="flex items-center justify-between gap-3 px-3 py-3 bg-[#FAF7F2]/70">
+                <div className="flex items-center justify-between gap-3 px-3 py-3 bg-canvas/70">
                   <button
                     onClick={() => onSelectDay(group.day)}
                     className="flex items-center gap-3 text-left min-w-0"
                   >
                     <span className={`w-10 h-10 rounded-2xl flex flex-col items-center justify-center flex-shrink-0 ${
-                      isToday(group.day) ? 'bg-[#D8A48F] text-white' : 'bg-white text-[#252525]'
+                      isToday(group.day) ? 'bg-accent text-white' : 'bg-white text-ink'
                     }`}>
                       <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
                       <span className="text-[9px] font-bold uppercase leading-none mt-0.5">{monthLabel}</span>
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-sm font-black text-[#252525] truncate">{dayLabel}</span>
-                      <span className="block text-xs text-[#77716A]">
+                      <span className="block text-sm font-black text-ink truncate">{dayLabel}</span>
+                      <span className="block text-xs text-muted">
                         {group.events.length === 0
                           ? 'Sin eventos'
                           : `${group.events.length} ${group.events.length === 1 ? 'evento' : 'eventos'}`}
@@ -174,7 +174,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
                   <button
                     onClick={() => onAdd(group.day)}
                     aria-label={`Añadir evento el ${dayLabel}`}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-[#8BA888] border border-[#EDE9E3] hover:border-[#8BA888] active:scale-95 transition-all"
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-primary border border-line hover:border-primary active:scale-95 transition-all"
                   >
                     <Plus size={15} strokeWidth={2.5} />
                   </button>
@@ -191,7 +191,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
                   <div className="px-3 pb-3">
                     <button
                       onClick={() => onAdd(group.day)}
-                      className="w-full text-center text-xs text-[#8BA888] font-bold py-2.5 rounded-xl border border-dashed border-[#8BA888]/40 hover:border-[#8BA888] hover:bg-[#F1F5EF] transition-colors"
+                      className="w-full text-center text-xs text-primary font-bold py-2.5 rounded-xl border border-dashed border-primary/40 hover:border-primary hover:bg-[#F1F5EF] transition-colors"
                     >
                       + Añadir evento este día
                     </button>

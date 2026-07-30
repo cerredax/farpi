@@ -19,7 +19,7 @@ const DONATION_URL = process.env.NEXT_PUBLIC_DONATION_URL?.trim() ?? ''
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-[#77716A] px-1">{label}</h2>
+      <h2 className="text-xs font-bold uppercase tracking-widest text-muted px-1">{label}</h2>
       {children}
     </section>
   )
@@ -27,23 +27,23 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function DonationCard() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-[#F0EDE8] bg-[#FFF8EF] px-4 py-4 shadow-sm">
-      <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-[#D8A48F]/25" />
-      <div className="absolute -bottom-10 left-8 h-20 w-20 rounded-full bg-[#8BA888]/20" />
+    <div className="relative overflow-hidden rounded-3xl border border-surface bg-[#FFF8EF] px-4 py-4 shadow-sm">
+      <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-accent/25" />
+      <div className="absolute -bottom-10 left-8 h-20 w-20 rounded-full bg-primary/20" />
       <div className="relative space-y-3">
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white text-[#8BA888] shadow-sm">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
             <HeartHandshake size={20} strokeWidth={2.3} />
           </span>
           <div>
-            <p className="text-sm font-black text-[#252525]">Apoya Nido</p>
-            <p className="mt-1 text-xs text-[#77716A] leading-relaxed">
+            <p className="text-sm font-black text-ink">Apoya Nido</p>
+            <p className="mt-1 text-xs text-muted leading-relaxed">
               Nido es gratuito. Si quieres ayudar a mantener el proyecto, puedes hacer una aportacion voluntaria.
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white/75 px-3 py-3 text-[11px] text-[#77716A] leading-relaxed">
+        <div className="rounded-2xl bg-white/75 px-3 py-3 text-[11px] text-muted leading-relaxed">
           No es una compra ni una suscripcion. No desbloquea funciones premium y no es deducible fiscalmente para el donante.
         </div>
 
@@ -52,7 +52,7 @@ function DonationCard() {
             href={DONATION_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#5C7A59] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#4e6b4c]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-strong px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#4e6b4c]"
           >
             Apoyar el proyecto
             <ExternalLink size={14} strokeWidth={2.4} />
@@ -61,7 +61,7 @@ function DonationCard() {
           <button
             type="button"
             disabled
-            className="w-full rounded-2xl bg-[#F0EDE8] px-4 py-3 text-sm font-bold text-[#A39B93] cursor-not-allowed"
+            className="w-full rounded-2xl bg-surface px-4 py-3 text-sm font-bold text-[#A39B93] cursor-not-allowed"
           >
             Enlace de donacion pendiente
           </button>
@@ -121,42 +121,42 @@ export function SettingsView() {
   return (
     <>
       <div className="max-w-lg mx-auto px-4 py-4 pb-10 space-y-6">
-        <p className="text-sm text-[#77716A] px-1">Gestiona tu familia y sus miembros</p>
+        <p className="text-sm text-muted px-1">Gestiona tu familia y sus miembros</p>
 
         <Section label="Familia">
           <FamilyCard family={family} members={members} kids={kids} onEdit={() => setFamilySheetOpen(true)} />
         </Section>
 
         <Section label="Familias">
-          <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
             {families.map((f: Family) => (
               <button
                 key={f.id}
                 onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-[#F0EDE8] last:border-b-0 ${f.id === activeFamilyId ? 'bg-[#F5F2ED]' : 'hover:bg-[#FAF7F2]'}`}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface last:border-b-0 ${f.id === activeFamilyId ? 'bg-[#F5F2ED]' : 'hover:bg-canvas'}`}
               >
-                <span className="text-sm font-semibold text-[#252525]">{f.name}</span>
+                <span className="text-sm font-semibold text-ink">{f.name}</span>
                 {f.id === activeFamilyId && (
-                  <span className="text-xs font-bold text-[#8BA888] uppercase tracking-wide">activa</span>
+                  <span className="text-xs font-bold text-primary uppercase tracking-wide">activa</span>
                 )}
               </button>
             ))}
             {creatingFamily ? (
-              <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3 border-t border-[#F0EDE8]">
+              <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3 border-t border-surface">
                 <input
                   autoFocus
                   value={newFamilyName}
                   onChange={e => setNewFamilyName(e.target.value)}
                   placeholder="Nombre de la familia"
-                  className="flex-1 px-3 py-2 rounded-xl border border-[#EDE9E3] bg-[#FAF7F2] text-sm text-[#252525] placeholder:text-[#B8B3AC] focus:outline-none focus:ring-2 focus:ring-[#8BA888]"
+                  className="flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-[#B8B3AC] focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <button type="submit" className="px-4 py-2 rounded-xl bg-[#8BA888] text-white text-sm font-semibold">Crear</button>
-                <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} className="px-3 py-2 rounded-xl border border-[#EDE9E3] text-sm text-[#77716A]">✕</button>
+                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
+                <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} className="px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>
               </form>
             ) : (
               <button
                 onClick={() => setCreatingFamily(true)}
-                className="w-full px-4 py-3 text-sm text-[#8BA888] font-semibold text-left hover:bg-[#FAF7F2] transition-colors border-t border-[#F0EDE8]"
+                className="w-full px-4 py-3 text-sm text-primary font-semibold text-left hover:bg-canvas transition-colors border-t border-surface"
               >
                 + Nueva familia
               </button>
@@ -174,14 +174,14 @@ export function SettingsView() {
 
         {IS_DEMO_MODE && (
           <Section label="Demo">
-            <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4 space-y-3">
-              <p className="text-xs text-[#77716A] leading-relaxed">
+            <div className="bg-white rounded-2xl border border-surface shadow-sm px-4 py-4 space-y-3">
+              <p className="text-xs text-muted leading-relaxed">
                 La app funciona en modo demo con datos de prueba guardados localmente. Puedes reiniciar todos los datos al estado inicial en cualquier momento.
               </p>
               <button
                 onClick={handleReset}
                 onBlur={() => setConfirmReset(false)}
-                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-[#D96C6C] text-white' : 'border border-[#EDE9E3] text-[#77716A] hover:bg-[#F0EDE8]'}`}
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
               >
                 {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
               </button>
@@ -191,10 +191,10 @@ export function SettingsView() {
 
         {!IS_DEMO_MODE && (
           <Section label="Cuenta">
-            <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4">
+            <div className="bg-white rounded-2xl border border-surface shadow-sm px-4 py-4">
               <button
                 onClick={async () => { await signOut(); router.replace('/auth/login') }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-[#77716A] border border-[#EDE9E3] hover:bg-[#F0EDE8] transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-muted border border-line hover:bg-surface transition-colors"
               >
                 <LogOut size={15} strokeWidth={2.2} />
                 Cerrar sesión

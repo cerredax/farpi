@@ -70,16 +70,16 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   return (
     <BottomSheet open={open} title="Copiar menu" onClose={onClose} footer={footer}>
       <form id="copy-meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
-        <div className="rounded-3xl border border-[#F0EDE8] bg-[#FFF8EF] p-4">
+        <div className="rounded-3xl border border-surface bg-[#FFF8EF] p-4">
           <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-[#8BA888] shadow-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
               <Copy size={17} strokeWidth={2.4} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black uppercase tracking-widest text-[#77716A]">Menu origen</p>
-              <p className="text-sm font-bold text-[#252525] capitalize">{formatDateLabel(sourceDate)}</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted">Menu origen</p>
+              <p className="text-sm font-bold text-ink capitalize">{formatDateLabel(sourceDate)}</p>
               {!hasMeals && (
-                <p className="mt-1 text-xs font-semibold text-[#D8A48F]">
+                <p className="mt-1 text-xs font-semibold text-accent">
                   Este dia no tiene comidas para copiar.
                 </p>
               )}
@@ -94,8 +94,8 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
                   <div key={meal.id} className="flex items-center gap-2 rounded-2xl bg-white/80 px-3 py-2">
                     <span className="text-base">{meta.emoji}</span>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-[#77716A]">{meta.label}</p>
-                      <p className="truncate text-sm font-semibold text-[#252525]">{meal.name}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{meta.label}</p>
+                      <p className="truncate text-sm font-semibold text-ink">{meal.name}</p>
                     </div>
                   </div>
                 )
@@ -105,7 +105,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="copy-target" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Copiar al dia</label>
+          <label htmlFor="copy-target" className="text-xs font-bold text-muted uppercase tracking-widest">Copiar al dia</label>
           <input
             id="copy-target"
             type="date"
@@ -115,26 +115,26 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               if (!repeatEveryDay || repeatUntil < e.target.value) setRepeatUntil(e.target.value)
             }}
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
-          <p className="text-[11px] text-[#77716A]">
+          <p className="text-[11px] text-muted">
             Si ese dia ya tenia menu, se sustituira por este.
           </p>
         </div>
 
-        <label className="flex items-start gap-3 rounded-2xl border border-[#F0EDE8] bg-[#FAF7F2] px-3 py-3">
+        <label className="flex items-start gap-3 rounded-2xl border border-surface bg-canvas px-3 py-3">
           <input
             type="checkbox"
             checked={repeatEveryDay}
             onChange={e => setRepeatEveryDay(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-[#8BA888]"
+            className="mt-1 h-4 w-4 accent-primary"
           />
           <span className="flex-1">
-            <span className="flex items-center gap-1.5 text-sm font-bold text-[#252525]">
+            <span className="flex items-center gap-1.5 text-sm font-bold text-ink">
               <Repeat size={14} />
               Repetir este menu cada dia
             </span>
-            <span className="mt-0.5 block text-xs text-[#77716A]">
+            <span className="mt-0.5 block text-xs text-muted">
               Ideal para repetir una semana tipo hasta la fecha que elijas.
             </span>
           </span>
@@ -142,7 +142,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
 
         {repeatEveryDay && (
           <div className="space-y-1.5">
-            <label htmlFor="copy-until" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha fin</label>
+            <label htmlFor="copy-until" className="text-xs font-bold text-muted uppercase tracking-widest">Fecha fin</label>
             <input
               id="copy-until"
               type="date"
@@ -150,10 +150,10 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               min={targetDate}
               onChange={e => setRepeatUntil(e.target.value)}
               required
-              className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+              className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
             />
             {invalidRepeatRange && (
-              <p className="text-[11px] font-semibold text-[#D96C6C]">
+              <p className="text-[11px] font-semibold text-danger">
                 La fecha fin no puede ser anterior al dia destino.
               </p>
             )}

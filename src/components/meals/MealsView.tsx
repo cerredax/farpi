@@ -27,14 +27,14 @@ function MealRow({ meal, onEdit }: { meal: MealPlan; onEdit: (meal: MealPlan) =>
     <div className="flex items-center gap-3 px-4 py-3">
       <span className="text-xl w-8 text-center flex-shrink-0">{meta.emoji}</span>
       <div className="flex-1 min-w-0">
-        <span className="text-[10px] font-bold text-[#77716A] uppercase tracking-wide">{meta.label}</span>
-        <p className="font-semibold text-[#252525] text-sm leading-snug">{meal.name}</p>
-        {meal.notes && <p className="text-xs text-[#77716A] mt-0.5">{meal.notes}</p>}
+        <span className="text-[10px] font-bold text-muted uppercase tracking-wide">{meta.label}</span>
+        <p className="font-semibold text-ink text-sm leading-snug">{meal.name}</p>
+        {meal.notes && <p className="text-xs text-muted mt-0.5">{meal.notes}</p>}
       </div>
       <button
         onClick={() => onEdit(meal)}
         aria-label={`Editar ${meal.name}`}
-        className="w-7 h-7 flex items-center justify-center rounded-full text-[#C4BFB9] hover:text-[#77716A] hover:bg-[#F0EDE8] transition-colors flex-shrink-0"
+        className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0"
       >
         <Pencil size={13} strokeWidth={1.8} />
       </button>
@@ -66,11 +66,11 @@ function WeekGrid({
       <div className="overflow-x-auto">
         <div className="min-w-[860px]">
           <div
-            className="grid border-b border-[#F0EDE8] bg-[#FCFBF8]"
+            className="grid border-b border-surface bg-[#FCFBF8]"
             style={{ gridTemplateColumns: '132px repeat(7, minmax(104px, 1fr))' }}
           >
-            <div className="sticky left-0 z-20 bg-[#FCFBF8] border-r border-[#F0EDE8] px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#77716A]">Franja</p>
+            <div className="sticky left-0 z-20 bg-[#FCFBF8] border-r border-surface px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Franja</p>
             </div>
             {weekDays.map(day => {
               const dayKey = format(day, 'yyyy-MM-dd')
@@ -79,14 +79,14 @@ function WeekGrid({
               return (
                 <div
                   key={dayKey}
-                  className={`px-3 py-3 text-center border-r last:border-r-0 border-[#F0EDE8] ${
+                  className={`px-3 py-3 text-center border-r last:border-r-0 border-surface ${
                     todayColumn ? 'bg-[#F5FAF5]' : 'bg-[#FCFBF8]'
                   }`}
                 >
-                  <p className={`text-[10px] font-bold uppercase tracking-widest ${todayColumn ? 'text-[#5C7A59]' : 'text-[#77716A]'}`}>
+                  <p className={`text-[10px] font-bold uppercase tracking-widest ${todayColumn ? 'text-primary-strong' : 'text-muted'}`}>
                     {capitalize(format(day, 'EEE', { locale: es }))}
                   </p>
-                  <p className="text-sm font-extrabold mt-0.5 text-[#252525]">
+                  <p className="text-sm font-extrabold mt-0.5 text-ink">
                     {format(day, 'd')}
                   </p>
                   <button
@@ -95,8 +95,8 @@ function WeekGrid({
                     disabled={!hasMeals}
                     className={`mx-auto mt-2 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold transition-colors ${
                       hasMeals
-                        ? 'bg-white text-[#8BA888] shadow-sm hover:bg-[#F1F5EF]'
-                        : 'bg-white/50 text-[#C4BFB9] cursor-not-allowed'
+                        ? 'bg-white text-primary shadow-sm hover:bg-[#F1F5EF]'
+                        : 'bg-white/50 text-faint cursor-not-allowed'
                     }`}
                     aria-label={`Copiar menu del ${format(day, 'd MMM', { locale: es })}`}
                   >
@@ -104,7 +104,7 @@ function WeekGrid({
                     Copiar
                   </button>
                   {todayColumn && (
-                    <span className="inline-block w-1 h-1 rounded-full bg-[#8BA888] mt-1" />
+                    <span className="inline-block w-1 h-1 rounded-full bg-primary mt-1" />
                   )}
                 </div>
               )
@@ -114,12 +114,12 @@ function WeekGrid({
           {MEAL_SLOTS.map(slot => (
             <div
               key={slot.key}
-              className="grid border-b border-[#F5F2EE] last:border-b-0"
+              className="grid border-b border-hairline last:border-b-0"
               style={{ gridTemplateColumns: '132px repeat(7, minmax(104px, 1fr))' }}
             >
-              <div className="sticky left-0 z-10 bg-white border-r border-[#F0EDE8] px-4 py-4 flex items-center gap-2">
+              <div className="sticky left-0 z-10 bg-white border-r border-surface px-4 py-4 flex items-center gap-2">
                 <span className="text-lg flex-shrink-0">{slot.emoji}</span>
-                <p className="text-sm font-bold text-[#252525] leading-tight">{slot.label}</p>
+                <p className="text-sm font-bold text-ink leading-tight">{slot.label}</p>
               </div>
 
               {weekDays.map(day => {
@@ -132,7 +132,7 @@ function WeekGrid({
                   <div
                     key={cellKey}
                     style={{ minHeight: cellMinHeight }}
-                    className={`border-r last:border-r-0 border-[#F0EDE8] ${
+                    className={`border-r last:border-r-0 border-surface ${
                       todayColumn ? 'bg-[#F5FAF5]' : 'bg-white'
                     }`}
                   >
@@ -142,18 +142,18 @@ function WeekGrid({
                         onClick={() => onEdit(meal)}
                         className="group h-full w-full p-2 text-left"
                       >
-                        <div className="h-full rounded-2xl border border-[#EDE9E3] bg-white/90 px-3 py-2 shadow-sm transition-colors group-hover:border-[#8BA888] group-hover:bg-white">
+                        <div className="h-full rounded-2xl border border-line bg-white/90 px-3 py-2 shadow-sm transition-colors group-hover:border-primary group-hover:bg-white">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#8BA888]">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                               {slot.emoji} {slot.label}
                             </p>
-                            <Pencil size={11} className="text-[#C4BFB9] group-hover:text-[#8BA888] transition-colors flex-shrink-0" />
+                            <Pencil size={11} className="text-faint group-hover:text-primary transition-colors flex-shrink-0" />
                           </div>
-                          <p className="mt-1 text-sm font-semibold text-[#252525] leading-snug">
+                          <p className="mt-1 text-sm font-semibold text-ink leading-snug">
                             {meal.name}
                           </p>
                           {meal.notes && (
-                            <p className="mt-1 text-[11px] text-[#77716A] leading-snug">
+                            <p className="mt-1 text-[11px] text-muted leading-snug">
                               {meal.notes}
                             </p>
                           )}
@@ -166,7 +166,7 @@ function WeekGrid({
                         className="group flex h-full w-full items-center justify-center p-2"
                         aria-label={`Añadir ${slot.label.toLowerCase()} para ${format(day, 'd MMM', { locale: es })}`}
                       >
-                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#D8D4CE] text-[#C4BFB9] transition-colors group-hover:border-[#8BA888] group-hover:bg-[#F5F9F5] group-hover:text-[#8BA888]" style={{ minHeight: cellMinHeight - 32 }}>
+                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#D8D4CE] text-faint transition-colors group-hover:border-primary group-hover:bg-primary-tint group-hover:text-primary" style={{ minHeight: cellMinHeight - 32 }}>
                           <div className="flex flex-col items-center gap-1">
                             <Plus size={14} strokeWidth={2.5} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Añadir</span>
@@ -282,24 +282,24 @@ export function MealsView() {
       <div className="md:hidden max-w-lg mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#252525] leading-tight">Comidas</h1>
-            <p className="text-xs text-[#77716A] mt-0.5">Menú de la familia</p>
+            <h1 className="text-2xl font-extrabold text-ink leading-tight">Comidas</h1>
+            <p className="text-xs text-muted mt-0.5">Menú de la familia</p>
           </div>
           <button
             onClick={() => openCreate()}
             aria-label="Añadir comida"
-            className="w-10 h-10 bg-[#8BA888] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#7a9877] transition-colors"
+            className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
           >
             <Plus size={20} />
           </button>
         </div>
 
-        <div className="flex gap-2 bg-[#F0EDE8] p-1 rounded-2xl">
+        <div className="flex gap-2 bg-surface p-1 rounded-2xl">
           {(['today', 'week'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setViewMode(tab)}
-              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${viewMode === tab ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${viewMode === tab ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
             >
               {tab === 'today' ? 'Hoy' : 'Esta semana'}
             </button>
@@ -311,18 +311,18 @@ export function MealsView() {
             {todayMeals.length === 0 ? (
               <Card className="py-10 text-center">
                 <p className="text-3xl mb-2">🍽️</p>
-                <p className="font-bold text-[#252525] text-sm">Sin menú para hoy</p>
-                <p className="text-xs text-[#77716A] mt-1">Planifica las comidas de hoy</p>
+                <p className="font-bold text-ink text-sm">Sin menú para hoy</p>
+                <p className="text-xs text-muted mt-1">Planifica las comidas de hoy</p>
                 <button
                   onClick={() => openCreate(getLocalDateString())}
-                  className="mt-4 text-sm font-semibold text-[#8BA888] hover:underline"
+                  className="mt-4 text-sm font-semibold text-primary hover:underline"
                 >
                   + Añadir comida de hoy
                 </button>
               </Card>
             ) : (
               <Card padded={false}>
-                <ul className="divide-y divide-[#F5F2EE]">
+                <ul className="divide-y divide-hairline">
                   {sortedTodayMeals.map(meal => (
                     <MealRow key={meal.id} meal={meal} onEdit={openEdit} />
                   ))}
@@ -336,13 +336,13 @@ export function MealsView() {
           <div className="space-y-3">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#77716A]">Vista semanal</p>
-                <p className="text-sm text-[#77716A] mt-0.5">{mobileWeekLabel}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-muted">Vista semanal</p>
+                <p className="text-sm text-muted mt-0.5">{mobileWeekLabel}</p>
               </div>
               <button
                 onClick={() => openCreate(getLocalDateString(), 'lunch')}
                 aria-label="Añadir comida de hoy"
-                className="w-9 h-9 bg-[#8BA888] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#7a9877] transition-colors"
+                className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
               >
                 <Plus size={18} />
               </button>
@@ -364,30 +364,30 @@ export function MealsView() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#252525] leading-tight">Comidas</h1>
-            <p className="text-xs text-[#77716A] mt-0.5">{desktopWeekLabel}</p>
+            <h1 className="text-2xl font-extrabold text-ink leading-tight">Comidas</h1>
+            <p className="text-xs text-muted mt-0.5">{desktopWeekLabel}</p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Week nav */}
-            <div className="flex items-center gap-1 bg-[#F0EDE8] rounded-2xl p-1">
+            <div className="flex items-center gap-1 bg-surface rounded-2xl p-1">
               <button
                 onClick={() => setDesktopWeekOffset(o => o - 1)}
                 aria-label="Semana anterior"
-                className="w-8 h-8 flex items-center justify-center rounded-xl text-[#77716A] hover:bg-white hover:text-[#252525] transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-xl text-muted hover:bg-white hover:text-ink transition-colors"
               >
                 <ChevronLeft size={16} strokeWidth={2} />
               </button>
               <button
                 onClick={() => setDesktopWeekOffset(0)}
-                className={`px-3 h-8 rounded-xl text-xs font-bold transition-colors ${isCurrentDesktopWeek ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A] hover:bg-white/60'}`}
+                className={`px-3 h-8 rounded-xl text-xs font-bold transition-colors ${isCurrentDesktopWeek ? 'bg-white text-ink shadow-sm' : 'text-muted hover:bg-white/60'}`}
               >
                 {isCurrentDesktopWeek ? 'Esta semana' : capitalize(format(desktopWeekStart, 'MMMM', { locale: es }))}
               </button>
               <button
                 onClick={() => setDesktopWeekOffset(o => o + 1)}
                 aria-label="Semana siguiente"
-                className="w-8 h-8 flex items-center justify-center rounded-xl text-[#77716A] hover:bg-white hover:text-[#252525] transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-xl text-muted hover:bg-white hover:text-ink transition-colors"
               >
                 <ChevronRight size={16} strokeWidth={2} />
               </button>
@@ -396,7 +396,7 @@ export function MealsView() {
             <button
               onClick={() => openCreate(getLocalDateString())}
               aria-label="Añadir comida"
-              className="flex items-center gap-2 px-4 h-9 bg-[#8BA888] text-white rounded-full text-sm font-semibold shadow-md hover:bg-[#7a9877] transition-colors"
+              className="flex items-center gap-2 px-4 h-9 bg-primary text-white rounded-full text-sm font-semibold shadow-md hover:bg-primary-hover transition-colors"
             >
               <Plus size={16} strokeWidth={2.5} />
               Añadir

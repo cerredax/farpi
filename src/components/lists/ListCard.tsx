@@ -13,19 +13,19 @@ export function ListCard({ list, total, done, onClick }: ListCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4 flex items-center gap-3 hover:bg-[#FDFBF8] active:bg-[#FAF7F2] transition-colors text-left"
+      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-4 flex items-center gap-3 hover:bg-[#FDFBF8] active:bg-canvas transition-colors text-left"
     >
       <span className="text-2xl w-10 text-center flex-shrink-0">{list.emoji ?? '📋'}</span>
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-[#252525] text-sm leading-tight">{list.name}</p>
+        <p className="font-bold text-ink text-sm leading-tight">{list.name}</p>
         <div className="flex items-center gap-2 mt-1.5">
-          <div className="flex-1 h-1.5 bg-[#F0EDE8] rounded-full overflow-hidden">
-            <div className="h-full bg-[#8BA888] rounded-full transition-all" style={{ width: `${pct}%` }} />
+          <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-[10px] text-[#77716A] font-semibold flex-shrink-0">{done}/{total}</span>
+          <span className="text-[10px] text-muted font-semibold flex-shrink-0">{done}/{total}</span>
         </div>
       </div>
-      <ChevronRight size={16} className="text-[#C4BFB9] flex-shrink-0" />
+      <ChevronRight size={16} className="text-faint flex-shrink-0" />
     </button>
   )
 }

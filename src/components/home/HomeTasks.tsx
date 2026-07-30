@@ -21,12 +21,12 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
       isEmpty={visible.length === 0}
       emptyState={<EmptyState emoji="✓" title="La casa esta al dia" />}
       footer={
-        <Link href="/tasks" className="text-xs font-semibold text-[#5C7A59] hover:underline">
+        <Link href="/tasks" className="text-xs font-semibold text-primary-strong hover:underline">
           Ver todas las tareas
         </Link>
       }
     >
-      <ul className="divide-y divide-[#F5F2EE]">
+      <ul className="divide-y divide-hairline">
         {visible.map(task => (
           <li key={task.id} className="flex items-center gap-3 px-4 py-3">
             <CircleCheck
@@ -36,9 +36,9 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
               size="sm"
               className="w-auto"
             />
-            <p className="flex-1 text-sm font-medium text-[#252525] leading-snug">{task.title}</p>
+            <p className="flex-1 text-sm font-medium text-ink leading-snug">{task.title}</p>
             {task.due_date && (
-              <span className="text-[10px] font-semibold text-[#77716A] flex-shrink-0">
+              <span className="text-[10px] font-semibold text-muted flex-shrink-0">
                 {task.due_date.slice(5).replace('-', '/')}
               </span>
             )}

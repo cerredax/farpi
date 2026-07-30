@@ -327,10 +327,10 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
 
 function ShellState({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#FAF7F2] px-6 text-center">
+    <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 text-center">
       <div className="max-w-sm">
-        <p className="text-lg font-extrabold text-[#252525]">{title}</p>
-        <p className="mt-2 text-sm leading-relaxed text-[#77716A]">{description}</p>
+        <p className="text-lg font-extrabold text-ink">{title}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
       </div>
     </div>
   )

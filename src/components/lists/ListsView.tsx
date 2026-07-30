@@ -55,13 +55,13 @@ export function ListsView() {
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#252525] leading-tight">Listas</h1>
-          <p className="text-xs text-[#77716A] mt-0.5">{s.lists.length} lista{s.lists.length !== 1 ? 's' : ''} de la familia</p>
+          <h1 className="text-2xl font-extrabold text-ink leading-tight">Listas</h1>
+          <p className="text-xs text-muted mt-0.5">{s.lists.length} lista{s.lists.length !== 1 ? 's' : ''} de la familia</p>
         </div>
         <button
           onClick={s.openCreateList}
           aria-label="Nueva lista"
-          className="w-10 h-10 bg-[#8BA888] text-white rounded-full flex items-center justify-center shadow-md hover:bg-[#7a9877] transition-colors"
+          className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
         >
           <Plus size={20} />
         </button>
@@ -70,8 +70,8 @@ export function ListsView() {
       {s.lists.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-4xl mb-3">✅</p>
-          <p className="font-bold text-[#252525]">Sin listas todavía</p>
-          <p className="text-sm text-[#77716A] mt-1">Crea la primera lista de la familia</p>
+          <p className="font-bold text-ink">Sin listas todavía</p>
+          <p className="text-sm text-muted mt-1">Crea la primera lista de la familia</p>
         </div>
       ) : (
         <div className="space-y-3">

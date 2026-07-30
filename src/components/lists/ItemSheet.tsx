@@ -53,7 +53,7 @@ export function ItemSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
         <button
           type="button"
           onClick={handleDelete}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
         >
           <span className="flex items-center justify-center gap-2">
             <Trash2 size={15} />
@@ -73,7 +73,7 @@ export function ItemSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
     >
       <form id="item-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
         <div className="space-y-1.5">
-          <label htmlFor="item-text" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Ítem</label>
+          <label htmlFor="item-text" className="text-xs font-bold text-muted uppercase tracking-widest">Ítem</label>
           <input
             id="item-text"
             ref={inputRef}
@@ -82,7 +82,7 @@ export function ItemSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
             onChange={e => setDraft({ text: e.target.value })}
             placeholder="Ej: Leche entera"
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
       </form>

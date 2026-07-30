@@ -33,12 +33,12 @@ function formatEventMoment(event: { all_day: boolean; start_at: string }) {
 
 function HomeStat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
   return (
-    <div className="rounded-2xl bg-[#FAF7F2] px-3 py-2">
-      <div className="flex items-center gap-1.5 text-[#8BA888]">
+    <div className="rounded-2xl bg-canvas px-3 py-2">
+      <div className="flex items-center gap-1.5 text-primary">
         {icon}
-        <span className="text-lg font-black text-[#252525]">{value}</span>
+        <span className="text-lg font-black text-ink">{value}</span>
       </div>
-      <p className="text-[10px] font-bold uppercase tracking-wide text-[#77716A]">{label}</p>
+      <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</p>
     </div>
   )
 }
@@ -54,13 +54,13 @@ function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean
         <div className="px-5 py-4 space-y-2">
           <button
             onClick={onConfirm}
-            className="w-full py-3 rounded-2xl bg-[#8BA888] text-white text-sm font-semibold hover:bg-[#7a9877] transition-colors"
+            className="w-full py-3 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors"
           >
             Sí, marcar como hecha
           </button>
           <button
             onClick={onCancel}
-            className="w-full py-3 rounded-2xl text-sm font-semibold text-[#77716A] hover:bg-[#F0EDE8] transition-colors"
+            className="w-full py-3 rounded-2xl text-sm font-semibold text-muted hover:bg-surface transition-colors"
           >
             Cancelar
           </button>
@@ -68,10 +68,10 @@ function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean
       }
     >
       <div className="px-5 pb-4">
-        <p className="text-sm text-[#77716A] mb-1">
+        <p className="text-sm text-muted mb-1">
           Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
         </p>
-        <p className="text-sm text-[#77716A]">¿Marcarla como hecha hoy igualmente?</p>
+        <p className="text-sm text-muted">¿Marcarla como hecha hoy igualmente?</p>
       </div>
     </BottomSheet>
   )
@@ -103,12 +103,12 @@ export function HomeView() {
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
       <div className="relative overflow-hidden rounded-[2rem] border border-[#EFE7DC] bg-[#FFF8EF] p-5 shadow-sm">
-        <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[#D8A48F]/25" />
-        <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-[#8BA888]/20" />
+        <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
+        <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
         <div className="relative space-y-4">
           <div>
-            <p className="text-xs font-bold text-[#77716A] uppercase tracking-widest mb-1">{dayLabel}</p>
-            <h1 className="text-3xl font-black text-[#252525] leading-tight">{greeting}</h1>
+            <p className="text-xs font-bold text-muted uppercase tracking-widest mb-1">{dayLabel}</p>
+            <h1 className="text-3xl font-black text-ink leading-tight">{greeting}</h1>
             <p className="mt-2 text-sm text-[#6F6A62] leading-relaxed">
               Un vistazo tranquilo a los planes, comidas y pequenas cosas de casa.
             </p>
@@ -120,8 +120,8 @@ export function HomeView() {
                 <Heart size={16} fill="currentColor" strokeWidth={2.4} />
               </span>
               <div>
-                <p className="text-xs font-black uppercase tracking-widest text-[#77716A]">Hoy en casa</p>
-                <p className="text-sm font-bold text-[#252525]">
+                <p className="text-xs font-black uppercase tracking-widest text-muted">Hoy en casa</p>
+                <p className="text-sm font-bold text-ink">
                   {nextEvent ? `${nextEvent.title} · ${formatEventMoment(nextEvent)}` : calmMessage}
                 </p>
               </div>
@@ -164,8 +164,8 @@ export function HomeView() {
       <UpcomingEvents events={upcoming} kids={kids} />
 
       <div className="rounded-3xl border border-[#EFE7DC] bg-white px-4 py-4 text-center shadow-sm">
-        <p className="text-sm font-bold text-[#252525]">Respirad. Lo importante esta apuntado.</p>
-        <p className="mt-1 text-xs text-[#77716A]">Nido esta aqui para bajar un poco el ruido.</p>
+        <p className="text-sm font-bold text-ink">Respirad. Lo importante esta apuntado.</p>
+        <p className="mt-1 text-xs text-muted">Nido esta aqui para bajar un poco el ruido.</p>
       </div>
     </div>
   )

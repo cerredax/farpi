@@ -207,7 +207,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     <button
       type="button"
       onClick={handleDelete}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
     >
       <Trash2 size={13} />
       {confirmDelete ? 'Confirmar' : 'Eliminar'}
@@ -234,25 +234,25 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
             {/* Título */}
             <div className="space-y-1.5">
-              <label htmlFor="event-title" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Título</label>
-              <input id="event-title" ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+              <label htmlFor="event-title" className="text-xs font-bold text-muted uppercase tracking-widest">Título</label>
+              <input id="event-title" ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition" />
             </div>
 
             {/* Descripción */}
             <div className="space-y-1.5">
-              <label htmlFor="event-description" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Descripción</label>
-              <textarea id="event-description" value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition resize-none" />
+              <label htmlFor="event-description" className="text-xs font-bold text-muted uppercase tracking-widest">Descripción</label>
+              <textarea id="event-description" value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition resize-none" />
             </div>
 
             {/* Fecha + todo el día */}
             <div className="flex gap-3 items-end">
               <div className="flex-1 space-y-1.5">
-                <label htmlFor="event-date" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fecha</label>
-                <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+                <label htmlFor="event-date" className="text-xs font-bold text-muted uppercase tracking-widest">Fecha</label>
+                <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition" />
               </div>
               <div className="flex flex-col items-center gap-1.5 pb-0.5">
-                <span className="text-[10px] font-bold text-[#77716A] uppercase tracking-widest whitespace-nowrap">Todo el día</span>
-                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => setDraft(d => ({ ...d, all_day: !d.all_day }))} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-[#8BA888]' : 'bg-[#D4CFC9]'}`}>
+                <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
+                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => setDraft(d => ({ ...d, all_day: !d.all_day }))} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-[#D4CFC9]'}`}>
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${draft.all_day ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
@@ -262,19 +262,19 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
             {!draft.all_day && (
               <div className="flex gap-3">
                 <div className="flex-1 space-y-1.5">
-                  <label htmlFor="event-start" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Inicio</label>
-                  <input id="event-start" type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+                  <label htmlFor="event-start" className="text-xs font-bold text-muted uppercase tracking-widest">Inicio</label>
+                  <input id="event-start" type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition" />
                 </div>
                 <div className="flex-1 space-y-1.5">
-                  <label htmlFor="event-end" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Fin</label>
-                  <input id="event-end" type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition" />
+                  <label htmlFor="event-end" className="text-xs font-bold text-muted uppercase tracking-widest">Fin</label>
+                  <input id="event-end" type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition" />
                 </div>
               </div>
             )}
 
             {/* Asignar a */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Asignar a</label>
+              <label className="text-xs font-bold text-muted uppercase tracking-widest">Asignar a</label>
               <div className="flex gap-3">
                 {assignees.map(a => {
                   const selected = draft.child_id === a.id
@@ -291,27 +291,27 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
             {/* Repetición — solo en crear */}
             {mode === 'create' && (
               <div className="space-y-3">
-                <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetición</label>
+                <label className="text-xs font-bold text-muted uppercase tracking-widest">Repetición</label>
 
                 <div className="grid grid-cols-3 gap-1 rounded-2xl bg-[#F2EEE8] p-1">
                   <button
                     type="button"
                     onClick={handleSetNone}
-                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'none' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'none' ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
                   >
                     No se repite
                   </button>
                   <button
                     type="button"
                     onClick={handleSetWeekly}
-                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'weekly' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'weekly' ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
                   >
                     Cada semana
                   </button>
                   <button
                     type="button"
                     onClick={handleSetYearly}
-                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'yearly' ? 'bg-white text-[#252525] shadow-sm' : 'text-[#77716A]'}`}
+                    className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${recurrence === 'yearly' ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
                   >
                     Cada año
                   </button>
@@ -321,7 +321,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                   <div className="space-y-4">
                     {/* Selector de días */}
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetir los días</label>
+                      <label className="text-xs font-bold text-muted uppercase tracking-widest">Repetir los días</label>
                       <div className="flex gap-1">
                         {WEEKDAY_BUTTONS.map(({ label, day }) => {
                           const active = recurrenceWeekdays.includes(day)
@@ -332,8 +332,8 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                               onClick={() => toggleWeekday(day)}
                               className={`flex-1 h-9 rounded-xl text-xs font-black transition-colors ${
                                 active
-                                  ? 'bg-[#8BA888] text-white'
-                                  : 'bg-[#FAF7F2] border border-[#EDE9E3] text-[#77716A] hover:border-[#8BA888]'
+                                  ? 'bg-primary text-white'
+                                  : 'bg-canvas border border-line text-muted hover:border-primary'
                               }`}
                             >
                               {label}
@@ -345,7 +345,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
                     {/* Fecha de fin */}
                     <div className="space-y-1.5">
-                      <label htmlFor="event-rec-end" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Termina el</label>
+                      <label htmlFor="event-rec-end" className="text-xs font-bold text-muted uppercase tracking-widest">Termina el</label>
                       <input
                         id="event-rec-end"
                         type="date"
@@ -353,25 +353,25 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                         min={draft.date}
                         max={maxEndDateStr(draft.date)}
                         onChange={e => setRecurrenceEnd(e.target.value)}
-                        className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+                        className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
                       />
                     </div>
 
                     {/* Vista previa */}
                     {previewReady && (
-                      <div className="rounded-2xl bg-[#F1F5EF] border border-[#8BA888]/25 p-3.5 space-y-1">
-                        <p className="text-sm text-[#252525] leading-snug">
+                      <div className="rounded-2xl bg-[#F1F5EF] border border-primary/25 p-3.5 space-y-1">
+                        <p className="text-sm text-ink leading-snug">
                           <span className="font-semibold">{draft.title.trim() || 'El evento'}</span>
                           {' '}se añadirá los {previewDaysText} hasta el {previewEndText}.
                         </p>
-                        <p className="text-sm font-bold text-[#8BA888]">Se crearán {seriesCount} eventos.</p>
-                        <p className="text-xs text-[#77716A]">Podrás editar cada evento por separado.</p>
+                        <p className="text-sm font-bold text-primary">Se crearán {seriesCount} eventos.</p>
+                        <p className="text-xs text-muted">Podrás editar cada evento por separado.</p>
                       </div>
                     )}
 
                     {/* Error de validación */}
                     {seriesError && (
-                      <p className="text-xs font-bold text-[#D96C6C]">{seriesError}</p>
+                      <p className="text-xs font-bold text-danger">{seriesError}</p>
                     )}
                   </div>
                 )}
@@ -379,12 +379,12 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                 {recurrence === 'yearly' && (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label htmlFor="event-rec-year" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Repetir hasta el año</label>
+                      <label htmlFor="event-rec-year" className="text-xs font-bold text-muted uppercase tracking-widest">Repetir hasta el año</label>
                       <select
                         id="event-rec-year"
                         value={recurrenceEndYear}
                         onChange={e => setRecurrenceEndYear(Number(e.target.value))}
-                        className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+                        className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary transition"
                       >
                         {Array.from({ length: 31 }, (_, i) => startYear + i).map(year => (
                           <option key={year} value={year}>{year}</option>
@@ -393,18 +393,18 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                     </div>
 
                     {yearlyCount > 0 && !yearlyError && (
-                      <div className="rounded-2xl bg-[#F1F5EF] border border-[#8BA888]/25 p-3.5 space-y-1">
-                        <p className="text-sm text-[#252525] leading-snug">
+                      <div className="rounded-2xl bg-[#F1F5EF] border border-primary/25 p-3.5 space-y-1">
+                        <p className="text-sm text-ink leading-snug">
                           <span className="font-semibold">{draft.title.trim() || 'El evento'}</span>
                           {' '}se añadirá cada año el mismo día hasta {recurrenceEndYear}.
                         </p>
-                        <p className="text-sm font-bold text-[#8BA888]">Se crearán {yearlyCount} evento{yearlyCount !== 1 ? 's' : ''}.</p>
-                        <p className="text-xs text-[#77716A]">Podrás editar cada evento por separado.</p>
+                        <p className="text-sm font-bold text-primary">Se crearán {yearlyCount} evento{yearlyCount !== 1 ? 's' : ''}.</p>
+                        <p className="text-xs text-muted">Podrás editar cada evento por separado.</p>
                       </div>
                     )}
 
                     {yearlyError && (
-                      <p className="text-xs font-bold text-[#D96C6C]">{yearlyError}</p>
+                      <p className="text-xs font-bold text-danger">{yearlyError}</p>
                     )}
                   </div>
                 )}

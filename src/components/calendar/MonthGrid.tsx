@@ -39,7 +39,7 @@ export function MonthGrid({
     <div className={isDetailed ? 'px-1.5 sm:px-2 pb-2' : 'px-2'}>
       <div className="grid grid-cols-7 mb-1">
         {DAY_LABELS.map(label => (
-          <div key={label} className={`flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-[#77716A] ${isDetailed ? 'h-6' : 'h-7'}`}>
+          <div key={label} className={`flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted ${isDetailed ? 'h-6' : 'h-7'}`}>
             {label}
           </div>
         ))}

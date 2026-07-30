@@ -13,9 +13,9 @@ interface TaskItemProps {
 }
 
 const PRIORITY_BORDER: Record<TaskPriority, string> = {
-  high:   'border-l-[#D96C6C]',
+  high:   'border-l-danger',
   medium: 'border-l-[#E9C46A]',
-  low:    'border-l-[#8BA888]',
+  low:    'border-l-primary',
 }
 
 function formatDue(dateStr: string): { label: string; overdue: boolean } {
@@ -31,7 +31,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-[#F0EDE8] shadow-sm flex overflow-hidden border-l-4 ${PRIORITY_BORDER[task.priority]}`}
+      className={`bg-white rounded-2xl border border-surface shadow-sm flex overflow-hidden border-l-4 ${PRIORITY_BORDER[task.priority]}`}
     >
       <CircleCheck
         checked={task.completed}
@@ -46,7 +46,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
       >
         <p
           className={`text-sm font-semibold leading-snug transition-colors ${
-            task.completed ? 'line-through text-[#C4BFB9]' : 'text-[#252525]'
+            task.completed ? 'line-through text-faint' : 'text-ink'
           }`}
         >
           {task.title}
@@ -55,23 +55,23 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
         {(task.notes || due || task.recurrence !== 'none') && (
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {task.notes && (
-              <p className="text-xs text-[#77716A] truncate max-w-[160px]">{task.notes}</p>
+              <p className="text-xs text-muted truncate max-w-[160px]">{task.notes}</p>
             )}
             {due && (
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                   due.overdue
-                    ? 'bg-[#FDE8E8] text-[#D96C6C]'
+                    ? 'bg-danger-soft text-danger'
                     : due.label === 'Hoy'
-                    ? 'bg-[#FDEEE8] text-[#D8A48F]'
-                    : 'bg-[#F0EDE8] text-[#77716A]'
+                    ? 'bg-[#FDEEE8] text-accent'
+                    : 'bg-surface text-muted'
                 }`}
               >
                 {due.label}
               </span>
             )}
             {task.recurrence !== 'none' && (
-              <span className="flex items-center gap-0.5 text-[10px] font-bold text-[#8BA888]">
+              <span className="flex items-center gap-0.5 text-[10px] font-bold text-primary">
                 <Repeat2 size={11} strokeWidth={2.5} />
                 {TASK_RECURRENCES.find(r => r.value === task.recurrence)?.shortLabel}
               </span>
@@ -84,7 +84,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
       <button
         onClick={() => onDelete(task.id)}
         aria-label="Eliminar tarea"
-        className="flex-shrink-0 flex items-center justify-center w-10 text-[#C4BFB9] hover:text-[#D96C6C] hover:bg-[#FDE8E8] transition-colors"
+        className="flex-shrink-0 flex items-center justify-center w-10 text-faint hover:text-danger hover:bg-danger-soft transition-colors"
       >
         <Trash2 size={14} />
       </button>

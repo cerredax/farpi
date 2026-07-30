@@ -22,19 +22,19 @@ export function CalendarHeader({ currentMonth, onPrev, onNext }: CalendarHeaderP
       <button
         onClick={onPrev}
         aria-label="Mes anterior"
-        className="w-9 h-9 flex items-center justify-center rounded-full text-[#77716A] hover:bg-[#EDE9E3] active:bg-[#E0DDD8] transition-colors"
+        className="w-9 h-9 flex items-center justify-center rounded-full text-muted hover:bg-line active:bg-grip transition-colors"
       >
         <ChevronLeft size={20} strokeWidth={2} />
       </button>
 
-      <h2 className="text-base font-extrabold text-[#252525] tracking-tight">
+      <h2 className="text-base font-extrabold text-ink tracking-tight">
         {label}
       </h2>
 
       <button
         onClick={onNext}
         aria-label="Mes siguiente"
-        className="w-9 h-9 flex items-center justify-center rounded-full text-[#77716A] hover:bg-[#EDE9E3] active:bg-[#E0DDD8] transition-colors"
+        className="w-9 h-9 flex items-center justify-center rounded-full text-muted hover:bg-line active:bg-grip transition-colors"
       >
         <ChevronRight size={20} strokeWidth={2} />
       </button>

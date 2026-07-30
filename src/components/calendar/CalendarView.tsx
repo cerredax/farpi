@@ -128,7 +128,7 @@ export function CalendarView() {
               </Card>
             </div>
 
-            <div className="mx-4 mt-4 lg:mx-0 grid grid-cols-2 gap-1 rounded-[22px] bg-[#F2EEE8] p-1.5 border border-[#EDE9E3] shadow-sm">
+            <div className="mx-4 mt-4 lg:mx-0 grid grid-cols-2 gap-1 rounded-[22px] bg-[#F2EEE8] p-1.5 border border-line shadow-sm">
               {VIEW_OPTIONS.map(option => {
                 const isActive = viewMode === option.mode
                 return (
@@ -137,12 +137,12 @@ export function CalendarView() {
                     onClick={() => setViewMode(option.mode)}
                     className={`rounded-2xl px-2 py-2 text-center transition-all ${
                       isActive
-                        ? 'bg-white text-[#252525] shadow-sm ring-1 ring-[#8BA888]/20'
-                        : 'text-[#77716A] hover:bg-white/50'
+                        ? 'bg-white text-ink shadow-sm ring-1 ring-primary/20'
+                        : 'text-muted hover:bg-white/50'
                       }`}
                   >
                     <span className="block text-[13px] font-black leading-tight">{option.label}</span>
-                    <span className={`block text-[10px] font-bold leading-tight ${isActive ? 'text-[#8BA888]' : 'text-[#A39B93]'}`}>
+                    <span className={`block text-[10px] font-bold leading-tight ${isActive ? 'text-primary' : 'text-[#A39B93]'}`}>
                       {option.hint}
                     </span>
                   </button>

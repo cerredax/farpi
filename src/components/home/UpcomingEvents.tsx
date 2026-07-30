@@ -32,16 +32,16 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids }: Upc
         {events.length === 0 ? (
           <EmptyState emoji="☘" title="Semana tranquila" description="No hay planes proximos" />
         ) : (
-          <ul className="divide-y divide-[#F5F2EE]">
+          <ul className="divide-y divide-hairline">
             {events.map((event) => {
               const child = event.child_id ? kidsById.get(event.child_id) : undefined
               return (
                 <li key={event.id} className="flex items-start gap-3 px-4 py-3">
-                  <span className="text-xs font-bold text-[#8BA888] min-w-[64px] pt-0.5 capitalize">
+                  <span className="text-xs font-bold text-primary min-w-[64px] pt-0.5 capitalize">
                     {capitalize(eventDayLabel(event.start_at))}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-[#252525] text-sm leading-snug">{event.title}</p>
+                    <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
                     {child && (
                       <span
                         className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
@@ -56,8 +56,8 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids }: Upc
             })}
           </ul>
         )}
-        <div className="border-t border-[#F5F2EE] px-4 py-2.5">
-          <Link href="/calendar" className="text-xs font-semibold text-[#8BA888] hover:underline">
+        <div className="border-t border-hairline px-4 py-2.5">
+          <Link href="/calendar" className="text-xs font-semibold text-primary hover:underline">
             Ver calendario
           </Link>
         </div>

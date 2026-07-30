@@ -55,7 +55,7 @@ export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
         <button
           type="button"
           onClick={handleDelete}
-          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+          className={`w-full py-3 rounded-2xl text-sm font-semibold transition-colors ${confirmDelete ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'}`}
         >
           <span className="flex items-center justify-center gap-2">
             <Trash2 size={15} />
@@ -76,7 +76,7 @@ export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
       <form id="list-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         {/* Nombre */}
         <div className="space-y-1.5">
-          <label htmlFor="list-name" className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Nombre</label>
+          <label htmlFor="list-name" className="text-xs font-bold text-muted uppercase tracking-widest">Nombre</label>
           <input
             id="list-name"
             ref={inputRef}
@@ -85,20 +85,20 @@ export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
             onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
             placeholder="Ej: Compra del fin de semana"
             required
-            className="w-full bg-[#FAF7F2] border border-[#EDE9E3] rounded-xl px-3 py-2.5 text-sm text-[#252525] placeholder:text-[#C4BFB9] focus:outline-none focus:ring-2 focus:ring-[#8BA888] transition"
+            className="w-full bg-canvas border border-line rounded-xl px-3 py-2.5 text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary transition"
           />
         </div>
 
         {/* Emoji */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-[#77716A] uppercase tracking-widest">Icono</label>
+          <label className="text-xs font-bold text-muted uppercase tracking-widest">Icono</label>
           <div className="grid grid-cols-8 gap-2">
             {EMOJIS.map(emoji => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => setDraft(d => ({ ...d, emoji }))}
-                className={`w-9 h-9 rounded-xl text-xl flex items-center justify-center transition-colors ${draft.emoji === emoji ? 'bg-[#8BA888]/20 ring-2 ring-[#8BA888]' : 'bg-[#FAF7F2] hover:bg-[#F0EDE8]'}`}
+                className={`w-9 h-9 rounded-xl text-xl flex items-center justify-center transition-colors ${draft.emoji === emoji ? 'bg-primary/20 ring-2 ring-primary' : 'bg-canvas hover:bg-surface'}`}
               >
                 {emoji}
               </button>

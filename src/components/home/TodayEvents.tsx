@@ -24,19 +24,19 @@ export const TodayEvents = memo(function TodayEvents({ events, kids }: TodayEven
         {events.length === 0 ? (
           <EmptyState emoji="☘" title="Hoy pinta tranquilo" description="No hay planes apuntados" />
         ) : (
-          <ul className="divide-y divide-[#F5F2EE]">
+          <ul className="divide-y divide-hairline">
             {events.map((event) => {
               const child = event.child_id ? kidsById.get(event.child_id) : undefined
               return (
                 <li key={event.id} className="flex items-start gap-3 px-4 py-3">
                   <div className="flex items-center gap-1.5 min-w-[52px] pt-0.5">
-                    <Clock size={13} className="text-[#77716A]" strokeWidth={2} />
-                    <span className="text-xs font-bold text-[#77716A]">
+                    <Clock size={13} className="text-muted" strokeWidth={2} />
+                    <span className="text-xs font-bold text-muted">
                       {event.all_day ? 'Todo el dia' : formatTime(event.start_at)}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-[#252525] text-sm leading-snug">{event.title}</p>
+                    <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
                     {child && (
                       <span
                         className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
@@ -51,8 +51,8 @@ export const TodayEvents = memo(function TodayEvents({ events, kids }: TodayEven
             })}
           </ul>
         )}
-        <div className="border-t border-[#F5F2EE] px-4 py-2.5">
-          <Link href="/calendar" className="text-xs font-semibold text-[#8BA888] hover:underline">
+        <div className="border-t border-hairline px-4 py-2.5">
+          <Link href="/calendar" className="text-xs font-semibold text-primary hover:underline">
             Ver calendario
           </Link>
         </div>

@@ -124,7 +124,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#F7F3EC] text-[#252525]">
+    <div className="min-h-dvh bg-[#F7F3EC] text-ink">
       <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[minmax(0,1fr)_480px] xl:grid-cols-[minmax(0,1fr)_520px]">
         <section className="flex min-h-[52dvh] flex-col justify-between px-6 py-7 sm:px-10 lg:min-h-dvh lg:px-14 lg:py-12 xl:px-20">
           <header className="flex items-center justify-between gap-4">
@@ -134,7 +134,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className="text-lg font-black leading-none tracking-tight">Nido</p>
-                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#77716A]">Familia en calma</p>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Familia en calma</p>
               </div>
             </div>
 
@@ -163,12 +163,12 @@ export default function LoginPage() {
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {benefits.map(({ icon: Icon, title, text }) => (
                   <div key={title} className="flex items-start gap-3 rounded-2xl border border-[#E8E1D8] bg-white/75 px-4 py-3 shadow-sm">
-                    <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4ED] text-[#5C7A59]">
+                    <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4ED] text-primary-strong">
                       <Icon size={18} strokeWidth={2.25} />
                     </span>
                     <span>
-                      <span className="block text-sm font-black text-[#252525]">{title}</span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#77716A]">{text}</span>
+                      <span className="block text-sm font-black text-ink">{title}</span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-muted">{text}</span>
                     </span>
                   </div>
                 ))}
@@ -176,7 +176,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <footer className="hidden items-center gap-2 text-xs font-semibold text-[#77716A] lg:flex">
+          <footer className="hidden items-center gap-2 text-xs font-semibold text-muted lg:flex">
             <ShieldCheck size={15} strokeWidth={2.3} />
             Solo tu familia puede ver sus datos.
           </footer>
@@ -185,10 +185,10 @@ export default function LoginPage() {
         <aside className="flex items-center justify-center border-t border-[#E9E2D8] bg-[#FFFCF8] px-6 py-8 lg:border-l lg:border-t-0 lg:px-10">
           <div className="w-full max-w-sm">
             <div className="mb-6">
-              <p className="text-2xl font-black tracking-tight text-[#252525]">
+              <p className="text-2xl font-black tracking-tight text-ink">
                 {isSignup ? 'Crea tu cuenta' : 'Entra a Nido'}
               </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-[#77716A]">
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
                 {isSignup
                   ? 'Gratis, privado y pensado para el día a día de una familia.'
                   : 'Accede a tu espacio familiar privado.'}
@@ -196,22 +196,22 @@ export default function LoginPage() {
             </div>
 
             {IS_DEMO_MODE ? (
-              <div className="rounded-[1.5rem] border border-[#EDE9E3] bg-white p-5 shadow-sm">
+              <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-sm">
                 <div className="flex items-start gap-3 rounded-2xl bg-[#FFF8EF] px-4 py-4">
-                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white text-[#8BA888] shadow-sm">
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
                     <CheckCircle2 size={18} strokeWidth={2.4} />
                   </span>
                   <div>
-                    <p className="text-sm font-black text-[#252525]">Modo local activo</p>
-                    <p className="mt-1 text-sm leading-relaxed text-[#77716A]">
+                    <p className="text-sm font-black text-ink">Modo local activo</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">
                       Configura Supabase para activar cuentas reales, invitaciones y sincronización.
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="rounded-[1.5rem] border border-[#EDE9E3] bg-white p-5 shadow-[0_12px_45px_rgba(37,37,37,0.08)]">
-                <div className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-[#F0EDE8] p-1">
+              <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_45px_rgba(37,37,37,0.08)]">
+                <div className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1">
                   {(['signin', 'signup'] as const).map(mode => (
                     <button
                       key={mode}
@@ -219,8 +219,8 @@ export default function LoginPage() {
                       onClick={() => switchMode(mode)}
                       className={`rounded-xl py-2.5 text-sm font-bold transition-all ${
                         authMode === mode
-                          ? 'bg-white text-[#252525] shadow-sm'
-                          : 'text-[#77716A] hover:text-[#252525]'
+                          ? 'bg-white text-ink shadow-sm'
+                          : 'text-muted hover:text-ink'
                       }`}
                     >
                       {mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
@@ -275,7 +275,7 @@ export default function LoginPage() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(v => !v)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A39B93] transition-colors hover:text-[#77716A]"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A39B93] transition-colors hover:text-muted"
                           aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                         >
                           {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -294,7 +294,7 @@ export default function LoginPage() {
                       />
                     </InputIcon>
                     {password && !passwordIsValid && (
-                      <p className="mt-1 text-[11px] font-semibold text-[#D96C6C]">Mínimo 8 caracteres.</p>
+                      <p className="mt-1 text-[11px] font-semibold text-danger">Mínimo 8 caracteres.</p>
                     )}
                   </Field>
 
@@ -313,7 +313,7 @@ export default function LoginPage() {
                         />
                       </InputIcon>
                       {confirmPassword && !passwordsMatch && (
-                        <p className="mt-1 text-[11px] font-semibold text-[#D96C6C]">Las contraseñas no coinciden.</p>
+                        <p className="mt-1 text-[11px] font-semibold text-danger">Las contraseñas no coinciden.</p>
                       )}
                     </Field>
                   )}
@@ -342,7 +342,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={handlePasswordReset}
                       disabled={loading}
-                      className="w-full pt-1 text-center text-xs font-semibold text-[#5C7A59] hover:underline disabled:opacity-40"
+                      className="w-full pt-1 text-center text-xs font-semibold text-primary-strong hover:underline disabled:opacity-40"
                     >
                       Recuperar contraseña
                     </button>
@@ -385,7 +385,7 @@ export default function LoginPage() {
 function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="text-xs font-bold uppercase tracking-widest text-[#77716A]">
+      <label htmlFor={htmlFor} className="text-xs font-bold uppercase tracking-widest text-muted">
         {label}
       </label>
       {children}
@@ -404,7 +404,7 @@ function InputIcon({
 }) {
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#C4BFB9]">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint">
         {icon}
       </span>
       {children}
@@ -417,8 +417,8 @@ function Alert({ tone, children }: { tone: 'error' | 'success'; children: React.
   return (
     <div className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
       tone === 'error'
-        ? 'border-[#F1C9C9] bg-[#FDE8E8] text-[#B24D4D]'
-        : 'border-[#DDEAD9] bg-[#EEF4ED] text-[#5C7A59]'
+        ? 'border-[#F1C9C9] bg-danger-soft text-[#B24D4D]'
+        : 'border-[#DDEAD9] bg-[#EEF4ED] text-primary-strong'
     }`}>
       {children}
     </div>

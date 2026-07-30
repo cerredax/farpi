@@ -39,21 +39,21 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#FAF7F2] px-6 py-10">
+    <div className="min-h-dvh bg-canvas px-6 py-10">
       <div className="mx-auto flex min-h-[calc(100dvh-5rem)] max-w-sm flex-col justify-center">
         <div className="mb-7 text-center">
           <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-[#3D5C3A] text-white shadow-sm">
             <Home size={25} strokeWidth={2.4} />
           </div>
-          <h1 className="text-2xl font-extrabold text-[#252525]">Configura tu familia</h1>
-          <p className="mt-2 text-sm leading-relaxed text-[#77716A]">
+          <h1 className="text-2xl font-extrabold text-ink">Configura tu familia</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
             Crea el espacio privado de tu casa. Si te han invitado, entra desde el enlace del email para unirte directamente.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="rounded-[1.75rem] border border-[#EDE9E3] bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="rounded-[1.75rem] border border-line bg-white p-6 shadow-sm">
           <div className="space-y-1.5">
-            <label htmlFor="family-name" className="text-xs font-bold uppercase tracking-widest text-[#77716A]">
+            <label htmlFor="family-name" className="text-xs font-bold uppercase tracking-widest text-muted">
               Nombre de la familia
             </label>
             <input
@@ -64,12 +64,12 @@ export default function OnboardingPage() {
               value={familyName}
               onChange={e => setFamilyName(e.target.value)}
               placeholder="Ej: Familia Garcia"
-              className="w-full rounded-xl border border-[#EDE9E3] bg-[#FAF7F2] px-3 py-3 text-sm font-medium text-[#252525] outline-none transition focus:border-[#8BA888] focus:ring-2 focus:ring-[#8BA888]/25"
+              className="w-full rounded-xl border border-line bg-canvas px-3 py-3 text-sm font-medium text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/25"
             />
           </div>
 
           {error && (
-            <div className="mt-4 rounded-2xl border border-[#F1C9C9] bg-[#FDE8E8] px-4 py-3 text-sm font-medium text-[#B24D4D]">
+            <div className="mt-4 rounded-2xl border border-[#F1C9C9] bg-danger-soft px-4 py-3 text-sm font-medium text-[#B24D4D]">
               {error}
             </div>
           )}

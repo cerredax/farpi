@@ -6,6 +6,8 @@
 
 Supabase está creado, las migraciones subidas y la UI ya conectada mediante repositorios reales. Lo que **sigue pendiente** es la validación aislada del backend (RLS con dos usuarios, RPCs, Storage e integridad) y documentar aquí sus resultados. Los checklists de abajo siguen sin marcar hasta ejecutarlos en el Dashboard / SQL Editor.
 
+Para ejecutarla paso a paso, sigue **`docs/supabase-validation-guide.md`** (arrancar la app, crear usuarios, rellenar `supabase/validate_rls.sql`, probar Storage y registrar resultados aquí).
+
 No incluir en este documento URLs privadas, anon keys, service role keys ni datos personales reales.
 
 ## Migraciones

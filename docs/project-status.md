@@ -88,6 +88,6 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Siguiente paso recomendado
 
-1. Cerrar la validación Supabase aislada (usuarios A/B, RPCs, Storage) y documentarla.
+1. Cerrar la validación Supabase aislada (usuarios A/B, RPCs, Storage) y documentarla — guía paso a paso en `docs/supabase-validation-guide.md`.
 2. Revisión de accesibilidad (labels, foco, contraste, roles).
 3. Refactor de tokens de color (con la UI congelada).

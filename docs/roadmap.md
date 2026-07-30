@@ -99,6 +99,6 @@ Objetivo: preparar uso diario.
 
 - ✅ PWA básica: iconos any + maskable + apple-touch y manifest con purposes.
 - Mejoras responsive.
-- Tests e2e con `@playwright/test` (smoke: login demo → /home).
+- ✅ Tests e2e con `@playwright/test` (smoke demo: login → /home). Ejecutar con `npm run test:e2e`.
 - Revisión de accesibilidad.
 - Backup/export sencillo si se considera necesario.

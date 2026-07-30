@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, HeartHandshake, LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { ExternalLink, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
 import { resetDemoData } from '@/lib/family-config'
-import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
+import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
 import { NotificationsCard } from './NotificationsCard'
+import { AccountActions } from './AccountActions'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
 import { FamilySheet } from './FamilySheet'
@@ -82,8 +82,6 @@ export function SettingsView() {
   } = useStore()
 
   const adminCount = members.filter(m => m.role === 'admin').length
-
-  const router = useRouter()
 
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
@@ -199,15 +197,7 @@ export function SettingsView() {
 
         {!IS_DEMO_MODE && (
           <Section label="Cuenta">
-            <div className="bg-white rounded-2xl border border-surface shadow-sm px-4 py-4">
-              <button
-                onClick={async () => { await signOut(); router.replace('/auth/login') }}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-muted border border-line hover:bg-surface transition-colors"
-              >
-                <LogOut size={15} strokeWidth={2.2} />
-                Cerrar sesión
-              </button>
-            </div>
+            <AccountActions />
           </Section>
         )}
 

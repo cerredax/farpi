@@ -64,7 +64,7 @@ Objetivo: implementar acceso a datos real sin reescribir pantallas.
 - Usar RPC `remove_family_member` para borrar miembros.
 - Usar RPC `update_family_member_role` para cambiar roles.
 - Usar RPC `accept_family_invite` para aceptar invitaciones.
-- Reemplazar `useFamily.ts` experimental por el patrón definitivo.
+- ✅ `useFamily.ts` experimental eliminado; patrón de repositorios definitivo en uso.
 
 ## Fase 5 - StoreProvider async
 

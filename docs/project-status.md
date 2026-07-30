@@ -84,7 +84,7 @@ Una familia debe tener siempre al menos un admin. Las siguientes operaciones est
 - Añadir logout visible.
 - Implementar upload, descarga y borrado real de documentos en Storage.
 - Decidir flujo de invitaciones por email (magic link vs. deep link con `invite_id`).
-- Reemplazar `useFamily.ts` experimental por el patrón de repositorios definitivo.
+- ✅ `useFamily.ts` experimental y stubs `src/lib/repos/*` (salvo `types.ts`) eliminados; endpoint diagnóstico temporal `/api/check-config` retirado.
 
 ## Siguiente paso recomendado
 

@@ -118,7 +118,7 @@ UI / Pantallas
 
 Esto permitirá mantener modo demo y Supabase sin duplicar la UI. La siguiente etapa técnica es implementar repositorios reales y hacer que `StoreProvider` consuma la frontera async de repositorios en lugar del store mock directo.
 
-El hook `src/hooks/useFamily.ts` es experimental y no está conectado a ninguna UI. Será reemplazado por los repositorios definitivos en Fase 4.
+Los repositorios reales ya están implementados en `src/lib/supabase-repos.ts` y `src/lib/mock-repos.ts`, consumidos por `StoreProvider` según `IS_DEMO_MODE`. El hook experimental `src/hooks/useFamily.ts` y los stubs sueltos de `src/lib/repos/*` (salvo `types.ts`) se han eliminado por quedar obsoletos.
 
 ## Fechas
 

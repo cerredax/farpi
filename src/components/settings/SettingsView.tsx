@@ -170,20 +170,22 @@ export function SettingsView() {
           <ChildrenList kids={kids} onEdit={openEditChild} onAdd={openAddChild} />
         </Section>
 
-        <Section label="Demo">
-          <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4 space-y-3">
-            <p className="text-xs text-[#77716A] leading-relaxed">
-              La app funciona en modo demo con datos de prueba guardados localmente. Puedes reiniciar todos los datos al estado inicial en cualquier momento.
-            </p>
-            <button
-              onClick={handleReset}
-              onBlur={() => setConfirmReset(false)}
-              className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-[#D96C6C] text-white' : 'border border-[#EDE9E3] text-[#77716A] hover:bg-[#F0EDE8]'}`}
-            >
-              {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
-            </button>
-          </div>
-        </Section>
+        {IS_DEMO_MODE && (
+          <Section label="Demo">
+            <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4 space-y-3">
+              <p className="text-xs text-[#77716A] leading-relaxed">
+                La app funciona en modo demo con datos de prueba guardados localmente. Puedes reiniciar todos los datos al estado inicial en cualquier momento.
+              </p>
+              <button
+                onClick={handleReset}
+                onBlur={() => setConfirmReset(false)}
+                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-[#D96C6C] text-white' : 'border border-[#EDE9E3] text-[#77716A] hover:bg-[#F0EDE8]'}`}
+              >
+                {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
+              </button>
+            </div>
+          </Section>
+        )}
 
         {!IS_DEMO_MODE && (
           <Section label="Cuenta">

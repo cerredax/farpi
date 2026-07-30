@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { X, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Button } from '@/components/ui/Button'
+import { BottomSheet } from '@/components/ui/BottomSheet'
 import { extractTime, getLocalDateString } from '@/lib/date-utils'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 import type { Event, Child, EventDraft } from '@/types'
@@ -202,30 +203,34 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
   const familyOption = { id: null as string | null, name: 'Familia', color: '#E9C46A' }
   const assignees = [familyOption, ...kids.map(c => ({ id: c.id as string | null, name: c.name, color: c.color }))]
 
-  return (
-    <>
-      <div className={`fixed inset-0 z-50 bg-black/30 transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div className={`fixed bottom-0 left-0 right-0 z-[60] bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out max-h-[92dvh] flex flex-col ${open ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0"><div className="w-10 h-1 rounded-full bg-[#E0DDD8]" /></div>
-        <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
-          <h3 className="font-extrabold text-[#252525] text-base">{mode === 'create' ? 'Nuevo evento' : 'Editar evento'}</h3>
-          <div className="flex items-center gap-2">
-            {mode === 'edit' && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
-              >
-                <Trash2 size={13} />
-                {confirmDelete ? 'Confirmar' : 'Eliminar'}
-              </button>
-            )}
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-[#77716A] hover:bg-[#F0EDE8] transition-colors"><X size={18} /></button>
-          </div>
-        </div>
+  const headerActions = mode === 'edit' ? (
+    <button
+      type="button"
+      onClick={handleDelete}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${confirmDelete ? 'bg-[#D96C6C] text-white' : 'text-[#D96C6C] hover:bg-[#FDE8E8]'}`}
+    >
+      <Trash2 size={13} />
+      {confirmDelete ? 'Confirmar' : 'Eliminar'}
+    </button>
+  ) : undefined
 
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto px-5 pt-1 pb-4 space-y-5">
+  const footer = (
+    <div className="px-5 pb-8 pt-3">
+      <Button type="submit" form="event-form" fullWidth size="lg" disabled={!canSubmit}>
+        {submitLabel}
+      </Button>
+    </div>
+  )
+
+  return (
+    <BottomSheet
+      open={open}
+      title={mode === 'create' ? 'Nuevo evento' : 'Editar evento'}
+      onClose={onClose}
+      headerActions={headerActions}
+      footer={footer}
+    >
+      <form id="event-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
 
             {/* Título */}
             <div className="space-y-1.5">
@@ -404,15 +409,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
               </div>
             )}
 
-          </div>
-
-          <div className="flex-shrink-0 px-5 pb-8 pt-3 border-t border-[#F5F2EE]">
-            <Button type="submit" fullWidth size="lg" disabled={!canSubmit}>
-              {submitLabel}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </>
+      </form>
+    </BottomSheet>
   )
 }

@@ -417,7 +417,7 @@ function Alert({ tone, children }: { tone: 'error' | 'success'; children: React.
   return (
     <div className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
       tone === 'error'
-        ? 'border-[#F1C9C9] bg-danger-soft text-[#B24D4D]'
+        ? 'border-danger-line bg-danger-soft text-[#B24D4D]'
         : 'border-[#DDEAD9] bg-[#EEF4ED] text-primary-strong'
     }`}>
       {children}

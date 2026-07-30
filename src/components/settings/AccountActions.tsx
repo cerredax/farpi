@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { KeyRound, LogOut, Loader2, Trash2 } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
 import { createClient, signOut } from '@/lib/supabase/client'
 
 const PASSWORD_MIN = 8
@@ -70,7 +71,7 @@ export function AccountActions() {
   return (
     <div className="space-y-3">
       {/* Cambiar contraseña */}
-      <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4">
+      <Card>
         {showPasswordForm ? (
           <form onSubmit={handleChangePassword} className="space-y-3">
             <label htmlFor="new-password" className="field-label">Nueva contraseña</label>
@@ -100,18 +101,18 @@ export function AccountActions() {
           </button>
         )}
         {pwDone && !showPasswordForm && <p className="mt-2 text-xs font-medium text-primary-strong">Contraseña actualizada.</p>}
-      </div>
+      </Card>
 
       {/* Cerrar sesión */}
-      <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4">
+      <Card>
         <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-line py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface">
           <LogOut size={15} strokeWidth={2.2} />
           Cerrar sesión
         </button>
-      </div>
+      </Card>
 
       {/* Borrar cuenta */}
-      <div className="rounded-2xl border border-[#F1C9C9] bg-[#FDF6F6] px-4 py-4">
+      <div className="rounded-2xl border border-danger-line bg-danger-tint px-4 py-4">
         <p className="text-sm font-black text-ink">Borrar cuenta</p>
         <p className="mt-1 text-xs leading-relaxed text-muted">
           Elimina tu cuenta y tus datos. Las familias donde eres el único miembro se borran por completo. Esta acción no se puede deshacer.
@@ -120,7 +121,7 @@ export function AccountActions() {
           onClick={handleDelete}
           onBlur={() => setConfirmDelete(false)}
           disabled={deleting}
-          className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirmDelete ? 'bg-danger text-white' : 'border border-[#F1C9C9] text-danger hover:bg-danger-soft'}`}
+          className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirmDelete ? 'bg-danger text-white' : 'border border-danger-line text-danger hover:bg-danger-soft'}`}
         >
           {deleting ? (
             <span className="inline-flex items-center justify-center gap-2"><Loader2 size={15} className="animate-spin" /> Borrando…</span>

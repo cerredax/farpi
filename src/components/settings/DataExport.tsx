@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Download } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
 import { useStore } from '@/lib/store-context'
 
 export function DataExport() {
@@ -41,7 +42,7 @@ export function DataExport() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-surface shadow-sm px-4 py-4 space-y-3">
+    <Card className="space-y-3">
       <p className="text-xs leading-relaxed text-muted">
         Descarga una copia de los datos de tu familia (eventos, tareas, listas, comidas y la información de los
         documentos) en un archivo JSON. Los archivos de documentos no se incluyen.
@@ -54,6 +55,6 @@ export function DataExport() {
         Exportar datos (JSON)
       </button>
       {done && <p className="text-xs font-medium text-primary-strong">Copia descargada.</p>}
-    </div>
+    </Card>
   )
 }

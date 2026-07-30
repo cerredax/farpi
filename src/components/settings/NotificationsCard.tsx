@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Bell, BellOff, Loader2 } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
 import { pushSupported, pushConfigured, currentPermission, enablePush, disablePush } from '@/lib/push'
 
 export function NotificationsCard() {
@@ -40,7 +41,7 @@ export function NotificationsCard() {
   const denied = supported && currentPermission() === 'denied'
 
   return (
-    <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm px-4 py-4 space-y-3">
+    <Card className="space-y-3">
       <div className="flex items-start gap-3">
         <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-canvas text-primary">
           {subscribed ? <Bell size={18} strokeWidth={2.3} /> : <BellOff size={18} strokeWidth={2.3} />}
@@ -85,6 +86,6 @@ export function NotificationsCard() {
           {error && <p className="text-xs text-danger font-medium">{error}</p>}
         </>
       )}
-    </div>
+    </Card>
   )
 }

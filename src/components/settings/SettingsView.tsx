@@ -214,8 +214,8 @@ export function SettingsView() {
         </Section>
 
         <Section label="Legal">
-          <div className="bg-white rounded-2xl border border-[#F0EDE8] shadow-sm overflow-hidden">
-            <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-[#F0EDE8]">
+          <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
+            <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
               Política de privacidad <span className="text-faint">›</span>
             </Link>
             <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">

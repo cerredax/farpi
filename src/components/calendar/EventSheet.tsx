@@ -237,13 +237,13 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
       <form id="event-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
 
             {seriesDeleteOpen && initial?.recurrence_group_id && onDeleteSeries && (
-              <div className="rounded-2xl border border-[#F1C9C9] bg-[#FDF6F6] p-3.5 space-y-2">
+              <div className="rounded-2xl border border-danger-line bg-danger-tint p-3.5 space-y-2">
                 <p className="text-sm font-bold text-ink">Este evento se repite</p>
                 <p className="text-xs text-muted">¿Qué quieres eliminar?</p>
                 <button
                   type="button"
                   onClick={() => { onDelete(initial.id); onClose() }}
-                  className="w-full rounded-xl border border-[#F1C9C9] py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
+                  className="w-full rounded-xl border border-danger-line py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
                 >
                   Eliminar solo este
                 </button>

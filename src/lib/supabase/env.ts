@@ -1,6 +1,7 @@
 // Detección única de "modo demo" (sin Supabase real) compartida por cliente,
 // servidor, proxy y rutas API. Evita que cada capa la implemente por su cuenta
 // y diverja (p. ej. el proxy tratando como real una URL placeholder).
+// nota: este módulo hornea NEXT_PUBLIC_SUPABASE_URL al compilar (build v2).
 
 const PLACEHOLDER_URLS = ['your-supabase-project-url', 'placeholder', 'https://placeholder.supabase.co']
 

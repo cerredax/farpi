@@ -5,6 +5,7 @@ import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
 import { DOC_CATEGORIES } from '@/lib/constants'
+import { resolveAssignee } from '@/lib/assignees'
 
 const ALL_FILTERS = [
   { key: null as string | null, label: 'Todos' },
@@ -58,13 +59,13 @@ export function DocsView() {
       ) : (
         <div className="space-y-3">
           {s.filtered.map(doc => {
-            const child = s.kids.find(k => k.id === doc.child_id)
+            const asignado = resolveAssignee(doc, s.members, s.kids)
             return (
               <DocCard
                 key={doc.id}
                 doc={doc}
-                childName={child?.name}
-                childColor={child?.color}
+                assigneeName={asignado?.name}
+                assigneeColor={asignado?.color}
                 onEdit={() => s.openEdit(doc)}
               />
             )
@@ -78,6 +79,7 @@ export function DocsView() {
         mode={s.sheetMode}
         initial={s.editingDoc}
         kids={s.kids}
+        members={s.members}
         onClose={() => s.setSheetOpen(false)}
         onSave={s.handleSave}
         onDelete={s.deleteDocument}

@@ -12,8 +12,8 @@ import { extractTime, getLocalDateString, parseLocalDate } from '@/lib/date-util
 import { buildWeeklyDates } from '@/lib/recurrence'
 import { validateEventDraft } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
-import type { Event, Child, EventDraft } from '@/types'
-import { FAMILY_COLOR } from '@/lib/constants'
+import type { Event, Child, EventDraft, FamilyMember } from '@/types'
+import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 
 type Mode = 'create' | 'edit'
 type Recurrence = 'none' | 'weekly' | 'yearly'
@@ -24,6 +24,7 @@ interface EventSheetProps {
   initial?: Event | null
   defaultDate?: Date
   kids: Child[]
+  members: FamilyMember[]
   onClose: () => void
   onCreate: (draft: EventDraft) => void
   onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string) => void
@@ -79,16 +80,17 @@ function initDraft(mode: Mode, initial: Event | null | undefined, defaultDate: D
       start_time: initial.all_day ? '' : extractTime(initial.start_at),
       end_time: initial.end_at && !initial.all_day ? extractTime(initial.end_at) : '',
       child_id: initial.child_id,
+      member_id: initial.member_id,
     }
   }
   return {
     title: '', description: '',
     date: format(defaultDate ?? new Date(), 'yyyy-MM-dd'),
-    all_day: false, start_time: '', end_time: '', child_id: null,
+    all_day: false, start_time: '', end_time: '', child_id: null, member_id: null,
   }
 }
 
-export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete, onDeleteSeries }: EventSheetProps) {
+export function EventSheet({ open, mode, initial, defaultDate, kids, members, onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete, onDeleteSeries }: EventSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<EventDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultDate),
@@ -187,8 +189,8 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
         ? `Crear ${yearlyCount} evento${yearlyCount !== 1 ? 's' : ''}`
         : 'Crear evento'
 
-  const familyOption = { id: null as string | null, name: 'Familia', color: FAMILY_COLOR }
-  const assignees = [familyOption, ...kids.map(c => ({ id: c.id as string | null, name: c.name, color: c.color }))]
+  const assignees = buildAssignees(members, kids)
+  const asignadoActual = assigneeKeyOf(draft)
 
   const isSeries = mode === 'edit' && !!initial?.recurrence_group_id && !!onDeleteSeries
   const headerActions = mode !== 'edit' ? undefined : isSeries ? (
@@ -291,9 +293,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
               <div className="flex gap-3">
                 {assignees.map(a => (
                   <DotOption
-                    key={String(a.id)}
-                    selected={draft.child_id === a.id}
-                    onClick={() => patch({ child_id: a.id })}
+                    key={a.key}
+                    selected={asignadoActual === a.key}
+                    onClick={() => patch({ child_id: a.child_id, member_id: a.member_id })}
                     color={a.color}
                     label={a.name}
                   />

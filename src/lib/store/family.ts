@@ -43,6 +43,10 @@ export function updateMemberName(id: string, name: string): void {
 
 export function removeMember(id: string): void {
   db.members = db.members.filter(m => m.id !== id)
+  // Imita el ON DELETE SET NULL de Supabase: lo que tuviera asignado esa
+  // persona pasa a ser de toda la familia, en vez de quedar colgando.
+  db.events = db.events.map(e => e.member_id === id ? { ...e, member_id: null } : e)
+  db.documents = db.documents.map(d => d.member_id === id ? { ...d, member_id: null } : d)
 }
 
 export function getInvites(familyId: string): FamilyInvite[] {

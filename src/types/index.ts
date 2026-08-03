@@ -43,7 +43,10 @@ export interface Child {
 export interface Event {
   id: string
   family_id: string
+  /** Asignado a un hijo. Excluyente con `member_id`; ambos null = toda la familia. */
   child_id: string | null
+  /** Asignado a un miembro adulto de la familia. */
+  member_id: string | null
   title: string
   description: string | null
   start_at: string
@@ -99,7 +102,10 @@ export interface MealPlan {
 export interface Document {
   id: string
   family_id: string
+  /** Asignado a un hijo. Excluyente con `member_id`; ambos null = toda la familia. */
   child_id: string | null
+  /** Asignado a un miembro adulto de la familia. */
+  member_id: string | null
   name: string
   description: string | null
   category: DocCategory | null
@@ -130,6 +136,7 @@ export interface EventDraft {
   start_time: string
   end_time: string
   child_id: string | null
+  member_id: string | null
 }
 
 export interface TaskDraft {
@@ -162,6 +169,7 @@ export interface DocumentDraft {
   description: string
   category: DocCategory | ''
   child_id: string | null
+  member_id: string | null
   mime_type: DocMimeType
   size_bytes: number
   file?: File

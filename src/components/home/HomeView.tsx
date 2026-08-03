@@ -62,7 +62,7 @@ function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean
 }
 
 export function HomeView() {
-  const { kids, allEvents, pendingTasks, todayMeals, pendingItems, toggleTask, toggleListItem } = useStore()
+  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, toggleTask, toggleListItem } = useStore()
   const [confirmTask, setConfirmTask] = useState<Task | null>(null)
 
   function handleTaskToggle(id: string) {
@@ -123,7 +123,7 @@ export function HomeView() {
 
       {/* Primero lo accionable: qué hay que hacer hoy. Después el resto. */}
       <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
-      <TodayEvents events={todayEvents} kids={kids} />
+      <TodayEvents events={todayEvents} kids={kids} members={members} />
       <TodayMeals meals={todayMeals} />
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <UpcomingEvents events={upcoming} kids={kids} />

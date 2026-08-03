@@ -63,7 +63,7 @@ test.describe('validateMealDraft', () => {
 test.describe('validateEventDraft', () => {
   const base = {
     title: 'Cita', description: '', date: '2026-08-03',
-    all_day: false, start_time: '10:00', end_time: '', child_id: null,
+    all_day: false, start_time: '10:00', end_time: '', child_id: null, member_id: null,
   }
 
   test('exige título y fecha', () => {

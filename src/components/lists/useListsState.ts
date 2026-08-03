@@ -17,8 +17,11 @@ export function useListsState() {
   const [listMode,       setListMode]       = useState<'create' | 'edit'>('create')
   const [itemMode,       setItemMode]       = useState<'create' | 'edit'>('create')
 
-  const listSheetKey = editingList ? `edit-${editingList.id}` : 'create'
-  const itemSheetKey = editingItem ? `edit-${editingItem.id}` : 'create'
+  // Las claves llevan prefijo porque los dos sheets son hermanos: sin él, al
+  // no haber nada en edición ambos valían 'create' y React avisaba de claves
+  // duplicadas, con riesgo de confundir el estado de un formulario con el otro.
+  const listSheetKey = editingList ? `list-edit-${editingList.id}` : 'list-create'
+  const itemSheetKey = editingItem ? `item-edit-${editingItem.id}` : 'item-create'
 
   function openCreateList()         { setEditingList(null);  setListMode('create'); setListSheetOpen(true) }
   function openEditList(l: List)    { setEditingList(l);     setListMode('edit');   setListSheetOpen(true) }

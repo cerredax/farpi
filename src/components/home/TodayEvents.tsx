@@ -1,22 +1,23 @@
 import Link from 'next/link'
 import { Clock } from 'lucide-react'
-import { memo, useMemo } from 'react'
+import { memo } from 'react'
 import { Card, CardSection } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
-import type { Event, Child } from '@/types'
+import type { Event, Child, FamilyMember } from '@/types'
+import { resolveAssignee } from '@/lib/assignees'
 import { format } from 'date-fns'
 
 interface TodayEventsProps {
   events: Event[]
   kids: Child[]
+  members: FamilyMember[]
 }
 
 function formatTime(dateStr: string) {
   return format(new Date(dateStr), 'HH:mm')
 }
 
-export const TodayEvents = memo(function TodayEvents({ events, kids }: TodayEventsProps) {
-  const kidsById = useMemo(() => new Map(kids.map(child => [child.id, child])), [kids])
+export const TodayEvents = memo(function TodayEvents({ events, kids, members }: TodayEventsProps) {
 
   return (
     <CardSection label="Planes de hoy">
@@ -26,7 +27,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids }: TodayEven
         ) : (
           <ul className="divide-y divide-hairline">
             {events.map((event) => {
-              const child = event.child_id ? kidsById.get(event.child_id) : undefined
+              const asignado = resolveAssignee(event, members, kids)
               return (
                 <li key={event.id} className="flex items-start gap-3 px-4 py-3">
                   <div className="flex items-center gap-1.5 min-w-[52px] pt-0.5">
@@ -37,12 +38,12 @@ export const TodayEvents = memo(function TodayEvents({ events, kids }: TodayEven
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
-                    {child && (
+                    {asignado && (
                       <span
                         className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                        style={{ backgroundColor: child.color }}
+                        style={{ backgroundColor: asignado.color }}
                       >
-                        {child.name}
+                        {asignado.name}
                       </span>
                     )}
                   </div>

@@ -1,6 +1,7 @@
 import { compareAsc, format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import type { Event, Child } from '@/types'
+import type { Event, Child, FamilyMember } from '@/types'
+import { resolveAssignee } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
 
 interface DayCellProps {
@@ -11,17 +12,18 @@ interface DayCellProps {
   isCurrentMonth: boolean
   events: Event[]
   kids: Child[]
+  members: FamilyMember[]
   density?: 'compact' | 'detailed'
   onSelect: (day: Date) => void
   onEditEvent?: (event: Event) => void
   onAddEvent?: (day: Date) => void
 }
 
-function getEventColor(event: Event, kids: Child[]): string {
+function getEventColor(event: Event, kids: Child[], members: FamilyMember[]): string {
   if (event.color) return event.color
-  if (event.child_id) {
-    const child = kids.find(c => c.id === event.child_id)
-    if (child) return child.color
+  if (event.child_id || event.member_id) {
+    const asignado = resolveAssignee(event, members, kids)
+    if (asignado) return asignado.color
   }
   return FAMILY_COLOR
 }
@@ -47,6 +49,7 @@ export function DayCell({
   isCurrentMonth,
   events,
   kids,
+  members,
   density = 'compact',
   onSelect,
   onEditEvent,
@@ -83,7 +86,7 @@ export function DayCell({
               <span className="text-[9px] font-black text-primary leading-none">{totalCount}</span>
             ) : (
               dots.map((event, i) => (
-                <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: getEventColor(event, kids) }} />
+                <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: getEventColor(event, kids, members) }} />
               ))
             )}
           </div>
@@ -106,8 +109,8 @@ export function DayCell({
               </p>
               <div className="space-y-1.5">
                 {sortedEvents.map(event => {
-                  const color = getEventColor(event, kids)
-                  const child = kids.find(c => c.id === event.child_id)
+                  const color = getEventColor(event, kids, members)
+                  const asignado = resolveAssignee(event, members, kids)
                   return (
                     <div key={event.id} className="flex items-start gap-2">
                       <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -115,7 +118,7 @@ export function DayCell({
                         <p className="text-xs font-bold text-ink leading-tight truncate">{event.title}</p>
                         <p className="text-[10px] text-muted leading-tight">
                           {event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')}
-                          {child ? ` · ${child.name}` : ''}
+                          {asignado ? ` · ${asignado.name}` : ''}
                         </p>
                       </div>
                     </div>
@@ -159,7 +162,7 @@ export function DayCell({
 
       <div className="space-y-0.5">
         {visibleEvents.map(event => {
-          const color = getEventColor(event, kids)
+          const color = getEventColor(event, kids, members)
           return (
             <button
               key={event.id}

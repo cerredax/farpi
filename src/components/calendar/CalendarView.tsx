@@ -28,7 +28,7 @@ const VIEW_OPTIONS: Array<{ mode: CalendarViewMode; label: string; hint: string 
 ]
 
 export function CalendarView() {
-  const { kids, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
+  const { kids, members, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
 
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
@@ -120,6 +120,7 @@ export function CalendarView() {
                     selectedDay={selectedDay}
                     events={allEvents}
                     kids={kids}
+                    members={members}
                     density="compact"
                     onSelectDay={selectDay}
                     onEditEvent={openEdit}
@@ -160,6 +161,7 @@ export function CalendarView() {
               currentMonth={currentMonth}
               events={agendaEvents}
               kids={kids}
+              members={members}
               onSelectDay={selectDay}
               onEdit={openEdit}
               onAdd={openCreate}
@@ -176,6 +178,7 @@ export function CalendarView() {
         initial={editingEvent}
         defaultDate={selectedDay}
         kids={kids}
+        members={members}
         onClose={() => setSheetOpen(false)}
         onCreate={handleCreate}
         onCreateSeries={handleCreateSeries}

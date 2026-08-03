@@ -13,6 +13,7 @@ export function createDocument(familyId: string, draft: DocumentDraft): Document
     id: crypto.randomUUID(),
     family_id: familyId,
     child_id: draft.child_id,
+    member_id: draft.member_id,
     name: draft.name.trim(),
     description: draft.description.trim() || null,
     category: draft.category || null,
@@ -35,6 +36,7 @@ export function updateDocument(id: string, draft: DocumentDraft): void {
       description: draft.description.trim() || null,
       category: draft.category || null,
       child_id: draft.child_id,
+      member_id: draft.member_id,
       updated_at: new Date().toISOString(),
     }
   )

@@ -67,6 +67,9 @@ Migraciones:
 - `007_cross_family_integrity.sql` — triggers que impiden que `list_items`, `events` y `documents` crucen familias
 - `008_admin_rpcs.sql` — `remove_family_member`, `update_family_member_role` (security definer); reemplaza policy `Admin gestiona miembros` por `Admin inserta miembros`
 - `009_accept_invite_rpc.sql` — `accept_family_invite(p_invite_id)` (security definer): crea `family_member` y marca la invitación como aceptada; devuelve el `family_id`
+- `010_push_subscriptions.sql` — tabla `push_subscriptions` con RLS por usuario
+- `011_account_deletion.sql` — `created_by` pasa a nullable (`on delete set null`)
+- `012_member_assignment.sql` — `member_id` en `events` y `documents`, para asignar a adultos y no solo a hijos
 
 Regla central de RLS:
 
@@ -111,6 +114,21 @@ menor: los enlaces de invitación devuelven la sesión en el **fragmento** de la
 en servidor, la invitación se perdía en silencio y el usuario quedaba autenticado pero
 fuera de la familia. La página atiende los dos flujos —fragmento y `?code=` de PKCE— y
 muestra un mensaje claro cuando el enlace ha caducado o ya se usó.
+
+## Asignación de eventos y documentos
+
+Un evento o un documento puede pertenecer a **toda la familia**, a **un miembro adulto**
+o a **un hijo**, nunca a dos a la vez. Se modela con dos columnas nullables, `child_id` y
+`member_id`, y un `check` que impide que ambas estén rellenas.
+
+Son conceptos distintos y por eso no se unificaron en una sola columna: un miembro tiene
+cuenta y entra en la app; un hijo es alguien de quien la familia lleva registro. Los hijos
+guardan su color en la base de datos; los miembros lo reciben por su posición, en
+`src/lib/assignees.ts`, que es la única fuente de ese cálculo para que el color sea el
+mismo en Ajustes, calendario y documentos.
+
+Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
+(`on delete set null`); el mock lo imita en `store/family.ts`.
 
 ## Repositorios
 

@@ -13,13 +13,14 @@ const CATEGORY_META = Object.fromEntries(
 
 interface DocCardProps {
   doc: Document
-  childName?: string
-  childColor?: string
+  /** Nombre de la persona asignada, si la hay. Sin ella, el documento es de toda la familia. */
+  assigneeName?: string
+  assigneeColor?: string
   onEdit: () => void
 }
 
 /** Tarjeta de documento en el listado, con categoría, dueño y metadatos. */
-export function DocCard({ doc, childName, childColor, onEdit }: DocCardProps) {
+export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardProps) {
   const cat = doc.category ? CATEGORY_META[doc.category] : CATEGORY_META['otros']
 
   return (
@@ -44,12 +45,12 @@ export function DocCard({ doc, childName, childColor, onEdit }: DocCardProps) {
               {cat.emoji} {cat.label}
             </span>
           )}
-          {childName && (
+          {assigneeName && (
             <span
               className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: childColor ?? '#8BA888' }}
+              style={{ backgroundColor: assigneeColor ?? '#8BA888' }}
             >
-              {childName}
+              {assigneeName}
             </span>
           )}
           <span className="text-[10px] text-faint">

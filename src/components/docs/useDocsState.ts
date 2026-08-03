@@ -6,7 +6,7 @@ import type { Document, DocumentDraft } from '@/types'
 
 /** Estado de la pantalla de documentos: filtro por categoría y sheet de alta/edición. */
 export function useDocsState() {
-  const { documents, kids, createDocument, updateDocument, deleteDocument, getDocumentUrl } = useStore()
+  const { documents, kids, members, createDocument, updateDocument, deleteDocument, getDocumentUrl } = useStore()
 
   const [sheetOpen,    setSheetOpen]    = useState(false)
   const [sheetMode,    setSheetMode]    = useState<'create' | 'edit'>('create')
@@ -37,7 +37,7 @@ export function useDocsState() {
     : documents
 
   return {
-    documents, kids, filtered,
+    documents, kids, members, filtered,
     activeFilter, setActiveFilter,
     sheetOpen, setSheetOpen, sheetMode, sheetKey, editingDoc,
     openCreate, openEdit, handleSave,

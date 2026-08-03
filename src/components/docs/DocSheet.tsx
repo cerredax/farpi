@@ -6,9 +6,10 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
-import type { Child, Document, DocumentDraft, DocMimeType } from '@/types'
+import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember } from '@/types'
 import { FileTypeIcon } from './FileTypeIcon'
 import { DOC_CATEGORIES } from '@/lib/constants'
+import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import { formatFileSize } from '@/lib/text'
 import { validateDocumentFile } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
@@ -18,6 +19,7 @@ const EMPTY_DRAFT: DocumentDraft = {
   description: '',
   category: 'otros',
   child_id: null,
+  member_id: null,
   mime_type: 'application/pdf',
   size_bytes: 0,
 }
@@ -29,6 +31,7 @@ function initDraft(mode: 'create' | 'edit', initial: Document | null | undefined
       description: initial.description ?? '',
       category:    initial.category ?? 'otros',
       child_id:    initial.child_id,
+      member_id:   initial.member_id,
       mime_type:   initial.mime_type,
       size_bytes:  initial.size_bytes,
     }
@@ -41,13 +44,14 @@ interface DocSheetProps {
   mode: 'create' | 'edit'
   initial?: Document | null
   kids: Child[]
+  members: FamilyMember[]
   onClose: () => void
   onSave: (draft: DocumentDraft) => void
   onDelete?: (id: string) => void
   onOpenFile?: (doc: Document) => Promise<string>
 }
 
-export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete, onOpenFile }: DocSheetProps) {
+export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, onDelete, onOpenFile }: DocSheetProps) {
   const { draft, setDraft, patch, firstFieldRef, submitHandler } = useSheetForm<DocumentDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -211,25 +215,20 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
           </div>
         </Field>
 
-        {kids.length > 0 && (
-          <Field label="De quién" hint="(opcional)" spacing="group">
-            <div className="flex flex-wrap gap-2">
-              <SelectChip selected={!draft.child_id} onClick={() => patch({ child_id: null })}>
-                Familia
+        <Field label="De quién" hint="(opcional)" spacing="group">
+          <div className="flex flex-wrap gap-2">
+            {buildAssignees(members, kids).map(a => (
+              <SelectChip
+                key={a.key}
+                selected={assigneeKeyOf(draft) === a.key}
+                onClick={() => patch({ child_id: a.child_id, member_id: a.member_id })}
+                selectedColor={a.key === 'familia' ? undefined : a.color}
+              >
+                {a.name}
               </SelectChip>
-              {kids.map(kid => (
-                <SelectChip
-                  key={kid.id}
-                  selected={draft.child_id === kid.id}
-                  onClick={() => patch({ child_id: kid.id })}
-                  selectedColor={kid.color}
-                >
-                  {kid.name}
-                </SelectChip>
-              ))}
-            </div>
-          </Field>
-        )}
+            ))}
+          </div>
+        </Field>
 
         <Field label="Descripción" htmlFor="doc-description" hint="(opcional)">
           <input

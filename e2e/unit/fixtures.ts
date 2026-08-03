@@ -75,6 +75,7 @@ export function event(over: Partial<Event> = {}): Event {
     id: id(),
     family_id: 'f1',
     child_id: null,
+    member_id: null,
     title: 'Evento',
     description: null,
     start_at: '2026-08-03T10:00:00',

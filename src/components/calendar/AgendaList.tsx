@@ -14,7 +14,8 @@ import {
 import { es } from 'date-fns/locale'
 import { Clock, Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
-import type { Event, Child } from '@/types'
+import type { Event, Child, FamilyMember } from '@/types'
+import { resolveAssignee } from '@/lib/assignees'
 import { capitalize } from '@/lib/text'
 import { FAMILY_COLOR } from '@/lib/constants'
 
@@ -26,16 +27,17 @@ interface AgendaListProps {
   currentMonth: Date
   events: Event[]
   kids: Child[]
+  members: FamilyMember[]
   onSelectDay: (day: Date) => void
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
 }
 
-function getEventColor(event: Event, kids: Child[]): string {
+function getEventColor(event: Event, kids: Child[], members: FamilyMember[]): string {
   if (event.color) return event.color
-  if (event.child_id) {
-    const child = kids.find(c => c.id === event.child_id)
-    if (child) return child.color
+  if (event.child_id || event.member_id) {
+    const asignado = resolveAssignee(event, members, kids)
+    if (asignado) return asignado.color
   }
   return FAMILY_COLOR
 }
@@ -48,9 +50,9 @@ function sortEvents(events: Event[]): Event[] {
   })
 }
 
-function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit: (event: Event) => void }) {
-  const child = kids.find(c => c.id === event.child_id)
-  const color = getEventColor(event, kids)
+function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void }) {
+  const asignado = resolveAssignee(event, members, kids)
+  const color = getEventColor(event, kids, members)
 
   return (
     <button
@@ -72,9 +74,9 @@ function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
           {event.description && <p className="text-xs text-muted mt-0.5 leading-snug">{event.description}</p>}
-          {child && (
-            <span className="inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: child.color }}>
-              {child.name}
+          {asignado && (
+            <span className="inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: asignado.color }}>
+              {asignado.name}
             </span>
           )}
         </div>
@@ -83,7 +85,7 @@ function EventRow({ event, kids, onEdit }: { event: Event; kids: Child[]; onEdit
   )
 }
 
-export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdit, onAdd }: AgendaListProps) {
+export function AgendaList({ mode, selectedDay, events, kids, members, onSelectDay, onEdit, onAdd }: AgendaListProps) {
   const todayStart = startOfDay(new Date())
   const rangeStart = mode === 'week' ? todayStart : startOfDay(selectedDay)
   const rangeEnd = mode === 'week' ? addDays(todayStart, 7) : addDays(startOfDay(selectedDay), 45)
@@ -183,7 +185,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
                 {group.events.length > 0 && (
                   <div className="p-2 space-y-2">
                     {group.events.map(event => (
-                      <EventRow key={event.id} event={event} kids={kids} onEdit={onEdit} />
+                      <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
                     ))}
                   </div>
                 )}

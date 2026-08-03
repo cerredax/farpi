@@ -47,6 +47,7 @@ function eventInsert(familyId: string, userId: string, draft: EventDraft, groupI
   return {
     family_id: familyId,
     child_id: draft.child_id,
+    member_id: draft.member_id,
     title: draft.title.trim(),
     description: draft.description.trim() || null,
     start_at: localDateTimeToIso(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00')),
@@ -61,6 +62,7 @@ function eventInsert(familyId: string, userId: string, draft: EventDraft, groupI
 function eventUpdate(draft: EventDraft) {
   return {
     child_id: draft.child_id,
+    member_id: draft.member_id,
     title: draft.title.trim(),
     description: draft.description.trim() || null,
     start_at: localDateTimeToIso(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00')),
@@ -558,6 +560,7 @@ export const supabaseRepos: Repos = {
           id,
           family_id: familyId,
           child_id: draft.child_id,
+          member_id: draft.member_id,
           name: draft.name.trim(),
           description: draft.description.trim() || null,
           category: draft.category || null,
@@ -585,6 +588,7 @@ export const supabaseRepos: Repos = {
           description: draft.description.trim() || null,
           category: draft.category || null,
           child_id: draft.child_id,
+          member_id: draft.member_id,
         })
         .eq('id', id)
       assertNoError(error)

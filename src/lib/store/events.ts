@@ -11,6 +11,7 @@ function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: strin
     id: crypto.randomUUID(),
     family_id: familyId,
     child_id: draft.child_id,
+    member_id: draft.member_id,
     title: draft.title.trim(),
     description: draft.description.trim() || null,
     start_at, end_at,
@@ -33,6 +34,7 @@ function applyEventDraft(event: Event, draft: EventDraft): Event {
     start_at, end_at,
     all_day: draft.all_day,
     child_id: draft.child_id,
+    member_id: draft.member_id,
     updated_at: new Date().toISOString(),
   }
 }

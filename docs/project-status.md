@@ -32,7 +32,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 
 ### Backend / migraciones
 
-- Migraciones Supabase aplicadas/preparadas (001–009).
+- Migraciones Supabase aplicadas/preparadas (001–012).
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_my_family_profile` para editar solo campos seguros del perfil.
@@ -41,6 +41,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - Triggers de integridad cross-family (`family_id`, `list_id`, `child_id`).
 - RPCs admin `remove_family_member` y `update_family_member_role` con control de último admin.
 - RPC `accept_family_invite(p_invite_id uuid)`.
+- Asignación de eventos y documentos a cualquier miembro de la familia, no solo a hijos (migración 012).
 - Script `supabase/validate_rls.sql` para validar RLS, RPCs, triggers e invitaciones desde SQL Editor.
 
 ### Calidad / infraestructura

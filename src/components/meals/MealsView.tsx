@@ -3,11 +3,11 @@
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { getLocalDateString } from '@/lib/date-utils'
 import { MealSheet } from './MealSheet'
 import { CopyMealSheet } from './CopyMealSheet'
 import { MealRow } from './MealRow'
 import { WeekGrid } from './WeekGrid'
+import { WeekList } from './WeekList'
 import { useMealsState } from './useMealsState'
 import { Card } from '@/components/ui/Card'
 import { capitalize } from '@/lib/text'
@@ -79,7 +79,7 @@ export function MealsView() {
                 <p className="font-bold text-ink text-sm">Sin menú para hoy</p>
                 <p className="text-xs text-muted mt-1">Planifica las comidas de hoy</p>
                 <button
-                  onClick={() => s.openCreate(getLocalDateString())}
+                  onClick={() => s.openCreate()}
                   className="mt-4 text-sm font-semibold text-primary hover:underline"
                 >
                   + Añadir comida de hoy
@@ -99,20 +99,11 @@ export function MealsView() {
 
         {s.viewMode === 'week' && (
           <div className="space-y-3">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-muted">Vista semanal</p>
-                <p className="text-sm text-muted mt-0.5">{s.mobileWeek.label}</p>
-              </div>
-              <button
-                onClick={() => s.openCreate(getLocalDateString(), 'lunch')}
-                aria-label="Añadir comida de hoy"
-                className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
-              >
-                <Plus size={18} />
-              </button>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted">Vista semanal</p>
+              <p className="text-sm text-muted mt-0.5">{s.mobileWeek.label}</p>
             </div>
-            <WeekGrid
+            <WeekList
               weekDays={s.mobileWeek.days}
               mealsByCell={s.mealsByCell}
               onCreate={s.openCreate}
@@ -159,7 +150,7 @@ export function MealsView() {
             </div>
 
             <button
-              onClick={() => s.openCreate(getLocalDateString())}
+              onClick={() => s.openCreate()}
               aria-label="Añadir comida"
               className="flex items-center gap-2 px-4 h-9 bg-primary text-white rounded-full text-sm font-semibold shadow-md hover:bg-primary-hover transition-colors"
             >

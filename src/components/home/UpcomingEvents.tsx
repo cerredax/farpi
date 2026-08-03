@@ -15,7 +15,7 @@ interface UpcomingEventsProps {
 function eventDayLabel(dateStr: string): string {
   const d = new Date(dateStr)
   if (isToday(d)) return 'Hoy'
-  if (isTomorrow(d)) return 'Manana'
+  if (isTomorrow(d)) return 'Mañana'
   if (isThisWeek(d)) return format(d, 'EEEE', { locale: es })
   return format(d, "d 'de' MMMM", { locale: es })
 }
@@ -27,7 +27,7 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids }: Upc
     <CardSection label="Esta semana">
       <Card padded={false}>
         {events.length === 0 ? (
-          <EmptyState emoji="☘" title="Semana tranquila" description="No hay planes proximos" />
+          <EmptyState emoji="☘" title="Semana tranquila" description="No hay planes próximos" />
         ) : (
           <ul className="divide-y divide-hairline">
             {events.map((event) => {

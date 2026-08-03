@@ -95,7 +95,7 @@ export function HomeView() {
   const nextEvent   = todayEvents[0] ?? upcoming[0]
   const calmMessage = todayEvents.length === 0 && pendingTasks.length === 0 && pendingItems.length === 0
     ? 'Hoy pinta tranquilo. La casa respira un poco.'
-    : 'Lo importante esta apuntado. Vamos paso a paso.'
+    : 'Lo importante está apuntado. Vamos paso a paso.'
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
@@ -107,7 +107,7 @@ export function HomeView() {
             <p className="field-label mb-1">{dayLabel}</p>
             <h1 className="text-3xl font-black text-ink leading-tight">{greeting}</h1>
             <p className="mt-2 text-sm text-muted leading-relaxed">
-              Un vistazo tranquilo a los planes, comidas y pequenas cosas de casa.
+              Un vistazo tranquilo a los planes, comidas y pequeñas cosas de casa.
             </p>
           </div>
 
@@ -161,8 +161,8 @@ export function HomeView() {
       <UpcomingEvents events={upcoming} kids={kids} />
 
       <div className="rounded-3xl border border-line bg-white px-4 py-4 text-center shadow-sm">
-        <p className="text-sm font-bold text-ink">Respirad. Lo importante esta apuntado.</p>
-        <p className="mt-1 text-xs text-muted">Nido esta aqui para bajar un poco el ruido.</p>
+        <p className="text-sm font-bold text-ink">Respirad. Lo importante está apuntado.</p>
+        <p className="mt-1 text-xs text-muted">Nido está aquí para bajar un poco el ruido.</p>
       </div>
     </div>
   )

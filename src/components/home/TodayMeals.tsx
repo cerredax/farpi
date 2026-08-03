@@ -17,10 +17,10 @@ interface TodayMealsProps {
 
 export const TodayMeals = memo(function TodayMeals({ meals }: TodayMealsProps) {
   return (
-    <CardSection label="El menu de hoy">
+    <CardSection label="El menú de hoy">
       <Card padded={false}>
         {meals.length === 0 ? (
-          <EmptyState emoji="🍽" title="Menu libre" description="Improvisar tambien cuenta" />
+          <EmptyState emoji="🍽" title="Menú libre" description="Improvisar también cuenta" />
         ) : (
           <ul className="divide-y divide-hairline">
             {meals.map((meal) => {

@@ -42,13 +42,13 @@ function DonationCard() {
           <div>
             <p className="text-sm font-black text-ink">Apoya Nido</p>
             <p className="mt-1 text-xs text-muted leading-relaxed">
-              Nido es gratuito. Si quieres ayudar a mantener el proyecto, puedes hacer una aportacion voluntaria.
+              Nido es gratuito. Si quieres ayudar a mantener el proyecto, puedes hacer una aportación voluntaria.
             </p>
           </div>
         </div>
 
         <div className="rounded-2xl bg-white/75 px-3 py-3 text-[11px] text-muted leading-relaxed">
-          No es una compra ni una suscripcion. No desbloquea funciones premium y no es deducible fiscalmente para el donante.
+          No es una compra ni una suscripción. No desbloquea funciones premium y no es deducible fiscalmente para el donante.
         </div>
 
         {DONATION_URL ? (
@@ -67,7 +67,7 @@ function DonationCard() {
             disabled
             className="w-full rounded-2xl bg-surface px-4 py-3 text-sm font-bold text-muted-soft cursor-not-allowed"
           >
-            Enlace de donacion pendiente
+            Enlace de donación pendiente
           </button>
         )}
       </div>

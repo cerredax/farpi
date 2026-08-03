@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { addDays, addWeeks, format, startOfWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
+import { getLocalDateString } from '@/lib/date-utils'
 import { selectMealsByCell, selectOccupiedMealSlots, selectSortedMeals } from '@/lib/selectors'
 import type { MealPlan, MealSlot } from '@/types'
 
@@ -41,7 +42,9 @@ export function useMealsState() {
     [copySourceDate, meals],
   )
 
-  function openCreate(date?: string, slot?: MealSlot) {
+  // Sin fecha se entiende "hoy": así todos los accesos abren el mismo
+  // formulario y calculan igual las franjas ya ocupadas.
+  function openCreate(date: string = getLocalDateString(), slot?: MealSlot) {
     setEditingMeal(null)
     setSheetDate(date)
     setSheetSlot(slot)

@@ -153,7 +153,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
               <input ref={fileRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFile} />
               {fileError
                 ? <p className="text-[10px] text-danger font-semibold">{fileError}</p>
-                : <p className="text-[10px] text-faint">PDF, JPG o PNG. Tamano maximo: 20 MB.</p>
+                : <p className="text-[10px] text-faint">PDF, JPG o PNG. Tamaño máximo: 20 MB.</p>
               }
             </>
           ) : (

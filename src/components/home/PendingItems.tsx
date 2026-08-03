@@ -23,7 +23,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
     <HomeSection
       label="Listas de casa"
       isEmpty={items.length === 0}
-      emptyState={<EmptyState emoji="✓" title="Listas al dia" description="No falta nada importante por ahora" />}
+      emptyState={<EmptyState emoji="✓" title="Listas al día" description="No falta nada importante por ahora" />}
       footer={
         <Link href="/lists" className="text-xs font-semibold text-primary hover:underline">
           Ver todas las listas
@@ -47,7 +47,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
         ))}
         {items.length > 5 && (
           <li className="px-4 py-2.5 text-xs text-muted font-semibold">
-            +{items.length - 5} mas en las listas
+            +{items.length - 5} más en las listas
           </li>
         )}
       </ul>

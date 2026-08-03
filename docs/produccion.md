@@ -110,5 +110,5 @@ Sigue la guía **`docs/supabase-validation-guide.md`**. En resumen:
 ## 7. Notas y limitaciones conocidas
 
 - **Modo demo**: si faltan credenciales, la app funciona con datos en `localStorage`. La sección "Reiniciar datos de demo" en Ajustes solo aparece en ese modo.
-- **Regla del último admin**: se valida en el servidor (RPCs `security definer`) y la UI la refuerza; el mock no la valida (asume un único admin).
+- **Regla del último admin**: se valida en el servidor (RPCs `security definer` y borrado de cuenta) y la UI la refuerza; el mock no la valida (asume un único admin).
 - **Comandos útiles**: `npm run dev` (arranca), `npm run build`, `npm run lint`, `npm run test:e2e`.

@@ -115,7 +115,7 @@ export function AccountActions() {
       <div className="rounded-2xl border border-danger-line bg-danger-tint px-4 py-4">
         <p className="text-sm font-black text-ink">Borrar cuenta</p>
         <p className="mt-1 text-xs leading-relaxed text-muted">
-          Elimina tu cuenta y tus datos. Las familias donde eres el único miembro se borran por completo. Esta acción no se puede deshacer.
+          Elimina tu cuenta y tus datos. Las familias donde eres el único miembro se borran por completo. Si eres el único administrador de una familia compartida, tendrás que nombrar a otro administrador antes.
         </p>
         <button
           onClick={handleDelete}

@@ -53,7 +53,7 @@ export interface Event {
   all_day: boolean
   color: string | null
   recurrence_group_id: string | null
-  created_by: string
+  created_by: string | null
   created_at: string
   updated_at: string
 }
@@ -64,7 +64,7 @@ export interface List {
   name: string
   emoji: string | null
   color: string | null
-  created_by: string
+  created_by: string | null
   created_at: string
   updated_at: string
 }
@@ -78,7 +78,7 @@ export interface ListItem {
   completed_at: string | null
   completed_by: string | null
   sort_order: number
-  created_by: string
+  created_by: string | null
   created_at: string
 }
 
@@ -93,7 +93,7 @@ export interface MealPlan {
   slot: MealSlot
   name: string
   notes: string | null
-  created_by: string
+  created_by: string | null
   created_at: string
   updated_at: string
 }
@@ -108,7 +108,7 @@ export interface Document {
   storage_path: string
   mime_type: DocMimeType
   size_bytes: number
-  created_by: string
+  created_by: string | null
   created_at: string
   updated_at: string
 }
@@ -182,7 +182,7 @@ export interface Task {
   recurrence_end: string | null
   completed: boolean
   completed_at: string | null
-  created_by: string
+  created_by: string | null
   created_at: string
   updated_at: string
 }

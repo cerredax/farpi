@@ -1,16 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getLocalDateString } from '@/lib/date-utils'
 
 export const runtime = 'nodejs'
 
-// Cron diario (ver vercel.json). Envía a cada usuario suscrito un resumen de
-// lo que tiene hoy: eventos del día y tareas pendientes que vencen (o vencidas).
-// La propia consulta mantiene el proyecto Supabase despierto (evita la pausa).
+const REMINDER_TIME_ZONE = process.env.NIDO_TIME_ZONE ?? 'Europe/Madrid'
+
+interface ZonedDateParts {
+  year: number
+  month: number
+  day: number
+}
+
+function readPart(parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): number {
+  return Number(parts.find(part => part.type === type)?.value)
+}
+
+function getZonedDateParts(date: Date, timeZone: string): ZonedDateParts {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+
+  return {
+    year: readPart(parts, 'year'),
+    month: readPart(parts, 'month'),
+    day: readPart(parts, 'day'),
+  }
+}
+
+function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date)
+
+  const asUtc = Date.UTC(
+    readPart(parts, 'year'),
+    readPart(parts, 'month') - 1,
+    readPart(parts, 'day'),
+    readPart(parts, 'hour'),
+    readPart(parts, 'minute'),
+    readPart(parts, 'second'),
+  )
+
+  return asUtc - date.getTime()
+}
+
+function zonedMidnightToUtc(parts: ZonedDateParts, timeZone: string): Date {
+  const utcGuess = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 0, 0, 0))
+  const offsetMs = getTimeZoneOffsetMs(utcGuess, timeZone)
+  return new Date(utcGuess.getTime() - offsetMs)
+}
+
+function addDays(parts: ZonedDateParts, days: number): ZonedDateParts {
+  const next = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days, 0, 0, 0))
+  return {
+    year: next.getUTCFullYear(),
+    month: next.getUTCMonth() + 1,
+    day: next.getUTCDate(),
+  }
+}
+
+function formatDate(parts: ZonedDateParts): string {
+  return [
+    String(parts.year),
+    String(parts.month).padStart(2, '0'),
+    String(parts.day).padStart(2, '0'),
+  ].join('-')
+}
 
 export async function GET(req: NextRequest) {
-  // Vercel Cron añade este header si defines la env var CRON_SECRET.
   const secret = process.env.CRON_SECRET
   if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
@@ -18,8 +86,6 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient()
 
-  // Keep-alive: una lectura ligera evita que el proyecto Supabase se pause
-  // por inactividad (plan free), aunque las notificaciones no estén activas.
   await supabase.from('families').select('id').limit(1)
 
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
@@ -43,12 +109,14 @@ export async function GET(req: NextRequest) {
   const familyIds = [...new Set((members ?? []).map(m => m.family_id))]
   if (familyIds.length === 0) return NextResponse.json({ sent: 0 })
 
-  const today = getLocalDateString()
-  const startOfDay = `${today}T00:00:00.000Z`
-  const endOfDay = `${today}T23:59:59.999Z`
+  const todayParts = getZonedDateParts(new Date(), REMINDER_TIME_ZONE)
+  const tomorrowParts = addDays(todayParts, 1)
+  const today = formatDate(todayParts)
+  const startOfDay = zonedMidnightToUtc(todayParts, REMINDER_TIME_ZONE).toISOString()
+  const endOfDay = zonedMidnightToUtc(tomorrowParts, REMINDER_TIME_ZONE).toISOString()
 
   const [{ data: events }, { data: tasks }] = await Promise.all([
-    supabase.from('events').select('family_id').gte('start_at', startOfDay).lte('start_at', endOfDay).in('family_id', familyIds),
+    supabase.from('events').select('family_id').gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
   ])
 

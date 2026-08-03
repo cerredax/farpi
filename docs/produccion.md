@@ -47,6 +47,10 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 - [ ] **Authentication → URL Configuration → Site URL**: el dominio de producción.
 - [ ] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y el de preview si usas invitaciones en preview).
 - [ ] **Email**: proveedor SMTP configurado (Auth → Emails). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
+- [ ] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
+- [ ] **Google** (opcional): el botón "Continuar con Google" del login se muestra solo si el proveedor está habilitado en Supabase — la app lo consulta en `/auth/v1/settings` (ver `src/lib/supabase/auth-providers.ts`). Si lo habilitas, añade también el redirect `https://<dominio>/auth/callback`.
+
+> Estado a 2026-08-03: el proyecto tiene el esquema completo (11 tablas) y las claves nuevas (`sb_publishable_…` / `sb_secret_…`) funcionan, pero **no hay ningún usuario creado** todavía y solo está activo el proveedor `email`.
 
 ---
 

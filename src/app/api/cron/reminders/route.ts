@@ -79,8 +79,16 @@ function formatDate(parts: ZonedDateParts): string {
 }
 
 export async function GET(req: NextRequest) {
+  // Esta ruta queda fuera del control de sesión del proxy (el cron de Vercel
+  // llama sin cookies), así que el secreto es su única defensa: sin él
+  // configurado, no se atiende a nadie. Vercel envía la cabecera por su cuenta
+  // cuando existe una variable de entorno llamada CRON_SECRET.
   const secret = process.env.CRON_SECRET
-  if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!secret) {
+    console.error('[cron] Falta CRON_SECRET: la tarea no se ejecuta.')
+    return NextResponse.json({ error: 'Cron no configurado' }, { status: 503 })
+  }
+  if (req.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 

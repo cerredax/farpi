@@ -33,7 +33,11 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
   const PUBLIC_ROUTES = ['/', '/privacidad', '/terminos', '/offline']
-  const isPublicRoute = PUBLIC_ROUTES.includes(request.nextUrl.pathname)
+  const isPublicRoute =
+    PUBLIC_ROUTES.includes(request.nextUrl.pathname) ||
+    // El cron de Vercel llama sin sesión: si lo redirigimos al login, la tarea
+    // nunca se ejecuta. La ruta se protege por su cuenta con CRON_SECRET.
+    request.nextUrl.pathname.startsWith('/api/cron/')
 
   if (!user && !isAuthRoute && !isPublicRoute) {
     const url = request.nextUrl.clone()

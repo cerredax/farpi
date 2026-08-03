@@ -8,7 +8,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton'
 import { DotOption } from '@/components/ui/DotOption'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
-import { extractTime, getLocalDateString, parseLocalDate } from '@/lib/date-utils'
+import { extractDate, extractTime, getLocalDateString, parseLocalDate } from '@/lib/date-utils'
 import { buildWeeklyDates } from '@/lib/recurrence'
 import { validateEventDraft } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
@@ -81,12 +81,15 @@ function initDraft(mode: Mode, initial: Event | null | undefined, defaultDate: D
       end_time: initial.end_at && !initial.all_day ? extractTime(initial.end_at) : '',
       child_id: initial.child_id,
       member_id: initial.member_id,
+      kind: initial.kind,
+      end_date: initial.kind === 'vacaciones' && initial.end_at ? extractDate(initial.end_at) : '',
     }
   }
   return {
     title: '', description: '',
     date: format(defaultDate ?? new Date(), 'yyyy-MM-dd'),
     all_day: false, start_time: '', end_time: '', child_id: null, member_id: null,
+    kind: 'evento', end_date: '',
   }
 }
 
@@ -104,6 +107,12 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
   const [recurrenceEnd, setRecurrenceEnd] = useState('')
   const [recurrenceEndYear, setRecurrenceEndYear] = useState<number>(() => new Date().getFullYear() + 5)
   const weekdaysTouchedRef = useRef(false)
+
+  const esVacaciones = draft.kind === 'vacaciones'
+  const diasVacaciones = esVacaciones && draft.end_date >= draft.date
+    ? Math.round((new Date(draft.end_date + 'T12:00:00').getTime() - new Date(draft.date + 'T12:00:00').getTime()) / 86_400_000) + 1
+    : 0
+
 
   function handleDateChange(newDate: string) {
     patch({ date: newDate })
@@ -172,7 +181,11 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
     onClose()
   })
 
-  const canSubmit = draft.title.trim().length > 0 && seriesError === null && yearlyError === null
+  const vacacionesError = esVacaciones && draft.end_date && draft.end_date < draft.date
+    ? 'El último día no puede ser anterior al primero'
+    : null
+
+  const canSubmit = draft.title.trim().length > 0 && seriesError === null && yearlyError === null && vacacionesError === null
 
   // Preview text — semanal
   const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && recurrenceEnd && seriesCount > 0
@@ -183,7 +196,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
 
   const submitLabel = mode === 'edit'
     ? 'Guardar cambios'
-    : recurrence === 'weekly' && seriesCount > 0
+    : esVacaciones
+      ? (diasVacaciones > 0 ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}` : 'Apuntar vacaciones')
+      : recurrence === 'weekly' && seriesCount > 0
       ? `Crear ${seriesCount} eventos`
       : recurrence === 'yearly' && yearlyCount > 0
         ? `Crear ${yearlyCount} evento${yearlyCount !== 1 ? 's' : ''}`
@@ -216,7 +231,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
           form="event-form"
           submitLabel={submitLabel}
           disabled={!canSubmit}
-          error={formError}
+          error={formError ?? vacacionesError}
         />
       }
     >
@@ -250,6 +265,33 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
               </div>
             )}
 
+            {mode === 'create' && (
+              <Field label="Qué es" spacing="group">
+                <div className="grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1">
+                  {([
+                    { valor: 'evento' as const, etiqueta: 'Un plan' },
+                    { valor: 'vacaciones' as const, etiqueta: 'Vacaciones' },
+                  ]).map(({ valor, etiqueta }) => (
+                    <button
+                      key={valor}
+                      type="button"
+                      onClick={() => patch({
+                        kind: valor,
+                        // Las vacaciones son días completos por definición.
+                        all_day: valor === 'vacaciones' ? true : draft.all_day,
+                        end_date: valor === 'vacaciones' && !draft.end_date ? draft.date : draft.end_date,
+                      })}
+                      className={`rounded-xl py-2 text-xs font-bold transition-colors ${
+                        draft.kind === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
+                      }`}
+                    >
+                      {etiqueta}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+            )}
+
             <Field label="Título" htmlFor="event-title">
               <input id="event-title" ref={firstFieldRef} type="text" value={draft.title} onChange={e => patch({ title: e.target.value })} placeholder="¿Qué ocurre?" className="field-input" />
             </Field>
@@ -258,23 +300,38 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
               <textarea id="event-description" value={draft.description} onChange={e => patch({ description: e.target.value })} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
             </Field>
 
-            {/* Fecha + todo el día */}
-            <div className="flex gap-3 items-end">
-              <div className="flex-1">
-                <Field label="Fecha" htmlFor="event-date">
-                  <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="field-input" />
-                </Field>
+            {/* Fechas. En vacaciones son dos días; en un plan, uno con horas. */}
+            {esVacaciones ? (
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Field label="Desde" htmlFor="event-date">
+                    <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="field-input" />
+                  </Field>
+                </div>
+                <div className="flex-1">
+                  <Field label="Hasta" htmlFor="event-end-date">
+                    <input id="event-end-date" type="date" value={draft.end_date} min={draft.date} onChange={e => patch({ end_date: e.target.value })} className="field-input" />
+                  </Field>
+                </div>
               </div>
-              <div className="flex flex-col items-center gap-1.5 pb-0.5">
-                <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
-                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => patch({ all_day: !draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-line-strong'}`}>
-                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${draft.all_day ? 'left-6' : 'left-1'}`} />
-                </button>
+            ) : (
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <Field label="Fecha" htmlFor="event-date">
+                    <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="field-input" />
+                  </Field>
+                </div>
+                <div className="flex flex-col items-center gap-1.5 pb-0.5">
+                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
+                  <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => patch({ all_day: !draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-line-strong'}`}>
+                    <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${draft.all_day ? 'left-6' : 'left-1'}`} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Hora inicio / fin */}
-            {!draft.all_day && (
+            {!draft.all_day && !esVacaciones && (
               <div className="flex gap-3">
                 <div className="flex-1">
                   <Field label="Inicio" htmlFor="event-start">
@@ -304,7 +361,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
             </Field>
 
             {/* Repetición — solo en crear */}
-            {mode === 'create' && (
+            {mode === 'create' && !esVacaciones && (
               <div className="space-y-3">
                 <label className="field-label">Repetición</label>
 

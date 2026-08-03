@@ -70,6 +70,7 @@ Migraciones:
 - `010_push_subscriptions.sql` — tabla `push_subscriptions` con RLS por usuario
 - `011_account_deletion.sql` — `created_by` pasa a nullable (`on delete set null`)
 - `012_member_assignment.sql` — `member_id` en `events` y `documents`, para asignar a adultos y no solo a hijos
+- `013_event_kind.sql` — `kind` en `events` (`evento` | `vacaciones`), con `check` que obliga a las vacaciones a tener día final
 
 Regla central de RLS:
 
@@ -129,6 +130,23 @@ mismo en Ajustes, calendario y documentos.
 
 Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
+
+## Vacaciones
+
+Unas vacaciones **no son una entidad aparte**: son un evento de varios días
+asignado a una persona. Reutilizan las policies, la asignación y la integridad
+entre familias, así que la única diferencia es `kind = 'vacaciones'` y que
+`end_at`, que en un evento normal marca la hora de fin, aquí marca el último día.
+
+Eso obligó a cambiar una suposición que estaba repartida por el calendario: que
+un evento vivía en un solo día. Los tres sitios que comparaban `start_at` con el
+día usan ahora `eventCoversDay` (`src/lib/events.ts`), que pregunta si el evento
+cubre esa fecha. Las comparaciones se hacen sobre cadenas `yyyy-MM-dd`, no sobre
+`Date`, para no arrastrar líos de zona horaria.
+
+En la rejilla del mes se dibujan como una franja continua bajo el número del día,
+con el color de la persona y los extremos redondeados; no como un punto más,
+porque de unas vacaciones lo que importa es el tramo.
 
 ## Repositorios
 

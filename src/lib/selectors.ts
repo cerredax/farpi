@@ -1,4 +1,5 @@
 import { getLocalDateString, isSameLocalDay } from './date-utils'
+import { eventCoversDay } from './events'
 import { MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import type { Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem } from '@/types'
 
@@ -66,7 +67,8 @@ export function selectOccupiedMealSlots(meals: MealPlan[], date?: string): MealS
 
 export function selectTodayEvents(events: Event[]): Event[] {
   const today = new Date()
-  return events.filter(e => isSameLocalDay(new Date(e.start_at), today))
+  // Cubre también las vacaciones en curso, que empezaron otro día.
+  return events.filter(e => eventCoversDay(e, today))
 }
 
 export function selectUpcomingEvents(events: Event[], limit = 5): Event[] {

@@ -43,6 +43,14 @@ function localDateTimeToIso(date: string, time = '00:00'): string {
   return new Date(buildLocalDateTime(date, time)).toISOString()
 }
 
+/** En vacaciones `end_at` es el último día; en un evento normal, la hora de fin. */
+function endAtFromDraft(draft: EventDraft): string | null {
+  if (draft.kind === 'vacaciones') {
+    return localDateTimeToIso(draft.end_date || draft.date, '23:59')
+  }
+  return !draft.all_day && draft.end_time ? localDateTimeToIso(draft.date, draft.end_time) : null
+}
+
 function eventInsert(familyId: string, userId: string, draft: EventDraft, groupId: string | null = null) {
   return {
     family_id: familyId,
@@ -51,8 +59,9 @@ function eventInsert(familyId: string, userId: string, draft: EventDraft, groupI
     title: draft.title.trim(),
     description: draft.description.trim() || null,
     start_at: localDateTimeToIso(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00')),
-    end_at: !draft.all_day && draft.end_time ? localDateTimeToIso(draft.date, draft.end_time) : null,
+    end_at: endAtFromDraft(draft),
     all_day: draft.all_day,
+    kind: draft.kind,
     color: null,
     recurrence_group_id: groupId,
     created_by: userId,
@@ -66,8 +75,9 @@ function eventUpdate(draft: EventDraft) {
     title: draft.title.trim(),
     description: draft.description.trim() || null,
     start_at: localDateTimeToIso(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00')),
-    end_at: !draft.all_day && draft.end_time ? localDateTimeToIso(draft.date, draft.end_time) : null,
+    end_at: endAtFromDraft(draft),
     all_day: draft.all_day,
+    kind: draft.kind,
   }
 }
 

@@ -1,6 +1,7 @@
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, getDate, parseISO } from 'date-fns'
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, getDate } from 'date-fns'
 import { DayCell } from './DayCell'
 import type { Event, Child, FamilyMember } from '@/types'
+import { eventCoversDay } from '@/lib/events'
 
 const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
@@ -55,7 +56,7 @@ export function MonthGrid({
             isToday={isToday(day)}
             isSelected={isSameDay(day, selectedDay)}
             isCurrentMonth={isSameMonth(day, currentMonth)}
-            events={events.filter(e => isSameDay(parseISO(e.start_at), day))}
+            events={events.filter(e => eventCoversDay(e, day))}
             kids={kids}
             members={members}
             density={density}

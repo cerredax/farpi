@@ -2,6 +2,7 @@ import { compareAsc, format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { Event, Child, FamilyMember } from '@/types'
 import { resolveAssignee } from '@/lib/assignees'
+import { isVacation, vacationEdges } from '@/lib/events'
 import { FAMILY_COLOR } from '@/lib/constants'
 
 interface DayCellProps {
@@ -41,6 +42,32 @@ function getShortEventLabel(event: Event): string {
   return `${prefix}${event.title}`
 }
 
+/**
+ * Franja de color bajo el número del día. Los extremos se redondean para que se
+ * lea como un tramo continuo a lo largo de la semana, con un color por persona.
+ */
+function VacationBand({
+  vacaciones, day, kids, members,
+}: { vacaciones: Event[]; day: Date; kids: Child[]; members: FamilyMember[] }) {
+  if (vacaciones.length === 0) return <div className="h-[3px]" />
+
+  return (
+    <div className="flex w-full flex-col gap-[2px] px-0.5">
+      {vacaciones.slice(0, 2).map(v => {
+        const { primero, ultimo } = vacationEdges(v, day)
+        return (
+          <span
+            key={v.id}
+            title={v.title}
+            className={`h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`}
+            style={{ backgroundColor: getEventColor(v, kids, members) }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 export function DayCell({
   day,
   dayNumber,
@@ -55,7 +82,10 @@ export function DayCell({
   onEditEvent,
   onAddEvent,
 }: DayCellProps) {
-  const sortedEvents = sortEvents(events)
+  // Las vacaciones se pintan como una franja bajo el día, no como un punto
+  // más: lo que importa de ellas es el tramo, no que "haya algo" ese día.
+  const vacaciones = events.filter(isVacation)
+  const sortedEvents = sortEvents(events.filter(e => !isVacation(e)))
   const visibleEvents = sortedEvents.slice(0, density === 'detailed' ? 2 : 3)
   const hiddenCount = Math.max(sortedEvents.length - visibleEvents.length, 0)
 
@@ -81,6 +111,7 @@ export function DayCell({
           <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}>
             {dayNumber}
           </span>
+          <VacationBand vacaciones={vacaciones} day={day} kids={kids} members={members} />
           <div className="h-3 flex items-center justify-center gap-[3px]">
             {totalCount > MAX_DOTS ? (
               <span className="text-[9px] font-black text-primary leading-none">{totalCount}</span>

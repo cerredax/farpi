@@ -81,6 +81,7 @@ export function event(over: Partial<Event> = {}): Event {
     start_at: '2026-08-03T10:00:00',
     end_at: null,
     all_day: false,
+    kind: 'evento',
     color: null,
     recurrence_group_id: null,
     created_by: 'u1',

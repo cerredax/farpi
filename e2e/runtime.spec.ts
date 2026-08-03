@@ -116,3 +116,60 @@ test('el buscador de ítems aparece al crecer la lista y filtra', async ({ page 
   await expect(page.getByText('Leche entera')).toBeVisible()
   await expect(page.getByText('Zumo de naranja')).toHaveCount(0)
 })
+
+// Asignar a un adulto: hasta la migración 012 solo se podía asignar a hijos, así
+// que este test protege que los miembros sigan apareciendo en el selector.
+test('un evento se puede asignar a un adulto y se ve quién es', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+
+  const dialogo = page.getByRole('dialog', { name: 'Nuevo evento' })
+  await expect(dialogo.getByRole('button', { name: 'Familia', exact: true })).toBeVisible()
+  await expect(dialogo.getByRole('button', { name: 'Omar', exact: true })).toBeVisible()
+
+  await page.locator('#event-title').fill('Dentista')
+  await dialogo.getByRole('button', { name: 'Sofía', exact: true }).click()
+  await page.getByRole('button', { name: /^Crear evento/ }).click()
+
+  // En la agenda, el evento aparece con el nombre de la persona asignada.
+  // (En la celda del día también, pero ahí es un tooltip que solo se ve al pasar
+  // el ratón, así que no sirve para comprobarlo.)
+  await expect(page.getByRole('button', { name: /Dentista/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Dentista.*Sofía/ })).toBeVisible()
+})
+
+// Vacaciones: un evento de varios días. Cubre que el formulario cambia de forma
+// (dos fechas en vez de horas) y que el rango se guarda entero.
+test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Vacaciones' }).click()
+
+  // En vacaciones se piden dos fechas y desaparecen las horas.
+  await expect(page.locator('#event-end-date')).toBeVisible()
+  await expect(page.locator('#event-start')).toHaveCount(0)
+
+  await page.locator('#event-title').fill('Playa')
+  await page.locator('#event-date').fill('2026-08-10')
+  await page.locator('#event-end-date').fill('2026-08-16')
+  await expect(page.getByRole('button', { name: 'Apuntar 7 días' })).toBeVisible()
+  await page.getByRole('button', { name: 'Apuntar 7 días' }).click()
+  await page.waitForTimeout(600)
+
+  // La franja aparece en los siete días del rango, no solo en el primero.
+  await expect(page.locator('[title="Playa"]')).toHaveCount(7)
+})
+
+// El rango invertido se rechaza antes de guardar.
+test('unas vacaciones no pueden acabar antes de empezar', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Vacaciones' }).click()
+  await page.locator('#event-title').fill('Imposible')
+  await page.locator('#event-date').fill('2026-08-16')
+  await page.locator('#event-end-date').fill('2026-08-10')
+  await expect(page.getByText('El último día no puede ser anterior al primero')).toBeVisible()
+})

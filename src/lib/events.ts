@@ -1,0 +1,46 @@
+import { extractDate } from './date-utils'
+import type { Event } from '@/types'
+
+/**
+ * Qué días ocupa un evento.
+ *
+ * Hasta las vacaciones, el calendario asumía que un evento vivía en un solo día
+ * y filtraba comparando `start_at` con el día. Unas vacaciones ocupan un rango,
+ * así que la pregunta correcta pasa a ser "¿este evento cubre este día?".
+ *
+ * Se trabaja con las fechas en formato yyyy-MM-dd, no con objetos Date, porque
+ * comparar cadenas evita por completo los líos de zona horaria.
+ */
+export function eventCoversDay(event: Event, day: Date | string): boolean {
+  const dia = typeof day === 'string' ? day.slice(0, 10) : localDay(day)
+  const inicio = extractDate(event.start_at)
+  const fin = event.end_at ? extractDate(event.end_at) : inicio
+  return dia >= inicio && dia <= fin
+}
+
+function localDay(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+export function isVacation(event: Event): boolean {
+  return event.kind === 'vacaciones'
+}
+
+/** Cuántos días completos duran unas vacaciones, contando el primero y el último. */
+export function vacationLength(event: Event): number {
+  const inicio = new Date(extractDate(event.start_at) + 'T12:00:00')
+  const fin = new Date(extractDate(event.end_at ?? event.start_at) + 'T12:00:00')
+  return Math.round((fin.getTime() - inicio.getTime()) / 86_400_000) + 1
+}
+
+/** Posición de un día dentro del rango, para dibujar los extremos del tramo. */
+export function vacationEdges(event: Event, day: Date | string): { primero: boolean; ultimo: boolean } {
+  const dia = typeof day === 'string' ? day.slice(0, 10) : localDay(day)
+  return {
+    primero: dia === extractDate(event.start_at),
+    ultimo: dia === extractDate(event.end_at ?? event.start_at),
+  }
+}

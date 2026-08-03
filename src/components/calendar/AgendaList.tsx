@@ -16,6 +16,7 @@ import { Clock, Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child, FamilyMember } from '@/types'
 import { resolveAssignee } from '@/lib/assignees'
+import { eventCoversDay } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 import { FAMILY_COLOR } from '@/lib/constants'
 
@@ -98,7 +99,7 @@ export function AgendaList({ mode, selectedDay, events, kids, members, onSelectD
 
   const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => ({
     day,
-    events: sortEvents(events.filter(event => isSameDay(parseISO(event.start_at), day))),
+    events: sortEvents(events.filter(event => eventCoversDay(event, day))),
   }))
 
   const visibleGroups = mode === 'week'

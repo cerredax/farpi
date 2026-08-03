@@ -3,10 +3,21 @@ import { buildLocalDateTime } from '../date-utils'
 import { buildWeeklyDates, buildYearlyDates } from '../recurrence'
 import { db } from './db'
 
+/**
+ * En unas vacaciones `end_at` marca el último día; en un evento normal, la hora
+ * de fin del mismo día. Es el único punto donde esa diferencia importa.
+ */
+function endAtFromDraft(draft: EventDraft): string | null {
+  if (draft.kind === 'vacaciones') {
+    return buildLocalDateTime(draft.end_date || draft.date, '23:59')
+  }
+  return !draft.all_day && draft.end_time ? buildLocalDateTime(draft.date, draft.end_time) : null
+}
+
 function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: string | null = null): Event {
   const now      = new Date().toISOString()
   const start_at = buildLocalDateTime(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00'))
-  const end_at   = !draft.all_day && draft.end_time ? buildLocalDateTime(draft.date, draft.end_time) : null
+  const end_at   = endAtFromDraft(draft)
   return {
     id: crypto.randomUUID(),
     family_id: familyId,
@@ -16,6 +27,7 @@ function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: strin
     description: draft.description.trim() || null,
     start_at, end_at,
     all_day: draft.all_day,
+    kind: draft.kind,
     color: null,
     recurrence_group_id: groupId,
     created_by: 'u1',
@@ -26,13 +38,14 @@ function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: strin
 
 function applyEventDraft(event: Event, draft: EventDraft): Event {
   const start_at = buildLocalDateTime(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00'))
-  const end_at   = !draft.all_day && draft.end_time ? buildLocalDateTime(draft.date, draft.end_time) : null
+  const end_at   = endAtFromDraft(draft)
   return {
     ...event,
     title: draft.title.trim(),
     description: draft.description.trim() || null,
     start_at, end_at,
     all_day: draft.all_day,
+    kind: draft.kind,
     child_id: draft.child_id,
     member_id: draft.member_id,
     updated_at: new Date().toISOString(),

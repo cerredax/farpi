@@ -40,6 +40,9 @@ export interface Child {
   created_at: string
 }
 
+/** Un evento normal, o unas vacaciones que ocupan varios días completos. */
+export type EventKind = 'evento' | 'vacaciones'
+
 export interface Event {
   id: string
   family_id: string
@@ -52,6 +55,7 @@ export interface Event {
   start_at: string
   end_at: string | null
   all_day: boolean
+  kind: EventKind
   color: string | null
   recurrence_group_id: string | null
   created_by: string | null
@@ -137,6 +141,9 @@ export interface EventDraft {
   end_time: string
   child_id: string | null
   member_id: string | null
+  kind: EventKind
+  /** Último día, solo en vacaciones. En un evento normal manda `end_time`. */
+  end_date: string
 }
 
 export interface TaskDraft {

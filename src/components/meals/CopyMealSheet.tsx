@@ -63,7 +63,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   return (
     <BottomSheet open={open} title="Copiar menú" onClose={onClose} footer={footer}>
       <form id="copy-meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
-        <div className="rounded-3xl border border-surface bg-[#FFF8EF] p-4">
+        <div className="rounded-3xl border border-surface bg-warm p-4">
           <div className="flex items-start gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
               <Copy size={17} strokeWidth={2.4} />

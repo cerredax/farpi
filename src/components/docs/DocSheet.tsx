@@ -143,7 +143,7 @@ export function DocSheet({ open, mode, initial, kids, onClose, onSave, onDelete,
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center gap-3 bg-canvas border-2 border-dashed border-[#D8D4CE] rounded-xl px-4 py-3 hover:border-primary hover:bg-primary-tint transition-colors text-left"
+                className="w-full flex items-center gap-3 bg-canvas border-2 border-dashed border-line-strong rounded-xl px-4 py-3 hover:border-primary hover:bg-primary-tint transition-colors text-left"
               >
                 <Upload size={18} className="text-primary flex-shrink-0" />
                 <span className="text-sm text-muted truncate flex-1">

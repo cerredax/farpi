@@ -35,10 +35,10 @@ export function WeekGrid({
       <div className="overflow-x-auto">
         <div className="min-w-[860px]">
           <div
-            className="grid border-b border-surface bg-[#FCFBF8]"
+            className="grid border-b border-surface bg-canvas"
             style={{ gridTemplateColumns: '132px repeat(7, minmax(104px, 1fr))' }}
           >
-            <div className="sticky left-0 z-20 bg-[#FCFBF8] border-r border-surface px-4 py-3">
+            <div className="sticky left-0 z-20 bg-canvas border-r border-surface px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Franja</p>
             </div>
             {weekDays.map(day => {
@@ -49,7 +49,7 @@ export function WeekGrid({
                 <div
                   key={dayKey}
                   className={`px-3 py-3 text-center border-r last:border-r-0 border-surface ${
-                    todayColumn ? 'bg-[#F5FAF5]' : 'bg-[#FCFBF8]'
+                    todayColumn ? 'bg-primary-tint' : 'bg-canvas'
                   }`}
                 >
                   <p className={`text-[10px] font-bold uppercase tracking-widest ${todayColumn ? 'text-primary-strong' : 'text-muted'}`}>
@@ -64,7 +64,7 @@ export function WeekGrid({
                     disabled={!hasMeals}
                     className={`mx-auto mt-2 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold transition-colors ${
                       hasMeals
-                        ? 'bg-white text-primary shadow-sm hover:bg-[#F1F5EF]'
+                        ? 'bg-white text-primary shadow-sm hover:bg-primary-tint'
                         : 'bg-white/50 text-faint cursor-not-allowed'
                     }`}
                     aria-label={`Copiar menú del ${format(day, 'd MMM', { locale: es })}`}
@@ -102,7 +102,7 @@ export function WeekGrid({
                     key={cellKey}
                     style={{ minHeight: cellMinHeight }}
                     className={`border-r last:border-r-0 border-surface ${
-                      todayColumn ? 'bg-[#F5FAF5]' : 'bg-white'
+                      todayColumn ? 'bg-primary-tint' : 'bg-white'
                     }`}
                   >
                     {meal ? (
@@ -135,7 +135,7 @@ export function WeekGrid({
                         className="group flex h-full w-full items-center justify-center p-2"
                         aria-label={`Añadir ${slot.label.toLowerCase()} para ${format(day, 'd MMM', { locale: es })}`}
                       >
-                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-[#D8D4CE] text-faint transition-colors group-hover:border-primary group-hover:bg-primary-tint group-hover:text-primary" style={{ minHeight: cellMinHeight - 32 }}>
+                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-line-strong text-faint transition-colors group-hover:border-primary group-hover:bg-primary-tint group-hover:text-primary" style={{ minHeight: cellMinHeight - 32 }}>
                           <div className="flex flex-col items-center gap-1">
                             <Plus size={14} strokeWidth={2.5} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Añadir</span>

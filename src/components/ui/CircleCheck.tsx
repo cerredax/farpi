@@ -19,7 +19,7 @@ export function CircleCheck({ checked, onClick, ariaLabel, size = 'md', classNam
       type="button"
       onClick={onClick}
       aria-label={ariaLabel ?? defaultLabel}
-      className={`flex-shrink-0 flex items-center justify-center w-12 min-h-[44px] active:bg-[#F0F7F0] transition-colors group ${className}`}
+      className={`flex-shrink-0 flex items-center justify-center w-12 min-h-[44px] active:bg-primary-tint transition-colors group ${className}`}
     >
       <span
         className={`rounded-full border-2 flex items-center justify-center transition-all duration-200 ${

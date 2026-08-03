@@ -25,7 +25,7 @@ export function DotOption({ selected, onClick, color, label }: DotOptionProps) {
           transform: selected ? 'scale(1.15)' : 'scale(1)',
         }}
       />
-      <span className="text-[11px] font-bold transition-colors" style={{ color: selected ? color : '#77716A' }}>
+      <span className="text-[11px] font-bold transition-colors" style={{ color: selected ? color : 'var(--color-muted)' }}>
         {label}
       </span>
     </button>

@@ -1,6 +1,7 @@
 import { compareAsc, format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { Event, Child } from '@/types'
+import { FAMILY_COLOR } from '@/lib/constants'
 
 interface DayCellProps {
   day: Date
@@ -22,7 +23,7 @@ function getEventColor(event: Event, kids: Child[]): string {
     const child = kids.find(c => c.id === event.child_id)
     if (child) return child.color
   }
-  return '#E9C46A'
+  return FAMILY_COLOR
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -150,7 +151,7 @@ export function DayCell({
         <button
           onClick={() => onAddEvent?.(day)}
           aria-label={`Añadir evento el día ${dayNumber}`}
-          className="w-5 h-5 flex items-center justify-center rounded-full text-[11px] font-black text-primary hover:bg-[#F1F5EF] transition-colors"
+          className="w-5 h-5 flex items-center justify-center rounded-full text-[11px] font-black text-primary hover:bg-primary-tint transition-colors"
         >
           +
         </button>
@@ -163,7 +164,7 @@ export function DayCell({
             <button
               key={event.id}
               onClick={() => onEditEvent?.(event)}
-              className="w-full rounded-md px-1 py-0.5 text-left text-[9px] font-bold leading-tight text-ink bg-canvas hover:bg-[#F2EEE8] transition-colors"
+              className="w-full rounded-md px-1 py-0.5 text-left text-[9px] font-bold leading-tight text-ink bg-canvas hover:bg-surface transition-colors"
               title={getShortEventLabel(event)}
             >
               <span className="flex items-start gap-1 min-w-0">

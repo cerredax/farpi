@@ -99,14 +99,14 @@ export function HomeView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-      <div className="relative overflow-hidden rounded-[2rem] border border-[#EFE7DC] bg-[#FFF8EF] p-5 shadow-sm">
+      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-5 shadow-sm">
         <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
         <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
         <div className="relative space-y-4">
           <div>
             <p className="field-label mb-1">{dayLabel}</p>
             <h1 className="text-3xl font-black text-ink leading-tight">{greeting}</h1>
-            <p className="mt-2 text-sm text-[#6F6A62] leading-relaxed">
+            <p className="mt-2 text-sm text-muted leading-relaxed">
               Un vistazo tranquilo a los planes, comidas y pequenas cosas de casa.
             </p>
           </div>
@@ -160,7 +160,7 @@ export function HomeView() {
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <UpcomingEvents events={upcoming} kids={kids} />
 
-      <div className="rounded-3xl border border-[#EFE7DC] bg-white px-4 py-4 text-center shadow-sm">
+      <div className="rounded-3xl border border-line bg-white px-4 py-4 text-center shadow-sm">
         <p className="text-sm font-bold text-ink">Respirad. Lo importante esta apuntado.</p>
         <p className="mt-1 text-xs text-muted">Nido esta aqui para bajar un poco el ruido.</p>
       </div>

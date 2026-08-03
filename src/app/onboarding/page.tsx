@@ -42,7 +42,7 @@ export default function OnboardingPage() {
     <div className="min-h-dvh bg-canvas px-6 py-10">
       <div className="mx-auto flex min-h-[calc(100dvh-5rem)] max-w-sm flex-col justify-center">
         <div className="mb-7 text-center">
-          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-[#3D5C3A] text-white shadow-sm">
+          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-primary-deepest text-white shadow-sm">
             <Home size={25} strokeWidth={2.4} />
           </div>
           <h1 className="text-2xl font-extrabold text-ink">Configura tu familia</h1>
@@ -69,7 +69,7 @@ export default function OnboardingPage() {
           </div>
 
           {error && (
-            <div className="mt-4 rounded-2xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-[#B24D4D]">
+            <div className="mt-4 rounded-2xl border border-danger-line bg-danger-soft px-4 py-3 text-sm font-medium text-danger-strong">
               {error}
             </div>
           )}

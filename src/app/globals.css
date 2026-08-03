@@ -36,19 +36,30 @@
   --color-muted:          #77716A; /* texto secundario */
   --color-faint:          #C4BFB9; /* placeholder / muy tenue */
 
+  --color-muted-soft:     #A39B93; /* texto terciario, entre muted y faint */
+
   --color-primary:        #8BA888; /* verde principal */
   --color-primary-hover:  #7a9877;
   --color-primary-strong: #5C7A59;
+  --color-primary-deep:   #4E6B4C; /* hover del botón primario fuerte */
+  --color-primary-deepest:#3D5C3A; /* active del botón y marca sobre fondo oscuro */
   --color-primary-tint:   #F5F9F5; /* fondo verde muy claro */
+  --color-primary-line:   #DDEAD9; /* borde verde claro */
 
   --color-accent:         #D8A48F; /* salmón */
+  --color-sand:           #E9C46A; /* amarillo de marca: avisos suaves */
+  --color-sand-strong:    #9A7D1A; /* texto legible sobre fondo sand */
+  --color-warm:           #FFF8EF; /* fondo cálido de tarjeta destacada */
 
   --color-danger:         #D96C6C;
+  --color-danger-hover:   #C45F5F; /* hover del botón de peligro */
+  --color-danger-strong:  #B24D4D; /* texto de error sobre danger-soft */
   --color-danger-soft:    #FDE8E8; /* fondo de peligro (hover) */
   --color-danger-line:    #F1C9C9; /* borde de peligro */
   --color-danger-tint:    #FDF6F6; /* fondo de tarjeta de peligro */
 
   --color-line:           #EDE9E3; /* borde principal */
+  --color-line-strong:    #D8D4CE; /* borde marcado y discontinuo */
   --color-surface:        #F0EDE8; /* superficie / hover */
   --color-hairline:       #F5F2EE; /* borde muy suave */
   --color-grip:           #E0DDD8; /* asa del sheet */

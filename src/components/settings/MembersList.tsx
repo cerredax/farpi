@@ -45,7 +45,7 @@ export function MembersList({ members, invites, onEdit, onInvite, onCancelInvite
       {invites.map((invite, i) => (
         <div key={invite.id} className="flex items-center gap-3 px-4 py-3.5 border-t border-hairline">
           <span
-            className="w-9 h-9 rounded-full border-2 border-dashed border-[#E9C46A] flex items-center justify-center text-[#9A7D1A] text-xs font-extrabold flex-shrink-0"
+            className="w-9 h-9 rounded-full border-2 border-dashed border-sand flex items-center justify-center text-sand-strong text-xs font-extrabold flex-shrink-0"
             style={{ backgroundColor: AVATAR_COLORS[(members.length + i) % AVATAR_COLORS.length] + '22' }}
           >
             {invite.email[0].toUpperCase()}
@@ -53,7 +53,7 @@ export function MembersList({ members, invites, onEdit, onInvite, onCancelInvite
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-semibold text-ink text-sm leading-tight truncate">{invite.email}</p>
-              <span className="flex-shrink-0 text-[9px] font-bold bg-[#E9C46A]/30 text-[#9A7D1A] px-1.5 py-0.5 rounded-full">
+              <span className="flex-shrink-0 text-[9px] font-bold bg-sand/30 text-sand-strong px-1.5 py-0.5 rounded-full">
                 Pendiente
               </span>
             </div>
@@ -72,7 +72,7 @@ export function MembersList({ members, invites, onEdit, onInvite, onCancelInvite
       <div className="border-t border-hairline">
         <button
           onClick={onInvite}
-          className="w-full flex items-center gap-3 px-4 py-3.5 text-primary hover:bg-primary-tint active:bg-[#EEF4EE] transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3.5 text-primary hover:bg-primary-tint active:bg-primary-tint transition-colors"
         >
           <span className="w-9 h-9 rounded-full border-2 border-dashed border-primary flex items-center justify-center flex-shrink-0">
             <UserPlus size={16} strokeWidth={1.8} />

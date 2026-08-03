@@ -121,11 +121,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#F7F3EC] text-ink">
+    <div className="min-h-dvh bg-canvas text-ink">
       <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[minmax(0,1fr)_480px] xl:grid-cols-[minmax(0,1fr)_520px]">
         <LoginHero />
 
-        <aside className="flex items-center justify-center border-t border-[#E9E2D8] bg-[#FFFCF8] px-6 py-8 lg:border-l lg:border-t-0 lg:px-10">
+        <aside className="flex items-center justify-center border-t border-line bg-white px-6 py-8 lg:border-l lg:border-t-0 lg:px-10">
           <div className="w-full max-w-sm">
             <div className="mb-6">
               <p className="text-2xl font-black tracking-tight text-ink">
@@ -140,7 +140,7 @@ export default function LoginPage() {
 
             {IS_DEMO_MODE ? (
               <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-sm">
-                <div className="flex items-start gap-3 rounded-2xl bg-[#FFF8EF] px-4 py-4">
+                <div className="flex items-start gap-3 rounded-2xl bg-warm px-4 py-4">
                   <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
                     <CheckCircle2 size={18} strokeWidth={2.4} />
                   </span>
@@ -172,7 +172,7 @@ export default function LoginPage() {
                 </div>
 
                 {isSignup && (
-                  <div className="mb-4 flex items-center gap-2 rounded-2xl border border-[#DDEAD9] bg-[#EEF4ED] px-4 py-3 text-xs font-bold text-[#4F6A4C]">
+                  <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary-line bg-primary-tint px-4 py-3 text-xs font-bold text-primary-deep">
                     <CheckCircle2 size={15} strokeWidth={2.4} />
                     Sin tarjeta, sin anuncios y gratis para empezar.
                   </div>
@@ -242,7 +242,7 @@ export default function LoginPage() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(v => !v)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A39B93] transition-colors hover:text-muted"
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-soft transition-colors hover:text-muted"
                           aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                         >
                           {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -318,7 +318,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <p className="mt-5 text-center text-[11px] font-medium text-[#A39B93]">
+            <p className="mt-5 text-center text-[11px] font-medium text-muted-soft">
               Nido es gratuito y privado para tu familia.
             </p>
           </div>
@@ -329,18 +329,18 @@ export default function LoginPage() {
         .form-input {
           width: 100%;
           border-radius: 0.875rem;
-          border: 1.5px solid #ede9e3;
-          background: #faf7f2;
+          border: 1.5px solid var(--color-line);
+          background: var(--color-canvas);
           padding: 0.8rem 1rem 0.8rem 2.6rem;
           font-size: 0.875rem;
           font-weight: 500;
-          color: #252525;
+          color: var(--color-ink);
           outline: none;
           transition: border-color 150ms, box-shadow 150ms, background 150ms;
         }
-        .form-input::placeholder { color: #c4bfb9; }
+        .form-input::placeholder { color: var(--color-faint); }
         .form-input:focus {
-          border-color: #8ba888;
+          border-color: var(--color-primary);
           background: #fffdf9;
           box-shadow: 0 0 0 3px rgba(139,168,136,0.18);
         }
@@ -373,8 +373,8 @@ function Alert({ tone, children }: { tone: 'error' | 'success'; children: React.
   return (
     <div className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
       tone === 'error'
-        ? 'border-danger-line bg-danger-soft text-[#B24D4D]'
-        : 'border-[#DDEAD9] bg-[#EEF4ED] text-primary-strong'
+        ? 'border-danger-line bg-danger-soft text-danger-strong'
+        : 'border-primary-line bg-primary-tint text-primary-strong'
     }`}>
       {children}
     </div>

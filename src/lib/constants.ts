@@ -13,6 +13,13 @@ export const VALID_MIME_TYPES: DocMimeType[] = ['application/pdf', 'image/jpeg',
 
 export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
 
+/**
+ * Color que representa "toda la familia" (eventos y documentos sin hijo
+ * asignado). Es un valor de datos, como los colores de los hijos: viaja en
+ * atributos `style`, no en clases. Coincide a propósito con el token `sand`.
+ */
+export const FAMILY_COLOR = '#E9C46A'
+
 // ─── Comidas ──────────────────────────────────────────────────────────────────
 
 export const MEAL_SLOTS: { key: MealSlot; label: string; emoji: string; order: number }[] = [

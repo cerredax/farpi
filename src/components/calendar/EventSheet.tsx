@@ -13,6 +13,7 @@ import { buildWeeklyDates } from '@/lib/recurrence'
 import { validateEventDraft } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { Event, Child, EventDraft } from '@/types'
+import { FAMILY_COLOR } from '@/lib/constants'
 
 type Mode = 'create' | 'edit'
 type Recurrence = 'none' | 'weekly' | 'yearly'
@@ -186,7 +187,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
         ? `Crear ${yearlyCount} evento${yearlyCount !== 1 ? 's' : ''}`
         : 'Crear evento'
 
-  const familyOption = { id: null as string | null, name: 'Familia', color: '#E9C46A' }
+  const familyOption = { id: null as string | null, name: 'Familia', color: FAMILY_COLOR }
   const assignees = [familyOption, ...kids.map(c => ({ id: c.id as string | null, name: c.name, color: c.color }))]
 
   const isSeries = mode === 'edit' && !!initial?.recurrence_group_id && !!onDeleteSeries
@@ -264,7 +265,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
               </div>
               <div className="flex flex-col items-center gap-1.5 pb-0.5">
                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
-                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => patch({ all_day: !draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-[#D4CFC9]'}`}>
+                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => patch({ all_day: !draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-line-strong'}`}>
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${draft.all_day ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
@@ -305,7 +306,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
               <div className="space-y-3">
                 <label className="field-label">Repetición</label>
 
-                <div className="grid grid-cols-3 gap-1 rounded-2xl bg-[#F2EEE8] p-1">
+                <div className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1">
                   <button
                     type="button"
                     onClick={handleSetNone}
@@ -367,7 +368,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
                     {/* Vista previa */}
                     {previewReady && (
-                      <div className="rounded-2xl bg-[#F1F5EF] border border-primary/25 p-3.5 space-y-1">
+                      <div className="rounded-2xl bg-primary-tint border border-primary/25 p-3.5 space-y-1">
                         <p className="text-sm text-ink leading-snug">
                           <span className="font-semibold">{draft.title.trim() || 'El evento'}</span>
                           {' '}se añadirá los {previewDaysText} hasta el {previewEndText}.
@@ -400,7 +401,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                     </Field>
 
                     {yearlyCount > 0 && !yearlyError && (
-                      <div className="rounded-2xl bg-[#F1F5EF] border border-primary/25 p-3.5 space-y-1">
+                      <div className="rounded-2xl bg-primary-tint border border-primary/25 p-3.5 space-y-1">
                         <p className="text-sm text-ink leading-snug">
                           <span className="font-semibold">{draft.title.trim() || 'El evento'}</span>
                           {' '}se añadirá cada año el mismo día hasta {recurrenceEndYear}.

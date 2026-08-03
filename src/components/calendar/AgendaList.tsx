@@ -16,6 +16,7 @@ import { Clock, Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child } from '@/types'
 import { capitalize } from '@/lib/text'
+import { FAMILY_COLOR } from '@/lib/constants'
 
 type AgendaMode = 'week' | 'agenda'
 
@@ -36,7 +37,7 @@ function getEventColor(event: Event, kids: Child[]): string {
     const child = kids.find(c => c.id === event.child_id)
     if (child) return child.color
   }
-  return '#E9C46A'
+  return FAMILY_COLOR
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -190,7 +191,7 @@ export function AgendaList({ mode, selectedDay, events, kids, onSelectDay, onEdi
                   <div className="px-3 pb-3">
                     <button
                       onClick={() => onAdd(group.day)}
-                      className="w-full text-center text-xs text-primary font-bold py-2.5 rounded-xl border border-dashed border-primary/40 hover:border-primary hover:bg-[#F1F5EF] transition-colors"
+                      className="w-full text-center text-xs text-primary font-bold py-2.5 rounded-xl border border-dashed border-primary/40 hover:border-primary hover:bg-primary-tint transition-colors"
                     >
                       + Añadir evento este día
                     </button>

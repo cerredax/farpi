@@ -31,7 +31,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function DonationCard() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-surface bg-[#FFF8EF] px-4 py-4 shadow-sm">
+    <div className="relative overflow-hidden rounded-3xl border border-surface bg-warm px-4 py-4 shadow-sm">
       <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-accent/25" />
       <div className="absolute -bottom-10 left-8 h-20 w-20 rounded-full bg-primary/20" />
       <div className="relative space-y-3">
@@ -56,7 +56,7 @@ function DonationCard() {
             href={DONATION_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-strong px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#4e6b4c]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-strong px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-deep"
           >
             Apoyar el proyecto
             <ExternalLink size={14} strokeWidth={2.4} />
@@ -65,7 +65,7 @@ function DonationCard() {
           <button
             type="button"
             disabled
-            className="w-full rounded-2xl bg-surface px-4 py-3 text-sm font-bold text-[#A39B93] cursor-not-allowed"
+            className="w-full rounded-2xl bg-surface px-4 py-3 text-sm font-bold text-muted-soft cursor-not-allowed"
           >
             Enlace de donacion pendiente
           </button>
@@ -137,7 +137,7 @@ export function SettingsView() {
               <button
                 key={f.id}
                 onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface last:border-b-0 ${f.id === activeFamilyId ? 'bg-[#F5F2ED]' : 'hover:bg-canvas'}`}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface last:border-b-0 ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
               >
                 <span className="text-sm font-semibold text-ink">{f.name}</span>
                 {f.id === activeFamilyId && (
@@ -152,7 +152,7 @@ export function SettingsView() {
                   value={newFamilyName}
                   onChange={e => setNewFamilyName(e.target.value)}
                   placeholder="Nombre de la familia"
-                  className="flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-[#B8B3AC] focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
                 <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} className="px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>

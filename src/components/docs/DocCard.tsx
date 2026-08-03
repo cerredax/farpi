@@ -25,7 +25,7 @@ export function DocCard({ doc, childName, childColor, onEdit }: DocCardProps) {
   return (
     <button
       onClick={onEdit}
-      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-3.5 flex items-start gap-3 text-left hover:bg-[#FDFBF8] active:bg-canvas transition-colors"
+      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-3.5 flex items-start gap-3 text-left hover:bg-canvas active:bg-canvas transition-colors"
     >
       {/* Icono de tipo */}
       <div className="w-10 h-10 rounded-xl bg-canvas flex items-center justify-center flex-shrink-0 mt-0.5">

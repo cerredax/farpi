@@ -14,7 +14,7 @@ interface TaskItemProps {
 
 const PRIORITY_BORDER: Record<TaskPriority, string> = {
   high:   'border-l-danger',
-  medium: 'border-l-[#E9C46A]',
+  medium: 'border-l-sand',
   low:    'border-l-primary',
 }
 
@@ -63,7 +63,7 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
                   due.overdue
                     ? 'bg-danger-soft text-danger'
                     : due.label === 'Hoy'
-                    ? 'bg-[#FDEEE8] text-accent'
+                    ? 'bg-danger-soft text-accent'
                     : 'bg-surface text-muted'
                 }`}
               >

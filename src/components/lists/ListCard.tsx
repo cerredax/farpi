@@ -13,7 +13,7 @@ export function ListCard({ list, total, done, onClick }: ListCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-4 flex items-center gap-3 hover:bg-[#FDFBF8] active:bg-canvas transition-colors text-left"
+      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-4 flex items-center gap-3 hover:bg-canvas active:bg-canvas transition-colors text-left"
     >
       <span className="text-2xl w-10 text-center flex-shrink-0">{list.emoji ?? '📋'}</span>
       <div className="flex-1 min-w-0">

@@ -109,7 +109,7 @@ Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas.
 ### Mejoras futuras (opcional)
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).
 - [ ] Backup/export de datos de la familia.
-- [ ] Tokenizar los ~70 colores one-off restantes (login/degradados) — retorno bajo.
+- [x] Tokenizar los colores one-off (hecho 2026-08-03: 109 → 36 apariciones).
 - [ ] Tests e2e de flujos CRUD completos (hoy hay smoke + apertura de sheets).
 
 ---

@@ -81,7 +81,7 @@ export function ListDetailView({
       <div className="px-4 pb-6 pt-2 border-t border-hairline">
         <button
           onClick={onOpenAddItem}
-          className="w-full flex items-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-[#D8D4CE] text-primary hover:border-primary hover:bg-primary-tint transition-colors text-sm font-semibold"
+          className="w-full flex items-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-line-strong text-primary hover:border-primary hover:bg-primary-tint transition-colors text-sm font-semibold"
         >
           <Plus size={16} />
           Añadir ítem

@@ -51,7 +51,7 @@ export function ChildrenList({ kids, onEdit, onAdd }: ChildrenListProps) {
         </button>
       ))}
       <div className={kids.length > 0 ? 'border-t border-hairline' : ''}>
-        <button onClick={onAdd} className="w-full flex items-center gap-3 px-4 py-3.5 text-primary hover:bg-primary-tint active:bg-[#EEF4EE] transition-colors">
+        <button onClick={onAdd} className="w-full flex items-center gap-3 px-4 py-3.5 text-primary hover:bg-primary-tint active:bg-primary-tint transition-colors">
           <span className="w-10 h-10 rounded-full border-2 border-dashed border-primary flex items-center justify-center flex-shrink-0">
             <UserPlus size={17} strokeWidth={1.8} />
           </span>

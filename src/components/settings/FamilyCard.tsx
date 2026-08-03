@@ -14,7 +14,7 @@ export function FamilyCard({ family, members, kids, onEdit }: FamilyCardProps) {
 
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm p-4 flex items-center gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-[#EEF4EE] flex items-center justify-center flex-shrink-0">
+      <div className="w-14 h-14 rounded-2xl bg-primary-tint flex items-center justify-center flex-shrink-0">
         <Home size={26} className="text-primary" strokeWidth={1.8} />
       </div>
       <div className="flex-1 min-w-0">

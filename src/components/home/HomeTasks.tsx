@@ -19,7 +19,7 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
     <HomeSection
       label="Cosas por hacer"
       isEmpty={visible.length === 0}
-      emptyState={<EmptyState emoji="✓" title="La casa está al día" />}
+      emptyState={<EmptyState compact emoji="✓" title="La casa está al día" />}
       footer={
         <Link href="/tasks" className="text-xs font-semibold text-primary-strong hover:underline">
           Ver todas las tareas

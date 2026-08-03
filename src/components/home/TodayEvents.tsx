@@ -22,7 +22,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids }: TodayEven
     <CardSection label="Planes de hoy">
       <Card padded={false}>
         {events.length === 0 ? (
-          <EmptyState emoji="☘" title="Hoy pinta tranquilo" description="No hay planes apuntados" />
+          <EmptyState compact emoji="☘" title="Sin planes para hoy" />
         ) : (
           <ul className="divide-y divide-hairline">
             {events.map((event) => {

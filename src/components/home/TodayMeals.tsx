@@ -20,7 +20,7 @@ export const TodayMeals = memo(function TodayMeals({ meals }: TodayMealsProps) {
     <CardSection label="El menú de hoy">
       <Card padded={false}>
         {meals.length === 0 ? (
-          <EmptyState emoji="🍽" title="Menú libre" description="Improvisar también cuenta" />
+          <EmptyState compact emoji="🍽" title="Menú libre, improvisar también cuenta" />
         ) : (
           <ul className="divide-y divide-hairline">
             {meals.map((meal) => {

@@ -2,9 +2,8 @@
 
 import { format, isToday, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarDays, Heart, ListChecks, Utensils } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
 import { useStore } from '@/lib/store-context'
 import { selectTodayEvents, selectUpcomingEvents } from '@/lib/selectors'
 import { TodayEvents } from './TodayEvents'
@@ -26,18 +25,6 @@ function getGreeting(date: Date) {
 function formatEventMoment(event: { all_day: boolean; start_at: string }) {
   if (event.all_day) return 'Todo el día'
   return format(new Date(event.start_at), 'HH:mm')
-}
-
-function HomeStat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
-  return (
-    <div className="rounded-2xl bg-canvas px-3 py-2">
-      <div className="flex items-center gap-1.5 text-primary">
-        {icon}
-        <span className="text-lg font-black text-ink">{value}</span>
-      </div>
-      <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</p>
-    </div>
-  )
 }
 
 function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
@@ -105,30 +92,16 @@ export function HomeView() {
         <div className="relative space-y-4">
           <div>
             <p className="field-label mb-1">{dayLabel}</p>
-            <h1 className="text-3xl font-black text-ink leading-tight">{greeting}</h1>
-            <p className="mt-2 text-sm text-muted leading-relaxed">
-              Un vistazo tranquilo a los planes, comidas y pequeñas cosas de casa.
-            </p>
+            <h1 className="text-2xl font-black text-ink leading-tight">{greeting}</h1>
           </div>
 
-          <div className="rounded-3xl bg-white/80 border border-white px-4 py-3 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#F1E6D8] text-[#9A6B55]">
-                <Heart size={16} fill="currentColor" strokeWidth={2.4} />
-              </span>
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-muted">Hoy en casa</p>
-                <p className="text-sm font-bold text-ink">
-                  {nextEvent ? `${nextEvent.title} · ${formatEventMoment(nextEvent)}` : calmMessage}
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <HomeStat icon={<CalendarDays size={15} />} value={todayEvents.length} label="Planes" />
-              <HomeStat icon={<ListChecks size={15} />} value={pendingTasks.length} label="Tareas" />
-              <HomeStat icon={<Utensils size={15} />} value={todayMeals.length} label="Comidas" />
-            </div>
+          <div className="flex items-center gap-2.5 rounded-3xl bg-white/80 border border-white px-4 py-2.5 shadow-sm">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-[#F1E6D8] text-[#9A6B55]">
+              <Heart size={16} fill="currentColor" strokeWidth={2.4} />
+            </span>
+            <p className="min-w-0 text-sm font-bold text-ink leading-snug">
+              {nextEvent ? `${nextEvent.title} · ${formatEventMoment(nextEvent)}` : calmMessage}
+            </p>
           </div>
 
           {kids.length > 0 && (
@@ -148,22 +121,21 @@ export function HomeView() {
         </div>
       </div>
 
+      {/* Primero lo accionable: qué hay que hacer hoy. Después el resto. */}
+      <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
       <TodayEvents events={todayEvents} kids={kids} />
       <TodayMeals meals={todayMeals} />
+      <PendingItems items={pendingItems} onToggle={toggleListItem} />
+      <UpcomingEvents events={upcoming} kids={kids} />
+
       <OffDayConfirmSheet
         open={!!confirmTask}
         task={confirmTask}
         onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}
         onCancel={() => setConfirmTask(null)}
       />
-      <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
-      <PendingItems items={pendingItems} onToggle={toggleListItem} />
-      <UpcomingEvents events={upcoming} kids={kids} />
 
-      <div className="rounded-3xl border border-line bg-white px-4 py-4 text-center shadow-sm">
-        <p className="text-sm font-bold text-ink">Respirad. Lo importante está apuntado.</p>
-        <p className="mt-1 text-xs text-muted">Nido está aquí para bajar un poco el ruido.</p>
-      </div>
+      <p className="pb-2 text-center text-xs text-muted">Nido está aquí para bajar un poco el ruido.</p>
     </div>
   )
 }

@@ -23,7 +23,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
     <HomeSection
       label="Listas de casa"
       isEmpty={items.length === 0}
-      emptyState={<EmptyState emoji="✓" title="Listas al día" description="No falta nada importante por ahora" />}
+      emptyState={<EmptyState compact emoji="✓" title="Listas al día" />}
       footer={
         <Link href="/lists" className="text-xs font-semibold text-primary hover:underline">
           Ver todas las listas

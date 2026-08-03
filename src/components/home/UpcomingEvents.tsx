@@ -27,7 +27,7 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids }: Upc
     <CardSection label="Esta semana">
       <Card padded={false}>
         {events.length === 0 ? (
-          <EmptyState emoji="☘" title="Semana tranquila" description="No hay planes próximos" />
+          <EmptyState compact emoji="☘" title="Semana tranquila, sin planes próximos" />
         ) : (
           <ul className="divide-y divide-hairline">
             {events.map((event) => {

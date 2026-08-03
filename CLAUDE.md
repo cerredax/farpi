@@ -31,6 +31,9 @@ npx playwright test --ui                         # modo interactivo
 
 Para cambios relevantes, ejecutar `npm run lint` y `npm run build`.
 
+Variables de entorno: la plantilla con todas las que usa la app está en `.env.example`
+(no la carga Next, es documentación). Las reales van en `.env.local`, que no se versiona.
+
 ## Arquitectura
 
 ### Frontera de datos: demo vs Supabase

@@ -1,12 +1,16 @@
 # Validación Supabase
 
-Última revisión: 2026-08-03. **Fase 3 cerrada: 39/39 comprobaciones correctas.**
+Última revisión: 2026-08-03. **Fase 3 cerrada: 47/47 comprobaciones correctas.**
 
 ## Estado
 
-Backend validado contra el proyecto real con dos usuarios y dos familias de prueba, creados y eliminados durante la ejecución. Los datos reales de la familia no se tocaron.
+Backend validado contra el proyecto real con tres usuarios y dos familias de prueba, creados y eliminados durante la ejecución. Los datos reales de la familia no se tocaron.
 
-**Método.** En lugar de `set role` desde el SQL Editor, las pruebas se ejecutaron con **sesiones de usuario reales**: se autentican los dos usuarios, se obtiene su JWT y se ataca la API REST con él. Es el mismo trayecto que recorre la app (JWT → PostgREST → RLS), así que valida también que las policies se aplican con el token del usuario y no solo a nivel de rol de base de datos.
+**Método.** En lugar de `set role` desde el SQL Editor, las pruebas se ejecutaron con **sesiones de usuario reales**: se autentican los usuarios, se obtiene su JWT y se ataca la API REST y la de Storage con él. Es el mismo trayecto que recorre la app (JWT → PostgREST → RLS), así que valida también que las policies se aplican con el token del usuario y no solo a nivel de rol de base de datos.
+
+Repetible con `node scripts/validate-rls.mjs`. Conviene ejecutarlo después de tocar una migración, una policy o una RPC.
+
+**Tres usuarios, no dos.** A y B empiezan en familias distintas, pero en la sección de invitaciones B acepta unirse a la familia de A y deja de ser ajeno. Por eso existe un tercer usuario C que nunca entra en ninguna familia: es el que prueba el aislamiento a partir de ese punto. Sin él, las comprobaciones de Storage pasaban por el motivo equivocado.
 
 No se incluyen aquí URLs privadas, claves ni datos personales.
 
@@ -72,8 +76,12 @@ Casos obligatorios:
 - [x] Bucket `documents` existe.
 - [x] Bucket `documents` es privado (`public = false`).
 - [x] Path esperado: `{family_id}/{document_id}/{filename}` (lo impone `supabase-repos.ts`).
-- [ ] Subida/lectura/borrado por un miembro de la familia — pendiente de prueba manual desde la app.
-- [ ] Fuga cross-family con signed URL conociendo el path — pendiente de prueba manual.
+- [x] Un miembro de la familia sube, firma, descarga y borra su documento.
+- [x] Un usuario ajeno **no** puede firmar el documento aunque conozca la ruta exacta.
+- [x] Un usuario ajeno **no** puede descargarlo directamente.
+- [x] Un usuario ajeno **no** ve nada al listar la carpeta de otra familia.
+- [x] Un usuario ajeno **no** puede borrarlo.
+- [x] Un miembro que se une por invitación **sí** pasa a poder firmarlo.
 
 ## Validación Integridad
 
@@ -87,8 +95,11 @@ Los tres devuelven 400 desde el trigger de `007_cross_family_integrity.sql`.
 
 **El aislamiento entre familias funciona.** Un usuario solo ve y escribe en las familias donde figura en `family_members`; lo demás le resulta invisible en lectura y prohibido en escritura. La regla del último admin la aplica el servidor, no solo la UI. Los triggers de integridad impiden mezclar identificadores entre familias.
 
-Queda como único pendiente la comprobación manual de Storage (subir un documento desde la app y verificar que otra familia no puede abrirlo con signed URL), que necesita interacción real con el navegador.
+**Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-### Nota sobre la documentación
+No queda ninguna comprobación pendiente en esta fase.
 
-Durante la validación se detectó que `architecture.md` y `project-status.md` documentaban la RPC como `accept_family_invite(invite_id)`, cuando la migración y el código usan `p_invite_id`. Corregido.
+### Notas de la ejecución
+
+- Se detectó que `architecture.md` y `project-status.md` documentaban la RPC como `accept_family_invite(invite_id)`, cuando la migración y el código usan `p_invite_id`. Corregido.
+- Dos versiones intermedias del arnés daban falsos positivos en Storage: primero por omitir el nombre del bucket en la ruta (todo fallaba, incluidas las operaciones legítimas) y después por usar como "ajeno" a un usuario que ya se había unido a la familia. Ambos casos servían de recordatorio de que una prueba que pasa no siempre prueba lo que dice.

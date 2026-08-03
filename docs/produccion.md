@@ -16,7 +16,7 @@ La app está **funcionalmente completa** y verificada (build, lint y 14 tests e2
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-El backend está **validado** (§4): 39/39 comprobaciones de RLS, RPCs, integridad y Storage. La app está desplegada y operativa en https://nido-xi.vercel.app.
+El backend está **validado** (§4): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. La app está desplegada y operativa en https://nido-xi.vercel.app.
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 
@@ -69,14 +69,14 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-03)
 
-Resultados en **`docs/supabase-validation.md`**: 39/39 comprobaciones correctas.
+Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas. Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
 - [x] Las 5 RPCs, incluida la regla del último admin.
 - [x] Triggers de integridad cross-family.
 - [x] Bucket `documents` privado.
-- [ ] Storage: subida real y fuga cross-family con signed URL — pendiente de prueba manual desde la app.
+- [x] Storage: subida real, signed URL y fuga cross-family (un ajeno no puede firmar, descargar, listar ni borrar).
 - [x] Resultados registrados en `docs/supabase-validation.md`.
 
 ---
@@ -105,7 +105,6 @@ Resultados en **`docs/supabase-validation.md`**: 39/39 comprobaciones correctas.
 ### Recomendadas (no bloqueantes)
 - [x] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
 - [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).
-- [ ] Prueba manual de Storage (subida + fuga cross-family).
 
 ### Mejoras futuras (opcional)
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).

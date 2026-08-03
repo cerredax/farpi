@@ -88,13 +88,18 @@ async function main() {
   const sufijo = randomUUID().slice(0, 8)
   const emailA = `rls-a-${sufijo}@nido-test.invalid`
   const emailB = `rls-b-${sufijo}@nido-test.invalid`
+  // C nunca entra en ninguna familia: es el "ajeno" permanente. B deja de serlo
+  // en la sección 7, cuando acepta la invitación a la familia A.
+  const emailC = `rls-c-${sufijo}@nido-test.invalid`
   const password = `Prueba-${randomUUID().slice(0, 10)}`
 
   console.log('== preparando usuarios y familias de prueba')
   const uidA = await crearUsuario(emailA, password)
   const uidB = await crearUsuario(emailB, password)
+  const uidC = await crearUsuario(emailC, password)
   const tokA = await entrar(emailA, password)
   const tokB = await entrar(emailB, password)
+  const tokC = await entrar(emailC, password)
 
   const famA = (await api('/rest/v1/rpc/create_family_with_admin', {
     metodo: 'POST', token: tokA, datos: { family_name: 'Familia Test A' },
@@ -201,11 +206,71 @@ async function main() {
   console.log('\n== 8. Storage privado')
   const bucket = (await api('/storage/v1/bucket/documents')).cuerpo
   comprobar('El bucket documents existe y es privado', bucket?.public === false)
-  // Nota: la prueba de fuga con signed URL sigue siendo manual (ver guía).
+
+  // Ruta con el convenio de la app: {family_id}/{document_id}/{filename},
+  // dentro del bucket `documents`.
+  const docId = randomUUID()
+  const rutaObjeto = `${famA}/${docId}/informe.pdf`
+  const enBucket = `documents/${rutaObjeto}`
+  const contenido = new Blob(['%PDF-1.4 prueba de validacion'], { type: 'application/pdf' })
+
+  const subida = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
+    method: 'POST',
+    headers: { apikey: ANON, Authorization: `Bearer ${tokA}`, 'Content-Type': 'application/pdf' },
+    body: contenido,
+  })
+  comprobar('A sube un documento a la carpeta de su familia', subida.ok, `estado ${subida.status}`)
+
+  const firmar = async token => api(`/storage/v1/object/sign/${enBucket}`, {
+    metodo: 'POST', token, datos: { expiresIn: 60 },
+  })
+
+  const firmaA = await firmar(tokA)
+  comprobar('A obtiene una signed URL de su propio documento',
+    firmaA.estado === 200 && !!firmaA.cuerpo?.signedURL, `estado ${firmaA.estado}`)
+
+  if (firmaA.cuerpo?.signedURL) {
+    const descarga = await fetch(`${URL_BASE}/storage/v1${firmaA.cuerpo.signedURL}`)
+    comprobar('La signed URL de A descarga el contenido', descarga.ok, `estado ${descarga.status}`)
+  }
+
+  // El caso que de verdad importa: un usuario ajeno conoce la ruta exacta e
+  // intenta llegar al archivo. Se usa C porque B ya es miembro de la familia A.
+  const firmaC = await firmar(tokC)
+  comprobar('Un ajeno NO puede firmar el documento de A aun conociendo la ruta',
+    firmaC.estado >= 400, `estado ${firmaC.estado}`)
+
+  const directaC = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
+    headers: { apikey: ANON, Authorization: `Bearer ${tokC}` },
+  })
+  comprobar('Un ajeno NO puede descargar el documento de A directamente',
+    !directaC.ok, `estado ${directaC.status}`)
+
+  const listadoC = await api('/storage/v1/object/list/documents', {
+    metodo: 'POST', token: tokC, datos: { prefix: `${famA}/`, limit: 100 },
+  })
+  comprobar('Un ajeno NO ve el contenido de la carpeta de A al listar',
+    Array.isArray(listadoC.cuerpo) && listadoC.cuerpo.length === 0,
+    `elementos: ${Array.isArray(listadoC.cuerpo) ? listadoC.cuerpo.length : listadoC.estado}`)
+
+  const borradoC = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
+    method: 'DELETE', headers: { apikey: ANON, Authorization: `Bearer ${tokC}` },
+  })
+  comprobar('Un ajeno NO puede borrar el documento de A', !borradoC.ok, `estado ${borradoC.status}`)
+
+  // B sí debe poder verlo: en la sección 7 se unió a la familia A.
+  const firmaMiembro = await firmar(tokB)
+  comprobar('Un miembro de la familia SÍ puede firmar el documento',
+    firmaMiembro.estado === 200, `estado ${firmaMiembro.estado}`)
+
+  const borradoA = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
+    method: 'DELETE', headers: { apikey: ANON, Authorization: `Bearer ${tokA}` },
+  })
+  comprobar('A sí puede borrar su propio documento', borradoA.ok, `estado ${borradoA.status}`)
 
   console.log('\n== limpieza')
   for (const fam of [famA, famB]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })
-  for (const uid of [uidA, uidB]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })
+  for (const uid of [uidA, uidB, uidC]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })
   const familias = (await api('/rest/v1/families?select=name')).cuerpo
   console.log('   familias que quedan:', Array.isArray(familias) ? familias.map(f => f.name) : familias)
 

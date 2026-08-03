@@ -52,7 +52,7 @@ Estado:
 - Proyecto Supabase creado y migraciones subidas.
 - UI conectada mediante repositorios reales (`supabase-repos.ts`).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
-- Validación aislada completada (2026-08-03): 39/39 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
+- Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 

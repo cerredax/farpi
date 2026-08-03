@@ -82,18 +82,17 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 - Proyecto Supabase creado, migraciones 001–011 aplicadas y UI conectada.
 - App en producción (Vercel) contra el mismo proyecto Supabase que local.
-- **Validación aislada completada el 2026-08-03: 39/39 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
+- **Validación aislada completada el 2026-08-03: 47/47 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
 - SMTP propio configurado, así que las invitaciones por magic link ya se envían.
 - No documentar URLs privadas, anon keys ni secretos en el repositorio.
 
 ## Pendientes de validación Supabase
 
-- Prueba manual de Storage: subir un documento desde la app y comprobar que otra familia no puede abrirlo con signed URL. Es lo único que no cubre la validación automatizada.
+Ninguno. Repetir con `node scripts/validate-rls.mjs` tras cambios de esquema, policies o RPCs.
 
 ## Siguiente paso recomendado
 
 Para llevarlo a producción, la checklist completa está en **`docs/produccion.md`**.
 
-1. Cerrar la prueba manual de Storage (subida + fuga cross-family).
-2. Revisión de accesibilidad (labels, foco, contraste, roles).
-3. Refactor de tokens de color (con la UI congelada).
+1. Revisión de accesibilidad (labels, foco, contraste, roles).
+2. Refactor de tokens de color (con la UI congelada).

@@ -91,9 +91,35 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 Ninguno. Repetir con `node scripts/validate-rls.mjs` tras cambios de esquema, policies o RPCs.
 
-## Siguiente paso recomendado
+## Siguiente paso recomendado (plan para 2026-08-04)
 
-Para llevarlo a producción, la checklist completa está en **`docs/produccion.md`**.
+### Bloqueante: desplegar lo de hoy
 
-1. Revisión de accesibilidad (labels, foco, contraste, roles).
-2. Refactor de tokens de color (con la UI congelada).
+1. **Añadir `CRON_SECRET` en Vercel** (Production). Sin ella el cron responde 503.
+2. **Pushear los commits pendientes.** Entre ellos va el arreglo del callback de
+   invitaciones, y corre prisa: el enlace de recuperación de contraseña enviado a
+   `omar.garcia@confia.es` el 03-08 **no funcionará bien hasta que ese arreglo esté en
+   producción**, porque devuelve la sesión en el fragmento de la URL.
+
+### Verificar en producción (lo de hoy está probado en local, no en real)
+
+3. **Invitación completa de punta a punta** con un email nuevo: que llegue, que el
+   enlace dé de alta en la familia y que la persona vea los datos. El flujo se arregló
+   hoy pero nunca se ha ejecutado entero con éxito.
+4. **Que el cron corra** por primera vez (07:00 UTC). Revisar los logs de Vercel y que
+   devuelva `keptAlive: true`.
+5. **Mirar la app con los colores nuevos** en pantalla real. La tokenización unificó
+   tonos casi idénticos; está verificada con capturas, pero conviene un vistazo humano.
+
+### Hueco funcional detectado
+
+6. **Una persona invitada no tiene contraseña.** `inviteUserByEmail` crea el usuario sin
+   ella, así que solo puede entrar por el enlace del correo o poniéndose una desde
+   "¿Olvidaste tu contraseña?". La app no ofrece ningún sitio para **cambiar la
+   contraseña** estando dentro. Merece la pena decidir si se añade.
+
+### Después
+
+7. Revisión de accesibilidad (labels, foco, contraste, roles).
+8. Decidir si se borra `supabase/validate_rls.sql`, redundante con
+   `scripts/validate-rls.mjs`.

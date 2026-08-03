@@ -105,6 +105,13 @@ Esta RPC:
 
 Canal de entrega elegido: **magic link** vía `admin.auth.admin.inviteUserByEmail` en `/api/invite`, con `redirectTo` a `/auth/callback?invite_id=...`.
 
+`/auth/callback` es una **página de cliente**, no un route handler, y no es un detalle
+menor: los enlaces de invitación devuelven la sesión en el **fragmento** de la URL
+(`#access_token=…`, flujo implícito), y el fragmento nunca llega al servidor. Resuelto
+en servidor, la invitación se perdía en silencio y el usuario quedaba autenticado pero
+fuera de la familia. La página atiende los dos flujos —fragmento y `?code=` de PKCE— y
+muestra un mensaje claro cuando el enlace ha caducado o ya se usó.
+
 ## Repositorios
 
 Frontera de datos ya implementada:

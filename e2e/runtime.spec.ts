@@ -61,3 +61,13 @@ for (const { route, button, dialog } of CREATE_SHEETS) {
     expect(problems, `Problemas en ${route}:\n${problems.join('\n')}`).toEqual([])
   })
 }
+
+// El callback de los enlaces de correo tiene que entender el fragmento de la
+// URL: los enlaces de invitación devuelven la sesión (o el error) ahí, y el
+// servidor nunca lo ve. Cuando esto se resolvía en el servidor, una invitación
+// caducada dejaba al usuario en /home sin ninguna explicación.
+test('el callback explica un enlace caducado en vez de dejar al usuario tirado', async ({ page }) => {
+  await page.goto('/auth/callback#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired')
+  await expect(page.getByText('No hemos podido abrir el enlace')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ir a iniciar sesión' })).toBeVisible()
+})

@@ -52,7 +52,7 @@ Estado:
 - Proyecto Supabase creado y migraciones subidas.
 - UI conectada mediante repositorios reales (`supabase-repos.ts`).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
-- Validación aislada (RLS con dos usuarios, RPCs, Storage) pendiente de ejecutar y documentar en `docs/supabase-validation.md`.
+- Validación aislada completada (2026-08-03): 39/39 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
@@ -66,7 +66,7 @@ Migraciones:
 - `006_event_recurrence.sql` — columna `recurrence_group_id` en `events`
 - `007_cross_family_integrity.sql` — triggers que impiden que `list_items`, `events` y `documents` crucen familias
 - `008_admin_rpcs.sql` — `remove_family_member`, `update_family_member_role` (security definer); reemplaza policy `Admin gestiona miembros` por `Admin inserta miembros`
-- `009_accept_invite_rpc.sql` — `accept_family_invite(invite_id)` (security definer): crea `family_member` y marca la invitación como aceptada; devuelve el `family_id`
+- `009_accept_invite_rpc.sql` — `accept_family_invite(p_invite_id)` (security definer): crea `family_member` y marca la invitación como aceptada; devuelve el `family_id`
 
 Regla central de RLS:
 
@@ -93,7 +93,7 @@ Ambas son `security definer` con `set search_path = public, auth`. La policy `Ad
 
 ### Invitaciones
 
-La migración `009_accept_invite_rpc.sql` añade `accept_family_invite(invite_id uuid)`.
+La migración `009_accept_invite_rpc.sql` añade `accept_family_invite(p_invite_id uuid)`.
 
 Esta RPC:
 

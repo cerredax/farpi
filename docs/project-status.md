@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-07-30.
+Última revisión: 2026-08-03.
 
 ## Resumen
 
@@ -40,7 +40,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - Bucket privado `documents` con policies completas (SELECT por familia habilita signed URLs).
 - Triggers de integridad cross-family (`family_id`, `list_id`, `child_id`).
 - RPCs admin `remove_family_member` y `update_family_member_role` con control de último admin.
-- RPC `accept_family_invite(invite_id uuid)`.
+- RPC `accept_family_invite(p_invite_id uuid)`.
 - Script `supabase/validate_rls.sql` para validar RLS, RPCs, triggers e invitaciones desde SQL Editor.
 
 ### Calidad / infraestructura
@@ -78,24 +78,20 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Estado Supabase
 
-- Proyecto Supabase creado, migraciones subidas y UI conectada.
-- La validación aislada (RLS con dos usuarios, RPCs, Storage) sigue **pendiente de ejecutar y documentar**.
+- Proyecto Supabase creado, migraciones 001–011 aplicadas y UI conectada.
+- App en producción (Vercel) contra el mismo proyecto Supabase que local.
+- **Validación aislada completada el 2026-08-03: 39/39 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
+- SMTP propio configurado, así que las invitaciones por magic link ya se envían.
 - No documentar URLs privadas, anon keys ni secretos en el repositorio.
 
 ## Pendientes de validación Supabase
 
-- Ejecutar o completar `supabase/validate_rls.sql` en SQL Editor.
-- Verificar aislamiento RLS con dos usuarios y dos familias.
-- Verificar que miembro no admin no puede gestionar miembros ni invitaciones.
-- Verificar que no se puede eliminar o degradar al último admin.
-- Verificar bucket privado `documents` con paths `{family_id}/{document_id}/{filename}`.
-- Verificar constraints/triggers cross-family con intentos inválidos.
-- Documentar resultados en `docs/supabase-validation.md`.
+- Prueba manual de Storage: subir un documento desde la app y comprobar que otra familia no puede abrirlo con signed URL. Es lo único que no cubre la validación automatizada.
 
 ## Siguiente paso recomendado
 
-Para llevarlo a producción, la checklist completa está en **`docs/produccion.md`** (env vars en Vercel, Auth de Supabase, validación y smoke post-deploy).
+Para llevarlo a producción, la checklist completa está en **`docs/produccion.md`**.
 
-1. Cerrar la validación Supabase aislada (usuarios A/B, RPCs, Storage) y documentarla — guía paso a paso en `docs/supabase-validation-guide.md`.
+1. Cerrar la prueba manual de Storage (subida + fuga cross-family).
 2. Revisión de accesibilidad (labels, foco, contraste, roles).
 3. Refactor de tokens de color (con la UI congelada).

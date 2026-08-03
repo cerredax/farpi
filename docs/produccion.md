@@ -2,7 +2,7 @@
 
 Estado y pasos para llevar Nido a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-07-30.
+> Última actualización: 2026-08-03.
 
 ---
 
@@ -16,7 +16,7 @@ La app está **funcionalmente completa** y verificada (build, lint y 14 tests e2
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-Lo único que **falta para dar por seguro el backend** es la validación manual de RLS/RPCs/Storage (ver §4).
+El backend está **validado** (§4): 39/39 comprobaciones de RLS, RPCs, integridad y Storage. La app está desplegada y operativa en https://nido-xi.vercel.app.
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 
@@ -28,29 +28,31 @@ Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap:
 
 En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca *Production* y *Preview*):
 
-- [ ] `NEXT_PUBLIC_SUPABASE_URL` — URL del proyecto Supabase.
-- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — anon key.
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` — service role (solo servidor; necesaria para enviar invitaciones). **Nunca** exponer al cliente.
-- [ ] `NEXT_PUBLIC_SITE_URL` — dominio de producción (p. ej. `https://nido.vercel.app`). Se usa para el `redirectTo` del magic link.
+- [x] `NEXT_PUBLIC_SUPABASE_URL` — URL del proyecto Supabase.
+- [x] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — clave pública (formato nuevo `sb_publishable_…`).
+- [x] `SUPABASE_SERVICE_ROLE_KEY` — clave de servicio `sb_secret_…` (solo servidor; necesaria para enviar invitaciones). **Nunca** exponer al cliente.
+- [x] `NEXT_PUBLIC_SITE_URL` — dominio de producción. Se usa para el `redirectTo` del magic link.
+
+> **Cuidado al pegarlas.** En la puesta en marcha se colaron dos veces valores recortados (un espacio delante y la última letra perdida), y el síntoma fue un "Failed to fetch" opaco en el navegador. Para comprobar qué valores hay realmente horneados en producción, basta con buscar la URL en el JS servido: `curl -s https://<dominio>/auth/login` y seguir los chunks de `/_next/static`.
 - [ ] `NEXT_PUBLIC_DONATION_URL` — *(opcional)* enlace de donación en Ajustes.
 
 > Sin `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` válidas, la app arranca en **modo demo** (datos locales). Es el comportamiento correcto, pero no es lo que quieres en producción.
 
 ### 2.2 Supabase — base de datos
 
-- [ ] Migraciones `001`–`009` aplicadas en el proyecto de producción (SQL Editor o CLI).
-- [ ] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
-- [ ] RLS activo en todas las tablas privadas.
+- [x] Migraciones `001`–`011` aplicadas en el proyecto de producción (SQL Editor o CLI).
+- [x] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
+- [x] RLS activo en todas las tablas privadas.
 
 ### 2.3 Supabase — Auth
 
-- [ ] **Authentication → URL Configuration → Site URL**: el dominio de producción.
-- [ ] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y el de preview si usas invitaciones en preview).
-- [ ] **Email**: proveedor SMTP configurado (Auth → Emails). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
-- [ ] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
+- [x] **Authentication → URL Configuration → Site URL**: el dominio de producción.
+- [x] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y `http://localhost:3000/auth/callback` para desarrollo).
+- [x] **Email**: proveedor SMTP configurado (Auth → Emails, en `.../auth/smtp`). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
+- [x] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
 - [ ] **Google** (opcional): el botón "Continuar con Google" del login se muestra solo si el proveedor está habilitado en Supabase — la app lo consulta en `/auth/v1/settings` (ver `src/lib/supabase/auth-providers.ts`). Si lo habilitas, añade también el redirect `https://<dominio>/auth/callback`.
 
-> Estado a 2026-08-03: el proyecto tiene el esquema completo (11 tablas) y las claves nuevas (`sb_publishable_…` / `sb_secret_…`) funcionan, pero **no hay ningún usuario creado** todavía y solo está activo el proveedor `email`.
+> Estado a 2026-08-03: esquema completo (11 tablas), claves nuevas funcionando, SMTP propio configurado y primer usuario creado. Solo está activo el proveedor `email`; Google sigue desactivado.
 
 ---
 
@@ -65,16 +67,17 @@ Build local de comprobación: `npm run build`.
 
 ---
 
-## 4. Validación Supabase (Fase 3) — PENDIENTE
+## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-03)
 
-Sigue la guía **`docs/supabase-validation-guide.md`**. En resumen:
+Resultados en **`docs/supabase-validation.md`**: 39/39 comprobaciones correctas.
 
-- [ ] Crear 2 usuarios y 2 familias de prueba.
-- [ ] Ejecutar `supabase/validate_rls.sql` (RLS por tabla, aislamiento entre familias).
-- [ ] Probar las 5 RPCs (incl. regla del último admin).
-- [ ] Probar triggers de integridad cross-family.
-- [ ] Probar Storage privado + fuga cross-family (signed URL de otra familia debe fallar).
-- [ ] Registrar resultados en `docs/supabase-validation.md`.
+- [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
+- [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
+- [x] Las 5 RPCs, incluida la regla del último admin.
+- [x] Triggers de integridad cross-family.
+- [x] Bucket `documents` privado.
+- [ ] Storage: subida real y fuga cross-family con signed URL — pendiente de prueba manual desde la app.
+- [x] Resultados registrados en `docs/supabase-validation.md`.
 
 ---
 
@@ -95,13 +98,14 @@ Sigue la guía **`docs/supabase-validation-guide.md`**. En resumen:
 ## 6. Tareas pendientes (backlog)
 
 ### Bloqueantes para producción
-- [ ] Configurar env vars en Vercel (§2.1).
-- [ ] Configurar Auth de Supabase: Site URL, Redirect URLs y SMTP (§2.3).
-- [ ] Cerrar validación Supabase (§4).
+- [x] Configurar env vars en Vercel (§2.1).
+- [x] Configurar Auth de Supabase: Site URL, Redirect URLs y SMTP (§2.3).
+- [x] Cerrar validación Supabase (§4).
 
 ### Recomendadas (no bloqueantes)
-- [ ] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
-- [ ] Revisar límites de envío de email del proveedor (invitaciones).
+- [x] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
+- [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).
+- [ ] Prueba manual de Storage (subida + fuga cross-family).
 
 ### Mejoras futuras (opcional)
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).

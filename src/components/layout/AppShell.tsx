@@ -8,6 +8,7 @@ import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { supabaseRepos } from '@/lib/supabase-repos'
 import { TopBar } from './TopBar'
 import { BottomNav } from './BottomNav'
+import { SaveStatus } from './SaveStatus'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [familyId, setFamilyId] = useState<string>(() => readActiveFamilyId())
@@ -77,6 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto pb-20 pt-14">
           {children}
         </main>
+        <SaveStatus />
         <BottomNav />
       </div>
     </StoreProvider>

@@ -60,6 +60,7 @@ export function CalendarView() {
 
   async function handleCreate(draft: EventDraft) {
     const event = await createEvent(draft)
+    if (!event) return  // falló: el store ya muestra el motivo
     const eventDate = parseISO(event.start_at)
     setSelectedDay(eventDate)
     setCurrentMonth(startOfMonth(eventDate))

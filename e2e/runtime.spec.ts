@@ -71,3 +71,25 @@ test('el callback explica un enlace caducado en vez de dejar al usuario tirado',
   await expect(page.getByText('No hemos podido abrir el enlace')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ir a iniciar sesión' })).toBeVisible()
 })
+
+// Un fallo al guardar tiene que verse. Antes el store registraba el error y
+// nadie lo mostraba: la operación no ocurría y la app no decía nada.
+test('avisa cuando una operación no se ha podido guardar', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.waitForTimeout(600)
+
+  // El store mock crea los ids con crypto.randomUUID: si falla, la escritura
+  // revienta igual que lo haría un corte de red contra Supabase.
+  await page.evaluate(() => {
+    crypto.randomUUID = () => { throw new Error('Se ha perdido la conexión') }
+  })
+
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  await page.locator('#task-title').fill('Tarea que no se guardará')
+  await page.getByRole('button', { name: 'Crear tarea' }).click()
+
+  await expect(page.getByText('No se ha guardado el cambio')).toBeVisible()
+  await expect(page.getByText('Se ha perdido la conexión')).toBeVisible()
+  // Y no se ha creado nada a medias.
+  await expect(page.getByText('Tarea que no se guardará')).toHaveCount(0)
+})

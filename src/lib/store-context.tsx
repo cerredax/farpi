@@ -34,7 +34,11 @@ if (typeof window !== 'undefined' && IS_DEMO_MODE) {
 
 interface StoreValue {
   isLoading: boolean
+  /** Hay una operación de escritura en curso. La UI lo usa para avisar. */
+  isSaving: boolean
   error: string | null
+  /** Descarta el error mostrado, al cerrarlo el usuario o al reintentar. */
+  clearError: () => void
   reload: () => Promise<void>
   activeFamilyId: string
   families: Family[]
@@ -62,7 +66,7 @@ interface StoreValue {
   createKid: (draft: ChildDraft) => Promise<void>
   updateKid: (id: string, draft: ChildDraft) => Promise<void>
   deleteKid: (id: string) => Promise<void>
-  createEvent: (draft: EventDraft) => Promise<Event>
+  createEvent: (draft: EventDraft) => Promise<Event | null>
   createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) => Promise<Event[]>
   createYearlySeries: (draft: EventDraft, endYear: number) => Promise<Event[]>
   updateEvent: (id: string, draft: EventDraft) => Promise<void>
@@ -114,6 +118,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const repos: Repos = IS_DEMO_MODE ? mockRepos : supabaseRepos
 
   const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [families, setFamilies] = useState<Family[]>(EMPTY_SLICES.families)
@@ -188,15 +193,19 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
   const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
 
+  // Toda escritura pasa por aquí: marca que hay algo en curso y deja el fallo
+  // en `error` para que la UI pueda contarlo. Antes se relanzaba y nadie lo
+  // recogía, así que un fallo de red se quedaba en silencio.
   const runMutation = useCallback(async (action: () => Promise<unknown>): Promise<void> => {
     setError(null)
+    setIsSaving(true)
     try {
       await action()
       await reload()
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo guardar el cambio'
-      setError(message)
-      throw err
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el cambio')
+    } finally {
+      setIsSaving(false)
     }
   }, [reload])
 
@@ -205,7 +214,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
 
     return {
       isLoading,
+      isSaving,
       error,
+      clearError: () => setError(null),
       reload,
       activeFamilyId: familyId,
       families,
@@ -225,13 +236,14 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       pendingItems,
       createFamily: async (name: string) => {
         setError(null)
+        setIsSaving(true)
         try {
           const created = await repos.family.createFamily(name)
           switchFamily(created.id)
         } catch (err) {
-          const message = err instanceof Error ? err.message : 'No se pudo crear la familia'
-          setError(message)
-          throw err
+          setError(err instanceof Error ? err.message : 'No se pudo crear la familia')
+        } finally {
+          setIsSaving(false)
         }
       },
       updateFamilyName: (name: string) => runMutation(() => repos.family.setFamilyName(familyId, name)),
@@ -243,20 +255,50 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createKid: (draft: ChildDraft) => runMutation(() => repos.children.createKid(familyId, draft)),
       updateKid: (id: string, draft: ChildDraft) => runMutation(() => repos.children.updateKid(id, draft)),
       deleteKid: (id: string) => runMutation(() => repos.children.deleteKid(id)),
+      // Los eventos devuelven lo creado (la vista salta a esa fecha), así que no
+      // pueden usar runMutation tal cual, pero comparten su manejo del fallo:
+      // el error queda en el store y se devuelve un valor vacío.
       createEvent: async (draft: EventDraft) => {
-        const event = await repos.events.createEvent(familyId, draft)
-        await reload()
-        return event
+        setError(null)
+        setIsSaving(true)
+        try {
+          const event = await repos.events.createEvent(familyId, draft)
+          await reload()
+          return event
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'No se pudo crear el evento')
+          return null
+        } finally {
+          setIsSaving(false)
+        }
       },
       createEventSeries: async (draft: EventDraft, weekdays: number[], endDate: string) => {
-        const events = await repos.events.createEventSeries(familyId, draft, weekdays, endDate)
-        await reload()
-        return events
+        setError(null)
+        setIsSaving(true)
+        try {
+          const events = await repos.events.createEventSeries(familyId, draft, weekdays, endDate)
+          await reload()
+          return events
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'No se pudo crear la serie de eventos')
+          return []
+        } finally {
+          setIsSaving(false)
+        }
       },
       createYearlySeries: async (draft: EventDraft, endYear: number) => {
-        const events = await repos.events.createYearlySeries(familyId, draft, endYear)
-        await reload()
-        return events
+        setError(null)
+        setIsSaving(true)
+        try {
+          const events = await repos.events.createYearlySeries(familyId, draft, endYear)
+          await reload()
+          return events
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'No se pudo crear la serie de eventos')
+          return []
+        } finally {
+          setIsSaving(false)
+        }
       },
       updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft)),
       deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id)),
@@ -285,6 +327,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     }
   }, [
     isLoading,
+    isSaving,
     error,
     reload,
     familyId,

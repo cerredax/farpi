@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { DeleteButton } from '@/components/ui/DeleteButton'
+import { DotOption } from '@/components/ui/DotOption'
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
 import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { validateTaskDraft } from '@/lib/validators'
 import type { Task, TaskDraft } from '@/types'
 
 type Mode = 'create' | 'edit'
@@ -35,161 +36,118 @@ function initDraft(mode: Mode, initial: Task | null | undefined): TaskDraft {
 }
 
 export function TaskSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: TaskSheetProps) {
-  const [draft, setDraft] = useState<TaskDraft>(() => initDraft(mode, initial))
-  const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
-  const titleRef = useRef<HTMLInputElement>(null)
+  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<TaskDraft>({
+    open,
+    initialDraft: () => initDraft(mode, initial),
+    validate: validateTaskDraft,
+  })
+  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  useEffect(() => {
-    if (open) setTimeout(() => titleRef.current?.focus(), 300)
-  }, [open])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!draft.title.trim()) return
-    if (mode === 'create') onCreate(draft)
-    else if (initial) onUpdate(initial.id, draft)
+  const handleSubmit = submitHandler(valid => {
+    if (mode === 'create') onCreate(valid)
+    else if (initial) onUpdate(initial.id, valid)
     onClose()
-  }
-
-  function handleDelete() {
-    if (!initial) return
-    requestConfirm(() => { onDelete(initial.id); onClose() })
-  }
+  })
 
   const hasRecurrence = draft.recurrence !== 'none'
-
-  const footer = (
-    <div className="px-5 pb-8 pt-3 space-y-2">
-      <Button type="submit" form="task-form" fullWidth size="lg" disabled={!draft.title.trim()}>
-        {mode === 'create' ? 'Crear tarea' : 'Guardar cambios'}
-      </Button>
-      {mode === 'edit' && (
-        <DeleteButton confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar tarea" confirmLabel="Confirmar eliminación" />
-      )}
-    </div>
-  )
 
   return (
     <BottomSheet
       open={open}
       title={mode === 'create' ? 'Nueva tarea' : 'Editar tarea'}
       onClose={onClose}
-      footer={footer}
+      footer={
+        <SheetFooter
+          form="task-form"
+          submitLabel={mode === 'create' ? 'Crear tarea' : 'Guardar cambios'}
+          disabled={!draft.title.trim()}
+          error={formError}
+          onDelete={mode === 'edit'
+            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar tarea', confirmLabel: 'Confirmar eliminación' }
+            : undefined}
+        />
+      }
     >
       <form id="task-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
 
-        {/* Título */}
-        <div className="space-y-1.5">
-          <label htmlFor="task-title" className="field-label">Tarea</label>
+        <Field label="Tarea" htmlFor="task-title">
           <input
             id="task-title"
-            ref={titleRef}
+            ref={firstFieldRef}
             type="text"
             value={draft.title}
-            onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
+            onChange={e => patch({ title: e.target.value })}
             placeholder="¿Qué hay que hacer?"
             required
             className="field-input"
           />
-        </div>
+        </Field>
 
-        {/* Notas */}
-        <div className="space-y-1.5">
-          <label htmlFor="task-notes" className="field-label">Notas</label>
+        <Field label="Notas" htmlFor="task-notes">
           <textarea
             id="task-notes"
             value={draft.notes}
-            onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))}
+            onChange={e => patch({ notes: e.target.value })}
             placeholder="Detalles opcionales…"
             rows={2}
             className="field-input resize-none"
           />
-        </div>
+        </Field>
 
-        {/* Prioridad */}
-        <div className="space-y-2">
-          <label className="field-label">Prioridad</label>
+        <Field label="Prioridad" spacing="group">
           <div className="flex gap-3">
-            {TASK_PRIORITIES.map(opt => {
-              const selected = draft.priority === opt.value
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setDraft(d => ({ ...d, priority: opt.value }))}
-                  className="flex flex-col items-center gap-1.5 flex-1 py-2 rounded-2xl transition-colors"
-                  style={{ backgroundColor: selected ? opt.color + '22' : 'transparent' }}
-                >
-                  <span
-                    className="w-7 h-7 rounded-full transition-all"
-                    style={{
-                      backgroundColor: opt.color,
-                      boxShadow: selected ? `0 0 0 3px white, 0 0 0 5px ${opt.color}` : 'none',
-                      transform: selected ? 'scale(1.15)' : 'scale(1)',
-                    }}
-                  />
-                  <span className="text-[11px] font-bold transition-colors" style={{ color: selected ? opt.color : '#77716A' }}>
-                    {opt.label}
-                  </span>
-                </button>
-              )
-            })}
+            {TASK_PRIORITIES.map(opt => (
+              <DotOption
+                key={opt.value}
+                selected={draft.priority === opt.value}
+                onClick={() => patch({ priority: opt.value })}
+                color={opt.color}
+                label={opt.label}
+              />
+            ))}
           </div>
-        </div>
+        </Field>
 
-        {/* Repetición */}
-        <div className="space-y-2">
-          <label className="field-label">Repetición</label>
+        <Field label="Repetición" spacing="group">
           <div className="grid grid-cols-4 gap-1.5">
-            {TASK_RECURRENCES.map(opt => {
-              const selected = draft.recurrence === opt.value
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setDraft(d => ({ ...d, recurrence: opt.value, recurrence_end: '' }))}
-                  className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
-                    selected
-                      ? 'bg-primary text-white'
-                      : 'bg-canvas text-muted border border-line'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              )
-            })}
+            {TASK_RECURRENCES.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => patch({ recurrence: opt.value, recurrence_end: '' })}
+                className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
+                  draft.recurrence === opt.value
+                    ? 'bg-primary text-white'
+                    : 'bg-canvas text-muted border border-line'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
-        </div>
+        </Field>
 
-        {/* Fecha de inicio / vencimiento */}
-        <div className="space-y-1.5">
-          <label htmlFor="task-due" className="field-label">
-            {hasRecurrence ? 'Empieza el' : 'Vencimiento'}
-          </label>
+        <Field label={hasRecurrence ? 'Empieza el' : 'Vencimiento'} htmlFor="task-due">
           <input
             id="task-due"
             type="date"
             value={draft.due_date}
-            onChange={e => setDraft(d => ({ ...d, due_date: e.target.value }))}
+            onChange={e => patch({ due_date: e.target.value })}
             className="field-input"
           />
-        </div>
+        </Field>
 
-        {/* Fecha fin (solo si hay recurrencia) */}
         {hasRecurrence && (
-          <div className="space-y-1.5">
-            <label htmlFor="task-rec-end" className="field-label">
-              Termina el <span className="font-normal normal-case">(opcional)</span>
-            </label>
+          <Field label="Termina el" htmlFor="task-rec-end" hint="(opcional)">
             <input
               id="task-rec-end"
               type="date"
               value={draft.recurrence_end}
               min={draft.due_date || undefined}
-              onChange={e => setDraft(d => ({ ...d, recurrence_end: e.target.value }))}
+              onChange={e => patch({ recurrence_end: e.target.value })}
               className="field-input"
             />
-          </div>
+          </Field>
         )}
 
       </form>

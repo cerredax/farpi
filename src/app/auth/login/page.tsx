@@ -2,38 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  CalendarDays,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  FileText,
-  Heart,
-  Home,
-  ListChecks,
-  Loader2,
-  Lock,
-  Mail,
-  ShieldCheck,
-  Sparkles,
-  User,
-  Utensils,
-} from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, Sparkles, User } from 'lucide-react'
 import { createClient, IS_DEMO_MODE } from '@/lib/supabase/client'
+import { LoginHero } from './LoginHero'
 import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
 
 type AuthMode = 'signin' | 'signup'
 
 const PASSWORD_MIN_LENGTH = 8
-
-const benefits = [
-  { icon: CalendarDays, title: 'Agenda', text: 'Citas, planes y recordatorios familiares.' },
-  { icon: ListChecks, title: 'Pendientes', text: 'Tareas y listas compartidas sin ruido.' },
-  { icon: Utensils, title: 'Comidas', text: 'Menús semanales y compras mejor ordenadas.' },
-  { icon: FileText, title: 'Documentos', text: 'Papeles importantes siempre localizados.' },
-]
-
-const assurances = ['Gratis', 'Privado', 'Sin anuncios']
 
 function authErrorMessage(message: string) {
   const normalized = message.toLowerCase()
@@ -137,61 +114,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-dvh bg-[#F7F3EC] text-ink">
       <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[minmax(0,1fr)_480px] xl:grid-cols-[minmax(0,1fr)_520px]">
-        <section className="flex min-h-[52dvh] flex-col justify-between px-6 py-7 sm:px-10 lg:min-h-dvh lg:px-14 lg:py-12 xl:px-20">
-          <header className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#3D5C3A] text-white shadow-sm">
-                <Home size={21} strokeWidth={2.4} />
-              </div>
-              <div>
-                <p className="text-lg font-black leading-none tracking-tight">Nido</p>
-                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Familia en calma</p>
-              </div>
-            </div>
-
-            <div className="hidden items-center gap-2 sm:flex">
-              {assurances.map(item => (
-                <span key={item} className="rounded-full border border-[#E5DED4] bg-white/70 px-3 py-1 text-xs font-bold text-[#5C6854]">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </header>
-
-          <div className="py-12 lg:py-0">
-            <div className="max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#DDEAD9] bg-[#EEF4ED] px-3 py-1.5 text-xs font-bold text-[#4F6A4C]">
-                <Heart size={14} fill="currentColor" strokeWidth={2.2} />
-                Un espacio privado para tu casa
-              </div>
-              <h1 className="text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
-                Todo lo importante de tu familia, en un solo lugar.
-              </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-[#676159] sm:text-lg">
-                Nido reúne comidas, tareas, citas y documentos para que la semana sea más clara y la casa se sienta un poco más ligera.
-              </p>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {benefits.map(({ icon: Icon, title, text }) => (
-                  <div key={title} className="flex items-start gap-3 rounded-2xl border border-[#E8E1D8] bg-white/75 px-4 py-3 shadow-sm">
-                    <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#EEF4ED] text-primary-strong">
-                      <Icon size={18} strokeWidth={2.25} />
-                    </span>
-                    <span>
-                      <span className="block text-sm font-black text-ink">{title}</span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-muted">{text}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <footer className="hidden items-center gap-2 text-xs font-semibold text-muted lg:flex">
-            <ShieldCheck size={15} strokeWidth={2.3} />
-            Solo tu familia puede ver sus datos.
-          </footer>
-        </section>
+        <LoginHero />
 
         <aside className="flex items-center justify-center border-t border-[#E9E2D8] bg-[#FFFCF8] px-6 py-8 lg:border-l lg:border-t-0 lg:px-10">
           <div className="w-full max-w-sm">
@@ -409,17 +332,6 @@ export default function LoginPage() {
           box-shadow: 0 0 0 3px rgba(139,168,136,0.18);
         }
       `}</style>
-    </div>
-  )
-}
-
-function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="text-xs font-bold uppercase tracking-widest text-muted">
-        {label}
-      </label>
-      {children}
     </div>
   )
 }

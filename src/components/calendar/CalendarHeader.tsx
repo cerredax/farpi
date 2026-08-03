@@ -3,15 +3,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { capitalize } from '@/lib/text'
 
 interface CalendarHeaderProps {
   currentMonth: Date
   onPrev: () => void
   onNext: () => void
-}
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 export function CalendarHeader({ currentMonth, onPrev, onNext }: CalendarHeaderProps) {

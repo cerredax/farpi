@@ -5,14 +5,11 @@ import { Copy, Repeat } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { Button } from '@/components/ui/Button'
-import { MEAL_SLOTS } from '@/lib/constants'
-import { getLocalDateString } from '@/lib/date-utils'
-import type { MealPlan, MealSlot } from '@/types'
-
-const SLOT_META = Object.fromEntries(
-  MEAL_SLOTS.map(s => [s.key, { label: s.label, emoji: s.emoji, order: s.order }])
-) as Record<MealSlot, { label: string; emoji: string; order: number }>
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
+import { MEAL_SLOT_META } from '@/lib/constants'
+import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
+import type { MealPlan } from '@/types'
 
 interface CopyMealSheetProps {
   open: boolean
@@ -20,10 +17,6 @@ interface CopyMealSheetProps {
   sourceMeals: MealPlan[]
   onClose: () => void
   onCopy: (sourceDate: string, targetDate: string, repeatUntil?: string) => void
-}
-
-function parseLocalDate(date: string): Date {
-  return new Date(`${date}T00:00:00`)
 }
 
 function getNextDate(date: string): string {
@@ -44,7 +37,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   const [repeatUntil, setRepeatUntil] = useState(defaultTargetDate)
 
   const sortedMeals = useMemo(
-    () => [...sourceMeals].sort((a, b) => SLOT_META[a.slot].order - SLOT_META[b.slot].order),
+    () => [...sourceMeals].sort((a, b) => MEAL_SLOT_META[a.slot].order - MEAL_SLOT_META[b.slot].order),
     [sourceMeals],
   )
 
@@ -60,15 +53,15 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   }
 
   const footer = (
-    <div className="px-5 pb-8 pt-3">
-      <Button type="submit" form="copy-meal-form" fullWidth size="lg" disabled={disabled}>
-        {repeatEveryDay ? 'Copiar y repetir menu' : 'Copiar menu'}
-      </Button>
-    </div>
+    <SheetFooter
+      form="copy-meal-form"
+      submitLabel={repeatEveryDay ? 'Copiar y repetir menú' : 'Copiar menú'}
+      disabled={disabled}
+    />
   )
 
   return (
-    <BottomSheet open={open} title="Copiar menu" onClose={onClose} footer={footer}>
+    <BottomSheet open={open} title="Copiar menú" onClose={onClose} footer={footer}>
       <form id="copy-meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
         <div className="rounded-3xl border border-surface bg-[#FFF8EF] p-4">
           <div className="flex items-start gap-3">
@@ -76,11 +69,11 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               <Copy size={17} strokeWidth={2.4} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black uppercase tracking-widest text-muted">Menu origen</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted">Menú origen</p>
               <p className="text-sm font-bold text-ink capitalize">{formatDateLabel(sourceDate)}</p>
               {!hasMeals && (
                 <p className="mt-1 text-xs font-semibold text-accent">
-                  Este dia no tiene comidas para copiar.
+                  Este día no tiene comidas para copiar.
                 </p>
               )}
             </div>
@@ -89,7 +82,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
           {hasMeals && (
             <div className="mt-3 space-y-2">
               {sortedMeals.map(meal => {
-                const meta = SLOT_META[meal.slot]
+                const meta = MEAL_SLOT_META[meal.slot]
                 return (
                   <div key={meal.id} className="flex items-center gap-2 rounded-2xl bg-white/80 px-3 py-2">
                     <span className="text-base">{meta.emoji}</span>
@@ -104,8 +97,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
           )}
         </div>
 
-        <div className="space-y-1.5">
-          <label htmlFor="copy-target" className="field-label">Copiar al dia</label>
+        <Field label="Copiar al día" htmlFor="copy-target">
           <input
             id="copy-target"
             type="date"
@@ -118,9 +110,9 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
             className="field-input"
           />
           <p className="text-[11px] text-muted">
-            Si ese dia ya tenia menu, se sustituira por este.
+            Si ese día ya tenía menú, se sustituirá por este.
           </p>
-        </div>
+        </Field>
 
         <label className="flex items-start gap-3 rounded-2xl border border-surface bg-canvas px-3 py-3">
           <input
@@ -132,7 +124,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
           <span className="flex-1">
             <span className="flex items-center gap-1.5 text-sm font-bold text-ink">
               <Repeat size={14} />
-              Repetir este menu cada dia
+              Repetir este menú cada día
             </span>
             <span className="mt-0.5 block text-xs text-muted">
               Ideal para repetir una semana tipo hasta la fecha que elijas.
@@ -141,8 +133,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
         </label>
 
         {repeatEveryDay && (
-          <div className="space-y-1.5">
-            <label htmlFor="copy-until" className="field-label">Fecha fin</label>
+          <Field label="Fecha fin" htmlFor="copy-until">
             <input
               id="copy-until"
               type="date"
@@ -154,10 +145,10 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
             />
             {invalidRepeatRange && (
               <p className="text-[11px] font-semibold text-danger">
-                La fecha fin no puede ser anterior al dia destino.
+                La fecha fin no puede ser anterior al día destino.
               </p>
             )}
-          </div>
+          </Field>
         )}
       </form>
     </BottomSheet>

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { DeleteButton } from '@/components/ui/DeleteButton'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
+import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { validateListItemDraft } from '@/lib/validators'
 import type { ListItem, ListItemDraft } from '@/types'
 
 interface ItemSheetProps {
@@ -23,59 +23,49 @@ function initDraft(mode: 'create' | 'edit', initial: ListItem | null | undefined
 }
 
 export function ItemSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
-  const [draft, setDraft] = useState<ListItemDraft>(() => initDraft(mode, initial))
-  const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListItemDraft>({
+    open,
+    initialDraft: () => initDraft(mode, initial),
+    validate: validateListItemDraft,
+  })
+  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 300)
-  }, [open])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!draft.text.trim()) return
-    if (mode === 'create') onCreate(draft)
-    else if (initial) onUpdate(initial.id, draft)
+  const handleSubmit = submitHandler(valid => {
+    if (mode === 'create') onCreate(valid)
+    else if (initial) onUpdate(initial.id, valid)
     onClose()
-  }
-
-  function handleDelete() {
-    if (!initial) return
-    requestConfirm(() => { onDelete(initial.id); onClose() })
-  }
-
-  const footer = (
-    <div className="px-5 pb-8 pt-3 space-y-2">
-      <Button type="submit" form="item-form" fullWidth size="lg" disabled={!draft.text.trim()}>
-        {mode === 'create' ? 'Añadir' : 'Guardar'}
-      </Button>
-      {mode === 'edit' && (
-        <DeleteButton confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar ítem" confirmLabel="Confirmar" />
-      )}
-    </div>
-  )
+  })
 
   return (
     <BottomSheet
       open={open}
       title={mode === 'create' ? 'Añadir ítem' : 'Editar ítem'}
       onClose={onClose}
-      footer={footer}
+      footer={
+        <SheetFooter
+          form="item-form"
+          submitLabel={mode === 'create' ? 'Añadir' : 'Guardar'}
+          disabled={!draft.text.trim()}
+          error={formError}
+          onDelete={mode === 'edit'
+            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar ítem', confirmLabel: 'Confirmar' }
+            : undefined}
+        />
+      }
     >
       <form id="item-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
-        <div className="space-y-1.5">
-          <label htmlFor="item-text" className="field-label">Ítem</label>
+        <Field label="Ítem" htmlFor="item-text">
           <input
             id="item-text"
-            ref={inputRef}
+            ref={firstFieldRef}
             type="text"
             value={draft.text}
-            onChange={e => setDraft({ text: e.target.value })}
+            onChange={e => patch({ text: e.target.value })}
             placeholder="Ej: Leche entera"
             required
             className="field-input"
           />
-        </div>
+        </Field>
       </form>
     </BottomSheet>
   )

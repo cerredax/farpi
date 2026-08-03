@@ -1,5 +1,5 @@
-import { buildLocalDateTime, getLocalDateString } from './date-utils'
-import { selectPendingItems } from './selectors'
+import { buildLocalDateTime, getLocalDateString, parseLocalDate } from './date-utils'
+import { buildWeeklyDates, buildYearlyDates, getNextOccurrence } from './recurrence'
 import { createClient } from './supabase/client'
 import type {
   Child,
@@ -17,10 +17,8 @@ import type {
   ListItemDraft,
   MealDraft,
   MealPlan,
-  PendingItem,
   Task,
   TaskDraft,
-  TaskRecurrence,
 } from '@/types'
 import type { Repos } from './repos/types'
 
@@ -69,14 +67,6 @@ function eventUpdate(draft: EventDraft) {
     end_at: !draft.all_day && draft.end_time ? localDateTimeToIso(draft.date, draft.end_time) : null,
     all_day: draft.all_day,
   }
-}
-
-function nextDueDate(current: string | null, recurrence: TaskRecurrence): string {
-  const base = current ? new Date(current + 'T12:00:00') : new Date()
-  if (recurrence === 'daily') base.setDate(base.getDate() + 1)
-  if (recurrence === 'weekly') base.setDate(base.getDate() + 7)
-  if (recurrence === 'monthly') base.setMonth(base.getMonth() + 1)
-  return getLocalDateString(base)
 }
 
 function safeFileName(name: string): string {
@@ -237,20 +227,6 @@ export const supabaseRepos: Repos = {
       return data ?? []
     },
 
-    async getTodayEvents(familyId: string): Promise<Event[]> {
-      const events = await this.getEvents(familyId)
-      const today = getLocalDateString()
-      return events.filter(event => getLocalDateString(new Date(event.start_at)) === today)
-    },
-
-    async getUpcomingEvents(familyId: string, limit = 5): Promise<Event[]> {
-      const events = await this.getEvents(familyId)
-      const today = getLocalDateString()
-      return events
-        .filter(event => getLocalDateString(new Date(event.start_at)) > today)
-        .slice(0, limit)
-    },
-
     async createEvent(familyId: string, draft: EventDraft): Promise<Event> {
       const supabase = createClient()
       const userId = await currentUserId()
@@ -263,16 +239,8 @@ export const supabaseRepos: Repos = {
       const supabase = createClient()
       const userId = await currentUserId()
       const groupId = crypto.randomUUID()
-      const rows = []
-      const cur = new Date(draft.date + 'T12:00:00')
-      const end = new Date(endDate + 'T12:00:00')
-
-      while (cur <= end) {
-        if (weekdays.includes(cur.getDay())) {
-          rows.push(eventInsert(familyId, userId, { ...draft, date: getLocalDateString(cur) }, groupId))
-        }
-        cur.setDate(cur.getDate() + 1)
-      }
+      const rows = buildWeeklyDates(draft.date, endDate, weekdays)
+        .map(date => eventInsert(familyId, userId, { ...draft, date }, groupId))
 
       if (rows.length === 0) return []
       const { data, error } = await supabase.from('events').insert(rows).select('*').order('start_at')
@@ -285,11 +253,8 @@ export const supabaseRepos: Repos = {
       const userId = await currentUserId()
       const groupId = crypto.randomUUID()
       const startYear = parseInt(draft.date.slice(0, 4), 10)
-      const mmdd = draft.date.slice(5)
-      const rows = []
-      for (let year = startYear; year <= endYear; year++) {
-        rows.push(eventInsert(familyId, userId, { ...draft, date: `${year}-${mmdd}` }, groupId))
-      }
+      const rows = buildYearlyDates(draft.date.slice(5), startYear, endYear)
+        .map(date => eventInsert(familyId, userId, { ...draft, date }, groupId))
       const { data, error } = await supabase.from('events').insert(rows).select('*').order('start_at')
       assertNoError(error)
       return data ?? []
@@ -381,7 +346,7 @@ export const supabaseRepos: Repos = {
         return
       }
 
-      const next = nextDueDate(task.due_date, task.recurrence)
+      const next = getNextOccurrence(task.due_date, task.recurrence)
       const seriesDone = task.recurrence_end ? next > task.recurrence_end : false
       const { error } = await supabase
         .from('tasks')
@@ -434,14 +399,6 @@ export const supabaseRepos: Repos = {
         .order('sort_order')
       assertNoError(error)
       return data ?? []
-    },
-
-    async getPendingItems(familyId: string): Promise<PendingItem[]> {
-      const [items, lists] = await Promise.all([
-        this.getListItems(familyId),
-        supabaseRepos.lists.getLists(familyId),
-      ])
-      return selectPendingItems(items, lists)
     },
 
     async createListItem(listId: string, familyId: string, draft: ListItemDraft): Promise<ListItem> {
@@ -537,22 +494,34 @@ export const supabaseRepos: Repos = {
     },
 
     async copyMealDay(familyId: string, sourceDate: string, targetDate: string, repeatUntil?: string): Promise<void> {
+      const supabase = createClient()
+      const userId = await currentUserId()
       const sourceMeals = (await this.getMeals(familyId)).filter(meal => meal.date === sourceDate)
       if (sourceMeals.length === 0) return
       const endDate = repeatUntil && repeatUntil >= targetDate ? repeatUntil : targetDate
       let currentDate = targetDate
       while (currentDate <= endDate) {
         if (currentDate !== sourceDate) {
-          for (const meal of sourceMeals) {
-            await this.createMeal(familyId, {
-              date: currentDate,
-              slot: meal.slot,
-              name: meal.name,
-              notes: meal.notes ?? '',
-            })
-          }
+          const { error: deleteError } = await supabase
+            .from('meal_plans')
+            .delete()
+            .eq('family_id', familyId)
+            .eq('date', currentDate)
+          assertNoError(deleteError)
+
+          const rows = sourceMeals.map(meal => ({
+            family_id: familyId,
+            date: currentDate,
+            slot: meal.slot,
+            name: meal.name,
+            notes: meal.notes,
+            created_by: userId,
+          }))
+
+          const { error: insertError } = await supabase.from('meal_plans').insert(rows)
+          assertNoError(insertError)
         }
-        const next = new Date(`${currentDate}T12:00:00`)
+        const next = parseLocalDate(currentDate)
         next.setDate(next.getDate() + 1)
         currentDate = getLocalDateString(next)
       }

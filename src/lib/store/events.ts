@@ -1,6 +1,6 @@
 import type { Event, EventDraft } from '@/types'
-import { buildLocalDateTime, getLocalDateString } from '../date-utils'
-import { isSameLocalDay } from '../date-utils'
+import { buildLocalDateTime } from '../date-utils'
+import { buildWeeklyDates, buildYearlyDates } from '../recurrence'
 import { db } from './db'
 
 function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: string | null = null): Event {
@@ -41,20 +41,6 @@ export function getEvents(familyId: string): Event[] {
   return db.events.filter(e => e.family_id === familyId)
 }
 
-export function getTodayEvents(familyId: string): Event[] {
-  const today = new Date()
-  return getEvents(familyId).filter(e => isSameLocalDay(new Date(e.start_at), today))
-}
-
-export function getUpcomingEvents(familyId: string, limit = 5): Event[] {
-  const now      = new Date()
-  const todayStr = getLocalDateString()
-  return getEvents(familyId)
-    .filter(e => { const d = new Date(e.start_at); return !isSameLocalDay(d, now) && getLocalDateString(d) > todayStr })
-    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
-    .slice(0, limit)
-}
-
 export function createEvent(familyId: string, draft: EventDraft): Event {
   const e = buildEventFromDraft(familyId, draft)
   db.events = [...db.events, e]
@@ -81,10 +67,9 @@ export function createYearlySeries(
   const groupId = crypto.randomUUID()
   const created: Event[] = []
   const startYear = parseInt(draft.date.slice(0, 4), 10)
-  const mmdd = draft.date.slice(5) // "MM-DD"
 
-  for (let year = startYear; year <= endYear; year++) {
-    const e = buildEventFromDraft(familyId, { ...draft, date: `${year}-${mmdd}` }, groupId)
+  for (const date of buildYearlyDates(draft.date.slice(5), startYear, endYear)) {
+    const e = buildEventFromDraft(familyId, { ...draft, date }, groupId)
     db.events = [...db.events, e]
     created.push(e)
   }
@@ -100,19 +85,11 @@ export function createEventSeries(
 ): Event[] {
   const groupId = crypto.randomUUID()
   const created: Event[] = []
-  const cur = new Date(draft.date + 'T12:00:00')
-  const end = new Date(endDate + 'T12:00:00')
 
-  while (cur <= end) {
-    if (weekdays.includes(cur.getDay())) {
-      const y = cur.getFullYear()
-      const m = String(cur.getMonth() + 1).padStart(2, '0')
-      const d = String(cur.getDate()).padStart(2, '0')
-      const e = buildEventFromDraft(familyId, { ...draft, date: `${y}-${m}-${d}` }, groupId)
-      db.events = [...db.events, e]
-      created.push(e)
-    }
-    cur.setDate(cur.getDate() + 1)
+  for (const date of buildWeeklyDates(draft.date, endDate, weekdays)) {
+    const e = buildEventFromDraft(familyId, { ...draft, date }, groupId)
+    db.events = [...db.events, e]
+    created.push(e)
   }
 
   return created

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { DeleteButton } from '@/components/ui/DeleteButton'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
+import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { validateListDraft } from '@/lib/validators'
 import type { List, ListDraft } from '@/types'
 
 const EMOJIS = ['🛒', '🍎', '💊', '🎒', '🏠', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡', '🌿', '🎨']
@@ -25,77 +25,64 @@ function initDraft(mode: 'create' | 'edit', initial: List | null | undefined): L
 }
 
 export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: ListSheetProps) {
-  const [draft, setDraft] = useState<ListDraft>(() => initDraft(mode, initial))
-  const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListDraft>({
+    open,
+    initialDraft: () => initDraft(mode, initial),
+    validate: validateListDraft,
+  })
+  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 300)
-  }, [open])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!draft.name.trim()) return
-    if (mode === 'create') onCreate(draft)
-    else if (initial) onUpdate(initial.id, draft)
+  const handleSubmit = submitHandler(valid => {
+    if (mode === 'create') onCreate(valid)
+    else if (initial) onUpdate(initial.id, valid)
     onClose()
-  }
-
-  function handleDelete() {
-    if (!initial) return
-    requestConfirm(() => { onDelete(initial.id); onClose() })
-  }
-
-  const footer = (
-    <div className="px-5 pb-8 pt-3 space-y-2">
-      <Button type="submit" form="list-form" fullWidth size="lg" disabled={!draft.name.trim()}>
-        {mode === 'create' ? 'Crear lista' : 'Guardar'}
-      </Button>
-      {mode === 'edit' && (
-        <DeleteButton confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar lista" confirmLabel="Confirmar eliminación" />
-      )}
-    </div>
-  )
+  })
 
   return (
     <BottomSheet
       open={open}
       title={mode === 'create' ? 'Nueva lista' : 'Editar lista'}
       onClose={onClose}
-      footer={footer}
+      footer={
+        <SheetFooter
+          form="list-form"
+          submitLabel={mode === 'create' ? 'Crear lista' : 'Guardar'}
+          disabled={!draft.name.trim()}
+          error={formError}
+          onDelete={mode === 'edit'
+            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar lista', confirmLabel: 'Confirmar eliminación' }
+            : undefined}
+        />
+      }
     >
       <form id="list-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        {/* Nombre */}
-        <div className="space-y-1.5">
-          <label htmlFor="list-name" className="field-label">Nombre</label>
+        <Field label="Nombre" htmlFor="list-name">
           <input
             id="list-name"
-            ref={inputRef}
+            ref={firstFieldRef}
             type="text"
             value={draft.name}
-            onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+            onChange={e => patch({ name: e.target.value })}
             placeholder="Ej: Compra del fin de semana"
             required
             className="field-input"
           />
-        </div>
+        </Field>
 
-        {/* Emoji */}
-        <div className="space-y-2">
-          <label className="field-label">Icono</label>
+        <Field label="Icono" spacing="group">
           <div className="grid grid-cols-8 gap-2">
             {EMOJIS.map(emoji => (
               <button
                 key={emoji}
                 type="button"
-                onClick={() => setDraft(d => ({ ...d, emoji }))}
+                onClick={() => patch({ emoji })}
                 className={`w-9 h-9 rounded-xl text-xl flex items-center justify-center transition-colors ${draft.emoji === emoji ? 'bg-primary/20 ring-2 ring-primary' : 'bg-canvas hover:bg-surface'}`}
               >
                 {emoji}
               </button>
             ))}
           </div>
-        </div>
+        </Field>
       </form>
     </BottomSheet>
   )

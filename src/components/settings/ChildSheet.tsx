@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DeleteButton } from '@/components/ui/DeleteButton'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
+import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { validateChildDraft } from '@/lib/validators'
 import type { Child, ChildDraft } from '@/types'
 
 type Mode = 'create' | 'edit'
@@ -29,44 +30,23 @@ function initDraft(mode: Mode, initial: Child | null | undefined): ChildDraft {
 }
 
 export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: ChildSheetProps) {
-  const [draft, setDraft] = useState<ChildDraft>(() => initDraft(mode, initial))
-  const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ChildDraft>({
+    open,
+    initialDraft: () => initDraft(mode, initial),
+    validate: validateChildDraft,
+    autoFocus: mode === 'create',
+  })
+  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  useEffect(() => {
-    if (open && mode === 'create') setTimeout(() => inputRef.current?.focus(), 300)
-  }, [open, mode])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!draft.name.trim()) return
-    if (mode === 'create') onCreate(draft)
-    else if (initial) onUpdate(initial.id, draft)
+  const handleSubmit = submitHandler(valid => {
+    if (mode === 'create') onCreate(valid)
+    else if (initial) onUpdate(initial.id, valid)
     onClose()
-  }
-
-  function handleDelete() {
-    if (!initial) return
-    requestConfirm(() => { onDelete(initial.id); onClose() })
-  }
+  })
 
   const deleteAction = mode === 'edit' ? (
-    <DeleteButton variant="header" confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
+    <DeleteButton variant="header" confirming={confirming} onClick={handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
   ) : undefined
-
-  const footer = (
-    <div className="px-5 pb-8 pt-3">
-      <Button
-        type="submit"
-        form="child-form"
-        fullWidth
-        size="lg"
-        disabled={!draft.name.trim()}
-      >
-        {mode === 'create' ? 'Añadir hijo' : 'Guardar cambios'}
-      </Button>
-    </div>
-  )
 
   return (
     <BottomSheet
@@ -74,34 +54,40 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
       title={mode === 'create' ? 'Añadir hijo' : 'Editar hijo'}
       onClose={onClose}
       headerActions={deleteAction}
-      footer={footer}
+      footer={
+        <SheetFooter
+          form="child-form"
+          submitLabel={mode === 'create' ? 'Añadir hijo' : 'Guardar cambios'}
+          disabled={!draft.name.trim()}
+          error={formError}
+        />
+      }
     >
       <form id="child-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <div className="space-y-1.5">
-          <label htmlFor="child-name" className="field-label">Nombre</label>
+        <Field label="Nombre" htmlFor="child-name">
           <input
             id="child-name"
-            ref={inputRef}
+            ref={firstFieldRef}
             type="text"
             value={draft.name}
-            onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+            onChange={e => patch({ name: e.target.value })}
             placeholder="Nombre del niño o niña"
             required
             className="field-input"
           />
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="child-birth" className="field-label">Fecha de nacimiento</label>
+        </Field>
+
+        <Field label="Fecha de nacimiento" htmlFor="child-birth">
           <input
             id="child-birth"
             type="date"
             value={draft.birth_date}
-            onChange={e => setDraft(d => ({ ...d, birth_date: e.target.value }))}
+            onChange={e => patch({ birth_date: e.target.value })}
             className="field-input"
           />
-        </div>
-        <div className="space-y-2">
-          <label className="field-label">Color</label>
+        </Field>
+
+        <Field label="Color" spacing="group">
           <div className="grid grid-cols-8 gap-2">
             {PALETTE.map(color => {
               const selected = draft.color === color
@@ -109,7 +95,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
                 <button
                   key={color}
                   type="button"
-                  onClick={() => setDraft(d => ({ ...d, color }))}
+                  onClick={() => patch({ color })}
                   className="aspect-square rounded-full transition-transform"
                   style={{
                     backgroundColor: color,
@@ -121,7 +107,8 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
               )
             })}
           </div>
-        </div>
+        </Field>
+
         <div className="flex items-center gap-3 bg-canvas rounded-2xl px-4 py-3">
           <span
             className="w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0"

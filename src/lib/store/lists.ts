@@ -1,5 +1,4 @@
-import type { List, ListItem, ListDraft, ListItemDraft, PendingItem } from '@/types'
-import { selectPendingItems } from '../selectors'
+import type { List, ListItem, ListDraft, ListItemDraft } from '@/types'
 import { db } from './db'
 
 export function getLists(familyId: string): List[] {
@@ -8,10 +7,6 @@ export function getLists(familyId: string): List[] {
 
 export function getListItems(familyId: string): ListItem[] {
   return db.listItems.filter(i => i.family_id === familyId)
-}
-
-export function getPendingItems(familyId: string): PendingItem[] {
-  return selectPendingItems(getListItems(familyId), getLists(familyId))
 }
 
 export function createList(familyId: string, draft: ListDraft): List {

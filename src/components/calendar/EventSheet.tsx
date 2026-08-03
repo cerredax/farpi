@@ -1,13 +1,17 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DeleteButton } from '@/components/ui/DeleteButton'
-import { extractTime, getLocalDateString } from '@/lib/date-utils'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { DotOption } from '@/components/ui/DotOption'
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
+import { extractTime, getLocalDateString, parseLocalDate } from '@/lib/date-utils'
+import { buildWeeklyDates } from '@/lib/recurrence'
+import { validateEventDraft } from '@/lib/validators'
+import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { Event, Child, EventDraft } from '@/types'
 
 type Mode = 'create' | 'edit'
@@ -55,24 +59,11 @@ function joinDayNames(days: number[]): string {
 }
 
 function weekdayFromDate(dateStr: string): number {
-  return new Date(dateStr + 'T12:00:00').getDay()
-}
-
-function countSeriesEvents(startDate: string, endDate: string, weekdays: number[]): number {
-  if (!startDate || !endDate || weekdays.length === 0) return 0
-  const cur = new Date(startDate + 'T12:00:00')
-  const end = new Date(endDate + 'T12:00:00')
-  if (end < cur) return 0
-  let count = 0
-  while (cur <= end) {
-    if (weekdays.includes(cur.getDay())) count++
-    cur.setDate(cur.getDate() + 1)
-  }
-  return count
+  return parseLocalDate(dateStr).getDay()
 }
 
 function maxEndDateStr(startDate: string): string {
-  const d = new Date(startDate + 'T12:00:00')
+  const d = parseLocalDate(startDate)
   d.setDate(d.getDate() + 364) // 52 semanas
   return getLocalDateString(d)
 }
@@ -97,22 +88,22 @@ function initDraft(mode: Mode, initial: Event | null | undefined, defaultDate: D
 }
 
 export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete, onDeleteSeries }: EventSheetProps) {
-  const [draft, setDraft] = useState<EventDraft>(() => initDraft(mode, initial, defaultDate))
+  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<EventDraft>({
+    open,
+    initialDraft: () => initDraft(mode, initial, defaultDate),
+    validate: validateEventDraft,
+    autoFocus: mode === 'create',
+  })
+  const { confirming: confirmDelete, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
   const [seriesDeleteOpen, setSeriesDeleteOpen] = useState(false)
   const [recurrence, setRecurrence] = useState<Recurrence>('none')
   const [recurrenceWeekdays, setRecurrenceWeekdays] = useState<number[]>([])
   const [recurrenceEnd, setRecurrenceEnd] = useState('')
   const [recurrenceEndYear, setRecurrenceEndYear] = useState<number>(() => new Date().getFullYear() + 5)
   const weekdaysTouchedRef = useRef(false)
-  const { confirming: confirmDelete, requestConfirm } = useConfirmAction()
-  const titleRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (open && mode === 'create') setTimeout(() => titleRef.current?.focus(), 300)
-  }, [open, mode])
 
   function handleDateChange(newDate: string) {
-    setDraft(d => ({ ...d, date: newDate }))
+    patch({ date: newDate })
     if (recurrence === 'weekly' && !weekdaysTouchedRef.current) {
       setRecurrenceWeekdays([weekdayFromDate(newDate)])
     }
@@ -139,34 +130,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     )
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!draft.title.trim()) return
-    if (mode === 'edit') {
-      if (initial) onUpdate(initial.id, draft)
-      onClose()
-      return
-    }
-    if (recurrence === 'weekly') {
-      if (seriesError) return
-      onCreateSeries?.(draft, recurrenceWeekdays, recurrenceEnd)
-    } else if (recurrence === 'yearly') {
-      if (yearlyError) return
-      onCreateYearlySeries?.(draft, recurrenceEndYear)
-    } else {
-      onCreate(draft)
-    }
-    onClose()
-  }
-
-  function handleDelete() {
-    if (!initial) return
-    requestConfirm(() => { onDelete(initial.id); onClose() })
-  }
-
   // ── Cálculos para series semanales ──────────────────────────────────────────
   const seriesCount = recurrence === 'weekly'
-    ? countSeriesEvents(draft.date, recurrenceEnd, recurrenceWeekdays)
+    ? buildWeeklyDates(draft.date, recurrenceEnd, recurrenceWeekdays).length
     : 0
 
   const seriesError: string | null = recurrence === 'weekly' ? (() => {
@@ -185,13 +151,31 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     ? (recurrenceEndYear < startYear ? 'El año final debe ser igual o posterior al año de inicio' : null)
     : null
 
+  const handleSubmit = submitHandler(valid => {
+    if (mode === 'edit') {
+      if (initial) onUpdate(initial.id, valid)
+      onClose()
+      return
+    }
+    if (recurrence === 'weekly') {
+      if (seriesError) return
+      onCreateSeries?.(valid, recurrenceWeekdays, recurrenceEnd)
+    } else if (recurrence === 'yearly') {
+      if (yearlyError) return
+      onCreateYearlySeries?.(valid, recurrenceEndYear)
+    } else {
+      onCreate(valid)
+    }
+    onClose()
+  })
+
   const canSubmit = draft.title.trim().length > 0 && seriesError === null && yearlyError === null
 
   // Preview text — semanal
   const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && recurrenceEnd && seriesCount > 0
   const previewDaysText = joinDayNames(recurrenceWeekdays)
   const previewEndText = recurrenceEnd
-    ? format(new Date(recurrenceEnd + 'T12:00:00'), "d 'de' MMMM", { locale: es })
+    ? format(parseLocalDate(recurrenceEnd), "d 'de' MMMM", { locale: es })
     : ''
 
   const submitLabel = mode === 'edit'
@@ -218,21 +202,20 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
     <DeleteButton variant="header" confirming={confirmDelete} onClick={handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
   )
 
-  const footer = (
-    <div className="px-5 pb-8 pt-3">
-      <Button type="submit" form="event-form" fullWidth size="lg" disabled={!canSubmit}>
-        {submitLabel}
-      </Button>
-    </div>
-  )
-
   return (
     <BottomSheet
       open={open}
       title={mode === 'create' ? 'Nuevo evento' : 'Editar evento'}
       onClose={onClose}
       headerActions={headerActions}
-      footer={footer}
+      footer={
+        <SheetFooter
+          form="event-form"
+          submitLabel={submitLabel}
+          disabled={!canSubmit}
+          error={formError}
+        />
+      }
     >
       <form id="event-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
 
@@ -264,27 +247,24 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
               </div>
             )}
 
-            {/* Título */}
-            <div className="space-y-1.5">
-              <label htmlFor="event-title" className="field-label">Título</label>
-              <input id="event-title" ref={titleRef} type="text" value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="¿Qué ocurre?" className="field-input" />
-            </div>
+            <Field label="Título" htmlFor="event-title">
+              <input id="event-title" ref={firstFieldRef} type="text" value={draft.title} onChange={e => patch({ title: e.target.value })} placeholder="¿Qué ocurre?" className="field-input" />
+            </Field>
 
-            {/* Descripción */}
-            <div className="space-y-1.5">
-              <label htmlFor="event-description" className="field-label">Descripción</label>
-              <textarea id="event-description" value={draft.description} onChange={e => setDraft(d => ({ ...d, description: e.target.value }))} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
-            </div>
+            <Field label="Descripción" htmlFor="event-description">
+              <textarea id="event-description" value={draft.description} onChange={e => patch({ description: e.target.value })} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
+            </Field>
 
             {/* Fecha + todo el día */}
             <div className="flex gap-3 items-end">
-              <div className="flex-1 space-y-1.5">
-                <label htmlFor="event-date" className="field-label">Fecha</label>
-                <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="field-input" />
+              <div className="flex-1">
+                <Field label="Fecha" htmlFor="event-date">
+                  <input id="event-date" type="date" value={draft.date} onChange={e => handleDateChange(e.target.value)} className="field-input" />
+                </Field>
               </div>
               <div className="flex flex-col items-center gap-1.5 pb-0.5">
                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
-                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => setDraft(d => ({ ...d, all_day: !d.all_day }))} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-[#D4CFC9]'}`}>
+                <button type="button" role="switch" aria-checked={draft.all_day} onClick={() => patch({ all_day: !draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${draft.all_day ? 'bg-primary' : 'bg-[#D4CFC9]'}`}>
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${draft.all_day ? 'left-6' : 'left-1'}`} />
                 </button>
               </div>
@@ -293,32 +273,32 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
             {/* Hora inicio / fin */}
             {!draft.all_day && (
               <div className="flex gap-3">
-                <div className="flex-1 space-y-1.5">
-                  <label htmlFor="event-start" className="field-label">Inicio</label>
-                  <input id="event-start" type="time" value={draft.start_time} onChange={e => setDraft(d => ({ ...d, start_time: e.target.value }))} className="field-input" />
+                <div className="flex-1">
+                  <Field label="Inicio" htmlFor="event-start">
+                    <input id="event-start" type="time" value={draft.start_time} onChange={e => patch({ start_time: e.target.value })} className="field-input" />
+                  </Field>
                 </div>
-                <div className="flex-1 space-y-1.5">
-                  <label htmlFor="event-end" className="field-label">Fin</label>
-                  <input id="event-end" type="time" value={draft.end_time} onChange={e => setDraft(d => ({ ...d, end_time: e.target.value }))} className="field-input" />
+                <div className="flex-1">
+                  <Field label="Fin" htmlFor="event-end">
+                    <input id="event-end" type="time" value={draft.end_time} onChange={e => patch({ end_time: e.target.value })} className="field-input" />
+                  </Field>
                 </div>
               </div>
             )}
 
-            {/* Asignar a */}
-            <div className="space-y-2">
-              <label className="field-label">Asignar a</label>
+            <Field label="Asignar a" spacing="group">
               <div className="flex gap-3">
-                {assignees.map(a => {
-                  const selected = draft.child_id === a.id
-                  return (
-                    <button key={String(a.id)} type="button" onClick={() => setDraft(d => ({ ...d, child_id: a.id }))} className="flex flex-col items-center gap-1.5 flex-1 py-2 rounded-2xl transition-colors" style={{ backgroundColor: selected ? a.color + '22' : 'transparent' }}>
-                      <span className="w-7 h-7 rounded-full transition-all" style={{ backgroundColor: a.color, boxShadow: selected ? `0 0 0 3px white, 0 0 0 5px ${a.color}` : 'none', transform: selected ? 'scale(1.15)' : 'scale(1)' }} />
-                      <span className="text-[11px] font-bold transition-colors" style={{ color: selected ? a.color : '#77716A' }}>{a.name}</span>
-                    </button>
-                  )
-                })}
+                {assignees.map(a => (
+                  <DotOption
+                    key={String(a.id)}
+                    selected={draft.child_id === a.id}
+                    onClick={() => patch({ child_id: a.id })}
+                    color={a.color}
+                    label={a.name}
+                  />
+                ))}
               </div>
-            </div>
+            </Field>
 
             {/* Repetición — solo en crear */}
             {mode === 'create' && (
@@ -351,9 +331,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
                 {recurrence === 'weekly' && (
                   <div className="space-y-4">
-                    {/* Selector de días */}
-                    <div className="space-y-2">
-                      <label className="field-label">Repetir los días</label>
+                    <Field label="Repetir los días" spacing="group">
                       <div className="flex gap-1">
                         {WEEKDAY_BUTTONS.map(({ label, day }) => {
                           const active = recurrenceWeekdays.includes(day)
@@ -373,11 +351,9 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                           )
                         })}
                       </div>
-                    </div>
+                    </Field>
 
-                    {/* Fecha de fin */}
-                    <div className="space-y-1.5">
-                      <label htmlFor="event-rec-end" className="field-label">Termina el</label>
+                    <Field label="Termina el" htmlFor="event-rec-end">
                       <input
                         id="event-rec-end"
                         type="date"
@@ -387,7 +363,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                         onChange={e => setRecurrenceEnd(e.target.value)}
                         className="field-input"
                       />
-                    </div>
+                    </Field>
 
                     {/* Vista previa */}
                     {previewReady && (
@@ -410,8 +386,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
 
                 {recurrence === 'yearly' && (
                   <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label htmlFor="event-rec-year" className="field-label">Repetir hasta el año</label>
+                    <Field label="Repetir hasta el año" htmlFor="event-rec-year">
                       <select
                         id="event-rec-year"
                         value={recurrenceEndYear}
@@ -422,7 +397,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, onClose, on
                           <option key={year} value={year}>{year}</option>
                         ))}
                       </select>
-                    </div>
+                    </Field>
 
                     {yearlyCount > 0 && !yearlyError && (
                       <div className="rounded-2xl bg-[#F1F5EF] border border-primary/25 p-3.5 space-y-1">

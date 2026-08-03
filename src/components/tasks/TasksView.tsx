@@ -2,58 +2,14 @@
 
 import { useState } from 'react'
 import { Plus, ChevronDown, ChevronRight } from 'lucide-react'
-import { isToday, parseISO, format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { isToday, parseISO } from 'date-fns'
 import { useStore } from '@/lib/store-context'
 import { selectTaskGroups } from '@/lib/selectors'
+import { OffDayConfirmDialog } from './OffDayConfirmDialog'
 import { TaskItem } from './TaskItem'
 import { TaskSheet } from './TaskSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { BottomSheet } from '@/components/ui/BottomSheet'
-import { TASK_RECURRENCES } from '@/lib/constants'
 import type { Task, TaskDraft } from '@/types'
-
-function OffDayConfirmDialog({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
-  const dueLabel = task?.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
-  const isRecurring = task ? task.recurrence !== 'none' : false
-  const recLabel = isRecurring && task ? TASK_RECURRENCES.find(r => r.value === task.recurrence)?.label ?? '' : ''
-  return (
-    <BottomSheet
-      open={open}
-      title="Confirmar tarea"
-      onClose={onCancel}
-      footer={
-        <div className="px-5 py-4 space-y-2">
-          <button
-            onClick={onConfirm}
-            className="w-full py-3 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors"
-          >
-            Sí, marcar como hecha
-          </button>
-          <button
-            onClick={onCancel}
-            className="w-full py-3 rounded-2xl text-sm font-semibold text-muted hover:bg-surface transition-colors"
-          >
-            Cancelar
-          </button>
-        </div>
-      }
-    >
-      <div className="px-5 pb-4">
-        {isRecurring ? (
-          <p className="text-sm text-muted mb-1">
-            Esta tarea es <strong>{recLabel.toLowerCase()}</strong> y toca el <strong>{dueLabel}</strong>.
-          </p>
-        ) : (
-          <p className="text-sm text-muted mb-1">
-            Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
-          </p>
-        )}
-        <p className="text-sm text-muted">¿Marcarla como hecha hoy igualmente?</p>
-      </div>
-    </BottomSheet>
-  )
-}
 
 export function TasksView() {
   const { tasks, createTask, updateTask, deleteTask, toggleTask } = useStore()

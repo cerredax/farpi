@@ -1,0 +1,12 @@
+/** Pone en mayúscula la primera letra. Útil para las fechas que date-fns devuelve en minúscula. */
+export function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+/** Tamaño de archivo legible: "820 KB", "1.4 MB". */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '—'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}

@@ -21,7 +21,7 @@ La UI ya consume Supabase de forma general a través de la frontera de repositor
 
 Archivos principales:
 
-- `src/lib/mock-store.ts`
+- `src/lib/store/` (módulos del mock; `mock-store.ts` solo reexporta)
 - `src/lib/store-context.tsx`
 - `src/lib/family-config.ts`
 
@@ -29,7 +29,7 @@ Persistencia:
 
 - Clave: `nido_store_v1`
 - Ubicación: `localStorage`
-- Versión interna: `SCHEMA_VER = 6`
+- Versión interna: `SCHEMA_VER = 6`, en `src/lib/store/persist.ts`
 
 El mock debe comportarse lo más parecido posible a Supabase:
 
@@ -82,7 +82,7 @@ Detalles de seguridad:
 
 **Decisión de producto:** Una familia debe tener siempre al menos un admin. Está prohibido eliminar o degradar al único admin de una familia.
 
-**Implementación:** No se implementa con policies RLS (que no tienen acceso fácil a recuentos de roles). Se implementa mediante RPCs `security definer` en Supabase.
+**Implementación:** No se implementa con policies RLS (que no tienen acceso fácil a recuentos de roles). Se implementa mediante RPCs `security definer` en Supabase para la gestión de miembros, y el endpoint `/api/account/delete` bloquea borrar la cuenta si eso dejaría una familia compartida sin admin.
 
 ### RPCs implementadas (migración 008)
 
@@ -147,7 +147,15 @@ Componentes clave:
 - `src/components/ui/Button.tsx`
 - `src/components/ui/Card.tsx`
 - `src/components/ui/BottomSheet.tsx`
+- `src/components/ui/Field.tsx` — etiqueta + control con el espaciado estándar
+- `src/components/ui/SheetFooter.tsx` — pie con error, acción principal y borrado
+- `src/components/ui/SelectChip.tsx` y `src/components/ui/DotOption.tsx` — opciones seleccionables
+- `src/hooks/useSheetForm.ts` — `useSheetForm` (draft, error, foco, submit validado) y `useSheetDelete`
 - `src/hooks/useConfirmAction.ts`
+
+Un sheet con formulario se monta así: `useSheetForm` para el estado, `Field` para cada campo,
+`SheetFooter` para el pie y `useSheetDelete` cuando hay borrado. Las vistas remontan los sheets
+con `key` al abrirlos, por eso el draft inicial se evalúa una sola vez.
 
 Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), que ya resuelve el comportamiento en móvil pequeño y aporta modal centrado en escritorio:
 

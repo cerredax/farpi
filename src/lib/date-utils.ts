@@ -9,6 +9,15 @@ export function getLocalDateString(date: Date = new Date()): string {
   return `${y}-${m}-${d}`
 }
 
+/**
+ * Convierte un string yyyy-MM-dd en un Date local situado al mediodía.
+ * El mediodía evita que un cambio de zona horaria o de horario de verano
+ * desplace la fecha al día anterior o siguiente.
+ */
+export function parseLocalDate(date: string): Date {
+  return new Date(`${date}T12:00:00`)
+}
+
 /** Comprueba si dos fechas (string yyyy-MM-dd o Date) son el mismo día local. */
 export function isSameLocalDay(a: string | Date, b: string | Date): boolean {
   const toStr = (v: string | Date) =>

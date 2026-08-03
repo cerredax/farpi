@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child } from '@/types'
 import { format, isToday, isTomorrow, isThisWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { capitalize } from '@/lib/text'
 
 interface UpcomingEventsProps {
   events: Event[]
@@ -17,10 +18,6 @@ function eventDayLabel(dateStr: string): string {
   if (isTomorrow(d)) return 'Manana'
   if (isThisWeek(d)) return format(d, 'EEEE', { locale: es })
   return format(d, "d 'de' MMMM", { locale: es })
-}
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 export const UpcomingEvents = memo(function UpcomingEvents({ events, kids }: UpcomingEventsProps) {

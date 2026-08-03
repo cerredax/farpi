@@ -14,10 +14,7 @@ import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import type { Task } from '@/types'
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
+import { capitalize } from '@/lib/text'
 
 function getGreeting(date: Date) {
   const hour = date.getHours()

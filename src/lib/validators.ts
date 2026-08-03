@@ -1,5 +1,5 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
-import type { ChildDraft, EventDraft, TaskDraft, MealDraft, ListItemDraft } from '@/types'
+import type { ChildDraft, EventDraft, TaskDraft, MealDraft, ListDraft, ListItemDraft } from '@/types'
 
 // ─── Email ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +68,13 @@ export function validateTaskDraft(draft: TaskDraft): string | null {
   if (!draft.title.trim()) return 'El título es obligatorio.'
   if (draft.recurrence !== 'none' && draft.recurrence_end && draft.due_date && draft.recurrence_end < draft.due_date)
     return 'La fecha de fin de recurrencia debe ser posterior a la fecha de inicio.'
+  return null
+}
+
+// ─── Listas ───────────────────────────────────────────────────────────────────
+
+export function validateListDraft(draft: ListDraft): string | null {
+  if (!draft.name.trim()) return 'El nombre de la lista no puede estar vacío.'
   return null
 }
 

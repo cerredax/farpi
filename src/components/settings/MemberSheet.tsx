@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { ShieldCheck, User } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { DeleteButton } from '@/components/ui/DeleteButton'
+import { Field } from '@/components/ui/Field'
+import { SheetFooter } from '@/components/ui/SheetFooter'
 import { isValidEmail } from '@/lib/validators'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { FamilyMember } from '@/types'
 
 type Mode = 'invite' | 'edit'
@@ -24,7 +24,12 @@ interface MemberSheetProps {
   onRemove: (id: string) => void
 }
 
-function initDraft(mode: Mode, initial: FamilyMember | null | undefined) {
+interface MemberDraft {
+  name: string
+  email: string
+}
+
+function initDraft(mode: Mode, initial: FamilyMember | null | undefined): MemberDraft {
   return {
     name:  mode === 'edit' ? (initial?.display_name ?? '') : '',
     email: '',
@@ -32,13 +37,21 @@ function initDraft(mode: Mode, initial: FamilyMember | null | undefined) {
 }
 
 export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
-  const [draft, setDraft] = useState(() => initDraft(mode, initial))
-  const [inviteError, setInviteError] = useState<string | null>(null)
+  const { draft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<MemberDraft>({
+    open,
+    initialDraft: () => initDraft(mode, initial),
+    validate: d => mode === 'invite'
+      ? (isValidEmail(d.email) ? null : 'Introduce un email válido.')
+      : (d.name.trim() ? null : 'El nombre no puede estar vacío.'),
+  })
+  const { confirming: confirmRemove, handleDelete: handleRemove } = useSheetDelete({
+    initial,
+    onDelete: onRemove,
+    onClose,
+  })
   const [role, setRole] = useState<Role>(initial?.role ?? 'member')
   const [roleError, setRoleError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const { confirming: confirmRemove, requestConfirm } = useConfirmAction()
-  const inputRef = useRef<HTMLInputElement>(null)
 
   async function handleRoleChange(next: Role) {
     if (!initial || !onChangeRole || next === role) return
@@ -57,90 +70,68 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
     }
   }
 
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 300)
-  }, [open])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const handleSubmit = submitHandler(valid => {
     if (mode === 'invite') {
-      if (!isValidEmail(draft.email)) return
-      setInviteError(null)
       startTransition(async () => {
         try {
-          await onInvite(draft.email.trim())
+          await onInvite(valid.email.trim())
           onClose()
         } catch (err) {
-          setInviteError(err instanceof Error ? err.message : 'Error al enviar la invitación')
+          setFormError(err instanceof Error ? err.message : 'Error al enviar la invitación')
         }
       })
-    } else {
-      if (!draft.name.trim() || !initial) return
-      onUpdate(initial.id, draft.name.trim())
-      onClose()
+      return
     }
-  }
-
-  function handleRemove() {
     if (!initial) return
-    requestConfirm(() => { onRemove(initial.id); onClose() })
-  }
-
-  const footer = (
-    <div className="px-5 pb-8 pt-3 space-y-2">
-      <Button
-        type="submit"
-        form="member-form"
-        fullWidth
-        size="lg"
-        disabled={isPending || (mode === 'invite' ? !isValidEmail(draft.email) : !draft.name.trim())}
-      >
-        {isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
-      </Button>
-      {mode === 'edit' && (
-        <DeleteButton confirming={confirmRemove} onClick={handleRemove} idleLabel="Quitar miembro" confirmLabel="Confirmar eliminación" />
-      )}
-    </div>
-  )
+    onUpdate(initial.id, valid.name.trim())
+    onClose()
+  })
 
   return (
     <BottomSheet
       open={open}
       title={mode === 'invite' ? 'Invitar persona' : 'Editar miembro'}
       onClose={onClose}
-      footer={footer}
+      footer={
+        <SheetFooter
+          form="member-form"
+          submitLabel={isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
+          disabled={isPending || (mode === 'invite' ? !isValidEmail(draft.email) : !draft.name.trim())}
+          onDelete={mode === 'edit'
+            ? { confirming: confirmRemove, onClick: handleRemove, idleLabel: 'Quitar miembro', confirmLabel: 'Confirmar eliminación' }
+            : undefined}
+        />
+      }
     >
       <form id="member-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
         {mode === 'invite' ? (
-          <div className="space-y-1.5">
-            <label htmlFor="member-email" className="field-label">Email</label>
+          <Field label="Email" htmlFor="member-email">
             <input
               id="member-email"
-              ref={inputRef}
+              ref={firstFieldRef}
               type="email"
               value={draft.email}
-              onChange={e => { setDraft(d => ({ ...d, email: e.target.value })); setInviteError(null) }}
+              onChange={e => { patch({ email: e.target.value }); setFormError(null) }}
               placeholder="correo@ejemplo.com"
               required
               className="field-input"
             />
-            {inviteError ? (
-              <p className="text-[11px] text-danger font-medium">{inviteError}</p>
+            {formError ? (
+              <p className="text-[11px] text-danger font-medium">{formError}</p>
             ) : (
               <p className="text-[10px] text-faint">
                 En modo demo, la invitación no se envía. El email queda guardado como referencia.
               </p>
             )}
-          </div>
+          </Field>
         ) : (
-          <div className="space-y-1.5">
-            <label htmlFor="member-name" className="field-label">Nombre</label>
+          <Field label="Nombre" htmlFor="member-name">
             <input
               id="member-name"
-              ref={inputRef}
+              ref={firstFieldRef}
               type="text"
               value={draft.name}
-              onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+              onChange={e => patch({ name: e.target.value })}
               placeholder="Nombre visible"
               required
               className="field-input"
@@ -172,7 +163,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
                 }
               </div>
             )}
-          </div>
+          </Field>
         )}
       </form>
     </BottomSheet>

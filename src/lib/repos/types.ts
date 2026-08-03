@@ -1,6 +1,6 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, List, ListItem, Document, PendingItem,
+  MealPlan, List, ListItem, Document,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, DocumentDraft,
 } from '@/types'
@@ -38,8 +38,6 @@ export interface ChildrenRepo {
 
 export interface EventsRepo {
   getEvents(familyId: string): Promise<Event[]>
-  getTodayEvents(familyId: string): Promise<Event[]>
-  getUpcomingEvents(familyId: string, limit?: number): Promise<Event[]>
   createEvent(familyId: string, draft: EventDraft): Promise<Event>
   createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string): Promise<Event[]>
   createYearlySeries(familyId: string, draft: EventDraft, endYear: number): Promise<Event[]>
@@ -65,7 +63,6 @@ export interface ListsRepo {
 
 export interface ListItemsRepo {
   getListItems(familyId: string): Promise<ListItem[]>
-  getPendingItems(familyId: string): Promise<PendingItem[]>
   createListItem(listId: string, familyId: string, draft: ListItemDraft): Promise<ListItem>
   updateListItem(id: string, draft: ListItemDraft): Promise<void>
   deleteListItem(id: string): Promise<void>

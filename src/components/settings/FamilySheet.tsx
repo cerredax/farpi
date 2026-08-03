@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { Field } from '@/components/ui/Field'
+import { useSheetForm } from '@/hooks/useSheetForm'
+import { validateFamilyName } from '@/lib/validators'
 import type { Family } from '@/types'
 
 interface FamilySheetProps {
@@ -13,37 +15,34 @@ interface FamilySheetProps {
 }
 
 export function FamilySheet({ open, family, onClose, onSave }: FamilySheetProps) {
-  const [name, setName] = useState(family.name)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<{ name: string }>({
+    open,
+    initialDraft: () => ({ name: family.name }),
+    validate: d => validateFamilyName(d.name),
+  })
 
-  useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 300)
-  }, [open])
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!name.trim()) return
-    onSave(name.trim())
+  const handleSubmit = submitHandler(valid => {
+    onSave(valid.name.trim())
     onClose()
-  }
+  })
 
   return (
     <BottomSheet open={open} title="Nombre de la familia" onClose={onClose}>
       <form onSubmit={handleSubmit} className="px-5 py-4 pb-8 space-y-5">
-        <div className="space-y-1.5">
-          <label htmlFor="family-name" className="field-label">Nombre</label>
+        <Field label="Nombre" htmlFor="family-name">
           <input
             id="family-name"
-            ref={inputRef}
+            ref={firstFieldRef}
             type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
+            value={draft.name}
+            onChange={e => patch({ name: e.target.value })}
             placeholder="Ej: Familia de Omar, Sofía y Ana"
             required
             className="field-input"
           />
-        </div>
-        <Button type="submit" fullWidth size="lg" disabled={!name.trim()}>Guardar</Button>
+          {formError && <p className="text-[10px] text-danger font-semibold">{formError}</p>}
+        </Field>
+        <Button type="submit" fullWidth size="lg" disabled={!draft.name.trim()}>Guardar</Button>
       </form>
     </BottomSheet>
   )

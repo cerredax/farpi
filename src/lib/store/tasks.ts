@@ -1,14 +1,6 @@
-import type { Task, TaskDraft, TaskRecurrence } from '@/types'
-import { getLocalDateString } from '../date-utils'
+import type { Task, TaskDraft } from '@/types'
+import { getNextOccurrence } from '../recurrence'
 import { db } from './db'
-
-function nextDueDate(current: string | null, recurrence: TaskRecurrence): string {
-  const base = current ? new Date(current + 'T12:00:00') : new Date()
-  if (recurrence === 'daily')   base.setDate(base.getDate() + 1)
-  if (recurrence === 'weekly')  base.setDate(base.getDate() + 7)
-  if (recurrence === 'monthly') base.setMonth(base.getMonth() + 1)
-  return getLocalDateString(base)
-}
 
 export function getTasks(familyId: string): Task[] {
   return db.tasks.filter(t => t.family_id === familyId)
@@ -61,7 +53,7 @@ export function toggleTask(id: string): void {
       return { ...t, completed: !t.completed, completed_at: !t.completed ? now : null, updated_at: now }
     }
     // Tarea recurrente → avanzar fecha en lugar de marcar como completa
-    const next = nextDueDate(t.due_date, t.recurrence)
+    const next = getNextOccurrence(t.due_date, t.recurrence)
     const seriesDone = t.recurrence_end ? next > t.recurrence_end : false
     if (seriesDone) {
       return { ...t, completed: true, completed_at: now, updated_at: now }

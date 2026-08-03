@@ -15,6 +15,7 @@ import { es } from 'date-fns/locale'
 import { Clock, Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child } from '@/types'
+import { capitalize } from '@/lib/text'
 
 type AgendaMode = 'week' | 'agenda'
 
@@ -28,8 +29,6 @@ interface AgendaListProps {
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
 }
-
-function capitalize(s: string) { return s.charAt(0).toUpperCase() + s.slice(1) }
 
 function getEventColor(event: Event, kids: Child[]): string {
   if (event.color) return event.color

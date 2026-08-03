@@ -22,6 +22,11 @@ export const MEAL_SLOTS: { key: MealSlot; label: string; emoji: string; order: n
   { key: 'dinner',    label: 'Cena',     emoji: '🌙',  order: 3 },
 ]
 
+/** Acceso por clave a la franja horaria, para no recorrer `MEAL_SLOTS` en cada render. */
+export const MEAL_SLOT_META = Object.fromEntries(
+  MEAL_SLOTS.map(s => [s.key, { label: s.label, emoji: s.emoji, order: s.order }])
+) as Record<MealSlot, { label: string; emoji: string; order: number }>
+
 // ─── Tareas ───────────────────────────────────────────────────────────────────
 
 export const TASK_RECURRENCES: { value: TaskRecurrence; label: string; shortLabel: string }[] = [

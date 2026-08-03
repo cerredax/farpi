@@ -39,6 +39,8 @@ const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
+  { route: '/calendar', button: 'Añadir evento', dialog: 'Nuevo evento' },
+  { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
 ]
 
 for (const { route, button, dialog } of CREATE_SHEETS) {
@@ -50,7 +52,8 @@ for (const { route, button, dialog } of CREATE_SHEETS) {
     page.on('pageerror', err => problems.push(`pageerror: ${err.message}`))
 
     await page.goto(route)
-    await page.getByRole('button', { name: button }).click()
+    // `.first()`: en calendario y comidas el botón de añadir se repite por día.
+    await page.getByRole('button', { name: button }).first().click()
     await expect(page.getByRole('dialog', { name: dialog })).toBeVisible()
     await page.keyboard.press('Escape')
     await page.waitForTimeout(200)

@@ -18,13 +18,13 @@ import { capitalize } from '@/lib/text'
 
 function getGreeting(date: Date) {
   const hour = date.getHours()
-  if (hour < 12) return 'Buenos dias, familia'
+  if (hour < 12) return 'Buenos días, familia'
   if (hour < 20) return 'Buenas tardes, familia'
   return 'Buenas noches, familia'
 }
 
 function formatEventMoment(event: { all_day: boolean; start_at: string }) {
-  if (event.all_day) return 'Todo el dia'
+  if (event.all_day) return 'Todo el día'
   return format(new Date(event.start_at), 'HH:mm')
 }
 

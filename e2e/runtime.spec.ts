@@ -93,3 +93,26 @@ test('avisa cuando una operación no se ha podido guardar', async ({ page }) => 
   // Y no se ha creado nada a medias.
   await expect(page.getByText('Tarea que no se guardará')).toHaveCount(0)
 })
+
+// El buscador de una lista solo aparece cuando hay ítems suficientes para que
+// buscar compense; en una lista de tres cosas estorbaría.
+test('el buscador de ítems aparece al crecer la lista y filtra', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+  await page.getByText('Compra bebé').first().click()
+
+  const buscador = page.getByLabel('Buscar ítems en la lista')
+  await expect(buscador).toHaveCount(0)
+
+  for (const texto of ['Zumo de naranja', 'Leche entera', 'Galletas']) {
+    await page.getByRole('button', { name: 'Añadir ítem' }).click()
+    await page.locator('#item-text').fill(texto)
+    await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+    await page.waitForTimeout(250)
+  }
+
+  await expect(buscador).toBeVisible()
+  await buscador.fill('leche')
+  await expect(page.getByText('Leche entera')).toBeVisible()
+  await expect(page.getByText('Zumo de naranja')).toHaveCount(0)
+})

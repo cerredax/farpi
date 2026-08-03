@@ -1,6 +1,10 @@
-import { Plus, ArrowLeft, Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, ArrowLeft, Pencil, Search, Trash2, X } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import type { List, ListItem } from '@/types'
+
+/** A partir de esta cantidad de ítems, buscar compensa más que ir mirando. */
+const MINIMO_PARA_BUSCAR = 6
 
 interface ListDetailViewProps {
   list: List
@@ -16,10 +20,18 @@ interface ListDetailViewProps {
 export function ListDetailView({
   list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onDeleteItem,
 }: ListDetailViewProps) {
+  const [busqueda, setBusqueda] = useState('')
+
+  const puedeBuscar = items.length >= MINIMO_PARA_BUSCAR
+  const consulta = busqueda.trim().toLowerCase()
+  const visibles = consulta
+    ? items.filter(item => item.text.toLowerCase().includes(consulta))
+    : items
+
   const pending: ListItem[] = []
   const completed: ListItem[] = []
 
-  for (const item of items) {
+  for (const item of visibles) {
     if (item.completed) completed.push(item)
     else pending.push(item)
   }
@@ -41,10 +53,42 @@ export function ListDetailView({
         </button>
       </div>
 
+      {puedeBuscar && (
+        <div className="px-4 pb-2">
+          <div className="relative">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
+            <input
+              type="search"
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder={`Buscar en ${items.length} ítems…`}
+              aria-label="Buscar ítems en la lista"
+              className="field-input pl-9 pr-9"
+            />
+            {busqueda && (
+              <button
+                type="button"
+                onClick={() => setBusqueda('')}
+                aria-label="Limpiar búsqueda"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted transition-colors hover:bg-surface hover:text-ink"
+              >
+                <X size={14} strokeWidth={2.4} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Items */}
       <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-        {pending.length === 0 && completed.length === 0 && (
+        {items.length === 0 && (
           <p className="text-center text-muted text-sm py-12">Lista vacía. ¡Añade el primer ítem!</p>
+        )}
+
+        {items.length > 0 && visibles.length === 0 && (
+          <p className="text-center text-muted text-sm py-12">
+            Ningún ítem coincide con «{busqueda.trim()}».
+          </p>
         )}
 
         {pending.map(item => (

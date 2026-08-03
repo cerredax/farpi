@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { addDays, addWeeks, format, startOfWeek } from 'date-fns'
+import { addDays, addWeeks, format, startOfDay, startOfWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -65,8 +65,10 @@ export function useMealsState() {
     setCopySheetOpen(true)
   }
 
-  // Semana móvil (siempre la actual)
-  const mobileWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+  // Semana móvil: los próximos siete días desde hoy, no la semana natural.
+  // Empezando en lunes, un domingo se mostraban seis días ya pasados, que no
+  // sirven para planificar. Es el mismo criterio que la agenda del calendario.
+  const mobileWeekStart = startOfDay(new Date())
   const mobileWeekEnd = addDays(mobileWeekStart, 6)
   const mobileWeek = {
     days: weekFrom(mobileWeekStart),

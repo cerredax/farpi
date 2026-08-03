@@ -7,7 +7,7 @@ import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateListDraft } from '@/lib/validators'
 import type { List, ListDraft } from '@/types'
 
-const EMOJIS = ['🛒', '🍎', '💊', '🎒', '🏠', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡', '🌿', '🎨']
+const EMOJIS = ['🛒', '🍎', '🥤', '💊', '🎒', '🏠', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡', '🌿']
 
 interface ListSheetProps {
   open: boolean

@@ -23,10 +23,6 @@ export function validateDocumentFile(file: File): { ok: true } | { ok: false; me
   return { ok: true }
 }
 
-export function normalizeDocumentName(name: string): string {
-  return name.trim()
-}
-
 // ─── Familia ──────────────────────────────────────────────────────────────────
 
 /** Devuelve el mensaje de error o null si el nombre es válido. */

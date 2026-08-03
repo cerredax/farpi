@@ -1,10 +1,6 @@
 import type { MealPlan, MealDraft } from '@/types'
-import { getLocalDateString } from '../date-utils'
+import { getLocalDateString, parseLocalDate } from '../date-utils'
 import { db } from './db'
-
-function parseLocalDate(date: string): Date {
-  return new Date(`${date}T00:00:00`)
-}
 
 function nextLocalDate(date: string): string {
   const d = parseLocalDate(date)
@@ -14,11 +10,6 @@ function nextLocalDate(date: string): string {
 
 export function getMeals(familyId: string): MealPlan[] {
   return db.mealPlans.filter(m => m.family_id === familyId)
-}
-
-export function getTodayMeals(familyId: string): MealPlan[] {
-  const today = getLocalDateString()
-  return getMeals(familyId).filter(m => m.date === today)
 }
 
 export function createMeal(familyId: string, draft: MealDraft): MealPlan {

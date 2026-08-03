@@ -1,5 +1,3 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
-
 export type DocCategory = 'salud' | 'colegio' | 'personal' | 'otros'
 export type DocMimeType = 'application/pdf' | 'image/jpeg' | 'image/png'
 

@@ -12,6 +12,12 @@ const DEMO_ENV = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: 'your-anon-key',
 }
 
+// Los tests de `e2e/unit` prueban funciones puras (fechas, recurrencia,
+// selectores, validadores) y no tocan el navegador ni la app, así que no
+// necesitan levantar el servidor. Cuando la ejecución se limita a ellos
+// (`npm run test:unit`), nos ahorramos arrancarlo: pasa de ~15 s a ~2 s.
+const SOLO_UNITARIOS = process.argv.slice(2).some(arg => arg.includes('e2e/unit'))
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -25,7 +31,7 @@ export default defineConfig({
   projects: [
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
-  webServer: {
+  webServer: SOLO_UNITARIOS ? undefined : {
     command: `npm run dev -- --port ${PORT}`,
     url: `http://localhost:${PORT}/auth/login`,
     reuseExistingServer: !process.env.CI,

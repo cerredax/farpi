@@ -19,7 +19,10 @@ Sigue las reglas de `AGENTS.md`. La documentación está en español; escribe c�
 npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:e2e       # Playwright e2e (levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # tests unitarios de lógica pura (~0,6 s, sin servidor)
+npm run test:e2e       # suite completa: unitarios + e2e (levanta dev en :3100 en modo demo forzado)
+
+node scripts/validate-rls.mjs                    # validación manual de RLS/RPCs contra el Supabase real
 
 npx playwright test e2e/smoke.spec.ts            # un solo archivo
 npx playwright test -g "nombre del test"         # un solo test por título

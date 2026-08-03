@@ -55,6 +55,8 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - PWA: iconos any + maskable + apple-touch y `manifest.json` con purposes (script `scripts/gen-icons.cjs`).
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`).
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
+- 65 tests unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores), sin dependencias nuevas: usan el runner de Playwright y no levantan servidor (`npm run test:unit`, ~0,6 s).
+- `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 - Tests e2e smoke con `@playwright/test` (login demo → /home) y apertura de los sheets de tareas, listas, documentos, calendario y comidas. Ejecutar con `npm run test:e2e`.
 
 ## Correcciones de seguridad

@@ -28,6 +28,8 @@ La app debe seguir siendo sencilla, visual y útil para una familia. Evitar conv
 - Si se toca una migración, revisar tipos TypeScript, mock-store y documentación.
 - Si se cambia un flujo mock, comprobar persistencia en `localStorage`.
 - Para cambios relevantes, ejecutar `npm run lint` y `npm run build`.
+- Si tocas lógica pura (fechas, recurrencia, selectores, validadores), añade o ajusta su test en `e2e/unit/` y ejecuta `npm run test:unit`.
+- Si tocas una migración, una policy o una RPC, ejecuta `node scripts/validate-rls.mjs` y actualiza `docs/supabase-validation.md`.
 - Si aparecen warnings por archivos temporales, limpiarlos o excluirlos.
 
 ## Calidad de código

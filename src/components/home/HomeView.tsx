@@ -68,10 +68,6 @@ export function HomeView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-      {/* El lema abre la pantalla: da el tono antes de la lista del día. Antes
-          cerraba abajo, donde en móvil casi nunca se llegaba a leer. */}
-      <p className="text-center text-xs text-muted">Nido está aquí para bajar un poco el ruido.</p>
-
       {/* El saludo y la fecha viven en la cabecera: aquí ocupaban media pantalla
           de móvil para decir algo que no se toca. */}
       <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm">

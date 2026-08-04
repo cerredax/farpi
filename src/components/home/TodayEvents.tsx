@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { Clock, Heart } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { memo } from 'react'
 import type { Event, Child, FamilyMember } from '@/types'
-import { resolveAssignee } from '@/lib/assignees'
+import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { format } from 'date-fns'
 
 interface TodayEventsProps {
@@ -46,7 +46,15 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
           return (
             <li key={event.id} className="flex items-start gap-3 px-4 py-3">
               <div className="flex items-center gap-1.5 min-w-[52px] pt-0.5">
-                <Clock size={13} className="text-muted" strokeWidth={2} />
+                {/* Donde estaba el reloj, que no decía nada que no dijera ya la
+                    hora: el punto de color de quien tiene el plan, amarillo si
+                    es de toda la familia. Igual que en "Esta semana" y en la
+                    agenda del calendario. */}
+                <span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: eventColor(event, members, kids) }}
+                  aria-hidden
+                />
                 <span className="text-xs font-bold text-muted">
                   {event.all_day ? 'Todo el día' : formatTime(event.start_at)}
                 </span>

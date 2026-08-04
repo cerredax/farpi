@@ -47,7 +47,7 @@ interface AgendaListProps {
  * día ya se está mirando, y bajar a Tareas para tachar lo de hoy es el viaje
  * que nadie hace.
  */
-function TaskRow({ task, onToggle }: { task: Task; onToggle: (id: string) => void }) {
+function TaskRow({ task, atrasada, onToggle }: { task: Task; atrasada: boolean; onToggle: (id: string) => void }) {
   return (
     <div className="flex items-center gap-1.5 px-1.5">
       <CircleCheck
@@ -58,6 +58,11 @@ function TaskRow({ task, onToggle }: { task: Task; onToggle: (id: string) => voi
         className="w-auto"
       />
       <span className="min-w-0 flex-1 truncate text-sm text-ink">{task.title}</span>
+      {atrasada && (
+        <span className="flex-shrink-0 rounded-full bg-danger-soft px-1.5 py-0.5 text-[10px] font-bold text-danger">
+          Atrasada
+        </span>
+      )}
     </div>
   )
 }
@@ -119,13 +124,22 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
   // enseña el tramo de un vistazo y desde donde también se editan.
   const conFecha = events.filter(event => !isVacation(event))
 
-  const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => ({
-    day,
-    events: sortEvents(conFecha.filter(event => eventCoversDay(event, day))),
-    // Una tarea vence un día concreto: la recurrente ya trae en `due_date` su
-    // próxima fecha, así que aparece una sola vez y donde toca.
-    tasks: tasks.filter(task => task.due_date === getLocalDateString(day)),
-  }))
+  const hoyStr = getLocalDateString(todayStart)
+
+  const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => {
+    const diaStr = getLocalDateString(day)
+    return {
+      day,
+      events: sortEvents(conFecha.filter(event => eventCoversDay(event, day))),
+      // Una tarea vence un día concreto: la recurrente ya trae en `due_date` su
+      // próxima fecha, así que aparece una sola vez y donde toca. Lo que venció
+      // antes de hoy se arrastra a hoy: su día ya no se pinta —el tramo empieza
+      // hoy— y desaparecer no es lo que le pasa a una tarea sin hacer.
+      tasks: tasks.filter(task => task.due_date && (
+        task.due_date < hoyStr ? diaStr === hoyStr : task.due_date === diaStr
+      )),
+    }
+  })
 
   const visibleGroups = mode === 'week'
     ? dayGroups
@@ -206,7 +220,12 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
                           <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
                         ))}
                         {onToggleTask && group.tasks.map(task => (
-                          <TaskRow key={task.id} task={task} onToggle={onToggleTask} />
+                          <TaskRow
+                            key={task.id}
+                            task={task}
+                            atrasada={!!task.due_date && task.due_date < hoyStr}
+                            onToggle={onToggleTask}
+                          />
                         ))}
                       </>
                     )}

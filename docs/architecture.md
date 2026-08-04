@@ -201,6 +201,9 @@ Componentes clave:
 - `src/components/ui/CircleCheck.tsx` y `src/components/ui/CirclePlus.tsx` — el círculo de marcar y su hermano de sumar, con las mismas medidas y área de toque. El `+` es para lo que no está pendiente sino esperando a volver a hacer falta (el catálogo de las listas), donde un tic diría "hecho"
 - `src/hooks/useSheetForm.ts` — `useSheetForm` (draft, error, foco, submit validado) y `useSheetDelete`
 - `src/hooks/useConfirmAction.ts`
+- `src/components/layout/SaveStatus.tsx` — el único sitio que cuenta qué pasa con los datos: si algo se está guardando, si ha fallado y si lo último se puede deshacer. Vive en el armazón, así que cubre todas las pantallas
+
+El deshacer lo sirve el store (`undoLabel` / `undo()` / `clearUndo()`). Devolver una tarea marcada no es solo desmarcarla: si se repite, marcarla no la completa sino que le empuja `due_date` a la siguiente vez. `restaurarTarea` compara con el estado anterior y revierte solo lo que cambió, para no repetir en la UI la bifurcación que ya vive en el repo.
 
 Un sheet con formulario se monta así: `useSheetForm` para el estado, `Field` para cada campo,
 `SheetFooter` para el pie y `useSheetDelete` cuando hay borrado. Las vistas remontan los sheets

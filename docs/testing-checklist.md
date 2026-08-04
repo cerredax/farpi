@@ -43,6 +43,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede borrar evento con doble confirmación.
 - [ ] Eventos de hijos usan color correcto.
 - [ ] Eventos de todo el día no se desplazan de día.
+- [ ] En la semana (móvil) salen también las tareas que vencen, y se pueden marcar allí.
+- [ ] Una tarea vencida antes de hoy aparece en el día de hoy marcada como "Atrasada".
 
 ## 5. Tareas
 
@@ -51,6 +53,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede completar y descompletar.
 - [ ] Se puede borrar con doble confirmación.
 - [ ] Las prioridades se distinguen visualmente.
+- [ ] Al marcar una tarea sale el aviso "Hecho · Deshacer" y se va solo a los 6 s.
+- [ ] Deshacer devuelve la tarea: la normal se desmarca y la que se repite recupera su fecha.
 
 ## 6. Listas
 

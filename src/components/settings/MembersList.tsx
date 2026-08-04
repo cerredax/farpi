@@ -1,6 +1,6 @@
 import { Pencil, UserPlus, X } from 'lucide-react'
 import type { FamilyMember, FamilyInvite } from '@/types'
-import { AVATAR_COLORS, memberColor } from '@/lib/assignees'
+import { defaultMemberColor, memberColor } from '@/lib/assignees'
 
 interface MembersListProps {
   members: FamilyMember[]
@@ -46,7 +46,7 @@ export function MembersList({ members, invites, onEdit, onInvite, onCancelInvite
         <div key={invite.id} className="flex items-center gap-3 px-4 py-3.5 border-t border-hairline">
           <span
             className="w-9 h-9 rounded-full border-2 border-dashed border-sand flex items-center justify-center text-sand-strong text-xs font-extrabold flex-shrink-0"
-            style={{ backgroundColor: AVATAR_COLORS[(members.length + i) % AVATAR_COLORS.length] + '22' }}
+            style={{ backgroundColor: defaultMemberColor(members.length + i) + '22' }}
           >
             {invite.email[0].toUpperCase()}
           </span>

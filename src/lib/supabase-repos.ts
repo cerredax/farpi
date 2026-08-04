@@ -139,12 +139,12 @@ export const supabaseRepos: Repos = {
       return data ?? []
     },
 
-    async updateMemberName(id: string, name: string): Promise<void> {
+    async updateMemberProfile(id: string, name: string, color: string | null): Promise<void> {
       const supabase = createClient()
-      const { error } = await supabase.rpc('update_my_family_profile', {
-        member_id: id,
-        display_name: name.trim(),
-        avatar_url: null,
+      const { error } = await supabase.rpc('update_family_member_profile', {
+        p_member_id: id,
+        p_display_name: name.trim(),
+        p_color: color,
       })
       assertNoError(error)
     },

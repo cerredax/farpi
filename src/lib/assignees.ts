@@ -1,17 +1,20 @@
-import { FAMILY_COLOR } from './constants'
+import { FAMILY_COLOR, PERSON_COLORS } from './constants'
 import type { Child, FamilyMember } from '@/types'
 
-/**
- * Colores de avatar de los miembros. A diferencia de los hijos, que guardan su
- * color en la base de datos, los miembros lo reciben por su posición en la
- * familia. Vive aquí para que sea el mismo en Ajustes, el calendario y los
- * documentos.
- */
-export const AVATAR_COLORS = ['#D8A48F', '#8BA888', '#E9C46A', '#7EB8D4', '#B39DDB', '#F4A261']
+/** Color de un miembro por su sitio en la familia, cuando no ha elegido ninguno. */
+export function defaultMemberColor(index: number): string {
+  return PERSON_COLORS[(index < 0 ? 0 : index) % PERSON_COLORS.length].value
+}
 
+/**
+ * Color de un adulto: el que ha elegido, o el que le toca por posición. El
+ * segundo caso es el de los miembros de siempre, que no tenían color propio, y
+ * el de quien acaba de entrar en la familia. Vive aquí para que sea el mismo en
+ * Ajustes, el calendario y los documentos.
+ */
 export function memberColor(members: FamilyMember[], memberId: string): string {
   const i = members.findIndex(m => m.id === memberId)
-  return AVATAR_COLORS[(i < 0 ? 0 : i) % AVATAR_COLORS.length]
+  return members[i]?.color ?? defaultMemberColor(i)
 }
 
 /**

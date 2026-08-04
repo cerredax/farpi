@@ -3,8 +3,10 @@
 import { useState, useTransition } from 'react'
 import { ShieldCheck, User } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { ColorPicker } from '@/components/ui/ColorPicker'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
+import { PERSON_COLORS } from '@/lib/constants'
 import { isValidEmail } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { FamilyMember } from '@/types'
@@ -17,9 +19,11 @@ interface MemberSheetProps {
   mode: Mode
   initial?: FamilyMember | null
   isOnlyAdmin?: boolean
+  /** El color que se le está mostrando hoy, elegido o heredado de su posición. */
+  defaultColor?: string
   onClose: () => void
   onInvite: (email: string) => Promise<void>
-  onUpdate: (id: string, name: string) => void
+  onUpdate: (id: string, name: string, color: string | null) => void
   onChangeRole?: (id: string, role: Role) => Promise<void>
   onRemove: (id: string) => void
 }
@@ -27,19 +31,22 @@ interface MemberSheetProps {
 interface MemberDraft {
   name: string
   email: string
+  color: string
 }
 
-function initDraft(mode: Mode, initial: FamilyMember | null | undefined): MemberDraft {
+function initDraft(mode: Mode, initial: FamilyMember | null | undefined, defaultColor: string): MemberDraft {
   return {
     name:  mode === 'edit' ? (initial?.display_name ?? '') : '',
     email: '',
+    // Si nunca eligió color, el selector arranca marcando el que ya se le ve.
+    color: initial?.color ?? defaultColor,
   }
 }
 
-export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
+export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, defaultColor = PERSON_COLORS[0].value, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
   const { draft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<MemberDraft>({
     open,
-    initialDraft: () => initDraft(mode, initial),
+    initialDraft: () => initDraft(mode, initial, defaultColor),
     validate: d => mode === 'invite'
       ? (isValidEmail(d.email) ? null : 'Introduce un email válido.')
       : (d.name.trim() ? null : 'El nombre no puede estar vacío.'),
@@ -83,7 +90,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
       return
     }
     if (!initial) return
-    onUpdate(initial.id, valid.name.trim())
+    onUpdate(initial.id, valid.name.trim(), valid.color)
     onClose()
   })
 
@@ -136,6 +143,14 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, onClose,
               required
               className="field-input"
             />
+
+            <div className="space-y-1.5 pt-2">
+              <label className="field-label">Color</label>
+              <ColorPicker value={draft.color} onChange={color => patch({ color })} />
+              <p className="text-[10px] text-faint">
+                Identifica a esta persona en el calendario y en los documentos.
+              </p>
+            </div>
 
             {onChangeRole && (
               <div className="space-y-1.5 pt-2">

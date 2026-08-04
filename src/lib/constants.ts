@@ -20,6 +20,26 @@ export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
  */
 export const FAMILY_COLOR = '#E9C46A'
 
+/**
+ * Colores de las personas de la familia, adultos e hijos. El nombre no es
+ * decorativo: es la etiqueta accesible de cada botón del selector, que antes
+ * leía el hexadecimal.
+ */
+export const PERSON_COLORS: { value: string; label: string }[] = [
+  { value: '#D8A48F', label: 'Terracota' },
+  { value: '#8BA888', label: 'Verde salvia' },
+  { value: '#E9C46A', label: 'Mostaza' },
+  { value: '#7EB8D4', label: 'Azul cielo' },
+  { value: '#B39DDB', label: 'Lavanda' },
+  { value: '#F4A261', label: 'Naranja' },
+  { value: '#A8D5A2', label: 'Verde menta' },
+  { value: '#F08080', label: 'Coral' },
+  { value: '#EC7FA9', label: 'Rosa' },
+  { value: '#F2A9C4', label: 'Rosa palo' },
+  { value: '#D45D8E', label: 'Frambuesa' },
+  { value: '#C9A0DC', label: 'Lila' },
+]
+
 // ─── Comidas ──────────────────────────────────────────────────────────────────
 
 export const MEAL_SLOTS: { key: MealSlot; label: string; emoji: string; order: number }[] = [

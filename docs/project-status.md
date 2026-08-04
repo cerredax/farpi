@@ -34,17 +34,18 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 
 ### Backend / migraciones
 
-- Migraciones Supabase aplicadas/preparadas (001–013).
+- Migraciones Supabase aplicadas/preparadas (001–014).
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
-- RPC `update_my_family_profile` para editar solo campos seguros del perfil.
+- RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
 - Tabla de invitaciones con policies idempotentes y `with check`.
 - Bucket privado `documents` con policies completas (SELECT por familia habilita signed URLs).
 - Triggers de integridad cross-family (`family_id`, `list_id`, `child_id`).
 - RPCs admin `remove_family_member` y `update_family_member_role` con control de último admin.
 - RPC `accept_family_invite(p_invite_id uuid)`.
 - Asignación de eventos y documentos a cualquier miembro de la familia, no solo a hijos (migración 012).
-- Vacaciones: eventos de varios días por persona, pintados como franja en el calendario (migración 013).
+- Vacaciones: eventos de varios días por persona, pintados como franja en el calendario (migración 013). Solo se ven en el calendario: fuera de la lista de eventos y de los planes de hoy.
+- Perfil del miembro: nombre editable también por el admin, y color propio elegible como el de los hijos (migración 014).
 - Script `supabase/validate_rls.sql` para validar RLS, RPCs, triggers e invitaciones desde SQL Editor.
 
 ### Calidad / infraestructura
@@ -67,7 +68,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 ## Correcciones de seguridad
 
 - `my_family_ids()` con `set search_path = public` (evita search path hijacking).
-- Eliminada policy de update libre sobre `family_members`; reemplazada por RPC `update_my_family_profile`.
+- Eliminada policy de update libre sobre `family_members`; reemplazada por RPC (hoy `update_family_member_profile`).
 - `family_invites` update con `using` + `with check`.
 
 ## Regla del último admin — DECISIÓN TOMADA
@@ -86,6 +87,7 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 ## Estado Supabase
 
 - Proyecto Supabase creado, migraciones 001–013 aplicadas y UI conectada (012 y 013 verificadas contra la base real el 04-08-2026).
+- **La 014 (`update_family_member_profile` + `family_members.color`) está escrita pero NO aplicada todavía**: hay que ejecutarla en el SQL Editor. Hasta entonces, editar un miembro falla en producción.
 - App en producción (Vercel) contra el mismo proyecto Supabase que local.
 - **Validación aislada completada el 2026-08-03: 47/47 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
 - SMTP propio configurado, así que las invitaciones por magic link ya se envían.

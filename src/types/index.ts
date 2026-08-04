@@ -14,6 +14,8 @@ export interface FamilyMember {
   user_id: string
   display_name: string
   avatar_url: string | null
+  /** Color elegido. `null` = el que le toca por su posición en la familia. */
+  color: string | null
   role: 'admin' | 'member'
   created_at: string
 }

@@ -16,7 +16,7 @@ import { Clock, Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child, FamilyMember } from '@/types'
 import { resolveAssignee } from '@/lib/assignees'
-import { eventCoversDay } from '@/lib/events'
+import { eventCoversDay, isVacation } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 import { FAMILY_COLOR } from '@/lib/constants'
 
@@ -97,9 +97,14 @@ export function AgendaList({ mode, selectedDay, events, kids, members, onSelectD
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [selectedDay, mode])
 
+  // Las vacaciones se quedan fuera de la lista: ocupan muchos días seguidos y
+  // se repetirían en todos ellos. Su sitio es la franja de la cuadrícula, que
+  // enseña el tramo de un vistazo y desde donde también se editan.
+  const conFecha = events.filter(event => !isVacation(event))
+
   const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => ({
     day,
-    events: sortEvents(events.filter(event => eventCoversDay(event, day))),
+    events: sortEvents(conFecha.filter(event => eventCoversDay(event, day))),
   }))
 
   const visibleGroups = mode === 'week'

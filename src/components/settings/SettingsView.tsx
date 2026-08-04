@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ExternalLink, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
+import { memberColor } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
@@ -233,6 +234,7 @@ export function SettingsView() {
         mode={memberMode}
         initial={editingMember}
         isOnlyAdmin={editingMember?.role === 'admin' && adminCount <= 1}
+        defaultColor={editingMember ? memberColor(members, editingMember.id) : undefined}
         onClose={() => setMemberSheetOpen(false)}
         onInvite={(email) => inviteMember(email)}
         onUpdate={updateMember}

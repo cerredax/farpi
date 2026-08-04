@@ -26,6 +26,7 @@ export function createFamily(name: string): Family {
     user_id: 'u1',
     display_name: 'Omar',
     avatar_url: null,
+    color: null,
     role: 'admin',
     created_at: now,
   }
@@ -37,8 +38,15 @@ export function getMembers(familyId: string): FamilyMember[] {
   return db.members.filter(m => m.family_id === familyId)
 }
 
-export function updateMemberName(id: string, name: string): void {
-  db.members = db.members.map(m => m.id !== id ? m : { ...m, display_name: name })
+export function updateMemberProfile(id: string, name: string, color: string | null): void {
+  // Recorta y vacía a null como hace la RPC `update_family_member_profile`. Ahí
+  // además se comprueba el permiso (uno mismo o un admin); en demo solo hay un
+  // usuario y es admin, así que aquí no hay nada que comprobar.
+  db.members = db.members.map(m => m.id !== id ? m : {
+    ...m,
+    display_name: name.trim(),
+    color: color?.trim() || null,
+  })
 }
 
 export function removeMember(id: string): void {

@@ -173,12 +173,17 @@ async function main() {
   comprobar('B (ajeno) NO puede eliminar miembros de A',
     (await api('/rest/v1/rpc/remove_family_member', { metodo: 'POST', token: tokB, datos: { p_member_id: miembroA } })).estado >= 400)
 
-  console.log('\n== 6. update_my_family_profile')
-  comprobar('A puede editar su propio perfil',
-    (await api('/rest/v1/rpc/update_my_family_profile', { metodo: 'POST', token: tokA, datos: { member_id: miembroA, display_name: 'Nombre Nuevo', avatar_url: null } })).estado < 400)
-  await api('/rest/v1/rpc/update_my_family_profile', { metodo: 'POST', token: tokB, datos: { member_id: miembroA, display_name: 'Hackeado', avatar_url: null } })
+  console.log('\n== 6. update_family_member_profile')
+  comprobar('A puede editar su propio perfil (nombre y color)',
+    (await api('/rest/v1/rpc/update_family_member_profile', { metodo: 'POST', token: tokA, datos: { p_member_id: miembroA, p_display_name: 'Nombre Nuevo', p_color: '#EC7FA9' } })).estado < 400)
+  const perfilPropio = (await api(`/rest/v1/family_members?id=eq.${miembroA}&select=color`, { token: tokA })).cuerpo
+  comprobar('El color elegido queda guardado', perfilPropio?.[0]?.color === '#EC7FA9')
+  comprobar('Un nombre vacío se rechaza',
+    (await api('/rest/v1/rpc/update_family_member_profile', { metodo: 'POST', token: tokA, datos: { p_member_id: miembroA, p_display_name: '   ', p_color: null } })).estado >= 400)
+  await api('/rest/v1/rpc/update_family_member_profile', { metodo: 'POST', token: tokB, datos: { p_member_id: miembroA, p_display_name: 'Hackeado', p_color: null } })
   const perfil = (await api(`/rest/v1/family_members?id=eq.${miembroA}&select=display_name`, { token: tokA })).cuerpo
-  comprobar('B NO puede editar el perfil de A', perfil?.[0]?.display_name !== 'Hackeado')
+  comprobar('B (ajeno, admin solo de SU familia) NO puede editar el perfil de A',
+    perfil?.[0]?.display_name !== 'Hackeado')
 
   console.log('\n== 7. Invitaciones')
   const invitacion = (await api('/rest/v1/family_invites', {

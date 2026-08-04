@@ -47,8 +47,8 @@ function getShortEventLabel(event: Event): string {
  * lea como un tramo continuo a lo largo de la semana, con un color por persona.
  */
 function VacationBand({
-  vacaciones, day, kids, members,
-}: { vacaciones: Event[]; day: Date; kids: Child[]; members: FamilyMember[] }) {
+  vacaciones, day, kids, members, onEditEvent,
+}: { vacaciones: Event[]; day: Date; kids: Child[]; members: FamilyMember[]; onEditEvent?: (event: Event) => void }) {
   if (vacaciones.length === 0) return <div className="h-[3px]" />
 
   return (
@@ -56,12 +56,23 @@ function VacationBand({
       {vacaciones.slice(0, 2).map(v => {
         const { primero, ultimo } = vacationEdges(v, day)
         return (
-          <span
+          // La franja es el único sitio donde se tocan unas vacaciones: fuera de
+          // la lista de eventos, si no fuera pulsable no habría forma de
+          // editarlas. El botón se estira en vertical para que se pueda dar con
+          // el dedo, aunque la barra de color siga siendo fina.
+          <button
             key={v.id}
+            type="button"
+            onClick={() => onEditEvent?.(v)}
             title={v.title}
-            className={`h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`}
-            style={{ backgroundColor: getEventColor(v, kids, members) }}
-          />
+            aria-label={`Editar ${v.title}`}
+            className="flex w-full items-center py-[3px] -my-[3px]"
+          >
+            <span
+              className={`h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`}
+              style={{ backgroundColor: getEventColor(v, kids, members) }}
+            />
+          </button>
         )
       })}
     </div>
@@ -111,7 +122,6 @@ export function DayCell({
           <span className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}>
             {dayNumber}
           </span>
-          <VacationBand vacaciones={vacaciones} day={day} kids={kids} members={members} />
           <div className="h-3 flex items-center justify-center gap-[3px]">
             {totalCount > MAX_DOTS ? (
               <span className="text-[9px] font-black text-primary leading-none">{totalCount}</span>
@@ -122,6 +132,10 @@ export function DayCell({
             )}
           </div>
         </button>
+
+        <div className="w-full pb-1">
+          <VacationBand vacaciones={vacaciones} day={day} kids={kids} members={members} onEditEvent={onEditEvent} />
+        </div>
 
         {/* Tooltip — visible only on hover, desktop only */}
         {sortedEvents.length > 0 && (
@@ -192,6 +206,26 @@ export function DayCell({
       </div>
 
       <div className="space-y-0.5">
+        {/* En la cuadrícula ancha la franja fina se pierde, así que el tramo se
+            enseña como una tira con el título solo el día que empieza. */}
+        {vacaciones.map(v => {
+          const { primero, ultimo } = vacationEdges(v, day)
+          const color = getEventColor(v, kids, members)
+          return (
+            <button
+              key={v.id}
+              onClick={() => onEditEvent?.(v)}
+              title={v.title}
+              aria-label={`Editar ${v.title}`}
+              className={`w-full px-1 py-0.5 text-left text-[9px] font-bold leading-tight text-white truncate ${
+                primero ? 'rounded-l-md' : ''} ${ultimo ? 'rounded-r-md' : ''}`}
+              style={{ backgroundColor: color }}
+            >
+              {primero ? v.title : ' '}
+            </button>
+          )
+        })}
+
         {visibleEvents.map(event => {
           const color = getEventColor(event, kids, members)
           return (

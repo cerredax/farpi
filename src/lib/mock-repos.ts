@@ -14,7 +14,7 @@ export const mockRepos: Repos = {
 
   members: {
     getMembers:       (familyId) => Promise.resolve(store.getMembers(familyId)),
-    updateMemberName: (id, name) => Promise.resolve(store.updateMemberName(id, name)),
+    updateMemberProfile: (id, name, color) => Promise.resolve(store.updateMemberProfile(id, name, color)),
     updateMemberRole: (id, role) => {
       // TODO: route through RPC update_family_member_role when on Supabase
       db.members = db.members.map(m => m.id !== id ? m : { ...m, role })

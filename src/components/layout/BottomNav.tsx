@@ -8,8 +8,8 @@ import { ROUTES } from '@/lib/constants'
 const navItems = [
   { href: ROUTES.home,     label: 'Inicio',     icon: Home },
   { href: ROUTES.calendar, label: 'Calendario', icon: Calendar },
-  { href: ROUTES.tasks,    label: 'Tareas',     icon: ClipboardList },
   { href: ROUTES.lists,    label: 'Listas',     icon: CheckSquare },
+  { href: ROUTES.tasks,    label: 'Tareas',     icon: ClipboardList },
   { href: ROUTES.meals,    label: 'Comidas',    icon: UtensilsCrossed },
   { href: ROUTES.docs,     label: 'Docs',       icon: FolderOpen },
 ]

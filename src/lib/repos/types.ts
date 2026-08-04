@@ -18,7 +18,7 @@ export interface FamilyRepo {
 
 export interface MembersRepo {
   getMembers(familyId: string): Promise<FamilyMember[]>
-  updateMemberName(id: string, name: string): Promise<void>
+  updateMemberProfile(id: string, name: string, color: string | null): Promise<void>
   updateMemberRole(id: string, role: 'admin' | 'member'): Promise<void>
   removeMember(id: string): Promise<void>
 }

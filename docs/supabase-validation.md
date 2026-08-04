@@ -58,6 +58,7 @@ Detalle importante: los intentos de lectura ajena **no dan error, devuelven list
 
 - [x] `create_family_with_admin` — crea la familia y deja al llamante como `admin`
 - [x] `update_my_family_profile` — A edita su perfil; el intento de B no cambia nada
+  *(sustituida el 04-08-2026 por `update_family_member_profile`, migración 014: pendiente de revalidar)*
 - [x] `remove_family_member`
 - [x] `update_family_member_role`
 - [x] `accept_family_invite`

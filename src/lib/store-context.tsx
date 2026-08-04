@@ -59,7 +59,7 @@ interface StoreValue {
   pendingItems: PendingItem[]
   updateFamilyName: (name: string) => Promise<void>
   inviteMember: (email: string) => Promise<void>
-  updateMember: (id: string, name: string) => Promise<void>
+  updateMember: (id: string, name: string, color: string | null) => Promise<void>
   updateMemberRole: (id: string, role: 'admin' | 'member') => Promise<void>
   removeMember: (id: string) => Promise<void>
   cancelInvite: (id: string) => Promise<void>
@@ -248,7 +248,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       },
       updateFamilyName: (name: string) => runMutation(() => repos.family.setFamilyName(familyId, name)),
       inviteMember: (email: string) => runMutation(() => repos.invites.createInvite(familyId, email)),
-      updateMember: (id: string, name: string) => runMutation(() => repos.members.updateMemberName(id, name)),
+      updateMember: (id: string, name: string, color: string | null) =>
+        runMutation(() => repos.members.updateMemberProfile(id, name, color)),
       updateMemberRole: (id: string, role: 'admin' | 'member') => runMutation(() => repos.members.updateMemberRole(id, role)),
       removeMember: (id: string) => runMutation(() => repos.members.removeMember(id)),
       cancelInvite: (id: string) => runMutation(() => repos.invites.cancelInvite(id)),

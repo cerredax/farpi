@@ -74,7 +74,7 @@ Pantallas (src/components/**)
 
 `supabase/migrations/001…011` (más `all_in_one.sql` para aplicar de golpe y `validate_rls.sql` para validar). Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
 
-Lo que **no** se hace con policies va por RPC `security definer`: `create_family_with_admin`, `update_my_family_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`. Regla del último admin (una familia siempre tiene ≥1 admin) validada en esas RPCs y en `/api/account/delete`; la UI solo la refuerza.
+Lo que **no** se hace con policies va por RPC `security definer`: `create_family_with_admin`, `update_family_member_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`. Regla del último admin (una familia siempre tiene ≥1 admin) validada en esas RPCs y en `/api/account/delete`; la UI solo la refuerza.
 
 Si tocas una migración: actualiza tipos en `src/types/index.ts`, el mock y la documentación.
 

@@ -361,27 +361,45 @@ BEGIN;
 ROLLBACK;
 
 
--- ─── 14. RPC: update_my_family_profile ───────────────────────
+-- ─── 14. RPC: update_family_member_profile ──────────────────
 
--- Usuario A actualiza su propio perfil:
+-- Usuario A actualiza su propio perfil (nombre y color):
 BEGIN;
   SET LOCAL ROLE authenticated;
   SET LOCAL request.jwt.claims TO '{"sub":"USER_A_ID","role":"authenticated"}';
 
-  SELECT public.update_my_family_profile('MEMBER_A_ID'::uuid, 'Nuevo nombre', null);
+  SELECT public.update_family_member_profile('MEMBER_A_ID'::uuid, 'Nuevo nombre', '#EC7FA9');
   -- ESPERADO: éxito
 
   -- Verificar:
-  SELECT display_name FROM public.family_members WHERE id = 'MEMBER_A_ID'::uuid;
+  SELECT display_name, color FROM public.family_members WHERE id = 'MEMBER_A_ID'::uuid;
 ROLLBACK;
 
--- Usuario A no puede actualizar el perfil de Usuario B:
+-- Usuario A, si es admin, sí puede editar a otro miembro de SU familia:
 BEGIN;
   SET LOCAL ROLE authenticated;
   SET LOCAL request.jwt.claims TO '{"sub":"USER_A_ID","role":"authenticated"}';
 
-  SELECT public.update_my_family_profile('MEMBER_B_ID'::uuid, 'Hacked', null);
-  -- ESPERADO: exception 'Acceso denegado: el miembro no pertenece al usuario autenticado'
+  SELECT public.update_family_member_profile('MEMBER_MISMA_FAMILIA_ID'::uuid, 'Nombre puesto por el admin', null);
+  -- ESPERADO: éxito si A es admin de esa familia
+ROLLBACK;
+
+-- Usuario A no puede tocar a alguien de otra familia:
+BEGIN;
+  SET LOCAL ROLE authenticated;
+  SET LOCAL request.jwt.claims TO '{"sub":"USER_A_ID","role":"authenticated"}';
+
+  SELECT public.update_family_member_profile('MEMBER_B_ID'::uuid, 'Hacked', null);
+  -- ESPERADO: exception 'Acceso denegado: solo un administrador puede editar a otro miembro'
+ROLLBACK;
+
+-- El nombre vacío se rechaza siempre:
+BEGIN;
+  SET LOCAL ROLE authenticated;
+  SET LOCAL request.jwt.claims TO '{"sub":"USER_A_ID","role":"authenticated"}';
+
+  SELECT public.update_family_member_profile('MEMBER_A_ID'::uuid, '   ', null);
+  -- ESPERADO: exception 'El nombre no puede estar vacío'
 ROLLBACK;
 
 

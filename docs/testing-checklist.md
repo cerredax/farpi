@@ -141,7 +141,7 @@ Ejecutar en proyecto Supabase de prueba, sin conectar todavía toda la UI.
 - [ ] Tablas, índices y triggers existen.
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.
-- [ ] RPC `update_my_family_profile` solo permite editar el propio perfil.
+- [ ] RPC `update_family_member_profile`: uno mismo edita su nombre y color; un admin edita a otro de su familia; alguien de fuera no puede.
 - [ ] RPC `remove_family_member` no permite borrar al último admin.
 - [ ] RPC `update_family_member_role` no permite degradar al último admin.
 - [ ] RPC `accept_family_invite` acepta una invitación pendiente del email autenticado.

@@ -22,8 +22,8 @@ export const db: DB = {
   ],
 
   members: [
-    { id: 'm1', family_id: 'f1', user_id: 'u1', display_name: 'Omar',  avatar_url: null, role: 'admin',  created_at: '2026-06-01T00:00:00' },
-    { id: 'm2', family_id: 'f1', user_id: 'u2', display_name: 'Sofía', avatar_url: null, role: 'member', created_at: '2026-06-01T00:00:00' },
+    { id: 'm1', family_id: 'f1', user_id: 'u1', display_name: 'Omar',  avatar_url: null, color: null, role: 'admin',  created_at: '2026-06-01T00:00:00' },
+    { id: 'm2', family_id: 'f1', user_id: 'u2', display_name: 'Sofía', avatar_url: null, color: null, role: 'member', created_at: '2026-06-01T00:00:00' },
   ],
 
   invites: [],

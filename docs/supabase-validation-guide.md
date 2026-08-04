@@ -46,7 +46,7 @@ En **Dashboard → SQL Editor**, ejecuta como `postgres` los bloques de estructu
 - Tablas: deben existir `families, family_members, family_invites, children, events, tasks, lists, list_items, meal_plans, documents`.
 - Triggers: `updated_at` por tabla + los de integridad cross-family (`list_items`, `events`, `documents`).
 - Policies (`pg_policies`): RLS activo en las tablas privadas y en `storage.objects` (bucket `documents`).
-- Funciones (`security_type = DEFINER`): `create_family_with_admin`, `update_my_family_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`.
+- Funciones (`security_type = DEFINER`): `create_family_with_admin`, `update_family_member_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`.
 - Bucket: `storage.buckets` muestra `documents` con `public = false`.
 
 Marca en `supabase-validation.md` la sección "Migraciones" y la estructura.
@@ -99,7 +99,7 @@ Cubre, por orden:
 | 11 | Triggers cross-family | rechaza `list_item`/`event`/`document` con IDs de otra familia |
 | 12 | `remove_family_member` | no borra al único admin; no-admin no puede |
 | 13 | `update_family_member_role` | no degrada al único admin; rol inválido falla |
-| 14 | `update_my_family_profile` | A no edita el perfil de B |
+| 14 | `update_family_member_profile` | A edita su perfil y, siendo admin, el de su familia; un ajeno no |
 | 16 | `accept_family_invite` | solo el email invitado; idempotente; estados inválidos fallan |
 
 > Los bloques usan `BEGIN … ROLLBACK` para no dejar basura. Para el test 16 necesitas datos persistidos: cambia a `COMMIT` el bloque que crea la invitación (test 10) y limpia con `DELETE` al final.

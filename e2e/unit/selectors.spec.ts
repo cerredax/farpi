@@ -153,6 +153,15 @@ test.describe('eventos', () => {
     expect(r.map(e => e.title)).toEqual(['hoy'])
   })
 
+  test('selectTodayEvents deja fuera las vacaciones: durarían días y no son un plan del día', () => {
+    const hoy = getLocalDateString()
+    const r = selectTodayEvents([
+      event({ title: 'cita', start_at: `${hoy}T10:00:00` }),
+      event({ title: 'playa', kind: 'vacaciones', all_day: true, start_at: `${hoy}T00:00:00`, end_at: `${hoy}T00:00:00` }),
+    ])
+    expect(r.map(e => e.title)).toEqual(['cita'])
+  })
+
   test('selectUpcomingEvents excluye hoy y el pasado, y ordena por fecha', () => {
     const manana = getLocalDateString(new Date(Date.now() + 86400000))
     const pasado = getLocalDateString(new Date(Date.now() + 3 * 86400000))

@@ -42,7 +42,7 @@ Objetivo: validar base de datos, RLS, RPCs y Storage en el Dashboard / SQL Edito
 - [ ] Revisar tablas, columnas, índices y triggers.
 - [ ] Revisar policies RLS.
 - [ ] Probar RPC `create_family_with_admin`.
-- [ ] Probar RPC `update_my_family_profile`.
+- [ ] Probar RPC `update_family_member_profile` (uno mismo, admin sobre otro, ajeno rechazado).
 - [ ] Probar RPC `remove_family_member`.
 - [ ] Probar RPC `update_family_member_role`.
 - [ ] Probar RPC `accept_family_invite`.

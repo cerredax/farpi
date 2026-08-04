@@ -1,10 +1,12 @@
 'use client'
 
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { ColorPicker } from '@/components/ui/ColorPicker'
 import { DeleteButton } from '@/components/ui/DeleteButton'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { PERSON_COLORS } from '@/lib/constants'
 import { validateChildDraft } from '@/lib/validators'
 import type { Child, ChildDraft } from '@/types'
 
@@ -20,13 +22,12 @@ interface ChildSheetProps {
   onDelete: (id: string) => void
 }
 
-const PALETTE = ['#D8A48F', '#8BA888', '#E9C46A', '#7EB8D4', '#B39DDB', '#F4A261', '#A8D5A2', '#F08080']
 
 function initDraft(mode: Mode, initial: Child | null | undefined): ChildDraft {
   if (mode === 'edit' && initial) {
     return { name: initial.name, birth_date: initial.birth_date ?? '', color: initial.color }
   }
-  return { name: '', birth_date: '', color: PALETTE[0] }
+  return { name: '', birth_date: '', color: PERSON_COLORS[0].value }
 }
 
 export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: ChildSheetProps) {
@@ -88,25 +89,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
         </Field>
 
         <Field label="Color" spacing="group">
-          <div className="grid grid-cols-8 gap-2">
-            {PALETTE.map(color => {
-              const selected = draft.color === color
-              return (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => patch({ color })}
-                  className="aspect-square rounded-full transition-transform"
-                  style={{
-                    backgroundColor: color,
-                    boxShadow: selected ? `0 0 0 3px white, 0 0 0 5px ${color}` : 'none',
-                    transform: selected ? 'scale(1.2)' : 'scale(1)',
-                  }}
-                  aria-label={color}
-                />
-              )
-            })}
-          </div>
+          <ColorPicker value={draft.color} onChange={color => patch({ color })} />
         </Field>
 
         <div className="flex items-center gap-3 bg-canvas rounded-2xl px-4 py-3">

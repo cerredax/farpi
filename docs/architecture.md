@@ -60,7 +60,7 @@ Migraciones:
 
 - `001_initial_schema.sql` — tablas, índices, triggers `updated_at`
 - `002_rls_policies.sql` — RLS + función `my_family_ids()` (security definer, search_path fijo)
-- `003_rpc.sql` — `create_family_with_admin`, `update_my_family_profile`
+- `003_rpc.sql` — `create_family_with_admin`, `update_my_family_profile` (sustituida en `014`)
 - `004_family_invites_storage.sql` — tabla `family_invites`, policies, bucket `documents`
 - `005_task_recurrence.sql` — columnas `recurrence` y `recurrence_end` en `tasks`
 - `006_event_recurrence.sql` — columna `recurrence_group_id` en `events`
@@ -79,7 +79,7 @@ Regla central de RLS:
 Detalles de seguridad:
 
 - `my_family_ids()` es `security definer` con `set search_path = public`.
-- No existe policy de UPDATE directo sobre `family_members`. Para editar el propio perfil existe `update_my_family_profile` (RPC) que restringe los campos a `display_name` y `avatar_url`.
+- No existe policy de UPDATE directo sobre `family_members`. El perfil se edita con `update_family_member_profile` (RPC, `014`), que restringe los campos a `display_name` y `color`, y permite hacerlo a uno mismo o a un admin de esa familia. Sustituye a `update_my_family_profile`, que solo dejaba editarse a uno mismo.
 - Las policies de `family_invites` para UPDATE incluyen `using` y `with check`.
 
 ## Regla del último admin

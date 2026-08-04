@@ -2,7 +2,6 @@
 
 import { format, isToday, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Heart } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { selectTodayEvents, selectUpcomingEvents } from '@/lib/selectors'
@@ -20,11 +19,6 @@ function getGreeting(date: Date) {
   if (hour < 12) return 'Buenos días, familia'
   if (hour < 20) return 'Buenas tardes, familia'
   return 'Buenas noches, familia'
-}
-
-function formatEventMoment(event: { all_day: boolean; start_at: string }) {
-  if (event.all_day) return 'Todo el día'
-  return format(new Date(event.start_at), 'HH:mm')
 }
 
 function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
@@ -79,7 +73,6 @@ export function HomeView() {
   const greeting    = getGreeting(today)
   const todayEvents = useMemo(() => selectTodayEvents(allEvents), [allEvents])
   const upcoming    = useMemo(() => selectUpcomingEvents(allEvents), [allEvents])
-  const nextEvent   = todayEvents[0] ?? upcoming[0]
   const calmMessage = todayEvents.length === 0 && pendingTasks.length === 0 && pendingItems.length === 0
     ? 'Hoy pinta tranquilo. La casa respira un poco.'
     : 'Lo importante está apuntado. Vamos paso a paso.'
@@ -95,14 +88,7 @@ export function HomeView() {
             <h1 className="text-2xl font-black text-ink leading-tight">{greeting}</h1>
           </div>
 
-          <div className="flex items-center gap-2.5 rounded-3xl bg-white/80 border border-white px-4 py-2.5 shadow-sm">
-            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-[#F1E6D8] text-[#9A6B55]">
-              <Heart size={16} fill="currentColor" strokeWidth={2.4} />
-            </span>
-            <p className="min-w-0 text-sm font-bold text-ink leading-snug">
-              {nextEvent ? `${nextEvent.title} · ${formatEventMoment(nextEvent)}` : calmMessage}
-            </p>
-          </div>
+          <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
 
           {kids.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -121,12 +107,12 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* Primero lo accionable: qué hay que hacer hoy. Después el resto. */}
-      <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
-      <TodayEvents events={todayEvents} kids={kids} members={members} />
-      <TodayMeals meals={todayMeals} />
+      {/* Los planes de hoy van dentro del saludo. Después, lo que se toca a
+          diario: la compra pendiente y las tareas. El menú cierra. */}
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
+      <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
       <UpcomingEvents events={upcoming} kids={kids} />
+      <TodayMeals meals={todayMeals} />
 
       <OffDayConfirmSheet
         open={!!confirmTask}

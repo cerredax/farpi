@@ -73,17 +73,43 @@ test.describe('buildLocalDateTime', () => {
 })
 
 test.describe('extractTime / extractDate', () => {
-  test('extrae la hora HH:mm', () => {
+  test('lee la hora de pared de un datetime sin zona', () => {
+    // Es lo que guarda el mock: la hora tal cual se escribió.
     expect(extractTime('2026-08-03T09:30:00')).toBe('09:30')
-    expect(extractTime('2026-08-03T09:30:00.000Z')).toBe('09:30')
+    expect(extractDate('2026-08-03T09:30:00')).toBe('2026-08-03')
+  })
+
+  test('un instante UTC se lee en la hora local, no en la de UTC', () => {
+    // Es lo que devuelve Supabase, que guarda `timestamptz`. Se construye desde
+    // componentes locales para que el test valga en cualquier zona: las 09:30
+    // de la familia tienen que volver como 09:30, no como su equivalente UTC.
+    const instante = new Date(2026, 7, 3, 9, 30).toISOString()
+    expect(extractTime(instante)).toBe('09:30')
+    expect(extractDate(instante)).toBe('2026-08-03')
+  })
+
+  test('ida y vuelta estable: releer y reescribir no mueve la hora', () => {
+    // El fallo que motivó esto se acumulaba: cada edición restaba el desfase
+    // otra vez. Dos vueltas tienen que dar lo mismo que una.
+    const original = new Date(2026, 7, 3, 9, 30).toISOString()
+    const primera = buildLocalDateTime(extractDate(original), extractTime(original))
+    const segunda = buildLocalDateTime(extractDate(new Date(primera).toISOString()), extractTime(new Date(primera).toISOString()))
+    expect(primera).toBe('2026-08-03T09:30:00')
+    expect(segunda).toBe(primera)
+  })
+
+  test('una medianoche local no adelanta ni retrasa el día', () => {
+    // Un evento de todo el día se guarda a las 00:00 locales, que en UTC caen
+    // en el día anterior. Cortando el string se leía el día equivocado.
+    const medianoche = new Date(2026, 7, 3, 0, 0).toISOString()
+    expect(extractDate(medianoche)).toBe('2026-08-03')
   })
 
   test('devuelve cadena vacía si no hay componente de hora', () => {
     expect(extractTime('2026-08-03')).toBe('')
   })
 
-  test('extrae la parte de fecha', () => {
-    expect(extractDate('2026-08-03T09:30:00')).toBe('2026-08-03')
+  test('una fecha suelta se devuelve tal cual', () => {
     expect(extractDate('2026-08-03')).toBe('2026-08-03')
   })
 })

@@ -42,14 +42,30 @@ export function buildLocalDateTime(date: string, time?: string): string {
 }
 
 /**
- * Extrae la hora HH:mm de un string datetime (ISO o local).
- * Devuelve '' si el string no tiene componente de hora válida.
+ * Hora HH:mm de un datetime, en la zona del que mira.
+ *
+ * No vale con cortar el string. Los dos backends guardan formatos distintos: el
+ * mock escribe la hora de pared tal cual (`2026-08-04T18:00:00`) y Supabase, que
+ * usa `timestamptz`, devuelve el instante en UTC (`2026-08-04T16:00:00+00:00`).
+ * Cortando, un evento de las 18:00 se leía como las 16:00 en España en verano, y
+ * el error se acumulaba: al guardar de nuevo se escribían esas 16:00 como hora
+ * local y el evento retrocedía otras dos horas. `Date` entiende los dos formatos
+ * —el naive lo interpreta como local, que es lo que quiere decir— y aquí solo
+ * queda formatearlo.
  */
 export function extractTime(dateTime: string): string {
-  return dateTime.split('T')[1]?.slice(0, 5) ?? ''
+  // Un `yyyy-MM-dd` suelto no lleva hora. `Date` lo aceptaría como medianoche
+  // UTC y devolveríamos una hora inventada (las 02:00 en España en verano).
+  if (!dateTime.includes('T')) return ''
+  const d = new Date(dateTime)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-/** Extrae la parte de fecha yyyy-MM-dd de un string datetime. */
+/** Parte de fecha yyyy-MM-dd de un datetime, en la zona del que mira. Ver `extractTime`. */
 export function extractDate(dateTime: string): string {
-  return dateTime.slice(0, 10)
+  if (!dateTime.includes('T')) return dateTime.slice(0, 10)
+  const d = new Date(dateTime)
+  if (Number.isNaN(d.getTime())) return dateTime.slice(0, 10)
+  return getLocalDateString(d)
 }

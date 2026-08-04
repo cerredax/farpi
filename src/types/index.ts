@@ -174,6 +174,12 @@ export interface ListDraft {
 
 export interface ListItemDraft {
   text: string
+  /**
+   * Mover el ítem a otra lista. Solo al editar y solo dentro de la familia: la
+   * base lo exige con un trigger (`check_list_item_family`, migración 007).
+   * Sin valor, el ítem se queda donde está.
+   */
+  list_id?: string
 }
 
 export interface DocumentDraft {

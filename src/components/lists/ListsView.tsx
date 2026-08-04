@@ -46,6 +46,7 @@ export function ListsView() {
           mode={s.itemMode}
           initial={s.editingItem}
           historial={s.historialItems}
+          lists={s.lists}
           onClose={() => s.setItemSheetOpen(false)}
           onCreate={s.handleCreateItem}
           onUpdate={s.handleUpdateItem}

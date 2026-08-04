@@ -435,7 +435,13 @@ export const supabaseRepos: Repos = {
 
     async updateListItem(id: string, draft: ListItemDraft): Promise<void> {
       const supabase = createClient()
-      const { error } = await supabase.from('list_items').update({ text: draft.text.trim() }).eq('id', id)
+      // `list_id` solo viaja si se pide mover: mandarlo siempre obligaría a la
+      // UI a conocer la lista actual en cada edición. Que la lista destino sea
+      // de la misma familia lo garantiza el trigger check_list_item_family.
+      const cambios = draft.list_id
+        ? { text: draft.text.trim(), list_id: draft.list_id }
+        : { text: draft.text.trim() }
+      const { error } = await supabase.from('list_items').update(cambios).eq('id', id)
       assertNoError(error)
     },
 

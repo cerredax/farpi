@@ -196,3 +196,34 @@ test('el sheet de crear ítem llega vacío la segunda vez', async ({ page }) => 
   await page.getByRole('button', { name: 'Añadir ítem' }).click()
   await expect(page.locator('#item-text')).toHaveValue('')
 })
+
+// Un ítem se apunta donde estás y luego resulta que iba en otra cesta. El
+// selector solo sale al editar: al crear, la lista es la que tienes abierta.
+test('un ítem se puede mover de una lista a otra', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+
+  await page.getByText('Farmacia').first().click()
+  await page.getByRole('button', { name: 'Añadir ítem' }).click()
+  await page.locator('#item-text').fill('Jabón neutro')
+  await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+  await page.waitForTimeout(300)
+
+  // Al crear no hay a dónde mover: el campo no existe.
+  await page.getByRole('button', { name: 'Añadir ítem' }).click()
+  await expect(page.locator('#item-list')).toHaveCount(0)
+  await page.getByRole('dialog', { name: 'Añadir ítem' }).getByLabel('Cerrar').click()
+
+  await page.getByText('Jabón neutro').click()
+  await page.locator('#item-list').selectOption({ label: '🧽 Limpieza' })
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click()
+  await page.waitForTimeout(300)
+
+  // Ya no está en Farmacia...
+  await expect(page.getByText('Jabón neutro')).toHaveCount(0)
+
+  // ...sino en Limpieza.
+  await page.getByRole('button', { name: 'Volver a las listas' }).click()
+  await page.getByText('Limpieza').first().click()
+  await expect(page.getByText('Jabón neutro')).toBeVisible()
+})

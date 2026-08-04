@@ -55,7 +55,24 @@ export function createListItem(listId: string, familyId: string, draft: ListItem
 }
 
 export function updateListItem(id: string, draft: ListItemDraft): void {
-  db.listItems = db.listItems.map(i => i.id !== id ? i : { ...i, text: draft.text.trim() })
+  const item = db.listItems.find(i => i.id === id)
+  if (!item) return
+
+  // Imita al trigger check_list_item_family (migración 007): un ítem no puede
+  // acabar en la lista de otra familia. Sin esto el mock aceptaría lo que
+  // Supabase rechaza, y el fallo solo saldría en producción.
+  let listId = item.list_id
+  if (draft.list_id && draft.list_id !== item.list_id) {
+    const destino = db.lists.find(l => l.id === draft.list_id)
+    if (!destino || destino.family_id !== item.family_id) {
+      throw new Error('list_items: list_id no pertenece a la misma family_id')
+    }
+    listId = destino.id
+  }
+
+  db.listItems = db.listItems.map(i =>
+    i.id !== id ? i : { ...i, text: draft.text.trim(), list_id: listId }
+  )
 }
 
 export function deleteListItem(id: string): void {

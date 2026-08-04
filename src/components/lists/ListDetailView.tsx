@@ -35,7 +35,7 @@ export function ListDetailView({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        <button onClick={onBack} className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors flex-shrink-0">
+        <button onClick={onBack} aria-label="Volver a las listas" className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors flex-shrink-0">
           <ArrowLeft size={18} />
         </button>
         <span className="text-xl">{list.emoji ?? '📋'}</span>

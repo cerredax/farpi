@@ -244,3 +244,30 @@ test('lo marcado vuelve al catálogo y se puede volver a pedir', async ({ page }
   // Ahora hace falta, y el círculo ofrece lo contrario.
   await expect(page.getByRole('button', { name: /Ya tenéis Gasas estériles/ })).toBeVisible()
 })
+
+// Lo que hay que hacer un día es parte de lo que pasa ese día. La tarea se crea
+// en Tareas pero se ve —y se marca— en la semana del calendario, sin volver.
+// Los datos de demo son de junio, así que la tarea se crea aquí para que caiga
+// dentro de la semana que se está pintando.
+test('la semana del calendario enseña las tareas que vencen', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  await page.locator('#task-title').fill('Recoger el paquete')
+  await page.locator('#task-due').fill(iso)
+  await page.getByRole('button', { name: 'Crear tarea' }).click()
+  await page.waitForTimeout(300)
+  await expect(page.getByText('Recoger el paquete')).toBeVisible()
+
+  await page.goto('/calendar')
+  await page.waitForTimeout(800)
+  await expect(page.getByText('Recoger el paquete')).toBeVisible()
+
+  // Y se marca sin salir del calendario: al hacerlo deja de estar pendiente.
+  await page.getByRole('button', { name: /Marcar .*Recoger el paquete.* como completada/ }).click()
+  await page.waitForTimeout(400)
+  await expect(page.getByText('Recoger el paquete')).toHaveCount(0)
+})

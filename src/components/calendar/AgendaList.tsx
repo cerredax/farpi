@@ -13,9 +13,11 @@ import {
 } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Plus } from 'lucide-react'
+import { CircleCheck } from '@/components/ui/CircleCheck'
 import { EmptyState } from '@/components/ui/EmptyState'
-import type { Event, Child, FamilyMember } from '@/types'
+import type { Event, Child, FamilyMember, Task } from '@/types'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { getLocalDateString } from '@/lib/date-utils'
 import { eventCoversDay, isVacation } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 
@@ -28,9 +30,36 @@ interface AgendaListProps {
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
+  /**
+   * Tareas pendientes con fecha. Llegan vacías en modo agenda: allí el tramo es
+   * de 45 días y las tareas taparían los eventos, que es lo que se ha ido a ver.
+   */
+  tasks?: Task[]
+  onToggleTask?: (id: string) => void
   onSelectDay: (day: Date) => void
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
+}
+
+/**
+ * Una tarea en la agenda. Lleva el círculo de marcar y no el punto de color de
+ * los eventos: una tarea se hace, un evento pasa. Se marca desde aquí porque el
+ * día ya se está mirando, y bajar a Tareas para tachar lo de hoy es el viaje
+ * que nadie hace.
+ */
+function TaskRow({ task, onToggle }: { task: Task; onToggle: (id: string) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 px-1.5">
+      <CircleCheck
+        checked={false}
+        onClick={() => onToggle(task.id)}
+        ariaLabel={`Marcar "${task.title}" como completada`}
+        size="sm"
+        className="w-auto"
+      />
+      <span className="min-w-0 flex-1 truncate text-sm text-ink">{task.title}</span>
+    </div>
+  )
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -59,7 +88,7 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
       className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-canvas"
     >
       <span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0 self-center"
+        className="w-2 h-2 rounded-full flex-shrink-0 self-center"
         style={{ backgroundColor: color }}
         aria-hidden
       />
@@ -74,7 +103,7 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
   )
 }
 
-export function AgendaList({ mode, selectedDay, events, kids, members, onSelectDay, onEdit, onAdd }: AgendaListProps) {
+export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [], onToggleTask, onSelectDay, onEdit, onAdd }: AgendaListProps) {
   const todayStart = startOfDay(new Date())
   const rangeStart = mode === 'week' ? todayStart : startOfDay(selectedDay)
   const rangeEnd = mode === 'week' ? addDays(todayStart, 7) : addDays(startOfDay(selectedDay), 45)
@@ -93,11 +122,14 @@ export function AgendaList({ mode, selectedDay, events, kids, members, onSelectD
   const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => ({
     day,
     events: sortEvents(conFecha.filter(event => eventCoversDay(event, day))),
+    // Una tarea vence un día concreto: la recurrente ya trae en `due_date` su
+    // próxima fecha, así que aparece una sola vez y donde toca.
+    tasks: tasks.filter(task => task.due_date === getLocalDateString(day)),
   }))
 
   const visibleGroups = mode === 'week'
     ? dayGroups
-    : dayGroups.filter(group => group.events.length > 0 || isSameDay(group.day, selectedDay))
+    : dayGroups.filter(group => group.events.length > 0 || group.tasks.length > 0 || isSameDay(group.day, selectedDay))
 
   const headerTitle = mode === 'week' ? 'Agenda semanal' : 'Próximos eventos'
 
@@ -166,12 +198,17 @@ export function AgendaList({ mode, selectedDay, events, kids, members, onSelectD
                   </button>
 
                   <div className="min-w-0 flex-1 self-center">
-                    {group.events.length === 0 ? (
-                      <p className="px-1.5 text-xs text-faint">Sin eventos</p>
+                    {group.events.length === 0 && group.tasks.length === 0 ? (
+                      <p className="px-1.5 text-xs text-faint">Sin planes</p>
                     ) : (
-                      group.events.map(event => (
-                        <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                      ))
+                      <>
+                        {group.events.map(event => (
+                          <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
+                        ))}
+                        {onToggleTask && group.tasks.map(task => (
+                          <TaskRow key={task.id} task={task} onToggle={onToggleTask} />
+                        ))}
+                      </>
                     )}
                   </div>
 

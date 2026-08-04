@@ -20,7 +20,7 @@ import {
 import { ChevronDown } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
-import { selectVisibleVacations } from '@/lib/selectors'
+import { selectPendingTasks, selectVisibleVacations } from '@/lib/selectors'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { CalendarHeader } from './CalendarHeader'
 import { MonthGrid } from './MonthGrid'
@@ -31,7 +31,7 @@ import { Card } from '@/components/ui/Card'
 import type { Event, EventDraft } from '@/types'
 
 export function CalendarView() {
-  const { kids, members, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
+  const { kids, members, allEvents, tasks, toggleTask, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
 
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
@@ -148,6 +148,11 @@ export function CalendarView() {
     return isWithinInterval(eventDate, weekRange)
   })
 
+  // Lo que hay que hacer un día es parte de lo que pasa ese día. Solo en la
+  // semana: en la agenda, que abarca 45 días, taparían los eventos, que es a lo
+  // que se ha entrado. Lo ya hecho no vuelve aquí, que para eso está Tareas.
+  const agendaTasks = agendaMode === 'week' ? selectPendingTasks(tasks) : []
+
   const sheetKey = editingEvent
     ? `edit-${editingEvent.id}`
     : `create-${format(selectedDay, 'yyyyMMdd')}`
@@ -218,6 +223,8 @@ export function CalendarView() {
               events={agendaEvents}
               kids={kids}
               members={members}
+              tasks={agendaTasks}
+              onToggleTask={toggleTask}
               onSelectDay={selectDay}
               onEdit={openEdit}
               onAdd={openCreate}

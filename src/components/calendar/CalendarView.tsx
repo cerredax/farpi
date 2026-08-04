@@ -4,6 +4,7 @@ import { useState } from 'react'
 import {
   addDays,
   addMonths,
+  addWeeks,
   format,
   isSameMonth,
   isWithinInterval,
@@ -11,8 +12,11 @@ import {
   startOfDay,
   startOfMonth,
   subMonths,
+  subWeeks,
 } from 'date-fns'
+import { ChevronDown } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { CalendarHeader } from './CalendarHeader'
 import { MonthGrid } from './MonthGrid'
 import { AgendaList } from './AgendaList'
@@ -20,22 +24,27 @@ import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
 import type { Event, EventDraft } from '@/types'
 
-type CalendarViewMode = 'week' | 'agenda'
-
-const VIEW_OPTIONS: Array<{ mode: CalendarViewMode; label: string; hint: string }> = [
-  { mode: 'week',   label: 'Semana', hint: '7 días' },
-  { mode: 'agenda', label: 'Agenda', hint: 'lista'  },
-]
-
 export function CalendarView() {
   const { kids, members, allEvents, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
 
   const today = new Date()
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
   const [selectedDay, setSelectedDay]   = useState(today)
-  const [viewMode, setViewMode]         = useState<CalendarViewMode>('week')
   const [sheetOpen, setSheetOpen]       = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+
+  // Una sola idea de "cuánto calendario veo": plegado, la semana en curso y los
+  // próximos siete días; desplegado, el mes y la lista desde el día elegido.
+  // Antes había dos —la rejilla, siempre el mes entero, y un selector
+  // Semana/Agenda que solo mandaba sobre la lista—, y el control más visible
+  // era justo el que no se podía tocar.
+  const [mesDesplegado, setMesDesplegado] = useState(false)
+
+  // En pantalla grande el mes cabe de sobra y plegarlo no gana nada, así que
+  // la manija es cosa del móvil. Es un cambio de qué se renderiza, no de cómo
+  // se ve, y por eso no lo puede resolver Tailwind.
+  const esEscritorio = useMediaQuery('(min-width: 1024px)')
+  const verMes = esEscritorio || mesDesplegado
 
   const weekRange = {
     start: startOfDay(today),
@@ -50,12 +59,34 @@ export function CalendarView() {
 
   function openEdit(event: Event) { setEditingEvent(event); setSheetOpen(true) }
 
+  // Elegir un día ya no cambia de vista a tus espaldas: antes, tocar un día
+  // fuera de los próximos siete saltaba solo de Semana a Agenda.
   function selectDay(day: Date) {
     setSelectedDay(day)
     if (!isSameMonth(day, currentMonth)) setCurrentMonth(startOfMonth(day))
-    if (viewMode === 'week' && !isWithinInterval(startOfDay(day), weekRange)) {
-      setViewMode('agenda')
-    }
+  }
+
+  /**
+   * Las flechas recorren mes o semana según lo que se esté viendo. Plegado
+   * mueven también el día elegido: es lo que decide qué semana se pinta, y
+   * saltar de semana sin moverlo dejaría la rejilla quieta.
+   */
+  function irAnterior() {
+    if (verMes) return setCurrentMonth(m => subMonths(m, 1))
+    setSelectedDay(d => {
+      const anterior = subWeeks(d, 1)
+      setCurrentMonth(startOfMonth(anterior))
+      return anterior
+    })
+  }
+
+  function irSiguiente() {
+    if (verMes) return setCurrentMonth(m => addMonths(m, 1))
+    setSelectedDay(d => {
+      const siguiente = addWeeks(d, 1)
+      setCurrentMonth(startOfMonth(siguiente))
+      return siguiente
+    })
   }
 
   async function handleCreate(draft: EventDraft) {
@@ -84,9 +115,11 @@ export function CalendarView() {
     }
   }
 
+  const agendaMode = verMes ? 'agenda' : 'week'
+
   const agendaEvents = allEvents.filter(event => {
     const eventDate = parseISO(event.start_at)
-    if (viewMode === 'agenda') {
+    if (agendaMode === 'agenda') {
       return isWithinInterval(eventDate, {
         start: startOfDay(selectedDay),
         end: addDays(startOfDay(selectedDay), 45),
@@ -111,10 +144,11 @@ export function CalendarView() {
               <Card padded={false}>
                 <CalendarHeader
                   currentMonth={currentMonth}
-                  onPrev={() => setCurrentMonth(m => subMonths(m, 1))}
-                  onNext={() => setCurrentMonth(m => addMonths(m, 1))}
+                  unidad={verMes ? 'mes' : 'semana'}
+                  onPrev={irAnterior}
+                  onNext={irSiguiente}
                 />
-                <div className="pb-3">
+                <div className={verMes ? 'pb-3' : 'pb-1'}>
                   <MonthGrid
                     currentMonth={currentMonth}
                     selectedDay={selectedDay}
@@ -122,41 +156,36 @@ export function CalendarView() {
                     kids={kids}
                     members={members}
                     density="compact"
+                    weekOf={verMes ? null : selectedDay}
                     onSelectDay={selectDay}
                     onEditEvent={openEdit}
                     onAddEvent={openCreate}
                   />
                 </div>
-              </Card>
-            </div>
 
-            <div className="mx-4 mt-4 lg:mx-0 grid grid-cols-2 gap-1 rounded-[22px] bg-surface p-1.5 border border-line shadow-sm">
-              {VIEW_OPTIONS.map(option => {
-                const isActive = viewMode === option.mode
-                return (
-                  <button
-                    key={option.mode}
-                    onClick={() => setViewMode(option.mode)}
-                    className={`rounded-2xl px-2 py-2 text-center transition-all ${
-                      isActive
-                        ? 'bg-white text-ink shadow-sm ring-1 ring-primary/20'
-                        : 'text-muted hover:bg-white/50'
-                      }`}
-                  >
-                    <span className="block text-[13px] font-black leading-tight">{option.label}</span>
-                    <span className={`block text-[10px] font-bold leading-tight ${isActive ? 'text-primary' : 'text-muted-soft'}`}>
-                      {option.hint}
-                    </span>
-                  </button>
-                )
-              })}
+                {/* La manija solo en móvil: en escritorio el mes se ve entero
+                    siempre y no habría nada que desplegar. */}
+                <button
+                  type="button"
+                  onClick={() => setMesDesplegado(v => !v)}
+                  aria-expanded={mesDesplegado}
+                  className="lg:hidden flex w-full items-center justify-center gap-1.5 border-t border-hairline py-2.5 text-[11px] font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
+                >
+                  {mesDesplegado ? 'Ver solo la semana' : 'Ver el mes'}
+                  <ChevronDown
+                    size={14}
+                    strokeWidth={2.6}
+                    className={`transition-transform ${mesDesplegado ? 'rotate-180' : ''}`}
+                  />
+                </button>
+              </Card>
             </div>
           </div>
 
           {/* Right column: agenda list */}
           <div className="pt-2 lg:pt-0">
             <AgendaList
-              mode={viewMode}
+              mode={agendaMode}
               selectedDay={selectedDay}
               currentMonth={currentMonth}
               events={agendaEvents}

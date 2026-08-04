@@ -12,6 +12,12 @@ interface MonthGridProps {
   kids: Child[]
   members: FamilyMember[]
   density?: 'compact' | 'detailed'
+  /**
+   * Con una fecha, pinta solo su semana en vez del mes entero. Es el modo
+   * plegado del móvil: el mes completo se come media pantalla para enseñar
+   * sobre todo días que no se van a tocar.
+   */
+  weekOf?: Date | null
   onSelectDay: (day: Date) => void
   onEditEvent?: (event: Event) => void
   onAddEvent?: (day: Date) => void
@@ -24,6 +30,13 @@ function getMonthDays(month: Date): Date[] {
   })
 }
 
+function getWeekDays(day: Date): Date[] {
+  return eachDayOfInterval({
+    start: startOfWeek(day, { weekStartsOn: 1 }),
+    end:   endOfWeek(day,   { weekStartsOn: 1 }),
+  })
+}
+
 export function MonthGrid({
   currentMonth,
   selectedDay,
@@ -31,11 +44,12 @@ export function MonthGrid({
   kids,
   members,
   density = 'compact',
+  weekOf = null,
   onSelectDay,
   onEditEvent,
   onAddEvent,
 }: MonthGridProps) {
-  const days = getMonthDays(currentMonth)
+  const days = weekOf ? getWeekDays(weekOf) : getMonthDays(currentMonth)
   const isDetailed = density === 'detailed'
 
   return (
@@ -55,7 +69,9 @@ export function MonthGrid({
             dayNumber={getDate(day)}
             isToday={isToday(day)}
             isSelected={isSameDay(day, selectedDay)}
-            isCurrentMonth={isSameMonth(day, currentMonth)}
+            // Plegado no hay "otro mes" del que distinguirse: se ve una semana
+            // suelta, y atenuar sus días la partiría en dos sin motivo.
+            isCurrentMonth={weekOf ? true : isSameMonth(day, currentMonth)}
             events={events.filter(e => eventCoversDay(e, day))}
             kids={kids}
             members={members}

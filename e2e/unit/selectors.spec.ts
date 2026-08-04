@@ -149,18 +149,18 @@ test.describe('selectPendingItemsByList', () => {
   const pendiente = (list_id: string, list_name: string, text: string, list_emoji: string | null = '🛒') =>
     ({ ...listItem({ list_id, text }), list_name, list_emoji })
 
-  test('cuenta los pendientes de cada cesta y arrastra su icono', () => {
+  test('una cesta por lista con pendientes, con su icono y sin cuenta', () => {
     const r = selectPendingItemsByList([
       pendiente('l1', 'Compra', 'leche'), pendiente('l1', 'Compra', 'pan'),
       pendiente('l2', 'Farmacia', 'gasas', '💊'),
     ])
     expect(r).toEqual([
-      { id: 'l1', name: 'Compra', emoji: '🛒', count: 2 },
-      { id: 'l2', name: 'Farmacia', emoji: '💊', count: 1 },
+      { id: 'l1', name: 'Compra', emoji: '🛒' },
+      { id: 'l2', name: 'Farmacia', emoji: '💊' },
     ])
   })
 
-  test('orden alfabético, no por cantidad: marcar algo no reordena las cestas', () => {
+  test('orden alfabético: marcar algo no reordena las cestas', () => {
     const r = selectPendingItemsByList([
       pendiente('l1', 'Ferretería', 'tornillos'), pendiente('l1', 'Ferretería', 'tacos'),
       pendiente('l2', 'Compra', 'leche'),

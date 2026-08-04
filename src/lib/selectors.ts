@@ -79,22 +79,25 @@ export function selectPendingItems(listItems: ListItem[], lists: List[]): Pendin
 }
 
 /**
- * Los pendientes de casa agrupados por lista, con su icono y su cuenta. En
- * Inicio no hace falta ver los ítems uno a uno —para eso está la pantalla de
- * listas—, sino saber de un vistazo cuánto queda y en qué cesta.
+ * Qué cestas tienen algo pendiente, con su icono. En Inicio no hace falta ver
+ * los ítems uno a uno —para eso está la pantalla de listas—, sino saber dónde
+ * queda algo por hacer.
  *
- * Por orden alfabético, no por cantidad: la cesta se busca por su nombre, y un
- * orden que baila cada vez que se marca algo obliga a releerlas todas.
+ * Sin cuenta: el número decía poco (que falten dos cosas o siete no cambia lo
+ * que haces) y pegado al nombre se leía como parte de él, "Casa 2".
+ *
+ * Por orden alfabético: la cesta se busca por su nombre, y un orden que baila
+ * cada vez que se marca algo obliga a releerlas todas.
  */
 export function selectPendingItemsByList(
   items: PendingItem[],
-): { id: string; name: string; emoji: string | null; count: number }[] {
-  const porLista = new Map<string, { id: string; name: string; emoji: string | null; count: number }>()
+): { id: string; name: string; emoji: string | null }[] {
+  const porLista = new Map<string, { id: string; name: string; emoji: string | null }>()
 
   for (const item of items) {
-    const cesta = porLista.get(item.list_id)
-    if (cesta) cesta.count += 1
-    else porLista.set(item.list_id, { id: item.list_id, name: item.list_name, emoji: item.list_emoji, count: 1 })
+    if (!porLista.has(item.list_id)) {
+      porLista.set(item.list_id, { id: item.list_id, name: item.list_name, emoji: item.list_emoji })
+    }
   }
 
   return [...porLista.values()].sort((a, b) => compararTexto(a.name, b.name))

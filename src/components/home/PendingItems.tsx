@@ -49,7 +49,6 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
             <span key={cesta.id} className="flex items-center gap-1.5 text-sm font-semibold text-ink">
               <span aria-hidden>{cesta.emoji ?? '📋'}</span>
               {cesta.name}
-              <span className="text-muted font-bold">{cesta.count}</span>
             </span>
           ))}
         </div>

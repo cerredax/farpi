@@ -37,7 +37,11 @@ export function BottomNav() {
                 strokeWidth={active ? 2.5 : 1.8}
                 className={active ? 'drop-shadow-sm' : ''}
               />
-              <span className={`text-[10px] font-semibold leading-none truncate ${active ? 'text-primary' : ''}`}>
+              {/* Sin `truncate`: recortaba la etiqueta por abajo y el texto no
+                  se leía. La caja de línea era más corta que las letras que
+                  dibuja la fuente, y lo que sobresalía se cortaba. Son seis
+                  palabras cortas, así que basta con que no partan en dos. */}
+              <span className={`text-[10px] font-semibold leading-tight whitespace-nowrap ${active ? 'text-primary' : ''}`}>
                 {label}
               </span>
             </Link>

@@ -95,7 +95,12 @@ export function ListsView() {
               {s.coincidencias.length} resultado{s.coincidencias.length !== 1 ? 's' : ''}
             </p>
             {s.coincidencias.map(match => (
-              <ItemMatchCard key={match.id} match={match} onClick={() => s.abrirLista(match.list_id)} />
+              <ItemMatchCard
+                key={match.id}
+                match={match}
+                onToggle={() => s.toggleListItem(match.id)}
+                onOpenList={() => s.abrirLista(match.list_id)}
+              />
             ))}
           </div>
         )

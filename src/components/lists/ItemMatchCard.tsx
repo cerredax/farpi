@@ -1,28 +1,42 @@
 import { ChevronRight } from 'lucide-react'
+import { CircleCheck } from '@/components/ui/CircleCheck'
 import type { ItemMatch } from '@/types'
 
 interface ItemMatchCardProps {
   match: ItemMatch
-  onClick: () => void
+  onToggle: () => void
+  onOpenList: () => void
 }
 
-/** Un ítem encontrado en la búsqueda global, con la lista de la que sale. */
-export function ItemMatchCard({ match, onClick }: ItemMatchCardProps) {
+/**
+ * Un ítem encontrado en la búsqueda global, con la lista de la que sale.
+ *
+ * Se puede marcar aquí mismo: buscas "pilas" para tacharlas, no para navegar.
+ * Entrar en la lista sigue a un toque, en el resto de la tarjeta.
+ */
+export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProps) {
   return (
-    <button
-      onClick={onClick}
-      className="w-full bg-white rounded-2xl border border-surface shadow-sm px-4 py-3 flex items-center gap-3 hover:bg-canvas active:bg-canvas transition-colors text-left"
-    >
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold leading-snug ${match.completed ? 'text-muted line-through' : 'text-ink'}`}>
-          {match.text}
-        </p>
-        <p className="text-[11px] text-muted mt-1 truncate">
-          {match.list_emoji ?? '📋'} {match.list_name}
-          {match.completed && ' · hecho'}
-        </p>
-      </div>
-      <ChevronRight size={16} className="text-faint flex-shrink-0" />
-    </button>
+    <div className="w-full bg-white rounded-2xl border border-surface shadow-sm flex items-center gap-2 pl-2 pr-3 py-2.5">
+      <CircleCheck
+        checked={match.completed}
+        onClick={onToggle}
+        ariaLabel={match.completed ? `Marcar ${match.text} como pendiente` : `Marcar ${match.text} como hecho`}
+      />
+      <button
+        onClick={onOpenList}
+        aria-label={`Abrir ${match.list_name}`}
+        className="flex flex-1 items-center gap-2 min-w-0 text-left"
+      >
+        <span className="flex-1 min-w-0">
+          <span className={`block text-sm font-semibold leading-snug ${match.completed ? 'text-muted line-through' : 'text-ink'}`}>
+            {match.text}
+          </span>
+          <span className="block text-[11px] text-muted mt-0.5 truncate">
+            {match.list_emoji ?? '📋'} {match.list_name}
+          </span>
+        </span>
+        <ChevronRight size={16} className="text-faint flex-shrink-0" />
+      </button>
+    </div>
   )
 }

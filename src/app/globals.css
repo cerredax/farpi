@@ -75,6 +75,12 @@
   .field-input {
     @apply w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink transition placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary;
   }
+  /* La barra inferior se apoya en el borde de la pantalla: en los móviles con
+     barra de gestos hay que dejarle su hueco o el texto queda debajo. La clase
+     se usaba en BottomNav sin estar definida en ninguna parte. */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 *, *::before, *::after {

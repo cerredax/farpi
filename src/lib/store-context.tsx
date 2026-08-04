@@ -39,6 +39,13 @@ interface StoreValue {
   error: string | null
   /** Descarta el error mostrado, al cerrarlo el usuario o al reintentar. */
   clearError: () => void
+  /**
+   * Qué acaba de pasar, si se puede deshacer. `null` si no hay nada que
+   * deshacer. La UI lo enseña un momento junto al botón de deshacer.
+   */
+  undoLabel: string | null
+  undo: () => Promise<void>
+  clearUndo: () => void
   reload: () => Promise<void>
   activeFamilyId: string
   families: Family[]
@@ -120,6 +127,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [undoAction, setUndoAction] = useState<{ label: string; run: () => Promise<void> } | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [families, setFamilies] = useState<Family[]>(EMPTY_SLICES.families)
   const [members, setMembers] = useState<FamilyMember[]>(EMPTY_SLICES.members)
@@ -203,6 +211,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   // recogía, así que un fallo de red se quedaba en silencio.
   const runMutation = useCallback(async (action: () => Promise<unknown>): Promise<void> => {
     setError(null)
+    setUndoAction(null)
     setIsSaving(true)
     try {
       await action()
@@ -214,6 +223,32 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     }
   }, [reload])
 
+  /**
+   * Devolver una tarea a como estaba antes de marcarla. No basta con
+   * desmarcarla: si se repite, marcarla no la completa sino que le empuja la
+   * fecha a la siguiente vez. En vez de repetir aquí esa bifurcación, se mira
+   * qué cambió de verdad y se revierte solo eso.
+   */
+  const restaurarTarea = useCallback(async (previo: Task): Promise<void> => {
+    await runMutation(async () => {
+      const actual = (await repos.tasks.getTasks(familyId)).find(t => t.id === previo.id)
+      if (!actual) return
+      if (actual.completed !== previo.completed) {
+        await repos.tasks.toggleTask(previo.id)
+      }
+      if (actual.due_date !== previo.due_date) {
+        await repos.tasks.updateTask(previo.id, {
+          title: previo.title,
+          notes: previo.notes ?? '',
+          priority: previo.priority,
+          due_date: previo.due_date ?? '',
+          recurrence: previo.recurrence,
+          recurrence_end: previo.recurrence_end ?? '',
+        })
+      }
+    })
+  }, [repos, familyId, runMutation])
+
   const value = useMemo<StoreValue | null>(() => {
     if (!family) return null
 
@@ -222,6 +257,13 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       isSaving,
       error,
       clearError: () => setError(null),
+      undoLabel: undoAction?.label ?? null,
+      undo: async () => {
+        const accion = undoAction
+        setUndoAction(null)
+        if (accion) await accion.run()
+      },
+      clearUndo: () => setUndoAction(null),
       reload,
       activeFamilyId: familyId,
       families,
@@ -312,7 +354,14 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft)),
       updateTask: (id: string, draft: TaskDraft) => runMutation(() => repos.tasks.updateTask(id, draft)),
       deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id)),
-      toggleTask: (id: string) => runMutation(() => repos.tasks.toggleTask(id)),
+      // Marcar una tarea es lo más fácil de hacer sin querer: es un círculo que
+      // se toca al pasar el dedo por la lista. Se guarda cómo estaba antes para
+      // poder devolverla, que hasta ahora no había manera si se repetía.
+      toggleTask: async (id: string) => {
+        const previo = tasks.find(t => t.id === id)
+        await runMutation(() => repos.tasks.toggleTask(id))
+        if (previo) setUndoAction({ label: 'Hecho', run: () => restaurarTarea(previo) })
+      },
       createList: (draft: ListDraft) => runMutation(() => repos.lists.createList(familyId, draft)),
       updateList: (id: string, draft: ListDraft) => runMutation(() => repos.lists.updateList(id, draft)),
       deleteList: (id: string) => runMutation(() => repos.lists.deleteList(id)),
@@ -354,6 +403,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     pendingItems,
     repos,
     runMutation,
+    undoAction,
+    restaurarTarea,
   ])
 
   if (isLoading && !value) {

@@ -271,3 +271,41 @@ test('la semana del calendario enseña las tareas que vencen', async ({ page }) 
   await page.waitForTimeout(400)
   await expect(page.getByText('Recoger el paquete')).toHaveCount(0)
 })
+
+// Marcar una tarea que se repite no la completa: le empuja la fecha a la
+// siguiente vez. Por eso no había forma de deshacerlo —no quedaba nada
+// desmarcado que volver a tocar— y hacía falta el aviso con el botón.
+test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  await page.locator('#task-title').fill('Regar las plantas')
+  await page.locator('#task-due').fill(iso)
+  await page.getByRole('button', { name: 'Diaria', exact: true }).click()
+  await page.getByRole('button', { name: 'Crear tarea' }).click()
+  await page.waitForTimeout(300)
+
+  await page.goto('/calendar')
+  await page.waitForTimeout(800)
+
+  // Se mira la fila de hoy y no la semana entera: al marcarla no desaparece,
+  // salta a mañana, que también se está pintando.
+  const filaDeHoy = page.locator(`#day-${iso.replace(/-/g, '')}`)
+  await expect(filaDeHoy.getByText('Regar las plantas')).toBeVisible()
+
+  await filaDeHoy.getByRole('button', { name: /Marcar .*Regar las plantas.* como completada/ }).click()
+  await page.waitForTimeout(400)
+  await expect(filaDeHoy.getByText('Regar las plantas')).toHaveCount(0)
+
+  // El aviso dice las dos cosas: que se ha hecho y cómo volver atrás.
+  await expect(page.getByRole('status')).toContainText('Hecho')
+  await page.getByRole('button', { name: 'Deshacer' }).click()
+  await page.waitForTimeout(600)
+
+  // Vuelve a vencer hoy, y el aviso se retira.
+  await expect(filaDeHoy.getByText('Regar las plantas')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Deshacer' })).toHaveCount(0)
+})

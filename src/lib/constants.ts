@@ -77,6 +77,14 @@ export const TASK_PRIORITIES: { value: TaskPriority; label: string; color: strin
  */
 export const MINIMO_PARA_BUSCAR = 3
 
+/**
+ * Cuántos platos ya cocinados se ofrecen al planificar una comida. Muy por
+ * encima de las 5 sugerencias sueltas del resto de formularios: aquí el bloque
+ * hace de catálogo buscable —se teclea y se filtra— y el menú de una familia
+ * gira sobre bastantes más de cinco platos.
+ */
+export const PLATOS_SUGERIDOS = 30
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {

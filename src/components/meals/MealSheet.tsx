@@ -4,7 +4,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { Suggestions } from '@/components/ui/Suggestions'
-import { MEAL_SLOTS } from '@/lib/constants'
+import { MEAL_SLOTS, PLATOS_SUGERIDOS } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectSuggestions } from '@/lib/selectors'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
@@ -58,7 +58,12 @@ export function MealSheet({
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  const sugerencias = selectSuggestions(historial, draft.name)
+  // El campo "Plato" hace de buscador del recetario: lo que se teclea filtra los
+  // platos ya cocinados. Con tope de 5 no se veía como tal —salían siempre los
+  // mismos y había que reescribir el resto—, así que aquí se abre el catálogo
+  // entero y el bloque pasa a ser scrollable.
+  const sugerencias = selectSuggestions(historial, draft.name, PLATOS_SUGERIDOS)
+  const buscando = draft.name.trim().length > 0
 
   const handleSubmit = submitHandler(valid => {
     if (mode === 'create') onCreate(valid)
@@ -130,15 +135,21 @@ export function MealSheet({
             type="text"
             value={draft.name}
             onChange={e => patch({ name: e.target.value })}
-            placeholder="Ej: Arroz con pollo"
+            placeholder="Busca un plato o escribe uno nuevo"
             required
             className="field-input"
           />
           <Suggestions
             values={sugerencias}
             onPick={name => patch({ name })}
-            label={draft.name.trim() ? 'Coincidencias' : 'Los que más repetís'}
+            scroll
+            label={buscando
+              ? `Ya lo habéis hecho (${sugerencias.length})`
+              : 'Los que más repetís'}
           />
+          {buscando && sugerencias.length === 0 && historial.length > 0 && (
+            <p className="text-[11px] text-faint">Plato nuevo: no lo habíais apuntado nunca.</p>
+          )}
         </Field>
 
         <Field label="Notas" htmlFor="meal-notes" hint="(opcional)">

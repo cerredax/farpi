@@ -50,16 +50,16 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
                   <span className="text-xs font-semibold text-muted">
                     {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}
                   </span>
+                  {/* De quién es, en su color y en la misma línea que la fecha.
+                      Como píldora debajo se comía una línea entera por evento
+                      para decir una palabra. Es el formato de la agenda. */}
+                  {asignado && (
+                    <span className="min-w-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
+                      {asignado.name}
+                    </span>
+                  )}
                 </div>
                 <p className="font-semibold text-ink text-sm leading-snug mt-0.5">{event.title}</p>
-                {asignado && (
-                  <span
-                    className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: asignado.color }}
-                  >
-                    {asignado.name}
-                  </span>
-                )}
               </li>
             )
           })}

@@ -164,6 +164,11 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
 
       if (!nextFamily) throw new Error('No se ha encontrado la familia activa')
 
+      // El mock vive en memoria, así que sin esto recargar la página tira lo
+      // que acabas de escribir. Va aquí porque toda escritura termina en un
+      // `reload()`, y es el simétrico del `loadFromStorage()` de más arriba.
+      if (IS_DEMO_MODE) store.persistAll()
+
       setFamily(nextFamily)
       setFamilies(nextFamilies)
       setMembers(nextMembers)

@@ -15,10 +15,9 @@ import { es } from 'date-fns/locale'
 import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child, FamilyMember } from '@/types'
-import { resolveAssignee } from '@/lib/assignees'
+import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { eventCoversDay, isVacation } from '@/lib/events'
 import { capitalize } from '@/lib/text'
-import { FAMILY_COLOR } from '@/lib/constants'
 
 type AgendaMode = 'week' | 'agenda'
 
@@ -32,15 +31,6 @@ interface AgendaListProps {
   onSelectDay: (day: Date) => void
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
-}
-
-function getEventColor(event: Event, kids: Child[], members: FamilyMember[]): string {
-  if (event.color) return event.color
-  if (event.child_id || event.member_id) {
-    const asignado = resolveAssignee(event, members, kids)
-    if (asignado) return asignado.color
-  }
-  return FAMILY_COLOR
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -59,7 +49,7 @@ function sortEvents(events: Event[]): Event[] {
  */
 function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void }) {
   const asignado = resolveAssignee(event, members, kids)
-  const color = getEventColor(event, kids, members)
+  const color = eventColor(event, members, kids)
   const hora = event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')
 
   return (

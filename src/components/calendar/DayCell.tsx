@@ -1,9 +1,8 @@
 import { compareAsc, format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { Event, Child, FamilyMember } from '@/types'
-import { resolveAssignee } from '@/lib/assignees'
+import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { isVacation, vacationEdges } from '@/lib/events'
-import { FAMILY_COLOR } from '@/lib/constants'
 
 interface DayCellProps {
   day: Date
@@ -18,15 +17,6 @@ interface DayCellProps {
   onSelect: (day: Date) => void
   onEditEvent?: (event: Event) => void
   onAddEvent?: (day: Date) => void
-}
-
-function getEventColor(event: Event, kids: Child[], members: FamilyMember[]): string {
-  if (event.color) return event.color
-  if (event.child_id || event.member_id) {
-    const asignado = resolveAssignee(event, members, kids)
-    if (asignado) return asignado.color
-  }
-  return FAMILY_COLOR
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -70,7 +60,7 @@ function VacationBand({
           >
             <span
               className={`h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`}
-              style={{ backgroundColor: getEventColor(v, kids, members) }}
+              style={{ backgroundColor: eventColor(v, members, kids) }}
             />
           </button>
         )
@@ -127,7 +117,7 @@ export function DayCell({
               <span className="text-[9px] font-black text-primary leading-none">{totalCount}</span>
             ) : (
               dots.map((event, i) => (
-                <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: getEventColor(event, kids, members) }} />
+                <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: eventColor(event, members, kids) }} />
               ))
             )}
           </div>
@@ -154,7 +144,7 @@ export function DayCell({
               </p>
               <div className="space-y-1.5">
                 {sortedEvents.map(event => {
-                  const color = getEventColor(event, kids, members)
+                  const color = eventColor(event, members, kids)
                   const asignado = resolveAssignee(event, members, kids)
                   return (
                     <div key={event.id} className="flex items-start gap-2">
@@ -210,7 +200,7 @@ export function DayCell({
             enseña como una tira con el título solo el día que empieza. */}
         {vacaciones.map(v => {
           const { primero, ultimo } = vacationEdges(v, day)
-          const color = getEventColor(v, kids, members)
+          const color = eventColor(v, members, kids)
           return (
             <button
               key={v.id}
@@ -227,7 +217,7 @@ export function DayCell({
         })}
 
         {visibleEvents.map(event => {
-          const color = getEventColor(event, kids, members)
+          const color = eventColor(event, members, kids)
           return (
             <button
               key={event.id}

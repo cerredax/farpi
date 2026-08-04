@@ -1,10 +1,13 @@
 import { test, expect } from '@playwright/test'
-import { assigneeKeyOf, buildAssignees, memberColor, resolveAssignee } from '@/lib/assignees'
+import { assigneeKeyOf, buildAssignees, eventColor, memberColor, resolveAssignee } from '@/lib/assignees'
+import { FAMILY_COLOR } from '@/lib/constants'
 import type { Child, FamilyMember } from '@/types'
 
+// `color: null` a propósito: es lo que hace que el color salga de la posición
+// en la familia, que es justo lo que comprueba el test de más abajo.
 const miembros: FamilyMember[] = [
-  { id: 'm1', family_id: 'f1', user_id: 'u1', display_name: 'Omar', avatar_url: null, role: 'admin', created_at: '' },
-  { id: 'm2', family_id: 'f1', user_id: 'u2', display_name: 'Sofía', avatar_url: null, role: 'member', created_at: '' },
+  { id: 'm1', family_id: 'f1', user_id: 'u1', display_name: 'Omar', avatar_url: null, color: null, role: 'admin', created_at: '' },
+  { id: 'm2', family_id: 'f1', user_id: 'u2', display_name: 'Sofía', avatar_url: null, color: null, role: 'member', created_at: '' },
 ]
 const hijos: Child[] = [
   { id: 'c1', family_id: 'f1', name: 'Ana', birth_date: null, color: '#123456', created_at: '' },
@@ -38,6 +41,22 @@ test('resuelve a quién pertenece cada cosa', () => {
 test('si la persona ya no está, deja de estar asignado', () => {
   expect(resolveAssignee({ child_id: null, member_id: 'borrado' }, miembros, hijos)).toBeNull()
   expect(resolveAssignee({ child_id: 'borrado', member_id: null }, miembros, hijos)).toBeNull()
+})
+
+// Lo de toda la familia también tiene color. Cuando este cálculo estaba copiado
+// en cada pantalla, Inicio se quedó sin el amarillo y esos eventos salían sin
+// ninguna marca.
+test('el color de un evento sale de quien lo lleve, y si no hay nadie es el de la familia', () => {
+  const base = { color: null, child_id: null, member_id: null }
+  expect(eventColor(base, miembros, hijos)).toBe(FAMILY_COLOR)
+  expect(eventColor({ ...base, member_id: 'm1' }, miembros, hijos)).toBe(memberColor(miembros, 'm1'))
+  expect(eventColor({ ...base, child_id: 'c1' }, miembros, hijos)).toBe('#123456')
+
+  // El color propio del evento manda sobre el de la persona.
+  expect(eventColor({ ...base, color: '#ABCDEF', child_id: 'c1' }, miembros, hijos)).toBe('#ABCDEF')
+
+  // Si la persona ya no está, vuelve a ser de la familia en vez de quedarse sin color.
+  expect(eventColor({ ...base, member_id: 'borrado' }, miembros, hijos)).toBe(FAMILY_COLOR)
 })
 
 test('la clave del draft casa con la de su opción', () => {

@@ -4,7 +4,7 @@ import { Card, CardSection } from '@/components/ui/Card'
 import type { Event, Child, FamilyMember } from '@/types'
 import { format, isTomorrow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { resolveAssignee } from '@/lib/assignees'
+import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { capitalize } from '@/lib/text'
 
 interface UpcomingEventsProps {
@@ -38,6 +38,14 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
             return (
               <li key={event.id} className="px-4 py-3">
                 <div className="flex items-baseline gap-2">
+                  {/* El mismo punto que la agenda del calendario: lo de toda la
+                      familia también tiene color (el amarillo), y sin él estas
+                      filas eran las únicas de la app donde no se veía. */}
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0 self-center"
+                    style={{ backgroundColor: eventColor(event, members, kids) }}
+                    aria-hidden
+                  />
                   <span className="text-xs font-bold text-primary">{eventDayLabel(fecha)}</span>
                   <span className="text-xs font-semibold text-muted">
                     {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}

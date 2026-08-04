@@ -80,6 +80,22 @@ export function resolveAssignee(
   return null
 }
 
+/**
+ * El color con el que se pinta un evento: el suyo si lo tiene, si no el de
+ * quien lo lleve, y si no hay nadie el de la familia. Vive aquí y no en cada
+ * pantalla porque el amarillo de "esto es de todos" tiene que ser el mismo en
+ * el calendario, en la agenda y en Inicio; cuando estaba copiado en cada sitio,
+ * Inicio se quedó sin él y los eventos de la familia salían sin marca.
+ */
+export function eventColor(
+  evento: { color: string | null; child_id: string | null; member_id: string | null },
+  members: FamilyMember[],
+  kids: Child[],
+): string {
+  if (evento.color) return evento.color
+  return resolveAssignee(evento, members, kids)?.color ?? FAMILY_COLOR
+}
+
 /** La opción que corresponde al estado actual de un draft. */
 export function assigneeKeyOf(entidad: { child_id: string | null; member_id: string | null }): string {
   if (entidad.member_id) return `m:${entidad.member_id}`

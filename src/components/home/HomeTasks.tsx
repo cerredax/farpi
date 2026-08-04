@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import type { Task } from '@/types'
 
 interface HomeTasksProps {
+  /** Solo lo que no es de hoy: lo de hoy vive en la tarjeta del día. */
   pendingTasks: Task[]
   onToggle: (id: string) => void
 }
@@ -17,7 +18,7 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
 
   return (
     <HomeSection
-      label="Cosas por hacer"
+      label="Lo demás por hacer"
       isEmpty={visible.length === 0}
       emptyState={<EmptyState compact emoji="✓" title="La casa está al día" />}
       footer={

@@ -9,8 +9,11 @@ interface TodayEventsProps {
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
-  /** Qué decir cuando el día está vacío. */
-  calmMessage: string
+  /**
+   * Qué decir cuando no hay planes. `null` cuando el día no está vacío de
+   * verdad —hay tareas que hacer— y decir que pinta tranquilo sería mentir.
+   */
+  calmMessage: string | null
 }
 
 function formatTime(dateStr: string) {
@@ -24,6 +27,7 @@ function formatTime(dateStr: string) {
  */
 export const TodayEvents = memo(function TodayEvents({ events, kids, members, calmMessage }: TodayEventsProps) {
   if (events.length === 0) {
+    if (!calmMessage) return null
     return (
       <div className="flex items-center gap-2.5 rounded-3xl bg-white/80 border border-white px-4 py-2.5 shadow-sm">
         <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-[#F1E6D8] text-[#9A6B55]">

@@ -5,7 +5,9 @@ import {
   selectMealsByCell,
   selectOccupiedMealSlots,
   selectPendingItems,
+  selectPendingItemsByList,
   selectPendingTasks,
+  selectTodayTasks,
   selectSortedMeals,
   selectSuggestions,
   selectTaskGroups,
@@ -106,6 +108,61 @@ test.describe('selectPendingItems', () => {
   test('si la lista no existe, el nombre queda vacío en vez de romper', () => {
     const r = selectPendingItems([listItem({ list_id: 'fantasma' })], [])
     expect(r[0].list_name).toBe('')
+  })
+})
+
+test.describe('selectTodayTasks', () => {
+  const HOY = '2026-08-03'
+
+  test('lo de hoy va a hoy y el futuro al resto', () => {
+    const { hoy, resto } = selectTodayTasks(
+      [task({ title: 'hoy', due_date: HOY }), task({ title: 'mañana', due_date: '2026-08-04' })],
+      HOY,
+    )
+    expect(hoy.map(t => t.title)).toEqual(['hoy'])
+    expect(resto.map(t => t.title)).toEqual(['mañana'])
+  })
+
+  test('lo vencido cuenta como de hoy, no como pasado', () => {
+    const { hoy } = selectTodayTasks([task({ title: 'ayer', due_date: '2026-08-02' })], HOY)
+    expect(hoy.map(t => t.title)).toEqual(['ayer'])
+  })
+
+  test('sin fecha va al resto: nadie ha dicho que toque hoy', () => {
+    const { hoy, resto } = selectTodayTasks([task({ title: 'algún día', due_date: null })], HOY)
+    expect(hoy).toHaveLength(0)
+    expect(resto.map(t => t.title)).toEqual(['algún día'])
+  })
+
+  test('ninguna tarea se pierde por el camino', () => {
+    const tareas = [
+      task({ due_date: '2026-08-01' }), task({ due_date: HOY }),
+      task({ due_date: '2026-09-01' }), task({ due_date: null }),
+    ]
+    const { hoy, resto } = selectTodayTasks(tareas, HOY)
+    expect(hoy.length + resto.length).toBe(tareas.length)
+  })
+})
+
+test.describe('selectPendingItemsByList', () => {
+  const pendiente = (list_name: string, text: string) => ({ ...listItem({ text }), list_name })
+
+  test('cuenta los pendientes de cada cesta', () => {
+    const r = selectPendingItemsByList([
+      pendiente('Compra', 'leche'), pendiente('Compra', 'pan'), pendiente('Farmacia', 'gasas'),
+    ])
+    expect(r).toEqual([{ name: 'Compra', count: 2 }, { name: 'Farmacia', count: 1 }])
+  })
+
+  test('manda la cesta con más pendientes; a empate, orden alfabético', () => {
+    const r = selectPendingItemsByList([
+      pendiente('Ferretería', 'tornillos'), pendiente('Compra', 'leche'),
+    ])
+    expect(r.map(c => c.name)).toEqual(['Compra', 'Ferretería'])
+  })
+
+  test('sin pendientes no hay cestas', () => {
+    expect(selectPendingItemsByList([])).toEqual([])
   })
 })
 

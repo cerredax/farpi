@@ -4,8 +4,9 @@ import { format, isToday, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
-import { selectTodayEvents, selectUpcomingEvents } from '@/lib/selectors'
+import { selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
 import { TodayEvents } from './TodayEvents'
+import { TodayTasks } from './TodayTasks'
 import { TodayMeals } from './TodayMeals'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
@@ -62,9 +63,23 @@ export function HomeView() {
 
   const todayEvents = useMemo(() => selectTodayEvents(allEvents), [allEvents])
   const upcoming    = useMemo(() => selectUpcomingEvents(allEvents), [allEvents])
-  const calmMessage = todayEvents.length === 0 && pendingTasks.length === 0 && pendingItems.length === 0
-    ? 'Hoy pinta tranquilo. La casa respira un poco.'
-    : 'Lo importante está apuntado. Vamos paso a paso.'
+
+  // Lo de hoy sube a la tarjeta; lo demás baja a "Cosas por hacer". Antes esa
+  // lista mezclaba lo de esta tarde con lo de dentro de tres semanas, y hoy no
+  // aparecía por ningún lado pese a que la tarjeta lo prometía.
+  const { hoy: tareasHoy, resto: tareasResto } = useMemo(
+    () => selectTodayTasks(pendingTasks),
+    [pendingTasks],
+  )
+
+  // El mensaje de calma solo cuando el día está vacío de verdad: si hay tareas
+  // para hoy, la tarjeta ya tiene algo que enseñar.
+  const diaVacio = todayEvents.length === 0 && tareasHoy.length === 0
+  const calmMessage = !diaVacio
+    ? null
+    : pendingTasks.length === 0 && pendingItems.length === 0
+      ? 'Hoy pinta tranquilo. La casa respira un poco.'
+      : 'Hoy no hay nada señalado. Lo demás puede esperar.'
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
@@ -79,13 +94,14 @@ export function HomeView() {
           {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
               entera para repetir nombres que ya salen en cada plan. */}
           <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
+          <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
         </div>
       </div>
 
       {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
           tareas. Lo que viene y el menú cierran. */}
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
-      <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
+      <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
       <UpcomingEvents events={upcoming} kids={kids} members={members} />
       <TodayMeals meals={todayMeals} />
 

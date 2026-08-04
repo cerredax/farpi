@@ -45,12 +45,51 @@ export function selectTaskGroups(tasks: Task[], today = getLocalDateString()): {
   return { pending, completed }
 }
 
+/**
+ * Parte las tareas pendientes en las que reclaman el día de hoy y el resto.
+ *
+ * Lo vencido cuenta como de hoy: una tarea de ayer sin hacer no es "más
+ * adelante", es lo primero. Sin fecha va al resto — está apuntada, pero nadie
+ * ha dicho que toque ahora.
+ */
+export function selectTodayTasks(
+  tasks: Task[],
+  today = getLocalDateString(),
+): { hoy: Task[]; resto: Task[] } {
+  const hoy: Task[] = []
+  const resto: Task[] = []
+
+  for (const task of tasks) {
+    if (task.due_date && task.due_date <= today) hoy.push(task)
+    else resto.push(task)
+  }
+
+  return { hoy, resto }
+}
+
 export function selectPendingItems(listItems: ListItem[], lists: List[]): PendingItem[] {
   const listNamesById = new Map(lists.map(list => [list.id, list.name]))
 
   return listItems
     .filter(i => !i.completed)
     .map(i => ({ ...i, list_name: listNamesById.get(i.list_id) ?? '' }))
+}
+
+/**
+ * Los pendientes de casa agrupados por lista, con su cuenta. En Inicio no hace
+ * falta ver los ítems uno a uno —para eso está la pantalla de listas—, sino
+ * saber de un vistazo cuánto queda y en qué cesta.
+ */
+export function selectPendingItemsByList(items: PendingItem[]): { name: string; count: number }[] {
+  const porLista = new Map<string, number>()
+
+  for (const item of items) {
+    porLista.set(item.list_name, (porLista.get(item.list_name) ?? 0) + 1)
+  }
+
+  return [...porLista.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => (b.count !== a.count ? b.count - a.count : compararTexto(a.name, b.name)))
 }
 
 /** Orden alfabético en español: ignora tildes y mayúsculas, y la ñ va tras la n. */

@@ -29,11 +29,21 @@ export function isVacation(event: Event): boolean {
   return event.kind === 'vacaciones'
 }
 
-/** Cuántos días completos duran unas vacaciones, contando el primero y el último. */
-export function vacationLength(event: Event): number {
-  const inicio = new Date(extractDate(event.start_at) + 'T12:00:00')
-  const fin = new Date(extractDate(event.end_at ?? event.start_at) + 'T12:00:00')
+/**
+ * Días completos entre dos fechas, contando la primera y la última. Se usa
+ * tanto sobre un evento guardado como sobre el formulario mientras se rellena,
+ * así que recibe fechas sueltas en vez de un Event.
+ */
+export function daysBetween(desde: string, hasta: string): number {
+  if (!desde || !hasta || hasta < desde) return 0
+  const inicio = new Date(desde + 'T12:00:00')
+  const fin = new Date(hasta + 'T12:00:00')
   return Math.round((fin.getTime() - inicio.getTime()) / 86_400_000) + 1
+}
+
+/** Cuántos días duran unas vacaciones ya guardadas. */
+export function vacationLength(event: Event): number {
+  return daysBetween(extractDate(event.start_at), extractDate(event.end_at ?? event.start_at))
 }
 
 /** Posición de un día dentro del rango, para dibujar los extremos del tramo. */

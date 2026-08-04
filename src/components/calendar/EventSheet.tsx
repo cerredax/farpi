@@ -10,6 +10,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { extractDate, extractTime, getLocalDateString, parseLocalDate } from '@/lib/date-utils'
 import { buildWeeklyDates } from '@/lib/recurrence'
+import { daysBetween } from '@/lib/events'
 import { validateEventDraft } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { Event, Child, EventDraft, FamilyMember } from '@/types'
@@ -109,9 +110,7 @@ export function EventSheet({ open, mode, initial, defaultDate, kids, members, on
   const weekdaysTouchedRef = useRef(false)
 
   const esVacaciones = draft.kind === 'vacaciones'
-  const diasVacaciones = esVacaciones && draft.end_date >= draft.date
-    ? Math.round((new Date(draft.end_date + 'T12:00:00').getTime() - new Date(draft.date + 'T12:00:00').getTime()) / 86_400_000) + 1
-    : 0
+  const diasVacaciones = esVacaciones ? daysBetween(draft.date, draft.end_date) : 0
 
 
   function handleDateChange(newDate: string) {

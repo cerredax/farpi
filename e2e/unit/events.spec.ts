@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { eventCoversDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
+import { daysBetween, eventCoversDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
 import { event } from './fixtures'
 
 // Antes de las vacaciones, el calendario daba por hecho que un evento vivía en
@@ -39,6 +39,15 @@ test.describe('eventCoversDay', () => {
     expect(eventCoversDay(v, '2026-08-31')).toBe(true)
     expect(eventCoversDay(v, '2026-09-01')).toBe(true)
   })
+})
+
+test('daysBetween cuenta los dos extremos y protege el rango inválido', () => {
+  expect(daysBetween('2026-08-10', '2026-08-16')).toBe(7)
+  expect(daysBetween('2026-08-10', '2026-08-10')).toBe(1)
+  // Rango al revés o incompleto: cero, para que el formulario no muestre basura.
+  expect(daysBetween('2026-08-16', '2026-08-10')).toBe(0)
+  expect(daysBetween('2026-08-10', '')).toBe(0)
+  expect(daysBetween('', '2026-08-16')).toBe(0)
 })
 
 test('vacationLength cuenta el primer y el último día', () => {

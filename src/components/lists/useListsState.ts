@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
-import { selectItemMatches } from '@/lib/selectors'
+import { selectItemMatches, selectSortedLists } from '@/lib/selectors'
 import type { List, ListItem, ListDraft, ListItemDraft } from '@/types'
 
 export function useListsState() {
@@ -54,6 +54,9 @@ export function useListsState() {
   const selectedList  = selectedListId ? lists.find(l => l.id === selectedListId) ?? null : null
   const selectedItems = selectedListId ? listItemsByListId.get(selectedListId) ?? [] : []
 
+  // Las que tienen algo pendiente arriba, y cada grupo por orden alfabético.
+  const listasOrdenadas = useMemo(() => selectSortedLists(lists, allListItems), [lists, allListItems])
+
   const coincidencias = selectItemMatches(allListItems, lists, busqueda)
   const historialItems = allListItems.map(item => item.text)
 
@@ -64,7 +67,7 @@ export function useListsState() {
   }
 
   return {
-    lists, allListItems, listStatsById,
+    lists: listasOrdenadas, allListItems, listStatsById,
     selectedList, selectedItems,
     selectedListId, setSelectedListId,
     busqueda, setBusqueda, coincidencias, abrirLista, historialItems,

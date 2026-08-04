@@ -7,6 +7,7 @@ import {
   selectPendingItems,
   selectPendingItemsByList,
   selectPendingTasks,
+  selectSortedLists,
   selectTodayTasks,
   selectSortedMeals,
   selectSuggestions,
@@ -145,24 +146,64 @@ test.describe('selectTodayTasks', () => {
 })
 
 test.describe('selectPendingItemsByList', () => {
-  const pendiente = (list_name: string, text: string) => ({ ...listItem({ text }), list_name })
+  const pendiente = (list_id: string, list_name: string, text: string, list_emoji: string | null = '🛒') =>
+    ({ ...listItem({ list_id, text }), list_name, list_emoji })
 
-  test('cuenta los pendientes de cada cesta', () => {
+  test('cuenta los pendientes de cada cesta y arrastra su icono', () => {
     const r = selectPendingItemsByList([
-      pendiente('Compra', 'leche'), pendiente('Compra', 'pan'), pendiente('Farmacia', 'gasas'),
+      pendiente('l1', 'Compra', 'leche'), pendiente('l1', 'Compra', 'pan'),
+      pendiente('l2', 'Farmacia', 'gasas', '💊'),
     ])
-    expect(r).toEqual([{ name: 'Compra', count: 2 }, { name: 'Farmacia', count: 1 }])
+    expect(r).toEqual([
+      { id: 'l1', name: 'Compra', emoji: '🛒', count: 2 },
+      { id: 'l2', name: 'Farmacia', emoji: '💊', count: 1 },
+    ])
   })
 
-  test('manda la cesta con más pendientes; a empate, orden alfabético', () => {
+  test('orden alfabético, no por cantidad: marcar algo no reordena las cestas', () => {
     const r = selectPendingItemsByList([
-      pendiente('Ferretería', 'tornillos'), pendiente('Compra', 'leche'),
+      pendiente('l1', 'Ferretería', 'tornillos'), pendiente('l1', 'Ferretería', 'tacos'),
+      pendiente('l2', 'Compra', 'leche'),
     ])
     expect(r.map(c => c.name)).toEqual(['Compra', 'Ferretería'])
   })
 
+  test('dos listas distintas con el mismo nombre no se funden', () => {
+    const r = selectPendingItemsByList([
+      pendiente('l1', 'Compra', 'leche'), pendiente('l2', 'Compra', 'tornillos'),
+    ])
+    expect(r).toHaveLength(2)
+  })
+
   test('sin pendientes no hay cestas', () => {
     expect(selectPendingItemsByList([])).toEqual([])
+  })
+})
+
+test.describe('selectSortedLists', () => {
+  test('las que tienen pendientes van arriba, y cada grupo por orden alfabético', () => {
+    const listas = [
+      list({ id: 'l1', name: 'Viaje' }),
+      list({ id: 'l2', name: 'Compra' }),
+      list({ id: 'l3', name: 'Bricolaje' }),
+    ]
+    const items = [
+      listItem({ list_id: 'l1', completed: false }),
+      listItem({ list_id: 'l3', completed: true }),
+    ]
+    // Viaje tiene pendientes; Bricolaje solo cosas hechas, así que baja.
+    expect(selectSortedLists(listas, items).map(l => l.name)).toEqual(['Viaje', 'Bricolaje', 'Compra'])
+  })
+
+  test('sin pendientes en ninguna, todo alfabético', () => {
+    const listas = [list({ id: 'l1', name: 'Zapatos' }), list({ id: 'l2', name: 'Álbum' })]
+    expect(selectSortedLists(listas, []).map(l => l.name)).toEqual(['Álbum', 'Zapatos'])
+  })
+
+  test('no muta el array que recibe', () => {
+    const listas = [list({ id: 'l1', name: 'Zeta' }), list({ id: 'l2', name: 'Alfa' })]
+    selectSortedLists(listas, [])
+    expect(listas.map(l => l.name)).toEqual(['Zeta', 'Alfa'])
   })
 })
 

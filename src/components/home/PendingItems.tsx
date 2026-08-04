@@ -44,11 +44,12 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
         aria-expanded={abierto}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface"
       >
-        <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+        <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
           {cestas.map(cesta => (
-            <span key={cesta.name} className="text-sm font-semibold text-ink">
+            <span key={cesta.id} className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+              <span aria-hidden>{cesta.emoji ?? '📋'}</span>
               {cesta.name}
-              <span className="ml-1 text-muted font-bold">{cesta.count}</span>
+              <span className="text-muted font-bold">{cesta.count}</span>
             </span>
           ))}
         </div>
@@ -71,7 +72,10 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
               />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-ink text-sm leading-snug">{item.text}</p>
-                <span className="text-[10px] text-muted">{item.list_name}</span>
+                <span className="text-[10px] text-muted">
+                  <span aria-hidden className="mr-1">{item.list_emoji ?? '📋'}</span>
+                  {item.list_name}
+                </span>
               </div>
             </li>
           ))}

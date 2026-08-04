@@ -68,28 +68,53 @@ export function selectTodayTasks(
 }
 
 export function selectPendingItems(listItems: ListItem[], lists: List[]): PendingItem[] {
-  const listNamesById = new Map(lists.map(list => [list.id, list.name]))
+  const listsById = new Map(lists.map(list => [list.id, list]))
 
   return listItems
     .filter(i => !i.completed)
-    .map(i => ({ ...i, list_name: listNamesById.get(i.list_id) ?? '' }))
+    .map(i => {
+      const list = listsById.get(i.list_id)
+      return { ...i, list_name: list?.name ?? '', list_emoji: list?.emoji ?? null }
+    })
 }
 
 /**
- * Los pendientes de casa agrupados por lista, con su cuenta. En Inicio no hace
- * falta ver los ítems uno a uno —para eso está la pantalla de listas—, sino
- * saber de un vistazo cuánto queda y en qué cesta.
+ * Los pendientes de casa agrupados por lista, con su icono y su cuenta. En
+ * Inicio no hace falta ver los ítems uno a uno —para eso está la pantalla de
+ * listas—, sino saber de un vistazo cuánto queda y en qué cesta.
+ *
+ * Por orden alfabético, no por cantidad: la cesta se busca por su nombre, y un
+ * orden que baila cada vez que se marca algo obliga a releerlas todas.
  */
-export function selectPendingItemsByList(items: PendingItem[]): { name: string; count: number }[] {
-  const porLista = new Map<string, number>()
+export function selectPendingItemsByList(
+  items: PendingItem[],
+): { id: string; name: string; emoji: string | null; count: number }[] {
+  const porLista = new Map<string, { id: string; name: string; emoji: string | null; count: number }>()
 
   for (const item of items) {
-    porLista.set(item.list_name, (porLista.get(item.list_name) ?? 0) + 1)
+    const cesta = porLista.get(item.list_id)
+    if (cesta) cesta.count += 1
+    else porLista.set(item.list_id, { id: item.list_id, name: item.list_name, emoji: item.list_emoji, count: 1 })
   }
 
-  return [...porLista.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => (b.count !== a.count ? b.count - a.count : compararTexto(a.name, b.name)))
+  return [...porLista.values()].sort((a, b) => compararTexto(a.name, b.name))
+}
+
+/**
+ * Las listas ordenadas para la pantalla de listas: primero las que tienen algo
+ * pendiente, que son las que se abren, y dentro de cada grupo por orden
+ * alfabético. Antes mandaba el orden de creación, que solo conoce quien las
+ * creó.
+ */
+export function selectSortedLists(lists: List[], items: ListItem[]): List[] {
+  const conPendientes = new Set(items.filter(i => !i.completed).map(i => i.list_id))
+
+  return [...lists].sort((a, b) => {
+    const aPend = conPendientes.has(a.id)
+    const bPend = conPendientes.has(b.id)
+    if (aPend !== bPend) return aPend ? -1 : 1
+    return compararTexto(a.name, b.name)
+  })
 }
 
 /** Orden alfabético en español: ignora tildes y mayúsculas, y la ñ va tras la n. */

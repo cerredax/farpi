@@ -89,7 +89,7 @@ export interface ListItem {
   created_at: string
 }
 
-export type PendingItem = ListItem & { list_name: string }
+export type PendingItem = ListItem & { list_name: string; list_emoji: string | null }
 
 /** Ítem encontrado buscando en todas las listas: lleva de dónde sale. */
 export type ItemMatch = ListItem & { list_name: string; list_emoji: string | null }

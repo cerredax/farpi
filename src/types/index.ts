@@ -89,6 +89,9 @@ export interface ListItem {
 
 export type PendingItem = ListItem & { list_name: string }
 
+/** Ítem encontrado buscando en todas las listas: lleva de dónde sale. */
+export type ItemMatch = ListItem & { list_name: string; list_emoji: string | null }
+
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 
 export interface MealPlan {

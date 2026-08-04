@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import {
+  selectItemMatches,
   selectMealsByCell,
   selectOccupiedMealSlots,
   selectPendingItems,
@@ -169,5 +170,50 @@ test.describe('eventos', () => {
       event({ start_at: `${getLocalDateString(new Date(Date.now() + (i + 1) * 86400000))}T10:00:00` }))
     expect(selectUpcomingEvents(eventos)).toHaveLength(5)
     expect(selectUpcomingEvents(eventos, 2)).toHaveLength(2)
+  })
+})
+
+test.describe('selectItemMatches', () => {
+  const compra = list({ id: 'l-compra', name: 'Compra', emoji: '🛒' })
+  const ferre  = list({ id: 'l-ferre',  name: 'Ferretería', emoji: '🔧' })
+  const listas = [compra, ferre]
+
+  const items = [
+    listItem({ list_id: 'l-compra', text: 'Pilas AA', sort_order: 1 }),
+    listItem({ list_id: 'l-ferre',  text: 'Pilas de botón', sort_order: 0, completed: true }),
+    listItem({ list_id: 'l-compra', text: 'Plátanos', sort_order: 2 }),
+  ]
+
+  test('sin consulta no devuelve nada (no es un listado, es una búsqueda)', () => {
+    expect(selectItemMatches(items, listas, '')).toEqual([])
+    expect(selectItemMatches(items, listas, '   ')).toEqual([])
+  })
+
+  test('encuentra en todas las listas y dice de cuál sale', () => {
+    const r = selectItemMatches(items, listas, 'pilas')
+    expect(r.map(m => m.text)).toEqual(['Pilas AA', 'Pilas de botón'])
+    expect(r[0].list_name).toBe('Compra')
+    expect(r[0].list_emoji).toBe('🛒')
+  })
+
+  test('los pendientes van antes que los hechos', () => {
+    const r = selectItemMatches(items, listas, 'pilas')
+    expect(r.map(m => m.completed)).toEqual([false, true])
+  })
+
+  test('ignora tildes y mayúsculas en ambos sentidos', () => {
+    expect(selectItemMatches(items, listas, 'platano').map(m => m.text)).toEqual(['Plátanos'])
+    expect(selectItemMatches(items, listas, 'PLÁTANO').map(m => m.text)).toEqual(['Plátanos'])
+  })
+
+  test('busca por trozo suelto, no solo por el principio', () => {
+    expect(selectItemMatches(items, listas, 'boton').map(m => m.text)).toEqual(['Pilas de botón'])
+  })
+
+  test('un ítem de una lista que ya no existe no revienta', () => {
+    const huerfano = [listItem({ list_id: 'no-existe', text: 'Pilas sueltas' })]
+    const r = selectItemMatches(huerfano, listas, 'pilas')
+    expect(r[0].list_name).toBe('')
+    expect(r[0].list_emoji).toBeNull()
   })
 })

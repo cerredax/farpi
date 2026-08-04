@@ -1,6 +1,9 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
+import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
+import { ItemMatchCard } from './ItemMatchCard'
 import { ListCard } from './ListCard'
 import { ListDetailView } from './ListDetailView'
 import { ListSheet } from './ListSheet'
@@ -51,6 +54,10 @@ export function ListsView() {
     )
   }
 
+  // Con cuatro ítems en total no hay nada que buscar: se ven de un vistazo.
+  const puedeBuscar = s.allListItems.length >= MINIMO_PARA_BUSCAR
+  const buscando = puedeBuscar && s.busqueda.trim().length > 0
+
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -67,7 +74,31 @@ export function ListsView() {
         </button>
       </div>
 
-      {s.lists.length === 0 ? (
+      {puedeBuscar && (
+        <SearchField
+          value={s.busqueda}
+          onChange={s.setBusqueda}
+          placeholder={`Buscar en ${s.allListItems.length} ítems de todas las listas…`}
+          ariaLabel="Buscar ítems en todas las listas"
+        />
+      )}
+
+      {buscando ? (
+        s.coincidencias.length === 0 ? (
+          <p className="text-center text-muted text-sm py-12">
+            Ningún ítem coincide con «{s.busqueda.trim()}».
+          </p>
+        ) : (
+          <div className="space-y-3">
+            <p className="field-label px-1">
+              {s.coincidencias.length} resultado{s.coincidencias.length !== 1 ? 's' : ''}
+            </p>
+            {s.coincidencias.map(match => (
+              <ItemMatchCard key={match.id} match={match} onClick={() => s.abrirLista(match.list_id)} />
+            ))}
+          </div>
+        )
+      ) : s.lists.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-4xl mb-3">✅</p>
           <p className="font-bold text-ink">Sin listas todavía</p>
@@ -83,7 +114,7 @@ export function ListsView() {
                 list={list}
                 total={stats.total}
                 done={stats.done}
-                onClick={() => s.setSelectedListId(list.id)}
+                onClick={() => s.abrirLista(list.id)}
               />
             )
           })}

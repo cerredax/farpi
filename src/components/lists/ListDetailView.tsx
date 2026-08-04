@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Plus, ArrowLeft, Pencil, Search, Trash2, X } from 'lucide-react'
+import { Plus, ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
+import { SearchField } from '@/components/ui/SearchField'
+import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
+import { normalizaParaBuscar } from '@/lib/text'
 import type { List, ListItem } from '@/types'
-
-/** A partir de esta cantidad de ítems, buscar compensa más que ir mirando. */
-const MINIMO_PARA_BUSCAR = 6
 
 interface ListDetailViewProps {
   list: List
@@ -23,9 +23,9 @@ export function ListDetailView({
   const [busqueda, setBusqueda] = useState('')
 
   const puedeBuscar = items.length >= MINIMO_PARA_BUSCAR
-  const consulta = busqueda.trim().toLowerCase()
+  const consulta = normalizaParaBuscar(busqueda.trim())
   const visibles = consulta
-    ? items.filter(item => item.text.toLowerCase().includes(consulta))
+    ? items.filter(item => normalizaParaBuscar(item.text).includes(consulta))
     : items
 
   const pending: ListItem[] = []
@@ -55,27 +55,12 @@ export function ListDetailView({
 
       {puedeBuscar && (
         <div className="px-4 pb-2">
-          <div className="relative">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
-            <input
-              type="search"
-              value={busqueda}
-              onChange={e => setBusqueda(e.target.value)}
-              placeholder={`Buscar en ${items.length} ítems…`}
-              aria-label="Buscar ítems en la lista"
-              className="field-input pl-9 pr-9"
-            />
-            {busqueda && (
-              <button
-                type="button"
-                onClick={() => setBusqueda('')}
-                aria-label="Limpiar búsqueda"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted transition-colors hover:bg-surface hover:text-ink"
-              >
-                <X size={14} strokeWidth={2.4} />
-              </button>
-            )}
-          </div>
+          <SearchField
+            value={busqueda}
+            onChange={setBusqueda}
+            placeholder={`Buscar en ${items.length} ítems…`}
+            ariaLabel="Buscar ítems en la lista"
+          />
         </div>
       )}
 

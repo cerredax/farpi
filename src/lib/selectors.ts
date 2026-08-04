@@ -1,7 +1,8 @@
 import { getLocalDateString, isSameLocalDay } from './date-utils'
 import { eventCoversDay } from './events'
 import { MEAL_SLOTS, TASK_PRIORITIES } from './constants'
-import type { Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem } from '@/types'
+import { normalizaParaBuscar } from './text'
+import type { Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
 const TASK_PRIORITY_WEIGHT = Object.fromEntries(
   TASK_PRIORITIES.map((priority, index) => [priority.value, index])
@@ -50,6 +51,32 @@ export function selectPendingItems(listItems: ListItem[], lists: List[]): Pendin
   return listItems
     .filter(i => !i.completed)
     .map(i => ({ ...i, list_name: listNamesById.get(i.list_id) ?? '' }))
+}
+
+/**
+ * Busca un texto en los ítems de todas las listas. Sirve para la pregunta
+ * "¿en qué lista apunté esto?", que si no obliga a abrirlas una a una.
+ *
+ * Los pendientes van antes que los ya hechos: buscas para actuar, y lo tachado
+ * es historial. Dentro de cada grupo se respeta el orden de la lista.
+ */
+export function selectItemMatches(listItems: ListItem[], lists: List[], query: string): ItemMatch[] {
+  const consulta = normalizaParaBuscar(query.trim())
+  if (!consulta) return []
+
+  const listsById = new Map(lists.map(list => [list.id, list]))
+
+  return listItems
+    .filter(item => normalizaParaBuscar(item.text).includes(consulta))
+    .map(item => {
+      const list = listsById.get(item.list_id)
+      return { ...item, list_name: list?.name ?? '', list_emoji: list?.emoji ?? null }
+    })
+    .sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1
+      const porLista = a.list_name.localeCompare(b.list_name)
+      return porLista !== 0 ? porLista : a.sort_order - b.sort_order
+    })
 }
 
 export function selectSortedMeals(meals: MealPlan[]): MealPlan[] {

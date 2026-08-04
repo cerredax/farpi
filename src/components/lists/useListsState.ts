@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '@/lib/store-context'
+import { selectItemMatches } from '@/lib/selectors'
 import type { List, ListItem, ListDraft, ListItemDraft } from '@/types'
 
 export function useListsState() {
@@ -10,6 +11,7 @@ export function useListsState() {
   } = useStore()
 
   const [selectedListId, setSelectedListId] = useState<string | null>(null)
+  const [busqueda,       setBusqueda]       = useState('')
   const [listSheetOpen,  setListSheetOpen]  = useState(false)
   const [itemSheetOpen,  setItemSheetOpen]  = useState(false)
   const [editingList,    setEditingList]    = useState<List | null>(null)
@@ -52,10 +54,19 @@ export function useListsState() {
   const selectedList  = selectedListId ? lists.find(l => l.id === selectedListId) ?? null : null
   const selectedItems = selectedListId ? listItemsByListId.get(selectedListId) ?? [] : []
 
+  const coincidencias = selectItemMatches(allListItems, lists, busqueda)
+
+  /** Al entrar en una lista desde un resultado, la búsqueda ya sobra. */
+  function abrirLista(id: string) {
+    setSelectedListId(id)
+    setBusqueda('')
+  }
+
   return {
     lists, allListItems, listStatsById,
     selectedList, selectedItems,
     selectedListId, setSelectedListId,
+    busqueda, setBusqueda, coincidencias, abrirLista,
     listSheetOpen, setListSheetOpen,
     itemSheetOpen, setItemSheetOpen,
     editingList, editingItem,

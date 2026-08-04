@@ -49,6 +49,12 @@ export const TASK_PRIORITIES: { value: TaskPriority; label: string; color: strin
   { value: 'low',    label: 'Baja',  color: '#8BA888' },
 ]
 
+/**
+ * A partir de esta cantidad de ítems, buscar compensa más que ir mirando.
+ * Lo comparten el buscador de una lista y el que cruza todas.
+ */
+export const MINIMO_PARA_BUSCAR = 6
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {

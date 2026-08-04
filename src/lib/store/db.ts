@@ -63,6 +63,8 @@ export const db: DB = {
     { id: 'l2', family_id: 'f1', name: 'Farmacia',        emoji: '💊', color: null, created_by: 'u1', created_at: '2026-06-05T00:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'l3', family_id: 'f1', name: 'Casa',            emoji: '🏠', color: null, created_by: 'u2', created_at: '2026-06-05T00:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'l4', family_id: 'f1', name: 'Trámites de Ana', emoji: '📄', color: null, created_by: 'u1', created_at: '2026-06-08T00:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'l5', family_id: 'f1', name: 'Limpieza',        emoji: '🧽', color: null, created_by: 'u2', created_at: '2026-06-09T00:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'l6', family_id: 'f1', name: 'Bebé',            emoji: '👶', color: null, created_by: 'u1', created_at: '2026-06-09T00:00:00', updated_at: '2026-06-17T08:00:00' },
   ],
 
   listItems: [
@@ -79,6 +81,12 @@ export const db: DB = {
     { id: 'li11', list_id: 'l4', family_id: 'f1', text: 'Escanear informe de alta',     completed: false, completed_at: null,                  completed_by: null, sort_order: 0, created_by: 'u1', created_at: '2026-06-17T00:00:00' },
     { id: 'li12', list_id: 'l4', family_id: 'f1', text: 'Solicitar tarjeta sanitaria',  completed: false, completed_at: null,                  completed_by: null, sort_order: 1, created_by: 'u1', created_at: '2026-06-17T00:00:00' },
     { id: 'li13', list_id: 'l4', family_id: 'f1', text: 'Guardar certificado nacimiento', completed: true, completed_at: '2026-06-10T18:00:00', completed_by: 'u2', sort_order: 2, created_by: 'u2', created_at: '2026-06-09T00:00:00' },
+    { id: 'li14', list_id: 'l5', family_id: 'f1', text: 'Detergente ropa de bebé',       completed: false, completed_at: null,                  completed_by: null, sort_order: 0, created_by: 'u2', created_at: '2026-06-17T00:00:00' },
+    { id: 'li15', list_id: 'l5', family_id: 'f1', text: 'Limpiacristales',              completed: false, completed_at: null,                  completed_by: null, sort_order: 1, created_by: 'u2', created_at: '2026-06-17T00:00:00' },
+    { id: 'li16', list_id: 'l5', family_id: 'f1', text: 'Bayetas de microfibra',        completed: true,  completed_at: '2026-06-16T10:00:00', completed_by: 'u1', sort_order: 2, created_by: 'u1', created_at: '2026-06-15T00:00:00' },
+    { id: 'li17', list_id: 'l6', family_id: 'f1', text: 'Chupetes talla 0-6 meses',     completed: false, completed_at: null,                  completed_by: null, sort_order: 0, created_by: 'u1', created_at: '2026-06-17T00:00:00' },
+    { id: 'li18', list_id: 'l6', family_id: 'f1', text: 'Body manga larga',             completed: false, completed_at: null,                  completed_by: null, sort_order: 1, created_by: 'u1', created_at: '2026-06-17T00:00:00' },
+    { id: 'li19', list_id: 'l6', family_id: 'f1', text: 'Termómetro de baño',           completed: true,  completed_at: '2026-06-14T09:00:00', completed_by: 'u2', sort_order: 2, created_by: 'u2', created_at: '2026-06-13T00:00:00' },
   ],
 
   mealPlans: [

@@ -61,7 +61,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - PWA: iconos any + maskable + apple-touch y `manifest.json` con purposes (script `scripts/gen-icons.cjs`).
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`).
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- 65 tests unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores), sin dependencias nuevas: usan el runner de Playwright y no levantan servidor (`npm run test:unit`, ~0,6 s).
+- 120 tests unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores), sin dependencias nuevas: usan el runner de Playwright y no levantan servidor (`npm run test:unit`, ~0,7 s).
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 - Tests e2e smoke con `@playwright/test` (login demo → /home) y apertura de los sheets de tareas, listas, documentos, calendario y comidas. Ejecutar con `npm run test:e2e`.
 
@@ -86,8 +86,8 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Estado Supabase
 
-- Proyecto Supabase creado, migraciones 001–013 aplicadas y UI conectada (012 y 013 verificadas contra la base real el 04-08-2026).
-- **La 014 (`update_family_member_profile` + `family_members.color`) está escrita pero NO aplicada todavía**: hay que ejecutarla en el SQL Editor. Hasta entonces, editar un miembro falla en producción.
+- Proyecto Supabase creado, migraciones 001–014 aplicadas y UI conectada (012 y 013 verificadas contra la base real el 04-08-2026).
+- 014 (`update_family_member_profile` + `family_members.color`) verificada contra la base real el 04-08-2026: la columna existe, la RPC responde y la antigua `update_my_family_profile` está borrada. Editar un miembro funciona en producción.
 - App en producción (Vercel) contra el mismo proyecto Supabase que local.
 - **Validación aislada completada el 2026-08-03: 47/47 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
 - SMTP propio configurado, así que las invitaciones por magic link ya se envían.
@@ -107,24 +107,31 @@ Ninguno. Repetir con `node scripts/validate-rls.mjs` tras cambios de esquema, po
 - Cambio de contraseña dentro de la app: existe en `AccountActions.tsx` (cerraba el
   hueco de las personas invitadas, que entran sin contraseña).
 - Páginas `/privacidad` y `/terminos` con `cerredax@gmail.com` como contacto público.
+- **Invitación de punta a punta probada con éxito** en producción: el correo llega, el
+  enlace da de alta en la familia y la persona ve los datos.
+- Migración 014 verificada en la base real (ver "Estado Supabase").
+- Bug de zona horaria corregido: los eventos se guardaban bien pero se leían en UTC, y
+  el error se acumulaba en cada edición. Ver el punto 1 de "Siguiente paso".
 
 ## Siguiente paso recomendado
 
 ### Verificar en producción
 
-1. **Invitación completa de punta a punta** con un email nuevo: que llegue, que el
-   enlace dé de alta en la familia y que la persona vea los datos. El flujo se arregló
-   pero nunca se ha ejecutado entero con éxito.
+1. **Corregir las horas desplazadas** de los eventos que se editaron antes del arreglo
+   del 04-08-2026. `extractTime`/`extractDate` cortaban el string en vez de convertir la
+   zona, así que cada edición restaba el desfase (dos horas en verano) *en la base de
+   datos*. El código ya no lo hace; los datos torcidos siguen ahí.
 2. **Que el cron corra solo** a las 07:00 UTC (la llamada manual ya va). Revisar los
    logs de Vercel.
-3. **Mirar la app con los colores nuevos** en pantalla real. La tokenización unificó
-   tonos casi idénticos; está verificada con capturas, pero conviene un vistazo humano.
+3. **QA visual en un móvil real** (Fase 2 del roadmap, nunca hecha). El 04-08-2026 se
+   rehicieron Inicio, Listas, Comidas y Calendario; está verificado con tests y capturas
+   de Chromium, que no es un teléfono en la mano.
 
 ### Decisiones abiertas
 
-4. **Notificaciones push**: el código está completo, pero faltan las claves VAPID en
-   Vercel. Sin ellas el botón de activarlas no aparece y el cron responde
-   `skipped: 'VAPID no configurado'`. Decidir si se activan.
+4. **Notificaciones push**: el código está completo y `CRON_SECRET` ya está puesta;
+   solo faltan las claves VAPID en Vercel. Sin ellas el botón de activarlas no aparece
+   y el cron responde `skipped: 'VAPID no configurado'`. Decidir si se activan.
 5. **Google Play (TWA)**: falta el package name definitivo,
    `public/.well-known/assetlinks.json` (necesita el SHA-256 de la firma) y la guía
    `docs/play-store.md`. La PWA y la política de privacidad ya están.

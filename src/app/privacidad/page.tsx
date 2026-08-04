@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: 'Política de privacidad — Nido',
 }
 
-const CONTACT = 'tic@confia.es'
+const CONTACT = 'cerredax@gmail.com'
 
 export default function PrivacidadPage() {
   return (
-    <LegalShell title="Política de privacidad" updated="30 de julio de 2026">
+    <LegalShell title="Política de privacidad" updated="4 de agosto de 2026">
       <p>
         En Nido nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
         derechos tienes. Nido es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.

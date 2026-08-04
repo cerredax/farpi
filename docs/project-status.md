@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-03.
+Última revisión: 2026-08-04.
 
 ## Resumen
 
@@ -17,6 +17,8 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - Comidas (día/semana, copiar día).
 - Documentos: subir, abrir/descargar (signed URL 60 s), editar y borrar.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro.
+- Cuenta: cambiar contraseña y borrar cuenta (`AccountActions.tsx`).
+- Páginas legales públicas `/privacidad` y `/terminos`.
 - Modo demo con persistencia en `localStorage`.
 
 ### Conexión Supabase (completada)
@@ -83,7 +85,7 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Estado Supabase
 
-- Proyecto Supabase creado, migraciones 001–011 aplicadas y UI conectada.
+- Proyecto Supabase creado, migraciones 001–013 aplicadas y UI conectada (012 y 013 verificadas contra la base real el 04-08-2026).
 - App en producción (Vercel) contra el mismo proyecto Supabase que local.
 - **Validación aislada completada el 2026-08-03: 47/47 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
 - SMTP propio configurado, así que las invitaciones por magic link ya se envían.
@@ -93,35 +95,41 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 Ninguno. Repetir con `node scripts/validate-rls.mjs` tras cambios de esquema, policies o RPCs.
 
-## Siguiente paso recomendado (plan para 2026-08-04)
+## Cerrado el 2026-08-04
 
-### Bloqueante: desplegar lo de hoy
+- `CRON_SECRET` configurada en Vercel: `/api/cron/reminders` responde 200 con
+  `keptAlive: true`, así que el keep-alive de Supabase ya funciona.
+- Migraciones 012 y 013 confirmadas en la base de producción.
+- Commits al día (`main` == `origin/main`), incluido el arreglo del callback de
+  invitaciones.
+- Cambio de contraseña dentro de la app: existe en `AccountActions.tsx` (cerraba el
+  hueco de las personas invitadas, que entran sin contraseña).
+- Páginas `/privacidad` y `/terminos` con `cerredax@gmail.com` como contacto público.
 
-1. **Añadir `CRON_SECRET` en Vercel** (Production). Sin ella el cron responde 503.
-2. **Pushear los commits pendientes.** Entre ellos va el arreglo del callback de
-   invitaciones, y corre prisa: el enlace de recuperación de contraseña enviado a
-   `omar.garcia@confia.es` el 03-08 **no funcionará bien hasta que ese arreglo esté en
-   producción**, porque devuelve la sesión en el fragmento de la URL.
+## Siguiente paso recomendado
 
-### Verificar en producción (lo de hoy está probado en local, no en real)
+### Verificar en producción
 
-3. **Invitación completa de punta a punta** con un email nuevo: que llegue, que el
+1. **Invitación completa de punta a punta** con un email nuevo: que llegue, que el
    enlace dé de alta en la familia y que la persona vea los datos. El flujo se arregló
-   hoy pero nunca se ha ejecutado entero con éxito.
-4. **Que el cron corra** por primera vez (07:00 UTC). Revisar los logs de Vercel y que
-   devuelva `keptAlive: true`.
-5. **Mirar la app con los colores nuevos** en pantalla real. La tokenización unificó
+   pero nunca se ha ejecutado entero con éxito.
+2. **Que el cron corra solo** a las 07:00 UTC (la llamada manual ya va). Revisar los
+   logs de Vercel.
+3. **Mirar la app con los colores nuevos** en pantalla real. La tokenización unificó
    tonos casi idénticos; está verificada con capturas, pero conviene un vistazo humano.
 
-### Hueco funcional detectado
+### Decisiones abiertas
 
-6. **Una persona invitada no tiene contraseña.** `inviteUserByEmail` crea el usuario sin
-   ella, así que solo puede entrar por el enlace del correo o poniéndose una desde
-   "¿Olvidaste tu contraseña?". La app no ofrece ningún sitio para **cambiar la
-   contraseña** estando dentro. Merece la pena decidir si se añade.
+4. **Notificaciones push**: el código está completo, pero faltan las claves VAPID en
+   Vercel. Sin ellas el botón de activarlas no aparece y el cron responde
+   `skipped: 'VAPID no configurado'`. Decidir si se activan.
+5. **Google Play (TWA)**: falta el package name definitivo,
+   `public/.well-known/assetlinks.json` (necesita el SHA-256 de la firma) y la guía
+   `docs/play-store.md`. La PWA y la política de privacidad ya están.
 
 ### Después
 
-7. Revisión de accesibilidad (labels, foco, contraste, roles).
+6. Revisión de accesibilidad (labels, foco, contraste, roles).
+7. Backup/export de datos de la familia.
 8. Decidir si se borra `supabase/validate_rls.sql`, redundante con
    `scripts/validate-rls.mjs`.

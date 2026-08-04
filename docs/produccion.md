@@ -2,7 +2,7 @@
 
 Estado y pasos para llevar Nido a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-08-03.
+> Última actualización: 2026-08-04.
 
 ---
 
@@ -33,7 +33,9 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 - [x] `SUPABASE_SERVICE_ROLE_KEY` — clave de servicio `sb_secret_…` (solo servidor; necesaria para enviar invitaciones). **Nunca** exponer al cliente.
 - [x] `NEXT_PUBLIC_SITE_URL` — dominio de producción. Se usa para el `redirectTo` del magic link.
 
-- [ ] `CRON_SECRET` — **obligatoria para que el cron diario funcione**. Cualquier cadena larga y aleatoria. Vercel la envía sola en la cabecera `Authorization` cuando la variable se llama así. Sin ella, `/api/cron/reminders` responde 503 y no se ejecuta el keep-alive de Supabase.
+- [x] `CRON_SECRET` — **obligatoria para que el cron diario funcione**. Cualquier cadena larga y aleatoria. Vercel la envía sola en la cabecera `Authorization` cuando la variable se llama así. Sin ella, `/api/cron/reminders` responde 503 y no se ejecuta el keep-alive de Supabase. *(Añadida el 04-08-2026; el endpoint responde 200 con `keptAlive: true`.)*
+
+- [ ] `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` — *(opcional)* sin ellas las notificaciones push quedan desactivadas: el botón de activarlas no aparece (`src/lib/push.ts`) y el cron responde `skipped: 'VAPID no configurado'` pero mantiene el keep-alive. Se generan con `npx web-push generate-vapid-keys`.
 
 > La lista completa, incluidas las de notificaciones push (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), `CRON_SECRET` y `NIDO_TIME_ZONE`, está en **`.env.example`** en la raíz del repositorio. Ese fichero es la plantilla de referencia: no lo lee ningún código, pero es el inventario de lo que la app necesita.
 
@@ -44,7 +46,7 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 
 ### 2.2 Supabase — base de datos
 
-- [x] Migraciones `001`–`011` aplicadas en el proyecto de producción (SQL Editor o CLI).
+- [x] Migraciones `001`–`013` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012).
 - [x] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
 - [x] RLS activo en todas las tablas privadas.
 
@@ -108,7 +110,10 @@ Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas.
 
 ### Recomendadas (no bloqueantes)
 - [x] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
+- [x] `CRON_SECRET` en Vercel y cron respondiendo 200 (04-08-2026).
 - [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).
+- [ ] Claves VAPID si se quieren notificaciones push reales (§2.1).
+- [ ] Comprobar en los logs de Vercel que la ejecución automática de las 07:00 UTC devuelve `keptAlive: true` (la manual ya lo hace).
 
 ### Mejoras futuras (opcional)
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).
@@ -120,6 +125,7 @@ Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas.
 
 ## 7. Notas y limitaciones conocidas
 
+- **Páginas legales**: `/privacidad` y `/terminos` son públicas (rutas abiertas en `src/lib/supabase/middleware.ts`) y su correo de contacto es `cerredax@gmail.com`. La URL de `/privacidad` es la que pide Google Play.
 - **Modo demo**: si faltan credenciales, la app funciona con datos en `localStorage`. La sección "Reiniciar datos de demo" en Ajustes solo aparece en ese modo.
 - **Regla del último admin**: se valida en el servidor (RPCs `security definer` y borrado de cuenta) y la UI la refuerza; el mock no la valida (asume un único admin).
 - **Comandos útiles**: `npm run dev` (arranca), `npm run build`, `npm run lint`, `npm run test:e2e`.

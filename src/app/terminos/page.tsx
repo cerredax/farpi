@@ -5,11 +5,11 @@ export const metadata: Metadata = {
   title: 'Términos de servicio — Nido',
 }
 
-const CONTACT = 'tic@confia.es'
+const CONTACT = 'cerredax@gmail.com'
 
 export default function TerminosPage() {
   return (
-    <LegalShell title="Términos de servicio" updated="30 de julio de 2026">
+    <LegalShell title="Términos de servicio" updated="4 de agosto de 2026">
       <p>
         Estos términos regulan el uso de Nido. Al crear una cuenta o usar la aplicación, aceptas lo siguiente.
       </p>

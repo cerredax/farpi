@@ -6,6 +6,7 @@ import {
   selectPendingItems,
   selectPendingTasks,
   selectSortedMeals,
+  selectSuggestions,
   selectTaskGroups,
   selectTodayEvents,
   selectTodayMeals,
@@ -215,5 +216,46 @@ test.describe('selectItemMatches', () => {
     const r = selectItemMatches(huerfano, listas, 'pilas')
     expect(r[0].list_name).toBe('')
     expect(r[0].list_emoji).toBeNull()
+  })
+})
+
+test.describe('selectSuggestions', () => {
+  const historial = [
+    'Lentejas', 'lentejas', 'Lentejas',
+    'Pasta boloñesa', 'Pasta boloñesa',
+    'Merluza al horno',
+    '  ', '',
+  ]
+
+  test('sin consulta devuelve lo más repetido primero', () => {
+    expect(selectSuggestions(historial, '')).toEqual(['Lentejas', 'Pasta boloñesa', 'Merluza al horno'])
+  })
+
+  test('agrupa ignorando mayúsculas y se queda con la grafía más usada', () => {
+    expect(selectSuggestions(['lentejas', 'Lentejas', 'Lentejas'], '')).toEqual(['Lentejas'])
+  })
+
+  test('descarta las cadenas vacías o de solo espacios', () => {
+    expect(selectSuggestions(['', '   '], '')).toEqual([])
+  })
+
+  test('con consulta filtra, sin exigir tildes', () => {
+    expect(selectSuggestions(historial, 'bolo')).toEqual(['Pasta boloñesa'])
+    expect(selectSuggestions(historial, 'BOLOÑ')).toEqual(['Pasta boloñesa'])
+  })
+
+  test('no se sugiere a sí mismo lo ya escrito entero', () => {
+    expect(selectSuggestions(historial, 'Lentejas')).toEqual([])
+    expect(selectSuggestions(historial, 'lentejas ')).toEqual([])
+  })
+
+  test('respeta el límite', () => {
+    const muchos = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    expect(selectSuggestions(muchos, '')).toHaveLength(5)
+    expect(selectSuggestions(muchos, '', 2)).toHaveLength(2)
+  })
+
+  test('a igual frecuencia ordena alfabéticamente, para que no baile', () => {
+    expect(selectSuggestions(['Pera', 'Manzana', 'Naranja'], '')).toEqual(['Manzana', 'Naranja', 'Pera'])
   })
 })

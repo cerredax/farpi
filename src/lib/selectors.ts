@@ -79,6 +79,44 @@ export function selectItemMatches(listItems: ListItem[], lists: List[], query: s
     })
 }
 
+/**
+ * Sugerencias sacadas de lo que la familia ya ha escrito antes: platos del menú
+ * o ítems de las listas. El "catálogo" no se mantiene a mano, se alimenta solo
+ * del historial, así que no hay nada que dar de alta ni que limpiar.
+ *
+ * Sin consulta devuelve lo más repetido (los habituales); con consulta, lo que
+ * coincide. Se agrupa ignorando tildes y mayúsculas para que "Lentejas" y
+ * "lentejas" sean el mismo plato, y se muestra la forma escrita más veces.
+ */
+export function selectSuggestions(values: string[], query: string, limit = 5): string[] {
+  const consulta = normalizaParaBuscar(query.trim())
+
+  const porClave = new Map<string, { texto: string; veces: number; formas: Map<string, number> }>()
+
+  for (const value of values) {
+    const texto = value.trim()
+    if (!texto) continue
+    const clave = normalizaParaBuscar(texto)
+    if (consulta && !clave.includes(consulta)) continue
+
+    const entrada = porClave.get(clave) ?? { texto, veces: 0, formas: new Map<string, number>() }
+    entrada.veces += 1
+    const formaVeces = (entrada.formas.get(texto) ?? 0) + 1
+    entrada.formas.set(texto, formaVeces)
+    // Gana la grafía más usada; a empate, la primera que se vio.
+    if (formaVeces > (entrada.formas.get(entrada.texto) ?? 0)) entrada.texto = texto
+    porClave.set(clave, entrada)
+  }
+
+  // Lo ya escrito entero no se sugiere: no aporta nada teclear lo mismo.
+  if (consulta) porClave.delete(consulta)
+
+  return [...porClave.values()]
+    .sort((a, b) => (b.veces !== a.veces ? b.veces - a.veces : a.texto.localeCompare(b.texto)))
+    .slice(0, limit)
+    .map(entrada => entrada.texto)
+}
+
 export function selectSortedMeals(meals: MealPlan[]): MealPlan[] {
   return [...meals].sort((a, b) => MEAL_SLOT_WEIGHT[a.slot] - MEAL_SLOT_WEIGHT[b.slot])
 }

@@ -3,8 +3,10 @@
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
+import { Suggestions } from '@/components/ui/Suggestions'
 import { MEAL_SLOTS } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
+import { selectSuggestions } from '@/lib/selectors'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateMealDraft } from '@/lib/validators'
 import type { MealPlan, MealDraft, MealSlot } from '@/types'
@@ -16,6 +18,8 @@ interface MealSheetProps {
   defaultDate?: string
   defaultSlot?: MealSlot
   occupiedSlots?: MealSlot[]
+  /** Platos ya usados por la familia; de aquí salen las sugerencias. */
+  historial?: string[]
   onClose: () => void
   onCreate: (draft: MealDraft) => void
   onUpdate: (id: string, draft: MealDraft) => void
@@ -41,6 +45,7 @@ export function MealSheet({
   defaultDate,
   defaultSlot,
   occupiedSlots = [],
+  historial = [],
   onClose,
   onCreate,
   onUpdate,
@@ -52,6 +57,8 @@ export function MealSheet({
     validate: validateMealDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
+
+  const sugerencias = selectSuggestions(historial, draft.name)
 
   const handleSubmit = submitHandler(valid => {
     if (mode === 'create') onCreate(valid)
@@ -126,6 +133,11 @@ export function MealSheet({
             placeholder="Ej: Arroz con pollo"
             required
             className="field-input"
+          />
+          <Suggestions
+            values={sugerencias}
+            onPick={name => patch({ name })}
+            label={draft.name.trim() ? 'Coincidencias' : 'Los que más repetís'}
           />
         </Field>
 

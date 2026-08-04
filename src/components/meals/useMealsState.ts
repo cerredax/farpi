@@ -85,8 +85,11 @@ export function useMealsState() {
     isCurrent: desktopWeekOffset === 0,
   }
 
+  // El catálogo de platos no se mantiene a mano: es lo que la familia ya ha cocinado.
+  const historialPlatos = useMemo(() => meals.map(meal => meal.name), [meals])
+
   return {
-    todayMeals, sortedTodayMeals, mealsByCell, occupiedSlots,
+    todayMeals, sortedTodayMeals, mealsByCell, occupiedSlots, historialPlatos,
     hasMealsForDate: (date: string) => mealDates.has(date),
     viewMode, setViewMode,
     setDesktopWeekOffset,

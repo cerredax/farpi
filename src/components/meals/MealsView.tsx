@@ -25,6 +25,7 @@ export function MealsView() {
         defaultDate={s.sheetDate}
         defaultSlot={s.sheetSlot}
         occupiedSlots={s.occupiedSlots}
+        historial={s.historialPlatos}
         onClose={() => s.setSheetOpen(false)}
         onCreate={s.createMeal}
         onUpdate={s.updateMeal}

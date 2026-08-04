@@ -55,6 +55,7 @@ export function useListsState() {
   const selectedItems = selectedListId ? listItemsByListId.get(selectedListId) ?? [] : []
 
   const coincidencias = selectItemMatches(allListItems, lists, busqueda)
+  const historialItems = allListItems.map(item => item.text)
 
   /** Al entrar en una lista desde un resultado, la búsqueda ya sobra. */
   function abrirLista(id: string) {
@@ -66,7 +67,7 @@ export function useListsState() {
     lists, allListItems, listStatsById,
     selectedList, selectedItems,
     selectedListId, setSelectedListId,
-    busqueda, setBusqueda, coincidencias, abrirLista,
+    busqueda, setBusqueda, coincidencias, abrirLista, historialItems,
     listSheetOpen, setListSheetOpen,
     itemSheetOpen, setItemSheetOpen,
     editingList, editingItem,

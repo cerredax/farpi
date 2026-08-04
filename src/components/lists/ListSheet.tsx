@@ -7,12 +7,16 @@ import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateListDraft } from '@/lib/validators'
 import type { List, ListDraft } from '@/types'
 
-// Los cinco últimos se añadieron después: faltaba con qué decir "cosas del
-// bebé" —lo que más se apunta en una casa con un recién nacido— y varias listas
-// de ejemplo usaban iconos que el selector no sabía poner.
+// Cada icono tiene que nombrar una lista de la casa de un vistazo. Fuera los
+// que no decían nada aquí (la manzana, la hoja) o repetían lo que ya dice otro
+// (el biberón, que es el 👶). El jabón entra porque la higiene —pañales,
+// champú, pasta de dientes— es una compra aparte de la limpieza de la casa, y
+// los primeros parten la compra como se parte en el súper. El cubito hace de
+// nevera a falta de una: Unicode no tiene emoji de frigorífico. Para el
+// desayuno va la taza y no el ☀️ de Comidas, que aquí se leería como verano.
 const EMOJIS = [
-  '🛒', '🍎', '🥤', '💊', '🎒', '🏠', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡', '🌿',
-  '🎀', '👶', '🍼', '🧽', '📄',
+  '🛒', '🥕', '🧊', '🍖', '☕', '🥤', '💊', '🎒', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡',
+  '🎀', '👶', '🧼', '🧽', '📄',
 ]
 
 interface ListSheetProps {

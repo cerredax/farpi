@@ -7,7 +7,7 @@ import { Suggestions } from '@/components/ui/Suggestions'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { selectSuggestions } from '@/lib/selectors'
 import { validateListItemDraft } from '@/lib/validators'
-import type { List, ListItem, ListItemDraft } from '@/types'
+import type { ListItem, ListItemDraft } from '@/types'
 
 interface ItemSheetProps {
   open: boolean
@@ -15,20 +15,20 @@ interface ItemSheetProps {
   initial?: ListItem | null
   /** Ítems ya apuntados por la familia; de aquí salen las sugerencias. */
   historial?: string[]
-  /** Listas de la familia, para poder mover el ítem de una a otra al editar. */
-  lists?: List[]
   onClose: () => void
   onCreate: (draft: ListItemDraft) => void
   onUpdate: (id: string, draft: ListItemDraft) => void
   onDelete: (id: string) => void
 }
 
+// Sin `list_id`: aquí solo se renombra. Mover es cosa del MoveItemSheet, y
+// mandar la lista en cada edición obligaría a este formulario a saber en cuál
+// está el ítem para no moverlo a ninguna parte.
 function initDraft(mode: 'create' | 'edit', initial: ListItem | null | undefined): ListItemDraft {
-  if (mode === 'edit' && initial) return { text: initial.text, list_id: initial.list_id }
-  return { text: '' }
+  return { text: mode === 'edit' && initial ? initial.text : '' }
 }
 
-export function ItemSheet({ open, mode, initial, historial = [], lists = [], onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
+export function ItemSheet({ open, mode, initial, historial = [], onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListItemDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -79,26 +79,6 @@ export function ItemSheet({ open, mode, initial, historial = [], lists = [], onC
             label={draft.text.trim() ? 'Coincidencias' : 'Los que más apuntáis'}
           />
         </Field>
-
-        {/* Solo al editar: un ítem se apunta donde estás, pero luego se
-            descubre que iba en otra cesta. Con una sola lista no hay a dónde
-            moverlo, así que el campo ni aparece. */}
-        {mode === 'edit' && lists.length > 1 && (
-          <Field label="Lista" htmlFor="item-list">
-            <select
-              id="item-list"
-              value={draft.list_id ?? ''}
-              onChange={e => patch({ list_id: e.target.value })}
-              className="field-input"
-            >
-              {lists.map(list => (
-                <option key={list.id} value={list.id}>
-                  {list.emoji ?? '📋'} {list.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-        )}
       </form>
     </BottomSheet>
   )

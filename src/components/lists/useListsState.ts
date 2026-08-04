@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { selectItemMatches, selectPendingTextsByList, selectSortedLists } from '@/lib/selectors'
-import type { List, ListItem, ListDraft, ListItemDraft } from '@/types'
+import type { List, ListItem, ListItemDraft } from '@/types'
 
 export function useListsState() {
   const {
@@ -14,8 +14,10 @@ export function useListsState() {
   const [busqueda,       setBusqueda]       = useState('')
   const [listSheetOpen,  setListSheetOpen]  = useState(false)
   const [itemSheetOpen,  setItemSheetOpen]  = useState(false)
+  const [moveSheetOpen,  setMoveSheetOpen]  = useState(false)
   const [editingList,    setEditingList]    = useState<List | null>(null)
   const [editingItem,    setEditingItem]    = useState<ListItem | null>(null)
+  const [movingItem,     setMovingItem]     = useState<ListItem | null>(null)
   const [listMode,       setListMode]       = useState<'create' | 'edit'>('create')
   const [itemMode,       setItemMode]       = useState<'create' | 'edit'>('create')
 
@@ -30,20 +32,29 @@ export function useListsState() {
   function openAddItem()            { setEditingItem(null);  setItemMode('create'); setItemSheetOpen(true) }
   function openEditItem(i: ListItem){ setEditingItem(i);     setItemMode('edit');   setItemSheetOpen(true) }
 
-  function handleCreateList(draft: ListDraft)                  { createList(draft) }
-  function handleUpdateList(id: string, draft: ListDraft)      { updateList(id, draft) }
-  function handleDeleteList(id: string)                        { deleteList(id); setSelectedListId(null) }
-  function handleCreateItem(draft: ListItemDraft)              { if (selectedListId) createListItem(selectedListId, draft) }
-  function handleUpdateItem(id: string, draft: ListItemDraft)  { updateListItem(id, draft) }
-  function handleDeleteItem(id: string)                        { deleteListItem(id) }
+  function handleDeleteList(id: string)           { deleteList(id); setSelectedListId(null) }
+  function handleCreateItem(draft: ListItemDraft) { if (selectedListId) createListItem(selectedListId, draft) }
 
-  const listItemsByListId = new Map<string, ListItem[]>()
+  // Al cerrar solo se baja la persiana: el ítem sigue puesto hasta que se abra
+  // otro. Si se borrara aquí, el sheet se quedaría sin título y sin lista de
+  // origen que excluir durante los 300 ms que tarda en salir de pantalla.
+  function openMoveItem(i: ListItem) { setMovingItem(i); setMoveSheetOpen(true) }
+  function closeMoveItem()           { setMoveSheetOpen(false) }
 
-  for (const item of allListItems) {
-    const items = listItemsByListId.get(item.list_id)
-    if (items) items.push(item)
-    else listItemsByListId.set(item.list_id, [item])
+  /** Mover conserva el texto: solo cambia de lista. */
+  function handleMoveItem(listId: string) {
+    if (movingItem) updateListItem(movingItem.id, { text: movingItem.text, list_id: listId })
   }
+
+  const listItemsByListId = useMemo(() => {
+    const porLista = new Map<string, ListItem[]>()
+    for (const item of allListItems) {
+      const items = porLista.get(item.list_id)
+      if (items) items.push(item)
+      else porLista.set(item.list_id, [item])
+    }
+    return porLista
+  }, [allListItems])
 
   const pendingByListId = useMemo(() => selectPendingTextsByList(allListItems), [allListItems])
 
@@ -72,9 +83,10 @@ export function useListsState() {
     editingList, editingItem,
     listMode, itemMode,
     listSheetKey, itemSheetKey,
+    movingItem, moveSheetOpen, openMoveItem, closeMoveItem, handleMoveItem,
     openCreateList, openEditList, openAddItem, openEditItem,
-    handleCreateList, handleUpdateList, handleDeleteList,
-    handleCreateItem, handleUpdateItem, handleDeleteItem,
+    createList, updateList, handleDeleteList,
+    handleCreateItem, updateListItem, deleteListItem,
     toggleListItem,
   }
 }

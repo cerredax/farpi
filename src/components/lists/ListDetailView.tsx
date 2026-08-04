@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Plus, ArrowLeft, ChevronDown, Pencil, Trash2 } from 'lucide-react'
-import { CircleCheck } from '@/components/ui/CircleCheck'
+import { Plus, ArrowLeft, ChevronDown, Pencil } from 'lucide-react'
 import { SearchField } from '@/components/ui/SearchField'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { selectListItemGroups } from '@/lib/selectors'
 import { normalizaParaBuscar } from '@/lib/text'
 import type { List, ListItem } from '@/types'
+import { ListItemRow } from './ListItemRow'
 
 interface ListDetailViewProps {
   list: List
@@ -15,11 +15,14 @@ interface ListDetailViewProps {
   onOpenEdit: () => void
   onOpenAddItem: () => void
   onOpenEditItem: (item: ListItem) => void
+  onOpenMoveItem: (item: ListItem) => void
   onDeleteItem: (id: string) => void
+  /** Con una sola lista no hay a dónde mover: el botón sobra. */
+  puedeMover: boolean
 }
 
 export function ListDetailView({
-  list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onDeleteItem,
+  list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onOpenMoveItem, onDeleteItem, puedeMover,
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
   // Una lista es lo que falta. Lo demás —lo de siempre, lo que ya tenéis— es el
@@ -78,15 +81,15 @@ export function ListDetailView({
         )}
 
         {pending.map(item => (
-          <div key={item.id} className="bg-white rounded-2xl border border-surface shadow-sm flex items-center gap-2 px-2 py-2">
-            <CircleCheck checked={false} onClick={() => onToggle(item.id)} ariaLabel={`Ya tenéis ${item.text}, quitar de lo que falta`} />
-            <button onClick={() => onOpenEditItem(item)} className="flex-1 text-left text-sm font-medium text-ink leading-snug">
-              {item.text}
-            </button>
-            <button onClick={() => onDeleteItem(item.id)} aria-label={`Eliminar ${item.text} de la lista`} className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors">
-              <Trash2 size={14} />
-            </button>
-          </div>
+          <ListItemRow
+            key={item.id}
+            item={item}
+            puedeMover={puedeMover}
+            onToggle={() => onToggle(item.id)}
+            onEdit={() => onOpenEditItem(item)}
+            onMove={() => onOpenMoveItem(item)}
+            onDelete={() => onDeleteItem(item.id)}
+          />
         ))}
 
         {pending.length === 0 && items.length > 0 && !consulta && (
@@ -112,19 +115,16 @@ export function ListDetailView({
                 />
               </button>
             )}
-            {/* Sin tachar ni atenuar: esto no es historial de lo hecho, es el
-                catálogo de lo que compráis. Está a un toque de volver a hacer
-                falta, así que tiene que leerse como algo vivo. */}
             {hechosVisibles && completed.map(item => (
-              <div key={item.id} className="bg-canvas rounded-2xl border border-surface flex items-center gap-2 px-2 py-2">
-                <CircleCheck checked={true} onClick={() => onToggle(item.id)} ariaLabel={`Apuntar que hace falta ${item.text}`} />
-                <button onClick={() => onOpenEditItem(item)} className="flex-1 text-left text-sm font-medium text-muted leading-snug">
-                  {item.text}
-                </button>
-                <button onClick={() => onDeleteItem(item.id)} aria-label={`Eliminar ${item.text} de la lista`} className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors">
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              <ListItemRow
+                key={item.id}
+                item={item}
+                puedeMover={puedeMover}
+                onToggle={() => onToggle(item.id)}
+                onEdit={() => onOpenEditItem(item)}
+                onMove={() => onOpenMoveItem(item)}
+                onDelete={() => onDeleteItem(item.id)}
+              />
             ))}
           </>
         )}

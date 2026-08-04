@@ -197,8 +197,8 @@ test('el sheet de crear ítem llega vacío la segunda vez', async ({ page }) => 
   await expect(page.locator('#item-text')).toHaveValue('')
 })
 
-// Un ítem se apunta donde estás y luego resulta que iba en otra cesta. El
-// selector solo sale al editar: al crear, la lista es la que tienes abierta.
+// Un ítem se apunta donde estás y luego resulta que iba en otra cesta. Se
+// mueve desde su propia fila: un toque abre el sheet, otro lo manda.
 test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await page.goto('/lists')
   await page.waitForTimeout(700)
@@ -209,23 +209,21 @@ test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await page.getByRole('button', { name: 'Añadir', exact: true }).click()
   await page.waitForTimeout(300)
 
-  // Al crear no hay a dónde mover: el campo no existe.
-  await page.getByRole('button', { name: 'Añadir ítem' }).click()
-  await expect(page.locator('#item-list')).toHaveCount(0)
-  await page.getByRole('dialog', { name: 'Añadir ítem' }).getByLabel('Cerrar').click()
+  await page.getByRole('button', { name: 'Mover Jabón neutro a otra lista' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Mover «Jabón neutro»' })
 
-  await page.getByText('Jabón neutro').click()
-  await page.locator('#item-list').selectOption({ label: '🧽 Limpieza' })
-  await page.getByRole('button', { name: 'Guardar', exact: true }).click()
+  // Mover algo a donde ya está no es una opción: Farmacia no se ofrece.
+  await expect(sheet.getByRole('button', { name: 'Farmacia' })).toHaveCount(0)
+  await sheet.getByRole('button', { name: 'Limpieza' }).click()
   await page.waitForTimeout(300)
 
   // Ya no está en Farmacia...
-  await expect(page.getByText('Jabón neutro')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Jabón neutro', exact: true })).toHaveCount(0)
 
   // ...sino en Limpieza.
   await page.getByRole('button', { name: 'Volver a las listas' }).click()
   await page.getByText('Limpieza').first().click()
-  await expect(page.getByText('Jabón neutro')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Jabón neutro', exact: true })).toBeVisible()
 })
 
 // Las listas van al revés que una lista de tareas: marcar no archiva, devuelve

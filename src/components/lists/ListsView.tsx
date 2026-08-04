@@ -8,6 +8,7 @@ import { ListCard } from './ListCard'
 import { ListDetailView } from './ListDetailView'
 import { ListSheet } from './ListSheet'
 import { ItemSheet } from './ItemSheet'
+import { MoveItemSheet } from './MoveItemSheet'
 import { useListsState } from './useListsState'
 
 export function ListsView() {
@@ -20,8 +21,8 @@ export function ListsView() {
       mode={s.listMode}
       initial={s.editingList}
       onClose={() => s.setListSheetOpen(false)}
-      onCreate={s.handleCreateList}
-      onUpdate={s.handleUpdateList}
+      onCreate={s.createList}
+      onUpdate={s.updateList}
       onDelete={s.handleDeleteList}
     />
   )
@@ -37,7 +38,9 @@ export function ListsView() {
           onOpenEdit={() => s.openEditList(s.selectedList!)}
           onOpenAddItem={s.openAddItem}
           onOpenEditItem={s.openEditItem}
-          onDeleteItem={s.handleDeleteItem}
+          onOpenMoveItem={s.openMoveItem}
+          onDeleteItem={s.deleteListItem}
+          puedeMover={s.lists.length > 1}
         />
         {listSheet}
         <ItemSheet
@@ -46,11 +49,17 @@ export function ListsView() {
           mode={s.itemMode}
           initial={s.editingItem}
           historial={s.historialItems}
-          lists={s.lists}
           onClose={() => s.setItemSheetOpen(false)}
           onCreate={s.handleCreateItem}
-          onUpdate={s.handleUpdateItem}
-          onDelete={s.handleDeleteItem}
+          onUpdate={s.updateListItem}
+          onDelete={s.deleteListItem}
+        />
+        <MoveItemSheet
+          open={s.moveSheetOpen}
+          item={s.movingItem}
+          lists={s.lists}
+          onClose={s.closeMoveItem}
+          onMove={s.handleMoveItem}
         />
       </div>
     )

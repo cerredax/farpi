@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
+import { CirclePlus } from '@/components/ui/CirclePlus'
 import type { ItemMatch } from '@/types'
 
 interface ItemMatchCardProps {
@@ -17,11 +18,15 @@ interface ItemMatchCardProps {
 export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProps) {
   return (
     <div className="w-full bg-white rounded-2xl border border-surface shadow-sm flex items-center gap-2 pl-2 pr-3 py-2.5">
-      <CircleCheck
-        checked={match.completed}
-        onClick={onToggle}
-        ariaLabel={match.completed ? `Apuntar que hace falta ${match.text}` : `Ya tenéis ${match.text}, quitar de lo que falta`}
-      />
+      {match.completed ? (
+        <CirclePlus onClick={onToggle} ariaLabel={`Apuntar que hace falta ${match.text}`} />
+      ) : (
+        <CircleCheck
+          checked={false}
+          onClick={onToggle}
+          ariaLabel={`Ya tenéis ${match.text}, quitar de lo que falta`}
+        />
+      )}
       <button
         onClick={onOpenList}
         aria-label={`Abrir ${match.list_name}`}

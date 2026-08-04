@@ -12,7 +12,7 @@ import {
   startOfDay,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import type { Event, Child, FamilyMember } from '@/types'
 import { resolveAssignee } from '@/lib/assignees'
@@ -51,37 +51,35 @@ function sortEvents(events: Event[]): Event[] {
   })
 }
 
+/**
+ * Un evento en una línea: color, hora, título y de quién es. El color va como
+ * punto y no como barra lateral porque ya no hay tarjeta que bordear. El
+ * nombre se queda —aunque el color ya lo diga— porque el color solo habla si
+ * te lo sabes, y quién tiene la cita es media pregunta de la agenda.
+ */
 function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void }) {
   const asignado = resolveAssignee(event, members, kids)
   const color = getEventColor(event, kids, members)
+  const hora = event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')
 
   return (
     <button
       onClick={() => onEdit(event)}
-      className="w-full rounded-2xl border border-surface bg-white flex overflow-hidden text-left hover:border-faint active:scale-[0.99] transition-all"
+      title={asignado ? `${event.title} · ${asignado.name}` : event.title}
+      className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-canvas"
     >
-      <div className="w-1 flex-shrink-0" style={{ backgroundColor: color }} />
-      <div className="flex items-start gap-3 px-3 py-3 flex-1 min-w-0">
-        <div className="flex items-center gap-1 min-w-[58px] pt-0.5">
-          {event.all_day ? (
-            <span className="text-[10px] font-bold text-muted leading-none">Todo el día</span>
-          ) : (
-            <>
-              <Clock size={12} className="text-muted flex-shrink-0" strokeWidth={2} />
-              <span className="text-xs font-bold text-muted">{format(parseISO(event.start_at), 'HH:mm')}</span>
-            </>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
-          {event.description && <p className="text-xs text-muted mt-0.5 leading-snug">{event.description}</p>}
-          {asignado && (
-            <span className="inline-block mt-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: asignado.color }}>
-              {asignado.name}
-            </span>
-          )}
-        </div>
-      </div>
+      <span
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0 self-center"
+        style={{ backgroundColor: color }}
+        aria-hidden
+      />
+      <span className="text-[11px] font-bold text-muted flex-shrink-0 tabular-nums">{hora}</span>
+      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{event.title}</span>
+      {asignado && (
+        <span className="flex-shrink-0 text-[11px] font-bold" style={{ color: asignado.color }}>
+          {asignado.name}
+        </span>
+      )}
     </button>
   )
 }
@@ -145,69 +143,59 @@ export function AgendaList({ mode, selectedDay, events, kids, members, onSelectD
           />
         </button>
       ) : (
-        <div className="space-y-3">
-          {visibleGroups.map(group => {
-            const isSelected = isSameDay(group.day, selectedDay)
-            const dayLabel = capitalize(format(group.day, "EEEE d", { locale: es }))
-            const monthLabel = format(group.day, 'MMM', { locale: es })
+        /* Una fila por día dentro de una sola tarjeta: fecha a la izquierda y
+           lo que hay a la derecha. Antes cada día era una tarjeta propia que
+           decía la fecha dos veces —"4 AGO" en el recuadro y "Martes 4" al
+           lado— y gastaba una línea en contar los eventos que ya se veían
+           debajo. Esto ocupa la mitad y se lee de un barrido. */
+        <div className="rounded-3xl border border-surface bg-white shadow-sm overflow-hidden">
+          <ul className="divide-y divide-hairline">
+            {visibleGroups.map(group => {
+              const isSelected = isSameDay(group.day, selectedDay)
+              const esHoy = isToday(group.day)
+              const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
 
-            return (
-              <section
-                key={group.day.toISOString()}
-                id={`day-${format(group.day, 'yyyyMMdd')}`}
-                className={`rounded-3xl border bg-white shadow-sm overflow-hidden transition-all ${
-                  isSelected ? 'border-primary ring-2 ring-primary/10' : 'border-surface'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3 px-3 py-3 bg-canvas/70">
+              return (
+                <li
+                  key={group.day.toISOString()}
+                  id={`day-${format(group.day, 'yyyyMMdd')}`}
+                  className={`flex items-start gap-2 px-2 py-2 transition-colors ${isSelected ? 'bg-primary-tint/40' : ''}`}
+                >
                   <button
                     onClick={() => onSelectDay(group.day)}
-                    className="flex items-center gap-3 text-left min-w-0"
+                    aria-label={dayLabel}
+                    aria-pressed={isSelected}
+                    className={`flex w-11 flex-shrink-0 flex-col items-center rounded-xl py-1 transition-colors ${
+                      esHoy ? 'bg-accent text-white' : 'text-ink hover:bg-canvas'
+                    }`}
                   >
-                    <span className={`w-10 h-10 rounded-2xl flex flex-col items-center justify-center flex-shrink-0 ${
-                      isToday(group.day) ? 'bg-accent text-white' : 'bg-white text-ink'
-                    }`}>
-                      <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
-                      <span className="text-[9px] font-bold uppercase leading-none mt-0.5">{monthLabel}</span>
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-black text-ink truncate">{dayLabel}</span>
-                      <span className="block text-xs text-muted">
-                        {group.events.length === 0
-                          ? 'Sin eventos'
-                          : `${group.events.length} ${group.events.length === 1 ? 'evento' : 'eventos'}`}
-                      </span>
+                    <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
+                    <span className={`text-[9px] font-bold uppercase leading-none mt-0.5 ${esHoy ? 'text-white/80' : 'text-muted'}`}>
+                      {format(group.day, 'EEE', { locale: es })}
                     </span>
                   </button>
+
+                  <div className="min-w-0 flex-1 self-center">
+                    {group.events.length === 0 ? (
+                      <p className="px-1.5 text-xs text-faint">Sin eventos</p>
+                    ) : (
+                      group.events.map(event => (
+                        <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
+                      ))
+                    )}
+                  </div>
+
                   <button
                     onClick={() => onAdd(group.day)}
                     aria-label={`Añadir evento el ${dayLabel}`}
-                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-primary border border-line hover:border-primary active:scale-95 transition-all"
+                    className="w-7 h-7 flex-shrink-0 self-center flex items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
                   >
-                    <Plus size={15} strokeWidth={2.5} />
+                    <Plus size={14} strokeWidth={2.5} />
                   </button>
-                </div>
-
-                {group.events.length > 0 && (
-                  <div className="p-2 space-y-2">
-                    {group.events.map(event => (
-                      <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                    ))}
-                  </div>
-                )}
-                {group.events.length === 0 && isSameDay(group.day, selectedDay) && (
-                  <div className="px-3 pb-3">
-                    <button
-                      onClick={() => onAdd(group.day)}
-                      className="w-full text-center text-xs text-primary font-bold py-2.5 rounded-xl border border-dashed border-primary/40 hover:border-primary hover:bg-primary-tint transition-colors"
-                    >
-                      + Añadir evento este día
-                    </button>
-                  </div>
-                )}
-              </section>
-            )
-          })}
+                </li>
+              )
+            })}
+          </ul>
         </div>
       )}
     </div>

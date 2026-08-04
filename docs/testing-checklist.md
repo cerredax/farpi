@@ -31,6 +31,7 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Permite marcar tareas desde Inicio.
 - [ ] Permite marcar ítems de lista desde Inicio.
 - [ ] Muestra próximos eventos ordenados.
+- [ ] En "Esta semana", cada evento lleva el punto de color de quien lo tiene; los de toda la familia, el amarillo.
 
 ## 4. Calendario
 
@@ -60,7 +61,9 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede abrir detalle.
 - [ ] Se puede crear ítem.
 - [ ] Se puede editar ítem.
-- [ ] Se puede completar y descompletar ítem.
+- [ ] Marcar un ítem lo baja al catálogo ("Apuntar de lo de siempre"), plegado por defecto.
+- [ ] En el catálogo el botón es un `+`, no un tic: vuelve a apuntar que hace falta.
+- [ ] Se puede mover un ítem a otra lista; la lista en la que ya está no se ofrece.
 - [ ] Se puede borrar ítem.
 
 ## 7. Comidas

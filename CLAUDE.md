@@ -44,8 +44,8 @@ La decisión central del proyecto. La UI nunca habla con Supabase directamente:
 Pantallas (src/components/**)
   -> StoreProvider (src/lib/store-context.tsx)   [async: isLoading / error / reload()]
     -> contrato Repos (src/lib/repos/types.ts)
-       ├─ supabaseRepos (src/lib/supabase-repos.ts)   ← IS_DEMO_MODE = false
-       └─ mockRepos     (src/lib/mock-repos.ts)       ← IS_DEMO_MODE = true
+       ├─ supabaseRepos (src/lib/supabase-repos/*)   ← IS_DEMO_MODE = false
+       └─ mockRepos     (src/lib/mock-repos.ts)      ← IS_DEMO_MODE = true
             -> src/lib/store/* (módulos del mock) -> localStorage (`nido_store_v1`)
 ```
 

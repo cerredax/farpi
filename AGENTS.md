@@ -25,7 +25,7 @@ La app debe seguir siendo sencilla, visual y útil para una familia. Evitar conv
 - No introducir backend complejo, Docker, NestJS ni arquitectura grande.
 - No cambiar el diseño visual de forma amplia sin confirmación.
 - Mantener mobile-first.
-- Si se toca una migración, revisar tipos TypeScript, mock-store y documentación.
+- Si se toca una migración, revisar tipos TypeScript, el mock (`src/lib/store/`) y documentación.
 - Si se cambia un flujo mock, comprobar persistencia en `localStorage`.
 - Para cambios relevantes, ejecutar `npm run lint` y `npm run build`.
 - Si tocas lógica pura (fechas, recurrencia, selectores, validadores), añade o ajusta su test en `e2e/unit/` y ejecuta `npm run test:unit`.

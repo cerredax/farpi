@@ -57,7 +57,7 @@ Objetivo: validar base de datos, RLS, RPCs y Storage en el Dashboard / SQL Edito
 
 Objetivo: implementar acceso a datos real sin reescribir pantallas.
 
-- ✅ Repos reales con interfaces de `src/lib/repos/types.ts` (`supabase-repos.ts`).
+- ✅ Repos reales con interfaces de `src/lib/repos/types.ts` (`src/lib/supabase-repos/`).
 - ✅ Familia, miembros, invitaciones.
 - ✅ Hijos, eventos, tareas.
 - ✅ Listas e ítems, comidas, documentos (metadata).

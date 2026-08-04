@@ -10,9 +10,9 @@ Mantener Nido simple: una app web privada, mobile-first, con Supabase como backe
 UI / Pantallas
   -> StoreProvider (store-context.tsx)   [async: loading / error / reload]
     -> Repos (contrato src/lib/repos/types.ts)
-       ├─ supabaseRepos (src/lib/supabase-repos.ts)   ← IS_DEMO_MODE = false
-       └─ mockRepos     (src/lib/mock-repos.ts)        ← IS_DEMO_MODE = true
-            -> mock-store.ts -> localStorage
+       ├─ supabaseRepos (src/lib/supabase-repos/*)   ← IS_DEMO_MODE = false
+       └─ mockRepos     (src/lib/mock-repos.ts)      ← IS_DEMO_MODE = true
+            -> src/lib/store/* -> localStorage
 ```
 
 La UI ya consume Supabase de forma general a través de la frontera de repositorios. `StoreProvider` selecciona `supabaseRepos` o `mockRepos` según `IS_DEMO_MODE` (definido en `src/lib/supabase/env.ts`), sin duplicar pantallas. El modo demo persiste en `localStorage` y sirve como fallback y como entorno de pruebas e2e.
@@ -21,7 +21,7 @@ La UI ya consume Supabase de forma general a través de la frontera de repositor
 
 Archivos principales:
 
-- `src/lib/store/` (módulos del mock; `mock-store.ts` solo reexporta)
+- `src/lib/store/` (módulos del mock, uno por dominio)
 - `src/lib/store-context.tsx`
 - `src/lib/family-config.ts`
 
@@ -50,7 +50,7 @@ Usos:
 Estado:
 
 - Proyecto Supabase creado y migraciones subidas.
-- UI conectada mediante repositorios reales (`supabase-repos.ts`).
+- UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 
@@ -131,6 +131,11 @@ mismo en Ajustes, calendario y documentos.
 Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
 
+El color con el que se pinta un evento sale de `eventColor()`, en el mismo archivo: el
+color propio del evento, si no el de quien lo lleve, y si no hay nadie el `FAMILY_COLOR`
+amarillo. Está centralizado porque cuando el cálculo estaba copiado en cada pantalla,
+Inicio se quedó sin el último escalón y los eventos de toda la familia salían sin marca.
+
 ## Vacaciones
 
 Unas vacaciones **no son una entidad aparte**: son un evento de varios días
@@ -156,7 +161,7 @@ Frontera de datos ya implementada:
 UI / Pantallas
   -> StoreProvider (async)
     -> Repos (contrato src/lib/repos/types.ts)
-       ├─ supabaseRepos (src/lib/supabase-repos.ts)
+       ├─ supabaseRepos (src/lib/supabase-repos/*)
        └─ mockRepos     (src/lib/mock-repos.ts)
 ```
 
@@ -193,6 +198,7 @@ Componentes clave:
 - `src/components/ui/Field.tsx` — etiqueta + control con el espaciado estándar
 - `src/components/ui/SheetFooter.tsx` — pie con error, acción principal y borrado
 - `src/components/ui/SelectChip.tsx` y `src/components/ui/DotOption.tsx` — opciones seleccionables
+- `src/components/ui/CircleCheck.tsx` y `src/components/ui/CirclePlus.tsx` — el círculo de marcar y su hermano de sumar, con las mismas medidas y área de toque. El `+` es para lo que no está pendiente sino esperando a volver a hacer falta (el catálogo de las listas), donde un tic diría "hecho"
 - `src/hooks/useSheetForm.ts` — `useSheetForm` (draft, error, foco, submit validado) y `useSheetDelete`
 - `src/hooks/useConfirmAction.ts`
 

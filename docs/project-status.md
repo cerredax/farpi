@@ -13,7 +13,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - Inicio / Hoy.
 - Calendario (eventos, series semanales y anuales).
 - Tareas (con recurrencia).
-- Listas e ítems.
+- Listas e ítems: lo que falta arriba, lo que ya tenéis plegado como catálogo (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra y búsqueda global.
 - Comidas (día/semana, copiar día).
 - Documentos: subir, abrir/descargar (signed URL 60 s), editar y borrar.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro.
@@ -24,7 +24,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 ### Conexión Supabase (completada)
 
 - Auth real (login/signup, recuperación de contraseña, logout).
-- Repositorios reales en `src/lib/supabase-repos.ts` + mock en `src/lib/mock-repos.ts`, tras el contrato `src/lib/repos/types.ts`.
+- Repositorios reales en `src/lib/supabase-repos/` (un módulo por dominio) + mock en `src/lib/mock-repos.ts`, tras el contrato `src/lib/repos/types.ts`.
 - `StoreProvider` async con estados loading/error y `reload()`.
 - Onboarding real (`/onboarding` → `create_family_with_admin`) y resolución de familia activa en `AppShell`.
 - Invitaciones por email vía magic link (`/api/invite` con service role) y aceptación automática en `/auth/callback` (`accept_family_invite`).

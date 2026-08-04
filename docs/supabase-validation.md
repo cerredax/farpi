@@ -76,7 +76,7 @@ Casos obligatorios:
 
 - [x] Bucket `documents` existe.
 - [x] Bucket `documents` es privado (`public = false`).
-- [x] Path esperado: `{family_id}/{document_id}/{filename}` (lo impone `supabase-repos.ts`).
+- [x] Path esperado: `{family_id}/{document_id}/{filename}` (lo impone `src/lib/supabase-repos/documents.ts`).
 - [x] Un miembro de la familia sube, firma, descarga y borra su documento.
 - [x] Un usuario ajeno **no** puede firmar el documento aunque conozca la ruta exacta.
 - [x] Un usuario ajeno **no** puede descargarlo directamente.

@@ -56,13 +56,14 @@ npm run start
 ```text
 src/app                    Rutas de Next.js
 src/components             Componentes UI y pantallas
-src/lib/mock-store.ts      Store mock del modo demo
+src/lib/store              Store mock del modo demo, un módulo por dominio
+src/lib/supabase-repos     Repos reales, un módulo por dominio
 src/lib/store-context.tsx  Contexto global actual
 src/lib/constants.ts       Constantes compartidas
 src/lib/date-utils.ts      Helpers de fecha local
 src/lib/validators.ts      Validaciones ligeras
 src/lib/selectors.ts       Selectores derivados
-src/lib/repos              Contratos y repositorios preparados para Supabase
+src/lib/repos              Contrato que cumplen las dos implementaciones
 supabase/migrations        Esquema, RLS, RPCs, integridad, invitaciones y Storage
 docs                       Documentación de proyecto, QA y roadmap
 ```

@@ -2,6 +2,14 @@
  * Devuelve la fecha local en formato yyyy-MM-dd.
  * Evita el desfase de toISOString() que convierte a UTC antes de formatear.
  */
+/** Saludo según la hora. Vive aquí porque lo pinta la cabecera, no la pantalla. */
+export function getGreeting(date: Date): string {
+  const hour = date.getHours()
+  if (hour < 12) return 'Buenos días'
+  if (hour < 20) return 'Buenas tardes'
+  return 'Buenas noches'
+}
+
 export function getLocalDateString(date: Date = new Date()): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')

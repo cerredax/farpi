@@ -15,8 +15,9 @@ test('home carga con datos demo y la navegación inferior', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Comidas' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Docs' })).toBeVisible()
 
-  // El saludo de la home aparece (cualquier franja horaria contiene "familia").
-  await expect(page.getByText(/familia/i).first()).toBeVisible()
+  // El saludo vive en la cabecera y depende de la hora, así que vale cualquiera
+  // de los tres. Se pinta ya en el navegador: en el HTML servido no está.
+  await expect(page.getByText(/Buenos días|Buenas tardes|Buenas noches/).first()).toBeVisible()
 })
 
 test('el sheet de tareas abre como diálogo con campos etiquetados', async ({ page }) => {

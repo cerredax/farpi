@@ -176,6 +176,25 @@ test.describe('eventos', () => {
     expect(r.map(e => e.title)).toEqual(['manana', 'dentro-de-3'])
   })
 
+  test('selectUpcomingEvents no pasa de la próxima semana', () => {
+    const dentroDe6 = getLocalDateString(new Date(Date.now() + 6 * 86400000))
+    const dentroDe20 = getLocalDateString(new Date(Date.now() + 20 * 86400000))
+    const r = selectUpcomingEvents([
+      event({ title: 'esta-semana', start_at: `${dentroDe6}T10:00:00` }),
+      event({ title: 'dentro-de-20-dias', start_at: `${dentroDe20}T10:00:00` }),
+    ])
+    expect(r.map(e => e.title)).toEqual(['esta-semana'])
+  })
+
+  test('selectUpcomingEvents deja fuera las vacaciones', () => {
+    const manana = getLocalDateString(new Date(Date.now() + 86400000))
+    const r = selectUpcomingEvents([
+      event({ title: 'cita', start_at: `${manana}T10:00:00` }),
+      event({ title: 'playa', kind: 'vacaciones', all_day: true, start_at: `${manana}T00:00:00`, end_at: `${manana}T00:00:00` }),
+    ])
+    expect(r.map(e => e.title)).toEqual(['cita'])
+  })
+
   test('selectUpcomingEvents respeta el límite', () => {
     const eventos = Array.from({ length: 8 }, (_, i) =>
       event({ start_at: `${getLocalDateString(new Date(Date.now() + (i + 1) * 86400000))}T10:00:00` }))

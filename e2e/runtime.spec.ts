@@ -179,3 +179,20 @@ test('unas vacaciones no pueden acabar antes de empezar', async ({ page }) => {
   await page.locator('#event-end-date').fill('2026-08-10')
   await expect(page.getByText('El último día no puede ser anterior al primero')).toBeVisible()
 })
+
+// Añadir dos ítems seguidos dejaba el texto del primero en el campo: la vista
+// reutiliza el mismo sheet de creación, así que el formulario tiene que
+// rearmarse en cada apertura.
+test('el sheet de crear ítem llega vacío la segunda vez', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+  await page.getByText('Farmacia').first().click()
+
+  await page.getByRole('button', { name: 'Añadir ítem' }).click()
+  await page.locator('#item-text').fill('Ibuprofeno')
+  await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+  await page.waitForTimeout(300)
+
+  await page.getByRole('button', { name: 'Añadir ítem' }).click()
+  await expect(page.locator('#item-text')).toHaveValue('')
+})

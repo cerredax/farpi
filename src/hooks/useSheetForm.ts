@@ -5,10 +5,7 @@ import { useConfirmAction } from './useConfirmAction'
 
 interface UseSheetFormOptions<D> {
   open: boolean
-  /**
-   * Draft inicial. Se evalúa una sola vez: las vistas remontan los sheets con
-   * `key` al abrirlos, así que no hace falta resincronizar en cada apertura.
-   */
+  /** Draft inicial. Se vuelve a evaluar cada vez que el sheet se abre. */
   initialDraft: () => D
   /** Devuelve el mensaje de error, o null si el draft es válido. */
   validate?: (draft: D) => string | null
@@ -24,6 +21,21 @@ export function useSheetForm<D>({ open, initialDraft, validate, autoFocus = true
   const [draft, setDraft] = useState<D>(initialDraft)
   const [formError, setFormError] = useState<string | null>(null)
   const firstFieldRef = useRef<HTMLInputElement>(null)
+
+  // La `key` de las vistas remonta el sheet al editar cosas distintas, pero al
+  // crear vale siempre lo mismo: sin esto, añadir dos ítems seguidos dejaba el
+  // texto del primero escrito en el campo. Se rearma en cada apertura, que
+  // además recoge los valores por defecto del momento (la fecha y la franja de
+  // la comida, por ejemplo). Es el ajuste de estado en render que documenta
+  // React, no un efecto: así el sheet ya aparece limpio en el primer pintado.
+  const [abiertoAntes, setAbiertoAntes] = useState(open)
+  if (open !== abiertoAntes) {
+    setAbiertoAntes(open)
+    if (open) {
+      setDraft(initialDraft())
+      setFormError(null)
+    }
+  }
 
   useEffect(() => {
     // El retardo espera a que termine la animación de apertura del sheet;

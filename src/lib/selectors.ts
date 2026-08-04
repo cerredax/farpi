@@ -163,13 +163,26 @@ export function selectTodayEvents(events: Event[]): Event[] {
   return events.filter(e => !isVacation(e) && eventCoversDay(e, today))
 }
 
-export function selectUpcomingEvents(events: Event[], limit = 5): Event[] {
+/**
+ * Lo que viene en los próximos días, sin contar hoy.
+ *
+ * La ventana existe para que el bloque cumpla su título: antes devolvía los
+ * cinco siguientes sin mirar la fecha, así que bajo "Esta semana" podía salir
+ * algo de dentro de un mes. Las vacaciones se quedan fuera, como en el resto de
+ * la pantalla de inicio: son del calendario.
+ */
+export function selectUpcomingEvents(events: Event[], limit = 5, dias = 7): Event[] {
   const now = new Date()
   const todayStr = getLocalDateString()
+  const hasta = getLocalDateString(new Date(now.getTime() + dias * 86_400_000))
+
   return events
     .filter(e => {
+      if (isVacation(e)) return false
       const d = new Date(e.start_at)
-      return !isSameLocalDay(d, now) && getLocalDateString(d) > todayStr
+      if (isSameLocalDay(d, now)) return false
+      const dia = getLocalDateString(d)
+      return dia > todayStr && dia <= hasta
     })
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
     .slice(0, limit)

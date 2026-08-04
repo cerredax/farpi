@@ -12,14 +12,6 @@ import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import type { Task } from '@/types'
-import { capitalize } from '@/lib/text'
-
-function getGreeting(date: Date) {
-  const hour = date.getHours()
-  if (hour < 12) return 'Buenos días, familia'
-  if (hour < 20) return 'Buenas tardes, familia'
-  return 'Buenas noches, familia'
-}
 
 function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
   const dueLabel = task?.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
@@ -68,9 +60,6 @@ export function HomeView() {
     }
   }
 
-  const today       = new Date()
-  const dayLabel    = capitalize(format(today, "EEEE, d 'de' MMMM", { locale: es }))
-  const greeting    = getGreeting(today)
   const todayEvents = useMemo(() => selectTodayEvents(allEvents), [allEvents])
   const upcoming    = useMemo(() => selectUpcomingEvents(allEvents), [allEvents])
   const calmMessage = todayEvents.length === 0 && pendingTasks.length === 0 && pendingItems.length === 0
@@ -79,14 +68,13 @@ export function HomeView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-5 shadow-sm">
+      {/* El saludo y la fecha viven en la cabecera: aquí ocupaban media pantalla
+          de móvil para decir algo que no se toca. */}
+      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm">
         <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
         <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
-        <div className="relative space-y-4">
-          <div>
-            <p className="field-label mb-1">{dayLabel}</p>
-            <h1 className="text-2xl font-black text-ink leading-tight">{greeting}</h1>
-          </div>
+        <div className="relative space-y-3">
+          <p className="field-label">Planes de hoy</p>
 
           <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
 
@@ -107,11 +95,11 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* Los planes de hoy van dentro del saludo. Después, lo que se toca a
-          diario: la compra pendiente y las tareas. El menú cierra. */}
+      {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
+          tareas. Lo que viene y el menú cierran. */}
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <HomeTasks pendingTasks={pendingTasks} onToggle={handleTaskToggle} />
-      <UpcomingEvents events={upcoming} kids={kids} />
+      <UpcomingEvents events={upcoming} kids={kids} members={members} />
       <TodayMeals meals={todayMeals} />
 
       <OffDayConfirmSheet

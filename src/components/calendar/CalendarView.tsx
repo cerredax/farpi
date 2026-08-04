@@ -5,20 +5,26 @@ import {
   addDays,
   addMonths,
   addWeeks,
+  endOfMonth,
+  endOfWeek,
   format,
   isSameMonth,
   isWithinInterval,
   parseISO,
   startOfDay,
   startOfMonth,
+  startOfWeek,
   subMonths,
   subWeeks,
 } from 'date-fns'
 import { ChevronDown } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
+import { getLocalDateString } from '@/lib/date-utils'
+import { selectVisibleVacations } from '@/lib/selectors'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { CalendarHeader } from './CalendarHeader'
 import { MonthGrid } from './MonthGrid'
+import { VacationLegend } from './VacationLegend'
 import { AgendaList } from './AgendaList'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
@@ -115,6 +121,20 @@ export function CalendarView() {
     }
   }
 
+  // La leyenda habla del tramo que se está viendo, no de todo el año: en la
+  // semana, esa semana; con el mes abierto, las seis filas que se pintan.
+  const tramoVisible = verMes
+    ? {
+        desde: getLocalDateString(startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 })),
+        hasta: getLocalDateString(endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })),
+      }
+    : {
+        desde: getLocalDateString(startOfWeek(selectedDay, { weekStartsOn: 1 })),
+        hasta: getLocalDateString(endOfWeek(selectedDay, { weekStartsOn: 1 })),
+      }
+
+  const vacacionesVisibles = selectVisibleVacations(allEvents, tramoVisible.desde, tramoVisible.hasta)
+
   const agendaMode = verMes ? 'agenda' : 'week'
 
   const agendaEvents = allEvents.filter(event => {
@@ -162,6 +182,13 @@ export function CalendarView() {
                     onAddEvent={openCreate}
                   />
                 </div>
+
+                <VacationLegend
+                  vacaciones={vacacionesVisibles}
+                  kids={kids}
+                  members={members}
+                  onEdit={openEdit}
+                />
 
                 {/* La manija solo en móvil: en escritorio el mes se ve entero
                     siempre y no habría nada que desplegar. */}

@@ -1,4 +1,4 @@
-import { getLocalDateString, isSameLocalDay } from './date-utils'
+import { extractDate, getLocalDateString, isSameLocalDay } from './date-utils'
 import { eventCoversDay, isVacation } from './events'
 import { MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
@@ -208,6 +208,27 @@ export function selectSuggestions(values: string[], query: string, limit = 5): s
     .sort((a, b) => (b.veces !== a.veces ? b.veces - a.veces : a.texto.localeCompare(b.texto)))
     .slice(0, limit)
     .map(entrada => entrada.texto)
+}
+
+/**
+ * Las vacaciones que asoman en el tramo que se está mirando, ordenadas por
+ * fecha de inicio. Sirven para la leyenda del calendario: la franja de color
+ * dice que hay alguien de vacaciones, pero no de quién, y el color solo habla
+ * si te lo sabes.
+ *
+ * Solapan si empiezan antes de que acabe el tramo y acaban después de que
+ * empiece: unas vacaciones de agosto entero salen también mirando la semana
+ * del 10, aunque ni empiecen ni acaben en ella.
+ */
+export function selectVisibleVacations(events: Event[], desde: string, hasta: string): Event[] {
+  return events
+    .filter(isVacation)
+    .filter(v => {
+      const inicio = extractDate(v.start_at)
+      const fin = v.end_at ? extractDate(v.end_at) : inicio
+      return inicio <= hasta && fin >= desde
+    })
+    .sort((a, b) => extractDate(a.start_at).localeCompare(extractDate(b.start_at)))
 }
 
 export function selectSortedMeals(meals: MealPlan[]): MealPlan[] {

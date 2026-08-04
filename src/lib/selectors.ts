@@ -211,6 +211,27 @@ export function selectSuggestions(values: string[], query: string, limit = 5): s
 }
 
 /**
+ * Lo que falta en cada lista, por orden alfabético, para adelantarlo en su
+ * tarjeta. Antes ahí había una barra de progreso con "2/5", que mide lo hecho:
+ * la métrica de un gestor de proyectos, no de una casa. A nadie le importa
+ * haber comprado el 40% de la compra; importa qué falta por comprar.
+ */
+export function selectPendingTextsByList(items: ListItem[]): Map<string, string[]> {
+  const porLista = new Map<string, string[]>()
+
+  for (const item of items) {
+    if (item.completed) continue
+    const textos = porLista.get(item.list_id)
+    if (textos) textos.push(item.text)
+    else porLista.set(item.list_id, [item.text])
+  }
+
+  for (const textos of porLista.values()) textos.sort(compararTexto)
+
+  return porLista
+}
+
+/**
  * Las vacaciones que asoman en el tramo que se está mirando, ordenadas por
  * fecha de inicio. Sirven para la leyenda del calendario: la franja de color
  * dice que hay alguien de vacaciones, pero no de quién, y el color solo habla

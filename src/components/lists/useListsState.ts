@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
-import { selectItemMatches, selectSortedLists } from '@/lib/selectors'
+import { selectItemMatches, selectPendingTextsByList, selectSortedLists } from '@/lib/selectors'
 import type { List, ListItem, ListDraft, ListItemDraft } from '@/types'
 
 export function useListsState() {
@@ -38,18 +38,14 @@ export function useListsState() {
   function handleDeleteItem(id: string)                        { deleteListItem(id) }
 
   const listItemsByListId = new Map<string, ListItem[]>()
-  const listStatsById = new Map<string, { total: number; done: number }>()
 
   for (const item of allListItems) {
     const items = listItemsByListId.get(item.list_id)
     if (items) items.push(item)
     else listItemsByListId.set(item.list_id, [item])
-
-    const stats = listStatsById.get(item.list_id) ?? { total: 0, done: 0 }
-    stats.total += 1
-    if (item.completed) stats.done += 1
-    listStatsById.set(item.list_id, stats)
   }
+
+  const pendingByListId = useMemo(() => selectPendingTextsByList(allListItems), [allListItems])
 
   const selectedList  = selectedListId ? lists.find(l => l.id === selectedListId) ?? null : null
   const selectedItems = selectedListId ? listItemsByListId.get(selectedListId) ?? [] : []
@@ -67,7 +63,7 @@ export function useListsState() {
   }
 
   return {
-    lists: listasOrdenadas, allListItems, listStatsById,
+    lists: listasOrdenadas, allListItems, pendingByListId,
     selectedList, selectedItems,
     selectedListId, setSelectedListId,
     busqueda, setBusqueda, coincidencias, abrirLista, historialItems,

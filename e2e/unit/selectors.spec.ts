@@ -7,6 +7,7 @@ import {
   selectPendingItems,
   selectPendingItemsByList,
   selectPendingTasks,
+  selectPendingTextsByList,
   selectSortedLists,
   selectTodayTasks,
   selectVisibleVacations,
@@ -449,5 +450,31 @@ test.describe('selectVisibleVacations', () => {
       '2026-08-01', '2026-08-09',
     )
     expect(r.map(v => v.title)).toEqual(['primera', 'segunda'])
+  })
+})
+
+test.describe('selectPendingTextsByList', () => {
+  test('solo lo pendiente, agrupado por lista y en orden alfabético', () => {
+    const r = selectPendingTextsByList([
+      listItem({ list_id: 'l1', text: 'pan' }),
+      listItem({ list_id: 'l1', text: 'aceite' }),
+      listItem({ list_id: 'l1', text: 'leche', completed: true }),
+      listItem({ list_id: 'l2', text: 'gasas' }),
+    ])
+    expect(r.get('l1')).toEqual(['aceite', 'pan'])
+    expect(r.get('l2')).toEqual(['gasas'])
+  })
+
+  test('una lista con todo hecho no aparece', () => {
+    const r = selectPendingTextsByList([listItem({ list_id: 'l1', text: 'pan', completed: true })])
+    expect(r.has('l1')).toBe(false)
+  })
+
+  test('el orden ignora tildes y mayúsculas', () => {
+    const r = selectPendingTextsByList([
+      listItem({ list_id: 'l1', text: 'zumo' }),
+      listItem({ list_id: 'l1', text: 'Ávila' }),
+    ])
+    expect(r.get('l1')).toEqual(['Ávila', 'zumo'])
   })
 })

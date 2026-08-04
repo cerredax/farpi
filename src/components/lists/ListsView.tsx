@@ -113,18 +113,14 @@ export function ListsView() {
         </div>
       ) : (
         <div className="space-y-3">
-          {s.lists.map(list => {
-            const stats = s.listStatsById.get(list.id) ?? { total: 0, done: 0 }
-            return (
-              <ListCard
-                key={list.id}
-                list={list}
-                total={stats.total}
-                done={stats.done}
-                onClick={() => s.abrirLista(list.id)}
-              />
-            )
-          })}
+          {s.lists.map(list => (
+            <ListCard
+              key={list.id}
+              list={list}
+              pendientes={s.pendingByListId.get(list.id) ?? []}
+              onClick={() => s.abrirLista(list.id)}
+            />
+          ))}
         </div>
       )}
 

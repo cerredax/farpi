@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, ArrowLeft, Pencil, Trash2 } from 'lucide-react'
+import { Plus, ArrowLeft, ChevronDown, Pencil, Trash2 } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { SearchField } from '@/components/ui/SearchField'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
@@ -22,6 +22,10 @@ export function ListDetailView({
   list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onDeleteItem,
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
+  // Lo hecho arranca plegado: una lista es lo que falta. Tachado y a la vista
+  // crecía para siempre, y al mes había que pasar por encima de cuarenta cosas
+  // resueltas para ver las tres que quedaban.
+  const [verHechos, setVerHechos] = useState(false)
 
   const puedeBuscar = items.length >= MINIMO_PARA_BUSCAR
   const consulta = normalizaParaBuscar(busqueda.trim())
@@ -30,6 +34,11 @@ export function ListDetailView({
     : items
 
   const { pending, completed } = selectListItemGroups(visibles)
+
+  // Buscando se enseña todo: si lo único que coincide está hecho, esconderlo
+  // detrás del plegado sería contestar "no hay nada" a una búsqueda que sí
+  // encontró algo.
+  const hechosVisibles = verHechos || consulta.length > 0
 
   return (
     <div className="flex flex-col h-full">
@@ -82,8 +91,24 @@ export function ListDetailView({
 
         {completed.length > 0 && (
           <>
-            <p className="field-label pt-2 px-1">Hecho</p>
-            {completed.map(item => (
+            {consulta ? (
+              <p className="field-label pt-2 px-1">Hecho</p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setVerHechos(v => !v)}
+                aria-expanded={verHechos}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
+              >
+                {verHechos ? 'Ocultar lo hecho' : 'Ver lo hecho'}
+                <ChevronDown
+                  size={14}
+                  strokeWidth={2.6}
+                  className={`transition-transform ${verHechos ? 'rotate-180' : ''}`}
+                />
+              </button>
+            )}
+            {hechosVisibles && completed.map(item => (
               <div key={item.id} className="bg-white rounded-2xl border border-surface flex items-center gap-2 px-2 py-2 opacity-60">
                 <CircleCheck checked={true} onClick={() => onToggle(item.id)} ariaLabel="Marcar como pendiente" />
                 <button onClick={() => onOpenEditItem(item)} className="flex-1 text-left text-sm font-medium text-muted line-through leading-snug">

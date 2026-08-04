@@ -3,13 +3,23 @@ import type { List } from '@/types'
 
 interface ListCardProps {
   list: List
-  total: number
-  done: number
+  /** Lo que falta, por orden alfabético. Vacío significa lista al día. */
+  pendientes: string[]
   onClick: () => void
 }
 
-export function ListCard({ list, total, done, onClick }: ListCardProps) {
-  const pct = total === 0 ? 0 : Math.round((done / total) * 100)
+/** Cuántos ítems se adelantan antes de cortar con puntos suspensivos. */
+const ADELANTO = 3
+
+export function ListCard({ list, pendientes, onClick }: ListCardProps) {
+  // Se adelanta lo que falta, no cuánto se ha hecho: así se decide si entrar
+  // sin entrar. Antes había una barra de progreso y un "2/5", que contaban lo
+  // contrario de lo que se viene a mirar.
+  const adelanto = pendientes.slice(0, ADELANTO).join(', ')
+  const resumen = pendientes.length === 0
+    ? 'Al día'
+    : pendientes.length > ADELANTO ? `${adelanto}…` : adelanto
+
   return (
     <button
       onClick={onClick}
@@ -18,12 +28,9 @@ export function ListCard({ list, total, done, onClick }: ListCardProps) {
       <span className="text-2xl w-10 text-center flex-shrink-0">{list.emoji ?? '📋'}</span>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-ink text-sm leading-tight">{list.name}</p>
-        <div className="flex items-center gap-2 mt-1.5">
-          <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
-          </div>
-          <span className="text-[10px] text-muted font-semibold flex-shrink-0">{done}/{total}</span>
-        </div>
+        <p className={`mt-1 truncate text-xs leading-snug ${pendientes.length === 0 ? 'text-faint' : 'text-muted'}`}>
+          {resumen}
+        </p>
       </div>
       <ChevronRight size={16} className="text-faint flex-shrink-0" />
     </button>

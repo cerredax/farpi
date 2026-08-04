@@ -53,6 +53,32 @@ export function selectPendingItems(listItems: ListItem[], lists: List[]): Pendin
     .map(i => ({ ...i, list_name: listNamesById.get(i.list_id) ?? '' }))
 }
 
+/** Orden alfabético en español: ignora tildes y mayúsculas, y la ñ va tras la n. */
+export function compararTexto(a: string, b: string): number {
+  return a.localeCompare(b, 'es', { sensitivity: 'base' })
+}
+
+/**
+ * Los ítems de una lista, partidos en pendientes y hechos, y cada grupo por
+ * orden alfabético. Antes mandaba el orden de creación, que solo tiene sentido
+ * para quien los escribió: buscar "leche" en la lista de la compra era recorrer
+ * el historial de la familia.
+ */
+export function selectListItemGroups(items: ListItem[]): { pending: ListItem[]; completed: ListItem[] } {
+  const pending: ListItem[] = []
+  const completed: ListItem[] = []
+
+  for (const item of items) {
+    if (item.completed) completed.push(item)
+    else pending.push(item)
+  }
+
+  pending.sort((a, b) => compararTexto(a.text, b.text))
+  completed.sort((a, b) => compararTexto(a.text, b.text))
+
+  return { pending, completed }
+}
+
 /**
  * Busca un texto en los ítems de todas las listas. Sirve para la pregunta
  * "¿en qué lista apunté esto?", que si no obliga a abrirlas una a una.
@@ -74,8 +100,8 @@ export function selectItemMatches(listItems: ListItem[], lists: List[], query: s
     })
     .sort((a, b) => {
       if (a.completed !== b.completed) return a.completed ? 1 : -1
-      const porLista = a.list_name.localeCompare(b.list_name)
-      return porLista !== 0 ? porLista : a.sort_order - b.sort_order
+      const porLista = compararTexto(a.list_name, b.list_name)
+      return porLista !== 0 ? porLista : compararTexto(a.text, b.text)
     })
 }
 

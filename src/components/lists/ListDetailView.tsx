@@ -3,6 +3,7 @@ import { Plus, ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { SearchField } from '@/components/ui/SearchField'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
+import { selectListItemGroups } from '@/lib/selectors'
 import { normalizaParaBuscar } from '@/lib/text'
 import type { List, ListItem } from '@/types'
 
@@ -28,16 +29,7 @@ export function ListDetailView({
     ? items.filter(item => normalizaParaBuscar(item.text).includes(consulta))
     : items
 
-  const pending: ListItem[] = []
-  const completed: ListItem[] = []
-
-  for (const item of visibles) {
-    if (item.completed) completed.push(item)
-    else pending.push(item)
-  }
-
-  pending.sort((a, b) => a.sort_order - b.sort_order)
-  completed.sort((a, b) => a.sort_order - b.sort_order)
+  const { pending, completed } = selectListItemGroups(visibles)
 
   return (
     <div className="flex flex-col h-full">

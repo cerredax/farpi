@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import {
   selectItemMatches,
+  selectListItemGroups,
   selectMealsByCell,
   selectOccupiedMealSlots,
   selectPendingItems,
@@ -266,5 +267,32 @@ test.describe('selectSuggestions', () => {
 
   test('a igual frecuencia ordena alfabéticamente, para que no baile', () => {
     expect(selectSuggestions(['Pera', 'Manzana', 'Naranja'], '')).toEqual(['Manzana', 'Naranja', 'Pera'])
+  })
+})
+
+test.describe('selectListItemGroups', () => {
+  test('separa pendientes de hechos y ordena cada grupo alfabéticamente', () => {
+    const { pending, completed } = selectListItemGroups([
+      listItem({ text: 'Pan', sort_order: 0 }),
+      listItem({ text: 'Aceite', sort_order: 5 }),
+      listItem({ text: 'Zumo', sort_order: 1, completed: true }),
+      listItem({ text: 'Café', sort_order: 9, completed: true }),
+    ])
+    expect(pending.map(i => i.text)).toEqual(['Aceite', 'Pan'])
+    expect(completed.map(i => i.text)).toEqual(['Café', 'Zumo'])
+  })
+
+  test('el orden no depende de tildes ni de mayúsculas', () => {
+    const { pending } = selectListItemGroups([
+      listItem({ text: 'plátano' }),
+      listItem({ text: 'Ajo' }),
+      listItem({ text: 'Ñoquis' }),
+      listItem({ text: 'naranja' }),
+    ])
+    expect(pending.map(i => i.text)).toEqual(['Ajo', 'naranja', 'Ñoquis', 'plátano'])
+  })
+
+  test('una lista vacía devuelve los dos grupos vacíos', () => {
+    expect(selectListItemGroups([])).toEqual({ pending: [], completed: [] })
   })
 })

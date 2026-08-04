@@ -95,11 +95,17 @@ test('avisa cuando una operación no se ha podido guardar', async ({ page }) => 
 })
 
 // El buscador de una lista solo aparece cuando hay ítems suficientes para que
-// buscar compense; en una lista de tres cosas estorbaría.
+// buscar compense; en una lista recién creada estorbaría. Se parte de una lista
+// nueva porque las de la demo ya superan el mínimo.
 test('el buscador de ítems aparece al crecer la lista y filtra', async ({ page }) => {
   await page.goto('/lists')
   await page.waitForTimeout(700)
-  await page.getByText('Compra bebé').first().click()
+
+  await page.getByRole('button', { name: 'Nueva lista' }).click()
+  await page.locator('#list-name').fill('Lista de prueba')
+  await page.getByRole('button', { name: 'Crear lista' }).click()
+  await page.waitForTimeout(300)
+  await page.getByText('Lista de prueba').first().click()
 
   const buscador = page.getByLabel('Buscar ítems en la lista')
   await expect(buscador).toHaveCount(0)

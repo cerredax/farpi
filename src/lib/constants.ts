@@ -70,10 +70,12 @@ export const TASK_PRIORITIES: { value: TaskPriority; label: string; color: strin
 ]
 
 /**
- * A partir de esta cantidad de ítems, buscar compensa más que ir mirando.
- * Lo comparten el buscador de una lista y el que cruza todas.
+ * A partir de esta cantidad de ítems aparece el buscador. Lo comparten el de
+ * una lista y el que cruza todas. Empezó en 6 y bajó a 3: con seis costaba
+ * encontrarlo, y esconder una herramienta hasta que hace falta solo funciona si
+ * el usuario sabe que existe.
  */
-export const MINIMO_PARA_BUSCAR = 6
+export const MINIMO_PARA_BUSCAR = 3
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 

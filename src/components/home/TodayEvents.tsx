@@ -51,7 +51,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
                     es de toda la familia. Igual que en "Esta semana" y en la
                     agenda del calendario. */}
                 <span
-                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: eventColor(event, members, kids) }}
                   aria-hidden
                 />

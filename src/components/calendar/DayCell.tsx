@@ -117,7 +117,7 @@ export function DayCell({
               <span className="text-[9px] font-black text-primary leading-none">{totalCount}</span>
             ) : (
               dots.map((event, i) => (
-                <span key={i} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: eventColor(event, members, kids) }} />
+                <span key={i} className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: eventColor(event, members, kids) }} />
               ))
             )}
           </div>

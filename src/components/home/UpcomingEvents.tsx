@@ -42,7 +42,7 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
                       familia también tiene color (el amarillo), y sin él estas
                       filas eran las únicas de la app donde no se veía. */}
                   <span
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0 self-center"
+                    className="w-2 h-2 rounded-full flex-shrink-0 self-center"
                     style={{ backgroundColor: eventColor(event, members, kids) }}
                     aria-hidden
                   />

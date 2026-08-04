@@ -68,30 +68,21 @@ export function HomeView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      {/* El lema abre la pantalla: da el tono antes de la lista del día. Antes
+          cerraba abajo, donde en móvil casi nunca se llegaba a leer. */}
+      <p className="text-center text-xs text-muted">Nido está aquí para bajar un poco el ruido.</p>
+
       {/* El saludo y la fecha viven en la cabecera: aquí ocupaban media pantalla
           de móvil para decir algo que no se toca. */}
       <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm">
         <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
         <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
         <div className="relative space-y-3">
-          <p className="field-label">Planes de hoy</p>
+          <p className="field-label">Lo que hay que hacer hoy</p>
 
+          {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
+              entera para repetir nombres que ya salen en cada plan. */}
           <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
-
-          {kids.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {kids.map(child => (
-                <span
-                  key={child.id}
-                  className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#4F4A43] shadow-sm"
-                  style={{ border: `1px solid ${child.color}33` }}
-                >
-                  <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ backgroundColor: child.color }} />
-                  {child.name}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
@@ -108,8 +99,6 @@ export function HomeView() {
         onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}
         onCancel={() => setConfirmTask(null)}
       />
-
-      <p className="pb-2 text-center text-xs text-muted">Nido está aquí para bajar un poco el ruido.</p>
     </div>
   )
 }

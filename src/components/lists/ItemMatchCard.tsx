@@ -11,8 +11,8 @@ interface ItemMatchCardProps {
 /**
  * Un ítem encontrado en la búsqueda global, con la lista de la que sale.
  *
- * Se puede marcar aquí mismo: buscas "pilas" para tacharlas, no para navegar.
- * Entrar en la lista sigue a un toque, en el resto de la tarjeta.
+ * Se puede marcar aquí mismo: buscas "pilas" para apuntar que hacen falta, no
+ * para navegar. Entrar en la lista sigue a un toque, en el resto de la tarjeta.
  */
 export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProps) {
   return (
@@ -20,7 +20,7 @@ export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProp
       <CircleCheck
         checked={match.completed}
         onClick={onToggle}
-        ariaLabel={match.completed ? `Marcar ${match.text} como pendiente` : `Marcar ${match.text} como hecho`}
+        ariaLabel={match.completed ? `Apuntar que hace falta ${match.text}` : `Ya tenéis ${match.text}, quitar de lo que falta`}
       />
       <button
         onClick={onOpenList}
@@ -28,7 +28,8 @@ export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProp
         className="flex flex-1 items-center gap-2 min-w-0 text-left"
       >
         <span className="flex-1 min-w-0">
-          <span className={`block text-sm font-semibold leading-snug ${match.completed ? 'text-muted line-through' : 'text-ink'}`}>
+          {/* Sin tachar: lo marcado no es historial, es lo que ya tenéis. */}
+          <span className={`block text-sm font-semibold leading-snug ${match.completed ? 'text-muted' : 'text-ink'}`}>
             {match.text}
           </span>
           <span className="block text-[11px] text-muted mt-0.5 truncate">

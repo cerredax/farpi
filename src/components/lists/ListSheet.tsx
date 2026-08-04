@@ -7,7 +7,13 @@ import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateListDraft } from '@/lib/validators'
 import type { List, ListDraft } from '@/types'
 
-const EMOJIS = ['🛒', '🍎', '🥤', '💊', '🎒', '🏠', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡', '🌿']
+// Los cinco últimos se añadieron después: faltaba con qué decir "cosas del
+// bebé" —lo que más se apunta en una casa con un recién nacido— y varias listas
+// de ejemplo usaban iconos que el selector no sabía poner.
+const EMOJIS = [
+  '🛒', '🍎', '🥤', '💊', '🎒', '🏠', '📚', '🎮', '🐾', '✈️', '🎁', '📋', '🧺', '🔧', '💡', '🌿',
+  '🎀', '👶', '🍼', '🧽', '📄',
+]
 
 interface ListSheetProps {
   open: boolean

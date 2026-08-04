@@ -31,7 +31,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
     <HomeSection
       label="Listas de casa"
       isEmpty={items.length === 0}
-      emptyState={<EmptyState compact emoji="✓" title="Listas al día" />}
+      emptyState={<EmptyState compact emoji="✓" title="No falta nada" />}
       footer={
         <Link href="/lists" className="text-xs font-semibold text-primary hover:underline">
           Ver todas las listas
@@ -66,7 +66,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
               <CircleCheck
                 checked={false}
                 onClick={() => onToggle(item.id)}
-                ariaLabel={`Marcar "${item.text}" como completado`}
+                ariaLabel={`Ya tenéis "${item.text}", quitar de lo que falta`}
                 className="w-auto"
               />
               <div className="flex-1 min-w-0">

@@ -22,9 +22,9 @@ export function ListDetailView({
   list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onDeleteItem,
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
-  // Lo hecho arranca plegado: una lista es lo que falta. Tachado y a la vista
-  // crecía para siempre, y al mes había que pasar por encima de cuarenta cosas
-  // resueltas para ver las tres que quedaban.
+  // Una lista es lo que falta. Lo demás —lo de siempre, lo que ya tenéis— es el
+  // catálogo del que se tira para apuntar, y arranca plegado: crece para
+  // siempre y taparía las tres cosas que de verdad hacen falta.
   const [verHechos, setVerHechos] = useState(false)
 
   const puedeBuscar = items.length >= MINIMO_PARA_BUSCAR
@@ -79,20 +79,24 @@ export function ListDetailView({
 
         {pending.map(item => (
           <div key={item.id} className="bg-white rounded-2xl border border-surface shadow-sm flex items-center gap-2 px-2 py-2">
-            <CircleCheck checked={false} onClick={() => onToggle(item.id)} ariaLabel="Marcar como hecho" />
+            <CircleCheck checked={false} onClick={() => onToggle(item.id)} ariaLabel={`Ya tenéis ${item.text}, quitar de lo que falta`} />
             <button onClick={() => onOpenEditItem(item)} className="flex-1 text-left text-sm font-medium text-ink leading-snug">
               {item.text}
             </button>
-            <button onClick={() => onDeleteItem(item.id)} aria-label="Eliminar ítem" className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors">
+            <button onClick={() => onDeleteItem(item.id)} aria-label={`Eliminar ${item.text} de la lista`} className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors">
               <Trash2 size={14} />
             </button>
           </div>
         ))}
 
+        {pending.length === 0 && items.length > 0 && !consulta && (
+          <p className="py-8 text-center text-sm text-muted">No falta nada de esta lista.</p>
+        )}
+
         {completed.length > 0 && (
           <>
             {consulta ? (
-              <p className="field-label pt-2 px-1">Hecho</p>
+              <p className="field-label pt-2 px-1">Lo de siempre</p>
             ) : (
               <button
                 type="button"
@@ -100,7 +104,7 @@ export function ListDetailView({
                 aria-expanded={verHechos}
                 className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
               >
-                {verHechos ? 'Ocultar lo hecho' : 'Ver lo hecho'}
+                {verHechos ? 'Ocultar lo de siempre' : 'Apuntar de lo de siempre'}
                 <ChevronDown
                   size={14}
                   strokeWidth={2.6}
@@ -108,13 +112,16 @@ export function ListDetailView({
                 />
               </button>
             )}
+            {/* Sin tachar ni atenuar: esto no es historial de lo hecho, es el
+                catálogo de lo que compráis. Está a un toque de volver a hacer
+                falta, así que tiene que leerse como algo vivo. */}
             {hechosVisibles && completed.map(item => (
-              <div key={item.id} className="bg-white rounded-2xl border border-surface flex items-center gap-2 px-2 py-2 opacity-60">
-                <CircleCheck checked={true} onClick={() => onToggle(item.id)} ariaLabel="Marcar como pendiente" />
-                <button onClick={() => onOpenEditItem(item)} className="flex-1 text-left text-sm font-medium text-muted line-through leading-snug">
+              <div key={item.id} className="bg-canvas rounded-2xl border border-surface flex items-center gap-2 px-2 py-2">
+                <CircleCheck checked={true} onClick={() => onToggle(item.id)} ariaLabel={`Apuntar que hace falta ${item.text}`} />
+                <button onClick={() => onOpenEditItem(item)} className="flex-1 text-left text-sm font-medium text-muted leading-snug">
                   {item.text}
                 </button>
-                <button onClick={() => onDeleteItem(item.id)} aria-label="Eliminar ítem" className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors">
+                <button onClick={() => onDeleteItem(item.id)} aria-label={`Eliminar ${item.text} de la lista`} className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors">
                   <Trash2 size={14} />
                 </button>
               </div>

@@ -227,3 +227,22 @@ test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await page.getByText('Limpieza').first().click()
   await expect(page.getByText('Jabón neutro')).toBeVisible()
 })
+
+// Las listas van al revés que una lista de tareas: marcar no archiva, devuelve
+// el ítem al catálogo de lo que se compra siempre, y desde ahí se vuelve a
+// apuntar que hace falta sin reescribirlo.
+test('lo marcado vuelve al catálogo y se puede volver a pedir', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+  await page.getByText('Farmacia').first().click()
+
+  // "Gasas estériles" viene ya marcado en la demo: está en el catálogo.
+  await expect(page.getByText('Gasas estériles')).toHaveCount(0)
+  await page.getByRole('button', { name: /Apuntar de lo de siempre/ }).click()
+
+  await page.getByRole('button', { name: /Apuntar que hace falta Gasas estériles/ }).click()
+  await page.waitForTimeout(300)
+
+  // Ahora hace falta, y el círculo ofrece lo contrario.
+  await expect(page.getByRole('button', { name: /Ya tenéis Gasas estériles/ })).toBeVisible()
+})

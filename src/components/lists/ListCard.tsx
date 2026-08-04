@@ -17,7 +17,7 @@ export function ListCard({ list, pendientes, onClick }: ListCardProps) {
   // contrario de lo que se viene a mirar.
   const adelanto = pendientes.slice(0, ADELANTO).join(', ')
   const resumen = pendientes.length === 0
-    ? 'Al día'
+    ? 'No falta nada'
     : pendientes.length > ADELANTO ? `${adelanto}…` : adelanto
 
   return (

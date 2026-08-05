@@ -309,3 +309,54 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
   await expect(filaDeHoy.getByText('Regar las plantas')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Deshacer' })).toHaveCount(0)
 })
+
+// La pregunta de una tarea compartida es "¿quién la hace?". Hasta la migración
+// 015 era la única cosa de la app que no sabía contestarla.
+test('una tarea se puede asignar a alguien y se ve de quién es', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Nueva tarea' })
+  await page.locator('#task-title').fill('Llamar al seguro')
+  await sheet.getByRole('button', { name: 'Sofía' }).click()
+  await page.getByRole('button', { name: 'Crear tarea' }).click()
+  await page.waitForTimeout(400)
+
+  // La tarea aparece con el nombre de quien la lleva.
+  const fila = page.locator('div').filter({ hasText: /^Llamar al seguro/ }).first()
+  await expect(fila).toContainText('Sofía')
+})
+
+// Con el tiempo la lista se hace larga y "¿apunté lo del seguro?" solo se
+// contesta a base de scroll.
+test('las tareas se buscan por texto', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+
+  await expect(page.getByText('Comprar pañales talla 1')).toBeVisible()
+  await page.getByLabel('Buscar tareas').fill('vitamina')
+
+  await expect(page.getByText('Dar vitamina D a Ana')).toBeVisible()
+  await expect(page.getByText('Comprar pañales talla 1')).toHaveCount(0)
+})
+
+// Un papel caducado no avisa por su cuenta: el DNI vale hasta que un día no
+// vale. En la demo, el DNI de Omar caduca el 12 de septiembre de 2026.
+test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  await expect(page.getByText(/Caduc[óa] el 12 sept?\.? 2026/)).toBeVisible()
+})
+
+// Buscar en el calendario mira todo el histórico y no el tramo que se pinta:
+// "¿cuándo fue la revisión?" es una pregunta sobre el pasado.
+test('el calendario busca también en el pasado', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(800)
+
+  await page.getByLabel('Buscar eventos').fill('registro civil')
+  await expect(page.getByText('Búsqueda')).toBeVisible()
+  await expect(page.getByText('Registro civil')).toBeVisible()
+})

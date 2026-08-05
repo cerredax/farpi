@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useStore } from '@/lib/store-context'
+import { selectDocumentMatches } from '@/lib/selectors'
+import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import type { Document, DocumentDraft } from '@/types'
 
-/** Estado de la pantalla de documentos: filtro por categoría y sheet de alta/edición. */
+/** Estado de la pantalla de documentos: búsqueda, filtro por categoría y sheet. */
 export function useDocsState() {
   const { documents, kids, members, createDocument, updateDocument, deleteDocument, getDocumentUrl } = useStore()
 
@@ -12,6 +14,7 @@ export function useDocsState() {
   const [sheetMode,    setSheetMode]    = useState<'create' | 'edit'>('create')
   const [editingDoc,   setEditingDoc]   = useState<Document | null>(null)
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [busqueda,     setBusqueda]     = useState('')
 
   const sheetKey = editingDoc ? `edit-${editingDoc.id}` : 'create'
 
@@ -32,12 +35,18 @@ export function useDocsState() {
     else createDocument(draft)
   }
 
-  const filtered = activeFilter
+  // La búsqueda manda sobre el filtro: si buscas "seguro" y está en Personal,
+  // encontrarlo no debería depender de qué pestaña tuvieras abierta.
+  const porCategoria = activeFilter
     ? documents.filter(d => d.category === activeFilter)
     : documents
+  const filtered = selectDocumentMatches(porCategoria, busqueda)
+
+  const puedeBuscar = documents.length >= MINIMO_PARA_BUSCAR
 
   return {
     documents, kids, members, filtered,
+    busqueda, setBusqueda, puedeBuscar,
     activeFilter, setActiveFilter,
     sheetOpen, setSheetOpen, sheetMode, sheetKey, editingDoc,
     openCreate, openEdit, handleSave,

@@ -20,7 +20,8 @@ import {
 import { ChevronDown } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
-import { selectPendingTasks, selectVisibleVacations } from '@/lib/selectors'
+import { selectEventMatches, selectPendingTasks, selectVisibleVacations } from '@/lib/selectors'
+import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { CalendarHeader } from './CalendarHeader'
 import { MonthGrid } from './MonthGrid'
@@ -45,6 +46,7 @@ export function CalendarView() {
   // Semana/Agenda que solo mandaba sobre la lista—, y el control más visible
   // era justo el que no se podía tocar.
   const [mesDesplegado, setMesDesplegado] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
 
   // En pantalla grande el mes cabe de sobra y plegarlo no gana nada, así que
   // la manija es cosa del móvil. Es un cambio de qué se renderiza, no de cómo
@@ -153,6 +155,12 @@ export function CalendarView() {
   // que se ha entrado. Lo ya hecho no vuelve aquí, que para eso está Tareas.
   const agendaTasks = agendaMode === 'week' ? selectPendingTasks(tasks) : []
 
+  // Con cuatro eventos no hay nada que buscar. El buscador mira todo el
+  // calendario, no el tramo pintado: lo que se busca suele estar fuera.
+  const buscador = allEvents.length >= MINIMO_PARA_BUSCAR
+    ? { valor: busqueda, onChange: setBusqueda, coincidencias: selectEventMatches(allEvents, busqueda) }
+    : undefined
+
   const sheetKey = editingEvent
     ? `edit-${editingEvent.id}`
     : `create-${format(selectedDay, 'yyyyMMdd')}`
@@ -225,6 +233,7 @@ export function CalendarView() {
               members={members}
               tasks={agendaTasks}
               onToggleTask={toggleTask}
+              buscador={buscador}
               onSelectDay={selectDay}
               onEdit={openEdit}
               onAdd={openCreate}

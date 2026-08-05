@@ -14,6 +14,9 @@ import {
   selectSortedMeals,
   selectSuggestions,
   selectTaskGroups,
+  selectTaskMatches,
+  selectEventMatches,
+  selectExpiryState,
   selectTodayEvents,
   selectTodayMeals,
   selectUpcomingEvents,
@@ -476,5 +479,59 @@ test.describe('selectPendingTextsByList', () => {
       listItem({ list_id: 'l1', text: 'Ávila' }),
     ])
     expect(r.get('l1')).toEqual(['Ávila', 'zumo'])
+  })
+})
+
+test.describe('selectExpiryState', () => {
+  const hoy = '2026-08-05'
+
+  test('sin fecha, no caduca', () => {
+    expect(selectExpiryState(null, hoy)).toBeNull()
+  })
+
+  test('lo de ayer está caducado y lo de hoy todavía no', () => {
+    expect(selectExpiryState('2026-08-04', hoy)).toBe('caducado')
+    expect(selectExpiryState(hoy, hoy)).toBe('pronto')
+  })
+
+  test('avisa con un mes de margen, ni un día menos', () => {
+    expect(selectExpiryState('2026-09-04', hoy)).toBe('pronto')   // 30 días
+    expect(selectExpiryState('2026-09-05', hoy)).toBe('vigente')  // 31
+  })
+
+  test('lo que caduca en años no molesta', () => {
+    expect(selectExpiryState('2030-01-01', hoy)).toBe('vigente')
+  })
+})
+
+test.describe('buscadores', () => {
+  test('la tarea se encuentra por título y por notas, con tildes o sin ellas', () => {
+    const tareas = [
+      task({ title: 'Pedir cita ITV' }),
+      task({ title: 'Comprar pañales', notes: 'Talla 1' }),
+    ]
+    expect(selectTaskMatches(tareas, 'itv').map(t => t.title)).toEqual(['Pedir cita ITV'])
+    expect(selectTaskMatches(tareas, 'PANALES').map(t => t.title)).toEqual(['Comprar pañales'])
+    expect(selectTaskMatches(tareas, 'talla').map(t => t.title)).toEqual(['Comprar pañales'])
+  })
+
+  test('sin consulta no se filtra nada', () => {
+    const tareas = [task(), task()]
+    expect(selectTaskMatches(tareas, '   ')).toHaveLength(2)
+  })
+
+  test('los eventos se buscan en todo el calendario y salen por fecha', () => {
+    const eventos = [
+      event({ title: 'Revisión pediatra', start_at: '2026-09-01T10:00:00' }),
+      event({ title: 'Revisión del coche', start_at: '2025-02-10T10:00:00' }),
+      event({ title: 'Cena', start_at: '2026-08-06T21:00:00' }),
+    ]
+    // El de 2025 es pasado y aun así aparece: buscar es preguntar por lo que fue.
+    expect(selectEventMatches(eventos, 'revision').map(e => e.title))
+      .toEqual(['Revisión del coche', 'Revisión pediatra'])
+  })
+
+  test('sin consulta el calendario no devuelve resultados, que no es lo mismo que devolverlo todo', () => {
+    expect(selectEventMatches([event(), event()], '')).toHaveLength(0)
   })
 })

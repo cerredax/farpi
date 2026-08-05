@@ -6,6 +6,7 @@ import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
 import { DOC_CATEGORIES } from '@/lib/constants'
 import { resolveAssignee } from '@/lib/assignees'
+import { SearchField } from '@/components/ui/SearchField'
 
 const ALL_FILTERS = [
   { key: null as string | null, label: 'Todos' },
@@ -34,6 +35,15 @@ export function DocsView() {
         </button>
       </div>
 
+      {s.puedeBuscar && (
+        <SearchField
+          value={s.busqueda}
+          onChange={s.setBusqueda}
+          placeholder={`Buscar en ${s.documents.length} documentos…`}
+          ariaLabel="Buscar documentos"
+        />
+      )}
+
       {/* Filtros */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
         {ALL_FILTERS.map(f => (
@@ -53,7 +63,11 @@ export function DocsView() {
           <p className="text-4xl mb-3">📄</p>
           <p className="font-bold text-ink">Sin documentos</p>
           <p className="text-sm text-muted mt-1">
-            {s.activeFilter ? 'No hay documentos en esta categoría' : 'Guarda el primer documento de la familia'}
+            {s.busqueda.trim()
+              ? `Ninguno coincide con «${s.busqueda.trim()}»`
+              : s.activeFilter
+              ? 'No hay documentos en esta categoría'
+              : 'Guarda el primer documento de la familia'}
           </p>
         </div>
       ) : (

@@ -15,6 +15,7 @@ import { es } from 'date-fns/locale'
 import { Plus } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -36,6 +37,13 @@ interface AgendaListProps {
    */
   tasks?: Task[]
   onToggleTask?: (id: string) => void
+  /** Buscador de eventos. Sin él, la lista se comporta como siempre. */
+  buscador?: {
+    valor: string
+    onChange: (valor: string) => void
+    /** Coincidencias en TODO el calendario, no solo en el tramo pintado. */
+    coincidencias: Event[]
+  }
   onSelectDay: (day: Date) => void
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
@@ -47,7 +55,15 @@ interface AgendaListProps {
  * día ya se está mirando, y bajar a Tareas para tachar lo de hoy es el viaje
  * que nadie hace.
  */
-function TaskRow({ task, atrasada, onToggle }: { task: Task; atrasada: boolean; onToggle: (id: string) => void }) {
+function TaskRow({ task, kids, members, atrasada, onToggle }: {
+  task: Task
+  kids: Child[]
+  members: FamilyMember[]
+  atrasada: boolean
+  onToggle: (id: string) => void
+}) {
+  const asignado = resolveAssignee(task, members, kids)
+
   return (
     <div className="flex items-center gap-1.5 px-1.5">
       <CircleCheck
@@ -58,6 +74,11 @@ function TaskRow({ task, atrasada, onToggle }: { task: Task; atrasada: boolean; 
         className="w-auto"
       />
       <span className="min-w-0 flex-1 truncate text-sm text-ink">{task.title}</span>
+      {asignado && (
+        <span className="flex-shrink-0 text-[11px] font-bold" style={{ color: asignado.color }}>
+          {asignado.name}
+        </span>
+      )}
       {atrasada && (
         <span className="flex-shrink-0 rounded-full bg-danger-soft px-1.5 py-0.5 text-[10px] font-bold text-danger">
           Atrasada
@@ -108,7 +129,7 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
   )
 }
 
-export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [], onToggleTask, onSelectDay, onEdit, onAdd }: AgendaListProps) {
+export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [], onToggleTask, buscador, onSelectDay, onEdit, onAdd }: AgendaListProps) {
   const todayStart = startOfDay(new Date())
   const rangeStart = mode === 'week' ? todayStart : startOfDay(selectedDay)
   const rangeEnd = mode === 'week' ? addDays(todayStart, 7) : addDays(startOfDay(selectedDay), 45)
@@ -145,9 +166,14 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
     ? dayGroups
     : dayGroups.filter(group => group.events.length > 0 || group.tasks.length > 0 || isSameDay(group.day, selectedDay))
 
-  const headerTitle = mode === 'week' ? 'Agenda semanal' : 'Próximos eventos'
+  const buscando = !!buscador && buscador.valor.trim().length > 0
+  const coincidencias = buscador?.coincidencias ?? []
 
-  const headerSubtitle = mode === 'week'
+  const headerTitle = buscando ? 'Búsqueda' : mode === 'week' ? 'Agenda semanal' : 'Próximos eventos'
+
+  const headerSubtitle = buscando
+    ? `${coincidencias.length} resultado${coincidencias.length !== 1 ? 's' : ''} en todo el calendario`
+    : mode === 'week'
     ? `Del ${format(rangeStart, "d 'de' MMMM", { locale: es })} al ${format(rangeEnd, "d 'de' MMMM", { locale: es })}`
     : `Desde ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
 
@@ -167,7 +193,45 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
         </button>
       </div>
 
-      {visibleGroups.length === 0 ? (
+      {buscador && (
+        <div className="mb-3">
+          <SearchField
+            value={buscador.valor}
+            onChange={buscador.onChange}
+            placeholder="Buscar en todo el calendario…"
+            ariaLabel="Buscar eventos"
+          />
+        </div>
+      )}
+
+      {/* Buscando se enseña el calendario entero, pasado incluido: "¿cuándo fue
+          la revisión?" es una pregunta sobre lo que ya ocurrió, y el tramo que
+          se pinta empieza hoy. Cada resultado lleva su fecha completa porque ya
+          no hay columna de día que lo sitúe. */}
+      {buscando ? (
+        coincidencias.length === 0 ? (
+          <div className="rounded-3xl border border-surface bg-white shadow-sm">
+            <EmptyState
+              emoji="🔍"
+              title="Sin coincidencias"
+              description={`Ningún evento con «${buscador!.valor.trim()}»`}
+            />
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-surface bg-white shadow-sm overflow-hidden">
+            <ul className="divide-y divide-hairline">
+              {coincidencias.map(event => (
+                <li key={event.id} className="px-2 py-1.5">
+                  <p className="px-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
+                    {capitalize(format(parseISO(event.start_at), "EEEE d 'de' MMMM yyyy", { locale: es }))}
+                  </p>
+                  <EventRow event={event} kids={kids} members={members} onEdit={onEdit} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      ) : visibleGroups.length === 0 ? (
         <button
           onClick={() => onAdd(selectedDay)}
           className="w-full bg-white rounded-2xl border border-surface shadow-sm text-left hover:border-primary transition-colors"
@@ -223,6 +287,8 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
                           <TaskRow
                             key={task.id}
                             task={task}
+                            kids={kids}
+                            members={members}
                             atrasada={!!task.due_date && task.due_date < hoyStr}
                             onToggle={onToggleTask}
                           />

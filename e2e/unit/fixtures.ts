@@ -10,6 +10,8 @@ export function task(over: Partial<Task> = {}): Task {
   return {
     id: id(),
     family_id: 'f1',
+    child_id: null,
+    member_id: null,
     title: 'Tarea',
     notes: null,
     priority: 'medium' as TaskPriority,
@@ -18,6 +20,7 @@ export function task(over: Partial<Task> = {}): Task {
     recurrence_end: null,
     completed: false,
     completed_at: null,
+    completed_by: null,
     created_by: 'u1',
     created_at: '2026-08-01T10:00:00Z',
     updated_at: '2026-08-01T10:00:00Z',

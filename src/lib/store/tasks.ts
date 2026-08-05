@@ -11,6 +11,8 @@ export function createTask(familyId: string, draft: TaskDraft): Task {
   const t: Task = {
     id: crypto.randomUUID(),
     family_id: familyId,
+    child_id: draft.child_id,
+    member_id: draft.member_id,
     title: draft.title.trim(),
     notes: draft.notes.trim() || null,
     priority: draft.priority,
@@ -19,6 +21,7 @@ export function createTask(familyId: string, draft: TaskDraft): Task {
     recurrence_end: draft.recurrence_end || null,
     completed: false,
     completed_at: null,
+    completed_by: null,
     created_by: 'u1',
     created_at: now,
     updated_at: now,
@@ -30,6 +33,8 @@ export function createTask(familyId: string, draft: TaskDraft): Task {
 export function updateTask(id: string, draft: TaskDraft): void {
   db.tasks = db.tasks.map(t => t.id !== id ? t : {
     ...t,
+    child_id: draft.child_id,
+    member_id: draft.member_id,
     title: draft.title.trim(),
     notes: draft.notes.trim() || null,
     priority: draft.priority,
@@ -50,13 +55,20 @@ export function toggleTask(id: string): void {
     if (t.id !== id) return t
     // Desmarcar o tarea no recurrente → invertir completed
     if (t.completed || t.recurrence === 'none') {
-      return { ...t, completed: !t.completed, completed_at: !t.completed ? now : null, updated_at: now }
+      const completed = !t.completed
+      return {
+        ...t,
+        completed,
+        completed_at: completed ? now : null,
+        completed_by: completed ? 'u1' : null,
+        updated_at: now,
+      }
     }
     // Tarea recurrente → avanzar fecha en lugar de marcar como completa
     const next = getNextOccurrence(t.due_date, t.recurrence)
     const seriesDone = t.recurrence_end ? next > t.recurrence_end : false
     if (seriesDone) {
-      return { ...t, completed: true, completed_at: now, updated_at: now }
+      return { ...t, completed: true, completed_at: now, completed_by: 'u1', updated_at: now }
     }
     return { ...t, due_date: next, updated_at: now }
   })

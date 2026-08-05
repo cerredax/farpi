@@ -244,6 +244,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           due_date: previo.due_date ?? '',
           recurrence: previo.recurrence,
           recurrence_end: previo.recurrence_end ?? '',
+          child_id: previo.child_id,
+          member_id: previo.member_id,
         })
       }
     })

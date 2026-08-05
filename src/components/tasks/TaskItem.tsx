@@ -1,12 +1,15 @@
 import { parseISO, isBefore, isToday, startOfDay, format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Repeat2, Trash2 } from 'lucide-react'
-import type { Task, TaskPriority } from '@/types'
+import type { Child, FamilyMember, Task, TaskPriority } from '@/types'
 import { TASK_RECURRENCES } from '@/lib/constants'
+import { resolveAssignee } from '@/lib/assignees'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 
 interface TaskItemProps {
   task: Task
+  kids: Child[]
+  members: FamilyMember[]
   onToggle: () => void
   onEdit: (task: Task) => void
   onDelete: (id: string) => void
@@ -26,8 +29,9 @@ function formatDue(dateStr: string): { label: string; overdue: boolean } {
   return { label: format(d, 'd MMM', { locale: es }), overdue: false }
 }
 
-export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
+export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: TaskItemProps) {
   const due = task.due_date ? formatDue(task.due_date) : null
+  const asignado = resolveAssignee(task, members, kids)
 
   return (
     <div
@@ -52,8 +56,17 @@ export function TaskItem({ task, onToggle, onEdit, onDelete }: TaskItemProps) {
           {task.title}
         </p>
 
-        {(task.notes || due || task.recurrence !== 'none') && (
+        {(task.notes || due || asignado || task.recurrence !== 'none') && (
           <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {/* De quién es, en su color y con nombre. Sin nombre no se sabría de
+                quién es el color hasta habérselo aprendido, y "es de todos" no
+                se dice con una etiqueta: se dice no poniendo ninguna. */}
+            {asignado && (
+              <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: asignado.color }}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: asignado.color }} aria-hidden />
+                {asignado.name}
+              </span>
+            )}
             {task.notes && (
               <p className="text-xs text-muted truncate max-w-[160px]">{task.notes}</p>
             )}

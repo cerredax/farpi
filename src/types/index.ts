@@ -121,6 +121,8 @@ export interface Document {
   storage_path: string
   mime_type: DocMimeType
   size_bytes: number
+  /** Cuándo caduca, si caduca. La mayoría de documentos no lo hacen. */
+  expires_on: string | null
   created_by: string | null
   created_at: string
   updated_at: string
@@ -158,6 +160,8 @@ export interface TaskDraft {
   due_date: string
   recurrence: TaskRecurrence
   recurrence_end: string
+  child_id: string | null
+  member_id: string | null
 }
 
 export interface MealDraft {
@@ -190,6 +194,8 @@ export interface DocumentDraft {
   member_id: string | null
   mime_type: DocMimeType
   size_bytes: number
+  /** Vacío = no caduca. */
+  expires_on: string
   file?: File
 }
 
@@ -198,6 +204,10 @@ export interface DocumentDraft {
 export interface Task {
   id: string
   family_id: string
+  /** Asignada a un hijo. Excluyente con `member_id`; ambos null = toda la familia. */
+  child_id: string | null
+  /** Asignada a un miembro adulto de la familia. */
+  member_id: string | null
   title: string
   notes: string | null
   priority: TaskPriority
@@ -206,6 +216,8 @@ export interface Task {
   recurrence_end: string | null
   completed: boolean
   completed_at: string | null
+  /** Quién la dio por hecha. `completed_at` decía cuándo, pero no quién. */
+  completed_by: string | null
   created_by: string | null
   created_at: string
   updated_at: string

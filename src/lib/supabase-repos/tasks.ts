@@ -19,6 +19,8 @@ export const tasksRepo: TasksRepo = {
       .from('tasks')
       .insert({
         family_id: familyId,
+        child_id: draft.child_id,
+        member_id: draft.member_id,
         title: draft.title.trim(),
         notes: draft.notes.trim() || null,
         priority: draft.priority,
@@ -38,6 +40,8 @@ export const tasksRepo: TasksRepo = {
     const { error } = await supabase
       .from('tasks')
       .update({
+        child_id: draft.child_id,
+        member_id: draft.member_id,
         title: draft.title.trim(),
         notes: draft.notes.trim() || null,
         priority: draft.priority,
@@ -61,6 +65,7 @@ export const tasksRepo: TasksRepo = {
    */
   async toggleTask(id: string): Promise<void> {
     const supabase = createClient()
+    const userId = await currentUserId()
     const { data: task, error: getError } = await supabase.from('tasks').select('*').eq('id', id).single()
     assertNoError(getError)
     const now = new Date().toISOString()
@@ -69,7 +74,11 @@ export const tasksRepo: TasksRepo = {
       const completed = !task.completed
       const { error } = await supabase
         .from('tasks')
-        .update({ completed, completed_at: completed ? now : null })
+        .update({
+          completed,
+          completed_at: completed ? now : null,
+          completed_by: completed ? userId : null,
+        })
         .eq('id', id)
       assertNoError(error)
       return
@@ -79,7 +88,9 @@ export const tasksRepo: TasksRepo = {
     const seriesDone = task.recurrence_end ? next > task.recurrence_end : false
     const { error } = await supabase
       .from('tasks')
-      .update(seriesDone ? { completed: true, completed_at: now } : { due_date: next })
+      .update(seriesDone
+        ? { completed: true, completed_at: now, completed_by: userId }
+        : { due_date: next })
       .eq('id', id)
     assertNoError(error)
   },

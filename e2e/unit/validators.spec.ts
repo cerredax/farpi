@@ -91,6 +91,7 @@ test.describe('validateTaskDraft', () => {
   const base = {
     title: 'Tarea', notes: '', priority: 'medium' as const,
     due_date: '2026-08-03', recurrence: 'none' as const, recurrence_end: '',
+    child_id: null, member_id: null,
   }
 
   test('exige título', () => {

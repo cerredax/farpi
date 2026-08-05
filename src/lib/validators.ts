@@ -80,3 +80,21 @@ export function validateListItemDraft(draft: ListItemDraft): string | null {
   if (!draft.text.trim()) return 'El texto es obligatorio.'
   return null
 }
+
+// ─── Vuelta al sitio después de entrar ────────────────────────────────────────
+
+/**
+ * A dónde se puede mandar a alguien después de validar un enlace de correo.
+ *
+ * El `?next=` de la URL lo escribe quien manda el enlace, no la app, así que un
+ * `next=https://otra-cosa.example` convertiría un correo legítimo de Nido en un
+ * salto a una web ajena justo después de iniciar sesión — que es el momento en
+ * el que uno se cree lo que ve. Solo se aceptan rutas de la propia app: una
+ * barra y nada de `//`, que es la forma corta de decir "otro dominio".
+ */
+export function safeNextPath(next: string | null | undefined): string {
+  if (!next) return '/home'
+  if (!next.startsWith('/')) return '/home'
+  if (next.startsWith('//') || next.startsWith('/\\')) return '/home'
+  return next
+}

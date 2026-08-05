@@ -9,6 +9,7 @@ import {
   validateListItemDraft,
   validateMealDraft,
   validateTaskDraft,
+  safeNextPath,
 } from '@/lib/validators'
 
 // Los sheets delegan aquí su validación, así que estas reglas son las que ve el
@@ -127,5 +128,28 @@ test.describe('listas', () => {
   test('validateListItemDraft exige texto', () => {
     expect(validateListItemDraft({ text: '   ' })).not.toBeNull()
     expect(validateListItemDraft({ text: 'Leche' })).toBeNull()
+  })
+})
+
+// El `?next=` de la URL lo escribe quien manda el enlace del correo, no la app.
+// Sin filtrarlo, un enlace legítimo de Nido acababa en otra web justo después
+// de iniciar sesión, que es el momento en el que uno se cree lo que ve.
+test.describe('safeNextPath', () => {
+  test('deja pasar una ruta de la propia app', () => {
+    expect(safeNextPath('/lists')).toBe('/lists')
+    expect(safeNextPath('/calendar?d=2026-08-05')).toBe('/calendar?d=2026-08-05')
+  })
+
+  test('sin next, a casa', () => {
+    expect(safeNextPath(null)).toBe('/home')
+    expect(safeNextPath('')).toBe('/home')
+    expect(safeNextPath(undefined)).toBe('/home')
+  })
+
+  test('rechaza saltar a otro dominio, escrito como se escriba', () => {
+    expect(safeNextPath('https://ejemplo-falso.test/login')).toBe('/home')
+    expect(safeNextPath('//ejemplo-falso.test')).toBe('/home')
+    expect(safeNextPath('/\\ejemplo-falso.test')).toBe('/home')
+    expect(safeNextPath('javascript:alert(1)')).toBe('/home')
   })
 })

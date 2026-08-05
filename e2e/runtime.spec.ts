@@ -360,3 +360,15 @@ test('el calendario busca también en el pasado', async ({ page }) => {
   await expect(page.getByText('Búsqueda')).toBeVisible()
   await expect(page.getByText('Registro civil')).toBeVisible()
 })
+
+// Las cabeceras se configuran en next.config.ts y no se ven al usar la app: si
+// alguien las quita sin querer, nadie se entera hasta que pasa algo.
+test('las respuestas llevan las cabeceras de seguridad', async ({ page }) => {
+  const respuesta = await page.goto('/home')
+  const cabeceras = respuesta!.headers()
+
+  expect(cabeceras['x-frame-options']).toBe('DENY')
+  expect(cabeceras['x-content-type-options']).toBe('nosniff')
+  expect(cabeceras['referrer-policy']).toBe('strict-origin-when-cross-origin')
+  expect(cabeceras['permissions-policy']).toContain('camera=()')
+})

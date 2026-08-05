@@ -82,6 +82,30 @@ Detalles de seguridad:
 - No existe policy de UPDATE directo sobre `family_members`. El perfil se edita con `update_family_member_profile` (RPC, `014`), que restringe los campos a `display_name` y `color`, y permite hacerlo a uno mismo o a un admin de esa familia. Sustituye a `update_my_family_profile`, que solo dejaba editarse a uno mismo.
 - Las policies de `family_invites` para UPDATE incluyen `using` y `with check`.
 
+## Superficie de seguridad fuera de la base de datos
+
+La validación 47/47 cubre RLS, RPCs y Storage: la base de datos. Lo que queda por
+encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
+
+- `/api/invite` usa la service role **solo** para mandar el email; la invitación
+  se inserta con el cliente del usuario (RLS) y antes comprueba que quien llama
+  es admin de esa familia.
+- `/api/account/delete` aplica la regla del último admin y borra los documentos
+  de Storage antes que la familia.
+- `/api/push` se apoya en la policy de `push_subscriptions`: un upsert con el
+  endpoint de otra persona no puede robar su suscripción porque el `using` de la
+  policy no deja tocar filas ajenas.
+- `/api/cron/reminders` se protege con `CRON_SECRET`, y el proxy la deja pasar
+  sin sesión a propósito.
+- El proxy (`src/proxy.ts`) manda al login todo lo que no sea público.
+- `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app.
+  Sin eso, un enlace de correo legítimo podía acabar en otra web justo después
+  de iniciar sesión.
+- Cabeceras en `next.config.ts`. Sin CSP a propósito: Next inyecta scripts en
+  línea y una CSP mal puesta rompe producción sin avisar en local.
+
+No hay `dangerouslySetInnerHTML` ni `eval` en todo el código.
+
 ## Regla del último admin
 
 **Decisión de producto:** Una familia debe tener siempre al menos un admin. Está prohibido eliminar o degradar al único admin de una familia.

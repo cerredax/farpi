@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { safeNextPath } from '@/lib/validators'
 
 /**
  * Punto de aterrizaje de todos los enlaces de correo de Supabase.
@@ -77,7 +78,9 @@ function CallbackHandler() {
       }
 
       if (cancelado) return
-      router.replace(params.get('next') ?? '/home')
+      // `next` viene en la URL del correo: solo se acepta si es una ruta de la
+      // propia app. Ver `safeNextPath`.
+      router.replace(safeNextPath(params.get('next')))
       router.refresh()
     }
 

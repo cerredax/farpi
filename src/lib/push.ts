@@ -22,6 +22,29 @@ export function currentPermission(): NotificationPermission | 'unsupported' {
   return Notification.permission
 }
 
+/**
+ * Un iPhone que todavía no tiene Nido en la pantalla de inicio.
+ *
+ * iOS solo da push a las apps instaladas (16.4+), así que en una pestaña normal
+ * de Safari `PushManager` no existe y `pushSupported()` dice que no. Sin
+ * distinguir este caso, la tarjeta de Ajustes le suelta a media familia que su
+ * navegador no admite notificaciones, cuando lo que hace falta es instalarla.
+ */
+export function iosSinInstalar(): boolean {
+  if (typeof window === 'undefined') return false
+
+  const esIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    // iPadOS se hace pasar por escritorio; lo delata que tenga táctil.
+    (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
+
+  const instalada =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+
+  return esIOS && !instalada
+}
+
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)
   const normalized = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')

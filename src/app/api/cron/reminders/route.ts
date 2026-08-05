@@ -106,7 +106,12 @@ export async function GET(req: NextRequest) {
   webpush.setVapidDetails(subject, publicKey, privateKey)
 
   const { data: subs } = await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth')
-  if (!subs || subs.length === 0) return NextResponse.json({ sent: 0 })
+  // Cada salida temprana se distingue de las demás: si todas devolvieran
+  // `{ sent: 0 }`, la primera vez que esto se ejecute de verdad no habría forma
+  // de saber si es que nadie se ha suscrito o es que no había nada que contar.
+  if (!subs || subs.length === 0) {
+    return NextResponse.json({ ok: true, sent: 0, keptAlive: true, sinSuscripciones: true })
+  }
 
   const userIds = [...new Set(subs.map(s => s.user_id))]
 
@@ -116,7 +121,9 @@ export async function GET(req: NextRequest) {
     .in('user_id', userIds)
 
   const familyIds = [...new Set((members ?? []).map(m => m.family_id))]
-  if (familyIds.length === 0) return NextResponse.json({ sent: 0 })
+  if (familyIds.length === 0) {
+    return NextResponse.json({ ok: true, sent: 0, keptAlive: true, sinFamilias: true })
+  }
 
   const todayParts = getZonedDateParts(new Date(), REMINDER_TIME_ZONE)
   const tomorrowParts = addDays(todayParts, 1)
@@ -129,12 +136,17 @@ export async function GET(req: NextRequest) {
   const limiteCaducidad = formatDate(addDays(todayParts, DIAS_AVISO_CADUCIDAD))
 
   const [{ data: events }, { data: tasks }, { data: docs }] = await Promise.all([
-    supabase.from('events').select('family_id').gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
+    // Sin vacaciones, igual que `selectTodayEvents`: no son un plan del día, y
+    // avisar de que "tenéis 1 evento" el día que empiezan contradice lo que
+    // enseña la pantalla de inicio esa misma mañana.
+    supabase.from('events').select('family_id').neq('kind', 'vacaciones').gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
     supabase.from('documents').select('family_id').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
   ])
 
   let sent = 0
+  let fallidos = 0
+  let caducadas = 0
 
   for (const userId of userIds) {
     const fams = (members ?? []).filter(m => m.user_id === userId).map(m => m.family_id)
@@ -170,11 +182,19 @@ export async function GET(req: NextRequest) {
       } catch (err) {
         const statusCode = (err as { statusCode?: number }).statusCode
         if (statusCode === 404 || statusCode === 410) {
+          // El navegador ya no conoce esa suscripción: se limpia y no es un fallo.
           await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
+          caducadas++
+        } else {
+          // Lo demás sí importa y antes se perdía en silencio. Sin esto, una
+          // clave VAPID mal pegada devuelve 200 con `sent: 0`, exactamente igual
+          // que un día tranquilo en el que no había nada que contar.
+          fallidos++
+          console.error('[cron] Envío push fallido:', statusCode ?? 'sin estado', (err as Error).message)
         }
       }
     }
   }
 
-  return NextResponse.json({ ok: true, sent })
+  return NextResponse.json({ ok: true, sent, fallidos, caducadas })
 }

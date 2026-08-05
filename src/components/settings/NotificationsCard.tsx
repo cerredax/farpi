@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Bell, BellOff, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import { pushSupported, pushConfigured, currentPermission, enablePush, disablePush } from '@/lib/push'
+import { pushSupported, pushConfigured, currentPermission, enablePush, disablePush, iosSinInstalar } from '@/lib/push'
 
 export function NotificationsCard() {
   const [supported] = useState(() => pushSupported())
@@ -11,6 +11,8 @@ export function NotificationsCard() {
   const [subscribed, setSubscribed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Como `supported`: se resuelve una vez al montar, no en cada render.
+  const [pendienteInstalar] = useState(() => iosSinInstalar())
 
   useEffect(() => {
     if (!supported || !configured) return
@@ -55,7 +57,16 @@ export function NotificationsCard() {
       </div>
 
       {!supported ? (
-        <p className="text-xs text-muted">Tu navegador no admite notificaciones.</p>
+        pendienteInstalar ? (
+          <p className="text-xs text-muted">
+            Para recibir avisos en el iPhone, añade Nido a la pantalla de inicio:
+            toca <span className="font-semibold text-ink">Compartir</span> y luego{' '}
+            <span className="font-semibold text-ink">Añadir a pantalla de inicio</span>.
+            Abre la app desde ahí y vuelve a estos ajustes.
+          </p>
+        ) : (
+          <p className="text-xs text-muted">Tu navegador no admite notificaciones.</p>
+        )
       ) : !configured ? (
         <p className="text-xs text-muted">Estarán disponibles próximamente.</p>
       ) : denied ? (

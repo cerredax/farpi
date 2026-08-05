@@ -34,7 +34,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 
 ### Backend / migraciones
 
-- Migraciones Supabase aplicadas/preparadas (001–016). **015 y 016 están escritas pero aún no aplicadas en el proyecto real.**
+- Migraciones Supabase aplicadas (001–016). Las 015 (dueño de la tarea) y 016 (caducidad de documentos) se aplicaron en el proyecto real el 2026-08-05.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
@@ -61,7 +61,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - Métodos de repo sin uso retirados del contrato: `getTodayEvents`, `getUpcomingEvents`, `getPendingItems` (las pantallas derivan con `selectors.ts`).
 - Paleta tokenizada: de 54 colores sueltos a 18, y de 109 apariciones a 36. Los tonos casi idénticos (seis verdes claros, cinco blancos cálidos) se unificaron en tokens de `globals.css`. Lo que queda literal son datos (paleta de hijos, prioridades), marca de terceros (logo de Google) y cuatro decorativos de un solo uso.
 - PWA: iconos any + maskable + apple-touch y `manifest.json` con purposes (script `scripts/gen-icons.cjs`).
-- Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`).
+- Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`).
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
 - 120 tests unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores), sin dependencias nuevas: usan el runner de Playwright y no levantan servidor (`npm run test:unit`, ~0,7 s).
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
@@ -97,11 +97,11 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Pendientes de validación Supabase
 
-**Aplicar las migraciones 015 y 016** en el proyecto real (`supabase/migrations/`, o el
-`all_in_one.sql` si el proyecto estuviera vacío) y volver a pasar
-`node scripts/validate-rls.mjs`, que ahora debería cubrir también los triggers
-cross-family de `tasks`. Hasta entonces, asignar una tarea o poner caducidad a un
-documento funciona en modo demo pero falla contra Supabase: las columnas no existen.
+015 y 016 ya están aplicadas. Queda **volver a pasar `node scripts/validate-rls.mjs`**
+y anotar el resultado en `docs/supabase-validation.md`: el script ya trae dos
+comprobaciones nuevas para los triggers cross-family de `tasks` (que no se pueda
+asignar una tarea a un hijo o a un miembro de otra familia), así que serán 49
+comprobaciones en vez de 47.
 
 ## Cerrado el 2026-08-04
 

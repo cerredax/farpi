@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { buildWeeklyDates, buildYearlyDates, getNextOccurrence } from '@/lib/recurrence'
+import {
+  buildWeeklyDates,
+  buildYearlyDates,
+  getNextOccurrence,
+  joinWeekdayNames,
+  maxWeeklyEndDate,
+  weekdayOf,
+} from '@/lib/recurrence'
 
 // Esta lógica la comparten los repos de Supabase, el store mock y la
 // previsualización de series en EventSheet. Si cambia aquí, cambia en los tres.
@@ -85,5 +92,41 @@ test.describe('getNextOccurrence', () => {
 
   test('sin recurrencia devuelve la misma fecha', () => {
     expect(getNextOccurrence('2026-08-03', 'none')).toBe('2026-08-03')
+  })
+})
+
+test.describe('joinWeekdayNames', () => {
+  test('los enumera de lunes a domingo, no en el orden en que se tocaron', () => {
+    expect(joinWeekdayNames([5, 1, 3])).toBe('lunes, miércoles y viernes')
+  })
+
+  test('uno solo va sin comas ni "y"', () => {
+    expect(joinWeekdayNames([2])).toBe('martes')
+  })
+
+  test('el domingo va al final, aunque sea el 0', () => {
+    expect(joinWeekdayNames([0, 1])).toBe('lunes y domingos')
+  })
+
+  test('sin días, sin frase', () => {
+    expect(joinWeekdayNames([])).toBe('')
+  })
+})
+
+test.describe('maxWeeklyEndDate', () => {
+  test('52 semanas justas desde el día de inicio', () => {
+    expect(maxWeeklyEndDate('2026-08-05')).toBe('2027-08-04')
+  })
+
+  test('el tope cruza un cambio de hora sin perder un día', () => {
+    // Del invierno al verano y vuelta: si se contara en milisegundos, saldría el 3.
+    expect(maxWeeklyEndDate('2026-01-15')).toBe('2027-01-14')
+  })
+})
+
+test.describe('weekdayOf', () => {
+  test('devuelve el día local, no el de UTC', () => {
+    expect(weekdayOf('2026-08-05')).toBe(3)  // miércoles
+    expect(weekdayOf('2026-08-09')).toBe(0)  // domingo
   })
 })

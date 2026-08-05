@@ -162,6 +162,13 @@ async function main() {
     (await api('/rest/v1/documents', { metodo: 'POST', token: tokA, datos: { family_id: famA, name: 'doc', storage_path: `${famA}/x/y.pdf`, mime_type: 'application/pdf', size_bytes: 10, child_id: hijoB } })).estado >= 400)
   comprobar('Rechaza item con list_id de otra familia',
     (await api('/rest/v1/list_items', { metodo: 'POST', token: tokA, datos: { family_id: famA, list_id: listaB, text: 'cross', sort_order: 9 } })).estado >= 400)
+  // Migración 015: las tareas también se asignan, así que también hay que poder
+  // asignarlas mal. El trigger es el mismo patrón que el de eventos.
+  comprobar('Rechaza tarea con child_id de otra familia',
+    (await api('/rest/v1/tasks', { metodo: 'POST', token: tokA, datos: { family_id: famA, title: 'cross', child_id: hijoB } })).estado >= 400)
+  const miembroB = (await api(`/rest/v1/family_members?family_id=eq.${famB}&select=id`, { token: tokB })).cuerpo?.[0]?.id
+  comprobar('Rechaza tarea con member_id de otra familia',
+    (await api('/rest/v1/tasks', { metodo: 'POST', token: tokA, datos: { family_id: famA, title: 'cross', member_id: miembroB } })).estado >= 400)
 
   console.log('\n== 5. RPCs de administración (regla del último admin)')
   comprobar('NO se puede eliminar al único admin',

@@ -1,10 +1,12 @@
 -- ============================================================
 -- NIDO — Esquema completo (migraciones 001–016 concatenadas)
--- Para un proyecto NUEVO/VACÍO. Si el proyecto YA tiene tablas,
--- no ejecutes esto entero: aplica solo las migraciones que falten
--- (p. ej. 015 y 016).
+--
+-- GENERADO por scripts/gen-all-in-one.mjs. No editar a mano: los cambios se
+-- hacen en supabase/migrations/ y se regenera este fichero.
+--
+-- Para un proyecto NUEVO/VACÍO. Si el proyecto YA tiene tablas, no ejecutes
+-- esto entero: aplica solo las migraciones que falten, una a una.
 -- ============================================================
-
 
 -- ─────────────────────────────────────────────────────────
 -- 001_initial_schema.sql
@@ -199,7 +201,6 @@ create trigger set_tasks_updated_at
   before update on public.tasks
   for each row execute function public.set_updated_at();
 
-
 -- ─────────────────────────────────────────────────────────
 -- 002_rls_policies.sql
 -- ─────────────────────────────────────────────────────────
@@ -342,7 +343,6 @@ create policy "Miembros CRUD tareas de su familia"
 --     )
 --   );
 
-
 -- ─────────────────────────────────────────────────────────
 -- 003_rpc.sql
 -- ─────────────────────────────────────────────────────────
@@ -434,7 +434,6 @@ end;
 $$;
 
 grant execute on function public.update_my_family_profile(uuid, text, text) to authenticated;
-
 
 -- ─────────────────────────────────────────────────────────
 -- 004_family_invites_storage.sql
@@ -569,7 +568,6 @@ create policy "Miembros borran documentos de su familia"
     )
   );
 
-
 -- ─────────────────────────────────────────────────────────
 -- 005_task_recurrence.sql
 -- ─────────────────────────────────────────────────────────
@@ -581,7 +579,6 @@ alter table public.tasks
   add column if not exists recurrence      text not null default 'none'
     check (recurrence in ('none', 'daily', 'weekly', 'monthly')),
   add column if not exists recurrence_end  date;
-
 
 -- ─────────────────────────────────────────────────────────
 -- 006_event_recurrence.sql
@@ -599,7 +596,6 @@ alter table public.events
 create index if not exists events_recurrence_group_idx
   on public.events(recurrence_group_id)
   where recurrence_group_id is not null;
-
 
 -- ─────────────────────────────────────────────────────────
 -- 007_cross_family_integrity.sql
@@ -676,7 +672,6 @@ $$;
 create trigger trg_document_child_family
   before insert or update on public.documents
   for each row execute function public.check_document_child_family();
-
 
 -- ─────────────────────────────────────────────────────────
 -- 008_admin_rpcs.sql
@@ -802,7 +797,6 @@ create policy "Admin inserta miembros"
     )
   );
 
-
 -- ─────────────────────────────────────────────────────────
 -- 009_accept_invite_rpc.sql
 -- ─────────────────────────────────────────────────────────
@@ -899,7 +893,6 @@ $$;
 
 grant execute on function public.accept_family_invite(uuid) to authenticated;
 
-
 -- ─────────────────────────────────────────────────────────
 -- 010_push_subscriptions.sql
 -- ─────────────────────────────────────────────────────────
@@ -927,7 +920,6 @@ create policy "Usuario gestiona sus push"
   on public.push_subscriptions for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
-
 
 -- ─────────────────────────────────────────────────────────
 -- 011_account_deletion.sql
@@ -979,10 +971,9 @@ alter table public.family_invites drop constraint if exists family_invites_invit
 alter table public.family_invites add constraint family_invites_invited_by_fkey
   foreign key (invited_by) references auth.users(id) on delete set null;
 
--- ═══════════════════════════════════════════════════════════════════════════
+-- ─────────────────────────────────────────────────────────
 -- 012_member_assignment.sql
--- ═══════════════════════════════════════════════════════════════════════════
-
+-- ─────────────────────────────────────────────────────────
 -- Permite asignar eventos y documentos a cualquier miembro de la familia, no
 -- solo a los hijos. Hasta ahora `child_id` era la única forma de asignar, de
 -- modo que los adultos no podían aparecer como responsables de nada.
@@ -1064,10 +1055,9 @@ create trigger trg_document_member_family
   before insert or update on public.documents
   for each row execute function public.check_document_member_family();
 
--- ═══════════════════════════════════════════════════════════════════════════
+-- ─────────────────────────────────────────────────────────
 -- 013_event_kind.sql
--- ═══════════════════════════════════════════════════════════════════════════
-
+-- ─────────────────────────────────────────────────────────
 -- Vacaciones: días seguidos en los que alguien de la familia está fuera.
 --
 -- No se crea una tabla nueva porque unas vacaciones son exactamente un evento
@@ -1094,11 +1084,9 @@ alter table public.events
 
 create index if not exists idx_events_kind on public.events(kind);
 
-
--- ============================================================
+-- ─────────────────────────────────────────────────────────
 -- 014_member_profile.sql
--- ============================================================
-
+-- ─────────────────────────────────────────────────────────
 -- Perfil del miembro: nombre editable por el administrador y color propio.
 --
 -- Dos huecos que venían de lo mismo, que un miembro apenas tenía perfil:
@@ -1169,8 +1157,6 @@ $$;
 grant execute on function public.update_family_member_profile(uuid, text, text) to authenticated;
 
 drop function if exists public.update_my_family_profile(uuid, text, text);
-
-
 
 -- ─────────────────────────────────────────────────────────
 -- 015_task_assignment.sql
@@ -1254,8 +1240,6 @@ drop trigger if exists trg_task_member_family on public.tasks;
 create trigger trg_task_member_family
   before insert or update on public.tasks
   for each row execute function public.check_task_member_family();
-
-
 
 -- ─────────────────────────────────────────────────────────
 -- 016_document_expiry.sql

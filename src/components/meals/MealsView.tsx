@@ -81,7 +81,7 @@ export function MealsView() {
                 <p className="text-xs text-muted mt-1">Planifica las comidas de hoy</p>
                 <button
                   onClick={() => s.openCreate()}
-                  className="mt-4 text-sm font-semibold text-primary hover:underline"
+                  className="mt-3 px-3 py-2 text-sm font-semibold text-primary rounded-xl hover:bg-primary-tint"
                 >
                   + Añadir comida de hoy
                 </button>

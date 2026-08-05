@@ -169,7 +169,7 @@ export function SettingsView() {
         </Section>
 
         <Section label="Adultos">
-          <MembersList members={members} invites={invites} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
+          <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
         </Section>
 
         <Section label="Hijos">
@@ -229,7 +229,7 @@ export function SettingsView() {
         mode={memberMode}
         initial={editingMember}
         isOnlyAdmin={editingMember?.role === 'admin' && adminCount <= 1}
-        defaultColor={editingMember ? memberColor(members, editingMember.id) : undefined}
+        defaultColor={editingMember ? memberColor(members, editingMember.id, kids) : undefined}
         onClose={() => setMemberSheetOpen(false)}
         onInvite={(email) => inviteMember(email)}
         onUpdate={updateMember}

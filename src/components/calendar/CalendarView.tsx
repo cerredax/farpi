@@ -150,10 +150,11 @@ export function CalendarView() {
     return isWithinInterval(eventDate, weekRange)
   })
 
-  // Lo que hay que hacer un día es parte de lo que pasa ese día. Solo en la
-  // semana: en la agenda, que abarca 45 días, taparían los eventos, que es a lo
-  // que se ha entrado. Lo ya hecho no vuelve aquí, que para eso está Tareas.
-  const agendaTasks = agendaMode === 'week' ? selectPendingTasks(tasks) : []
+  // Lo que hay que hacer un día es parte de lo que pasa ese día, se mire la
+  // semana o el mes: con el mes abierto el día 5 decía "Sin planes" y con la
+  // semana el mismo día tenía seis tareas. Lo ya hecho no vuelve aquí, que para
+  // eso está Tareas.
+  const agendaTasks = selectPendingTasks(tasks)
 
   // Con cuatro eventos no hay nada que buscar. El buscador mira todo el
   // calendario, no el tramo pintado: lo que se busca suele estar fuera.

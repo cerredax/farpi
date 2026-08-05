@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { assigneeKeyOf, buildAssignees, eventColor, memberColor, resolveAssignee } from '@/lib/assignees'
-import { FAMILY_COLOR } from '@/lib/constants'
+import { FAMILY_COLOR, PERSON_COLORS } from '@/lib/constants'
 import type { Child, FamilyMember } from '@/types'
 
 // `color: null` a propósito: es lo que hace que el color salga de la posición
@@ -29,6 +29,37 @@ test('los hijos conservan su color y los miembros reciben uno por posición', ()
   expect(opciones.find(o => o.name === 'Ana')!.color).toBe('#123456')
   expect(opciones.find(o => o.name === 'Omar')!.color).toBe(memberColor(miembros, 'm1'))
   expect(memberColor(miembros, 'm1')).not.toBe(memberColor(miembros, 'm2'))
+})
+
+// El color es lo único que dice de quién es cada cosa. Repartido dos veces no
+// dice nada: en Ajustes, Omar y Ana salían con el mismo círculo salmón.
+test('a un adulto no le toca un color que ya lleva un hijo', () => {
+  const anaConElPrimerColor: Child[] = [
+    { id: 'c1', family_id: 'f1', name: 'Ana', birth_date: null, color: PERSON_COLORS[0].value, created_at: '' },
+  ]
+  const color = memberColor(miembros, 'm1', anaConElPrimerColor)
+  expect(color).not.toBe(PERSON_COLORS[0].value)
+
+  // Y los dos adultos siguen siendo distintos entre sí.
+  expect(color).not.toBe(memberColor(miembros, 'm2', anaConElPrimerColor))
+})
+
+// La paleta de personas incluye el mismo mostaza que "toda la familia": un
+// adulto con ese color se confunde con lo que no es de nadie en particular.
+test('a nadie le toca por defecto el amarillo de la familia', () => {
+  const muchos: FamilyMember[] = [0, 1, 2, 3].map(i => ({
+    ...miembros[0], id: `m${i}`, user_id: `u${i}`, display_name: `Persona ${i}`,
+  }))
+  for (const m of muchos) {
+    expect(memberColor(muchos, m.id, [])).not.toBe(FAMILY_COLOR)
+  }
+})
+
+test('el color elegido a mano manda sobre el reparto', () => {
+  const conColor = [{ ...miembros[0], color: '#ABCDEF' }, miembros[1]]
+  expect(memberColor(conColor, 'm1', hijos)).toBe('#ABCDEF')
+  // Y ese color deja de estar libre para los demás.
+  expect(memberColor(conColor, 'm2', hijos)).not.toBe('#ABCDEF')
 })
 
 test('resuelve a quién pertenece cada cosa', () => {

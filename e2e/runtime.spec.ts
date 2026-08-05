@@ -342,12 +342,12 @@ test('las tareas se buscan por texto', async ({ page }) => {
 })
 
 // Un papel caducado no avisa por su cuenta: el DNI vale hasta que un día no
-// vale. En la demo, el DNI de Omar caduca el 12 de septiembre de 2026.
+// vale. En la demo, el DNI de Omar caduca el 20 de agosto de 2026.
 test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
   await page.goto('/docs')
   await page.waitForTimeout(700)
 
-  await expect(page.getByText(/Caduc[óa] el 12 sept?\.? 2026/)).toBeVisible()
+  await expect(page.getByText(/Caduc[óa] el 20 ago\.? 2026/)).toBeVisible()
 })
 
 // Buscar en el calendario mira todo el histórico y no el tramo que se pinta:

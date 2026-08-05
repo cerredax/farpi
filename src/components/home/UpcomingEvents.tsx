@@ -65,7 +65,7 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
           })}
         </ul>
         <div className="border-t border-hairline px-4 py-2.5">
-          <Link href="/calendar" className="text-xs font-semibold text-primary hover:underline">
+          <Link href="/calendar" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary hover:underline">
             Ver calendario
           </Link>
         </div>

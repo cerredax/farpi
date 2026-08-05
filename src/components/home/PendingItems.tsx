@@ -33,7 +33,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
       isEmpty={items.length === 0}
       emptyState={<EmptyState compact emoji="✓" title="No falta nada" />}
       footer={
-        <Link href="/lists" className="text-xs font-semibold text-primary hover:underline">
+        <Link href="/lists" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary hover:underline">
           Ver todas las listas
         </Link>
       }
@@ -67,7 +67,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
                 checked={false}
                 onClick={() => onToggle(item.id)}
                 ariaLabel={`Ya tenéis "${item.text}", quitar de lo que falta`}
-                className="w-auto"
+                className="w-10"
               />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-ink text-sm leading-snug">{item.text}</p>

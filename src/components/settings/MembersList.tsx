@@ -1,10 +1,12 @@
 import { Pencil, UserPlus, X } from 'lucide-react'
-import type { FamilyMember, FamilyInvite } from '@/types'
+import type { Child, FamilyMember, FamilyInvite } from '@/types'
 import { defaultMemberColor, memberColor } from '@/lib/assignees'
 
 interface MembersListProps {
   members: FamilyMember[]
   invites: FamilyInvite[]
+  /** Para no repartir a un adulto un color que ya lleva un hijo. */
+  kids: Child[]
   onEdit: (member: FamilyMember) => void
   onInvite: () => void
   onCancelInvite: (id: string) => void
@@ -15,14 +17,14 @@ function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function MembersList({ members, invites, onEdit, onInvite, onCancelInvite }: MembersListProps) {
+export function MembersList({ members, invites, kids, onEdit, onInvite, onCancelInvite }: MembersListProps) {
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
       {members.map((member, i) => (
         <div key={member.id} className={`flex items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-hairline' : ''}`}>
           <span
             className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0"
-            style={{ backgroundColor: memberColor(members, member.id) }}
+            style={{ backgroundColor: memberColor(members, member.id, kids) }}
           >
             {initials(member.display_name)}
           </span>

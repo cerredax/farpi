@@ -31,7 +31,7 @@ export const TodayTasks = memo(function TodayTasks({ tasks, onToggle }: TodayTas
                 onClick={() => onToggle(task.id)}
                 ariaLabel={`Marcar "${task.title}" como completada`}
                 size="sm"
-                className="w-auto"
+                className="w-10"
               />
               <p className="flex-1 min-w-0 text-sm font-semibold text-ink leading-snug">{task.title}</p>
               {vencida && (

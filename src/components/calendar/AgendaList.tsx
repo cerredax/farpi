@@ -12,7 +12,7 @@ import {
   startOfDay,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Plus } from 'lucide-react'
+import { AlertTriangle, Plus } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
@@ -31,10 +31,7 @@ interface AgendaListProps {
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
-  /**
-   * Tareas pendientes con fecha. Llegan vacías en modo agenda: allí el tramo es
-   * de 45 días y las tareas taparían los eventos, que es lo que se ha ido a ver.
-   */
+  /** Tareas pendientes con fecha, para pintarlas en su día junto a los eventos. */
   tasks?: Task[]
   onToggleTask?: (id: string) => void
   /** Buscador de eventos. Sin él, la lista se comporta como siempre. */
@@ -71,18 +68,25 @@ function TaskRow({ task, kids, members, atrasada, onToggle }: {
         onClick={() => onToggle(task.id)}
         ariaLabel={`Marcar "${task.title}" como completada`}
         size="sm"
-        className="w-auto"
+        className="w-10"
       />
-      <span className="min-w-0 flex-1 truncate text-sm text-ink">{task.title}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-ink" title={task.title}>{task.title}</span>
       {asignado && (
         <span className="flex-shrink-0 text-[11px] font-bold" style={{ color: asignado.color }}>
           {asignado.name}
         </span>
       )}
+      {/* Icono y no la palabra "Atrasada": en un móvil de 390 px, la etiqueta
+          se comía media fila y el título de la tarea se quedaba en "Comprar
+          pañales...". El nombre completo va en el `title` y en la etiqueta
+          accesible, que es donde no le quita sitio a nada. */}
       {atrasada && (
-        <span className="flex-shrink-0 rounded-full bg-danger-soft px-1.5 py-0.5 text-[10px] font-bold text-danger">
-          Atrasada
-        </span>
+        <AlertTriangle
+          size={13}
+          strokeWidth={2.6}
+          className="flex-shrink-0 text-danger"
+          aria-label="Atrasada"
+        />
       )}
     </div>
   )
@@ -300,7 +304,9 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
                   <button
                     onClick={() => onAdd(group.day)}
                     aria-label={`Añadir evento el ${dayLabel}`}
-                    className="w-7 h-7 flex-shrink-0 self-center flex items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
+                    // Arriba y no centrado: en un día con seis tareas, centrado
+                    // quedaba flotando a media fila, lejos de su fecha.
+                    className="w-7 h-7 flex-shrink-0 self-start flex items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
                   >
                     <Plus size={14} strokeWidth={2.5} />
                   </button>

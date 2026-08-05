@@ -22,7 +22,7 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
       isEmpty={visible.length === 0}
       emptyState={<EmptyState compact emoji="✓" title="La casa está al día" />}
       footer={
-        <Link href="/tasks" className="text-xs font-semibold text-primary-strong hover:underline">
+        <Link href="/tasks" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary-strong hover:underline">
           Ver todas las tareas
         </Link>
       }
@@ -35,7 +35,7 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
               onClick={() => onToggle(task.id)}
               ariaLabel="Marcar como completada"
               size="sm"
-              className="w-auto"
+              className="w-10"
             />
             <p className="flex-1 text-sm font-medium text-ink leading-snug">{task.title}</p>
             {task.due_date && (

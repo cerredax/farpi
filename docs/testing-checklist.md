@@ -16,6 +16,11 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 ## 2. Navegación
 
+> Lo de esta lista que se puede comprobar sin teléfono ya está automatizado:
+> `e2e/movil.spec.ts` corre las siete pantallas a 390×844 y falla si algo
+> desborda a lo ancho o si aparece un control por debajo de 24×24 px. Lo que
+> queda aquí es lo que hay que mirar con el móvil en la mano.
+
 - [ ] La bottom nav muestra Inicio, Calendario, Listas, Comidas y Docs.
 - [ ] La ruta activa se resalta correctamente.
 - [ ] `/tasks` sigue accesible desde Inicio o Listas.

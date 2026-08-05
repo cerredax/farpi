@@ -79,7 +79,7 @@ export function TasksView() {
 
         {completed.length > 0 && (
           <section className="mt-6 space-y-2">
-            <button onClick={() => setShowCompleted(v => !v)} className="flex items-center gap-2 px-1 mb-3 w-full text-left">
+            <button onClick={() => setShowCompleted(v => !v)} className="flex items-center gap-2 px-1 py-1.5 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors">
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Completadas</h2>
               <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{completed.length}</span>
               <span className="ml-auto text-muted">{showCompleted ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>

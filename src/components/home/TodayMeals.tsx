@@ -41,8 +41,8 @@ export const TodayMeals = memo(function TodayMeals({ meals }: TodayMealsProps) {
           </ul>
         )}
         <div className="border-t border-hairline px-4 py-2.5">
-          <Link href="/meals" className="text-xs font-semibold text-primary hover:underline">
-            Ver menu semanal
+          <Link href="/meals" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary hover:underline">
+            Ver menú semanal
           </Link>
         </div>
       </Card>

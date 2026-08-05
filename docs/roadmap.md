@@ -23,12 +23,28 @@ Objetivo: dejar el MVP mock y las migraciones listas para una primera subida seg
 
 Objetivo: detectar problemas baratos de corregir antes de depender de datos reales.
 
-- [ ] Probar checklist completa en móvil (390×844).
-- [ ] Revisar bottom sheets (scroll, teclado, footer fijo).
-- [ ] Revisar navegación y bottom nav.
-- [ ] Revisar flujos CRUD en todas las secciones.
-- [ ] Revisar persistencia en `localStorage`.
-- [ ] Revisar multi-familia mock.
+Hecha el 2026-08-05 a 390×844 (iPhone normal, más estrecho que el Pixel 7 con el
+que corre el resto de la suite): capturas de las nueve pantallas revisadas una a
+una, más comprobaciones automáticas que quedan fijas en `e2e/movil.spec.ts`.
+
+- ✅ Ninguna pantalla desborda a lo ancho.
+- ✅ Ningún control por debajo de 24×24 px (mínimo WCAG 2.5.8).
+- ✅ Revisadas Inicio, Calendario (semana y mes), Tareas, sheet de tarea, Listas,
+  detalle de lista, Comidas, Documentos, Ajustes y login.
+- ✅ Flujos CRUD y persistencia en `localStorage`, cubiertos por la suite e2e.
+- ✅ Bottom nav y navegación entre secciones.
+
+Lo que salió y se arregló está en el commit correspondiente: el color repetido
+entre un adulto y un hijo, títulos de tarea comidos por las etiquetas, "Sin
+planes" en un día que sí tenía tareas y cinco controles demasiado pequeños.
+
+**Sigue necesitando un teléfono en la mano** (no lo puede ver ni Playwright ni
+Chromium):
+
+- [ ] Teclado real abriéndose sobre un sheet: que el footer fijo no lo tape.
+- [ ] Safari de iOS, que es otro motor. La suite corre en Chromium.
+- [ ] PWA instalada: icono, splash, safe-area del notch y la barra inferior.
+- [ ] Scroll con inercia y toques accidentales al pasar el dedo por las filas.
 
 Documento guía: `docs/testing-checklist.md`
 

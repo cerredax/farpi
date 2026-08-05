@@ -11,10 +11,30 @@ export function defaultMemberColor(index: number): string {
  * segundo caso es el de los miembros de siempre, que no tenían color propio, y
  * el de quien acaba de entrar en la familia. Vive aquí para que sea el mismo en
  * Ajustes, el calendario y los documentos.
+ *
+ * Los colores que ya tiene alguien no se vuelven a repartir. Sin esto, el
+ * primer adulto y un hijo que hubiera elegido el primer color de la paleta
+ * salían idénticos, y entonces el color deja de decir de quién es cada cosa,
+ * que es lo único para lo que está.
  */
-export function memberColor(members: FamilyMember[], memberId: string): string {
+export function memberColor(members: FamilyMember[], memberId: string, kids: Child[] = []): string {
   const i = members.findIndex(m => m.id === memberId)
-  return members[i]?.color ?? defaultMemberColor(i)
+  const propio = members[i]?.color
+  if (propio) return propio
+
+  const ocupados = new Set<string>([
+    // El amarillo de "toda la familia" también está pillado: la paleta de
+    // personas incluye el mismo mostaza, y un adulto con ese color se confunde
+    // con lo que no es de nadie en particular.
+    FAMILY_COLOR,
+    ...kids.map(k => k.color),
+    ...members.flatMap(m => (m.color ? [m.color] : [])),
+  ])
+  const libres = PERSON_COLORS.filter(c => !ocupados.has(c.value))
+  // Si hay más gente que colores, alguno se repite: no hay nada mejor que hacer.
+  const paleta = libres.length > 0 ? libres : PERSON_COLORS
+
+  return paleta[(i < 0 ? 0 : i) % paleta.length].value
 }
 
 /**
@@ -45,7 +65,7 @@ export function buildAssignees(members: FamilyMember[], kids: Child[]): Assignee
     ...members.map(m => ({
       key: `m:${m.id}`,
       name: m.display_name,
-      color: memberColor(members, m.id),
+      color: memberColor(members, m.id, kids),
       child_id: null,
       member_id: m.id,
     })),
@@ -68,7 +88,7 @@ export function resolveAssignee(
   if (entidad.member_id) {
     const m = members.find(x => x.id === entidad.member_id)
     return m
-      ? { key: `m:${m.id}`, name: m.display_name, color: memberColor(members, m.id), child_id: null, member_id: m.id }
+      ? { key: `m:${m.id}`, name: m.display_name, color: memberColor(members, m.id, kids), child_id: null, member_id: m.id }
       : null
   }
   if (entidad.child_id) {

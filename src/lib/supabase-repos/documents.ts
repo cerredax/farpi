@@ -50,6 +50,7 @@ export const documentsRepo: DocumentsRepo = {
         storage_path: storagePath,
         mime_type: draft.mime_type,
         size_bytes: draft.size_bytes,
+        expires_on: draft.expires_on || null,
         created_by: userId,
       })
       .select('*')
@@ -74,6 +75,7 @@ export const documentsRepo: DocumentsRepo = {
         category: draft.category || null,
         child_id: draft.child_id,
         member_id: draft.member_id,
+        expires_on: draft.expires_on || null,
       })
       .eq('id', id)
     assertNoError(error)

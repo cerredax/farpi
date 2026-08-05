@@ -4,8 +4,15 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { FileTypeIcon } from './FileTypeIcon'
 import { DOC_CATEGORIES } from '@/lib/constants'
+import { selectExpiryState } from '@/lib/selectors'
 import { formatFileSize } from '@/lib/text'
 import type { Document } from '@/types'
+
+const CADUCIDAD_ESTILO = {
+  caducado: 'bg-danger-soft text-danger-strong',
+  pronto:   'bg-sand/25 text-sand-strong',
+  vigente:  'bg-surface text-muted',
+} as const
 
 const CATEGORY_META = Object.fromEntries(
   DOC_CATEGORIES.map(c => [c.key, { label: c.label, emoji: c.emoji }])
@@ -22,6 +29,7 @@ interface DocCardProps {
 /** Tarjeta de documento en el listado, con categoría, dueño y metadatos. */
 export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardProps) {
   const cat = doc.category ? CATEGORY_META[doc.category] : CATEGORY_META['otros']
+  const caducidad = selectExpiryState(doc.expires_on)
 
   return (
     <button
@@ -51,6 +59,14 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
               style={{ backgroundColor: assigneeColor ?? '#8BA888' }}
             >
               {assigneeName}
+            </span>
+          )}
+          {/* Lo que caduca se dice aquí y no en un rincón: un papel caducado no
+              avisa por su cuenta, vale hasta que un día no vale. */}
+          {caducidad && doc.expires_on && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CADUCIDAD_ESTILO[caducidad]}`}>
+              {caducidad === 'caducado' ? 'Caducó el' : 'Caduca el'}{' '}
+              {format(parseISO(doc.expires_on), 'd MMM yyyy', { locale: es })}
             </span>
           )}
           <span className="text-[10px] text-faint">

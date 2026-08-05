@@ -85,6 +85,16 @@ export const MINIMO_PARA_BUSCAR = 3
  */
 export const PLATOS_SUGERIDOS = 30
 
+/**
+ * Con cuántos días de antelación se avisa de que un documento caduca. Un mes da
+ * margen para pedir cita y renovar sin correr; menos, y el aviso llega tarde
+ * para lo que más tarda (DNI, pasaporte).
+ *
+ * Lo comparten la tarjeta del documento y el recordatorio diario del cron, para
+ * que "caduca pronto" signifique lo mismo en la pantalla y en el aviso.
+ */
+export const DIAS_AVISO_CADUCIDAD = 30
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {

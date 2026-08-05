@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
 
 export const runtime = 'nodejs'
 
@@ -123,9 +124,14 @@ export async function GET(req: NextRequest) {
   const startOfDay = zonedMidnightToUtc(todayParts, REMINDER_TIME_ZONE).toISOString()
   const endOfDay = zonedMidnightToUtc(tomorrowParts, REMINDER_TIME_ZONE).toISOString()
 
-  const [{ data: events }, { data: tasks }] = await Promise.all([
+  // Lo que caduca se avisa con un mes: es lo que tarda en darse cita y renovar
+  // un DNI. Un papel caducado no avisa por su cuenta.
+  const limiteCaducidad = formatDate(addDays(todayParts, DIAS_AVISO_CADUCIDAD))
+
+  const [{ data: events }, { data: tasks }, { data: docs }] = await Promise.all([
     supabase.from('events').select('family_id').gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
+    supabase.from('documents').select('family_id').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
   ])
 
   let sent = 0
@@ -134,15 +140,23 @@ export async function GET(req: NextRequest) {
     const fams = (members ?? []).filter(m => m.user_id === userId).map(m => m.family_id)
     const eventCount = (events ?? []).filter(e => fams.includes(e.family_id)).length
     const taskCount = (tasks ?? []).filter(t => fams.includes(t.family_id)).length
-    if (eventCount === 0 && taskCount === 0) continue
+    const docCount = (docs ?? []).filter(d => fams.includes(d.family_id)).length
+    if (eventCount === 0 && taskCount === 0 && docCount === 0) continue
 
     const parts: string[] = []
     if (eventCount > 0) parts.push(`${eventCount} evento${eventCount !== 1 ? 's' : ''}`)
     if (taskCount > 0) parts.push(`${taskCount} tarea${taskCount !== 1 ? 's' : ''} pendiente${taskCount !== 1 ? 's' : ''}`)
 
+    // Lo que caduca va en frase aparte: no es de hoy, es un aviso con margen, y
+    // colarlo en "para hoy" haría correr por algo que aún no corre prisa.
+    const cuerpo = parts.length > 0 ? `Tenéis ${parts.join(' y ')} para hoy.` : ''
+    const caducan = docCount > 0
+      ? `${docCount} documento${docCount !== 1 ? 's' : ''} caduca${docCount !== 1 ? 'n' : ''} este mes.`
+      : ''
+
     const payload = JSON.stringify({
       title: 'Hoy en casa',
-      body: `Tenéis ${parts.join(' y ')} para hoy.`,
+      body: [cuerpo, caducan].filter(Boolean).join(' '),
       url: '/home',
     })
 

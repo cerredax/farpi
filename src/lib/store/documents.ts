@@ -20,6 +20,7 @@ export function createDocument(familyId: string, draft: DocumentDraft): Document
     storage_path: `mock/${Date.now()}_${safeName}.${ext}`,
     mime_type: draft.mime_type,
     size_bytes: draft.size_bytes,
+    expires_on: draft.expires_on || null,
     created_by: 'u1',
     created_at: now,
     updated_at: now,
@@ -37,6 +38,7 @@ export function updateDocument(id: string, draft: DocumentDraft): void {
       category: draft.category || null,
       child_id: draft.child_id,
       member_id: draft.member_id,
+      expires_on: draft.expires_on || null,
       updated_at: new Date().toISOString(),
     }
   )

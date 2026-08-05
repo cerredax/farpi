@@ -1,8 +1,8 @@
-import { extractDate, getLocalDateString, isSameLocalDay } from './date-utils'
+import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
 import { eventCoversDay, isVacation } from './events'
-import { MEAL_SLOTS, TASK_PRIORITIES } from './constants'
+import { DIAS_AVISO_CADUCIDAD, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
-import type { Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
+import type { Document, Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
 const TASK_PRIORITY_WEIGHT = Object.fromEntries(
   TASK_PRIORITIES.map((priority, index) => [priority.value, index])
@@ -295,4 +295,62 @@ export function selectUpcomingEvents(events: Event[], limit = 5, dias = 7): Even
     })
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
     .slice(0, limit)
+}
+
+/** Qué le pasa a un documento con su fecha de caducidad. `null` = no caduca. */
+export type EstadoCaducidad = 'caducado' | 'pronto' | 'vigente'
+
+/**
+ * Un papel caducado no avisa por su cuenta: el DNI vale hasta que un día no
+ * vale. Esto es lo que convierte la fecha guardada en algo que se ve venir, y
+ * lo comparten la tarjeta del documento y el recordatorio diario.
+ */
+export function selectExpiryState(
+  expiresOn: string | null,
+  today = getLocalDateString(),
+): EstadoCaducidad | null {
+  if (!expiresOn) return null
+  if (expiresOn < today) return 'caducado'
+  // Al mediodía, así que un cambio de hora no convierte 30 días en 29.
+  const dias = Math.round(
+    (parseLocalDate(expiresOn).getTime() - parseLocalDate(today).getTime()) / 86_400_000
+  )
+  return dias <= DIAS_AVISO_CADUCIDAD ? 'pronto' : 'vigente'
+}
+
+/**
+ * Busca texto libre en las tareas: título y notas. Con el tiempo la lista se
+ * hace larga y "¿apunté lo del seguro?" solo se contesta a base de scroll.
+ */
+export function selectTaskMatches(tasks: Task[], query: string): Task[] {
+  const consulta = normalizaParaBuscar(query.trim())
+  if (!consulta) return tasks
+  return tasks.filter(t =>
+    normalizaParaBuscar(`${t.title} ${t.notes ?? ''}`).includes(consulta)
+  )
+}
+
+/**
+ * Busca texto libre en los documentos: nombre y descripción. Es la carpeta que
+ * más crece y la que menos se mira, así que es donde antes se pierde algo.
+ */
+export function selectDocumentMatches(documents: Document[], query: string): Document[] {
+  const consulta = normalizaParaBuscar(query.trim())
+  if (!consulta) return documents
+  return documents.filter(d =>
+    normalizaParaBuscar(`${d.name} ${d.description ?? ''}`).includes(consulta)
+  )
+}
+
+/**
+ * Busca texto libre en los eventos: título y descripción, en todo el calendario
+ * y no solo en el tramo que se está viendo. "¿Cuándo fue la revisión?" es una
+ * pregunta sobre el pasado, y el pasado no se pinta.
+ */
+export function selectEventMatches(events: Event[], query: string): Event[] {
+  const consulta = normalizaParaBuscar(query.trim())
+  if (!consulta) return []
+  return events
+    .filter(e => normalizaParaBuscar(`${e.title} ${e.description ?? ''}`).includes(consulta))
+    .sort((a, b) => a.start_at.localeCompare(b.start_at))
 }

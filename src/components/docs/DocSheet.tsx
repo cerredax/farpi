@@ -22,6 +22,7 @@ const EMPTY_DRAFT: DocumentDraft = {
   member_id: null,
   mime_type: 'application/pdf',
   size_bytes: 0,
+  expires_on: '',
 }
 
 function initDraft(mode: 'create' | 'edit', initial: Document | null | undefined): DocumentDraft {
@@ -34,6 +35,7 @@ function initDraft(mode: 'create' | 'edit', initial: Document | null | undefined
       member_id:   initial.member_id,
       mime_type:   initial.mime_type,
       size_bytes:  initial.size_bytes,
+      expires_on:  initial.expires_on ?? '',
     }
   }
   return { ...EMPTY_DRAFT }
@@ -237,6 +239,20 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
             value={draft.description}
             onChange={e => patch({ description: e.target.value })}
             placeholder="Ej: Revisión 2026"
+            className="field-input"
+          />
+        </Field>
+
+        {/* Opcional a propósito: la mayoría de documentos no caducan y obligar a
+            poner fecha convertiría subir un papel en un interrogatorio. Los que
+            sí caducan —DNI, seguro, ITV— son justo los que se pasan sin avisar,
+            y de esta fecha tira el aviso diario. */}
+        <Field label="Caduca el" htmlFor="doc-expires" hint="(opcional)">
+          <input
+            id="doc-expires"
+            type="date"
+            value={draft.expires_on}
+            onChange={e => patch({ expires_on: e.target.value })}
             className="field-input"
           />
         </Field>

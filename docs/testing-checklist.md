@@ -6,6 +6,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 - [ ] `npm run lint` termina sin errores y sin warnings relevantes.
 - [ ] `npm run build` termina correctamente.
+- [ ] `npm run test:unit` — 150 tests de lógica pura, sin servidor (~0,6 s).
+- [ ] `npm run test:e2e` — la suite entera: los 150 unitarios más 48 de navegador.
 - [ ] No hay archivos temporales afectando a lint.
 
 ## 1. Login demo
@@ -152,9 +154,13 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 ## 15. Supabase aislado
 
-Ejecutar en proyecto Supabase de prueba, sin conectar todavía toda la UI.
+> Esta lista está **automatizada** en `scripts/validate-rls.mjs`, que la recorre con
+> sesiones de usuario reales y crea y borra sus propios usuarios y familias de
+> prueba. Ejecutarlo (`node scripts/validate-rls.mjs`) es más fiable que ir a mano, y
+> es lo que pide `CLAUDE.md` después de tocar una migración, una policy o una RPC.
+> Lo de abajo queda como referencia de qué cubre.
 
-- [ ] Migraciones 001–009 aplicadas en orden.
+- [ ] Migraciones 001–016 aplicadas en orden.
 - [ ] Tablas, índices y triggers existen.
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.
@@ -168,6 +174,8 @@ Ejecutar en proyecto Supabase de prueba, sin conectar todavía toda la UI.
 - [ ] Trigger rechaza `list_item` con `family_id` y `list_id` de familias distintas.
 - [ ] Trigger rechaza `event` con `child_id` de otra familia.
 - [ ] Trigger rechaza `document` con `child_id` de otra familia.
+- [ ] Trigger rechaza `task` con `child_id` de otra familia (migración 015).
+- [ ] Trigger rechaza `task` con `member_id` de otra familia (migración 015).
 - [ ] Bucket `documents` es privado.
 - [ ] Usuario de la familia puede leer su documento.
 - [ ] Usuario de otra familia no puede leer el documento aunque conozca el path.

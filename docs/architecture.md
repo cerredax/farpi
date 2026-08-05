@@ -53,6 +53,7 @@ Estado:
 - UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
+- Migraciones 001–016 aplicadas. Las 015 y 016 entraron el 2026-08-05 y **están pendientes de revalidar**: `node scripts/validate-rls.mjs` pasa de 47 a 51 comprobaciones, con las de los triggers de `tasks` y las del perfil del miembro.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
@@ -71,6 +72,16 @@ Migraciones:
 - `011_account_deletion.sql` — `created_by` pasa a nullable (`on delete set null`)
 - `012_member_assignment.sql` — `member_id` en `events` y `documents`, para asignar a adultos y no solo a hijos
 - `013_event_kind.sql` — `kind` en `events` (`evento` | `vacaciones`), con `check` que obliga a las vacaciones a tener día final
+- `014_member_profile.sql` — `color` en `family_members` y RPC `update_family_member_profile`, que sustituye a `update_my_family_profile`
+- `015_task_assignment.sql` — `child_id`, `member_id` y `completed_by` en `tasks`, con el mismo `check` de exclusión que eventos y documentos, y los triggers cross-family correspondientes
+- `016_document_expiry.sql` — `expires_on` en `documents` (nullable) e índice por `(family_id, expires_on)`
+
+Se aplican a mano por el SQL Editor: no hay CLI de Supabase enlazada, así que los
+ficheros numerados son el único registro de qué se aplicó y en qué orden.
+`all_in_one.sql` es la concatenación de todas para levantar un proyecto de cero, y
+**está generado** por `scripts/gen-all-in-one.mjs` (con `--check` avisa si se ha
+quedado atrás). Antes se mantenía a mano, con el riesgo evidente de que dejara de
+coincidir en silencio.
 
 Regla central de RLS:
 
@@ -248,9 +259,14 @@ Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), q
 - Invitaciones: **magic link** (`inviteUserByEmail` + `/auth/callback?invite_id`).
 - Familia activa: sesión Supabase + tabla `family_members`, resuelta en `AppShell` y persistida con `family-config`.
 - `StoreProvider` migrado a acciones async (Fase 5, hecho).
-- Tests e2e smoke con `@playwright/test` añadidos (Fase 8).
+- Tests con `@playwright/test`, un solo runner para dos cosas: 150 unitarios de
+  lógica pura en `e2e/unit/` (sin servidor, ~0,6 s) y 48 de navegador. Se eligió así
+  para no añadir una dependencia más solo por los unitarios.
+- Migración a tokens de color completada (2026-08-03): de 109 apariciones a 36. Lo
+  que queda literal son datos, marca de terceros y decorativos de un solo uso.
 
 ## Decisiones pendientes
 
 - Si el modo demo será permanente o solo de desarrollo/pruebas.
-- Alcance de la migración a tokens de color (refactor de UI, sin urgencia).
+- Si se publica en Google Play como TWA. Afecta poco al código (assetlinks y package
+  name), pero fija el dominio para siempre.

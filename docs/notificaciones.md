@@ -12,7 +12,10 @@ Estado y pasos para activar los recordatorios por notificación push.
 
 La UI solo ofrece activar cuando hay **backend real** y **clave VAPID pública**; si no, muestra "Estarán disponibles próximamente".
 
-## Qué falta para que funcione (pendiente)
+## Qué falta para que funcione
+
+Solo los pasos 1 y 2: **generar las claves VAPID y ponerlas en Vercel**. Todo lo
+demás (la migración, el emisor y el cron) ya está hecho y funcionando.
 
 ### 1. Generar claves VAPID (una vez)
 ```bash
@@ -35,8 +38,40 @@ activar avisos sigue sin aparecer.
 
 Con `NEXT_PUBLIC_VAPID_PUBLIC_KEY` presente, la tarjeta de Ajustes ya deja **activar** y guarda la suscripción en `push_subscriptions`.
 
-### 3. Aplicar la migración
-Ejecutar `010_push_subscriptions.sql` (o el `all_in_one.sql` actualizado) en Supabase.
+### 3. Aplicar la migración (hecho)
+`010_push_subscriptions.sql` ya está aplicada en el proyecto real, con la tabla
+`push_subscriptions` y su RLS por usuario verificadas en la validación del
+2026-08-03.
+
+### 3 bis. Probarlo en local antes de tocar producción
+
+**Este camino no se ha ejecutado nunca.** Sin claves VAPID el emisor sale por el
+`skipped` en la primera línea, así que conviene verlo funcionar en local antes de
+poner nada en Vercel. Con las tres variables (más `CRON_SECRET`) en `.env.local`:
+
+```bash
+npm run dev
+```
+
+1. Ajustes → **Activar notificaciones**. Eso guarda una suscripción real en
+   `push_subscriptions` de la base de producción, porque `.env.local` apunta ahí. Es
+   la acción normal de un usuario y se deshace con el botón de desactivar.
+2. Dispara el cron a mano (PowerShell):
+
+```powershell
+Invoke-RestMethod http://localhost:3000/api/cron/reminders -Headers @{ Authorization = "Bearer TU_CRON_SECRET" }
+```
+
+Cómo leer la respuesta:
+
+- `{ sent: 1 }` — ha salido. Mira el móvil o el escritorio.
+- `{ sent: 0, fallidos: 0 }` — no había nada que contar. Es lo normal si hoy no
+  tienes ningún evento, ninguna tarea que venza ni ningún documento por caducar:
+  crea uno y repite.
+- `{ sent: 0, fallidos: 2 }` — los envíos fallaron. El motivo sale por consola
+  (`[cron] Envío push fallido: …`), normalmente una clave mal pegada.
+- `{ skipped: 'VAPID no configurado' }` — faltan variables, o no reiniciaste `dev`
+  después de tocar `.env.local`.
 
 ### 4. El emisor de recordatorios (hecho)
 Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `vercel.json` (**cron diario a las 07:00 UTC**). Cada ejecución:
@@ -52,4 +87,9 @@ Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
 
 ## Notas
 - iOS soporta Web Push solo si la PWA está **instalada** en la pantalla de inicio (iOS 16.4+).
+  En una pestaña normal de Safari no existe `PushManager`, así que la tarjeta de Ajustes
+  detecta el caso (`iosSinInstalar()` en `src/lib/push.ts`) y explica cómo añadirla a la
+  pantalla de inicio, en vez de decir que el navegador no admite notificaciones.
 - Cada dispositivo/navegador genera su propia suscripción; por eso la tabla es por `endpoint`.
+- El aviso diario no cuenta las vacaciones como evento del día, igual que
+  `selectTodayEvents`: son del calendario, no un plan de hoy.

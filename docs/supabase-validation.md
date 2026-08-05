@@ -1,6 +1,14 @@
 # Validación Supabase
 
-Última revisión: 2026-08-03. **Fase 3 cerrada: 47/47 comprobaciones correctas.**
+Última ejecución: 2026-08-03. **47/47 comprobaciones correctas.**
+
+> **Hay una pasada pendiente.** Desde entonces han entrado las migraciones 014, 015
+> y 016. La 014 se verificó a mano contra la base real el 04-08-2026 (existe la
+> columna, responde la RPC nueva y la vieja está borrada), pero las 015 y 016 se
+> aplicaron el 05-08-2026 sin volver a pasar el arnés. La siguiente ejecución son
+> **51 comprobaciones** (contadas en el script, no ejecutadas): las 47 de agosto, más
+> dos de los triggers cross-family de `tasks` y dos del perfil que trajo la 014. Ver
+> "Pendiente" al final.
 
 ## Estado
 
@@ -29,6 +37,11 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `009_accept_invite_rpc.sql` — `accept_family_invite(p_invite_id uuid)`
 - [x] `010_push_subscriptions.sql` — tabla `push_subscriptions`
 - [x] `011_account_deletion.sql` — `created_by` es nullable en las tablas de contenido
+- [x] `012_member_assignment.sql` — `member_id` en `events` y `documents` *(comprobado a mano el 04-08-2026, no por el arnés)*
+- [x] `013_event_kind.sql` — `kind` en `events` *(comprobado a mano el 04-08-2026)*
+- [x] `014_member_profile.sql` — `family_members.color` y `update_family_member_profile`; `update_my_family_profile` ya no existe *(comprobado a mano el 04-08-2026)*
+- [ ] `015_task_assignment.sql` — aplicada el 05-08-2026, **sin validar**
+- [ ] `016_document_expiry.sql` — aplicada el 05-08-2026, **sin validar**
 
 ## Validación RLS
 
@@ -58,7 +71,7 @@ Detalle importante: los intentos de lectura ajena **no dan error, devuelven list
 
 - [x] `create_family_with_admin` — crea la familia y deja al llamante como `admin`
 - [x] `update_my_family_profile` — A edita su perfil; el intento de B no cambia nada
-  *(sustituida el 04-08-2026 por `update_family_member_profile`, migración 014: pendiente de revalidar)*
+  *(sustituida el 04-08-2026 por `update_family_member_profile`, migración 014. El script ya apunta a la nueva; pendiente de ejecutar)*
 - [x] `remove_family_member`
 - [x] `update_family_member_role`
 - [x] `accept_family_invite`
@@ -98,7 +111,27 @@ Los tres devuelven 400 desde el trigger de `007_cross_family_integrity.sql`.
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-No queda ninguna comprobación pendiente en esta fase.
+De lo que se ejecutó el 2026-08-03 no quedó nada pendiente. Lo que falta es volver a
+ejecutarlo con lo que ha entrado después.
+
+## Pendiente
+
+Ejecutar `node scripts/validate-rls.mjs` y anotar aquí el resultado. Lo que cubre de
+nuevo respecto a la pasada de agosto (cuatro comprobaciones, 47 → 51):
+
+- [ ] No se puede crear una `task` con `child_id` de otra familia (trigger de la 015).
+- [ ] No se puede crear una `task` con `member_id` de otra familia (trigger de la 015).
+- [ ] El color elegido en `update_family_member_profile` queda guardado (014).
+- [ ] `update_family_member_profile` rechaza un nombre vacío (014).
+
+Las dos comprobaciones que ya existían sobre el perfil siguen ahí, pero ahora
+apuntan a `update_family_member_profile` en vez de a la desaparecida
+`update_my_family_profile`.
+
+Sin comprobación automática, pero conviene mirarlo en la misma pasada:
+
+- [ ] `documents.expires_on` (016) no rompe ninguna policy: es una columna nullable
+  más, así que debería seguir aislando igual.
 
 ### Notas de la ejecución
 

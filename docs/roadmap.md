@@ -38,13 +38,14 @@ Lo que salió y se arregló está en el commit correspondiente: el color repetid
 entre un adulto y un hijo, títulos de tarea comidos por las etiquetas, "Sin
 planes" en un día que sí tenía tareas y cinco controles demasiado pequeños.
 
-**Sigue necesitando un teléfono en la mano** (no lo puede ver ni Playwright ni
-Chromium):
+**Probada en un móvil real el 2026-08-05, sin incidencias.** Es lo que ni
+Playwright ni Chromium podían ver, porque la suite corre sobre un Pixel 7
+*emulado*: emulación no tiene teclado que se abra ni inercia de scroll.
 
-- [ ] Teclado real abriéndose sobre un sheet: que el footer fijo no lo tape.
-- [ ] Safari de iOS, que es otro motor. La suite corre en Chromium.
+- [x] Teclado real abriéndose sobre un sheet: el footer fijo no lo tapa.
+- [x] Scroll con inercia y toques accidentales al pasar el dedo por las filas.
+- [ ] Safari de iOS, si la prueba fue en Android: es otro motor.
 - [ ] PWA instalada: icono, splash, safe-area del notch y la barra inferior.
-- [ ] Scroll con inercia y toques accidentales al pasar el dedo por las filas.
 
 Documento guía: `docs/testing-checklist.md`
 
@@ -67,7 +68,12 @@ SQL Editor, así que valida el mismo trayecto que recorre la app. Resultados en
 
 No es una fase que se cierre para siempre: se repite con
 `node scripts/validate-rls.mjs` después de tocar una migración, una policy o una
-RPC. **Pendiente ahora mismo**: aplicar 015 y 016 en Supabase y volver a pasarlo.
+RPC.
+
+**Pendiente ahora mismo**: 015 y 016 ya están aplicadas en Supabase (05-08-2026),
+así que queda volver a pasar el script y anotar el resultado. Serán **51
+comprobaciones** en vez de 47: dos nuevas de los triggers cross-family de `tasks`
+(015) y dos del perfil del miembro (014).
 
 ## Fase 4 - Repositorios Supabase ✅
 
@@ -113,7 +119,25 @@ Objetivo: convertir invitaciones mock en flujo usable.
 Objetivo: preparar uso diario.
 
 - ✅ PWA: iconos any + maskable + apple-touch, manifest con purposes y service worker offline (fallback `/offline`).
-- Mejoras responsive.
-- ✅ Tests e2e con `@playwright/test` (smoke demo: login → /home). Ejecutar con `npm run test:e2e`.
+- ✅ Mejoras responsive (lo que salió de la Fase 2, arreglado el 05-08-2026).
+- ✅ Tests: 198 con el runner de Playwright — 150 unitarios (`npm run test:unit`) y
+  48 de navegador entre `smoke`, `runtime` y `movil` (`npm run test:e2e`).
 - ✅ Revisión de accesibilidad: BottomSheet como diálogo (role/aria/Escape/foco/inert), botones de icono etiquetados y label↔input asociados en los sheets.
-- Backup/export sencillo si se considera necesario.
+- [ ] Medir el contraste de la paleta. Es lo único de accesibilidad que quedó sin
+  comprobar, y es lo único que no se ve leyendo el código.
+- [ ] Backup/export sencillo si se considera necesario.
+
+## Fase 9 - Uso diario
+
+Objetivo: que la app funcione sola, sin nadie mirándola.
+
+- [ ] **Un teléfono de verdad.** Los cuatro puntos abiertos de la Fase 2. Es lo
+  primero, porque es lo que puede sacar un fallo que no ve ninguna herramienta.
+- [ ] **Notificaciones push.** El código está entero; faltan las claves VAPID en
+  Vercel (`node scripts/gen-vapid.cjs`) y un redespliegue. Ver `docs/notificaciones.md`.
+- [ ] **Confirmar el cron automático** de las 07:00 UTC en los logs de Vercel. La
+  llamada manual ya responde `keptAlive: true`.
+- [ ] **Revalidar RLS** tras las migraciones 015 y 016 (Fase 3, 51 comprobaciones).
+- [ ] **Google Play (TWA)**, si se decide publicar: package name, SHA-256 de la
+  firma, `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`. La PWA
+  y la política de privacidad ya están.

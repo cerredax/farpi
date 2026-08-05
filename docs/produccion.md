@@ -2,13 +2,13 @@
 
 Estado y pasos para llevar Nido a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-08-04.
+> Última actualización: 2026-08-05.
 
 ---
 
 ## 1. Resumen del estado
 
-La app está **funcionalmente completa** y verificada (build, lint y 14 tests e2e en verde):
+La app está **funcionalmente completa** y verificada (build, lint y 198 tests en verde: 150 unitarios y 48 de navegador):
 
 - Supabase conectado de extremo a extremo: auth, repositorios reales, store async.
 - Onboarding, invitaciones por magic link, gestión de miembros y roles.
@@ -35,7 +35,7 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 
 - [x] `CRON_SECRET` — **obligatoria para que el cron diario funcione**. Cualquier cadena larga y aleatoria. Vercel la envía sola en la cabecera `Authorization` cuando la variable se llama así. Sin ella, `/api/cron/reminders` responde 503 y no se ejecuta el keep-alive de Supabase. *(Añadida el 04-08-2026; el endpoint responde 200 con `keptAlive: true`.)*
 
-- [ ] `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` — *(opcional)* sin ellas las notificaciones push quedan desactivadas: el botón de activarlas no aparece (`src/lib/push.ts`) y el cron responde `skipped: 'VAPID no configurado'` pero mantiene el keep-alive. Se generan con `npx web-push generate-vapid-keys`.
+- [ ] `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` — *(opcional)* sin ellas las notificaciones push quedan desactivadas: el botón de activarlas no aparece (`src/lib/push.ts`) y el cron responde `skipped: 'VAPID no configurado'` pero mantiene el keep-alive. Se generan con `node scripts/gen-vapid.cjs`, que las imprime ya con el nombre de cada variable. Después de guardarlas hay que **volver a desplegar**: las `NEXT_PUBLIC_*` se hornean en el build.
 
 > La lista completa, incluidas las de notificaciones push (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), `CRON_SECRET` y `NIDO_TIME_ZONE`, está en **`.env.example`** en la raíz del repositorio. Ese fichero es la plantilla de referencia: no lo lee ningún código, pero es el inventario de lo que la app necesita.
 
@@ -46,7 +46,7 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 
 ### 2.2 Supabase — base de datos
 
-- [x] Migraciones `001`–`013` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012).
+- [x] Migraciones `001`–`016` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012) y `family_members.color` (014). Las 015 y 016 se aplicaron el 05-08-2026 y están **pendientes de revalidar** con `node scripts/validate-rls.mjs` (§4).
 - [x] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
 - [x] RLS activo en todas las tablas privadas.
 
@@ -76,6 +76,10 @@ Build local de comprobación: `npm run build`.
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-03)
 
 Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas. Repetible con `node scripts/validate-rls.mjs`.
+
+> **Pendiente de repetir.** Las migraciones 015 y 016 entraron el 05-08-2026 y no se
+> han revalidado. La siguiente pasada son 51 comprobaciones: cuatro más que en
+> agosto, entre los triggers de `tasks` (015) y el perfil del miembro (014).
 
 - [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
@@ -111,15 +115,22 @@ Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas.
 ### Recomendadas (no bloqueantes)
 - [x] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
 - [x] `CRON_SECRET` en Vercel y cron respondiendo 200 (04-08-2026).
+- [ ] Revalidar RLS tras las migraciones 015 y 016 (§4).
 - [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).
 - [ ] Claves VAPID si se quieren notificaciones push reales (§2.1).
 - [ ] Comprobar en los logs de Vercel que la ejecución automática de las 07:00 UTC devuelve `keptAlive: true` (la manual ya lo hace).
+- [x] Pasar la app por un móvil de verdad (05-08-2026): sin incidencias. Quedan
+  sueltos Safari de iOS y la PWA instalada, según el móvil de la prueba. Ver
+  `roadmap.md`, Fase 2.
 
 ### Mejoras futuras (opcional)
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).
-- [ ] Backup/export de datos de la familia.
 - [x] Tokenizar los colores one-off (hecho 2026-08-03: 109 → 36 apariciones).
-- [ ] Tests e2e de flujos CRUD completos (hoy hay smoke + apertura de sheets).
+- [x] Tests e2e de flujos CRUD (`e2e/runtime.spec.ts`) y de móvil a 390 px (`e2e/movil.spec.ts`).
+- [ ] Backup/export de datos de la familia.
+- [ ] Publicar en Google Play como TWA: package name, SHA-256 de la firma,
+  `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`.
+- [ ] Medir el contraste de la paleta.
 
 ---
 

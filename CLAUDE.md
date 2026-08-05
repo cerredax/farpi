@@ -1,17 +1,48 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guía para Claude Code (claude.ai/code) y para cualquier otro agente que trabaje en
+este repositorio. Es el único sitio con las reglas: `AGENTS.md` solo apunta aquí.
+
+La documentación está en español; escribe código, comentarios y docs en español.
+
+## Producto
+
+Nido es una app familiar privada, mobile-first y de alcance pequeño. Debe responder
+rápido a una pregunta:
+
+> ¿Qué tenemos que saber hoy en casa?
+
+Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 
 ## Lee primero
 
-- `AGENTS.md` — reglas de trabajo obligatorias (producto, calidad, límites).
 - `docs/project-status.md` — estado real y pendientes (fuente de verdad).
 - `docs/architecture.md` — decisiones técnicas, RLS, RPCs, repositorios.
 - `docs/roadmap.md` — orden de trabajo.
-- `docs/testing-checklist.md` — QA manual.
-- `docs/produccion.md` — checklist de despliegue (Vercel + Supabase).
+- `docs/testing-checklist.md` — QA manual, y qué está ya automatizado.
+- `docs/produccion.md` — checklist de despliegue (Vercel + Supabase) y variables de entorno.
+- `docs/supabase-validation.md` — resultado de la última validación de RLS.
+- `docs/notificaciones.md` — qué falta para activar las notificaciones push.
 
-Sigue las reglas de `AGENTS.md`. La documentación está en español; escribe código, comentarios y docs en español.
+## Reglas de trabajo
+
+- **Supabase está conectado y en producción con datos reales de una familia.** No
+  ejecutar nada que escriba o borre en la base real salvo petición explícita. La
+  excepción es `scripts/validate-rls.mjs`, que crea y borra sus propios usuarios y
+  familias de prueba sin tocar los datos de nadie. Ojo: local y producción apuntan
+  al **mismo** proyecto Supabase, no hay entorno de desarrollo separado.
+- Mantener el modo demo/mock funcionando: es el fallback sin credenciales y el
+  entorno donde corre la suite e2e.
+- Mobile-first siempre. No cambiar el diseño visual de forma amplia sin confirmación.
+- No introducir backend complejo, Docker, NestJS, librerías pesadas de validación ni
+  arquitectura grande. No sobrerrefactorizar.
+- Si tocas lógica pura (fechas, recurrencia, selectores, validadores), añade o ajusta
+  su test en `e2e/unit/` y ejecuta `npm run test:unit`.
+- Si cambias un flujo del mock, comprueba la persistencia en `localStorage`.
+- Si tocas una migración, una policy o una RPC: ejecuta `node scripts/validate-rls.mjs`
+  y actualiza `docs/supabase-validation.md`.
+- Para cambios relevantes, ejecuta `npm run lint` y `npm run build`.
+- Si aparecen warnings por archivos temporales, límpialos o exclúyelos.
 
 ## Comandos
 
@@ -19,17 +50,16 @@ Sigue las reglas de `AGENTS.md`. La documentación está en español; escribe c�
 npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # tests unitarios de lógica pura (~0,6 s, sin servidor)
-npm run test:e2e       # suite completa: unitarios + e2e (levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 150 tests de lógica pura (~0,6 s, sin servidor)
+npm run test:e2e       # suite completa: unitarios + 48 de navegador (levanta dev en :3100 en modo demo forzado)
 
-node scripts/validate-rls.mjs                    # validación manual de RLS/RPCs contra el Supabase real
+node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
+node scripts/gen-all-in-one.mjs    # regenera supabase/all_in_one.sql (--check solo comprueba)
 
 npx playwright test e2e/smoke.spec.ts            # un solo archivo
 npx playwright test -g "nombre del test"         # un solo test por título
 npx playwright test --ui                         # modo interactivo
 ```
-
-Para cambios relevantes, ejecutar `npm run lint` y `npm run build`.
 
 Variables de entorno: la plantilla con todas las que usa la app está en `.env.example`
 (no la carga Next, es documentación). Las reales van en `.env.local`, que no se versiona.
@@ -72,16 +102,17 @@ Pantallas (src/components/**)
 
 ### Base de datos
 
-`supabase/migrations/001…011` (más `all_in_one.sql` para aplicar de golpe y `validate_rls.sql` para validar). Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
+`supabase/migrations/001…016`. Se aplican a mano por el SQL Editor (no hay CLI de Supabase enlazada). `all_in_one.sql` es la concatenación de las 16 para levantar un proyecto de cero: **está generado**, no se edita a mano (`node scripts/gen-all-in-one.mjs`, y `--check` avisa si se ha quedado atrás).
+
+Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
 
 Lo que **no** se hace con policies va por RPC `security definer`: `create_family_with_admin`, `update_family_member_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`. Regla del último admin (una familia siempre tiene ≥1 admin) validada en esas RPCs y en `/api/account/delete`; la UI solo la refuerza.
 
-Si tocas una migración: actualiza tipos en `src/types/index.ts`, el mock y la documentación.
+Si tocas una migración: actualiza tipos en `src/types/index.ts`, el mock y la documentación, y regenera `all_in_one.sql`.
 
 ## Convenciones de código
 
 - Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`.
-- Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo). No crear overlays propios.
+- Contratos de repositorios en `src/lib/repos/types.ts`.
+- Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - Tailwind v4 (sin `tailwind.config`; tokens en `src/app/globals.css`).
-- Mobile-first siempre. No cambiar el diseño visual de forma amplia sin confirmación.
-- No añadir librerías pesadas de validación, backend complejo, Docker ni NestJS. No sobrerrefactorizar.

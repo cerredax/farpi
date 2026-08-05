@@ -34,7 +34,7 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 
 ### Backend / migraciones
 
-- Migraciones Supabase aplicadas/preparadas (001–014).
+- Migraciones Supabase aplicadas/preparadas (001–016). **015 y 016 están escritas pero aún no aplicadas en el proyecto real.**
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
@@ -46,6 +46,8 @@ Nido está conectado a Supabase de extremo a extremo: autenticación, repositori
 - Asignación de eventos y documentos a cualquier miembro de la familia, no solo a hijos (migración 012).
 - Vacaciones: eventos de varios días por persona, pintados como franja en el calendario (migración 013). Solo se ven en el calendario: fuera de la lista de eventos y de los planes de hoy.
 - Perfil del miembro: nombre editable también por el admin, y color propio elegible como el de los hijos (migración 014).
+- Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó (migración 015).
+- Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario (migración 016).
 - Script `supabase/validate_rls.sql` para validar RLS, RPCs, triggers e invitaciones desde SQL Editor.
 
 ### Calidad / infraestructura
@@ -95,7 +97,11 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Pendientes de validación Supabase
 
-Ninguno. Repetir con `node scripts/validate-rls.mjs` tras cambios de esquema, policies o RPCs.
+**Aplicar las migraciones 015 y 016** en el proyecto real (`supabase/migrations/`, o el
+`all_in_one.sql` si el proyecto estuviera vacío) y volver a pasar
+`node scripts/validate-rls.mjs`, que ahora debería cubrir también los triggers
+cross-family de `tasks`. Hasta entonces, asignar una tarea o poner caducidad a un
+documento funciona en modo demo pero falla contra Supabase: las columnas no existen.
 
 ## Cerrado el 2026-08-04
 
@@ -110,35 +116,33 @@ Ninguno. Repetir con `node scripts/validate-rls.mjs` tras cambios de esquema, po
 - **Invitación de punta a punta probada con éxito** en producción: el correo llega, el
   enlace da de alta en la familia y la persona ve los datos.
 - Migración 014 verificada en la base real (ver "Estado Supabase").
-- Bug de zona horaria corregido: los eventos se guardaban bien pero se leían en UTC, y
-  el error se acumulaba en cada edición. Ver el punto 1 de "Siguiente paso".
+- Bug de zona horaria corregido, código y datos: los eventos se guardaban bien pero se
+  leían en UTC, y el error se acumulaba en cada edición. Las horas que habían quedado
+  desplazadas ya están corregidas en producción.
 
 ## Siguiente paso recomendado
 
 ### Verificar en producción
 
-1. **Corregir las horas desplazadas** de los eventos que se editaron antes del arreglo
-   del 04-08-2026. `extractTime`/`extractDate` cortaban el string en vez de convertir la
-   zona, así que cada edición restaba el desfase (dos horas en verano) *en la base de
-   datos*. El código ya no lo hace; los datos torcidos siguen ahí.
-2. **Que el cron corra solo** a las 07:00 UTC (la llamada manual ya va). Revisar los
+1. **Que el cron corra solo** a las 07:00 UTC (la llamada manual ya va). Revisar los
    logs de Vercel.
-3. **QA visual en un móvil real** (Fase 2 del roadmap, nunca hecha). El 04-08-2026 se
+2. **QA visual en un móvil real** (Fase 2 del roadmap, nunca hecha). El 04-08-2026 se
    rehicieron Inicio, Listas, Comidas y Calendario; está verificado con tests y capturas
    de Chromium, que no es un teléfono en la mano.
 
 ### Decisiones abiertas
 
-4. **Notificaciones push**: el código está completo y `CRON_SECRET` ya está puesta;
-   solo faltan las claves VAPID en Vercel. Sin ellas el botón de activarlas no aparece
-   y el cron responde `skipped: 'VAPID no configurado'`. Decidir si se activan.
-5. **Google Play (TWA)**: falta el package name definitivo,
+3. **Notificaciones push**: el código está completo y `CRON_SECRET` ya está puesta.
+   Las claves VAPID se generan con `node scripts/gen-vapid.cjs`; falta ponerlas en
+   Vercel. Sin ellas el botón de activarlas no aparece y el cron responde
+   `skipped: 'VAPID no configurado'`. Ver `docs/notificaciones.md`.
+4. **Google Play (TWA)**: falta el package name definitivo,
    `public/.well-known/assetlinks.json` (necesita el SHA-256 de la firma) y la guía
    `docs/play-store.md`. La PWA y la política de privacidad ya están.
 
 ### Después
 
-6. Revisión de accesibilidad (labels, foco, contraste, roles).
-7. Backup/export de datos de la familia.
-8. Decidir si se borra `supabase/validate_rls.sql`, redundante con
+5. Revisión de accesibilidad (labels, foco, contraste, roles).
+6. Backup/export de datos de la familia.
+7. Decidir si se borra `supabase/validate_rls.sql`, redundante con
    `scripts/validate-rls.mjs`.

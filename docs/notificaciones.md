@@ -16,9 +16,16 @@ La UI solo ofrece activar cuando hay **backend real** y **clave VAPID pública**
 
 ### 1. Generar claves VAPID (una vez)
 ```bash
-npx web-push generate-vapid-keys
+node scripts/gen-vapid.cjs
 ```
-Da una **public key** y una **private key**.
+Imprime el par de claves ya con el nombre de cada variable, listo para copiar.
+No caducan y **no se rotan**: cambiarlas invalida todas las suscripciones que
+ya existen y obliga a cada persona a volver a activar los avisos. La privada va
+donde guardes las contraseñas, nunca en el repositorio.
+
+Después de guardarlas en Vercel hay que **volver a desplegar**: las variables
+`NEXT_PUBLIC_*` se incrustan en el build, así que sin redeploy el botón de
+activar avisos sigue sin aparecer.
 
 ### 2. Variables de entorno (local y Vercel)
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` — la pública (la usa el cliente para suscribirse).
@@ -34,7 +41,7 @@ Ejecutar `010_push_subscriptions.sql` (o el `all_in_one.sql` actualizado) en Sup
 ### 4. El emisor de recordatorios (hecho)
 Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `vercel.json` (**cron diario a las 07:00 UTC**). Cada ejecución:
 1. Hace un **keep-alive** a Supabase (evita la pausa por inactividad del plan free).
-2. Lee `push_subscriptions`, agrupa por usuario y busca sus eventos de hoy y tareas pendientes que vencen (o vencidas).
+2. Lee `push_subscriptions`, agrupa por usuario y busca sus eventos de hoy, sus tareas pendientes que vencen (o vencidas) y los documentos que caducan dentro de `DIAS_AVISO_CADUCIDAD` (30 días, en `src/lib/constants.ts`).
 3. Envía el push con `web-push` (payload `{ title, body, url }`).
 4. Borra las suscripciones caducadas (respuesta 404/410).
 

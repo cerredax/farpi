@@ -32,26 +32,26 @@ Objetivo: detectar problemas baratos de corregir antes de depender de datos real
 
 Documento guía: `docs/testing-checklist.md`
 
-## Fase 3 - Validación Supabase ← PENDIENTE (manual)
+## Fase 3 - Validación Supabase ✅
 
-Objetivo: validar base de datos, RLS, RPCs y Storage en el Dashboard / SQL Editor. La UI ya está conectada; esto es la verificación de seguridad, aún sin ejecutar/documentar.
+Objetivo: validar base de datos, RLS, RPCs y Storage contra el proyecto real.
 
-- ✅ Crear proyecto Supabase.
-- ✅ Subir migraciones base.
-- [ ] Confirmar orden y aplicación de migraciones 001–009.
-- [ ] Revisar tablas, columnas, índices y triggers.
-- [ ] Revisar policies RLS.
-- [ ] Probar RPC `create_family_with_admin`.
-- [ ] Probar RPC `update_family_member_profile` (uno mismo, admin sobre otro, ajeno rechazado).
-- [ ] Probar RPC `remove_family_member`.
-- [ ] Probar RPC `update_family_member_role`.
-- [ ] Probar RPC `accept_family_invite`.
-- [ ] Crear dos usuarios.
-- [ ] Crear dos familias.
-- [ ] Verificar aislamiento por RLS.
-- [ ] Verificar bucket privado `documents`.
-- [ ] Ejecutar o completar `supabase/validate_rls.sql`.
-- [ ] Documentar resultados en `docs/supabase-validation.md`.
+**Cerrada el 2026-08-03 con 47/47 comprobaciones correctas.** Se hizo con
+sesiones de usuario reales (JWT → PostgREST → RLS), no con `set role` desde el
+SQL Editor, así que valida el mismo trayecto que recorre la app. Resultados en
+`docs/supabase-validation.md`.
+
+- ✅ Crear proyecto Supabase y subir migraciones.
+- ✅ Tablas, columnas, índices, triggers y policies revisados.
+- ✅ RPCs probadas: `create_family_with_admin`, `update_family_member_profile`,
+  `remove_family_member`, `update_family_member_role`, `accept_family_invite`.
+- ✅ Aislamiento entre dos familias con dos usuarios reales.
+- ✅ Bucket privado `documents` y signed URLs.
+- ✅ Resultados documentados.
+
+No es una fase que se cierre para siempre: se repite con
+`node scripts/validate-rls.mjs` después de tocar una migración, una policy o una
+RPC. **Pendiente ahora mismo**: aplicar 015 y 016 en Supabase y volver a pasarlo.
 
 ## Fase 4 - Repositorios Supabase ✅
 

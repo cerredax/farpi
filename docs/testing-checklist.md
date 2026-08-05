@@ -45,6 +45,7 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Eventos de todo el día no se desplazan de día.
 - [ ] En la semana (móvil) salen también las tareas que vencen, y se pueden marcar allí.
 - [ ] Una tarea vencida antes de hoy aparece en el día de hoy marcada como "Atrasada".
+- [ ] El buscador del calendario encuentra eventos pasados, no solo los del tramo pintado.
 
 ## 5. Tareas
 
@@ -55,6 +56,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Las prioridades se distinguen visualmente.
 - [ ] Al marcar una tarea sale el aviso "Hecho · Deshacer" y se va solo a los 6 s.
 - [ ] Deshacer devuelve la tarea: la normal se desmarca y la que se repite recupera su fecha.
+- [ ] Se puede asignar una tarea a un adulto o a un hijo, y el nombre sale en la lista.
+- [ ] El buscador de tareas aparece al pasar de 5 y filtra por título y notas.
 
 ## 6. Listas
 
@@ -89,6 +92,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede borrar documento.
 - [ ] Se puede asociar documento a familia o hijo.
 - [ ] Filtros por categoría funcionan.
+- [ ] El buscador filtra por nombre y descripción, y manda sobre la categoría abierta.
+- [ ] Un documento con caducidad la enseña en su tarjeta: ámbar dentro de 30 días, rojo si ya pasó.
 - [ ] Solo se aceptan PDF, JPG y PNG.
 - [ ] Archivo inválido muestra error.
 - [ ] Archivo mayor de 20 MB muestra error.

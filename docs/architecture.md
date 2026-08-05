@@ -116,11 +116,15 @@ en servidor, la invitación se perdía en silencio y el usuario quedaba autentic
 fuera de la familia. La página atiende los dos flujos —fragmento y `?code=` de PKCE— y
 muestra un mensaje claro cuando el enlace ha caducado o ya se usó.
 
-## Asignación de eventos y documentos
+## Asignación de eventos, tareas y documentos
 
-Un evento o un documento puede pertenecer a **toda la familia**, a **un miembro adulto**
-o a **un hijo**, nunca a dos a la vez. Se modela con dos columnas nullables, `child_id` y
-`member_id`, y un `check` que impide que ambas estén rellenas.
+Un evento, una tarea o un documento puede pertenecer a **toda la familia**, a **un miembro
+adulto** o a **un hijo**, nunca a dos a la vez. Se modela con dos columnas nullables,
+`child_id` y `member_id`, y un `check` que impide que ambas estén rellenas.
+
+Las tareas llegaron las últimas (migración 015) y son donde más falta hacía: en una casa
+compartida la pregunta de una tarea es "¿quién la hace?". Guardan además `completed_by`,
+porque `completed_at` decía cuándo pero no quién.
 
 Son conceptos distintos y por eso no se unificaron en una sola columna: un miembro tiene
 cuenta y entra en la app; un hijo es alguien de quien la familia lleva registro. Los hijos

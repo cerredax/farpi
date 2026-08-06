@@ -1,14 +1,11 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-03. **47/47 comprobaciones correctas.**
+Última ejecución: 2026-08-06. **51/51 comprobaciones correctas.**
 
-> **Hay una pasada pendiente.** Desde entonces han entrado las migraciones 014, 015
-> y 016. La 014 se verificó a mano contra la base real el 04-08-2026 (existe la
-> columna, responde la RPC nueva y la vieja está borrada), pero las 015 y 016 se
-> aplicaron el 05-08-2026 sin volver a pasar el arnés. La siguiente ejecución son
-> **51 comprobaciones** (contadas en el script, no ejecutadas): las 47 de agosto, más
-> dos de los triggers cross-family de `tasks` y dos del perfil que trajo la 014. Ver
-> "Pendiente" al final.
+Las 47 de la pasada del 03-08-2026 más las cuatro que trajeron las migraciones 014 y
+015: los dos triggers cross-family de `tasks` y las dos del perfil de miembro. Ya no
+queda ninguna migración sin validar. La limpieza dejó en la base únicamente la familia
+real; los tres usuarios y las dos familias de prueba se borraron.
 
 ## Estado
 
@@ -40,8 +37,8 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `012_member_assignment.sql` — `member_id` en `events` y `documents` *(comprobado a mano el 04-08-2026, no por el arnés)*
 - [x] `013_event_kind.sql` — `kind` en `events` *(comprobado a mano el 04-08-2026)*
 - [x] `014_member_profile.sql` — `family_members.color` y `update_family_member_profile`; `update_my_family_profile` ya no existe *(comprobado a mano el 04-08-2026)*
-- [ ] `015_task_assignment.sql` — aplicada el 05-08-2026, **sin validar**
-- [ ] `016_document_expiry.sql` — aplicada el 05-08-2026, **sin validar**
+- [x] `015_task_assignment.sql` — `child_id` y `member_id` en `tasks`; sus dos triggers cross-family rechazan identificadores de otra familia *(validado el 06-08-2026)*
+- [x] `016_document_expiry.sql` — `documents.expires_on`; columna nullable que no altera el aislamiento: `documents` sigue pasando lectura, escritura y Storage *(validado el 06-08-2026)*
 
 ## Validación RLS
 
@@ -70,8 +67,8 @@ Detalle importante: los intentos de lectura ajena **no dan error, devuelven list
 ## Validación RPCs
 
 - [x] `create_family_with_admin` — crea la familia y deja al llamante como `admin`
-- [x] `update_my_family_profile` — A edita su perfil; el intento de B no cambia nada
-  *(sustituida el 04-08-2026 por `update_family_member_profile`, migración 014. El script ya apunta a la nueva; pendiente de ejecutar)*
+- [x] `update_family_member_profile` — A edita su nombre y color; el color queda guardado, un nombre vacío se rechaza y B (admin solo de su familia) no puede tocar el perfil de A
+  *(sustituyó el 04-08-2026 a `update_my_family_profile`, migración 014; validada con el arnés el 06-08-2026)*
 - [x] `remove_family_member`
 - [x] `update_family_member_role`
 - [x] `accept_family_invite`
@@ -102,8 +99,11 @@ Casos obligatorios:
 - [x] No se puede crear `list_item` con `family_id` de una familia y `list_id` de otra.
 - [x] No se puede crear `event` con `child_id` de otra familia.
 - [x] No se puede crear `document` con `child_id` de otra familia.
+- [x] No se puede crear `task` con `child_id` de otra familia.
+- [x] No se puede crear `task` con `member_id` de otra familia.
 
-Los tres devuelven 400 desde el trigger de `007_cross_family_integrity.sql`.
+Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
+`007_cross_family_integrity.sql`; los dos de `tasks`, de `015_task_assignment.sql`.
 
 ## Resultado
 
@@ -111,29 +111,24 @@ Los tres devuelven 400 desde el trigger de `007_cross_family_integrity.sql`.
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-De lo que se ejecutó el 2026-08-03 no quedó nada pendiente. Lo que falta es volver a
-ejecutarlo con lo que ha entrado después.
+**No queda nada pendiente.** Las 16 migraciones están validadas y la pasada del
+06-08-2026 no dejó ninguna comprobación en rojo.
 
 ## Pendiente
 
-Ejecutar `node scripts/validate-rls.mjs` y anotar aquí el resultado. Lo que cubre de
-nuevo respecto a la pasada de agosto (cuatro comprobaciones, 47 → 51):
+Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
+próxima vez que se toque una migración, una policy o una RPC.
 
-- [ ] No se puede crear una `task` con `child_id` de otra familia (trigger de la 015).
-- [ ] No se puede crear una `task` con `member_id` de otra familia (trigger de la 015).
-- [ ] El color elegido en `update_family_member_profile` queda guardado (014).
-- [ ] `update_family_member_profile` rechaza un nombre vacío (014).
+### Notas de la ejecución (06-08-2026)
 
-Las dos comprobaciones que ya existían sobre el perfil siguen ahí, pero ahora
-apuntan a `update_family_member_profile` en vez de a la desaparecida
-`update_my_family_profile`.
+- Las cuatro comprobaciones nuevas pasaron a la primera. Las de los triggers de `tasks`
+  eran las que más se querían ver: la 015 metió en `tasks` dos columnas que apuntan a
+  otra tabla con `family_id`, y que el trigger estuviera escrito no probaba que saltara.
+- La 016 no añade comprobación propia: `expires_on` es una columna nullable y el
+  aislamiento de `documents` se sigue validando por las vías de siempre (RLS de lectura,
+  403 en escritura ajena y las nueve de Storage).
 
-Sin comprobación automática, pero conviene mirarlo en la misma pasada:
-
-- [ ] `documents.expires_on` (016) no rompe ninguna policy: es una columna nullable
-  más, así que debería seguir aislando igual.
-
-### Notas de la ejecución
+### Notas de la ejecución (03-08-2026)
 
 - Se detectó que `architecture.md` y `project-status.md` documentaban la RPC como `accept_family_invite(invite_id)`, cuando la migración y el código usan `p_invite_id`. Corregido.
 - Dos versiones intermedias del arnés daban falsos positivos en Storage: primero por omitir el nombre del bucket en la ruta (todo fallaba, incluidas las operaciones legítimas) y después por usar como "ajeno" a un usuario que ya se había unido a la familia. Ambos casos servían de recordatorio de que una prueba que pasa no siempre prueba lo que dice.

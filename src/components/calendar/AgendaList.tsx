@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import {
   addDays,
   compareAsc,
@@ -12,8 +11,7 @@ import {
   startOfDay,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { AlertTriangle, Plus } from 'lucide-react'
-import { CircleCheck } from '@/components/ui/CircleCheck'
+import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
@@ -21,13 +19,24 @@ import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
 import { eventCoversDay, isVacation } from '@/lib/events'
 import { capitalize } from '@/lib/text'
+import { DayTasks } from './DayTasks'
 
-type AgendaMode = 'week' | 'agenda'
+/**
+ * Lo que viene a partir del día elegido, un día por fila.
+ *
+ * Es la vista de cuando el mes está desplegado, donde la pregunta es "¿qué hay
+ * por delante?". El día suelto ya no se lista aquí: con la semana plegada se ve
+ * en `DayTimeline`, sobre su eje de horas.
+ *
+ * También es lo que se enseña al buscar, en las dos vistas: una búsqueda
+ * atraviesa todo el calendario y no cabe en un solo día.
+ */
+
+/** Cuántos días por delante mira la lista de próximos eventos. */
+const DIAS_POR_DELANTE = 45
 
 interface AgendaListProps {
-  mode: AgendaMode
   selectedDay: Date
-  currentMonth: Date
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
@@ -44,52 +53,6 @@ interface AgendaListProps {
   onSelectDay: (day: Date) => void
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
-}
-
-/**
- * Una tarea en la agenda. Lleva el círculo de marcar y no el punto de color de
- * los eventos: una tarea se hace, un evento pasa. Se marca desde aquí porque el
- * día ya se está mirando, y bajar a Tareas para tachar lo de hoy es el viaje
- * que nadie hace.
- */
-function TaskRow({ task, kids, members, atrasada, onToggle }: {
-  task: Task
-  kids: Child[]
-  members: FamilyMember[]
-  atrasada: boolean
-  onToggle: (id: string) => void
-}) {
-  const asignado = resolveAssignee(task, members, kids)
-
-  return (
-    <div className="flex items-center gap-1.5 px-1.5">
-      <CircleCheck
-        checked={false}
-        onClick={() => onToggle(task.id)}
-        ariaLabel={`Marcar "${task.title}" como completada`}
-        size="sm"
-        className="w-10"
-      />
-      <span className="min-w-0 flex-1 truncate text-sm text-ink" title={task.title}>{task.title}</span>
-      {asignado && (
-        <span className="flex-shrink-0 text-[11px] font-bold" style={{ color: asignado.color }}>
-          {asignado.name}
-        </span>
-      )}
-      {/* Icono y no la palabra "Atrasada": en un móvil de 390 px, la etiqueta
-          se comía media fila y el título de la tarea se quedaba en "Comprar
-          pañales...". El nombre completo va en el `title` y en la etiqueta
-          accesible, que es donde no le quita sitio a nada. */}
-      {atrasada && (
-        <AlertTriangle
-          size={13}
-          strokeWidth={2.6}
-          className="flex-shrink-0 text-danger"
-          aria-label="Atrasada"
-        />
-      )}
-    </div>
-  )
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -125,7 +88,7 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
       <span className="text-[11px] font-bold text-muted flex-shrink-0 tabular-nums">{hora}</span>
       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{event.title}</span>
       {asignado && (
-        <span className="flex-shrink-0 text-[11px] font-bold" style={{ color: asignado.color }}>
+        <span className="max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
           {asignado.name}
         </span>
       )}
@@ -133,23 +96,16 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
   )
 }
 
-export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [], onToggleTask, buscador, onSelectDay, onEdit, onAdd }: AgendaListProps) {
-  const todayStart = startOfDay(new Date())
-  const rangeStart = mode === 'week' ? todayStart : startOfDay(selectedDay)
-  const rangeEnd = mode === 'week' ? addDays(todayStart, 7) : addDays(startOfDay(selectedDay), 45)
-
-  useEffect(() => {
-    if (mode !== 'week') return
-    const el = document.getElementById(`day-${format(selectedDay, 'yyyyMMdd')}`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }, [selectedDay, mode])
+export function AgendaList({ selectedDay, events, kids, members, tasks = [], onToggleTask, buscador, onSelectDay, onEdit, onAdd }: AgendaListProps) {
+  const rangeStart = startOfDay(selectedDay)
+  const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
   // Las vacaciones se quedan fuera de la lista: ocupan muchos días seguidos y
   // se repetirían en todos ellos. Su sitio es la franja de la cuadrícula, que
   // enseña el tramo de un vistazo y desde donde también se editan.
   const conFecha = events.filter(event => !isVacation(event))
 
-  const hoyStr = getLocalDateString(todayStart)
+  const hoyStr = getLocalDateString(new Date())
 
   const dayGroups = eachDayOfInterval({ start: rangeStart, end: rangeEnd }).map(day => {
     const diaStr = getLocalDateString(day)
@@ -166,28 +122,24 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
     }
   })
 
-  const visibleGroups = mode === 'week'
-    ? dayGroups
-    : dayGroups.filter(group => group.events.length > 0 || group.tasks.length > 0 || isSameDay(group.day, selectedDay))
+  const visibleGroups = dayGroups.filter(
+    group => group.events.length > 0 || group.tasks.length > 0 || isSameDay(group.day, selectedDay)
+  )
 
   const buscando = !!buscador && buscador.valor.trim().length > 0
   const coincidencias = buscador?.coincidencias ?? []
 
-  const headerTitle = buscando ? 'Búsqueda' : mode === 'week' ? 'Agenda semanal' : 'Próximos eventos'
-
-  const headerSubtitle = buscando
+  // Una línea y no dos. El rótulo en versalitas encima del rango repetía en
+  // mayúsculas lo que la propia lista ya dice, y gastaba alto antes del primer
+  // plan.
+  const headerText = buscando
     ? `${coincidencias.length} resultado${coincidencias.length !== 1 ? 's' : ''} en todo el calendario`
-    : mode === 'week'
-    ? `Del ${format(rangeStart, "d 'de' MMMM", { locale: es })} al ${format(rangeEnd, "d 'de' MMMM", { locale: es })}`
-    : `Desde ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
+    : `Próximos eventos desde el ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
 
   return (
     <div className="flex-1 px-4 pt-4 lg:px-0 lg:pt-0">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-muted">{headerTitle}</p>
-          <p className="text-sm font-bold text-ink">{headerSubtitle}</p>
-        </div>
+      <div className="flex items-center justify-between gap-2 mb-2 px-1">
+        <p className="min-w-0 truncate text-sm font-bold text-ink">{headerText}</p>
         <button
           onClick={() => onAdd(selectedDay)}
           aria-label="Añadir evento"
@@ -242,7 +194,7 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
         >
           <EmptyState
             emoji="✨"
-            title={mode === 'week' ? 'Semana libre' : 'Sin próximos eventos'}
+            title="Sin próximos eventos"
             description="Toca para añadir un evento"
           />
         </button>
@@ -258,12 +210,13 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
               const isSelected = isSameDay(group.day, selectedDay)
               const esHoy = isToday(group.day)
               const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
+              const vacio = group.events.length === 0 && group.tasks.length === 0
 
               return (
                 <li
                   key={group.day.toISOString()}
                   id={`day-${format(group.day, 'yyyyMMdd')}`}
-                  className={`flex items-start gap-2 px-2 py-2 transition-colors ${isSelected ? 'bg-primary-tint/40' : ''}`}
+                  className={`flex items-start gap-2 px-2 transition-colors ${vacio ? 'py-1' : 'py-2'} ${isSelected ? 'bg-primary-tint/40' : ''}`}
                 >
                   <button
                     onClick={() => onSelectDay(group.day)}
@@ -280,23 +233,22 @@ export function AgendaList({ mode, selectedDay, events, kids, members, tasks = [
                   </button>
 
                   <div className="min-w-0 flex-1 self-center">
-                    {group.events.length === 0 && group.tasks.length === 0 ? (
+                    {vacio ? (
                       <p className="px-1.5 text-xs text-faint">Sin planes</p>
                     ) : (
                       <>
                         {group.events.map(event => (
                           <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
                         ))}
-                        {onToggleTask && group.tasks.map(task => (
-                          <TaskRow
-                            key={task.id}
-                            task={task}
+                        {onToggleTask && (
+                          <DayTasks
+                            tasks={group.tasks}
                             kids={kids}
                             members={members}
-                            atrasada={!!task.due_date && task.due_date < hoyStr}
+                            hoy={hoyStr}
                             onToggle={onToggleTask}
                           />
-                        ))}
+                        )}
                       </>
                     )}
                   </div>

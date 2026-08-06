@@ -254,13 +254,91 @@ Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), q
 - Scroll interno con `flex-1 overflow-y-auto min-h-0`.
 - Botón principal en el `footer` fijo, siempre visible aunque el teclado esté abierto.
 
-## Decisiones tomadas
+## Decisiones de producto
+
+Estas cuatro se tomaron con motivo y costaron varias vueltas cada una. Vistas desde
+fuera parecen incoherencias que hay que arreglar, y no lo son: si algo aquí va a
+cambiar, que sea a propósito.
+
+**Una lista de casa no es una lista de tareas.** "Leche" no se completa: se acaba,
+se compra y se vuelve a acabar. Por eso las listas marcan **lo que falta**, no lo
+que se ha hecho. Arriba lo pendiente; debajo, plegado, "Apuntar de lo de siempre",
+que es el catálogo de lo que compráis siempre y del que se tira con un toque. Lo
+del catálogo no sale tachado ni atenuado: no está muerto, está a un toque de volver
+a hacer falta. Nada de barras de progreso ni de "2/5" — a nadie le importa haber
+comprado el 40% de la compra. En la base de datos no cambia nada: un ítem que hace
+falta es el que antes estaba pendiente. Cambia lo que significa en pantalla.
+
+**El catálogo se pide con un `+`, no con un tic.** Un tic ahí diría "hecho", que en
+este modelo no significa nada. De ahí que `CircleCheck` y `CirclePlus` sean dos
+componentes hermanos con las mismas medidas.
+
+**Lo atrasado se arrastra al día de hoy.** El tramo del calendario empieza hoy, así
+que todo lo vencido caía fuera: lo que más urge era lo único invisible. Una tarea
+vencida aparece en el día de hoy marcada como atrasada — con la palabra en Inicio y
+con un icono etiquetado en el calendario, donde a 390 px no cabe. Desaparecer no es
+lo que le pasa a una tarea sin hacer.
+
+El efecto de esa regla es que hoy acumula todo el atraso, y en la agenda eso se
+notaba demasiado: seis tareas hacían la fila de hoy seis veces más alta que las
+demás, con seis triángulos rojos seguidos, y el calendario abría enseñando la lista
+de tareas en vez de los planes. Desde `TAREAS_PARA_PLEGAR` (3) van plegadas bajo una
+línea que dice cuántas hay y cuántas van tarde, y se abre de un toque. **Resumir no
+es esconder**: el recuento está a la vista, que es lo que la regla pedía. Los eventos
+no se pliegan nunca — esto es el calendario, y lo que pasa manda sobre lo que hay que
+hacer.
+
+**Las vacaciones son del calendario, no un plan de hoy.** Un evento con
+`kind = 'vacation'` se pinta como franja en el calendario y queda **fuera** de la
+lista de eventos, de los planes de hoy (`selectTodayEvents`) y del recordatorio
+diario. Estar de vacaciones no es un plan que haya que recordarle a nadie a las
+siete de la mañana.
+
+**En el móvil, un día por horas; nunca siete columnas.** La semana plegada enseña el
+día elegido sobre un eje de horas (`DayTimeline`), no la rejilla de siete columnas de
+un calendario de escritorio. A 390 px cada columna sería de unos 45 px: bloques de
+color sin texto, que hay que tocar para saber qué son. Es también por lo que Google
+Calendar no pone esa vista por defecto en el teléfono. Con el mes desplegado la
+pregunta cambia a "¿qué hay por delante?", y ahí sí manda una lista (`AgendaList`).
+
+Dos cosas que los datos no traen y decide la vista: un evento **sin hora de fin** se
+dibuja con 45 minutos, porque el formulario acepta dejarla vacía y un bloque sin
+duración no se puede pintar; y las **tareas**, que vencen un día pero no ocurren a una
+hora, van en la franja de "todo el día". El eje se recorta a las horas que tienen
+algo: el día de una familia son dos o tres citas, y de 00:00 a 24:00 era casi todo
+blanco.
+
+Y una regla que las cruza todas: **buscando sí se enseña todo**, incluido el
+catálogo y el pasado del calendario. Esconder algo que sí coincide sería contestar
+"no hay nada" a una búsqueda que encontró algo. En el calendario eso significa que
+buscar cambia la vista: el día por horas deja paso a la lista de resultados, porque
+una búsqueda atraviesa el calendario entero y no cabe en un día.
+
+## Tono de la interfaz
+
+La app habla como se habla en una casa, y desafina en cuanto se cuela el registro
+de una herramienta de trabajo. Al escribir textos nuevos:
+
+- **Vosotros, no el usuario.** "Ya tenéis leche", "no lo habíais apuntado nunca".
+- **Los vacíos dicen qué pasa, no que no hay datos.** "Sin planes", "No falta nada",
+  "Sin menú para hoy" — nunca "No se han encontrado elementos".
+- **Las etiquetas dicen lo que hace el toque**, con el nombre de la cosa dentro:
+  "Apuntar que hace falta Leche", "Ya tenéis Leche, quitar de lo que falta". No
+  "marcar como hecho".
+- **Nada de jerga de gestor de proyectos**: ni completado, ni progreso, ni
+  porcentajes. Salvo en Tareas, que sí son tareas.
+- **Los ejemplos son de esta casa**: "Ej: Cartilla vacunas Ana", "Ej: Leche entera".
+- Frases cortas y sin signos de admiración. La única excepción del repo es
+  «Lista vacía. ¡Añade el primer ítem!» (`ListDetailView.tsx`), que se quedó de antes
+  y desafina: no la tomes como modelo.
+
+## Decisiones técnicas
 
 - Invitaciones: **magic link** (`inviteUserByEmail` + `/auth/callback?invite_id`).
 - Familia activa: sesión Supabase + tabla `family_members`, resuelta en `AppShell` y persistida con `family-config`.
 - `StoreProvider` migrado a acciones async (Fase 5, hecho).
-- Tests con `@playwright/test`, un solo runner para dos cosas: 150 unitarios de
-  lógica pura en `e2e/unit/` (sin servidor, ~0,6 s) y 48 de navegador. Se eligió así
+- Tests con `@playwright/test`, un solo runner para dos cosas: los unitarios de
+  lógica pura en `e2e/unit/` (sin servidor, ~0,6 s) y los de navegador. Se eligió así
   para no añadir una dependencia más solo por los unitarios.
 - Migración a tokens de color completada (2026-08-03): de 109 apariciones a 36. Lo
   que queda literal son datos, marca de terceros y decorativos de un solo uso.

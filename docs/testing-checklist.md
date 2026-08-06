@@ -6,8 +6,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 - [ ] `npm run lint` termina sin errores y sin warnings relevantes.
 - [ ] `npm run build` termina correctamente.
-- [ ] `npm run test:unit` — 150 tests de lógica pura, sin servidor (~0,6 s).
-- [ ] `npm run test:e2e` — la suite entera: los 150 unitarios más 48 de navegador.
+- [ ] `npm run test:unit` — los tests de lógica pura, sin servidor (~0,6 s).
+- [ ] `npm run test:e2e` — la suite entera: los unitarios más los de navegador.
 - [ ] No hay archivos temporales afectando a lint.
 
 ## 1. Login demo

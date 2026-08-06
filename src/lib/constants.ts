@@ -78,6 +78,38 @@ export const TASK_PRIORITIES: { value: TaskPriority; label: string; color: strin
 export const MINIMO_PARA_BUSCAR = 3
 
 /**
+ * A partir de cuántas tareas en un mismo día el calendario las pliega bajo una
+ * línea de resumen. Lo vencido se arrastra al día de hoy, así que hoy acumula
+ * todo lo que se quedó atrás: seis tareas hacían la fila de hoy seis veces más
+ * alta que las demás, con seis triángulos rojos seguidos, y el calendario abría
+ * enseñando la lista de tareas en vez de los planes.
+ *
+ * Plegar no es esconder —el resumen dice cuántas hay y cuántas van tarde, y se
+ * abre de un toque—, que es lo que pide "desaparecer no es lo que le pasa a una
+ * tarea sin hacer". Tres y no dos: con dos se plegaba un día perfectamente
+ * legible y costaba más de lo que ahorraba.
+ */
+export const TAREAS_PARA_PLEGAR = 3
+
+// ─── Agenda por horas ─────────────────────────────────────────────────────────
+
+/**
+ * Cuánto dura, a efectos de dibujo, un evento sin hora de fin. El formulario la
+ * acepta vacía a propósito ("sin hora de fin es válido"), pero un bloque sin
+ * duración no se puede pintar. 45 minutos da una caja que se lee y que no
+ * exagera lo que ocupa una cita corta.
+ */
+export const DURACION_SIN_HORA_FIN = 45
+
+/**
+ * Alto mínimo del eje de horas, en horas. El día de una familia tiene dos o
+ * tres citas, así que el eje se recorta a las horas que tienen algo: pintar de
+ * 00:00 a 24:00 era casi todo blanco. Por debajo de seis horas deja de parecer
+ * un día y parece un recorte, de ahí el suelo.
+ */
+export const HORAS_MINIMAS_AGENDA = 6
+
+/**
  * Cuántos platos ya cocinados se ofrecen al planificar una comida. Muy por
  * encima de las 5 sugerencias sueltas del resto de formularios: aquí el bloque
  * hace de catálogo buscable —se teclea y se filtra— y el menú de una familia

@@ -15,7 +15,6 @@ import {
   startOfMonth,
   startOfWeek,
   subMonths,
-  subWeeks,
 } from 'date-fns'
 import { ChevronDown } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
@@ -27,6 +26,7 @@ import { CalendarHeader } from './CalendarHeader'
 import { MonthGrid } from './MonthGrid'
 import { VacationLegend } from './VacationLegend'
 import { AgendaList } from './AgendaList'
+import { DayTimeline } from './DayTimeline'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
 import type { Event, EventDraft } from '@/types'
@@ -48,16 +48,19 @@ export function CalendarView() {
   const [mesDesplegado, setMesDesplegado] = useState(false)
   const [busqueda, setBusqueda] = useState('')
 
+  // El primero de los siete días que se ven plegado. Manda a la vez sobre la
+  // tira y sobre la lista, que es lo que antes no pasaba: la tira pintaba la
+  // semana natural del día elegido y la lista siempre los siete desde hoy, así
+  // que enseñaban tramos distintos y las flechas movían solo la de arriba.
+  // Arranca hoy, no en el lunes: lo atrasado se arrastra al día de hoy y el
+  // tramo tiene que empezar donde eso tiene sentido.
+  const [inicioSemana, setInicioSemana] = useState(startOfDay(today))
+
   // En pantalla grande el mes cabe de sobra y plegarlo no gana nada, así que
   // la manija es cosa del móvil. Es un cambio de qué se renderiza, no de cómo
   // se ve, y por eso no lo puede resolver Tailwind.
   const esEscritorio = useMediaQuery('(min-width: 1024px)')
   const verMes = esEscritorio || mesDesplegado
-
-  const weekRange = {
-    start: startOfDay(today),
-    end: addDays(startOfDay(today), 7),
-  }
 
   function openCreate(day = selectedDay) {
     setSelectedDay(day)
@@ -76,51 +79,64 @@ export function CalendarView() {
 
   /**
    * Las flechas recorren mes o semana según lo que se esté viendo. Plegado
-   * mueven también el día elegido: es lo que decide qué semana se pinta, y
-   * saltar de semana sin moverlo dejaría la rejilla quieta.
+   * mueven el tramo entero —tira y lista a la vez— y llevan con él el día
+   * elegido, para que la selección no se quede en una semana que ya no se ve.
    */
+  function moverSemana(pasos: number) {
+    const nuevoInicio = addWeeks(inicioSemana, pasos)
+    setInicioSemana(nuevoInicio)
+    setSelectedDay(nuevoInicio)
+    setCurrentMonth(startOfMonth(nuevoInicio))
+  }
+
   function irAnterior() {
     if (verMes) return setCurrentMonth(m => subMonths(m, 1))
-    setSelectedDay(d => {
-      const anterior = subWeeks(d, 1)
-      setCurrentMonth(startOfMonth(anterior))
-      return anterior
-    })
+    moverSemana(-1)
   }
 
   function irSiguiente() {
     if (verMes) return setCurrentMonth(m => addMonths(m, 1))
-    setSelectedDay(d => {
-      const siguiente = addWeeks(d, 1)
-      setCurrentMonth(startOfMonth(siguiente))
-      return siguiente
+    moverSemana(1)
+  }
+
+  /**
+   * Al volver a plegar, el tramo arranca en el día que se dejó elegido. Si
+   * abres el mes, tocas el 20 y cierras, lo que quieres ver es el 20 y no la
+   * semana de la que saliste.
+   */
+  function plegarODesplegar() {
+    setMesDesplegado(abierto => {
+      if (abierto) setInicioSemana(startOfDay(selectedDay))
+      return !abierto
     })
+  }
+
+  /**
+   * Lleva la vista entera a un día: lo elige, coloca el mes y arrastra con él
+   * el tramo de la semana. Ese último paso importa desde que la tira y la lista
+   * comparten tramo: sin él, apuntar unas vacaciones para el día 10 dejaba el
+   * calendario en la semana de hoy y el evento recién creado no se veía.
+   */
+  function enfocarDia(date: Date) {
+    setSelectedDay(date)
+    setCurrentMonth(startOfMonth(date))
+    setInicioSemana(startOfDay(date))
   }
 
   async function handleCreate(draft: EventDraft) {
     const event = await createEvent(draft)
     if (!event) return  // falló: el store ya muestra el motivo
-    const eventDate = parseISO(event.start_at)
-    setSelectedDay(eventDate)
-    setCurrentMonth(startOfMonth(eventDate))
+    enfocarDia(parseISO(event.start_at))
   }
 
   async function handleCreateSeries(draft: EventDraft, weekdays: number[], endDate: string) {
     const created = await createEventSeries(draft, weekdays, endDate)
-    if (created.length > 0) {
-      const firstDate = parseISO(created[0].start_at)
-      setSelectedDay(firstDate)
-      setCurrentMonth(startOfMonth(firstDate))
-    }
+    if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
   }
 
   async function handleCreateYearlySeries(draft: EventDraft, endYear: number) {
     const created = await createYearlySeries(draft, endYear)
-    if (created.length > 0) {
-      const firstDate = parseISO(created[0].start_at)
-      setSelectedDay(firstDate)
-      setCurrentMonth(startOfMonth(firstDate))
-    }
+    if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
   }
 
   // La leyenda habla del tramo que se está viendo, no de todo el año: en la
@@ -131,24 +147,27 @@ export function CalendarView() {
         hasta: getLocalDateString(endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })),
       }
     : {
-        desde: getLocalDateString(startOfWeek(selectedDay, { weekStartsOn: 1 })),
-        hasta: getLocalDateString(endOfWeek(selectedDay, { weekStartsOn: 1 })),
+        desde: getLocalDateString(inicioSemana),
+        hasta: getLocalDateString(addDays(inicioSemana, 6)),
       }
 
   const vacacionesVisibles = selectVisibleVacations(allEvents, tramoVisible.desde, tramoVisible.hasta)
 
-  const agendaMode = verMes ? 'agenda' : 'week'
+  // Qué se ve debajo de la rejilla. Plegado, el día elegido sobre su eje de
+  // horas; con el mes abierto, la lista de lo que viene. Es la misma idea que
+  // manda arriba —cuánto calendario estoy mirando—: un día enseña sus horas, un
+  // mes enseña lo que hay por delante. Buscando ganan siempre los resultados:
+  // una búsqueda atraviesa el calendario entero y no cabe en un día.
+  const verLista = verMes || busqueda.trim().length > 0
 
-  const agendaEvents = allEvents.filter(event => {
-    const eventDate = parseISO(event.start_at)
-    if (agendaMode === 'agenda') {
-      return isWithinInterval(eventDate, {
-        start: startOfDay(selectedDay),
-        end: addDays(startOfDay(selectedDay), 45),
-      })
-    }
-    return isWithinInterval(eventDate, weekRange)
-  })
+  // Solo para la lista: la vista de horas recibe todos los eventos y se queda
+  // con los de su día, que ya sabe hacerlo.
+  const agendaEvents = allEvents.filter(event =>
+    isWithinInterval(parseISO(event.start_at), {
+      start: startOfDay(selectedDay),
+      end: addDays(startOfDay(selectedDay), 45),
+    })
+  )
 
   // Lo que hay que hacer un día es parte de lo que pasa ese día, se mire la
   // semana o el mes: con el mes abierto el día 5 decía "Sin planes" y con la
@@ -190,7 +209,7 @@ export function CalendarView() {
                     kids={kids}
                     members={members}
                     density="compact"
-                    weekOf={verMes ? null : selectedDay}
+                    weekStart={verMes ? null : inicioSemana}
                     onSelectDay={selectDay}
                     onEditEvent={openEdit}
                     onAddEvent={openCreate}
@@ -208,7 +227,7 @@ export function CalendarView() {
                     siempre y no habría nada que desplegar. */}
                 <button
                   type="button"
-                  onClick={() => setMesDesplegado(v => !v)}
+                  onClick={() => plegarODesplegar()}
                   aria-expanded={mesDesplegado}
                   className="lg:hidden flex w-full items-center justify-center gap-1.5 border-t border-hairline py-2.5 text-[11px] font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
                 >
@@ -223,22 +242,34 @@ export function CalendarView() {
             </div>
           </div>
 
-          {/* Right column: agenda list */}
+          {/* Right column: el día por horas, o la lista de lo que viene */}
           <div className="pt-2 lg:pt-0">
-            <AgendaList
-              mode={agendaMode}
-              selectedDay={selectedDay}
-              currentMonth={currentMonth}
-              events={agendaEvents}
-              kids={kids}
-              members={members}
-              tasks={agendaTasks}
-              onToggleTask={toggleTask}
-              buscador={buscador}
-              onSelectDay={selectDay}
-              onEdit={openEdit}
-              onAdd={openCreate}
-            />
+            {verLista ? (
+              <AgendaList
+                selectedDay={selectedDay}
+                events={agendaEvents}
+                kids={kids}
+                members={members}
+                tasks={agendaTasks}
+                onToggleTask={toggleTask}
+                buscador={buscador}
+                onSelectDay={selectDay}
+                onEdit={openEdit}
+                onAdd={openCreate}
+              />
+            ) : (
+              <DayTimeline
+                day={selectedDay}
+                events={allEvents}
+                kids={kids}
+                members={members}
+                tasks={agendaTasks}
+                onToggleTask={toggleTask}
+                buscador={buscador}
+                onEdit={openEdit}
+                onAdd={openCreate}
+              />
+            )}
           </div>
 
         </div>

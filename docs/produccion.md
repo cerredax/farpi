@@ -8,7 +8,7 @@ Estado y pasos para llevar Nido a producción en Vercel + Supabase. Marca las ca
 
 ## 1. Resumen del estado
 
-La app está **funcionalmente completa** y verificada (build, lint y 198 tests en verde: 150 unitarios y 48 de navegador):
+La app está **funcionalmente completa** y verificada (build, lint y la suite entera en verde: unitarios y de navegador):
 
 - Supabase conectado de extremo a extremo: auth, repositorios reales, store async.
 - Onboarding, invitaciones por magic link, gestión de miembros y roles.
@@ -46,7 +46,7 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 
 ### 2.2 Supabase — base de datos
 
-- [x] Migraciones `001`–`016` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012) y `family_members.color` (014). Las 015 y 016 se aplicaron el 05-08-2026 y están **pendientes de revalidar** con `node scripts/validate-rls.mjs` (§4).
+- [x] Migraciones `001`–`016` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012) y `family_members.color` (014). Las 015 y 016 se aplicaron el 05-08-2026 y quedaron **revalidadas el 06-08-2026** con `node scripts/validate-rls.mjs`: 51/51 (§4).
 - [x] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
 - [x] RLS activo en todas las tablas privadas.
 
@@ -73,13 +73,9 @@ Build local de comprobación: `npm run build`.
 
 ---
 
-## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-03)
+## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas. Repetible con `node scripts/validate-rls.mjs`.
-
-> **Pendiente de repetir.** Las migraciones 015 y 016 entraron el 05-08-2026 y no se
-> han revalidado. La siguiente pasada son 51 comprobaciones: cuatro más que en
-> agosto, entre los triggers de `tasks` (015) y el perfil del miembro (014).
+Resultados en **`docs/supabase-validation.md`**: 51/51 comprobaciones correctas, con las 16 migraciones validadas. Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
@@ -115,10 +111,10 @@ Resultados en **`docs/supabase-validation.md`**: 47/47 comprobaciones correctas.
 ### Recomendadas (no bloqueantes)
 - [x] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
 - [x] `CRON_SECRET` en Vercel y cron respondiendo 200 (04-08-2026).
-- [ ] Revalidar RLS tras las migraciones 015 y 016 (§4).
+- [x] Revalidar RLS tras las migraciones 015 y 016 — hecho el 06-08-2026, 51/51 (§4).
 - [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).
 - [ ] Claves VAPID si se quieren notificaciones push reales (§2.1).
-- [ ] Comprobar en los logs de Vercel que la ejecución automática de las 07:00 UTC devuelve `keptAlive: true` (la manual ya lo hace).
+- [x] Ejecución automática de las 07:00 UTC comprobada en los logs de Vercel (06-08-2026). El keep-alive de Supabase corre solo, no solo a mano.
 - [x] Pasar la app por un móvil de verdad (05-08-2026): sin incidencias. Quedan
   sueltos Safari de iOS y la PWA instalada, según el móvil de la prueba. Ver
   `roadmap.md`, Fase 2.

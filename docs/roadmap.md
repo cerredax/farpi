@@ -120,8 +120,9 @@ Objetivo: preparar uso diario.
 
 - ✅ PWA: iconos any + maskable + apple-touch, manifest con purposes y service worker offline (fallback `/offline`).
 - ✅ Mejoras responsive (lo que salió de la Fase 2, arreglado el 05-08-2026).
-- ✅ Tests: 198 con el runner de Playwright — 150 unitarios (`npm run test:unit`) y
-  48 de navegador entre `smoke`, `runtime` y `movil` (`npm run test:e2e`).
+- ✅ Tests: un solo runner, Playwright — los unitarios (`npm run test:unit`) y los de
+  navegador entre `smoke`, `runtime` y `movil` (`npm run test:e2e`). El recuento
+  exacto está en `docs/project-status.md`.
 - ✅ Revisión de accesibilidad: BottomSheet como diálogo (role/aria/Escape/foco/inert), botones de icono etiquetados y label↔input asociados en los sheets.
 - [ ] Medir el contraste de la paleta. Es lo único de accesibilidad que quedó sin
   comprobar, y es lo único que no se ve leyendo el código.
@@ -135,9 +136,10 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   primero, porque es lo que puede sacar un fallo que no ve ninguna herramienta.
 - [ ] **Notificaciones push.** El código está entero; faltan las claves VAPID en
   Vercel (`node scripts/gen-vapid.cjs`) y un redespliegue. Ver `docs/notificaciones.md`.
-- [ ] **Confirmar el cron automático** de las 07:00 UTC en los logs de Vercel. La
-  llamada manual ya responde `keptAlive: true`.
-- [ ] **Revalidar RLS** tras las migraciones 015 y 016 (Fase 3, 51 comprobaciones).
+- ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
+  de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
+- ✅ **RLS revalidado** tras las migraciones 015 y 016 el 06-08-2026: 51/51, las 16
+  migraciones validadas (Fase 3).
 - [ ] **Google Play (TWA)**, si se decide publicar: package name, SHA-256 de la
   firma, `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`. La PWA
   y la política de privacidad ya están.

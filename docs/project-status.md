@@ -71,8 +71,11 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **198 tests con el runner de Playwright**, sin dependencias nuevas:
-  - 150 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,6 s.
+- **217 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+  **único** sitio con el recuento exacto: el resto de documentos habla de "los
+  unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
+  actualizar a la vez.
+  - 169 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
   - 48 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -107,13 +110,55 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 - SMTP propio configurado, así que las invitaciones por magic link ya se envían.
 - No documentar URLs privadas, anon keys ni secretos en el repositorio.
 
-## Pendientes de validación Supabase
+## Validación Supabase
 
-015 y 016 ya están aplicadas. Queda **volver a pasar `node scripts/validate-rls.mjs`**
-y anotar el resultado en `docs/supabase-validation.md`. El script ya trae dos
-comprobaciones nuevas para los triggers cross-family de `tasks` (que no se pueda
-asignar una tarea a un hijo o a un miembro de otra familia) y dos del perfil que
-llegaron con la 014, así que pasa de 47 a **51 comprobaciones**.
+Sin pendientes. El 06-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
+real: **51/51**, con las 16 migraciones validadas. Entraron las dos comprobaciones de
+los triggers cross-family de `tasks` (no se puede asignar una tarea a un hijo ni a un
+miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
+`docs/supabase-validation.md`.
+
+## Cerrado el 2026-08-06
+
+- **La semana del calendario pasa a ser el día por horas.** Antes era una lista de
+  siete días; ahora, con la semana plegada, se ve el día elegido sobre un eje de
+  horas, con cada cita en su hora y con el alto de lo que dura. Es la vista "Día" de
+  un calendario al uso. La de siete columnas se descartó a propósito: a 390 px cada
+  columna son ~45 px y los bloques se quedan sin texto, que es también por lo que
+  Google no la pone por defecto en el móvil.
+  - La aritmética (colocar, medir, repartir los solapados y recortar el eje) vive en
+    `src/lib/timeline.ts`, sin React y con 19 tests en `e2e/unit/timeline.spec.ts`.
+  - Dos decisiones que los datos no traían: un evento **sin hora de fin** se dibuja
+    con 45 min (`DURACION_SIN_HORA_FIN`), y las **tareas**, que vencen pero no
+    ocurren a una hora, van en la franja de "todo el día" junto a los eventos de todo
+    el día. Las vacaciones siguen fuera, en la franja de la rejilla.
+  - El eje **se recorta a las horas que tienen algo**, con una hora de margen y un
+    suelo de seis (`HORAS_MINIMAS_AGENDA`): un día de dos citas no es medio metro de
+    blanco. La raya de la hora actual va por debajo de los bloques, que si no tachaba
+    los títulos.
+  - `AgendaList` pierde el modo semana y se queda con lo suyo: **los próximos
+    eventos** (con el mes desplegado) y **los resultados de una búsqueda**, que
+    atraviesa el calendario entero y no cabe en un día. Las tareas de un día salieron
+    a `DayTasks`, que usan las dos vistas.
+
+- **La agenda del calendario, repasada en móvil.** Se revisó a 390 px con la app
+  abierta, no leyendo el código, y salieron cuatro cosas:
+  - **La tira y la lista enseñaban semanas distintas.** Arriba, la semana natural del
+    día elegido (3→9); abajo, siete días desde hoy y en realidad ocho (6→13). Las
+    flechas movían solo la de arriba. Ahora las dos comparten un único tramo rodante
+    de siete días, `inicioSemana` en `CalendarView`, que empieza hoy porque es donde
+    cae lo atrasado. La cabecera de la rejilla dejó de ser fija: si el tramo abre en
+    jueves, la primera columna es J.
+  - **El calendario abría enseñando tareas.** Ver "Lo atrasado se arrastra al día de
+    hoy" en `architecture.md`: desde tres tareas en un día van plegadas bajo un
+    resumen que dice cuántas hay y cuántas van tarde.
+  - **El nombre de quien lleva la tarea se comía el título.** No cedía nunca y el
+    título cedía siempre. Ahora tiene tope de ancho y se recorta él primero.
+  - **Menos mueble antes del primer plan**: la cabecera de la agenda pasó de dos
+    líneas a una, y un día sin nada ocupa menos alto que uno lleno.
+
+  De paso, apuntar un evento fuera de la semana visible vuelve a llevar la vista a su
+  día: al compartir tramo, `handleCreate` tenía que mover también la tira.
 
 ## Cerrado el 2026-08-05
 
@@ -165,17 +210,15 @@ llegaron con la 014, así que pasa de 47 a **51 comprobaciones**.
 La app está en producción y en uso diario por la familia, y probada en un móvil
 real. Lo que queda son dos comprobaciones baratas y funcionalidades que no existen.
 
-### Las dos comprobaciones que yo haría ya
+### Las comprobaciones que quedaban: ninguna
 
-1. **Revalidar RLS**: `node scripts/validate-rls.mjs` y anotar el resultado en
-   `docs/supabase-validation.md` (ver arriba). Es lo único pendiente con forma de
-   problema de seguridad: la 015 metió en `tasks` dos columnas que apuntan a otra
-   familia, y que los triggers estén escritos no prueba que salten. Ojo: crea y
-   borra usuarios y familias de prueba en el Supabase real.
-2. **Que el cron corra solo** a las 07:00 UTC (la llamada manual ya va). Revisar los
-   logs de Vercel y comprobar que devuelve `keptAlive: true`. Si el programador no
-   dispara, Supabase se pausa por inactividad en el plan free y una mañana la app no
-   abre.
+Las dos que había aquí se cerraron el 06-08-2026:
+
+- **RLS revalidado** tras las migraciones 015 y 016: 51/51. Los triggers de `tasks`
+  saltan de verdad, que era la duda — que estuvieran escritos no probaba que lo
+  hicieran.
+- **El cron corre solo** a las 07:00 UTC y devuelve `keptAlive: true`, comprobado en
+  los logs de Vercel. Supabase no se va a pausar por inactividad.
 
 ### Funcionalidades que faltan, no riesgos
 

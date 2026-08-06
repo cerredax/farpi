@@ -1,7 +1,24 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Locator, type Page } from '@playwright/test'
 
 // Recorre las pantallas en modo demo y verifica que cargan sin errores de
 // consola ni excepciones no capturadas.
+
+/**
+ * Abre el montón de tareas del día en el calendario, si está plegado. Hoy
+ * arrastra todo lo atrasado, así que casi siempre pasa de `TAREAS_PARA_PLEGAR`
+ * y las tareas viven detrás de una línea de resumen. Es un toque, el mismo que
+ * daría cualquiera que entre a marcar algo, y por eso el test lo da en vez de
+ * saltárselo por dentro.
+ *
+ * Es idempotente sin comprobar nada: abierto, el botón pasa a llamarse "Ocultar
+ * las tareas" y deja de casar con el patrón.
+ */
+async function abrirTareasDelDia(raiz: Page | Locator) {
+  // El resumen dice "N tareas" o "N tareas atrasadas" según cuántas vayan
+  // tarde, así que se busca por la parte que no cambia.
+  const resumen = raiz.getByRole('button', { name: /^\d+ tareas/ })
+  if (await resumen.count() > 0) await resumen.first().click()
+}
 
 const ROUTES = [
   '/home',
@@ -246,10 +263,12 @@ test('lo marcado vuelve al catálogo y se puede volver a pedir', async ({ page }
 })
 
 // Lo que hay que hacer un día es parte de lo que pasa ese día. La tarea se crea
-// en Tareas pero se ve —y se marca— en la semana del calendario, sin volver.
+// en Tareas pero se ve —y se marca— en el calendario, sin volver. Con la semana
+// plegada el calendario enseña el día de hoy sobre su eje de horas, y una tarea
+// vence pero no ocurre a una hora: su sitio es la franja de "todo el día".
 // Los datos de demo son de junio, así que la tarea se crea aquí para que caiga
-// dentro de la semana que se está pintando.
-test('la semana del calendario enseña las tareas que vencen', async ({ page }) => {
+// en el día que se está pintando.
+test('el calendario enseña las tareas que vencen hoy', async ({ page }) => {
   const hoy = new Date()
   const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 
@@ -264,6 +283,8 @@ test('la semana del calendario enseña las tareas que vencen', async ({ page }) 
 
   await page.goto('/calendar')
   await page.waitForTimeout(800)
+
+  await abrirTareasDelDia(page)
   await expect(page.getByText('Recoger el paquete')).toBeVisible()
 
   // Y se marca sin salir del calendario: al hacerlo deja de estar pendiente.
@@ -291,14 +312,14 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
   await page.goto('/calendar')
   await page.waitForTimeout(800)
 
-  // Se mira la fila de hoy y no la semana entera: al marcarla no desaparece,
-  // salta a mañana, que también se está pintando.
-  const filaDeHoy = page.locator(`#day-${iso.replace(/-/g, '')}`)
-  await expect(filaDeHoy.getByText('Regar las plantas')).toBeVisible()
+  // Marcarla no la completa: le empuja la fecha a mañana, que ya no se está
+  // pintando —el calendario enseña un solo día—, así que desaparece de la vista.
+  await abrirTareasDelDia(page)
+  await expect(page.getByText('Regar las plantas')).toBeVisible()
 
-  await filaDeHoy.getByRole('button', { name: /Marcar .*Regar las plantas.* como completada/ }).click()
+  await page.getByRole('button', { name: /Marcar .*Regar las plantas.* como completada/ }).click()
   await page.waitForTimeout(400)
-  await expect(filaDeHoy.getByText('Regar las plantas')).toHaveCount(0)
+  await expect(page.getByText('Regar las plantas')).toHaveCount(0)
 
   // El aviso dice las dos cosas: que se ha hecho y cómo volver atrás.
   await expect(page.getByRole('status')).toContainText('Hecho')
@@ -306,7 +327,8 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
   await page.waitForTimeout(600)
 
   // Vuelve a vencer hoy, y el aviso se retira.
-  await expect(filaDeHoy.getByText('Regar las plantas')).toBeVisible()
+  await abrirTareasDelDia(page)
+  await expect(page.getByText('Regar las plantas')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Deshacer' })).toHaveCount(0)
 })
 
@@ -357,7 +379,11 @@ test('el calendario busca también en el pasado', async ({ page }) => {
   await page.waitForTimeout(800)
 
   await page.getByLabel('Buscar eventos').fill('registro civil')
-  await expect(page.getByText('Búsqueda')).toBeVisible()
+
+  // La cabecera dice cuántos hay y dónde ha mirado. Antes ponía "Búsqueda" en
+  // una línea aparte, encima del recuento; ahora es una sola línea, que dice lo
+  // mismo con más información y deja sitio a los resultados.
+  await expect(page.getByText(/1 resultado en todo el calendario/)).toBeVisible()
   await expect(page.getByText('Registro civil')).toBeVisible()
 })
 

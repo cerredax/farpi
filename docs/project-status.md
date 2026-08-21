@@ -72,12 +72,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **256 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **259 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 68 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 71 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -120,6 +120,22 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-21
+
+- **Escritorio en Tareas, Listas y Documentos.** Segunda tanda, con el mismo criterio
+  que el piloto: todo desde `lg`, nada por debajo. Tareas en dos columnas, Listas en
+  rejilla (dos desde `lg`, tres desde `xl`) con la lista abierta hasta 768 px, y
+  Documentos en rejilla con los filtros sin arrastre. Home y Ajustes se quedan.
+  - El patrón que salió de aquí y que conviene repetir: la rejilla va en el contenedor
+    que ya existe y la cabecera ocupa la fila con `lg:col-span-2`, para no meter un div
+    nuevo. Y hay que apagar el `space-y-*` con `lg:space-y-0`, porque el margen entre
+    hermanos se suma al `gap` de la rejilla.
+  - Se descartó la vista de dos paneles en Listas (índice a la izquierda, lista abierta
+    a la derecha). No es CSS: `ListsView` devuelve un árbol distinto cuando hay lista
+    seleccionada, así que sería reestructurar el componente y cambiar qué significa
+    abrir una lista.
+  - Nueve tests más en `escritorio.spec.ts`, y la mitad son del lado de 1023 px. La
+    regla "ni una clase por debajo de `lg`" se comprobó además leyendo el diff: de las
+    16 líneas de clases tocadas, ninguna perdió una clase base.
 
 - **Layout de escritorio: barra lateral desde `lg`.** `BottomNav` se va con `lg:hidden` y
   entra `SideNav`, una columna de 224 px a la izquierda con las seis secciones más

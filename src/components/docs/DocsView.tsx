@@ -17,7 +17,7 @@ export function DocsView() {
   const s = useDocsState()
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-5">
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -45,7 +45,10 @@ export function DocsView() {
       )}
 
       {/* Filtros */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+      {/* En móvil los filtros se arrastran y sangran hasta el borde (`-mx-4
+          px-4`); en escritorio caben los cinco de una vez, así que se quita el
+          sangrado y el arrastre. */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0">
         {ALL_FILTERS.map(f => (
           <button
             key={String(f.key)}
@@ -71,7 +74,7 @@ export function DocsView() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
           {s.filtered.map(doc => {
             const asignado = resolveAssignee(doc, s.members, s.kids)
             return (

@@ -144,6 +144,24 @@ test.describe('escritorio a 1440 px', () => {
     expect(ancho).toBe('768px')
   })
 
+  test('en Documentos las tarjetas van en rejilla', async ({ page }) => {
+    await page.goto('/docs')
+    await page.waitForTimeout(800)
+    expect(await columnasDeTarjetas(page), 'los documentos no están en rejilla').toBe(3)
+  })
+
+  test('los filtros de Documentos no se arrastran, caben los cinco', async ({ page }) => {
+    await page.goto('/docs')
+    await page.waitForTimeout(800)
+
+    const filtros = page.getByRole('button', { name: 'Todos' })
+    const medidas = await filtros.evaluate(el => {
+      const caja = el.parentElement!
+      return { scroll: caja.scrollWidth, ancho: caja.clientWidth }
+    })
+    expect(medidas.scroll, 'la fila de filtros se arrastra en horizontal').toBeLessThanOrEqual(medidas.ancho + 1)
+  })
+
   for (const ruta of RUTAS) {
     test(`sin desbordamiento horizontal en ${ruta} a 1440 px`, async ({ page }) => {
       await page.goto(ruta)
@@ -200,6 +218,12 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
       return caja ? getComputedStyle(caja).maxWidth : ''
     })
     expect(ancho).toBe('512px')
+  })
+
+  test('las tarjetas de Documentos siguen en una sola columna', async ({ page }) => {
+    await page.goto('/docs')
+    await page.waitForTimeout(800)
+    expect(await columnasDeTarjetas(page), 'la rejilla de Documentos se ha colado por debajo de lg').toBe(0)
   })
 
   test('la rejilla de comidas conserva las columnas de siempre', async ({ page }) => {

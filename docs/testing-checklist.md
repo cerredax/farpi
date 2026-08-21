@@ -173,8 +173,11 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 - [ ] La cabecera de arriba no se solapa con la barra lateral.
 - [ ] En Comidas, las siete columnas se leen sin apretarse demasiado a 1024 px justos.
 - [ ] En un monitor grande (2560 px) la rejilla de Comidas no queda desproporcionada.
-- [ ] Home, Tareas, Listas y Documentos siguen centradas: se ve raro pero no roto. Es lo
-      que queda por hacer del layout de escritorio.
+- [ ] En Tareas, dos columnas de pendientes y el recuento arriba ocupando el ancho.
+- [ ] En Listas, el índice en rejilla; al abrir una lista, más ancha pero aún en columna.
+- [ ] En Documentos, la rejilla de tarjetas y los cinco filtros sin arrastrar.
+- [ ] Home y Ajustes siguen centradas: se ve raro pero no roto. Es lo que queda por
+      hacer del layout de escritorio.
 
 ## 14. Persistencia
 

@@ -282,10 +282,25 @@ abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después**
 esquina de la cabecera— y **antes** de `main`, para que el velo de un sheet la cubra al
 abrirse.
 
-Las vistas que aprovechan el ancho lo hacen dentro de sí mismas: `CalendarView` con dos
-columnas desde `lg`, y `MealsView` con la rejilla semanal de siete días desde `md`
-(`WeekGrid`), dejando la lista vertical (`WeekList`) para el teléfono. Home, Tareas,
-Listas y Documentos siguen siendo la columna de móvil centrada.
+Cada vista aprovecha el ancho como le conviene, no todas con la misma plantilla:
+
+- `CalendarView`: dos columnas desde `lg`.
+- `MealsView`: rejilla semanal de siete días desde `md` (`WeekGrid`), con la lista
+  vertical (`WeekList`) para el teléfono.
+- `TasksView`: las pendientes en dos columnas desde `lg`, y las completadas igual al
+  desplegarse.
+- `ListsView`: el índice en rejilla (dos desde `lg`, tres desde `xl`) y la lista abierta
+  hasta `lg:max-w-3xl`, porque una lista de la compra sigue siendo una columna.
+- `DocsView`: rejilla de tarjetas (dos y tres) y los filtros sin arrastre, que en
+  escritorio caben los cinco.
+
+Home y Ajustes siguen siendo la columna de móvil centrada.
+
+El truco que se repite en las tres últimas: la rejilla se pone en el contenedor que ya
+existía y la cabecera de la sección ocupa la fila con `lg:col-span-2`. Así no hace falta
+envolver la lista en un div nuevo y por debajo de `lg` el DOM es idéntico. Lo que sí hay
+que apagar es el `space-y-*` de móvil con `lg:space-y-0`: los márgenes entre hermanos y
+el `gap` de la rejilla se suman y descuadran las filas.
 
 Una trampa que ya costó una vez: un `style` en línea gana a cualquier clase, así que no
 se puede sobreescribir por ancho de pantalla. Las columnas de `WeekGrid` estaban ahí y

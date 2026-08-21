@@ -39,7 +39,8 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `014_member_profile.sql` — `family_members.color` y `update_family_member_profile`; `update_my_family_profile` ya no existe *(comprobado a mano el 04-08-2026)*
 - [x] `015_task_assignment.sql` — `child_id` y `member_id` en `tasks`; sus dos triggers cross-family rechazan identificadores de otra familia *(validado el 06-08-2026)*
 - [x] `016_document_expiry.sql` — `documents.expires_on`; columna nullable que no altera el aislamiento: `documents` sigue pasando lectura, escritura y Storage *(validado el 06-08-2026)*
-- [ ] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(escrita el 21-08-2026, **sin aplicar** en producción y sin revalidar)*
+- [ ] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(aplicada el 21-08-2026, **sin revalidar**)*
+- [ ] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(escrita el 21-08-2026, **sin aplicar** en producción y sin revalidar)*
 
 ## Validación RLS
 
@@ -118,10 +119,13 @@ queda fuera de esa pasada.
 
 ## Pendiente
 
-- **Aplicar la `017_event_kind_descanso.sql`** en el SQL Editor y volver a ejecutar
-  `node scripts/validate-rls.mjs`, actualizando este documento con el resultado. Solo
-  cambia dos `check` de `events`, no toca policies ni aislamiento, así que no se espera
-  que mueva el recuento de comprobaciones.
+- **Aplicar la `018_person_kind.sql`** en el SQL Editor. Añade `children.kind`, la
+  columna que distingue a un hijo de un adulto sin cuenta.
+- **Volver a ejecutar `node scripts/validate-rls.mjs`** y actualizar este documento
+  con el resultado: cubre la 017 (aplicada el 21-08-2026) y la 018. Ninguna de las dos
+  toca policies ni aislamiento —son `check` de `events` y una columna de `children`—,
+  así que no se espera que muevan el recuento de comprobaciones. `children` ya se
+  valida por las vías de siempre, y `kind` no cambia quién la ve.
 
 Después de eso, nada más: volver a ejecutar el arnés y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.

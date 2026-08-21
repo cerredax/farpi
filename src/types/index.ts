@@ -33,12 +33,20 @@ export interface FamilyInvite {
   created_at: string
 }
 
+/**
+ * De quién lleva registro la familia sin que tenga cuenta: un hijo o un adulto
+ * (una abuela, un tío). Los dos se asignan por `child_id`; solo cambia dónde
+ * salen en Ajustes y cómo se les llama. Quien sí tiene cuenta es `FamilyMember`.
+ */
+export type PersonKind = 'hijo' | 'adulto'
+
 export interface Child {
   id: string
   family_id: string
   name: string
   birth_date: string | null
   color: string
+  kind: PersonKind
   created_at: string
 }
 
@@ -137,6 +145,7 @@ export interface ChildDraft {
   name: string
   birth_date: string
   color: string
+  kind: PersonKind
 }
 
 export interface EventDraft {

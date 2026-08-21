@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ExternalLink, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
-import { memberColor } from '@/lib/assignees'
+import { memberColor, splitPeople } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
@@ -16,7 +16,7 @@ import { ChildrenList } from './ChildrenList'
 import { FamilySheet } from './FamilySheet'
 import { MemberSheet } from './MemberSheet'
 import { ChildSheet } from './ChildSheet'
-import type { FamilyMember, Child, ChildDraft, Family } from '@/types'
+import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/types'
 
 const DONATION_URL = process.env.NEXT_PUBLIC_DONATION_URL?.trim() ?? ''
 
@@ -84,6 +84,8 @@ export function SettingsView() {
   } = useStore()
 
   const adminCount = members.filter(m => m.role === 'admin').length
+  // La misma tabla, dos bloques: los adultos sin cuenta no son hijos.
+  const { adultos: otrosAdultos, hijos } = splitPeople(kids)
 
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
@@ -104,13 +106,14 @@ export function SettingsView() {
   const [childMode, setChildMode]             = useState<'create' | 'edit'>('create')
   const [editingMember, setEditingMember]     = useState<FamilyMember | null>(null)
   const [editingChild, setEditingChild]       = useState<Child | null>(null)
+  const [childKind, setChildKind]             = useState<PersonKind>('hijo')
 
   function openInvite() { setEditingMember(null); setMemberMode('invite'); setMemberSheetOpen(true) }
   function openEditMember(m: FamilyMember) { setEditingMember(m); setMemberMode('edit'); setMemberSheetOpen(true) }
-  function openAddChild() { setEditingChild(null); setChildMode('create'); setChildSheetOpen(true) }
-  function openEditChild(c: Child) { setEditingChild(c); setChildMode('edit'); setChildSheetOpen(true) }
+  function openAddChild(kind: PersonKind) { setEditingChild(null); setChildKind(kind); setChildMode('create'); setChildSheetOpen(true) }
+  function openEditChild(c: Child) { setEditingChild(c); setChildKind(c.kind); setChildMode('edit'); setChildSheetOpen(true) }
 
-  const childSheetKey  = editingChild  ? `edit-${editingChild.id}`  : 'create'
+  const childSheetKey  = editingChild  ? `edit-${editingChild.id}`  : `create-${childKind}`
   const memberSheetKey = editingMember ? `edit-${editingMember.id}` : 'invite'
 
   const [confirmReset, setConfirmReset] = useState(false)
@@ -172,8 +175,12 @@ export function SettingsView() {
           <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
         </Section>
 
+        <Section label="Otros adultos">
+          <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
+        </Section>
+
         <Section label="Hijos">
-          <ChildrenList kids={kids} onEdit={openEditChild} onAdd={openAddChild} />
+          <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
         </Section>
 
         {IS_DEMO_MODE && (
@@ -241,6 +248,7 @@ export function SettingsView() {
         key={childSheetKey}
         open={childSheetOpen}
         mode={childMode}
+        kind={childKind}
         initial={editingChild}
         onClose={() => setChildSheetOpen(false)}
         onCreate={(draft: ChildDraft) => createKid(draft)}

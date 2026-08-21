@@ -8,13 +8,15 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { PERSON_COLORS } from '@/lib/constants'
 import { validateChildDraft } from '@/lib/validators'
-import type { Child, ChildDraft } from '@/types'
+import type { Child, ChildDraft, PersonKind } from '@/types'
 
 type Mode = 'create' | 'edit'
 
 interface ChildSheetProps {
   open: boolean
   mode: Mode
+  /** Un hijo o un adulto sin cuenta. Cambia los textos, no el formulario. */
+  kind: PersonKind
   initial?: Child | null
   onClose: () => void
   onCreate: (draft: ChildDraft) => void
@@ -23,17 +25,33 @@ interface ChildSheetProps {
 }
 
 
-function initDraft(mode: Mode, initial: Child | null | undefined): ChildDraft {
+function initDraft(mode: Mode, initial: Child | null | undefined, kind: PersonKind): ChildDraft {
   if (mode === 'edit' && initial) {
-    return { name: initial.name, birth_date: initial.birth_date ?? '', color: initial.color }
+    return { name: initial.name, birth_date: initial.birth_date ?? '', color: initial.color, kind: initial.kind }
   }
-  return { name: '', birth_date: '', color: PERSON_COLORS[0].value }
+  return { name: '', birth_date: '', color: PERSON_COLORS[0].value, kind }
 }
 
-export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: ChildSheetProps) {
+const TEXTOS: Record<PersonKind, { anadir: string; editar: string; placeholder: string; sinNombre: string }> = {
+  hijo: {
+    anadir: 'Añadir hijo',
+    editar: 'Editar hijo',
+    placeholder: 'Nombre del niño o niña',
+    sinNombre: 'Nombre del hijo',
+  },
+  adulto: {
+    anadir: 'Añadir adulto',
+    editar: 'Editar adulto',
+    placeholder: 'Abuela, tío, canguro…',
+    sinNombre: 'Nombre del adulto',
+  },
+}
+
+export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpdate, onDelete }: ChildSheetProps) {
+  const textos = TEXTOS[kind]
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ChildDraft>({
     open,
-    initialDraft: () => initDraft(mode, initial),
+    initialDraft: () => initDraft(mode, initial, kind),
     validate: validateChildDraft,
     autoFocus: mode === 'create',
   })
@@ -52,19 +70,26 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Añadir hijo' : 'Editar hijo'}
+      title={mode === 'create' ? textos.anadir : textos.editar}
       onClose={onClose}
       headerActions={deleteAction}
       footer={
         <SheetFooter
           form="child-form"
-          submitLabel={mode === 'create' ? 'Añadir hijo' : 'Guardar cambios'}
+          submitLabel={mode === 'create' ? textos.anadir : 'Guardar cambios'}
           disabled={!draft.name.trim()}
           error={formError}
         />
       }
     >
       <form id="child-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
+        {kind === 'adulto' && (
+          <p className="rounded-2xl bg-canvas px-4 py-3 text-xs text-muted leading-relaxed">
+            No entra en la app ni recibe invitación: sirve para asignarle eventos, tareas
+            y documentos. Para dar acceso a alguien, invítalo por correo desde Adultos.
+          </p>
+        )}
+
         <Field label="Nombre" htmlFor="child-name">
           <input
             id="child-name"
@@ -72,7 +97,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
             type="text"
             value={draft.name}
             onChange={e => patch({ name: e.target.value })}
-            placeholder="Nombre del niño o niña"
+            placeholder={textos.placeholder}
             required
             className="field-input"
           />
@@ -100,7 +125,7 @@ export function ChildSheet({ open, mode, initial, onClose, onCreate, onUpdate, o
             {draft.name ? draft.name.charAt(0).toUpperCase() : '?'}
           </span>
           <div>
-            <p className="font-bold text-ink text-sm">{draft.name || 'Nombre del hijo'}</p>
+            <p className="font-bold text-ink text-sm">{draft.name || textos.sinNombre}</p>
             <p className="text-xs text-muted">{draft.birth_date || 'Fecha de nacimiento'}</p>
           </div>
         </div>

@@ -46,8 +46,8 @@ test.describe('validateFamilyName', () => {
 
 test.describe('validateChildDraft', () => {
   test('exige nombre', () => {
-    expect(validateChildDraft({ name: '  ', birth_date: '', color: '#fff' })).not.toBeNull()
-    expect(validateChildDraft({ name: 'Ana', birth_date: '', color: '#fff' })).toBeNull()
+    expect(validateChildDraft({ name: '  ', birth_date: '', color: '#fff', kind: 'hijo' })).not.toBeNull()
+    expect(validateChildDraft({ name: 'Ana', birth_date: '', color: '#fff', kind: 'hijo' })).toBeNull()
   })
 })
 

@@ -398,3 +398,34 @@ test('las respuestas llevan las cabeceras de seguridad', async ({ page }) => {
   expect(cabeceras['referrer-policy']).toBe('strict-origin-when-cross-origin')
   expect(cabeceras['permissions-policy']).toContain('camera=()')
 })
+
+// Una abuela que recoge a los niños los martes no tiene cuenta ni correo, y
+// aun así hay que poder asignarle cosas. Se da de alta en Ajustes, en su propio
+// bloque, y desde ese momento sale en "asignar a" con los adultos. El test
+// recorre las dos mitades porque el valor está en la segunda: darla de alta sin
+// que aparezca donde se asigna no sirve de nada.
+test('un adulto sin cuenta se da de alta en Ajustes y se puede asignar', async ({ page }) => {
+  await page.goto('/settings')
+  await page.waitForTimeout(800)
+
+  await page.getByRole('button', { name: 'Añadir adulto' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Añadir adulto' })
+  // Sin correo y sin acceso: el sheet lo dice, para que nadie espere una invitación.
+  await expect(sheet.getByText(/No entra en la app/)).toBeVisible()
+  await expect(sheet.locator('#child-name')).toBeVisible()
+
+  await sheet.locator('#child-name').fill('Carmen')
+  await sheet.getByRole('button', { name: 'Añadir adulto' }).click()
+  await page.waitForTimeout(600)
+
+  // Sale en su bloque, no con los hijos.
+  await expect(page.getByRole('button', { name: /Carmen/ })).toBeVisible()
+  await expect(page.getByText('Aún no hay otros adultos')).toHaveCount(0)
+
+  // Y ya se le puede asignar un evento, como a cualquier adulto de la familia.
+  await page.goto('/calendar')
+  await page.waitForTimeout(800)
+  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  const evento = page.getByRole('dialog', { name: 'Nuevo evento' })
+  await expect(evento.getByRole('button', { name: 'Carmen', exact: true })).toBeVisible()
+})

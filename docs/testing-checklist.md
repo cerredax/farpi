@@ -124,7 +124,10 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede quitar miembro.
 - [ ] Revisar regla de último admin antes de producción.
 
-## 11. Ajustes - hijos
+## 11. Ajustes - hijos y otros adultos
+
+Los dos bloques son la misma tabla (`children`, con `kind`), así que lo de abajo se
+comprueba en los dos.
 
 - [ ] Se puede añadir hijo.
 - [ ] Fecha de nacimiento puede quedar vacía si el modelo lo permite.
@@ -132,6 +135,18 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede borrar hijo.
 - [ ] Al borrar hijo, eventos relacionados pasan a sin hijo.
 - [ ] Al borrar hijo, documentos relacionados pasan a sin hijo.
+
+Y de los adultos sin cuenta, que es lo que la 018 añadió. El alta y que salgan en
+«asignar a» están automatizados en `e2e/runtime.spec.ts` («un adulto sin cuenta se da
+de alta en Ajustes y se puede asignar»); el resto, a mano:
+
+- [ ] «Otros adultos» sale entre Adultos e Hijos, con su propio botón.
+- [ ] Se puede añadir un adulto sin correo, con nombre y color.
+- [ ] El sheet avisa de que no entra en la app ni recibe invitación.
+- [ ] Sale en «asignar a» con los adultos, no al final con los hijos.
+- [ ] No aparece en la lista de Hijos ni cuenta como hijo en la tarjeta de la familia.
+- [ ] Se puede editar y borrar, y al borrarlo lo suyo queda sin asignar.
+- [ ] Un adulto sin cuenta no recibe invitación ni puede iniciar sesión.
 
 ## 12. Reset demo
 
@@ -160,7 +175,7 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 > es lo que pide `CLAUDE.md` después de tocar una migración, una policy o una RPC.
 > Lo de abajo queda como referencia de qué cubre.
 
-- [ ] Migraciones 001–017 aplicadas en orden.
+- [ ] Migraciones 001–018 aplicadas en orden.
 - [ ] Tablas, índices y triggers existen.
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.

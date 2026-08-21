@@ -53,7 +53,7 @@ Estado:
 - UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
-- Migraciones 001–016 aplicadas. La **017 está escrita pero sin aplicar** en producción: hasta que se ejecute en el SQL Editor, guardar un descanso devuelve 400 por el `check` de la 013. Las 015 y 016 entraron el 2026-08-05 y **están pendientes de revalidar**: `node scripts/validate-rls.mjs` pasa de 47 a 51 comprobaciones, con las de los triggers de `tasks` y las del perfil del miembro.
+- Migraciones 001–017 aplicadas; la 017, el 2026-08-21 y **pendiente de revalidar**. La **018 está escrita y sin aplicar** en producción: hasta que se ejecute en el SQL Editor, `children` no tiene columna `kind` y dar de alta a un adulto sin cuenta falla. Las 015 y 016 entraron el 2026-08-05 y **están pendientes de revalidar**: `node scripts/validate-rls.mjs` pasa de 47 a 51 comprobaciones, con las de los triggers de `tasks` y las del perfil del miembro.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
@@ -75,7 +75,8 @@ Migraciones:
 - `014_member_profile.sql` — `color` en `family_members` y RPC `update_family_member_profile`, que sustituye a `update_my_family_profile`
 - `015_task_assignment.sql` — `child_id`, `member_id` y `completed_by` en `tasks`, con el mismo `check` de exclusión que eventos y documentos, y los triggers cross-family correspondientes
 - `016_document_expiry.sql` — `expires_on` en `documents` (nullable) e índice por `(family_id, expires_on)`
-- `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` y le exige día completo y fecha final, igual que a las vacaciones **(pendiente de aplicar en producción)**
+- `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` y le exige día completo y fecha final, igual que a las vacaciones
+- `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), para los adultos de la familia que no tienen cuenta **(pendiente de aplicar en producción)**
 
 Se aplican a mano por el SQL Editor: no hay CLI de Supabase enlazada, así que los
 ficheros numerados son el único registro de qué se aplicó y en qué orden.
@@ -257,7 +258,7 @@ Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), q
 
 ## Decisiones de producto
 
-Estas cuatro se tomaron con motivo y costaron varias vueltas cada una. Vistas desde
+Estas decisiones se tomaron con motivo y costaron varias vueltas cada una. Vistas desde
 fuera parecen incoherencias que hay que arreglar, y no lo son: si algo aquí va a
 cambiar, que sea a propósito.
 
@@ -308,6 +309,29 @@ duración no se puede pintar; y las **tareas**, que vencen un día pero no ocurr
 hora, van en la franja de "todo el día". El eje se recorta a las horas que tienen
 algo: el día de una familia son dos o tres citas, y de 00:00 a 24:00 era casi todo
 blanco.
+
+**Un abuelo es un adulto sin cuenta, y vive en `children`.** La frontera de la app
+no es adulto/niño, es **con cuenta / sin cuenta**. `family_members` cuelga de
+`auth.users` con `user_id not null`: para estar ahí hace falta correo, cuenta y
+sesión, y de esa tabla dependen `my_family_ids()`, las policies y la regla del
+último admin. Una abuela que recoge a los niños los martes no tiene nada de eso y
+sin embargo hay que poder asignarle cosas.
+
+Por eso los adultos sin cuenta van en `children` con `kind = 'adulto'` (migración
+018) y no en `family_members` con el usuario a null. `children` es ya la tabla de
+las personas de las que la familia lleva registro: nombre, color, asignación por
+`child_id` en eventos, tareas y documentos, y sus triggers de integridad entre
+familias. Se descartó tocar `family_members` porque habría metido mano en la tabla
+de la que cuelga toda la seguridad para no ganar nada, y se descartó una tabla nueva
+por lo mismo que lo descartó la 012: duplicar policies, triggers e integridad para
+lo mismo.
+
+El precio es que la tabla se llama `children` y guarda abuelos. Se paga a gusto:
+renombrarla arrastraría claves ajenas, policies y triggers de media base. En Ajustes
+son tres bloques —**Adultos** (con cuenta, se invitan por correo), **Otros adultos**
+(sin cuenta, se añaden con un nombre y un color) e **Hijos**—, y en "asignar a" los
+adultos van juntos, con cuenta o sin ella: a la hora de asignar algo da igual quién
+entra en la app.
 
 Y una regla que las cruza todas: **buscando sí se enseña todo**, incluido el
 catálogo y el pasado del calendario. Esconder algo que sí coincide sería contestar

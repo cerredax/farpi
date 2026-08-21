@@ -35,7 +35,10 @@ export function validateFamilyName(name: string): string | null {
 
 /** Devuelve el mensaje de error o null si el draft es válido. */
 export function validateChildDraft(draft: ChildDraft): string | null {
-  if (!draft.name.trim()) return 'El nombre del hijo no puede estar vacío.'
+  if (!draft.name.trim())
+    return draft.kind === 'adulto'
+      ? 'El nombre del adulto no puede estar vacío.'
+      : 'El nombre del hijo no puede estar vacío.'
   return null
 }
 

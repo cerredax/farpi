@@ -1,4 +1,5 @@
 import { Home, Pencil } from 'lucide-react'
+import { splitPeople } from '@/lib/assignees'
 import type { Family, FamilyMember, Child } from '@/types'
 
 interface FamilyCardProps {
@@ -9,8 +10,12 @@ interface FamilyCardProps {
 }
 
 export function FamilyCard({ family, members, kids, onEdit }: FamilyCardProps) {
-  const adultsLabel = members.length === 1 ? '1 adulto' : `${members.length} adultos`
-  const kidsLabel   = kids.length === 1 ? '1 hijo'   : `${kids.length} hijos`
+  // Los adultos sin cuenta cuentan como adultos: una abuela es de la familia
+  // aunque no entre en la app.
+  const { adultos, hijos } = splitPeople(kids)
+  const numAdultos = members.length + adultos.length
+  const adultsLabel = numAdultos === 1 ? '1 adulto' : `${numAdultos} adultos`
+  const kidsLabel   = hijos.length === 1 ? '1 hijo' : `${hijos.length} hijos`
 
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm p-4 flex items-center gap-4">

@@ -41,7 +41,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 ### Backend / migraciones
 
-- Migraciones Supabase 001–016 aplicadas en el proyecto real. La 017 (descansos) está escrita y **pendiente de aplicar**: sin ella el `check` de la 013 rechaza `kind = 'descanso'`. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
+- Migraciones Supabase 001–017 aplicadas en el proyecto real; la 017 (descansos), el 2026-08-21 y **pendiente de revalidar**. La 018 (adultos sin cuenta) está escrita y **pendiente de aplicar**: sin ella `children` no tiene columna `kind` y «Añadir adulto» falla. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
@@ -56,7 +56,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Perfil del miembro: nombre editable también por el admin, y color propio elegible como el de los hijos (migración 014).
 - Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó (migración 015).
 - Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario (migración 016).
-- `supabase/all_in_one.sql`, las 17 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
+- Adultos sin cuenta: un abuelo se da de alta con nombre y color, sin correo y sin acceso a la app, y se le asigna igual que a un hijo (migración 018). Viven en `children` con `kind = 'adulto'`; el porqué está en «Decisiones de producto» de `docs/architecture.md`.
+- `supabase/all_in_one.sql`, las 18 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
 
 ### Calidad / infraestructura
 
@@ -71,12 +72,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **217 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **223 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 169 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 48 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 174 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
+  - 49 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -119,6 +120,18 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-21
+
+- **Adultos sin cuenta (los abuelos)**: en Ajustes hay tres bloques —Adultos, Otros
+  adultos e Hijos— y el de en medio permite dar de alta a alguien con un nombre y un
+  color, sin correo y sin acceso a la app, solo para poder asignarle eventos, tareas
+  y documentos.
+  - Van en `children` con `kind = 'adulto'` (migración 018), no en `family_members`:
+    esa tabla cuelga de `auth.users` con `user_id not null` y de ella depende toda la
+    seguridad. El razonamiento completo, en «Decisiones de producto».
+  - En «asignar a» salen con los adultos, no al final con los hijos: `splitPeople`
+    en `src/lib/assignees.ts`.
+  - El sheet lo dice en una línea, para que nadie espere una invitación: «No entra en
+    la app ni recibe invitación».
 
 - **Descansos familiares en el calendario**: se añade un tipo de evento `descanso`
   para marcar días de baja de un miembro o hijo, con una marca circular en la

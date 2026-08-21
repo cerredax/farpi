@@ -58,8 +58,29 @@ export const FAMILY_ASSIGNEE: Assignee = {
   member_id: null,
 }
 
-/** Las opciones en el orden en que se ofrecen: familia, adultos, hijos. */
+/**
+ * Las personas sin cuenta, separadas por lo que son. La tabla es la misma —se
+ * asignan igual, por `child_id`— pero en Ajustes van en bloques distintos y en
+ * el selector los adultos van juntos, con cuenta o sin ella.
+ */
+export function splitPeople(kids: Child[]): { adultos: Child[]; hijos: Child[] } {
+  return {
+    adultos: kids.filter(k => k.kind === 'adulto'),
+    hijos:   kids.filter(k => k.kind === 'hijo'),
+  }
+}
+
+function kidAssignee(c: Child): Assignee {
+  return { key: `c:${c.id}`, name: c.name, color: c.color, child_id: c.id, member_id: null }
+}
+
+/**
+ * Las opciones en el orden en que se ofrecen: familia, adultos, hijos. Los
+ * adultos sin cuenta van con los otros adultos y no al final con los hijos: a
+ * la hora de asignar algo da igual quién entra en la app.
+ */
 export function buildAssignees(members: FamilyMember[], kids: Child[]): Assignee[] {
+  const { adultos, hijos } = splitPeople(kids)
   return [
     FAMILY_ASSIGNEE,
     ...members.map(m => ({
@@ -69,13 +90,8 @@ export function buildAssignees(members: FamilyMember[], kids: Child[]): Assignee
       child_id: null,
       member_id: m.id,
     })),
-    ...kids.map(c => ({
-      key: `c:${c.id}`,
-      name: c.name,
-      color: c.color,
-      child_id: c.id,
-      member_id: null,
-    })),
+    ...adultos.map(kidAssignee),
+    ...hijos.map(kidAssignee),
   ]
 }
 

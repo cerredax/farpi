@@ -75,10 +75,10 @@ así que queda volver a pasar el script y anotar el resultado. Serán **51
 comprobaciones** en vez de 47: dos nuevas de los triggers cross-family de `tasks`
 (015) y dos del perfil del miembro (014).
 
-**Pendiente ahora mismo (21-08-2026)**: aplicar la `017_event_kind_descanso.sql` en el
-SQL Editor y volver a pasar el script. Es la migración que hacía falta para que los
-descansos se puedan guardar de verdad: el `check` de la 013 solo aceptaba `evento` y
-`vacaciones`.
+**Pendiente ahora mismo (21-08-2026)**: aplicar la `018_person_kind.sql` en el SQL
+Editor y volver a pasar el script, que cubre también la 017 (aplicada ese mismo día).
+La 017 es la que permite guardar un descanso; la 018 añade `children.kind`, que es lo
+que distingue a un hijo de un adulto sin cuenta.
 
 ## Fase 4 - Repositorios Supabase ✅
 
@@ -131,6 +131,9 @@ Objetivo: preparar uso diario.
 - ✅ Revisión de accesibilidad: BottomSheet como diálogo (role/aria/Escape/foco/inert), botones de icono etiquetados y label↔input asociados en los sheets.
 - ✅ Descansos familiares en el calendario: marcador circular por día, con rango y
   lógica de disponibilidad para saber si puedes contar con alguien.
+- ✅ Adultos sin cuenta: los abuelos se dan de alta en Ajustes sin correo y se les
+  puede asignar lo mismo que a cualquiera. Tres bloques en Ajustes y `kind` en
+  `children`.
 - [ ] Medir el contraste de la paleta. Es lo único de accesibilidad que quedó sin
   comprobar, y es lo único que no se ve leyendo el código.
 - [ ] Backup/export sencillo si se considera necesario.

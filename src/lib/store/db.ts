@@ -29,7 +29,7 @@ export const db: DB = {
   invites: [],
 
   kids: [
-    { id: '1', family_id: 'f1', name: 'Ana', birth_date: '2026-06-03', color: '#D8A48F', created_at: '2026-06-03T11:42:00' },
+    { id: '1', family_id: 'f1', name: 'Ana', birth_date: '2026-06-03', color: '#D8A48F', kind: 'hijo', created_at: '2026-06-03T11:42:00' },
   ],
 
   events: [

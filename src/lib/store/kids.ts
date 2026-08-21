@@ -12,6 +12,7 @@ export function createKid(familyId: string, draft: ChildDraft): Child {
     name: draft.name.trim(),
     birth_date: draft.birth_date || null,
     color: draft.color,
+    kind: draft.kind,
     created_at: new Date().toISOString(),
   }
   db.kids = [...db.kids, c]
@@ -20,7 +21,7 @@ export function createKid(familyId: string, draft: ChildDraft): Child {
 
 export function updateKid(id: string, draft: ChildDraft): void {
   db.kids = db.kids.map(c =>
-    c.id !== id ? c : { ...c, name: draft.name.trim(), birth_date: draft.birth_date || null, color: draft.color }
+    c.id !== id ? c : { ...c, name: draft.name.trim(), birth_date: draft.birth_date || null, color: draft.color, kind: draft.kind }
   )
 }
 

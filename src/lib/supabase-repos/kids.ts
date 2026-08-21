@@ -15,7 +15,7 @@ export const childrenRepo: ChildrenRepo = {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('children')
-      .insert({ family_id: familyId, name: draft.name.trim(), birth_date: draft.birth_date || null, color: draft.color })
+      .insert({ family_id: familyId, name: draft.name.trim(), birth_date: draft.birth_date || null, color: draft.color, kind: draft.kind })
       .select('*')
       .single()
     assertNoError(error)
@@ -26,7 +26,7 @@ export const childrenRepo: ChildrenRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('children')
-      .update({ name: draft.name.trim(), birth_date: draft.birth_date || null, color: draft.color })
+      .update({ name: draft.name.trim(), birth_date: draft.birth_date || null, color: draft.color, kind: draft.kind })
       .eq('id', id)
     assertNoError(error)
   },

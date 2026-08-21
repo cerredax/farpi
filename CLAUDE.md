@@ -143,7 +143,7 @@ que hacer lo mismo.
 
 ### Base de datos
 
-`supabase/migrations/001…017`. Se aplican a mano por el SQL Editor (no hay CLI de Supabase enlazada). `all_in_one.sql` es la concatenación de las 17 para levantar un proyecto de cero: **está generado**, no se edita a mano (`node scripts/gen-all-in-one.mjs`, y `--check` avisa si se ha quedado atrás).
+`supabase/migrations/001…018`. Se aplican a mano por el SQL Editor (no hay CLI de Supabase enlazada). `all_in_one.sql` es la concatenación de las 18 para levantar un proyecto de cero: **está generado**, no se edita a mano (`node scripts/gen-all-in-one.mjs`, y `--check` avisa si se ha quedado atrás).
 
 Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
 

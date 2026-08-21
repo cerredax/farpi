@@ -1,7 +1,7 @@
 import { db } from './db'
 
 const STORAGE_KEY = 'nido_store_v1'
-const SCHEMA_VER  = 6  // v6: Event.recurrence_group_id
+const SCHEMA_VER  = 7  // v7: Child.kind (hijo | adulto)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return

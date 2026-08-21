@@ -1,10 +1,12 @@
 import { Pencil, UserPlus } from 'lucide-react'
 import { differenceInYears, differenceInMonths, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import type { Child } from '@/types'
+import type { Child, PersonKind } from '@/types'
 
 interface ChildrenListProps {
   kids: Child[]
+  /** Qué lista es: la de los hijos o la de los adultos sin cuenta. */
+  kind: PersonKind
   onEdit: (child: Child) => void
   onAdd: () => void
 }
@@ -20,12 +22,19 @@ function getAge(birthDate: string | null): string {
   return years === 1 ? '1 año' : `${years} años`
 }
 
-export function ChildrenList({ kids, onEdit, onAdd }: ChildrenListProps) {
+const TEXTOS: Record<PersonKind, { vacio: string; anadir: string }> = {
+  hijo:   { vacio: 'Aún no hay hijos añadidos',  anadir: 'Añadir hijo' },
+  adulto: { vacio: 'Aún no hay otros adultos',   anadir: 'Añadir adulto' },
+}
+
+export function ChildrenList({ kids, kind, onEdit, onAdd }: ChildrenListProps) {
+  const textos = TEXTOS[kind]
+
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
       {kids.length === 0 && (
         <div className="px-4 py-5 text-center">
-          <p className="text-sm text-muted">Aún no hay hijos añadidos</p>
+          <p className="text-sm text-muted">{textos.vacio}</p>
         </div>
       )}
       {kids.map((child, i) => (
@@ -40,8 +49,11 @@ export function ChildrenList({ kids, onEdit, onAdd }: ChildrenListProps) {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-ink text-sm leading-tight">{child.name}</p>
             {child.birth_date && (
+              // De un hijo interesa la edad; de un adulto, la fecha para
+              // acordarse del cumpleaños. Poner "78 años" ahí no dice nada.
               <p className="text-xs text-muted mt-0.5">
-                {format(parseISO(child.birth_date), 'd MMM yyyy', { locale: es })} · {getAge(child.birth_date)}
+                {format(parseISO(child.birth_date), 'd MMM yyyy', { locale: es })}
+                {child.kind === 'hijo' && ` · ${getAge(child.birth_date)}`}
               </p>
             )}
           </div>
@@ -55,7 +67,7 @@ export function ChildrenList({ kids, onEdit, onAdd }: ChildrenListProps) {
           <span className="w-10 h-10 rounded-full border-2 border-dashed border-primary flex items-center justify-center flex-shrink-0">
             <UserPlus size={17} strokeWidth={1.8} />
           </span>
-          <span className="text-sm font-semibold">Añadir hijo</span>
+          <span className="text-sm font-semibold">{textos.anadir}</span>
         </button>
       </div>
     </div>

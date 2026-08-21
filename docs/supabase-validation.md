@@ -39,6 +39,7 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `014_member_profile.sql` — `family_members.color` y `update_family_member_profile`; `update_my_family_profile` ya no existe *(comprobado a mano el 04-08-2026)*
 - [x] `015_task_assignment.sql` — `child_id` y `member_id` en `tasks`; sus dos triggers cross-family rechazan identificadores de otra familia *(validado el 06-08-2026)*
 - [x] `016_document_expiry.sql` — `documents.expires_on`; columna nullable que no altera el aislamiento: `documents` sigue pasando lectura, escritura y Storage *(validado el 06-08-2026)*
+- [ ] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(escrita el 21-08-2026, **sin aplicar** en producción y sin revalidar)*
 
 ## Validación RLS
 
@@ -111,12 +112,18 @@ Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-**No queda nada pendiente.** Las 16 migraciones están validadas y la pasada del
-06-08-2026 no dejó ninguna comprobación en rojo.
+**Nada en rojo en lo validado.** Las 16 primeras migraciones están validadas y la
+pasada del 06-08-2026 no dejó ninguna comprobación fallando. La 017 llegó después y
+queda fuera de esa pasada.
 
 ## Pendiente
 
-Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
+- **Aplicar la `017_event_kind_descanso.sql`** en el SQL Editor y volver a ejecutar
+  `node scripts/validate-rls.mjs`, actualizando este documento con el resultado. Solo
+  cambia dos `check` de `events`, no toca policies ni aislamiento, así que no se espera
+  que mueva el recuento de comprobaciones.
+
+Después de eso, nada más: volver a ejecutar el arnés y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
 
 ### Notas de la ejecución (06-08-2026)

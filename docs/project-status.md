@@ -41,7 +41,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 ### Backend / migraciones
 
-- Migraciones Supabase 001–016 aplicadas en el proyecto real. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
+- Migraciones Supabase 001–016 aplicadas en el proyecto real. La 017 (descansos) está escrita y **pendiente de aplicar**: sin ella el `check` de la 013 rechaza `kind = 'descanso'`. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
@@ -56,7 +56,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Perfil del miembro: nombre editable también por el admin, y color propio elegible como el de los hijos (migración 014).
 - Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó (migración 015).
 - Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario (migración 016).
-- `supabase/all_in_one.sql`, las 16 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
+- `supabase/all_in_one.sql`, las 17 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
 
 ### Calidad / infraestructura
 

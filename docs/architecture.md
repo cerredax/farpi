@@ -53,7 +53,7 @@ Estado:
 - UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
-- Migraciones 001–016 aplicadas. Las 015 y 016 entraron el 2026-08-05 y **están pendientes de revalidar**: `node scripts/validate-rls.mjs` pasa de 47 a 51 comprobaciones, con las de los triggers de `tasks` y las del perfil del miembro.
+- Migraciones 001–016 aplicadas. La **017 está escrita pero sin aplicar** en producción: hasta que se ejecute en el SQL Editor, guardar un descanso devuelve 400 por el `check` de la 013. Las 015 y 016 entraron el 2026-08-05 y **están pendientes de revalidar**: `node scripts/validate-rls.mjs` pasa de 47 a 51 comprobaciones, con las de los triggers de `tasks` y las del perfil del miembro.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
@@ -75,6 +75,7 @@ Migraciones:
 - `014_member_profile.sql` — `color` en `family_members` y RPC `update_family_member_profile`, que sustituye a `update_my_family_profile`
 - `015_task_assignment.sql` — `child_id`, `member_id` y `completed_by` en `tasks`, con el mismo `check` de exclusión que eventos y documentos, y los triggers cross-family correspondientes
 - `016_document_expiry.sql` — `expires_on` en `documents` (nullable) e índice por `(family_id, expires_on)`
+- `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` y le exige día completo y fecha final, igual que a las vacaciones **(pendiente de aplicar en producción)**
 
 Se aplican a mano por el SQL Editor: no hay CLI de Supabase enlazada, así que los
 ficheros numerados son el único registro de qué se aplicó y en qué orden.

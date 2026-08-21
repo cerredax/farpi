@@ -160,7 +160,7 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 > es lo que pide `CLAUDE.md` después de tocar una migración, una policy o una RPC.
 > Lo de abajo queda como referencia de qué cubre.
 
-- [ ] Migraciones 001–016 aplicadas en orden.
+- [ ] Migraciones 001–017 aplicadas en orden.
 - [ ] Tablas, índices y triggers existen.
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.

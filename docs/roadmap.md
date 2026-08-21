@@ -75,6 +75,11 @@ así que queda volver a pasar el script y anotar el resultado. Serán **51
 comprobaciones** en vez de 47: dos nuevas de los triggers cross-family de `tasks`
 (015) y dos del perfil del miembro (014).
 
+**Pendiente ahora mismo (21-08-2026)**: aplicar la `017_event_kind_descanso.sql` en el
+SQL Editor y volver a pasar el script. Es la migración que hacía falta para que los
+descansos se puedan guardar de verdad: el `check` de la 013 solo aceptaba `evento` y
+`vacaciones`.
+
 ## Fase 4 - Repositorios Supabase ✅
 
 Objetivo: implementar acceso a datos real sin reescribir pantallas.

@@ -429,6 +429,13 @@ de una herramienta de trabajo. Al escribir textos nuevos:
   para no añadir una dependencia más solo por los unitarios.
 - Migración a tokens de color completada (2026-08-03): de 109 apariciones a 36. Lo
   que queda literal son datos, marca de terceros y decorativos de un solo uso.
+- Paleta "Cocina de casa" (2026-08-21): crema `#F2E6D8`, tinta `#4A3728`, terracota de
+  marca, oliva de segundo acento y amarillo `#C9A227`. **Los nombres de token no
+  cambiaron**, solo los valores: `--nido-sage` es hoy la terracota y `--nido-terracota`
+  el oliva, que suena raro pero renombrarlos habría tocado el bloque `@theme inline` y
+  las utilidades `*-nido-*`. Las variantes (`hover`, `strong`, `deep`, `tint`, `line`)
+  se derivaron resolviendo el contraste, no a ojo: el porqué de cada claridad está en
+  los comentarios de `globals.css`.
 
 ## Decisiones pendientes
 

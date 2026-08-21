@@ -121,6 +121,32 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 
 ## Cerrado el 2026-08-21
 
+- **Paleta nueva: "Cocina de casa".** Crema `#F2E6D8`, tinta `#4A3728`, terracota de
+  marca, oliva de segundo acento y amarillo `#C9A227`. El rojo de peligro se queda.
+  Estructura de tokens intacta: solo cambian los valores.
+  - **La terracota de marca no pudo ser la pedida.** `#B5651D` no llega a 4,5:1 en
+    ninguno de sus dos papeles: 4,34 con blanco encima (`bg-primary text-white`, 12
+    sitios) y 3,53 como texto sobre el crema (`text-primary`, 57 usos y mucho de 9-12
+    px). Se usa `#A15408`, el más claro de ese mismo tono que cumple los dos: 5,55 y
+    4,51. Son 6,6 puntos de L* más oscuro y se nota.
+  - Las variantes se derivaron por búsqueda, no a ojo: para cada una se buscó la más
+    clara de su familia que cumple su restricción. Así salieron `muted` (4,53 sobre
+    `surface`, que era lo justo), `sand-strong` (4,56 sobre `bg-sand/30`) y
+    `danger-strong`, que **sí** se ajustó aunque el rojo no: es una variante derivada y
+    con el crema más oscuro el `#B24D4D` de antes se quedaba en 4,21.
+  - Los neutros salen de la tinta y del crema, no de un gris: un gris neutro sobre
+    fondo cálido se ve azulado.
+  - De paso, seis colores de marca que vivían fuera del sistema: el `themeColor` de la
+    PWA, el par crema/marrón de la tarjeta de calma en Inicio, el sage oscuro de los
+    chips del login, y en el `<style>` del login el fondo del foco, el `rgba` del anillo
+    (era el rgb del sage viejo) y la sombra de la tarjeta (el charcoal viejo).
+  - **Pendiente y sin tocar**, porque son datos de producto: `FAMILY_COLOR` (`#E9C46A`)
+    era **exactamente** el token `sand` y su comentario lo dice; ahora divergen (ΔE 9,9).
+    Y tres colores de persona se pierden sobre el crema nuevo —rosa chicle 1,22:1,
+    verde manzana 1,24:1, melocotón 1,33:1—, que importa para los puntos pequeños del
+    calendario, que van directos sobre el fondo. También el logo `src/app/icon.svg`
+    sigue con la paleta vieja.
+
 - **Escritorio en Tareas, Listas y Documentos.** Segunda tanda, con el mismo criterio
   que el piloto: todo desde `lg`, nada por debajo. Tareas en dos columnas, Listas en
   rejilla (dos desde `lg`, tres desde `xl`) con la lista abierta hasta 768 px, y

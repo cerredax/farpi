@@ -21,7 +21,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#8BA888',
+  // La barra del navegador en Android. Es metadata, no CSS: aquí no llega
+  // `var(--color-primary)`, así que va el literal. Si cambia el acento de marca
+  // en `globals.css`, hay que cambiarlo aquí también.
+  themeColor: '#A15408',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

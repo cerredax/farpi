@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
+/* Paleta "Cocina de casa". Los nombres se quedan como estaban aunque el color
+   haya cambiado de familia: `--nido-sage` es ahora la terracota de marca y
+   `--nido-terracota` el verde oliva. Renombrarlos habría tocado el bloque
+   `@theme inline` y las utilidades `*-nido-*` que salen de él. */
 :root {
-  --nido-cream:     #FAF7F2;
+  --nido-cream:     #F2E6D8;
   --nido-white:     #FFFFFF;
-  --nido-charcoal:  #252525;
-  --nido-gray:      #77716A;
-  --nido-sage:      #8BA888;
-  --nido-terracota: #D8A48F;
-  --nido-sand:      #E9C46A;
+  --nido-charcoal:  #4A3728;
+  --nido-gray:      #6F5E52;
+  --nido-sage:      #A15408;
+  --nido-terracota: #5C6B47;
+  --nido-sand:      #C9A227;
   --nido-red:       #D96C6C;
 }
 
@@ -31,38 +35,46 @@
    (p. ej. bg-primary/20). Cambiar la paleta = tocar solo aquí.
    Los colores de datos (hijos, prioridades) NO son tokens: son valores. */
 @theme {
-  --color-canvas:         #FAF7F2; /* fondo crema principal */
-  --color-ink:            #252525; /* texto fuerte */
-  --color-muted:          #77716A; /* texto secundario */
-  --color-faint:          #C4BFB9; /* placeholder / muy tenue */
+  --color-canvas:         #F2E6D8; /* fondo crema principal */
+  --color-ink:            #4A3728; /* texto fuerte */
+  --color-muted:          #6F5E52; /* texto secundario */
+  --color-faint:          #8C837D; /* placeholder / muy tenue */
 
-  --color-muted-soft:     #A39B93; /* texto terciario, entre muted y faint */
+  --color-muted-soft:     #7A6D64; /* texto terciario, entre muted y faint */
 
-  --color-primary:        #8BA888; /* verde principal */
-  --color-primary-hover:  #7a9877;
-  --color-primary-strong: #5C7A59;
-  --color-primary-deep:   #4E6B4C; /* hover del botón primario fuerte */
-  --color-primary-deepest:#3D5C3A; /* active del botón y marca sobre fondo oscuro */
-  --color-primary-tint:   #F5F9F5; /* fondo verde muy claro */
-  --color-primary-line:   #DDEAD9; /* borde verde claro */
+  /* El acento hace dos papeles y el segundo es el que fija su claridad:
+     `bg-primary text-white` (12 sitios) y `text-primary` (57, mucho de 9-12 px).
+     La terracota #B5651D no llega a 4,5:1 en ninguno de los dos —4,34 con blanco
+     encima, 3,53 como texto sobre el crema—, así que se usa el más claro de ese
+     mismo tono que cumple ambos. */
+  --color-primary:        #A15408; /* terracota de marca */
+  --color-primary-hover:  #924800;
+  --color-primary-strong: #863E00;
+  --color-primary-deep:   #783200; /* hover del botón primario fuerte */
+  --color-primary-deepest:#6A2700; /* active del botón y marca sobre fondo oscuro */
+  --color-primary-tint:   #FFEDE1; /* fondo terracota muy claro */
+  --color-primary-line:   #F2D1BB; /* borde terracota claro */
 
-  --color-accent:         #D8A48F; /* salmón */
-  --color-sand:           #E9C46A; /* amarillo de marca: avisos suaves */
-  --color-sand-strong:    #9A7D1A; /* texto legible sobre fondo sand */
-  --color-warm:           #FFF8EF; /* fondo cálido de tarjeta destacada */
+  --color-accent:         #5C6B47; /* verde oliva */
+  --color-sand:           #C9A227; /* amarillo de marca: avisos suaves */
+  --color-sand-strong:    #735700; /* texto legible sobre fondo sand */
+  --color-warm:           #FCF3E2; /* fondo cálido de tarjeta destacada */
 
+  /* El rojo se queda como estaba. `danger-strong` sí se ajusta: es una variante
+     derivada y con el crema nuevo, más oscuro, el #B24D4D de antes se quedaba
+     en 4,21:1 encima. */
   --color-danger:         #D96C6C;
   --color-danger-hover:   #C45F5F; /* hover del botón de peligro */
-  --color-danger-strong:  #B24D4D; /* texto de error sobre danger-soft */
+  --color-danger-strong:  #AE4649; /* texto de error sobre danger-soft */
   --color-danger-soft:    #FDE8E8; /* fondo de peligro (hover) */
   --color-danger-line:    #F1C9C9; /* borde de peligro */
   --color-danger-tint:    #FDF6F6; /* fondo de tarjeta de peligro */
 
-  --color-line:           #EDE9E3; /* borde principal */
-  --color-line-strong:    #D8D4CE; /* borde marcado y discontinuo */
-  --color-surface:        #F0EDE8; /* superficie / hover */
-  --color-hairline:       #F5F2EE; /* borde muy suave */
-  --color-grip:           #E0DDD8; /* asa del sheet */
+  --color-line:           #DDD3C7; /* borde principal */
+  --color-line-strong:    #CABFB3; /* borde marcado y discontinuo */
+  --color-surface:        #E6DBCF; /* superficie / hover */
+  --color-hairline:       #EBE1D5; /* borde muy suave */
+  --color-grip:           #D5CABE; /* asa del sheet */
 }
 
 /* ── Clases de formulario reutilizables ─────────────────────────
@@ -103,4 +115,4 @@ body {
 /* Suavizar scrollbar en webkit */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d4cfc9; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 2px; }

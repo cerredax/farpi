@@ -26,7 +26,7 @@ export function LoginHero() {
 
       <div className="hidden items-center gap-2 sm:flex">
         {assurances.map(item => (
-          <span key={item} className="rounded-full border border-line bg-white/70 px-3 py-1 text-xs font-bold text-[#5C6854]">
+          <span key={item} className="rounded-full border border-line bg-white/70 px-3 py-1 text-xs font-bold text-accent">
             {item}
           </span>
         ))}

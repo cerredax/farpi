@@ -269,6 +269,29 @@ Un sheet con formulario se monta así: `useSheetForm` para el estado, `Field` pa
 `SheetFooter` para el pie y `useSheetDelete` cuando hay borrado. Las vistas remontan los sheets
 con `key` al abrirlos, por eso el draft inicial se evalúa una sola vez.
 
+### Móvil y escritorio
+
+La app se diseña para el teléfono y crece hacia el escritorio en `lg` (1024 px), nunca al
+revés. El corte está solo ahí, y lo que hay por debajo no se toca al añadir escritorio.
+
+La navegación es lo único que cambia de sitio: `BottomNav` desaparece con `lg:hidden` y
+`SideNav` (`hidden lg:flex`, 224 px a la izquierda) toma su lugar, con las mismas seis
+secciones más Ajustes, que en móvil vive en la rueda de `TopBar` porque en la barra de
+abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después** de
+`TopBar` —con el mismo `z-50`, lo último se pinta encima y la columna tiene que tapar la
+esquina de la cabecera— y **antes** de `main`, para que el velo de un sheet la cubra al
+abrirse.
+
+Las vistas que aprovechan el ancho lo hacen dentro de sí mismas: `CalendarView` con dos
+columnas desde `lg`, y `MealsView` con la rejilla semanal de siete días desde `md`
+(`WeekGrid`), dejando la lista vertical (`WeekList`) para el teléfono. Home, Tareas,
+Listas y Documentos siguen siendo la columna de móvil centrada.
+
+Una trampa que ya costó una vez: un `style` en línea gana a cualquier clase, así que no
+se puede sobreescribir por ancho de pantalla. Las columnas de `WeekGrid` estaban ahí y
+hubo que moverlas a clases —con el valor base idéntico— para poder apretarlas en `lg`,
+donde `SideNav` se lleva 224 px del ancho.
+
 Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), que ya resuelve el comportamiento en móvil pequeño y aporta modal centrado en escritorio:
 
 - Altura máxima con `max-h-[92dvh]`.

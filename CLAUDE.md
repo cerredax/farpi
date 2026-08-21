@@ -38,6 +38,13 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
   Dos límites que no se negocian y que `e2e/movil.spec.ts` comprueba: nada desborda
   a lo ancho a **390 px** (un iPhone normal, más estrecho que el Pixel 7 con el que
   corre el resto de la suite) y ningún control baja de **24×24 px** (mínimo WCAG 2.5.8).
+- **El escritorio se hace en `lg:` y no toca nada por debajo.** La navegación cambia
+  ahí: `BottomNav` se va con `lg:hidden` y entra `SideNav` con `hidden lg:flex`. Si un
+  cambio de escritorio necesita tocar un valor que ya se usa en móvil, no se toca: se
+  mueve a una clase con el mismo valor base y se le añade la variante `lg:` (así se
+  hizo con las columnas de `WeekGrid`, que estaban en un `style` en línea imposible de
+  sobreescribir). `e2e/escritorio.spec.ts` lo vigila desde los dos lados: a 1440 px y a
+  **1023 px**, un píxel por debajo del corte, donde todo tiene que seguir igual.
 - No introducir backend complejo, Docker, NestJS, librerías pesadas de validación ni
   arquitectura grande. No sobrerrefactorizar.
 - Antes de "arreglar" algo que parezca una incoherencia —las listas marcan lo que

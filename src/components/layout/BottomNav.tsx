@@ -17,8 +17,10 @@ const navItems = [
 export function BottomNav() {
   const pathname = usePathname()
 
+  // `lg:hidden`: desde ahí manda `SideNav`, la columna de la izquierda. Por
+  // debajo de `lg` esto es exactamente lo que era.
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-line safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-line safe-area-pb lg:hidden">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')

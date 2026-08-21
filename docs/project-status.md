@@ -72,12 +72,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **238 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **250 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 50 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 62 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -120,6 +120,24 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-21
+
+- **Layout de escritorio: barra lateral desde `lg`.** `BottomNav` se va con `lg:hidden` y
+  entra `SideNav`, una columna de 224 px a la izquierda con las seis secciones más
+  Ajustes. Por debajo de `lg` no cambia nada: lo único que se tocó fuera de `lg:` fueron
+  comentarios.
+  - Comidas ya tenía el tratamiento de escritorio que se pedía —rejilla de siete días
+    desde `md`, con `WeekList` para el teléfono—, así que el trabajo real fue otro: con
+    `SideNav` quitando 224 px, el mínimo de 860 px de `WeekGrid` dejaba de caber y la
+    rejilla pasaba a arrastrarse en horizontal justo donde sobra sitio. Las columnas se
+    aprietan en `lg` a 112 + 7×84 = 700 px y entran enteras.
+  - Para poder apretarlas hubo que sacar `gridTemplateColumns` de un `style` en línea:
+    un estilo en línea gana a cualquier clase y no admite variantes por ancho. El valor
+    base de la clase es idéntico al de antes, y el test de 1023 px lo comprueba leyendo
+    la primera columna (132 px, sin apretar).
+  - `e2e/escritorio.spec.ts` es nuevo y son doce tests: la suite entera corría en un
+    Pixel 7, así que nada vigilaba el layout ancho.
+  - Quedan sin tocar Home, Tareas, Listas y Documentos: siguen siendo la columna de móvil
+    centrada en escritorio. Era el piloto.
 
 - **Unas vacaciones y un descanso se apuntan sin escribir título.** El tipo ya dice lo
   que son, así que pedir un nombre era pedir que alguien se inventara un texto para

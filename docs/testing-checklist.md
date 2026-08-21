@@ -161,6 +161,21 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 - [ ] Botones principales son accesibles.
 - [ ] El teclado no tapa campos críticos.
 
+### Escritorio, desde 1024 px
+
+> Automatizado en `e2e/escritorio.spec.ts`: la barra lateral a 1440 px, los siete días de
+> Comidas sin arrastrar la rejilla, y que a 1023 px siga mandando la barra de abajo. Lo de
+> aquí necesita un monitor de verdad.
+
+- [ ] La barra lateral se ve entera sin scroll propio en una pantalla de portátil.
+- [ ] La sección donde estás se distingue de un vistazo en la barra lateral.
+- [ ] Al abrir un sheet, el velo cubre también la barra lateral.
+- [ ] La cabecera de arriba no se solapa con la barra lateral.
+- [ ] En Comidas, las siete columnas se leen sin apretarse demasiado a 1024 px justos.
+- [ ] En un monitor grande (2560 px) la rejilla de Comidas no queda desproporcionada.
+- [ ] Home, Tareas, Listas y Documentos siguen centradas: se ve raro pero no roto. Es lo
+      que queda por hacer del layout de escritorio.
+
 ## 14. Persistencia
 
 - [ ] Crear datos y recargar mantiene cambios.

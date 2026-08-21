@@ -32,8 +32,10 @@ export function TopBar() {
   const ahora = useIsClient() ? new Date() : null
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-line">
-      <div className="flex items-center justify-between h-14 max-w-lg mx-auto px-4">
+    // `lg:pl-56` deja libre el ancho de `SideNav`, que se pinta encima de esta
+    // esquina. La columna estrecha de móvil (`max-w-lg`) se suelta en escritorio.
+    <header className="fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-line lg:pl-56">
+      <div className="flex items-center justify-between h-14 max-w-lg mx-auto px-4 lg:max-w-none lg:px-8">
         {isHome ? (
           <div className="flex flex-col min-w-0">
             <span className="text-primary font-extrabold tracking-tight text-lg leading-tight truncate">

@@ -8,6 +8,7 @@ import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { supabaseRepos } from '@/lib/supabase-repos'
 import { TopBar } from './TopBar'
 import { BottomNav } from './BottomNav'
+import { SideNav } from './SideNav'
 import { SaveStatus } from './SaveStatus'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -75,7 +76,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <StoreProvider key={familyId} familyId={familyId} switchFamily={switchFamily}>
       <div className="flex flex-col min-h-dvh bg-canvas">
         <TopBar />
-        <main className="flex-1 overflow-y-auto pb-20 pt-14">
+        {/* Después de `TopBar` a propósito: con el mismo `z-50`, lo que va
+            después se pinta encima, y la barra lateral tiene que tapar la
+            esquina de la cabecera. Antes de `main`, también a propósito: así el
+            velo de un sheet (`z-50` dentro de `main`) la cubre al abrirse. */}
+        <SideNav />
+        {/* `pb-20` es el hueco de la barra de abajo; en `lg` ya no hay barra
+            abajo, y sí hay una a la izquierda. */}
+        <main className="flex-1 overflow-y-auto pb-20 pt-14 lg:pb-8 lg:pl-56">
           {children}
         </main>
         <SaveStatus />

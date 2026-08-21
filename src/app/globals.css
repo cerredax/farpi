@@ -1,16 +1,18 @@
 @import "tailwindcss";
 
-/* Paleta "Cocina de casa". Los nombres se quedan como estaban aunque el color
-   haya cambiado de familia: `--nido-sage` es ahora la terracota de marca y
-   `--nido-terracota` el verde oliva. Renombrarlos habría tocado el bloque
-   `@theme inline` y las utilidades `*-nido-*` que salen de él. */
+/* Paleta "Mediterráneo". Los nombres se quedan como estaban aunque el color no
+   tenga nada que ver: `--nido-sage` es la terracota de marca y
+   `--nido-terracota` el turquesa. Renombrarlos tocaría el bloque `@theme inline`
+   y las utilidades `*-nido-*` que salen de él.
+   Sustituye a "Cocina de casa", que se fue de otoño: terracota quemado, oliva y
+   una tinta marrón. Lo que más cambia es la tinta, que ahora es gris neutro. */
 :root {
-  --nido-cream:     #F2E6D8;
+  --nido-cream:     #F5F0E8;
   --nido-white:     #FFFFFF;
-  --nido-charcoal:  #4A3728;
-  --nido-gray:      #6F5E52;
-  --nido-sage:      #A15408;
-  --nido-terracota: #5C6B47;
+  --nido-charcoal:  #2E2C29;
+  --nido-gray:      #686562;
+  --nido-sage:      #C1622E;
+  --nido-terracota: #3E6E6B;
   --nido-sand:      #C9A227;
   --nido-red:       #D96C6C;
 }
@@ -35,46 +37,46 @@
    (p. ej. bg-primary/20). Cambiar la paleta = tocar solo aquí.
    Los colores de datos (hijos, prioridades) NO son tokens: son valores. */
 @theme {
-  --color-canvas:         #F2E6D8; /* fondo crema principal */
-  --color-ink:            #4A3728; /* texto fuerte */
-  --color-muted:          #6F5E52; /* texto secundario */
-  --color-faint:          #8C837D; /* placeholder / muy tenue */
+  --color-canvas:         #F5F0E8; /* fondo crema principal */
+  --color-ink:            #2E2C29; /* texto fuerte, gris neutro */
+  --color-muted:          #686562; /* texto secundario */
+  --color-faint:          #8D8A87; /* placeholder / muy tenue */
 
-  --color-muted-soft:     #7A6D64; /* texto terciario, entre muted y faint */
+  --color-muted-soft:     #797773; /* texto terciario, entre muted y faint */
 
-  /* El acento hace dos papeles y el segundo es el que fija su claridad:
-     `bg-primary text-white` (12 sitios) y `text-primary` (57, mucho de 9-12 px).
-     La terracota #B5651D no llega a 4,5:1 en ninguno de los dos —4,34 con blanco
-     encima, 3,53 como texto sobre el crema—, así que se usa el más claro de ese
-     mismo tono que cumple ambos. */
-  --color-primary:        #A15408; /* terracota de marca */
-  --color-primary-hover:  #924800;
-  --color-primary-strong: #863E00;
-  --color-primary-deep:   #783200; /* hover del botón primario fuerte */
-  --color-primary-deepest:#6A2700; /* active del botón y marca sobre fondo oscuro */
-  --color-primary-tint:   #FFEDE1; /* fondo terracota muy claro */
-  --color-primary-line:   #F2D1BB; /* borde terracota claro */
+  /* Los cinco de abajo con asterisco son valores dados, no derivados: van tal
+     cual y no se ajustan por contraste. El acento hace dos papeles y no llega a
+     4,5:1 en ninguno —4,16 con blanco encima (`bg-primary text-white`, 12
+     sitios) y 3,66 como texto sobre el crema (`text-primary`, 57 usos)—, así que
+     los dos cumplen AA solo para texto grande. Para texto pequeño encima del
+     crema o del tinte, el token que sí cumple es `primary-strong` (4,54 y 4,53). */
+  --color-primary:        #C1622E; /* * terracota de marca */
+  --color-primary-hover:  #B65925;
+  --color-primary-strong: #AF5320;
+  --color-primary-deep:   #99410D; /* hover del botón primario fuerte */
+  --color-primary-deepest:#853000; /* active del botón y marca sobre fondo oscuro */
+  --color-primary-tint:   #FFEDE4; /* fondo terracota muy claro */
+  --color-primary-line:   #F3D0C0; /* borde terracota claro */
 
-  --color-accent:         #5C6B47; /* verde oliva */
-  --color-sand:           #C9A227; /* amarillo de marca: avisos suaves */
-  --color-sand-strong:    #735700; /* texto legible sobre fondo sand */
-  --color-warm:           #FCF3E2; /* fondo cálido de tarjeta destacada */
+  --color-accent:         #3E6E6B; /* * turquesa apagado */
+  --color-sand:           #C9A227; /* * amarillo de marca: avisos suaves */
+  --color-sand-strong:    #785B00; /* texto legible sobre fondo sand */
+  --color-warm:           #FEF6E8; /* fondo cálido de tarjeta destacada */
 
-  /* El rojo se queda como estaba. `danger-strong` sí se ajusta: es una variante
-     derivada y con el crema nuevo, más oscuro, el #B24D4D de antes se quedaba
-     en 4,21:1 encima. */
+  /* El rojo se queda. `danger-strong` sí se deriva, y se movió otra vez porque
+     el crema cambió de claridad. */
   --color-danger:         #D96C6C;
   --color-danger-hover:   #C45F5F; /* hover del botón de peligro */
-  --color-danger-strong:  #AE4649; /* texto de error sobre danger-soft */
+  --color-danger-strong:  #B1494C; /* texto de error sobre danger-soft */
   --color-danger-soft:    #FDE8E8; /* fondo de peligro (hover) */
   --color-danger-line:    #F1C9C9; /* borde de peligro */
   --color-danger-tint:    #FDF6F6; /* fondo de tarjeta de peligro */
 
-  --color-line:           #DDD3C7; /* borde principal */
-  --color-line-strong:    #CABFB3; /* borde marcado y discontinuo */
-  --color-surface:        #E6DBCF; /* superficie / hover */
-  --color-hairline:       #EBE1D5; /* borde muy suave */
-  --color-grip:           #D5CABE; /* asa del sheet */
+  --color-line:           #DED9D2; /* borde principal */
+  --color-line-strong:    #CAC6BF; /* borde marcado y discontinuo */
+  --color-surface:        #E9E5DE; /* superficie / hover */
+  --color-hairline:       #EFEAE4; /* borde muy suave */
+  --color-grip:           #D5D1CA; /* asa del sheet */
 }
 
 /* ── Clases de formulario reutilizables ─────────────────────────

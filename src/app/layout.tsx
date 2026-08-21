@@ -24,7 +24,7 @@ export const viewport: Viewport = {
   // La barra del navegador en Android. Es metadata, no CSS: aquí no llega
   // `var(--color-primary)`, así que va el literal. Si cambia el acento de marca
   // en `globals.css`, hay que cambiarlo aquí también.
-  themeColor: '#A15408',
+  themeColor: '#C1622E',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

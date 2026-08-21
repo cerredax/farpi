@@ -118,7 +118,7 @@ export function DayCell({
               <span className="text-[9px] font-black text-primary leading-none">{totalCount}</span>
             ) : (
               dots.map((event, i) => (
-                <span key={i} className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: eventColor(event, members, kids) }} />
+                <span key={i} className="w-2 h-2 rounded-full flex-shrink-0 ring-1 ring-ink/15" style={{ backgroundColor: eventColor(event, members, kids) }} />
               ))
             )}
           </div>
@@ -136,7 +136,7 @@ export function DayCell({
                 type="button"
                 aria-label={`Editar descanso de ${d.title}`}
                 onClick={() => onEditEvent?.(d)}
-                className="w-2.5 h-2.5 rounded-full border border-white shadow-sm"
+                className="w-2.5 h-2.5 rounded-full ring-1 ring-ink/15 shadow-sm"
                 style={{ backgroundColor: eventColor(d, members, kids) }}
                 title={d.title}
               />
@@ -165,7 +165,7 @@ export function DayCell({
                   const asignado = resolveAssignee(event, members, kids)
                   return (
                     <div key={event.id} className="flex items-start gap-2">
-                      <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                      <span className="mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ring-1 ring-ink/15" style={{ backgroundColor: color }} />
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-ink leading-tight truncate">{event.title}</p>
                         <p className="text-[10px] text-muted leading-tight">
@@ -244,7 +244,7 @@ export function DayCell({
               className="flex w-full items-center justify-center rounded-full py-1"
               style={{ backgroundColor: `${color}20`, border: `1.5px solid ${color}` }}
             >
-              <span className="h-2.5 w-2.5 rounded-full block" style={{ backgroundColor: color }} />
+              <span className="h-2.5 w-2.5 rounded-full block ring-1 ring-ink/15" style={{ backgroundColor: color }} />
             </button>
           )
         })}
@@ -259,7 +259,7 @@ export function DayCell({
               title={getShortEventLabel(event)}
             >
               <span className="flex items-start gap-1 min-w-0">
-                <span className="mt-1 w-1 h-1 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                <span className="mt-1 w-1 h-1 rounded-full flex-shrink-0 ring-1 ring-ink/15" style={{ backgroundColor: color }} />
                 <span className="truncate">{getShortEventLabel(event)}</span>
               </span>
             </button>

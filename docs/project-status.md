@@ -140,12 +140,24 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
     PWA, el par crema/marrón de la tarjeta de calma en Inicio, el sage oscuro de los
     chips del login, y en el `<style>` del login el fondo del foco, el `rgba` del anillo
     (era el rgb del sage viejo) y la sombra de la tarjeta (el charcoal viejo).
-  - **Pendiente y sin tocar**, porque son datos de producto: `FAMILY_COLOR` (`#E9C46A`)
-    era **exactamente** el token `sand` y su comentario lo dice; ahora divergen (ΔE 9,9).
-    Y tres colores de persona se pierden sobre el crema nuevo —rosa chicle 1,22:1,
-    verde manzana 1,24:1, melocotón 1,33:1—, que importa para los puntos pequeños del
-    calendario, que van directos sobre el fondo. También el logo `src/app/icon.svg`
-    sigue con la paleta vieja.
+  - Dos efectos colaterales, ya corregidos. `FAMILY_COLOR` era **exactamente** el token
+    `sand` y al cambiar la paleta dejó de coincidir sin que nada avisara: pasa a
+    `#C9A227`, con lo que sube de 1,36:1 a 1,97:1 sobre el crema y se separa del verde
+    manzana de los niños de 13,9 a 19,0.
+  - Y los colores claros de persona se perdían sobre el crema (rosa chicle 1,22:1). Se
+    arregló con un aro `ring-ink/15` en los puntos del calendario, **no repintando la
+    paleta**: repintarla no se podía. Con la escala por claridad (mujer clara, niña más
+    clara), todo cálido, y la banda de niña oscurecida para verse, el rosa de niña se
+    queda literalmente sin hueco: cae encima del rosa fuerte de mujer. La búsqueda dio
+    cero candidatos. Un punto claro sobre fondo claro es un problema de borde, no de
+    color, y así queda resuelto para cualquier paleta futura.
+  - **Queda pendiente**: siete colores de persona están a menos de ΔE 15 de algún color
+    de marca nuevo —ladrillo 13,0 y cuero 9,5 del terracota, oliva 8,3 del oliva de
+    marca, rosa fuerte 11,6 y coral 11,8 del rojo de error—, porque la paleta de marca
+    se ha metido en la misma banda cálida que la de personas. No se ha tocado: son
+    papeles distintos (un punto de persona no compite con un botón), pero conviene
+    mirarlo si algún día se ven juntos. Y el logo `src/app/icon.svg` sigue con la paleta
+    vieja.
 
 - **Escritorio en Tareas, Listas y Documentos.** Segunda tanda, con el mismo criterio
   que el piloto: todo desde `lg`, nada por debajo. Tareas en dos columnas, Listas en

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
 import { memberColor, splitPeople } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
@@ -18,60 +17,12 @@ import { MemberSheet } from './MemberSheet'
 import { ChildSheet } from './ChildSheet'
 import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/types'
 
-const DONATION_URL = process.env.NEXT_PUBLIC_DONATION_URL?.trim() ?? ''
-
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <h2 className="text-xs font-bold uppercase tracking-widest text-muted px-1">{label}</h2>
       {children}
     </section>
-  )
-}
-
-function DonationCard() {
-  return (
-    <div className="relative overflow-hidden rounded-3xl border border-surface bg-warm px-4 py-4 shadow-sm">
-      <div className="absolute -right-8 -top-10 h-24 w-24 rounded-full bg-accent/25" />
-      <div className="absolute -bottom-10 left-8 h-20 w-20 rounded-full bg-primary/20" />
-      <div className="relative space-y-3">
-        <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-white text-primary shadow-sm">
-            <HeartHandshake size={20} strokeWidth={2.3} />
-          </span>
-          <div>
-            <p className="text-sm font-black text-ink">Apoya Nido</p>
-            <p className="mt-1 text-xs text-muted leading-relaxed">
-              Nido es gratuito. Si quieres ayudar a mantener el proyecto, puedes hacer una aportación voluntaria.
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-white/75 px-3 py-3 text-[11px] text-muted leading-relaxed">
-          No es una compra ni una suscripción. No desbloquea funciones premium y no es deducible fiscalmente para el donante.
-        </div>
-
-        {DONATION_URL ? (
-          <a
-            href={DONATION_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-strong px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-deep"
-          >
-            Apoyar el proyecto
-            <ExternalLink size={14} strokeWidth={2.4} />
-          </a>
-        ) : (
-          <button
-            type="button"
-            disabled
-            className="w-full rounded-2xl bg-surface px-4 py-3 text-sm font-bold text-muted-soft cursor-not-allowed"
-          >
-            Enlace de donación pendiente
-          </button>
-        )}
-      </div>
-    </div>
   )
 }
 
@@ -211,10 +162,6 @@ export function SettingsView() {
             <AccountActions />
           </Section>
         )}
-
-        <Section label="Proyecto">
-          <DonationCard />
-        </Section>
 
         <Section label="Legal">
           <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">

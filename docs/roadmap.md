@@ -127,8 +127,11 @@ Objetivo: preparar uso diario.
 - ✅ Adultos sin cuenta: los abuelos se dan de alta en Ajustes sin correo y se les
   puede asignar lo mismo que a cualquiera. Tres bloques en Ajustes y `kind` en
   `children`.
-- [ ] Medir el contraste de la paleta. Es lo único de accesibilidad que quedó sin
-  comprobar, y es lo único que no se ve leyendo el código.
+- ✅ Paleta de personas medida y rehecha (21-08-2026): de doce pasteles a ocho colores
+  separados. La peor pareja pasa de ΔE 5,3 a 19,4 y todos aguantan las iniciales
+  blancas a 3:1, cuando antes solo lo hacía uno. Queda una cosa a medias, anotada en
+  `project-status.md`: cuatro de los ocho se quedan en el mínimo de texto grande y no
+  llegan a 4,5:1 con las iniciales a 12 px.
 - [ ] Backup/export sencillo si se considera necesario.
 
 ## Fase 9 - Uso diario

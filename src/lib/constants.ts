@@ -24,20 +24,34 @@ export const FAMILY_COLOR = '#E9C46A'
  * Colores de las personas de la familia, adultos e hijos. El nombre no es
  * decorativo: es la etiqueta accesible de cada botón del selector, que antes
  * leía el hexadecimal.
+ *
+ * Ocho, y de claridad escalonada a propósito. Antes eran doce pasteles y no
+ * servían para lo único que tienen que hacer, que es decir de quién es cada
+ * cosa: había dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
+ * —lavanda y lila— estaba en 5,3, cuando el umbral de "se nota la diferencia"
+ * es 2. Ahora la peor pareja está en 19,4.
+ *
+ * La claridad varía por necesidad, no por gusto. Con daltonismo rojo-verde el
+ * tono se pierde y solo queda la claridad: ocho tonos repartidos por el círculo
+ * pero todos igual de claros dan ΔE 4 para quien lo tiene. Escalonados, 8,5.
+ *
+ * El orden tampoco es casual. `defaultMemberColor` reparte por posición, así
+ * que los dos primeros son los dos adultos de una familia normal: van a 42,9 de
+ * distancia, y no hay dos consecutivos por debajo de 27.
+ *
+ * Ya no están ni el mostaza ni el verde salvia, que eran exactamente
+ * `FAMILY_COLOR` y `--color-primary`: se podía elegir a mano el color que
+ * significa "de toda la familia" o el verde de la app.
  */
 export const PERSON_COLORS: { value: string; label: string }[] = [
-  { value: '#D8A48F', label: 'Terracota' },
-  { value: '#8BA888', label: 'Verde salvia' },
-  { value: '#E9C46A', label: 'Mostaza' },
-  { value: '#7EB8D4', label: 'Azul cielo' },
-  { value: '#B39DDB', label: 'Lavanda' },
-  { value: '#F4A261', label: 'Naranja' },
-  { value: '#A8D5A2', label: 'Verde menta' },
-  { value: '#F08080', label: 'Coral' },
-  { value: '#EC7FA9', label: 'Rosa' },
-  { value: '#F2A9C4', label: 'Rosa palo' },
-  { value: '#D45D8E', label: 'Frambuesa' },
-  { value: '#C9A0DC', label: 'Lila' },
+  { value: '#8A5A18', label: 'Ocre' },
+  { value: '#9585C8', label: 'Lavanda' },
+  { value: '#3C6B33', label: 'Verde bosque' },
+  { value: '#C05F45', label: 'Teja' },
+  { value: '#4E9E8C', label: 'Verde agua' },
+  { value: '#D06E8A', label: 'Frambuesa' },
+  { value: '#3A6E9E', label: 'Azul' },
+  { value: '#8E4A7A', label: 'Ciruela' },
 ]
 
 // ─── Comidas ──────────────────────────────────────────────────────────────────

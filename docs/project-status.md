@@ -72,11 +72,11 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **223 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **228 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 174 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
+  - 179 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
   - 49 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -120,6 +120,25 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-21
+
+- **La paleta de personas, de doce colores a ocho.** Los doce pasteles no servían para
+  distinguir a nadie: dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
+  —lavanda y lila— en 5,3, con el umbral de "se nota" en 2. Ahora la peor está en 19,4.
+  - Al medirlo salieron dos cosas que no se ven a ojo: el mostaza era **exactamente**
+    `FAMILY_COLOR` y el verde salvia **exactamente** `--color-primary`, así que se podía
+    elegir a mano el color que significa "de toda la familia" o el verde de la app. Los
+    dos fuera de la paleta.
+  - Once de los doce no aguantaban las iniciales blancas que la app les pone encima.
+    Ahora los ocho pasan de 3:1. **Queda a medias**: cuatro se quedan entre 3,19:1 y
+    4,23:1, suficiente para texto grande pero no para las iniciales a 12 px, que piden
+    4,5:1. Los cuatro sí lo cumplen con tinta oscura en vez de blanco, así que la
+    solución existe y es un cambio visual pendiente de decidir.
+  - La claridad varía por necesidad: con daltonismo rojo-verde el tono se pierde y ocho
+    tonos igual de claros dan ΔE 4. Y el orden de la lista tampoco es casual, porque
+    `defaultMemberColor` reparte por posición: los dos primeros —los dos adultos de una
+    familia normal— están a 42,9 de distancia.
+  - Los colores viven en la base como texto, así que nadie pierde el suyo: los existentes
+    se quedan como están hasta que se cambien a mano.
 
 - **Adultos sin cuenta (los abuelos)**: en Ajustes hay tres bloques —Adultos, Otros
   adultos e Hijos— y el de en medio permite dar de alta a alguien con un nombre y un

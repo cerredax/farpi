@@ -54,6 +54,56 @@ test('los hijos conservan su color y los miembros reciben uno por posición', ()
   expect(memberColor(miembros, 'm1')).not.toBe(memberColor(miembros, 'm2'))
 })
 
+// ─── La paleta ────────────────────────────────────────────────────────────────
+//
+// La paleta es un dato, no lógica, pero es un dato con condiciones que se
+// rompen sin darse cuenta al añadir "un color más". Antes tenía doce pasteles
+// con dieciséis parejas indistinguibles y once que no aguantaban las iniciales
+// blancas que la app les pone encima. Esto vigila lo que se puede vigilar sin
+// meter CIEDE2000 en el repositorio.
+
+/** Luminancia relativa según WCAG 2.1. */
+function luminancia(hex: string): number {
+  const canal = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  }
+  return 0.2126 * canal(1) + 0.7152 * canal(3) + 0.0722 * canal(5)
+}
+const contrasteConBlanco = (hex: string) => 1.05 / (luminancia(hex) + 0.05)
+
+test.describe('PERSON_COLORS', () => {
+  test('no hay dos colores repetidos', () => {
+    const valores = PERSON_COLORS.map(c => c.value)
+    expect(new Set(valores).size).toBe(valores.length)
+  })
+
+  test('todos son hexadecimales de seis dígitos', () => {
+    for (const { value } of PERSON_COLORS) expect(value).toMatch(/^#[0-9A-Fa-f]{6}$/)
+  })
+
+  test('cada uno tiene nombre, que es su etiqueta accesible', () => {
+    for (const { label } of PERSON_COLORS) expect(label.trim().length).toBeGreaterThan(0)
+  })
+
+  // Se podía elegir a mano el amarillo que significa "de toda la familia": el
+  // color dejaba de decir de quién era algo.
+  test('ninguno es el color de la familia ni el verde de la app', () => {
+    const prohibidos = [FAMILY_COLOR.toUpperCase(), '#8BA888']
+    for (const { value } of PERSON_COLORS) {
+      expect(prohibidos).not.toContain(value.toUpperCase())
+    }
+  })
+
+  // Las iniciales van en blanco sobre el color. 3:1 es el mínimo de WCAG para
+  // texto grande; por debajo de eso no se leen.
+  test('todos aguantan las iniciales en blanco a 3:1', () => {
+    for (const { value, label } of PERSON_COLORS) {
+      expect(contrasteConBlanco(value), `${label} ${value}`).toBeGreaterThanOrEqual(3)
+    }
+  })
+})
+
 // El color es lo único que dice de quién es cada cosa. Repartido dos veces no
 // dice nada: en Ajustes, Omar y Ana salían con el mismo círculo salmón.
 test('a un adulto no le toca un color que ya lleva un hijo', () => {

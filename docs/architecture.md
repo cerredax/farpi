@@ -172,6 +172,14 @@ mismo en Ajustes, calendario y documentos.
 Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
 
+Los colores que se pueden elegir son `PERSON_COLORS`, en `src/lib/constants.ts`, y son
+**ocho, no doce, y de claridad escalonada a propósito**. El porqué está escrito en el
+propio archivo, junto a la lista: doce pasteles no se distinguen entre sí —es geometría,
+no mala suerte al elegirlos— y con daltonismo rojo-verde solo queda la claridad para
+separarlos. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
+CIEDE2000 en el repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el
+verde de la app, y que todos aguanten las iniciales blancas a 3:1.
+
 El color con el que se pinta un evento sale de `eventColor()`, en el mismo archivo: el
 color propio del evento, si no el de quien lo lleve, y si no hay nadie el `FAMILY_COLOR`
 amarillo. Está centralizado porque cuando el cálculo estaba copiado en cada pantalla,

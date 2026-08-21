@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import {
   daysBetween,
   eventCoversDay,
+  eventTitleOr,
   isPersonAvailableOnDay,
   isPersonOffOnDay,
   isRestDay,
@@ -99,4 +100,28 @@ test('la disponibilidad dice si puedes contar con una persona ese día', () => {
   expect(isPersonOffOnDay([descanso], { child_id: null, member_id: 'm1' }, '2026-08-11')).toBe(true)
   expect(isPersonAvailableOnDay([descanso], { child_id: null, member_id: 'm1' }, '2026-08-13')).toBe(true)
   expect(isPersonAvailableOnDay([descanso], { child_id: null, member_id: 'm2' }, '2026-08-11')).toBe(true)
+})
+
+// El formulario no pide título en vacaciones ni en descansos, pero `title` no es
+// nullable en la base y la franja del calendario lo enseña.
+test.describe('eventTitleOr', () => {
+  test('pone el nombre del tipo cuando no hay título', () => {
+    expect(eventTitleOr('vacaciones', '')).toBe('Vacaciones')
+    expect(eventTitleOr('descanso', '   ')).toBe('Descanso')
+  })
+
+  test('respeta el título que se haya escrito', () => {
+    expect(eventTitleOr('vacaciones', 'Playa con los abuelos')).toBe('Playa con los abuelos')
+    expect(eventTitleOr('descanso', 'Turno de noche')).toBe('Turno de noche')
+  })
+
+  test('recorta los espacios de los lados', () => {
+    expect(eventTitleOr('vacaciones', '  Asturias  ')).toBe('Asturias')
+  })
+
+  // Un plan sí necesita nombre y el validador lo exige antes de llegar aquí:
+  // esta función no se lo inventa.
+  test('a un plan sin título no le pone nada', () => {
+    expect(eventTitleOr('evento', '')).toBe('')
+  })
 })

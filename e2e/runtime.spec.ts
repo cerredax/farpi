@@ -429,3 +429,26 @@ test('un adulto sin cuenta se da de alta en Ajustes y se puede asignar', async (
   const evento = page.getByRole('dialog', { name: 'Nuevo evento' })
   await expect(evento.getByRole('button', { name: 'Carmen', exact: true })).toBeVisible()
 })
+
+// Unas vacaciones sin nombre: el tipo ya dice lo que son, así que el formulario
+// no pide título y al guardar se llaman "Vacaciones". Antes el botón se quedaba
+// desactivado y no había forma de apuntarlas sin inventarse un texto.
+test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Vacaciones' }).click()
+
+  // El campo lo dice, y enseña con qué nombre se va a guardar.
+  await expect(page.locator('#event-title')).toHaveAttribute('placeholder', 'Vacaciones')
+  await expect(page.getByText('Título (opcional)')).toBeVisible()
+
+  await page.locator('#event-date').fill('2026-09-07')
+  await page.locator('#event-end-date').fill('2026-09-09')
+  const apuntar = page.getByRole('button', { name: 'Apuntar 3 días' })
+  await expect(apuntar).toBeEnabled()
+  await apuntar.click()
+  await page.waitForTimeout(600)
+
+  await expect(page.locator('[title="Vacaciones"]')).toHaveCount(3)
+})

@@ -73,6 +73,17 @@ test.describe('validateEventDraft', () => {
     expect(validateEventDraft({ ...base, date: '' })).not.toBeNull()
   })
 
+  // Unas vacaciones o un descanso ya dicen lo que son por el tipo, así que el
+  // título no se pide. `eventTitleOr` les pone nombre al guardar.
+  test('en vacaciones y descansos el título es opcional', () => {
+    expect(validateEventDraft({ ...base, kind: 'vacaciones', all_day: true, title: '', end_date: '2026-08-10' })).toBeNull()
+    expect(validateEventDraft({ ...base, kind: 'descanso', all_day: true, title: '   ', end_date: '2026-08-04' })).toBeNull()
+  })
+
+  test('en un plan el título sigue siendo obligatorio', () => {
+    expect(validateEventDraft({ ...base, kind: 'evento', title: '' })).not.toBeNull()
+  })
+
   test('rechaza que la hora de fin no sea posterior a la de inicio', () => {
     expect(validateEventDraft({ ...base, start_time: '10:00', end_time: '09:00' })).not.toBeNull()
     expect(validateEventDraft({ ...base, start_time: '10:00', end_time: '10:00' })).not.toBeNull()

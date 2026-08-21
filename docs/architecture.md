@@ -314,6 +314,11 @@ lista de eventos, de los planes de hoy (`selectTodayEvents`) y del recordatorio
 diario. Estar de vacaciones no es un plan que haya que recordarle a nadie a las
 siete de la mañana.
 
+Y no se les pide título, ni a ellas ni a los descansos: el tipo ya dice lo que son, y
+exigir un nombre era exigir que alguien se inventara un texto para poder guardar. El
+campo sigue ahí porque "Playa con los abuelos" vale la pena, pero es opcional y
+`eventTitleOr` pone el nombre del tipo al guardar. Un plan sí lo exige.
+
 **En el móvil, un día por horas; nunca siete columnas.** La semana plegada enseña el
 día elegido sobre un eje de horas (`DayTimeline`), no la rejilla de siete columnas de
 un calendario de escritorio. A 390 px cada columna sería de unos 45 px: bloques de

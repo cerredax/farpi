@@ -1,5 +1,5 @@
 import { extractDate } from './date-utils'
-import type { Event } from '@/types'
+import type { Event, EventKind } from '@/types'
 
 /**
  * Qué días ocupa un evento.
@@ -23,6 +23,27 @@ function localDay(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
+}
+
+/**
+ * El nombre con el que se guarda un evento al que no se le puso título.
+ *
+ * Unas vacaciones o un descanso ya dicen lo que son por el tipo, así que el
+ * formulario no pide título. Pero `title` no es nullable en la base y hay
+ * sitios que lo enseñan —la franja del calendario, la etiqueta accesible del
+ * botón, el recordatorio diario—, así que se rellena aquí. Es a propósito que
+ * no se deje vacío para que luego cada pantalla se invente su propio texto de
+ * reserva: eso fue lo que dejó a Inicio sin la marca de los eventos de familia.
+ *
+ * Un plan sí necesita nombre, y el validador lo sigue exigiendo: "una cita" sin
+ * más no dice qué hay que hacer el jueves a las cinco.
+ */
+export function eventTitleOr(kind: EventKind, title: string): string {
+  const limpio = title.trim()
+  if (limpio) return limpio
+  if (kind === 'vacaciones') return 'Vacaciones'
+  if (kind === 'descanso') return 'Descanso'
+  return ''
 }
 
 export function isVacation(event: Event): boolean {

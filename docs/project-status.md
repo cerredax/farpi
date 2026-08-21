@@ -72,12 +72,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **231 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **238 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 182 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 49 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
+  - 50 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD) y `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -120,6 +120,19 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-21
+
+- **Unas vacaciones y un descanso se apuntan sin escribir título.** El tipo ya dice lo
+  que son, así que pedir un nombre era pedir que alguien se inventara un texto para
+  poder pulsar el botón. El campo sigue estando —"Playa con los abuelos" o "Turno de
+  noche" valen la pena— pero es opcional, y el placeholder enseña con qué nombre se
+  guardará si se deja vacío. La descripción ya era opcional y ahora lo dice.
+  - `title` no es nullable en la base y hay sitios que lo enseñan (la franja del
+    calendario, la etiqueta accesible del botón, el recordatorio diario), así que
+    `eventTitleOr` en `src/lib/events.ts` lo rellena al guardar. Se rellena ahí a
+    propósito, y no se deja vacío para que cada pantalla se invente su texto de reserva:
+    eso es lo que dejó a Inicio sin la marca de los eventos de familia en su día.
+  - Un plan sí sigue exigiendo título: "una cita" sin más no dice qué hay que hacer el
+    jueves a las cinco.
 
 - **La paleta de personas, de doce colores a diez.** Los doce pasteles no servían para
   distinguir a nadie: dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor

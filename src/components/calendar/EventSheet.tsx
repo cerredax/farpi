@@ -114,11 +114,21 @@ export function EventSheet({
           </Field>
         )}
 
-        <Field label="Título" htmlFor="event-title">
-          <input id="event-title" ref={firstFieldRef} type="text" value={s.draft.title} onChange={e => s.patch({ title: e.target.value })} placeholder="¿Qué ocurre?" className="field-input" />
+        {/* En vacaciones y descansos el título sobra: el tipo ya dice lo que es,
+            y el placeholder enseña con qué nombre se va a guardar. */}
+        <Field label={s.tituloOpcional ? 'Título (opcional)' : 'Título'} htmlFor="event-title">
+          <input
+            id="event-title"
+            ref={firstFieldRef}
+            type="text"
+            value={s.draft.title}
+            onChange={e => s.patch({ title: e.target.value })}
+            placeholder={s.esVacaciones ? 'Vacaciones' : s.esDescanso ? 'Descanso' : '¿Qué ocurre?'}
+            className="field-input"
+          />
         </Field>
 
-        <Field label="Descripción" htmlFor="event-description">
+        <Field label="Descripción (opcional)" htmlFor="event-description">
           <textarea id="event-description" value={s.draft.description} onChange={e => s.patch({ description: e.target.value })} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
         </Field>
 

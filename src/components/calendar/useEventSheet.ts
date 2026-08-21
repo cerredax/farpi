@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { extractDate, extractTime, parseLocalDate } from '@/lib/date-utils'
 import { buildWeeklyDates, joinWeekdayNames, maxWeeklyEndDate, weekdayOf } from '@/lib/recurrence'
-import { daysBetween } from '@/lib/events'
+import { daysBetween, eventTitleOr } from '@/lib/events'
 import { validateEventDraft } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { Event, EventDraft } from '@/types'
@@ -127,24 +127,29 @@ export function useEventSheet({
     : null
 
   const handleSubmit = submitHandler(valid => {
+    // Lo que se guarda lleva título siempre, lo haya escrito alguien o no.
+    const conTitulo = { ...valid, title: eventTitleOr(valid.kind, valid.title) }
     if (mode === 'edit') {
-      if (initial) onUpdate(initial.id, valid)
+      if (initial) onUpdate(initial.id, conTitulo)
       onClose()
       return
     }
     if (recurrence === 'weekly') {
       if (seriesError) return
-      onCreateSeries?.(valid, recurrenceWeekdays, recurrenceEnd)
+      onCreateSeries?.(conTitulo, recurrenceWeekdays, recurrenceEnd)
     } else if (recurrence === 'yearly') {
       if (yearlyError) return
-      onCreateYearlySeries?.(valid, recurrenceEndYear)
+      onCreateYearlySeries?.(conTitulo, recurrenceEndYear)
     } else {
-      onCreate(valid)
+      onCreate(conTitulo)
     }
     onClose()
   })
 
-  const canSubmit = draft.title.trim().length > 0
+  // El título solo frena el botón en un plan; en vacaciones y descansos es
+  // opcional y se rellena solo.
+  const tituloOpcional = esVacaciones || esDescanso
+  const canSubmit = (tituloOpcional || draft.title.trim().length > 0)
     && seriesError === null && yearlyError === null && vacacionesError === null
 
   // El botón dice cuántas cosas va a crear: pulsar "Crear evento" y que
@@ -165,7 +170,7 @@ export function useEventSheet({
     draft, patch, formError, firstFieldRef, handleSubmit,
     confirmDelete, handleDelete,
     seriesDeleteOpen, setSeriesDeleteOpen,
-    esVacaciones, esDescanso,
+    esVacaciones, esDescanso, tituloOpcional,
     recurrence, setNone, setWeekly, setYearly,
     recurrenceWeekdays, toggleWeekday,
     recurrenceEnd, setRecurrenceEnd,

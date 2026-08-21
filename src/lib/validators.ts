@@ -54,7 +54,9 @@ export function validateMealDraft(draft: MealDraft): string | null {
 // ─── Eventos ──────────────────────────────────────────────────────────────────
 
 export function validateEventDraft(draft: EventDraft): string | null {
-  if (!draft.title.trim()) return 'El título es obligatorio.'
+  // Solo un plan necesita nombre. Unas vacaciones o un descanso ya dicen lo que
+  // son por el tipo, y `eventTitleOr` les pone el nombre al guardar.
+  if (draft.kind === 'evento' && !draft.title.trim()) return 'El título es obligatorio.'
   if (!draft.date) return 'La fecha es obligatoria.'
   if ((draft.kind === 'vacaciones' || draft.kind === 'descanso') && (!draft.end_date || draft.end_date < draft.date))
     return 'La fecha final debe ser posterior o igual a la inicial.'

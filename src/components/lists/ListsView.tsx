@@ -29,7 +29,10 @@ export function ListsView() {
 
   if (s.selectedList) {
     return (
-      <div className="max-w-lg mx-auto h-full flex flex-col">
+      // Una lista abierta es una columna de ítems: no gana nada por ser más
+      // ancha que el ojo, pero 512 px en un monitor es angosto. `3xl` es el
+      // término medio.
+      <div className="max-w-lg mx-auto h-full flex flex-col lg:max-w-3xl">
         <ListDetailView
           list={s.selectedList}
           items={s.selectedItems}
@@ -70,7 +73,7 @@ export function ListsView() {
   const buscando = puedeBuscar && s.busqueda.trim().length > 0
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-4 lg:max-w-5xl lg:px-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold text-ink leading-tight">Listas</h1>
@@ -100,8 +103,8 @@ export function ListsView() {
             Ningún ítem coincide con «{s.busqueda.trim()}».
           </p>
         ) : (
-          <div className="space-y-3">
-            <p className="field-label px-1">
+          <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
+            <p className="field-label px-1 lg:col-span-2 xl:col-span-3">
               {s.coincidencias.length} resultado{s.coincidencias.length !== 1 ? 's' : ''}
             </p>
             {s.coincidencias.map(match => (
@@ -121,7 +124,7 @@ export function ListsView() {
           <p className="text-sm text-muted mt-1">Crea la primera lista de la familia</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
           {s.lists.map(list => (
             <ListCard
               key={list.id}

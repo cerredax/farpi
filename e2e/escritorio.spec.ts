@@ -51,6 +51,21 @@ async function columnasDeSeccion(page: import('@playwright/test').Page, titulo: 
   }, titulo)
 }
 
+/**
+ * Columnas de una caja de tarjetas, localizada por el `space-y-3` que lleva de
+ * base y por tener varias tarjetas dentro. `0` si no es rejilla.
+ */
+async function columnasDeTarjetas(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const caja = [...document.querySelectorAll('div')].find(
+      el => el.className.toString().includes('space-y-3') && el.querySelectorAll(':scope > button').length >= 2
+    )
+    if (!caja) return -1
+    const cols = getComputedStyle(caja).gridTemplateColumns
+    return cols === 'none' ? 0 : cols.split(' ').length
+  })
+}
+
 test.describe('escritorio a 1440 px', () => {
   test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
 
@@ -108,6 +123,27 @@ test.describe('escritorio a 1440 px', () => {
     expect(cabeceraAncha, 'la cabecera de Pendientes no ocupa el ancho').toBe(true)
   })
 
+  // A 1440 px estamos por encima de `xl` (1280), así que toca la de tres.
+  test('en Listas las tarjetas van en rejilla', async ({ page }) => {
+    await page.goto('/lists')
+    await page.waitForTimeout(800)
+    expect(await columnasDeTarjetas(page), 'las listas no están en rejilla').toBe(3)
+  })
+
+  test('al abrir una lista, ocupa más que la columna de móvil', async ({ page }) => {
+    await page.goto('/lists')
+    await page.waitForTimeout(800)
+    await page.getByText('Farmacia').first().click()
+    await page.waitForTimeout(500)
+
+    const ancho = await page.evaluate(() => {
+      const caja = document.querySelector('h1')?.closest('.flex.flex-col.h-full')?.parentElement
+      return caja ? getComputedStyle(caja).maxWidth : ''
+    })
+    // `lg:max-w-3xl` = 48rem. En móvil son 32rem (`max-w-lg`).
+    expect(ancho).toBe('768px')
+  })
+
   for (const ruta of RUTAS) {
     test(`sin desbordamiento horizontal en ${ruta} a 1440 px`, async ({ page }) => {
       await page.goto(ruta)
@@ -145,6 +181,25 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
     await page.goto('/tasks')
     await page.waitForTimeout(800)
     expect(await columnasDeSeccion(page, 'Pendientes'), 'la rejilla de dos columnas se ha colado por debajo de lg').toBe(0)
+  })
+
+  test('las tarjetas de Listas siguen en una sola columna', async ({ page }) => {
+    await page.goto('/lists')
+    await page.waitForTimeout(800)
+    expect(await columnasDeTarjetas(page), 'la rejilla de Listas se ha colado por debajo de lg').toBe(0)
+  })
+
+  test('una lista abierta conserva el ancho de móvil', async ({ page }) => {
+    await page.goto('/lists')
+    await page.waitForTimeout(800)
+    await page.getByText('Farmacia').first().click()
+    await page.waitForTimeout(500)
+
+    const ancho = await page.evaluate(() => {
+      const caja = document.querySelector('h1')?.closest('.flex.flex-col.h-full')?.parentElement
+      return caja ? getComputedStyle(caja).maxWidth : ''
+    })
+    expect(ancho).toBe('512px')
   })
 
   test('la rejilla de comidas conserva las columnas de siempre', async ({ page }) => {

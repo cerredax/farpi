@@ -121,7 +121,7 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 
 ## Cerrado el 2026-08-21
 
-- **La paleta de personas, de doce colores a ocho.** Los doce pasteles no servían para
+- **La paleta de personas, de doce colores a diez.** Los doce pasteles no servían para
   distinguir a nadie: dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
   —lavanda y lila— en 5,3, con el umbral de "se nota" en 2. Ahora la peor está en 18,4.
   - Al medirlo salieron dos cosas que no se ven a ojo: el mostaza era **exactamente**
@@ -139,6 +139,16 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
     tonos igual de claros dan ΔE 4. Y el orden de la lista tampoco es casual, porque
     `defaultMemberColor` reparte por posición: los dos primeros —los dos adultos de una
     familia normal— están a 42,9 de distancia.
+  - Salieron ocho al principio y se añadieron dos infantiles al final —rosa chicle y
+    azul cielo— al ver en uso que faltaba algo alegre. Van al final para no mover el
+    color de quien lo tenía repartido por posición. No había mucho más sitio: turquesa,
+    verde manzana, lima y mandarina se caen todos con daltonismo (entre 3,3 y 5,7) porque
+    chocan con la frambuesa, con el amarillo de la familia o con el rojo de los errores.
+  - Se midió también si el amarillo `#E9C46A` era el mejor color para "toda la familia",
+    y sí, con diferencia: está a 34,1 del color de persona más cercano y a 10,4 con
+    daltonismo, y todos los neutros que parecerían más lógicos —piedra, lino, gris,
+    pizarra— quedan entre 3,6 y 9,2. Un gris tiene poca saturación y converge con los
+    colores de persona en cuanto se pierde el tono.
   - Los colores viven en la base como texto, así que nadie pierde el suyo: los existentes
     se quedan como están hasta que se cambien a mano.
 

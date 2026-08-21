@@ -173,10 +173,11 @@ Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
 
 Los colores que se pueden elegir son `PERSON_COLORS`, en `src/lib/constants.ts`, y son
-**ocho, no doce, y de claridad escalonada a propósito**. El porqué está escrito en el
-propio archivo, junto a la lista: doce pasteles no se distinguen entre sí —es geometría,
-no mala suerte al elegirlos— y con daltonismo rojo-verde solo queda la claridad para
-separarlos. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
+**diez, y de claridad escalonada a propósito**. El porqué está escrito en el propio
+archivo, junto a la lista: los doce pasteles de antes no se distinguían entre sí —es
+geometría, no mala suerte al elegirlos— y con daltonismo rojo-verde solo queda la
+claridad para separarlos. Los dos últimos son los infantiles y van al final para no
+mover el color de quien ya lo tenía repartido por posición. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
 CIEDE2000 en el repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el
 verde de la app, y que la inicial de cada uno llegue a 4,5:1 con el color de texto que
 le toca.

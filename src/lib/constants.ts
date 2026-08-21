@@ -25,7 +25,7 @@ export const FAMILY_COLOR = '#E9C46A'
  * decorativo: es la etiqueta accesible de cada botón del selector, que antes
  * leía el hexadecimal.
  *
- * Ocho, y de claridad escalonada a propósito. Antes eran doce pasteles y no
+ * Diez, y de claridad escalonada a propósito. Antes eran doce pasteles y no
  * servían para lo único que tienen que hacer, que es decir de quién es cada
  * cosa: había dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
  * —lavanda y lila— estaba en 5,3, cuando el umbral de "se nota la diferencia"
@@ -33,11 +33,17 @@ export const FAMILY_COLOR = '#E9C46A'
  *
  * La claridad varía por necesidad, no por gusto. Con daltonismo rojo-verde el
  * tono se pierde y solo queda la claridad: ocho tonos repartidos por el círculo
- * pero todos igual de claros dan ΔE 4 para quien lo tiene. Escalonados, 9,7.
+ * pero todos igual de claros dan ΔE 4 para quien lo tiene. Escalonados, 8,8.
  *
- * Y los ocho llegan a 4,5:1 con el color de texto que les toca, que lo elige
+ * Y los diez llegan a 4,5:1 con el color de texto que les toca, que lo elige
  * `textColorOn` en `assignees.ts`. El teja es un poco más oscuro de lo que pedía
  * el ojo justo por eso: al primer valor le faltaban tres décimas de contraste.
+ *
+ * Los dos últimos son los infantiles, y van al final para no mover el color de
+ * quien ya lo tenía repartido por posición. Cuestan poco y no había mucho más
+ * sitio: turquesa, verde manzana, lima y mandarina —los que uno pensaría
+ * primero— se caen todos con daltonismo, entre 3,3 y 5,7, porque chocan con la
+ * frambuesa, con el amarillo de la familia o con el rojo de los errores.
  *
  * El orden tampoco es casual. `defaultMemberColor` reparte por posición, así
  * que los dos primeros son los dos adultos de una familia normal: van a 42,9 de
@@ -56,6 +62,8 @@ export const PERSON_COLORS: { value: string; label: string }[] = [
   { value: '#D06E8A', label: 'Frambuesa' },
   { value: '#3A6E9E', label: 'Azul' },
   { value: '#8E4A7A', label: 'Ciruela' },
+  { value: '#EFB0E5', label: 'Rosa chicle' },
+  { value: '#4AA8DE', label: 'Azul cielo' },
 ]
 
 // ─── Comidas ──────────────────────────────────────────────────────────────────

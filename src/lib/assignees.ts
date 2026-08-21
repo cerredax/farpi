@@ -133,6 +133,45 @@ export function eventColor(
   return resolveAssignee(evento, members, kids)?.color ?? FAMILY_COLOR
 }
 
+/**
+ * Con qué color se escribe encima de un color de persona.
+ *
+ * Iba en blanco a pelo, y encima de la mitad de la paleta no se leía: el
+ * amarillo de "toda la familia" daba 1,67:1 cuando el mínimo de WCAG para texto
+ * pequeño es 4,5:1. La paleta nueva es de claridad escalonada a propósito
+ * —hace falta para que se distingan— y por eso el blanco no puede valer para
+ * todos: cuatro de los ocho son claros.
+ *
+ * Se elige el que más contraste dé, no el que toque por una regla fija, porque
+ * el color puede venir de la base de datos y ser cualquiera: un color viejo de
+ * antes del cambio de paleta, o el de un evento. Con los ocho de ahora, los ocho
+ * pasan de 4,5:1.
+ */
+const BLANCO = '#FFFFFF'
+/** El mismo `--color-ink` de `globals.css`, aquí como dato porque viaja en `style`. */
+const TINTA = '#252525'
+
+/** Luminancia relativa (WCAG 2.1). `null` si el color no es un hex de seis dígitos. */
+function luminancia(hex: string): number | null {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return null
+  const canal = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  }
+  return 0.2126 * canal(1) + 0.7152 * canal(3) + 0.0722 * canal(5)
+}
+
+const LUM_TINTA = luminancia(TINTA) as number
+
+export function textColorOn(background: string): string {
+  const fondo = luminancia(background)
+  // Un color que no sabemos leer se trata como antes: blanco.
+  if (fondo === null) return BLANCO
+  const contraste = (texto: number) =>
+    (Math.max(fondo, texto) + 0.05) / (Math.min(fondo, texto) + 0.05)
+  return contraste(1) >= contraste(LUM_TINTA) ? BLANCO : TINTA
+}
+
 /** La opción que corresponde al estado actual de un draft. */
 export function assigneeKeyOf(entidad: { child_id: string | null; member_id: string | null }): string {
   if (entidad.member_id) return `m:${entidad.member_id}`

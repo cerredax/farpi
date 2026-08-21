@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Heart } from 'lucide-react'
 import { memo } from 'react'
 import type { Event, Child, FamilyMember } from '@/types'
-import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { eventColor, resolveAssignee, textColorOn } from '@/lib/assignees'
 import { format } from 'date-fns'
 
 interface TodayEventsProps {
@@ -63,8 +63,8 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
                 <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
                 {asignado && (
                   <span
-                    className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                    style={{ backgroundColor: asignado.color }}
+                    className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: asignado.color, color: textColorOn(asignado.color) }}
                   >
                     {asignado.name}
                   </span>

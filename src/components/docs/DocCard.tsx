@@ -3,7 +3,8 @@
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { FileTypeIcon } from './FileTypeIcon'
-import { DOC_CATEGORIES } from '@/lib/constants'
+import { textColorOn } from '@/lib/assignees'
+import { DOC_CATEGORIES, FAMILY_COLOR } from '@/lib/constants'
 import { selectExpiryState } from '@/lib/selectors'
 import { formatFileSize } from '@/lib/text'
 import type { Document } from '@/types'
@@ -55,8 +56,8 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
           )}
           {assigneeName && (
             <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: assigneeColor ?? '#8BA888' }}
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: assigneeColor ?? FAMILY_COLOR, color: textColorOn(assigneeColor ?? FAMILY_COLOR) }}
             >
               {assigneeName}
             </span>

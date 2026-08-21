@@ -1,6 +1,7 @@
 import { Pencil, UserPlus } from 'lucide-react'
 import { differenceInYears, differenceInMonths, parseISO, format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { textColorOn } from '@/lib/assignees'
 import type { Child, PersonKind } from '@/types'
 
 interface ChildrenListProps {
@@ -43,7 +44,7 @@ export function ChildrenList({ kids, kind, onEdit, onAdd }: ChildrenListProps) {
           onClick={() => onEdit(child)}
           className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-canvas active:bg-hairline transition-colors ${i > 0 ? 'border-t border-hairline' : ''}`}
         >
-          <span className="w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0" style={{ backgroundColor: child.color }}>
+          <span className="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm flex-shrink-0" style={{ backgroundColor: child.color, color: textColorOn(child.color) }}>
             {child.name.charAt(0).toUpperCase()}
           </span>
           <div className="flex-1 min-w-0">

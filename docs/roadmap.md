@@ -128,10 +128,9 @@ Objetivo: preparar uso diario.
   puede asignar lo mismo que a cualquiera. Tres bloques en Ajustes y `kind` en
   `children`.
 - ✅ Paleta de personas medida y rehecha (21-08-2026): de doce pasteles a ocho colores
-  separados. La peor pareja pasa de ΔE 5,3 a 19,4 y todos aguantan las iniciales
-  blancas a 3:1, cuando antes solo lo hacía uno. Queda una cosa a medias, anotada en
-  `project-status.md`: cuatro de los ocho se quedan en el mínimo de texto grande y no
-  llegan a 4,5:1 con las iniciales a 12 px.
+  separados. La peor pareja pasa de ΔE 5,3 a 18,4, y los ocho llegan a 4,5:1 con la
+  inicial encima —blanca o en tinta, la que contraste— cuando antes once de los doce no
+  llegaban ni a 3:1.
 - [ ] Backup/export sencillo si se considera necesario.
 
 ## Fase 9 - Uso diario

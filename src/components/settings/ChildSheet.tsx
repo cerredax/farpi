@@ -6,6 +6,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { textColorOn } from '@/lib/assignees'
 import { PERSON_COLORS } from '@/lib/constants'
 import { validateChildDraft } from '@/lib/validators'
 import type { Child, ChildDraft, PersonKind } from '@/types'
@@ -119,8 +120,8 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
 
         <div className="flex items-center gap-3 bg-canvas rounded-2xl px-4 py-3">
           <span
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0"
-            style={{ backgroundColor: draft.color }}
+            className="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm flex-shrink-0"
+            style={{ backgroundColor: draft.color, color: textColorOn(draft.color) }}
           >
             {draft.name ? draft.name.charAt(0).toUpperCase() : '?'}
           </span>

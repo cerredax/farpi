@@ -1,6 +1,6 @@
 import { Pencil, UserPlus, X } from 'lucide-react'
 import type { Child, FamilyMember, FamilyInvite } from '@/types'
-import { defaultMemberColor, memberColor } from '@/lib/assignees'
+import { defaultMemberColor, memberColor, textColorOn } from '@/lib/assignees'
 
 interface MembersListProps {
   members: FamilyMember[]
@@ -20,29 +20,32 @@ function initials(name: string) {
 export function MembersList({ members, invites, kids, onEdit, onInvite, onCancelInvite }: MembersListProps) {
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
-      {members.map((member, i) => (
-        <div key={member.id} className={`flex items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-hairline' : ''}`}>
-          <span
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0"
-            style={{ backgroundColor: memberColor(members, member.id, kids) }}
-          >
-            {initials(member.display_name)}
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-ink text-sm leading-tight truncate">{member.display_name}</p>
-            <p className="text-xs text-muted mt-0.5">
-              {member.role === 'admin' ? 'Administrador' : 'Miembro'}
-            </p>
+      {members.map((member, i) => {
+        const color = memberColor(members, member.id, kids)
+        return (
+          <div key={member.id} className={`flex items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-hairline' : ''}`}>
+            <span
+              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold flex-shrink-0"
+              style={{ backgroundColor: color, color: textColorOn(color) }}
+            >
+              {initials(member.display_name)}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-ink text-sm leading-tight truncate">{member.display_name}</p>
+              <p className="text-xs text-muted mt-0.5">
+                {member.role === 'admin' ? 'Administrador' : 'Miembro'}
+              </p>
+            </div>
+            <button
+              onClick={() => onEdit(member)}
+              aria-label={`Editar ${member.display_name}`}
+              className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0"
+            >
+              <Pencil size={15} strokeWidth={1.8} />
+            </button>
           </div>
-          <button
-            onClick={() => onEdit(member)}
-            aria-label={`Editar ${member.display_name}`}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0"
-          >
-            <Pencil size={15} strokeWidth={1.8} />
-          </button>
-        </div>
-      ))}
+        )
+      })}
 
       {invites.map((invite, i) => (
         <div key={invite.id} className="flex items-center gap-3 px-4 py-3.5 border-t border-hairline">

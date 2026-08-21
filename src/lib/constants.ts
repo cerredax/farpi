@@ -29,11 +29,15 @@ export const FAMILY_COLOR = '#E9C46A'
  * servían para lo único que tienen que hacer, que es decir de quién es cada
  * cosa: había dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
  * —lavanda y lila— estaba en 5,3, cuando el umbral de "se nota la diferencia"
- * es 2. Ahora la peor pareja está en 19,4.
+ * es 2. Ahora la peor pareja está en 18,4.
  *
  * La claridad varía por necesidad, no por gusto. Con daltonismo rojo-verde el
  * tono se pierde y solo queda la claridad: ocho tonos repartidos por el círculo
- * pero todos igual de claros dan ΔE 4 para quien lo tiene. Escalonados, 8,5.
+ * pero todos igual de claros dan ΔE 4 para quien lo tiene. Escalonados, 9,7.
+ *
+ * Y los ocho llegan a 4,5:1 con el color de texto que les toca, que lo elige
+ * `textColorOn` en `assignees.ts`. El teja es un poco más oscuro de lo que pedía
+ * el ojo justo por eso: al primer valor le faltaban tres décimas de contraste.
  *
  * El orden tampoco es casual. `defaultMemberColor` reparte por posición, así
  * que los dos primeros son los dos adultos de una familia normal: van a 42,9 de
@@ -47,7 +51,7 @@ export const PERSON_COLORS: { value: string; label: string }[] = [
   { value: '#8A5A18', label: 'Ocre' },
   { value: '#9585C8', label: 'Lavanda' },
   { value: '#3C6B33', label: 'Verde bosque' },
-  { value: '#C05F45', label: 'Teja' },
+  { value: '#B85940', label: 'Teja' },
   { value: '#4E9E8C', label: 'Verde agua' },
   { value: '#D06E8A', label: 'Frambuesa' },
   { value: '#3A6E9E', label: 'Azul' },

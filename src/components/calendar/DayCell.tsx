@@ -1,7 +1,7 @@
 import { compareAsc, format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { Event, Child, FamilyMember } from '@/types'
-import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { eventColor, resolveAssignee, textColorOn } from '@/lib/assignees'
 import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 
 interface DayCellProps {
@@ -224,9 +224,9 @@ export function DayCell({
               onClick={() => onEditEvent?.(v)}
               title={v.title}
               aria-label={`Editar ${v.title}`}
-              className={`w-full px-1 py-0.5 text-left text-[9px] font-bold leading-tight text-white truncate ${
+              className={`w-full px-1 py-0.5 text-left text-[9px] font-bold leading-tight truncate ${
                 primero ? 'rounded-l-md' : ''} ${ultimo ? 'rounded-r-md' : ''}`}
-              style={{ backgroundColor: color }}
+              style={{ backgroundColor: color, color: textColorOn(color) }}
             >
               {primero ? v.title : ' '}
             </button>

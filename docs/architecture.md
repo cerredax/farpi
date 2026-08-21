@@ -178,7 +178,16 @@ propio archivo, junto a la lista: doce pasteles no se distinguen entre sí —es
 no mala suerte al elegirlos— y con daltonismo rojo-verde solo queda la claridad para
 separarlos. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
 CIEDE2000 en el repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el
-verde de la app, y que todos aguanten las iniciales blancas a 3:1.
+verde de la app, y que la inicial de cada uno llegue a 4,5:1 con el color de texto que
+le toca.
+
+Ese color de texto lo decide `textColorOn()`, en `assignees.ts`: blanco o la tinta de
+siempre, el que más contraste dé sobre el fondo. Antes iba en blanco a pelo y encima de
+media paleta no se leía —sobre el amarillo de "toda la familia" daba 1,67:1—, y la paleta
+nueva no lo puede arreglar sola: es de claridad escalonada a propósito, así que cuatro de
+los ocho son claros. Lo usan los seis sitios donde hay texto encima de un color que viene
+de los datos: las dos listas de Ajustes, la vista previa del sheet, las etiquetas de quien
+lleva algo en Inicio y en Documentos, y la franja de vacaciones del calendario.
 
 El color con el que se pinta un evento sale de `eventColor()`, en el mismo archivo: el
 color propio del evento, si no el de quien lo lleve, y si no hay nadie el `FAMILY_COLOR`

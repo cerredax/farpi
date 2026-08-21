@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { assigneeKeyOf, buildAssignees, eventColor, memberColor, resolveAssignee, splitPeople } from '@/lib/assignees'
+import { assigneeKeyOf, buildAssignees, eventColor, memberColor, resolveAssignee, splitPeople, textColorOn } from '@/lib/assignees'
 import { FAMILY_COLOR, PERSON_COLORS } from '@/lib/constants'
 import type { Child, FamilyMember } from '@/types'
 
@@ -70,7 +70,10 @@ function luminancia(hex: string): number {
   }
   return 0.2126 * canal(1) + 0.7152 * canal(3) + 0.0722 * canal(5)
 }
-const contrasteConBlanco = (hex: string) => 1.05 / (luminancia(hex) + 0.05)
+function contraste(fondo: string, texto: string): number {
+  const [a, b] = [luminancia(fondo), luminancia(texto)]
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+}
 
 test.describe('PERSON_COLORS', () => {
   test('no hay dos colores repetidos', () => {
@@ -95,12 +98,35 @@ test.describe('PERSON_COLORS', () => {
     }
   })
 
-  // Las iniciales van en blanco sobre el color. 3:1 es el mínimo de WCAG para
-  // texto grande; por debajo de eso no se leen.
-  test('todos aguantan las iniciales en blanco a 3:1', () => {
+  // Lo que de verdad importa: que la inicial se lea. Va en blanco o en tinta
+  // según el color, y con el color que le toca los ocho pasan el 4,5:1 que WCAG
+  // pide para texto pequeño. Antes, en blanco a pelo, once de doce no llegaban
+  // ni a 3:1.
+  test('con el color de texto que les toca, todos llegan a 4,5:1', () => {
     for (const { value, label } of PERSON_COLORS) {
-      expect(contrasteConBlanco(value), `${label} ${value}`).toBeGreaterThanOrEqual(3)
+      expect(contraste(value, textColorOn(value)), `${label} ${value}`).toBeGreaterThanOrEqual(4.5)
     }
+  })
+})
+
+test.describe('textColorOn', () => {
+  test('elige tinta en los claros y blanco en los oscuros', () => {
+    expect(textColorOn('#FFFFFF')).toBe('#252525')
+    expect(textColorOn('#000000')).toBe('#FFFFFF')
+  })
+
+  // El amarillo de "toda la familia" es el caso que lo destapó: en blanco daba
+  // 1,67:1 y se leía en las etiquetas de Inicio y de Documentos.
+  test('sobre el amarillo de la familia escribe en tinta', () => {
+    expect(textColorOn(FAMILY_COLOR)).toBe('#252525')
+    expect(contraste(FAMILY_COLOR, textColorOn(FAMILY_COLOR))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // Los colores vienen de la base de datos: pueden ser cualquier cosa.
+  test('un color que no se entiende se trata como antes, en blanco', () => {
+    expect(textColorOn('rojo')).toBe('#FFFFFF')
+    expect(textColorOn('')).toBe('#FFFFFF')
+    expect(textColorOn('#FFF')).toBe('#FFFFFF')
   })
 })
 

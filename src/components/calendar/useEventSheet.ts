@@ -38,7 +38,7 @@ function initDraft(mode: EventSheetMode, initial: Event | null | undefined, defa
       child_id: initial.child_id,
       member_id: initial.member_id,
       kind: initial.kind,
-      end_date: initial.kind === 'vacaciones' && initial.end_at ? extractDate(initial.end_at) : '',
+      end_date: (initial.kind === 'vacaciones' || initial.kind === 'descanso') && initial.end_at ? extractDate(initial.end_at) : '',
     }
   }
   return {
@@ -78,7 +78,8 @@ export function useEventSheet({
   const weekdaysTouchedRef = useRef(false)
 
   const esVacaciones = draft.kind === 'vacaciones'
-  const diasVacaciones = esVacaciones ? daysBetween(draft.date, draft.end_date) : 0
+  const esDescanso = draft.kind === 'descanso'
+  const diasVacaciones = (esVacaciones || esDescanso) ? daysBetween(draft.date, draft.end_date) : 0
 
   function handleDateChange(newDate: string) {
     patch({ date: newDate })
@@ -121,7 +122,7 @@ export function useEventSheet({
     ? (recurrenceEndYear < startYear ? 'El año final debe ser igual o posterior al año de inicio' : null)
     : null
 
-  const vacacionesError = esVacaciones && draft.end_date && draft.end_date < draft.date
+  const vacacionesError = (esVacaciones || esDescanso) && draft.end_date && draft.end_date < draft.date
     ? 'El último día no puede ser anterior al primero'
     : null
 
@@ -150,8 +151,8 @@ export function useEventSheet({
   // aparezcan cuarenta es una sorpresa que nadie quiere.
   const submitLabel = mode === 'edit'
     ? 'Guardar cambios'
-    : esVacaciones
-      ? (diasVacaciones > 0 ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}` : 'Apuntar vacaciones')
+    : esVacaciones || esDescanso
+      ? (diasVacaciones > 0 ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}` : esVacaciones ? 'Apuntar vacaciones' : 'Apuntar descanso')
       : recurrence === 'weekly' && seriesCount > 0
         ? `Crear ${seriesCount} eventos`
         : recurrence === 'yearly' && yearlyCount > 0
@@ -164,7 +165,7 @@ export function useEventSheet({
     draft, patch, formError, firstFieldRef, handleSubmit,
     confirmDelete, handleDelete,
     seriesDeleteOpen, setSeriesDeleteOpen,
-    esVacaciones,
+    esVacaciones, esDescanso,
     recurrence, setNone, setWeekly, setYearly,
     recurrenceWeekdays, toggleWeekday,
     recurrenceEnd, setRecurrenceEnd,

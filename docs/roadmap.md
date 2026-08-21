@@ -124,6 +124,8 @@ Objetivo: preparar uso diario.
   navegador entre `smoke`, `runtime` y `movil` (`npm run test:e2e`). El recuento
   exacto está en `docs/project-status.md`.
 - ✅ Revisión de accesibilidad: BottomSheet como diálogo (role/aria/Escape/foco/inert), botones de icono etiquetados y label↔input asociados en los sheets.
+- ✅ Descansos familiares en el calendario: marcador circular por día, con rango y
+  lógica de disponibilidad para saber si puedes contar con alguien.
 - [ ] Medir el contraste de la paleta. Es lo único de accesibilidad que quedó sin
   comprobar, y es lo único que no se ve leyendo el código.
 - [ ] Backup/export sencillo si se considera necesario.

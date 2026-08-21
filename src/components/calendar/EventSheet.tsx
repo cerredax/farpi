@@ -92,15 +92,16 @@ export function EventSheet({
               {([
                 { valor: 'evento' as const, etiqueta: 'Un plan' },
                 { valor: 'vacaciones' as const, etiqueta: 'Vacaciones' },
+                { valor: 'descanso' as const, etiqueta: 'Descanso' },
               ]).map(({ valor, etiqueta }) => (
                 <button
                   key={valor}
                   type="button"
                   onClick={() => s.patch({
                     kind: valor,
-                    // Las vacaciones son días completos por definición.
-                    all_day: valor === 'vacaciones' ? true : s.draft.all_day,
-                    end_date: valor === 'vacaciones' && !s.draft.end_date ? s.draft.date : s.draft.end_date,
+                    // Las vacaciones y los descansos son días completos por definición.
+                    all_day: valor === 'vacaciones' || valor === 'descanso' ? true : s.draft.all_day,
+                    end_date: (valor === 'vacaciones' || valor === 'descanso') && !s.draft.end_date ? s.draft.date : s.draft.end_date,
                   })}
                   className={`rounded-xl py-2 text-xs font-bold transition-colors ${
                     s.draft.kind === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
@@ -121,8 +122,8 @@ export function EventSheet({
           <textarea id="event-description" value={s.draft.description} onChange={e => s.patch({ description: e.target.value })} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
         </Field>
 
-        {/* Fechas. En vacaciones son dos días; en un plan, uno con horas. */}
-        {s.esVacaciones ? (
+        {/* Fechas. En vacaciones o descansos son un rango de días; en un plan, uno con horas. */}
+        {s.esVacaciones || s.esDescanso ? (
           <div className="flex gap-3">
             <div className="flex-1">
               <Field label="Desde" htmlFor="event-date">
@@ -180,7 +181,7 @@ export function EventSheet({
           </div>
         </Field>
 
-        {mode === 'create' && !s.esVacaciones && <EventRecurrenceFields s={s} />}
+        {mode === 'create' && !s.esVacaciones && !s.esDescanso && <EventRecurrenceFields s={s} />}
 
       </form>
     </BottomSheet>

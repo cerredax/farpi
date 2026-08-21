@@ -8,7 +8,7 @@ import { db } from './db'
  * de fin del mismo día. Es el único punto donde esa diferencia importa.
  */
 function endAtFromDraft(draft: EventDraft): string | null {
-  if (draft.kind === 'vacaciones') {
+  if (draft.kind === 'vacaciones' || draft.kind === 'descanso') {
     return buildLocalDateTime(draft.end_date || draft.date, '23:59')
   }
   return !draft.all_day && draft.end_time ? buildLocalDateTime(draft.date, draft.end_time) : null

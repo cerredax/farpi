@@ -42,8 +42,8 @@ export interface Child {
   created_at: string
 }
 
-/** Un evento normal, o unas vacaciones que ocupan varios días completos. */
-export type EventKind = 'evento' | 'vacaciones'
+/** Un plan puntual, unas vacaciones de varios días o un descanso marcado como no disponible. */
+export type EventKind = 'evento' | 'vacaciones' | 'descanso'
 
 export interface Event {
   id: string

@@ -118,6 +118,21 @@ los triggers cross-family de `tasks` (no se puede asignar una tarea a un hijo ni
 miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
+## Cerrado el 2026-08-21
+
+- **Descansos familiares en el calendario**: se añade un tipo de evento `descanso`
+  para marcar días de baja de un miembro o hijo, con una marca circular en la
+  celda del calendario y sin saturar la vista. Las vacaciones siguen siendo una
+  franja de varios días, y los descansos quedan como señal clara de
+  disponibilidad.
+  - La lógica vive en `src/lib/events.ts` y comparte la misma semántica que el
+    resto de eventos: una persona descansa si el evento cubre ese día y la
+    asignación coincide.
+  - El formulario de eventos deja crear un descanso con un rango de fechas y la
+    asignación correspondiente.
+  - La comprobación de disponibilidad ya existe para saber si "puedes contar con
+    esa persona" ese día.
+
 ## Cerrado el 2026-08-06
 
 - **La semana del calendario pasa a ser el día por horas.** Antes era una lista de

@@ -53,6 +53,8 @@ export function validateMealDraft(draft: MealDraft): string | null {
 export function validateEventDraft(draft: EventDraft): string | null {
   if (!draft.title.trim()) return 'El título es obligatorio.'
   if (!draft.date) return 'La fecha es obligatoria.'
+  if ((draft.kind === 'vacaciones' || draft.kind === 'descanso') && (!draft.end_date || draft.end_date < draft.date))
+    return 'La fecha final debe ser posterior o igual a la inicial.'
   if (!draft.all_day && draft.end_time && draft.end_time <= draft.start_time)
     return 'La hora de fin debe ser posterior a la de inicio.'
   return null

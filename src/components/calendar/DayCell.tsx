@@ -2,7 +2,7 @@ import { compareAsc, format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { Event, Child, FamilyMember } from '@/types'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { isVacation, vacationEdges } from '@/lib/events'
+import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 
 interface DayCellProps {
   day: Date
@@ -83,10 +83,11 @@ export function DayCell({
   onEditEvent,
   onAddEvent,
 }: DayCellProps) {
-  // Las vacaciones se pintan como una franja bajo el día, no como un punto
-  // más: lo que importa de ellas es el tramo, no que "haya algo" ese día.
+  // Las vacaciones se pintan como una franja bajo el día, y los descansos como
+  // una marca circular: el objetivo es señalar disponibilidad sin saturar.
   const vacaciones = events.filter(isVacation)
-  const sortedEvents = sortEvents(events.filter(e => !isVacation(e)))
+  const descansos = events.filter(isRestDay)
+  const sortedEvents = sortEvents(events.filter(e => !isVacation(e) && !isRestDay(e)))
   const visibleEvents = sortedEvents.slice(0, density === 'detailed' ? 2 : 3)
   const hiddenCount = Math.max(sortedEvents.length - visibleEvents.length, 0)
 
@@ -126,6 +127,22 @@ export function DayCell({
         <div className="w-full pb-1">
           <VacationBand vacaciones={vacaciones} day={day} kids={kids} members={members} onEditEvent={onEditEvent} />
         </div>
+
+        {descansos.length > 0 && (
+          <div className="flex w-full items-center justify-center pb-1">
+            {descansos.slice(0, 2).map(d => (
+              <button
+                key={d.id}
+                type="button"
+                aria-label={`Editar descanso de ${d.title}`}
+                onClick={() => onEditEvent?.(d)}
+                className="w-2.5 h-2.5 rounded-full border border-white shadow-sm"
+                style={{ backgroundColor: eventColor(d, members, kids) }}
+                title={d.title}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Tooltip — visible only on hover, desktop only */}
         {sortedEvents.length > 0 && (
@@ -212,6 +229,22 @@ export function DayCell({
               style={{ backgroundColor: color }}
             >
               {primero ? v.title : ' '}
+            </button>
+          )
+        })}
+
+        {descansos.map(descanso => {
+          const color = eventColor(descanso, members, kids)
+          return (
+            <button
+              key={descanso.id}
+              onClick={() => onEditEvent?.(descanso)}
+              title={descanso.title}
+              aria-label={`Editar descanso ${descanso.title}`}
+              className="flex w-full items-center justify-center rounded-full py-1"
+              style={{ backgroundColor: `${color}20`, border: `1.5px solid ${color}` }}
+            >
+              <span className="h-2.5 w-2.5 rounded-full block" style={{ backgroundColor: color }} />
             </button>
           )
         })}

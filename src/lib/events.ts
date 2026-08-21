@@ -29,6 +29,39 @@ export function isVacation(event: Event): boolean {
   return event.kind === 'vacaciones'
 }
 
+export function isRestDay(event: Event): boolean {
+  return event.kind === 'descanso'
+}
+
+/**
+ * Devuelve si una persona concreta está de descanso en un día concreto.
+ * Sirve para saber si "puedes contar con ella" cuando el calendario marca un
+ * descanso, y acepta un miembro adulto o un hijo porque la app usa ambos.
+ */
+export function isPersonOffOnDay(
+  events: Event[],
+  assignee: { child_id: string | null; member_id: string | null } | null,
+  day: Date | string,
+): boolean {
+  if (!assignee) return false
+  const dia = typeof day === 'string' ? day.slice(0, 10) : localDay(day)
+
+  return events.some(event => {
+    if (!isRestDay(event)) return false
+    if (assignee.member_id && event.member_id !== assignee.member_id) return false
+    if (assignee.child_id && event.child_id !== assignee.child_id) return false
+    return eventCoversDay(event, dia)
+  })
+}
+
+export function isPersonAvailableOnDay(
+  events: Event[],
+  assignee: { child_id: string | null; member_id: string | null } | null,
+  day: Date | string,
+): boolean {
+  return !isPersonOffOnDay(events, assignee, day)
+}
+
 /**
  * Días completos entre dos fechas, contando la primera y la última. Se usa
  * tanto sobre un evento guardado como sobre el formulario mientras se rellena,

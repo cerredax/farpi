@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test'
-import { daysBetween, eventCoversDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
+import {
+  daysBetween,
+  eventCoversDay,
+  isPersonAvailableOnDay,
+  isPersonOffOnDay,
+  isRestDay,
+  isVacation,
+  vacationEdges,
+  vacationLength,
+} from '@/lib/events'
 import { event } from './fixtures'
 
 // Antes de las vacaciones, el calendario daba por hecho que un evento vivía en
@@ -67,4 +76,27 @@ test('vacationEdges distingue el primer y el último día del tramo', () => {
 test('isVacation distingue el tipo', () => {
   expect(isVacation(event({ kind: 'vacaciones' }))).toBe(true)
   expect(isVacation(event())).toBe(false)
+})
+
+test('un descanso cubre todos los días del rango y se reconoce por tipo', () => {
+  const descanso = event({ kind: 'descanso', all_day: true, start_at: '2026-08-10T00:00:00', end_at: '2026-08-12T23:59:00' })
+  expect(isRestDay(descanso)).toBe(true)
+  expect(eventCoversDay(descanso, '2026-08-10')).toBe(true)
+  expect(eventCoversDay(descanso, '2026-08-11')).toBe(true)
+  expect(eventCoversDay(descanso, '2026-08-12')).toBe(true)
+  expect(eventCoversDay(descanso, '2026-08-13')).toBe(false)
+})
+
+test('la disponibilidad dice si puedes contar con una persona ese día', () => {
+  const descanso = event({
+    kind: 'descanso',
+    member_id: 'm1',
+    child_id: null,
+    start_at: '2026-08-10T00:00:00',
+    end_at: '2026-08-12T23:59:00',
+  })
+
+  expect(isPersonOffOnDay([descanso], { child_id: null, member_id: 'm1' }, '2026-08-11')).toBe(true)
+  expect(isPersonAvailableOnDay([descanso], { child_id: null, member_id: 'm1' }, '2026-08-13')).toBe(true)
+  expect(isPersonAvailableOnDay([descanso], { child_id: null, member_id: 'm2' }, '2026-08-11')).toBe(true)
 })

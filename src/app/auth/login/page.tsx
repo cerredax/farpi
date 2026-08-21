@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, Sparkles, User } from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff, Loader2, Lock, Mail, User } from 'lucide-react'
 import { createClient, IS_DEMO_MODE } from '@/lib/supabase/client'
 import { isAuthProviderEnabled } from '@/lib/supabase/auth-providers'
 import { LoginHero } from './LoginHero'
@@ -122,7 +122,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-dvh bg-canvas text-ink">
-      <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[minmax(0,1fr)_480px] xl:grid-cols-[minmax(0,1fr)_520px]">
+      <div className="mx-auto grid min-h-dvh max-w-7xl lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_440px]">
         <LoginHero />
 
         <aside className="flex items-center justify-center border-t border-line bg-white px-6 py-8 lg:border-l lg:border-t-0 lg:px-10">
@@ -170,13 +170,6 @@ export default function LoginPage() {
                     </button>
                   ))}
                 </div>
-
-                {isSignup && (
-                  <div className="mb-4 flex items-center gap-2 rounded-2xl border border-primary-line bg-primary-tint px-4 py-3 text-xs font-bold text-primary-deep">
-                    <CheckCircle2 size={15} strokeWidth={2.4} />
-                    Sin tarjeta, sin anuncios y gratis para empezar.
-                  </div>
-                )}
 
                 {googleEnabled && (
                   <>
@@ -295,10 +288,7 @@ export default function LoginPage() {
                         Un momento
                       </span>
                     ) : isSignup ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Sparkles size={15} />
-                        Crear cuenta gratis
-                      </span>
+                      'Crear cuenta'
                     ) : (
                       'Entrar'
                     )}

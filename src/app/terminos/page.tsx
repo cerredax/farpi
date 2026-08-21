@@ -73,7 +73,8 @@ export default function TerminosPage() {
 
       <LegalSection heading="Ley aplicable">
         <p>
-          Estos términos se rigen por la legislación española. Para cualquier cuestión, escribe a{' '}
+          Nido lo gestiona Omar García Carballo, como proyecto personal y familiar. Estos términos se
+          rigen por la legislación española. Para cualquier cuestión, escribe a{' '}
           <a href={`mailto:${CONTACT}`} className="font-semibold text-primary-strong">{CONTACT}</a>.
         </p>
       </LegalSection>

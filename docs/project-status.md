@@ -121,6 +121,20 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 
 ## Cerrado el 2026-08-21
 
+- **Páginas legales: quién responde, y más fáciles de recorrer.** Privacidad decía
+  "Responsable de Nido" y ahora dice quién es; términos añade la misma
+  identificación, que antes solo estaba en privacidad. Y las dos ganan un índice de
+  secciones con anclas y una línea de separación entre secciones, que se leían como un
+  bloque corrido.
+  - El índice sale de inspeccionar los hijos en `LegalShell` (`Children.toArray` +
+    `isValidElement`), no de una lista por props: así las páginas no repiten su propia
+    tabla de contenidos, que es justo el dato que se queda viejo al añadir una sección.
+  - Los `id` salen de `normalizaParaBuscar` (`src/lib/text.ts`), que ya bajaba a
+    minúsculas y quitaba tildes, para no tener dos formas de normalizar texto.
+  - La línea la lleva cada sección con `first-of-type:border-t-0`: el párrafo de entrada
+    es un `<p>`, así que la primera `<section>` sigue siendo la primera de su tipo y la
+    cuenta sale sin pasar índices.
+
 - **Paleta nueva: "Cocina de casa".** Crema `#F2E6D8`, tinta `#4A3728`, terracota de
   marca, oliva de segundo acento y amarillo `#C9A227`. El rojo de peligro se queda.
   Estructura de tokens intacta: solo cambian los valores.

@@ -17,7 +17,8 @@ export default function PrivacidadPage() {
 
       <LegalSection heading="Responsable del tratamiento">
         <p>
-          Responsable de Nido. Para cualquier cuestión sobre tus datos, escribe a{' '}
+          Omar García Carballo, como responsable de este proyecto personal y familiar. Para cualquier
+          cuestión sobre tus datos, escribe a{' '}
           <a href={`mailto:${CONTACT}`} className="font-semibold text-primary-strong">{CONTACT}</a>.
         </p>
       </LegalSection>

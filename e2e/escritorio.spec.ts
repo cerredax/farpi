@@ -37,6 +37,20 @@ async function medirRejilla(page: import('@playwright/test').Page) {
   })
 }
 
+/**
+ * Cuántas columnas tiene la rejilla de una sección, buscada por su título. `0`
+ * si esa sección no es una rejilla, que es lo que tiene que pasar en móvil.
+ */
+async function columnasDeSeccion(page: import('@playwright/test').Page, titulo: string) {
+  return page.evaluate(t => {
+    const cabecera = [...document.querySelectorAll('h2')].find(h => h.textContent?.trim() === t)
+    const seccion = cabecera?.closest('section')
+    if (!seccion) return -1
+    const cols = getComputedStyle(seccion).gridTemplateColumns
+    return cols === 'none' ? 0 : cols.split(' ').length
+  }, titulo)
+}
+
 test.describe('escritorio a 1440 px', () => {
   test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
 
@@ -77,6 +91,23 @@ test.describe('escritorio a 1440 px', () => {
     expect(medidas!.scroll, 'la rejilla de comidas se arrastra en horizontal').toBeLessThanOrEqual(medidas!.ancho + 1)
   })
 
+  test('en Tareas las pendientes van en dos columnas', async ({ page }) => {
+    await page.goto('/tasks')
+    await page.waitForTimeout(800)
+
+    expect(await columnasDeSeccion(page, 'Pendientes'), 'Pendientes no está en dos columnas').toBe(2)
+
+    // La cabecera de la sección ocupa las dos, para que el recuento no se quede
+    // colgando encima de una sola columna.
+    const cabeceraAncha = await page.evaluate(() => {
+      const h = [...document.querySelectorAll('h2')].find(x => x.textContent?.trim() === 'Pendientes')
+      const seccion = h?.closest('section')
+      if (!h || !seccion) return false
+      return h.parentElement!.getBoundingClientRect().width > seccion.getBoundingClientRect().width * 0.9
+    })
+    expect(cabeceraAncha, 'la cabecera de Pendientes no ocupa el ancho').toBe(true)
+  })
+
   for (const ruta of RUTAS) {
     test(`sin desbordamiento horizontal en ${ruta} a 1440 px`, async ({ page }) => {
       await page.goto(ruta)
@@ -108,6 +139,12 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
 
     await expect(page.locator(BARRA_ABAJO)).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Secciones' })).toBeHidden()
+  })
+
+  test('en Tareas las pendientes siguen en una sola columna', async ({ page }) => {
+    await page.goto('/tasks')
+    await page.waitForTimeout(800)
+    expect(await columnasDeSeccion(page, 'Pendientes'), 'la rejilla de dos columnas se ha colado por debajo de lg').toBe(0)
   })
 
   test('la rejilla de comidas conserva las columnas de siempre', async ({ page }) => {

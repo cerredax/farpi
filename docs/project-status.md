@@ -72,12 +72,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **250 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **252 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 62 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 64 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad

@@ -45,9 +45,13 @@ export function TasksView() {
         onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}
         onCancel={() => setConfirmTask(null)}
       />
-      <div className="max-w-lg mx-auto px-4 py-4 pb-28">
+      {/* En escritorio se suelta la columna de móvil y las tareas van en dos
+          columnas. La rejilla se pone en la propia `section` y la cabecera ocupa
+          las dos, así no hace falta envolver la lista en un div nuevo: por
+          debajo de `lg` el DOM es exactamente el de antes. */}
+      <div className="max-w-lg mx-auto px-4 py-4 pb-28 lg:max-w-5xl lg:px-6 lg:py-6 lg:pb-10">
         {puedeBuscar && (
-          <div className="mb-4">
+          <div className="mb-4 lg:max-w-md">
             <SearchField
               value={busqueda}
               onChange={setBusqueda}
@@ -57,15 +61,15 @@ export function TasksView() {
           </div>
         )}
 
-        <section className="space-y-2">
-          <div className="flex items-center justify-between px-1 mb-3">
+        <section className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
+          <div className="flex items-center justify-between px-1 mb-3 lg:col-span-2 lg:mb-0">
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Pendientes</h2>
             {pending.length > 0 && (
               <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{pending.length}</span>
             )}
           </div>
           {pending.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-surface shadow-sm">
+            <div className="bg-white rounded-2xl border border-surface shadow-sm lg:col-span-2">
               {busqueda.trim() ? (
                 <EmptyState emoji="🔍" title="Sin coincidencias" description={`Ninguna tarea pendiente con «${busqueda.trim()}»`} />
               ) : (
@@ -78,8 +82,8 @@ export function TasksView() {
         </section>
 
         {completed.length > 0 && (
-          <section className="mt-6 space-y-2">
-            <button onClick={() => setShowCompleted(v => !v)} className="flex items-center gap-2 px-1 py-1.5 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors">
+          <section className="mt-6 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
+            <button onClick={() => setShowCompleted(v => !v)} className="flex items-center gap-2 px-1 py-1.5 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors lg:col-span-2 lg:mb-0">
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Completadas</h2>
               <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{completed.length}</span>
               <span className="ml-auto text-muted">{showCompleted ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
@@ -89,7 +93,7 @@ export function TasksView() {
         )}
       </div>
 
-      <button onClick={openCreate} aria-label="Nueva tarea" className="fixed bottom-24 right-5 z-30 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 transition-all">
+      <button onClick={openCreate} aria-label="Nueva tarea" className="fixed bottom-24 right-5 z-30 lg:bottom-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 transition-all">
         <Plus size={26} strokeWidth={2.5} />
       </button>
 

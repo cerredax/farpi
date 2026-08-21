@@ -41,7 +41,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 ### Backend / migraciones
 
-- Migraciones Supabase 001–017 aplicadas en el proyecto real; la 017 (descansos), el 2026-08-21 y **pendiente de revalidar**. La 018 (adultos sin cuenta) está escrita y **pendiente de aplicar**: sin ella `children` no tiene columna `kind` y «Añadir adulto» falla. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
+- Migraciones Supabase 001–018 aplicadas en el proyecto real. Las 017 (descansos) y 018 (adultos sin cuenta), el 2026-08-21, revalidadas ese mismo día con 51/51. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.

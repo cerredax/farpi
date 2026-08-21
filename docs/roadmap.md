@@ -70,15 +70,8 @@ No es una fase que se cierre para siempre: se repite con
 `node scripts/validate-rls.mjs` después de tocar una migración, una policy o una
 RPC.
 
-**Pendiente ahora mismo**: 015 y 016 ya están aplicadas en Supabase (05-08-2026),
-así que queda volver a pasar el script y anotar el resultado. Serán **51
-comprobaciones** en vez de 47: dos nuevas de los triggers cross-family de `tasks`
-(015) y dos del perfil del miembro (014).
-
-**Pendiente ahora mismo (21-08-2026)**: aplicar la `018_person_kind.sql` en el SQL
-Editor y volver a pasar el script, que cubre también la 017 (aplicada ese mismo día).
-La 017 es la que permite guardar un descanso; la 018 añade `children.kind`, que es lo
-que distingue a un hijo de un adulto sin cuenta.
+**Al día (21-08-2026)**: las 017 y 018 se aplicaron en Supabase y el script volvió a
+dar 51/51 ese mismo día. No queda nada pendiente hasta la próxima migración.
 
 ## Fase 4 - Repositorios Supabase ✅
 

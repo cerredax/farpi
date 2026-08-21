@@ -53,7 +53,7 @@ Estado:
 - UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
-- Migraciones 001–017 aplicadas; la 017, el 2026-08-21 y **pendiente de revalidar**. La **018 está escrita y sin aplicar** en producción: hasta que se ejecute en el SQL Editor, `children` no tiene columna `kind` y dar de alta a un adulto sin cuenta falla. Las 015 y 016 entraron el 2026-08-05 y **están pendientes de revalidar**: `node scripts/validate-rls.mjs` pasa de 47 a 51 comprobaciones, con las de los triggers de `tasks` y las del perfil del miembro.
+- Migraciones 001–018 aplicadas y revalidadas. Las 017 y 018 entraron el 2026-08-21 y `node scripts/validate-rls.mjs` volvió a dar 51/51 ese mismo día, el mismo recuento que tras las 015 y 016: ninguna de las dos toca policies ni aislamiento.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
@@ -76,7 +76,7 @@ Migraciones:
 - `015_task_assignment.sql` — `child_id`, `member_id` y `completed_by` en `tasks`, con el mismo `check` de exclusión que eventos y documentos, y los triggers cross-family correspondientes
 - `016_document_expiry.sql` — `expires_on` en `documents` (nullable) e índice por `(family_id, expires_on)`
 - `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` y le exige día completo y fecha final, igual que a las vacaciones
-- `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), para los adultos de la familia que no tienen cuenta **(pendiente de aplicar en producción)**
+- `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), para los adultos de la familia que no tienen cuenta
 
 Se aplican a mano por el SQL Editor: no hay CLI de Supabase enlazada, así que los
 ficheros numerados son el único registro de qué se aplicó y en qué orden.

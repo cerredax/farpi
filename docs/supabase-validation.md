@@ -39,8 +39,8 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `014_member_profile.sql` — `family_members.color` y `update_family_member_profile`; `update_my_family_profile` ya no existe *(comprobado a mano el 04-08-2026)*
 - [x] `015_task_assignment.sql` — `child_id` y `member_id` en `tasks`; sus dos triggers cross-family rechazan identificadores de otra familia *(validado el 06-08-2026)*
 - [x] `016_document_expiry.sql` — `documents.expires_on`; columna nullable que no altera el aislamiento: `documents` sigue pasando lectura, escritura y Storage *(validado el 06-08-2026)*
-- [ ] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(aplicada el 21-08-2026, **sin revalidar**)*
-- [ ] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(escrita el 21-08-2026, **sin aplicar** en producción y sin revalidar)*
+- [x] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(aplicada y revalidada el 21-08-2026)*
+- [x] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(aplicada y revalidada el 21-08-2026; la columna se comprobó además leyéndola contra la base real)*
 
 ## Validación RLS
 
@@ -113,22 +113,26 @@ Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-**Nada en rojo en lo validado.** Las 16 primeras migraciones están validadas y la
-pasada del 06-08-2026 no dejó ninguna comprobación fallando. La 017 llegó después y
-queda fuera de esa pasada.
+**No queda nada pendiente.** Las 18 migraciones están validadas y la pasada del
+21-08-2026 no dejó ninguna comprobación en rojo: 51/51, el mismo recuento que el
+06-08-2026.
 
 ## Pendiente
 
-- **Aplicar la `018_person_kind.sql`** en el SQL Editor. Añade `children.kind`, la
-  columna que distingue a un hijo de un adulto sin cuenta.
-- **Volver a ejecutar `node scripts/validate-rls.mjs`** y actualizar este documento
-  con el resultado: cubre la 017 (aplicada el 21-08-2026) y la 018. Ninguna de las dos
-  toca policies ni aislamiento —son `check` de `events` y una columna de `children`—,
-  así que no se espera que muevan el recuento de comprobaciones. `children` ya se
-  valida por las vías de siempre, y `kind` no cambia quién la ve.
-
-Después de eso, nada más: volver a ejecutar el arnés y actualizar este documento la
+Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
+
+### Notas de la ejecución (21-08-2026)
+
+- **51/51, el mismo recuento que el 06-08-2026**, y era lo esperado: la 017 y la 018 no
+  tocan policies ni aislamiento. La 017 son dos `check` de `events` y la 018 una columna
+  de `children`, tabla que ya se valida por las vías de siempre. `kind` no cambia quién
+  ve qué, así que el arnés no gana comprobaciones.
+- Que las dos migraciones estuvieran aplicadas se comprobó **leyendo la base real**:
+  `children.kind` y `events.kind` responden 200 y devuelven `hijo` y `evento`. Los dos
+  `check` (que `events.kind` acepte `descanso` y `children.kind` acepte `adulto`) no se
+  pueden verificar sin escribir, así que ahí no hay comprobación automática: se ven al
+  crear un descanso o un adulto desde la app.
 
 ### Notas de la ejecución (06-08-2026)
 

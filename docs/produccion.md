@@ -47,8 +47,7 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 ### 2.2 Supabase — base de datos
 
 - [x] Migraciones `001`–`016` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012) y `family_members.color` (014). Las 015 y 016 se aplicaron el 05-08-2026 y quedaron **revalidadas el 06-08-2026** con `node scripts/validate-rls.mjs`: 51/51 (§4).
-- [x] Migración `017_event_kind_descanso.sql` aplicada el 21-08-2026. Es la que permite guardar un descanso. **Pendiente de revalidar** con `node scripts/validate-rls.mjs`.
-- [ ] Migración `018_person_kind.sql` aplicada. **Pendiente**: añade `children.kind`, que es lo que permite dar de alta a un adulto sin cuenta (un abuelo). Sin ella, «Añadir adulto» en Ajustes falla porque la columna no existe. Tras aplicarla, revalidar con `node scripts/validate-rls.mjs`.
+- [x] Migraciones `017_event_kind_descanso.sql` (guardar un descanso) y `018_person_kind.sql` (`children.kind`, los adultos sin cuenta) aplicadas el 21-08-2026 y **revalidadas** ese mismo día: 51/51 (§4).
 - [x] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
 - [x] RLS activo en todas las tablas privadas.
 
@@ -77,7 +76,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 51/51 comprobaciones correctas, con las 16 primeras migraciones validadas (la 017 está aplicada y sin revalidar; la 018, sin aplicar). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 51/51 comprobaciones correctas, con las 18 migraciones validadas (última pasada, 21-08-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.

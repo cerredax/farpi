@@ -134,34 +134,43 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
   - Un plan sí sigue exigiendo título: "una cita" sin más no dice qué hay que hacer el
     jueves a las cinco.
 
-- **La paleta de personas, de doce colores a diez.** Los doce pasteles no servían para
-  distinguir a nadie: dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
-  —lavanda y lila— en 5,3, con el umbral de "se nota" en 2. Ahora la peor está en 18,4.
-  - Al medirlo salieron dos cosas que no se ven a ojo: el mostaza era **exactamente**
+- **La paleta de personas: diez colores cálidos, agrupados por a quién representan.**
+  Tres de hombre adulto, tres de mujer adulta, dos de niña y dos de niño. Se llegó aquí
+  en tres pasos el mismo día, y los dos primeros están anotados porque explican los
+  números.
+  - **El punto de partida**: doce pasteles que no servían para distinguir a nadie.
+    Dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor —lavanda y lila— en 5,3,
+    con el umbral de "se nota" en 2. Cuatro de los doce eran rosas.
+  - **La versión intermedia** estaba elegida para aguantar el daltonismo rojo-verde, y
+    llegó a 18,4 de separación. Se descartó **por fría**: ese criterio obliga a repartir
+    los tonos por todo el círculo, así que salían azules, verdes fríos y violetas, y una
+    app de casa no se ve como una casa con eso. Queda escrito porque es la explicación de
+    por qué la paleta de ahora separa menos.
+  - **La de ahora** está en ΔE 12,3 en la peor pareja (rosa chicle y lila, las dos de
+    niña): más del doble que el punto de partida, pero por debajo de la intermedia. Con
+    daltonismo baja a 3,6, y eso ya no es un criterio: se retiró a propósito.
+  - Cinco de los diez tienen que leerse como femeninos, así que caen en la misma banda de
+    rosas y la separación sale de la claridad, no del tono: las mujeres en L* 64-70 y las
+    niñas en 78-84. Las franjas esquivan L* 52-62, donde ni el blanco ni la tinta llegan
+    a 4,5:1 encima del color y no cabe un grupo entero.
+  - Dos cosas que salieron al medir y no se ven a ojo: el mostaza era **exactamente**
     `FAMILY_COLOR` y el verde salvia **exactamente** `--color-primary`, así que se podía
     elegir a mano el color que significa "de toda la familia" o el verde de la app. Los
-    dos fuera de la paleta.
-  - Once de los doce no aguantaban las iniciales blancas que la app les pone encima.
-    Ahora **los ocho pasan 4,5:1**, el mínimo de WCAG para texto pequeño, porque la
-    inicial ya no va en blanco a pelo: `textColorOn()` elige blanco o tinta según el
-    fondo. El teja quedó un poco más oscuro de lo que pedía el ojo (`#B85940` en vez de
-    `#C05F45`) justo por eso, al primer valor le faltaban tres décimas de contraste.
-    De paso arregla sitios que no eran de la paleta: la etiqueta de "toda la familia"
-    en Inicio y en Documentos iba en blanco sobre amarillo, a 1,67:1.
-  - La claridad varía por necesidad: con daltonismo rojo-verde el tono se pierde y ocho
-    tonos igual de claros dan ΔE 4. Y el orden de la lista tampoco es casual, porque
-    `defaultMemberColor` reparte por posición: los dos primeros —los dos adultos de una
-    familia normal— están a 42,9 de distancia.
-  - Salieron ocho al principio y se añadieron dos infantiles al final —rosa chicle y
-    azul cielo— al ver en uso que faltaba algo alegre. Van al final para no mover el
-    color de quien lo tenía repartido por posición. No había mucho más sitio: turquesa,
-    verde manzana, lima y mandarina se caen todos con daltonismo (entre 3,3 y 5,7) porque
-    chocan con la frambuesa, con el amarillo de la familia o con el rojo de los errores.
+    dos fuera desde entonces.
+  - Once de los doce originales no aguantaban las iniciales blancas que la app les pone
+    encima. Ahora **los diez pasan 4,5:1** (el peor, 5,39:1) porque la inicial ya no va en
+    blanco a pelo: `textColorOn()` elige blanco o tinta según el fondo. De paso arregló
+    sitios que no eran de la paleta: la etiqueta de "toda la familia" en Inicio y en
+    Documentos iba en blanco sobre amarillo, a 1,67:1.
   - Se midió también si el amarillo `#E9C46A` era el mejor color para "toda la familia",
-    y sí, con diferencia: está a 34,1 del color de persona más cercano y a 10,4 con
-    daltonismo, y todos los neutros que parecerían más lógicos —piedra, lino, gris,
-    pizarra— quedan entre 3,6 y 9,2. Un gris tiene poca saturación y converge con los
-    colores de persona en cuanto se pierde el tono.
+    y sí, con diferencia: está a 13,9 del color de persona más cercano de la paleta actual
+    (34,1 de la intermedia), y todos los neutros que parecerían más lógicos —piedra, lino,
+    gris, pizarra— son peores. Un gris tiene poca saturación y converge con los colores de
+    persona en cuanto se pierde el tono. Sin cambios ahí.
+  - El orden es el de los grupos, que es como se eligen. Tiene una consecuencia conocida:
+    `defaultMemberColor` reparte por posición cuando nadie ha elegido, así que a los dos
+    primeros adultos les tocan dos colores de hombre. Es un valor por defecto que se
+    cambia de un toque, y la app no sabe de géneros: no hay campo para eso ni se añadió.
   - Los colores viven en la base como texto, así que nadie pierde el suyo: los existentes
     se quedan como están hasta que se cambien a mano.
 

@@ -173,11 +173,12 @@ Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
 
 Los colores que se pueden elegir son `PERSON_COLORS`, en `src/lib/constants.ts`, y son
-**diez, y de claridad escalonada a propósito**. El porqué está escrito en el propio
-archivo, junto a la lista: los doce pasteles de antes no se distinguían entre sí —es
-geometría, no mala suerte al elegirlos— y con daltonismo rojo-verde solo queda la
-claridad para separarlos. Los dos últimos son los infantiles y van al final para no
-mover el color de quien ya lo tenía repartido por posición. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
+**diez, todos cálidos y agrupados por a quién representan**: tres de hombre adulto, tres
+de mujer adulta, dos de niña y dos de niño. El porqué de cada número está escrito en el
+propio archivo, junto a la lista, incluido lo que cuesta: la peor pareja está en ΔE 12,3
+—frente a 5,3 en los doce pasteles del principio y 18,4 en la versión intermedia, que
+estaba elegida para aguantar el daltonismo y por eso salía fría, con azules y violetas.
+Ese criterio se retiró a propósito. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
 CIEDE2000 en el repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el
 verde de la app, y que la inicial de cada uno llegue a 4,5:1 con el color de texto que
 le toca.
@@ -185,8 +186,8 @@ le toca.
 Ese color de texto lo decide `textColorOn()`, en `assignees.ts`: blanco o la tinta de
 siempre, el que más contraste dé sobre el fondo. Antes iba en blanco a pelo y encima de
 media paleta no se leía —sobre el amarillo de "toda la familia" daba 1,67:1—, y la paleta
-nueva no lo puede arreglar sola: es de claridad escalonada a propósito, así que cuatro de
-los ocho son claros. Lo usan los seis sitios donde hay texto encima de un color que viene
+no lo puede arreglar sola: la claridad varía por necesidad, así que hay colores oscuros y
+claros en la misma lista. Lo usan los seis sitios donde hay texto encima de un color que viene
 de los datos: las dos listas de Ajustes, la vista previa del sheet, las etiquetas de quien
 lleva algo en Inicio y en Documentos, y la franja de vacaciones del calendario.
 

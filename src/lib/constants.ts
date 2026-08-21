@@ -21,49 +21,56 @@ export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
 export const FAMILY_COLOR = '#E9C46A'
 
 /**
- * Colores de las personas de la familia, adultos e hijos. El nombre no es
- * decorativo: es la etiqueta accesible de cada botón del selector, que antes
- * leía el hexadecimal.
+ * Colores de las personas de la familia, agrupados por a quién representan:
+ * tres para hombres adultos, tres para mujeres adultas, dos para niñas y dos
+ * para niños. El nombre no es decorativo: es la etiqueta accesible de cada
+ * botón del selector, que antes leía el hexadecimal.
  *
- * Diez, y de claridad escalonada a propósito. Antes eran doce pasteles y no
- * servían para lo único que tienen que hacer, que es decir de quién es cada
- * cosa: había dieciséis parejas por debajo de ΔE 20 (CIEDE2000) y la peor
- * —lavanda y lila— estaba en 5,3, cuando el umbral de "se nota la diferencia"
- * es 2. Ahora la peor pareja está en 18,4.
+ * Todos son cálidos, y eso es el criterio principal. La versión anterior estaba
+ * elegida para aguantar el daltonismo, y ese criterio obligaba a repartir los
+ * tonos por todo el círculo: salían azules, verdes fríos y violetas, y una app
+ * de casa no se ve como una casa con esa paleta. Se cambió a propósito, sabiendo
+ * lo que cuesta.
  *
- * La claridad varía por necesidad, no por gusto. Con daltonismo rojo-verde el
- * tono se pierde y solo queda la claridad: ocho tonos repartidos por el círculo
- * pero todos igual de claros dan ΔE 4 para quien lo tiene. Escalonados, 8,8.
+ * Lo que cuesta, medido: la peor pareja pasa de ΔE 18,4 a **12,3** (rosa chicle
+ * y lila, las dos de niña), y con daltonismo rojo-verde baja a 3,6. Sigue siendo
+ * más del doble que los doce pasteles de antes, que estaban en 5,3 con el umbral
+ * de "se nota la diferencia" en 2, pero ya no hay garantía para quien no
+ * distingue el rojo del verde.
  *
- * Y los diez llegan a 4,5:1 con el color de texto que les toca, que lo elige
- * `textColorOn` en `assignees.ts`. El teja es un poco más oscuro de lo que pedía
- * el ojo justo por eso: al primer valor le faltaban tres décimas de contraste.
+ * Por qué se apiñan las de niña: cinco de los diez tienen que leerse como
+ * femeninos, o sea que caen en la misma banda de rosas. La separación sale
+ * entonces de la claridad, no del tono, y por eso las mujeres van en L* 64-70 y
+ * las niñas en 78-84.
  *
- * Los dos últimos son los infantiles, y van al final para no mover el color de
- * quien ya lo tenía repartido por posición. Cuestan poco y no había mucho más
- * sitio: turquesa, verde manzana, lima y mandarina —los que uno pensaría
- * primero— se caen todos con daltonismo, entre 3,3 y 5,7, porque chocan con la
- * frambuesa, con el amarillo de la familia o con el rojo de los errores.
+ * Y las franjas de claridad esquivan L* 52-62 a propósito: ahí ni el blanco ni
+ * la tinta llegan a 4,5:1 encima del color, así que no cabe un grupo entero. Con
+ * estos diez, los diez pasan (el peor es 5,39:1) con el color de texto que elige
+ * `textColorOn` en `assignees.ts`.
  *
- * El orden tampoco es casual. `defaultMemberColor` reparte por posición, así
- * que los dos primeros son los dos adultos de una familia normal: van a 42,9 de
- * distancia, y no hay dos consecutivos por debajo de 27.
+ * Ninguno es el `FAMILY_COLOR` ni el verde de la app, que antes sí estaban en la
+ * lista: se podía elegir a mano el color que significa "de toda la familia".
  *
- * Ya no están ni el mostaza ni el verde salvia, que eran exactamente
- * `FAMILY_COLOR` y `--color-primary`: se podía elegir a mano el color que
- * significa "de toda la familia" o el verde de la app.
+ * El orden es el de los grupos, que es como se eligen. Tiene una consecuencia:
+ * `defaultMemberColor` reparte por posición cuando nadie ha elegido, así que a
+ * los dos primeros adultos les tocan dos colores de hombre. Es un valor por
+ * defecto que se cambia de un toque.
  */
 export const PERSON_COLORS: { value: string; label: string }[] = [
-  { value: '#8A5A18', label: 'Ocre' },
-  { value: '#9585C8', label: 'Lavanda' },
-  { value: '#3C6B33', label: 'Verde bosque' },
-  { value: '#B85940', label: 'Teja' },
-  { value: '#4E9E8C', label: 'Verde agua' },
-  { value: '#D06E8A', label: 'Frambuesa' },
-  { value: '#3A6E9E', label: 'Azul' },
-  { value: '#8E4A7A', label: 'Ciruela' },
-  { value: '#EFB0E5', label: 'Rosa chicle' },
-  { value: '#4AA8DE', label: 'Azul cielo' },
+  // Hombres adultos
+  { value: '#A8503A', label: 'Ladrillo' },
+  { value: '#7E5522', label: 'Cuero' },
+  { value: '#6B6E30', label: 'Oliva' },
+  // Mujeres adultas
+  { value: '#E8799A', label: 'Rosa fuerte' },
+  { value: '#EE9078', label: 'Coral' },
+  { value: '#8A4A68', label: 'Ciruela' },
+  // Niñas
+  { value: '#FBC4DC', label: 'Rosa chicle' },
+  { value: '#D9A5E0', label: 'Lila' },
+  // Niños
+  { value: '#F9BE94', label: 'Melocotón' },
+  { value: '#CDD97A', label: 'Verde manzana' },
 ]
 
 // ─── Comidas ──────────────────────────────────────────────────────────────────

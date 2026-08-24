@@ -77,7 +77,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 198 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
-  - 73 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 74 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -351,6 +351,22 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     hace justo eso: tarjeta, vacío opcional y pie. Lo reimplementaban a mano mientras
     `HomeTasks` y `PendingItems` sí lo usaban. `TodayEvents` se queda con tarjeta propia
     a propósito: vive dentro del bloque del saludo, con otro fondo y otro redondeo.
+
+- **Un descanso se ve desde la rejilla: el número del día va con el color de quien
+  descansa.** Sale de un uso concreto —las abuelas—: si una no está el jueves, eso hay
+  que verlo mirando el mes, sin abrir el día. La raya no daba para eso, porque desde el
+  cambio de esta mañana sólo se pinta una por celda y manda la de vacaciones: un
+  descanso dentro de las vacaciones de otro se quedaba sin ninguna señal.
+  - **Círculo relleno y no letra de color.** La paleta va en dos bandas de claridad y
+    `ColorPicker` ofrece las dos a cualquiera, así que la abuela puede tener "Champán
+    dorado": escrito sobre blanco da 1,36:1 y no se lee. Relleno, el texto lo elige
+    `textColorOn` y los catorce colores pasan de 4,5:1.
+  - **Manda el día elegido, luego hoy, luego el descanso.** Los dos primeros dicen dónde
+    estás y eso pesa más que quién falta; cuando tapan el color, la raya y `Availability`
+    lo siguen contando. Las vacaciones no tocan el número: ya tienen la banda.
+  - Lo comprueba un test de navegador nuevo que crea un descanso de dos días y mira el
+    color exacto del segundo (el primero queda seleccionado al guardar). Un color se
+    rompe sin que salte ningún test de estructura.
 
 - **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
   nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra

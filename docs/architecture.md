@@ -502,6 +502,22 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
     martes de descanso en medio de una semana de vacaciones partía la banda amarilla con
     un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda continua
     dice la verdad más importante.
+- **Un descanso pinta el número del día con el color de quien descansa.** Nació de las
+  abuelas: el día que una no está hay que verlo desde la rejilla, sin abrir nada. La raya
+  sola no daba para eso, porque cuando ese día cae dentro de las vacaciones de otro ni
+  siquiera se pinta —manda la banda— y el descanso se quedaba sin ninguna señal.
+  - Va como **círculo relleno y no como letra de color**, y no es una preferencia: la
+    paleta tiene seis tonos claros, y "Champán dorado" escrito sobre blanco da 1,36:1
+    cuando el mínimo es 4,5:1. Relleno, el texto lo elige `textColorOn` y los catorce
+    colores pasan.
+  - **El día elegido y hoy mandan sobre él**, en ese orden: son dónde estás, y eso pesa
+    más que quién falta. Cuando lo tapan, la raya de debajo y `Availability` lo siguen
+    contando.
+  - Con más de un descanso manda el primero, la misma regla que la raya, y cuántos son lo
+    dice el nombre accesible del día ("2 descansando"): el color no es la única vía.
+  - Las **vacaciones no lo hacen**: ya tienen la banda a todo el ancho, que es la señal
+    más visible de la celda. Dos señales para lo mismo sería el ruido que la celda vino
+    a quitarse.
   - **Se probó un tinte cálido en toda la celda y se descartó el mismo día**
     (24-08-2026). Dejaba igual una semana entera de vacaciones y un día libre de una
     persona, que son cosas distintas, y la raya se lee mejor. Con él se fue

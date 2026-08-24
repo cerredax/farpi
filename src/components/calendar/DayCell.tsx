@@ -1,4 +1,4 @@
-import { eventColor } from '@/lib/assignees'
+import { eventColor, textColorOn } from '@/lib/assignees'
 import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -139,11 +139,35 @@ export function DayCell({
   const descansos = events.filter(isRestDay)
   const marcas = marcasDelDia(events, tasks, members, kids)
 
+  /**
+   * Un descanso pinta el número del día con el color de quien descansa
+   * (24-08-2026). Nació de las abuelas: el día que una no está hay que verlo
+   * desde la rejilla, y la raya sola no daba para eso — con vacaciones de otro
+   * el mismo día ni siquiera se pintaba, porque manda la banda.
+   *
+   * Va como círculo relleno y no como letra de color porque la paleta tiene seis
+   * tonos claros: "Champán dorado" escrito sobre blanco da 1,36:1 y no se lee.
+   * Relleno, el texto lo elige `textColorOn`, que garantiza los catorce.
+   *
+   * Con más de un descanso manda el primero, la misma regla que la raya. Cuántos
+   * son lo sigue diciendo el nombre accesible del día ("2 descansando"), así que
+   * el color no es la única vía.
+   */
+  const colorDescanso = descansos.length > 0 ? eventColor(descansos[0], members, kids) : null
+
+  // El número dice una sola cosa, y manda la de arriba: el día elegido y hoy son
+  // dónde estás, y eso gana a quién falta. Cuando hoy tapa un descanso, la raya
+  // de debajo y `Availability` siguen contándolo.
   const numberClass = (() => {
     if (isSelected) return 'bg-primary text-white'
     if (isToday)    return 'bg-accent text-white'
+    if (colorDescanso) return ''
     return 'text-ink'
   })()
+
+  const numberStyle = !isSelected && !isToday && colorDescanso
+    ? { backgroundColor: colorDescanso, color: textColorOn(colorDescanso) }
+    : undefined
 
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
   const resumen = resumenDelDia({
@@ -175,7 +199,10 @@ export function DayCell({
           {weekdayLabel}
         </span>
       )}
-      <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}>
+      <span
+        className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}
+        style={numberStyle}
+      >
         {dayNumber}
       </span>
       {/* El mes va en `aria-hidden` porque la etiqueta del botón ya trae la fecha

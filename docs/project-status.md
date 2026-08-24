@@ -77,7 +77,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 196 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
-  - 74 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 73 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -122,6 +122,27 @@ franja inventada como quedarse sin ninguna. Antes de eso, el 06-08-2026, la pasa
 perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
+
+- **Ajustes se agrupa por para qué entras.** Eran once secciones al mismo nivel
+  —familia, familias, adultos, otros adultos, hijos, comidas, demo, notificaciones,
+  cuenta y legal— en una columna que en móvil no se acababa. Ahora son cinco bloques con
+  título humano —«Tu familia», «Personas», «Preferencias de la casa», «Cuenta y
+  seguridad», «Legal»— más «Modo demo», y dentro los grupos que hagan falta.
+  - **Sin plegables**, y a propósito: el catálogo de las listas y las tareas del día ya
+    dejaron escrito cuándo un pliegue ayuda y cuándo estorba. Ajustes no acumula nada y
+    se entra con un objetivo concreto.
+  - **«Otros adultos» pasa a «Adultos sin cuenta»**, y «Adultos» a «Adultos con
+    cuenta»: nombrar la frontera de verdad de la app. «Otros» dejaba a la abuela como un
+    adulto de segunda. El vacío de esa lista decía todavía «otros adultos», dos nombres
+    para lo mismo en la misma pantalla.
+  - **El largo se recorta quitando redundancia, no escondiendo.** La tarjeta de la
+    familia cede su «3 adultos · 2 hijos» al resumen de «Personas», que además dice las
+    invitaciones; la lista de familias solo sale con más de una (con una repetía el
+    nombre de arriba y tocarla no hacía nada); las dos acciones normales de la cuenta
+    pasan a ser filas de una tarjeta en vez de dos tarjetas de una línea; y el párrafo de
+    las franjas de comida se queda en lo que no es obvio.
+  - `Comidas` se llama ahora `Franjas de comida`, y el bloque de demo baja al final,
+    separado de las acciones de cuenta de verdad.
 
 - **Vacaciones y descansos: la rejilla orienta, el bloque explica.** Los dos pasan a ser
   lo mismo para el calendario (`isAbsence`): quién no está.

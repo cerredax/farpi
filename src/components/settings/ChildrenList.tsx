@@ -23,9 +23,12 @@ function getAge(birthDate: string | null): string {
   return years === 1 ? '1 año' : `${years} años`
 }
 
+// El vacío de los adultos decía "otros adultos", que era como se llamaba su
+// bloque antes de pasar a "Adultos sin cuenta". Dos nombres para lo mismo en la
+// misma pantalla.
 const TEXTOS: Record<PersonKind, { vacio: string; anadir: string }> = {
-  hijo:   { vacio: 'Aún no hay hijos añadidos',  anadir: 'Añadir hijo' },
-  adulto: { vacio: 'Aún no hay otros adultos',   anadir: 'Añadir adulto' },
+  hijo:   { vacio: 'Aún no hay hijos',                 anadir: 'Añadir hijo' },
+  adulto: { vacio: 'Aún no hay adultos sin cuenta',    anadir: 'Añadir adulto' },
 }
 
 export function ChildrenList({ kids, kind, onEdit, onAdd }: ChildrenListProps) {

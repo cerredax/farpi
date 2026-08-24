@@ -1,35 +1,29 @@
 import { Home, Pencil } from 'lucide-react'
-import { splitPeople } from '@/lib/assignees'
-import type { Family, FamilyMember, Child } from '@/types'
+import type { Family } from '@/types'
 
 interface FamilyCardProps {
   family: Family
-  members: FamilyMember[]
-  kids: Child[]
   onEdit: () => void
 }
 
-export function FamilyCard({ family, members, kids, onEdit }: FamilyCardProps) {
-  // Los adultos sin cuenta cuentan como adultos: una abuela es de la familia
-  // aunque no entre en la app.
-  const { adultos, hijos } = splitPeople(kids)
-  const numAdultos = members.length + adultos.length
-  const adultsLabel = numAdultos === 1 ? '1 adulto' : `${numAdultos} adultos`
-  const kidsLabel   = hijos.length === 1 ? '1 hijo' : `${hijos.length} hijos`
-
+/**
+ * La casa: su nombre y cómo cambiarlo.
+ *
+ * Llevaba debajo "3 adultos · 2 hijos" y se lo ha quedado el bloque de
+ * "Personas", que es donde se cambian: el recuento salía dos veces en la misma
+ * pantalla, a dos dedos de distancia, y la segunda además dice las invitaciones.
+ */
+export function FamilyCard({ family, onEdit }: FamilyCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-surface shadow-sm p-4 flex items-center gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-primary-tint flex items-center justify-center flex-shrink-0">
-        <Home size={26} className="text-primary" strokeWidth={1.8} />
+    <div className="flex items-center gap-4 rounded-2xl border border-surface bg-white p-4 shadow-sm">
+      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint">
+        <Home size={22} className="text-primary-strong" strokeWidth={1.8} />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-extrabold text-ink text-base leading-tight truncate">{family.name}</p>
-        <p className="text-sm text-muted mt-0.5">{adultsLabel} · {kidsLabel}</p>
-      </div>
+      <p className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
       <button
         onClick={onEdit}
         aria-label="Editar nombre de la familia"
-        className="w-9 h-9 flex items-center justify-center rounded-full text-muted hover:bg-surface hover:text-ink active:scale-95 transition-all flex-shrink-0"
+        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-all hover:bg-surface hover:text-ink active:scale-95"
       >
         <Pencil size={17} strokeWidth={1.8} />
       </button>

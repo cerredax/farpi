@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { KeyRound, LogOut, Loader2, Trash2 } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
 import { createClient, signOut } from '@/lib/supabase/client'
 
 const PASSWORD_MIN = 8
@@ -70,10 +69,13 @@ export function AccountActions() {
 
   return (
     <div className="space-y-3">
-      {/* Cambiar contraseña */}
-      <Card>
+      {/* Las dos acciones normales en una sola tarjeta, como filas: eran dos
+          tarjetas de una línea cada una, con un botón enmarcado dentro de un
+          marco. Aquí se leen como lo que son, dos cosas que se pueden hacer con
+          la cuenta, y ocupan la mitad. */}
+      <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
         {showPasswordForm ? (
-          <form onSubmit={handleChangePassword} className="space-y-3">
+          <form onSubmit={handleChangePassword} className="space-y-3 p-4">
             <label htmlFor="new-password" className="field-label">Nueva contraseña</label>
             <input
               id="new-password"
@@ -95,23 +97,22 @@ export function AccountActions() {
             </div>
           </form>
         ) : (
-          <button onClick={() => { setShowPasswordForm(true); setPwDone(false) }} className="flex w-full items-center justify-center gap-2 rounded-xl border border-line py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface">
-            <KeyRound size={15} strokeWidth={2.2} />
+          <button onClick={() => { setShowPasswordForm(true); setPwDone(false) }} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas">
+            <KeyRound size={16} strokeWidth={2} className="flex-shrink-0 text-muted" />
             Cambiar contraseña
           </button>
         )}
-        {pwDone && !showPasswordForm && <p className="mt-2 text-xs font-medium text-primary-strong">Contraseña actualizada.</p>}
-      </Card>
-
-      {/* Cerrar sesión */}
-      <Card>
-        <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-line py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface">
-          <LogOut size={15} strokeWidth={2.2} />
+        {pwDone && !showPasswordForm && (
+          <p className="px-4 pb-3 text-xs font-medium text-primary-strong">Contraseña actualizada.</p>
+        )}
+        <button onClick={handleLogout} className="flex w-full items-center gap-3 border-t border-hairline px-4 py-3.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas">
+          <LogOut size={16} strokeWidth={2} className="flex-shrink-0 text-muted" />
           Cerrar sesión
         </button>
-      </Card>
+      </div>
 
-      {/* Borrar cuenta */}
+      {/* Borrar cuenta. Va aparte y en rojo a propósito: no es una acción más de
+          la lista de arriba, y tiene que costar confundirla con cerrar sesión. */}
       <div className="rounded-2xl border border-danger-line bg-danger-tint px-4 py-4">
         <p className="text-sm font-black text-ink">Borrar cuenta</p>
         <p className="mt-1 text-xs leading-relaxed text-muted">

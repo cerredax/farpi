@@ -18,12 +18,40 @@ import { MemberSheet } from './MemberSheet'
 import { ChildSheet } from './ChildSheet'
 import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/types'
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * Ajustes, agrupado por para qué entras y no por componentes.
+ *
+ * Antes eran once secciones al mismo nivel —familia, familias, adultos, otros
+ * adultos, hijos, comidas, demo, notificaciones, cuenta y legal— en una columna
+ * que en móvil no se acababa nunca. Ahora son cinco bloques con un título humano
+ * y, dentro, los grupos que hagan falta.
+ *
+ * **Sin plegables**, y a propósito. Este repositorio ya se dio ese golpe dos
+ * veces: el catálogo de las listas arrancaba plegado y se abrió porque "el
+ * pliegue era un toque de más en el camino principal", y las tareas del día solo
+ * se plegan porque hoy acumula todo lo atrasado y el recuento se queda a la vista
+ * ("resumir no es esconder"). Ajustes no acumula nada: la lista es de largo fijo
+ * y se entra con un objetivo concreto —apagar la merienda, cerrar sesión—, así
+ * que un pliegue esconde justo lo que se viene a buscar.
+ */
+
+/** Un bloque de Ajustes: el nivel de "¿a qué he entrado?". */
+function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-2">
-      <h2 className="text-xs font-bold uppercase tracking-widest text-muted px-1">{label}</h2>
+    <section className="space-y-3">
+      <h2 className="px-1 text-sm font-bold text-ink">{titulo}</h2>
       {children}
     </section>
+  )
+}
+
+/** Un grupo dentro de un bloque, para cuando sus partes necesitan nombre. */
+function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <h3 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">{titulo}</h3>
+      {children}
+    </div>
   )
 }
 
@@ -38,6 +66,17 @@ export function SettingsView() {
   const adminCount = members.filter(m => m.role === 'admin').length
   // La misma tabla, dos bloques: los adultos sin cuenta no son hijos.
   const { adultos: otrosAdultos, hijos } = splitPeople(kids)
+
+  // El resumen de la casa, al principio de "Personas" y solo ahí. Los adultos
+  // sin cuenta cuentan como adultos: una abuela es de la familia aunque no entre
+  // en la app. Las invitaciones solo se nombran si hay alguna pendiente, que es
+  // lo único que este resumen dice y la tarjeta de la familia no.
+  const numAdultos = members.length + otrosAdultos.length
+  const resumenPersonas = [
+    numAdultos === 1 ? '1 adulto' : `${numAdultos} adultos`,
+    hijos.length === 1 ? '1 hijo' : `${hijos.length} hijos`,
+    ...(invites.length > 0 ? [invites.length === 1 ? '1 invitación' : `${invites.length} invitaciones`] : []),
+  ].join(' · ')
 
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
@@ -77,74 +116,94 @@ export function SettingsView() {
 
   return (
     <>
-      <div className="max-w-lg mx-auto px-4 py-4 pb-10 space-y-6">
-        <p className="text-sm text-muted px-1">Gestiona tu familia y sus miembros</p>
+      <div className="max-w-lg mx-auto px-4 py-4 pb-10 space-y-7">
+        <Bloque titulo="Tu familia">
+          <FamilyCard family={family} onEdit={() => setFamilySheetOpen(true)} />
 
-        <InstallPWA />
-
-        <Section label="Familia">
-          <FamilyCard family={family} members={members} kids={kids} onEdit={() => setFamilySheetOpen(true)} />
-        </Section>
-
-        <Section label="Familias">
-          <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
-            {families.map((f: Family) => (
+          <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
+            {/* Con una sola familia la lista repetía el nombre que ya está en la
+                tarjeta de arriba, y tocarla no hacía nada. Se enseña cuando hay
+                de dónde elegir; crear una nueva se puede siempre. */}
+            {families.length > 1 && families.map((f: Family) => (
               <button
                 key={f.id}
                 onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface last:border-b-0 ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
               >
                 <span className="text-sm font-semibold text-ink">{f.name}</span>
                 {f.id === activeFamilyId && (
-                  <span className="text-xs font-bold text-primary uppercase tracking-wide">activa</span>
+                  <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">activa</span>
                 )}
               </button>
             ))}
             {creatingFamily ? (
-              <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3 border-t border-surface">
+              <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3">
                 <input
                   autoFocus
                   value={newFamilyName}
                   onChange={e => setNewFamilyName(e.target.value)}
                   placeholder="Nombre de la familia"
-                  className="flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <button type="submit" className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
-                <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} className="px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>
+                <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
+                <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex-shrink-0 px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>
               </form>
             ) : (
               <button
                 onClick={() => setCreatingFamily(true)}
-                className="w-full px-4 py-3 text-sm text-primary font-semibold text-left hover:bg-canvas transition-colors border-t border-surface"
+                className="w-full px-4 py-3 text-sm text-primary-strong font-semibold text-left hover:bg-canvas transition-colors"
               >
                 + Nueva familia
               </button>
             )}
           </div>
-        </Section>
+        </Bloque>
 
-        <Section label="Adultos">
-          <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
-        </Section>
+        <Bloque titulo="Personas">
+          <p className="-mt-1 px-1 text-xs text-muted">{resumenPersonas}</p>
 
-        <Section label="Otros adultos">
-          <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
-        </Section>
+          {/* "Con cuenta" y "sin cuenta" es la frontera de verdad de la app, no
+              adulto/niño: para estar en `family_members` hace falta correo,
+              cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
+              dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
+          <Grupo titulo="Adultos con cuenta">
+            <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
+          </Grupo>
 
-        <Section label="Hijos">
-          <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
-        </Section>
+          <Grupo titulo="Adultos sin cuenta">
+            <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
+          </Grupo>
 
-        <Section label="Comidas">
-          <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
-        </Section>
+          <Grupo titulo="Hijos">
+            <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
+          </Grupo>
+        </Bloque>
+
+        <Bloque titulo="Preferencias de la casa">
+          {/* Solo aparece cuando el navegador ofrece instalar. */}
+          <InstallPWA />
+
+          <Grupo titulo="Franjas de comida">
+            <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
+          </Grupo>
+
+          {!IS_DEMO_MODE && (
+            <Grupo titulo="Notificaciones">
+              <NotificationsCard />
+            </Grupo>
+          )}
+        </Bloque>
+
+        {!IS_DEMO_MODE && (
+          <Bloque titulo="Cuenta y seguridad">
+            <AccountActions />
+          </Bloque>
+        )}
 
         {IS_DEMO_MODE && (
-          <Section label="Demo">
-            <div className="bg-white rounded-2xl border border-surface shadow-sm px-4 py-4 space-y-3">
-              <p className="text-xs text-muted leading-relaxed">
-                La app funciona en modo demo con datos de prueba guardados localmente. Puedes reiniciar todos los datos al estado inicial en cualquier momento.
-              </p>
+          <Bloque titulo="Modo demo">
+            <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm space-y-3">
+              <p className="text-xs text-muted">Los datos son de prueba y viven en este navegador.</p>
               <button
                 onClick={handleReset}
                 onBlur={() => setConfirmReset(false)}
@@ -153,22 +212,10 @@ export function SettingsView() {
                 {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
               </button>
             </div>
-          </Section>
+          </Bloque>
         )}
 
-        {!IS_DEMO_MODE && (
-          <Section label="Notificaciones">
-            <NotificationsCard />
-          </Section>
-        )}
-
-        {!IS_DEMO_MODE && (
-          <Section label="Cuenta">
-            <AccountActions />
-          </Section>
-        )}
-
-        <Section label="Legal">
+        <Bloque titulo="Legal">
           <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
             <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
               Política de privacidad <span className="text-faint">›</span>
@@ -177,7 +224,7 @@ export function SettingsView() {
               Términos de servicio <span className="text-faint">›</span>
             </Link>
           </div>
-        </Section>
+        </Bloque>
       </div>
 
       <FamilySheet key={familySheetOpen ? 'open' : 'closed'} open={familySheetOpen} family={family} onClose={() => setFamilySheetOpen(false)} onSave={updateFamilyName} />

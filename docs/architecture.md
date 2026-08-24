@@ -518,10 +518,14 @@ lo mismo.
 
 El precio es que la tabla se llama `children` y guarda abuelos. Se paga a gusto:
 renombrarla arrastraría claves ajenas, policies y triggers de media base. En Ajustes
-son tres bloques —**Adultos** (con cuenta, se invitan por correo), **Otros adultos**
-(sin cuenta, se añaden con un nombre y un color) e **Hijos**—, y en "asignar a" los
-adultos van juntos, con cuenta o sin ella: a la hora de asignar algo da igual quién
-entra en la app.
+son tres grupos dentro de "Personas" —**Adultos con cuenta** (se invitan por correo),
+**Adultos sin cuenta** (se añaden con un nombre y un color) e **Hijos**—, y en "asignar
+a" los adultos van juntos, con cuenta o sin ella: a la hora de asignar algo da igual
+quién entra en la app.
+
+Los dos primeros se llamaban "Adultos" y "Otros adultos" hasta el 24-08-2026. Nombrar
+la frontera —con cuenta / sin cuenta— es más largo y dice lo que hay; "otros" dejaba a
+la abuela como un adulto de segunda y no explicaba por qué está en otra lista.
 
 Y una regla que las cruza todas: **buscando sí se enseña todo**, incluido el
 catálogo y el pasado del calendario. Esconder algo que sí coincide sería contestar
@@ -530,6 +534,20 @@ buscar cambia lo que se lee: el detalle del día y los próximos días dejan pas
 resultados, porque una búsqueda atraviesa el calendario entero y no cabe en un día. La
 tira y el mes se quedan donde están: son navegación, y al vaciar el campo vuelves justo
 al día en el que estabas.
+
+**Ajustes se agrupa por para qué entras** (24-08-2026): "Tu familia", "Personas",
+"Preferencias de la casa", "Cuenta y seguridad" y "Legal", más "Modo demo" cuando toca.
+Eran once secciones al mismo nivel en una columna que en móvil no se acababa nunca.
+
+**Sin plegables, y a propósito.** El repositorio ya se dio ese golpe dos veces: el
+catálogo de las listas arrancaba plegado y se abrió porque "el pliegue era un toque de
+más en el camino principal", y las tareas del día solo se plegan porque hoy acumula todo
+lo atrasado y el recuento se queda a la vista. Ajustes no acumula nada —la lista es de
+largo fijo— y se entra con un objetivo concreto, así que un pliegue esconde justo lo que
+se viene a buscar. El largo se recortó quitando redundancia: la tarjeta de la familia
+cede el recuento a "Personas" (donde además dice las invitaciones), la lista de familias
+solo sale si hay más de una, y las dos acciones normales de la cuenta pasan a ser filas
+de una tarjeta en vez de dos tarjetas de una línea.
 
 ## Tono de la interfaz
 

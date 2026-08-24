@@ -24,9 +24,10 @@ interface MealSlotsCardProps {
 export function MealSlotsCard({ slots, onChange }: MealSlotsCardProps) {
   return (
     <Card padded={false}>
-      <p className="px-4 pt-4 pb-3 text-xs leading-relaxed text-muted">
-        Las franjas que se ven en Comidas. Quitar una no borra lo que hubiera apuntado
-        en ella: vuelve a salir si la activas otra vez.
+      {/* Solo la parte que no es obvia: que son las de Comidas ya lo dice el
+          rótulo de la sección, y decirlo aquí gastaba tres líneas a 390 px. */}
+      <p className="px-4 pt-3 pb-2 text-xs text-muted">
+        Quitar una no borra lo apuntado en ella: vuelve si la activas.
       </p>
 
       <ul className="border-t border-hairline divide-y divide-hairline">

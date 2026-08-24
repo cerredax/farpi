@@ -460,7 +460,7 @@ test('un adulto sin cuenta se da de alta en Ajustes y se puede asignar', async (
 
   // Sale en su bloque, no con los hijos.
   await expect(page.getByRole('button', { name: /Carmen/ })).toBeVisible()
-  await expect(page.getByText('Aún no hay otros adultos')).toHaveCount(0)
+  await expect(page.getByText('Aún no hay adultos sin cuenta')).toHaveCount(0)
 
   // Y ya se le puede asignar un evento, como a cualquier adulto de la familia.
   await page.goto('/calendar')

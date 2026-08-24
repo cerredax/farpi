@@ -434,12 +434,32 @@ otra pestaña del selector y sirve para lo que sirve un mapa: ver dónde hay alg
 allí. En escritorio no hay pestañas —el mes a la izquierda, la agenda a la derecha—
 porque caben las dos cosas.
 
-Lo que viene después del día elegido va **agrupado por tramos**: "Esta semana", "La
-semana que viene" y después uno por mes. Los tramos se miden desde el día elegido, no
-desde hoy, porque el panel entero arranca ahí, y solo se pinta el que tiene algo. Sin
-ellos la lista era plana de aquí a 45 días: el jueves que viene y un cumpleaños de
-octubre se leían igual, y el chip de la fila da el día y el día de la semana pero no el
-mes.
+Lo que viene después del día elegido va **agrupado por tramos** (`tramoDeAgenda`, en
+`src/lib/agenda.ts`): "Mañana", "Esta semana", "La semana que viene" y después uno por
+mes. Los tramos se miden desde el día elegido, no desde hoy, porque el panel entero
+arranca ahí, y solo se pinta el que tiene algo. Sin ellos la lista era plana de aquí a
+45 días: el jueves que viene y un cumpleaños de octubre se leían igual, y el chip de la
+fila da el día y el día de la semana pero no el mes.
+
+La excepción es **"Mañana"**, que sí mira el calendario de verdad y solo sale cuando la
+agenda arranca hoy. Es la pregunta que más se hace después de "¿qué hay hoy?", y dentro
+de "Esta semana" se leía igual que el sábado. Atado a hoy nunca desordena los rótulos:
+cae siempre justo detrás del día elegido y delante del resto de la semana. Es la razón
+de que la función reciba `hoy` como parámetro en vez de mirar el reloj por dentro — así
+se puede probar sin depender del día en que corran los tests.
+
+El bloque del día elegido es el **titular** de la pantalla: rótulo más grande que las
+versalitas de los tramos y, cuando ese día es hoy, un aro verde en la tarjeta — el mismo
+idioma con el que `WeekList` marca hoy en Comidas. Antes pesaban igual "Hoy, lunes 24 de
+agosto" y "Esta semana", así que la pregunta de la pantalla se contestaba con la misma
+letra que "¿y el jueves que viene?".
+
+Cada línea de evento dice hora (o "Todo el día"), título y **de quién es, siempre**: lo
+que no es de nadie pone "Familia" en gris. Antes se quedaba sin texto y solo lo decía el
+punto amarillo, que es exactamente lo que la app no quiere — saberse la paleta de memoria
+para entender a quién afecta algo. En gris y no en el amarillo de la familia porque ese
+color no tiene contraste como texto; para eso existe `sand-strong`, y aquí basta con que
+la palabra esté.
 
 **La rejilla del mes es de un solo mes.** Se sigue dibujando por semanas completas
 —si no, las columnas dejarían de ser días de la semana— pero los huecos de las puntas
@@ -455,9 +475,11 @@ solo entonces, el día 1 lleva el mes en pequeño debajo del número, y las otra
 columnas reservan ese hueco vacío para no quedar más bajas.
 
 Las dos vistas de navegación (`WeekStrip` y `MonthGrid`) comparten la misma celda,
-`DayCell`, y por eso dicen lo mismo de la misma forma: número, hasta tres puntos con el
-color de quien lleva cada cosa —o el número si son más de tres— y un tinte cálido si
-alguien está fuera. Lo que la celda **no** hace, y antes sí, es escribir títulos de
+`DayCell`, y por eso dicen lo mismo de la misma forma: número, **hasta dos puntos** con
+el color de quien lleva cada cosa —o el número si son más de dos— y **una** raya si
+alguien está fuera. Dos filas de señal y nada más: eran tres puntos y hasta dos rayas
+(24-08-2026), y con eso la celda volvía a ser el resumen del día que la agenda vino a
+quitarle. Lo que la celda **no** hace, y antes sí, es escribir títulos de
 eventos, llevar tooltip y ser cuatro botones. Los títulos a 50 px de ancho salían como
 "09:0…"; el tooltip era la única vía de leer el día y no existe con el dedo; y de los
 cuatro botones, la franja de vacaciones (3 px de alto) y el punto de descanso (10×10)
@@ -471,15 +493,21 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
 - **La celda las pinta como una raya fina, y la forma dice de qué clase son.** Unas
   vacaciones son una raya a todo el ancho, redondeada donde el tramo empieza y acaba, de
   modo que varios días seguidos se leen como una barra continua; un descanso es un guion
-  corto y centrado, porque es un día y no un tramo. Como mucho **dos** rayas por celda:
-  con cuatro personas fuera el mismo día, apilar cuatro era la celda saturada que esto
-  vino a arreglar, y cuántos son exactamente lo dice el nombre accesible del día.
+  corto y centrado, porque es un día y no un tramo. **Una sola raya por celda**, por
+  mucha gente que falte: la celda avisa de que falta alguien y `Availability` dice quién.
+  Cuántos son exactamente lo dice el nombre accesible del día.
+  - Con más de una ausencia el mismo día manda la primera, y si hay vacaciones manda la
+    de vacaciones, que es la que tiene tramo. **Se probó pintar la raya en gris** cuando
+    falta más de uno —el color ya no es de nadie en concreto— y se descartó al verlo: un
+    martes de descanso en medio de una semana de vacaciones partía la banda amarilla con
+    un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda continua
+    dice la verdad más importante.
   - **Se probó un tinte cálido en toda la celda y se descartó el mismo día**
     (24-08-2026). Dejaba igual una semana entera de vacaciones y un día libre de una
     persona, que son cosas distintas, y la raya se lee mejor. Con él se fue
     `absenceEdges`, que existía solo para redondear el tinte. Lo que sí se queda del
-    intento: la raya es **decorativa** —nunca un botón de 3 px, que no llegaba al mínimo
-    de toque— y el tope de dos.
+    intento: la raya es **decorativa**, nunca un botón de 3 px, que no llegaba al mínimo
+    de toque.
 - **No salen en la lista de la agenda.** Ocupan días seguidos y se repetían en todos:
   un descanso de tres días eran tres filas con el mismo texto. Las vacaciones ya
   estaban fuera; los descansos entraron con ellas.

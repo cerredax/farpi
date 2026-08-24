@@ -70,7 +70,7 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # ~190 tests de lógica pura (~0,7 s, sin servidor)
+npm run test:unit      # ~200 tests de lógica pura (~0,7 s, sin servidor)
 npm run test:e2e       # suite completa: unitarios + ~73 de navegador (levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
@@ -162,7 +162,7 @@ Si tocas una migración: actualiza tipos en `src/types/index.ts`, el mock y la d
 
 ## Convenciones de código
 
-- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts` y `text.ts`: mírala antes de reescribirla.
+- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts`, `agenda.ts` (los tramos de la agenda) y `text.ts`: mírala antes de reescribirla.
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, SelectChip, DeleteButton, Suggestions y algunos más.

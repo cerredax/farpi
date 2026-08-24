@@ -2,10 +2,8 @@
 
 import {
   addDays,
-  addWeeks,
   compareAsc,
   eachDayOfInterval,
-  endOfWeek,
   format,
   isToday,
   isTomorrow,
@@ -17,6 +15,7 @@ import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
+import { tramoDeAgenda } from '@/lib/agenda'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
 import { eventCoversDay, isAbsence } from '@/lib/events'
@@ -81,39 +80,27 @@ function etiquetaDia(day: Date): string {
 }
 
 /**
- * En qué tramo cae un día de lo que viene. Cerca se piensa en semanas y lejos en
- * meses, que es como se habla en casa: "esta semana", "la que viene", "en
- * septiembre". Sin tramos, la lista era plana de aquí a 45 días y el jueves que
- * viene se leía igual que un cumpleaños de octubre.
- *
- * Van respecto al día elegido y no respecto a hoy, porque el panel entero
- * arranca ahí: mirando el 17 de septiembre, "esta semana" es la suya.
- */
-function tramoDelDia(day: Date, desde: Date): string {
-  if (day <= endOfWeek(desde, { weekStartsOn: 1 })) return 'Esta semana'
-  if (day <= endOfWeek(addWeeks(desde, 1), { weekStartsOn: 1 })) return 'La semana que viene'
-  // El año solo cuando no es el del día elegido. En 45 días eso solo pasa al
-  // cruzar de diciembre a enero, y ahí "Enero" a secas se leería como el enero
-  // que ya pasó.
-  const mismoAno = day.getFullYear() === desde.getFullYear()
-  return capitalize(format(day, mismoAno ? 'MMMM' : 'MMMM yyyy', { locale: es }))
-}
-
-/**
  * Un evento en una línea: color, hora, título y de quién es. El color va como
  * punto y no como barra lateral porque ya no hay tarjeta que bordear. El
  * nombre se queda —aunque el color ya lo diga— porque el color solo habla si
  * te lo sabes, y quién tiene la cita es media pregunta de la agenda.
+ *
+ * Lo que no es de nadie dice **"Familia"** (24-08-2026). Antes se quedaba sin
+ * texto y solo lo decía el punto amarillo, que es justo lo que no queríamos:
+ * saberse la paleta para entender a quién afecta. Va en gris y no en el amarillo
+ * de la familia porque ese color no tiene contraste suficiente como texto — para
+ * eso existe `sand-strong`—, y aquí basta con que la palabra esté.
  */
 function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void }) {
   const asignado = resolveAssignee(event, members, kids)
   const color = eventColor(event, members, kids)
   const hora = event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')
+  const quien = asignado?.name ?? 'Familia'
 
   return (
     <button
       onClick={() => onEdit(event)}
-      title={asignado ? `${event.title} · ${asignado.name}` : event.title}
+      title={`${event.title} · ${quien}`}
       className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-canvas"
     >
       <span
@@ -123,11 +110,12 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
       />
       <span className="text-[11px] font-bold text-muted flex-shrink-0 tabular-nums">{hora}</span>
       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{event.title}</span>
-      {asignado && (
-        <span className="max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
-          {asignado.name}
-        </span>
-      )}
+      <span
+        className={`max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold ${asignado ? '' : 'text-muted'}`}
+        style={asignado ? { color: asignado.color } : undefined}
+      >
+        {quien}
+      </span>
     </button>
   )
 }
@@ -141,9 +129,9 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
 
   // Las ausencias —vacaciones y descansos— se quedan fuera de la lista: ocupan
   // días seguidos y se repetirían en todos ellos. Un descanso de tres días salía
-  // tres veces, con el mismo texto. Su sitio es el tinte del día, que enseña el
-  // tramo de un vistazo, y el bloque de "Vacaciones y descansos", que dice de
-  // quién es y hasta cuándo, una vez.
+  // tres veces, con el mismo texto. Su sitio es la raya bajo el día, que avisa de
+  // que falta alguien, y el bloque de "Vacaciones y descansos", que dice de quién
+  // es y hasta cuándo, una vez.
   const conFecha = events.filter(event => !isAbsence(event))
 
   const hoyStr = getLocalDateString(new Date())
@@ -173,7 +161,7 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
   // nuevo. No hace falta un mapa ni reordenar nada.
   const tramos: { titulo: string; dias: typeof proximos }[] = []
   for (const grupo of proximos) {
-    const titulo = tramoDelDia(grupo.day, rangeStart)
+    const titulo = tramoDeAgenda(grupo.day, rangeStart)
     const ultimo = tramos[tramos.length - 1]
     if (ultimo && ultimo.titulo === titulo) ultimo.dias.push(grupo)
     else tramos.push({ titulo, dias: [grupo] })
@@ -181,6 +169,7 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
 
   const diaVacio = delDia.events.length === 0 && delDia.tasks.length === 0
   const todoVacio = diaVacio && proximos.length === 0
+  const esHoy = isToday(selectedDay)
 
   const buscando = !!buscador && buscador.valor.trim().length > 0
   const coincidencias = buscador?.coincidencias ?? []
@@ -245,8 +234,16 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
       ) : (
         <>
           <section className="space-y-2">
-            <h2 className="px-1 text-sm font-bold text-ink">{etiquetaDia(selectedDay)}</h2>
-            <div className={TARJETA}>
+            {/* El titular de la pantalla, y por eso más grande que los rótulos de
+                los tramos, que van en versalitas pequeñas. Antes medía lo mismo
+                que ellos: "Hoy, lunes 24 de agosto" y "Esta semana" pesaban igual
+                y no había jerarquía entre el día que estás mirando y el resto. */}
+            <h2 className="px-1 text-base font-extrabold tracking-tight text-ink">{etiquetaDia(selectedDay)}</h2>
+            {/* Y si el día elegido es hoy, el aro verde: el mismo idioma con el
+                que Comidas marca el día de hoy entre los siete de la semana. Solo
+                en hoy —en un día cualquiera no habría nada que distinguir, porque
+                la tarjeta ya es la del día elegido. */}
+            <div className={`${TARJETA} ${esHoy ? 'ring-1 ring-primary/30' : ''}`}>
               {diaVacio ? (
                 <button onClick={() => onAdd(selectedDay)} className="w-full text-left transition-colors hover:bg-canvas">
                   <EmptyState compact emoji="✨" title="Sin planes. Toca para añadir uno." />

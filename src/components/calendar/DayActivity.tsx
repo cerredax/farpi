@@ -13,8 +13,17 @@ import type { Child, Event, FamilyMember, Task } from '@/types'
  * forma de saber que el día tiene algo.
  */
 
-/** Hasta cuántas marcas se pintan antes de pasar al número. */
-const MAX_MARCAS = 3
+/**
+ * Hasta cuántas marcas se pintan antes de pasar al número.
+ *
+ * **Dos** (24-08-2026, antes tres). Debajo del número caben dos filas de señales
+ * —esta y la de ausencias— y con tres puntos de 6 px más sus huecos la fila
+ * medía 24 px de los ~52 de la columna: la celda volvía a ser un resumen del
+ * día, que es lo que la agenda vino a quitarle. Con dos, "¿pasa algo aquí?" se
+ * contesta igual y "¿cuántas cosas?" lo dice el número, que es más exacto que
+ * contar puntos.
+ */
+const MAX_MARCAS = 2
 
 /**
  * Los colores de lo que ocupa un día: primero los eventos y después las tareas

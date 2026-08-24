@@ -76,7 +76,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 191 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
+  - 198 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
   - 73 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -294,6 +294,32 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     no "desaparece" —la agenda enseña también los próximos días—, así que ahora se
     comprueba que se muda de hoy a mañana, que es lo que de verdad hace.
 
+- **Segunda pasada al calendario móvil: menos ruido en la celda y hoy como titular.**
+  El rediseño de esa misma mañana dejó la estructura bien y la densidad a medias: la
+  celda podía apilar tres puntos y dos rayas, y el bloque del día elegido pesaba lo
+  mismo que los rótulos de los tramos. No cambia ninguna lógica de datos: ni eventos, ni
+  recurrencias, ni vacaciones, ni tareas arrastradas, ni asignaciones.
+  - **"Mañana" es un tramo propio.** Era la pregunta más frecuente después de "¿qué hay
+    hoy?" y se leía igual que el sábado, metida dentro de "Esta semana". Solo sale cuando
+    la agenda arranca hoy, así que nunca desordena los rótulos. La función de tramos sale
+    del componente a `src/lib/agenda.ts` (`tramoDeAgenda`) con `hoy` como parámetro, y
+    con ella llegan 7 unitarios en `e2e/unit/agenda.spec.ts`: un rótulo de fecha falla
+    por un día de diferencia y eso no se ve en una captura.
+  - **Dos filas de señal por celda como máximo**: hasta dos puntos —o el número, si son
+    más— y **una** raya de ausencia. Eran tres puntos y hasta dos rayas: con la madre de
+    vacaciones y el padre de descanso, un día pedía tres colores y dos filas para no
+    decir más que "hoy falta gente", que es el resumen del día que la agenda vino a
+    quitarle a la celda.
+  - **La raya de ausencia no se pinta en gris cuando falta más de uno.** Se probó —el
+    color ya no es de nadie en concreto— y se vio enseguida que partía la banda de una
+    semana de vacaciones con un trozo gris el día que alguien descansaba, que se lee como
+    que las vacaciones acaban ahí. Manda la de vacaciones, y la banda sigue.
+  - **Hoy es el titular**: rótulo más grande que las versalitas de los tramos y aro verde
+    en la tarjeta cuando el día elegido es hoy, el mismo idioma con el que Comidas marca
+    hoy entre los siete días.
+  - **Cada evento dice de quién es, siempre.** Lo que no es de nadie pone "Familia" en
+    gris; antes se quedaba sin texto y solo lo decía el punto amarillo, justo lo que la
+    app no quiere: saberse la paleta para entender a quién afecta algo.
 
 - **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
   nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra

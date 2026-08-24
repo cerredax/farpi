@@ -32,7 +32,7 @@ import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
  * (24-08-2026). Dejaba igual una semana entera fuera y un día libre de una
  * persona, que son cosas distintas, y la raya se lee mejor. La raya vuelve con
  * dos cambios que sí se quedan: es decorativa, nunca un botón de 3 px, y no se
- * apilan más de dos.
+ * apila — es una por celda, por mucha gente que falte.
  */
 
 interface DayCellProps {
@@ -70,9 +70,19 @@ interface DayCellProps {
  * toque de 24×24, y estirarlas con relleno invisible metía un objetivo táctil
  * grande donde el dedo espera seleccionar el día. Se editan desde `Availability`.
  *
- * Como mucho dos: con cuatro personas fuera el mismo día, apilar cuatro rayas
- * era la celda saturada que esto vino a arreglar. Cuántos son exactamente lo dice
- * el nombre accesible del día.
+ * **Una sola raya, siempre** (24-08-2026, antes hasta dos). La celda avisa de que
+ * falta alguien; quién es y hasta cuándo lo dice `Availability`, que es la fuente.
+ * Con dos rayas apiladas, un día con la madre de vacaciones y el padre de
+ * descanso pedía dos filas de señal y tres colores para no decir nada más que
+ * "hoy falta gente": la celda volvía a ser el resumen del día que la agenda vino
+ * a quitarle. Cuántas personas son exactamente sigue en el nombre accesible.
+ *
+ * Con más de una ausencia el mismo día manda la primera, y si hay vacaciones
+ * manda la de vacaciones. Se probó pintar la raya en gris cuando falta más de
+ * uno —el color ya no es de nadie en concreto— y se descartó al verlo: un martes
+ * de descanso en medio de una semana de vacaciones partía la banda amarilla con
+ * un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda
+ * continua dice la verdad más importante; los nombres los da `Availability`.
  */
 function AbsenceMarks({ vacaciones, descansos, day, kids, members }: {
   vacaciones: Event[]
@@ -81,29 +91,33 @@ function AbsenceMarks({ vacaciones, descansos, day, kids, members }: {
   kids: Child[]
   members: FamilyMember[]
 }) {
-  const marcas = [
-    ...vacaciones.map(event => ({ event, tramo: true })),
-    ...descansos.map(event => ({ event, tramo: false })),
-  ].slice(0, 2)
-
   // El hueco se reserva aunque no haya nada: si no, los días con ausencia
   // quedarían más altos que los demás y la fila se descuadra.
-  if (marcas.length === 0) return <span className="block h-[3px]" aria-hidden />
+  if (vacaciones.length === 0 && descansos.length === 0) {
+    return <span className="block h-[3px]" aria-hidden />
+  }
+
+  // Unas vacaciones ganan la forma: son un tramo, y un tramo se lee como barra
+  // continua entre días vecinos. Un día con vacaciones y descanso a la vez tiene
+  // una barra que sigue, que es la información que se pierde si gana el guion.
+  const tramo = vacaciones.length > 0
+
+  // La barra se redondea donde acaba el tramo de verdad: si **alguna** ausencia
+  // sigue en el día de al lado, no se cierra ahí. Sin esto, dos vacaciones
+  // solapadas dejaban una punta redonda en medio de la banda.
+  const primero = vacaciones.every(event => vacationEdges(event, day).primero)
+  const ultimo  = vacaciones.every(event => vacationEdges(event, day).ultimo)
+
+  const color = eventColor(tramo ? vacaciones[0] : descansos[0], members, kids)
 
   return (
-    <span className="flex w-full flex-col items-center gap-[2px]" aria-hidden>
-      {marcas.map(({ event, tramo }) => {
-        const { primero, ultimo } = vacationEdges(event, day)
-        return (
-          <span
-            key={event.id}
-            className={tramo
-              ? `h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
-              : 'h-[3px] w-3 rounded-full'}
-            style={{ backgroundColor: eventColor(event, members, kids) }}
-          />
-        )
-      })}
+    <span className="flex w-full justify-center" aria-hidden>
+      <span
+        className={tramo
+          ? `h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
+          : 'h-[3px] w-3 rounded-full'}
+        style={{ backgroundColor: color }}
+      />
     </span>
   )
 }

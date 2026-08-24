@@ -153,7 +153,7 @@ export default function LoginPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_45px_rgba(46,44,41,0.08)]">
+              <div className="rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_12px_45px_rgba(37,37,37,0.08)]">
                 <div className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1">
                   {(['signin', 'signup'] as const).map(mode => (
                     <button
@@ -331,12 +331,8 @@ export default function LoginPage() {
         .form-input::placeholder { color: var(--color-faint); }
         .form-input:focus {
           border-color: var(--color-primary);
-          /* El fondo del foco es un paso más claro que el canvas, que es justo
-             el papel de --color-warm. El anillo llevaba el rgb del verde salvia
-             viejo a pelo. Sin comillas invertidas aquí dentro: esto vive en un
-             template literal de style jsx y cortarían la cadena. */
-          background: var(--color-warm);
-          box-shadow: 0 0 0 3px rgba(193, 98, 46, 0.18);
+          background: #fffdf9;
+          box-shadow: 0 0 0 3px rgba(139,168,136,0.18);
         }
       `}</style>
     </div>

@@ -17,15 +17,10 @@ export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
  * Color que representa "toda la familia" (eventos y documentos sin hijo
  * asignado). Es un valor de datos, como los colores de los hijos: viaja en
  * atributos `style`, no en clases. Coincide a propósito con el token `sand`, y
- * hay que moverlo a mano cuando ese token cambie: al estrenar la paleta "Cocina
- * de casa" se quedó con el amarillo viejo y dejó de coincidir sin que nada
- * avisara.
- *
- * Que sean el mismo color no es solo estética. Con el amarillo viejo sobre el
- * crema nuevo daba 1,36:1 y casi no se veía, y se quedaba a 13,9 del verde
- * manzana de los niños; con este da 1,97:1 y sube a 19,0.
+ * hay que moverlo a mano cuando ese token cambie: si se queda con el amarillo
+ * viejo dejan de ser el mismo color y nada avisa.
  */
-export const FAMILY_COLOR = '#C9A227'
+export const FAMILY_COLOR = '#E9C46A'
 
 /**
  * Colores de las personas de la familia, agrupados por a quién representan:

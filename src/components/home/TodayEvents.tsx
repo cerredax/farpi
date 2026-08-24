@@ -30,7 +30,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
     if (!calmMessage) return null
     return (
       <div className="flex items-center gap-2.5 rounded-3xl bg-white/80 border border-white px-4 py-2.5 shadow-sm">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint text-primary">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-[#F1E6D8] text-[#9A6B55]">
           <Heart size={16} fill="currentColor" strokeWidth={2.4} />
         </span>
         <p className="min-w-0 text-sm font-bold text-ink leading-snug">{calmMessage}</p>

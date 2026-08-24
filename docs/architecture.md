@@ -429,19 +429,25 @@ de una herramienta de trabajo. Al escribir textos nuevos:
   para no añadir una dependencia más solo por los unitarios.
 - Migración a tokens de color completada (2026-08-03): de 109 apariciones a 36. Lo
   que queda literal son datos, marca de terceros y decorativos de un solo uso.
-- Paleta "Mediterráneo" (2026-08-21, sustituye a "Cocina de casa" del mismo día): crema
-  `#F5F0E8`, tinta `#2E2C29` **gris neutro**, terracota `#C1622E`, turquesa `#3E6E6B` y
-  amarillo `#C9A227`. **Los nombres de token no cambiaron** ni con una paleta ni con la
-  otra, solo los valores: `--nido-sage` es la terracota y `--nido-terracota` el turquesa,
-  que suena raro pero renombrarlos tocaría el bloque `@theme inline` y las utilidades
-  `*-nido-*`. Las variantes (`hover`, `strong`, `deep`, `tint`, `line`) se derivan
-  resolviendo el contraste, no a ojo: el porqué de cada claridad está en los comentarios
-  de `globals.css`.
-- Y una regla que salió de hacerlo dos veces: **el acento de marca tiene dos papeles**,
-  relleno con blanco encima (`bg-primary text-white`) y texto sobre el crema
-  (`text-primary`, 57 usos y mucho pequeño). Un terracota bonito rara vez cumple 4,5:1 en
-  los dos, así que o se oscurece el token o se acepta AA-grande en esos usos y el texto
-  pequeño tira de `primary-strong`. Con `#C1622E` se eligió lo segundo, a propósito.
+- **La paleta es la original y se vuelve a ella.** Crema `#FAF7F2`, tinta `#252525`,
+  salvia `#8BA888`, terracota `#D8A48F`, amarillo `#E9C46A` y rojo `#D96C6C`. El
+  2026-08-21 se probaron dos alternativas cálidas —"Cocina de casa" y "Mediterráneo"— y
+  el 2026-08-24 se revirtieron las dos por decisión de producto. Si se vuelve a intentar,
+  esto es lo que se aprendió:
+  - **Los nombres de token no se tocan, solo los valores.** Así se hizo las dos veces:
+    `--nido-sage` acabó siendo una terracota y `--nido-terracota` un turquesa. Suena
+    raro y aun así es lo correcto: renombrarlos arrastra el bloque `@theme inline` y las
+    utilidades `*-nido-*` que salen de él.
+  - **El acento de marca tiene dos papeles**: relleno con blanco encima
+    (`bg-primary text-white`, 12 sitios) y texto sobre el crema (`text-primary`, 57 usos
+    y mucho de 9-12 px). Un acento cálido y bonito rara vez cumple 4,5:1 en los dos, así
+    que o se oscurece el token —y se nota— o se acepta AA solo para texto grande y el
+    texto pequeño tira de `primary-strong`. La salvia original no cumple en ninguno de
+    los dos (2,61 y 2,44), que es el precio conocido de tener esta paleta.
+  - **`FAMILY_COLOR` (`src/lib/constants.ts`) es el token `sand` copiado a mano**, porque
+    viaja en `style` y no en clases. Cambiar la paleta y olvidarlo no rompe nada: los dos
+    amarillos simplemente dejan de ser el mismo y nadie avisa. Igual que el `themeColor`
+    de `layout.tsx`, el `theme_color` de `public/manifest.json` y `src/app/icon.svg`.
 
 ## Decisiones pendientes
 

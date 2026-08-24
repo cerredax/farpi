@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-05.
+Última revisión: 2026-08-24.
 
 ## Resumen
 
@@ -119,6 +119,35 @@ los triggers cross-family de `tasks` (no se puede asignar una tarea a un hijo ni
 miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
 `docs/supabase-validation.md`.
 
+## Cerrado el 2026-08-24
+
+- **La paleta vuelve a ser la original.** Crema `#FAF7F2`, tinta `#252525`, salvia
+  `#8BA888`, terracota `#D8A48F`, amarillo `#E9C46A` y rojo `#D96C6C`. Se retiran las dos
+  paletas cálidas que se probaron el 21 ("Cocina de casa" y, encima, "Mediterráneo"): es
+  una decisión de producto, no un problema técnico.
+  - `src/app/globals.css` se restauró tal cual estaba antes de la primera —los 46 tokens
+    tienen el mismo nombre en las tres paletas, así que volver es cambiar valores— y con
+    él el `#d4cfc9` del pulgar de la barra de scroll, que se había tokenizado a
+    `line-strong` (no era el mismo color: `line-strong` es `#D8D4CE`).
+  - Los cuatro literales de marca que viven fuera de `globals.css` vuelven también:
+    `themeColor` en `layout.tsx` (`#8BA888`), `FAMILY_COLOR` en `constants.ts`
+    (`#E9C46A`), el par crema/marrón de la tarjeta de calma en `TodayEvents.tsx`
+    (`#F1E6D8` / `#9A6B55`) y, en el `<style>` del login, el fondo del foco (`#fffdf9`),
+    el `rgba` del anillo (el rgb de la salvia) y la sombra de la tarjeta (el del
+    charcoal). `public/manifest.json` y `src/app/icon.svg` no se habían tocado nunca, así
+    que vuelven a cuadrar solos.
+  - **Se queda el aro `ring-ink/15`** de los puntos de color del calendario
+    (`DayCell.tsx`). Llegó con la paleta nueva, pero no es un color: es el borde que hace
+    visible un punto claro sobre un fondo claro, y sobre este crema —que es más claro
+    todavía— hace más falta, no menos. Por lo mismo la marca de descanso no recupera su
+    `border-white`, que sobre crema escondía en vez de separar.
+  - **El contraste empeora, y es sabido.** Con la salvia, `bg-primary text-white` da 2,61
+    y `text-primary` sobre el crema 2,44 (las paletas retiradas estaban en 4,16-5,55).
+    Tampoco cumplen `accent` (2,18 y 2,04), `muted-soft` (2,56) ni, por poco,
+    `primary-strong` (4,48), `sand-strong` (3,69) y `danger-strong` (4,40 sobre
+    `danger-soft`). El punto 6 de "Siguiente paso recomendado" —medir el contraste de la
+    paleta— sigue abierto y ahora tiene más que medir.
+
 ## Cerrado el 2026-08-21
 
 - **Páginas legales: quién responde, y más fáciles de recorrer.** Privacidad decía
@@ -135,7 +164,9 @@ miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
     es un `<p>`, así que la primera `<section>` sigue siendo la primera de su tipo y la
     cuenta sale sin pasar índices.
 
-- **Paleta nueva: "Cocina de casa".** Crema `#F2E6D8`, tinta `#4A3728`, terracota de
+- **Paleta nueva: "Cocina de casa".** *(Revertida el 2026-08-24, junto con
+  "Mediterráneo" que la sustituyó ese mismo día. Se queda escrito por lo que se aprendió
+  midiendo, que está resumido en `architecture.md`.)* Crema `#F2E6D8`, tinta `#4A3728`, terracota de
   marca, oliva de segundo acento y amarillo `#C9A227`. El rojo de peligro se queda.
   Estructura de tokens intacta: solo cambian los valores.
   - **La terracota de marca no pudo ser la pedida.** `#B5651D` no llega a 4,5:1 en

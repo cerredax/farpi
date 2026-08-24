@@ -1,7 +1,7 @@
 import { addDays, eachDayOfInterval, format, getDate, isSameDay, isSameMonth, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
 import type { Child, Event, FamilyMember, Task } from '@/types'
-import { eventCoversDay } from '@/lib/events'
+import { absenceEdges, eventCoversDay, isAbsence } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { DayCell } from './DayCell'
 
@@ -39,13 +39,15 @@ export function WeekStrip({ inicioSemana, selectedDay, events, tasks, kids, memb
   const dias = eachDayOfInterval({ start: inicioSemana, end: addDays(inicioSemana, 6) })
   const hoyStr = getLocalDateString(new Date())
   const cruzaDeMes = !isSameMonth(dias[0], dias[6])
+  const ausencias = events.filter(isAbsence)
 
   return (
-    // Sin hueco entre columnas para que las franjas de vacaciones de dos días
-    // seguidos se lean como un tramo y no como dos marcas sueltas.
+    // Sin hueco entre columnas para que el tinte de dos días de ausencia
+    // seguidos se lea como un tramo y no como dos marcas sueltas.
     <div className="grid grid-cols-7 px-1.5 py-2">
       {dias.map(day => {
         const diaStr = getLocalDateString(day)
+        const delDia = events.filter(e => eventCoversDay(e, day))
         return (
           <DayCell
             key={day.toISOString()}
@@ -58,7 +60,8 @@ export function WeekStrip({ inicioSemana, selectedDay, events, tasks, kids, memb
             // resto de columnas reciben cadena vacía para reservar el hueco y no
             // quedar más bajas que la que lo lleva.
             monthLabel={cruzaDeMes ? (getDate(day) === 1 ? format(day, 'MMM', { locale: es }) : '') : undefined}
-            events={events.filter(e => eventCoversDay(e, day))}
+            ausencia={delDia.some(isAbsence) ? absenceEdges(ausencias, day) : undefined}
+            events={delDia}
             // Lo vencido antes de hoy se arrastra a hoy: su día ya no se pinta
             // y desaparecer no es lo que le pasa a una tarea sin hacer.
             tasks={tasks.filter(t => t.due_date && (t.due_date < hoyStr ? diaStr === hoyStr : t.due_date === diaStr))}

@@ -6,25 +6,23 @@ import {
   addMonths,
   addWeeks,
   endOfMonth,
-  endOfWeek,
   format,
   isSameMonth,
   isWithinInterval,
   parseISO,
   startOfDay,
   startOfMonth,
-  startOfWeek,
   subMonths,
 } from 'date-fns'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
-import { selectEventMatches, selectPendingTasks, selectVisibleVacations } from '@/lib/selectors'
+import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { CalendarHeader, type ModoCalendario } from './CalendarHeader'
 import { WeekStrip } from './WeekStrip'
 import { MonthGrid } from './MonthGrid'
-import { VacationLegend } from './VacationLegend'
+import { Availability } from './Availability'
 import { AgendaList } from './AgendaList'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
@@ -138,19 +136,23 @@ export function CalendarView() {
     if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
   }
 
-  // La leyenda habla del tramo que se está viendo, no de todo el año: en la
-  // agenda, los siete días de la tira; con el mes, las seis filas que se pintan.
+  // El bloque de disponibilidad habla del tramo que se está viendo, no de todo
+  // el año: en la agenda, los siete días de la tira; con el mes, el mes.
+  // El mes es el mes y no sus seis filas: desde que la rejilla no presta días de
+  // julio ni de septiembre, contar sus semanas hacía que el bloque hablara de un
+  // descanso del 3 de septiembre mirando agosto, sin ningún día pintado que lo
+  // respaldara.
   const tramoVisible = mesVisible
     ? {
-        desde: getLocalDateString(startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 })),
-        hasta: getLocalDateString(endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })),
+        desde: getLocalDateString(startOfMonth(currentMonth)),
+        hasta: getLocalDateString(endOfMonth(currentMonth)),
       }
     : {
         desde: getLocalDateString(inicioSemana),
         hasta: getLocalDateString(addDays(inicioSemana, 6)),
       }
 
-  const vacacionesVisibles = selectVisibleVacations(allEvents, tramoVisible.desde, tramoVisible.hasta)
+  const ausenciasVisibles = selectVisibleAbsences(allEvents, tramoVisible.desde, tramoVisible.hasta)
 
   // La agenda solo necesita el tramo que va a listar; la tira y el mes reciben
   // todos los eventos y se quedan con los de cada día, que ya saben hacerlo.
@@ -224,8 +226,8 @@ export function CalendarView() {
                   />
                 </div>
 
-                <VacationLegend
-                  vacaciones={vacacionesVisibles}
+                <Availability
+                  ausencias={ausenciasVisibles}
                   kids={kids}
                   members={members}
                   onEdit={openEdit}

@@ -55,6 +55,37 @@ export function isRestDay(event: Event): boolean {
 }
 
 /**
+ * Vacaciones y descansos juntos: los dos contestan lo mismo —quién no está
+ * disponible— y por eso el calendario los trata igual. No son planes del día, así
+ * que no salen en la lista de la agenda; van en su bloque, donde se dice de quién
+ * son y hasta cuándo.
+ */
+export function isAbsence(event: Event): boolean {
+  return isVacation(event) || isRestDay(event)
+}
+
+/** El mismo día, tantos días más allá o más acá. Trabaja en cadena, como el resto. */
+function shiftDay(dia: string, pasos: number): string {
+  const d = new Date(dia + 'T12:00:00')
+  d.setDate(d.getDate() + pasos)
+  return localDay(d)
+}
+
+/**
+ * Si un día abre o cierra un tramo de ausencias.
+ *
+ * Sirve para pintar el tinte del calendario como un bloque con extremos y no
+ * como celdas sueltas con muescas entre ellas. Mira el día de antes y el de
+ * después sobre **todas** las ausencias y no sobre una: dos vacaciones pegadas se
+ * leen como un tramo seguido, que es lo que son en pantalla.
+ */
+export function absenceEdges(absences: Event[], day: Date | string): { abre: boolean; cierra: boolean } {
+  const dia = typeof day === 'string' ? day.slice(0, 10) : localDay(day)
+  const cubierto = (d: string) => absences.some(event => eventCoversDay(event, d))
+  return { abre: !cubierto(shiftDay(dia, -1)), cierra: !cubierto(shiftDay(dia, 1)) }
+}
+
+/**
  * Devuelve si una persona concreta está de descanso en un día concreto.
  * Sirve para saber si "puedes contar con ella" cuando el calendario marca un
  * descanso, y acepta un miembro adulto o un hijo porque la app usa ambos.

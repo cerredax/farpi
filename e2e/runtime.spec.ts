@@ -208,12 +208,18 @@ test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
   await page.waitForTimeout(600)
 
   // La señal aparece en los siete días del rango, no solo en el primero. Se
-  // cuenta por la etiqueta del día y no por el `title` de la franja: desde el
-  // rediseño la franja es un `span` decorativo y quien dice que ese día hay
-  // vacaciones es el nombre accesible del botón del día, que es además la vía
-  // que funciona con el dedo.
+  // cuenta por la etiqueta del día y no por el tinte, que es decorativo: quien
+  // dice que ese día hay vacaciones es el nombre accesible del botón del día, y
+  // es además la vía que funciona con el dedo. El `aria-pressed` acota a las
+  // celdas del calendario: el bloque de "Vacaciones y descansos" también dice
+  // "de vacaciones", y ahí la ausencia sale una sola vez.
   await verEnMes(page)
-  await expect(page.locator('[aria-label*="de vacaciones"]')).toHaveCount(7)
+  await expect(page.locator('[aria-pressed][aria-label*="de vacaciones"]')).toHaveCount(7)
+
+  // Y en el bloque, una vez y con nombre: siete días no son siete filas.
+  const bloque = page.getByRole('button', { name: /Familia de vacaciones/ })
+  await expect(bloque).toHaveCount(1)
+  await expect(page.getByText('Vacaciones y descansos')).toBeVisible()
 })
 
 // El rango invertido se rechaza antes de guardar.
@@ -485,7 +491,7 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
   await page.waitForTimeout(600)
 
   await verEnMes(page)
-  await expect(page.locator('[aria-label*="de vacaciones"]')).toHaveCount(3)
+  await expect(page.locator('[aria-pressed][aria-label*="de vacaciones"]')).toHaveCount(3)
 })
 
 // Las cuatro franjas de comida están fijas en el código, pero no todas las casas

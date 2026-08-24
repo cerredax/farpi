@@ -236,9 +236,11 @@ día usan ahora `eventCoversDay` (`src/lib/events.ts`), que pregunta si el event
 cubre esa fecha. Las comparaciones se hacen sobre cadenas `yyyy-MM-dd`, no sobre
 `Date`, para no arrastrar líos de zona horaria.
 
-En la rejilla del mes se dibujan como una franja continua bajo el número del día,
-con el color de la persona y los extremos redondeados; no como un punto más,
-porque de unas vacaciones lo que importa es el tramo.
+En la rejilla del mes no se dibujan como un punto más, porque de unas vacaciones lo
+que importa es el tramo: el día lleva un **tinte cálido** (`bg-warm`) que se
+redondea solo en los extremos, así que varios días seguidos se leen como un
+bloque. Ver "El calendario es agenda primero" para la representación completa,
+que comparten con los descansos.
 
 ## Repositorios
 
@@ -448,17 +450,40 @@ columnas reservan ese hueco vacío para no quedar más bajas.
 
 Las dos vistas de navegación (`WeekStrip` y `MonthGrid`) comparten la misma celda,
 `DayCell`, y por eso dicen lo mismo de la misma forma: número, hasta tres puntos con el
-color de quien lleva cada cosa —o el número si son más de tres— y una franja continua
-si hay vacaciones. Lo que la celda **no** hace, y antes sí, es escribir títulos de
+color de quien lleva cada cosa —o el número si son más de tres— y un tinte cálido si
+alguien está fuera. Lo que la celda **no** hace, y antes sí, es escribir títulos de
 eventos, llevar tooltip y ser cuatro botones. Los títulos a 50 px de ancho salían como
 "09:0…"; el tooltip era la única vía de leer el día y no existe con el dedo; y de los
 cuatro botones, la franja de vacaciones (3 px de alto) y el punto de descanso (10×10)
 estaban por debajo del mínimo de toque. Ahora la celda es un botón que selecciona el
 día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 planes,
-1 tarea, de vacaciones") y el color es apoyo y nunca la única información.
+1 tarea, 1 de vacaciones") y el color es apoyo y nunca la única información.
 
-Los descansos se editan desde la agenda, donde ya salían; las vacaciones desde
-`VacationLegend`, que es ahora el único sitio y por eso sus botones llevan `min-h-6`.
+**Vacaciones y descansos son lo mismo para el calendario: quién no está**
+(24-08-2026). Los dos son `isAbsence` y comparten las tres reglas:
+
+- **La celda lleva un tinte, no una franja por persona.** Con dos ausencias a la vez
+  eran dos barras de 3 px bajo el número, compitiendo con los puntos de los eventos,
+  con el círculo del día elegido y con el de hoy. Ahora es **un** tinte cálido, el
+  mismo para uno o para cinco, redondeado solo en los extremos del tramo
+  (`absenceEdges`) para que los días seguidos se toquen sin muescas. La celda dice que
+  ese día hay alguien fuera; cuántos y quién, no.
+- **No salen en la lista de la agenda.** Ocupan días seguidos y se repetían en todos:
+  un descanso de tres días eran tres filas con el mismo texto. Las vacaciones ya
+  estaban fuera; los descansos entraron con ellas.
+- **`Availability` es la fuente**, y sustituye a `VacationLegend`. Una ausencia sale
+  **una vez**, con nombre escrito, icono según la clase (palmera o taza) y su estado en
+  palabras: "de vacaciones hasta el 28 ago" si ya ha empezado, "del 3 al 9 sept" si no,
+  "descansa hoy" o "descansa mañana" si es de un día. Es también el único sitio desde el
+  que se editan, y por eso sus filas llevan `min-h-8`.
+
+El tramo del que habla el bloque es **exactamente** el que se pinta: el mes en modo
+mes —no sus seis filas, desde que la rejilla no presta días de fuera— y los siete días
+de la tira en modo agenda. Contar las seis filas hacía que el bloque anunciara un
+descanso del 3 de septiembre mirando agosto, sin ningún día pintado que lo respaldara.
+
+Ojo con el alcance: esto es la **vista del calendario**. `selectTodayEvents` sigue
+sacando los descansos en Inicio, que es de antes y no se ha tocado.
 
 **Nunca siete columnas en el móvil.** Sigue en pie, y es la razón de que la tira sea
 navegación y no una semana en columnas: a 390 px cada columna son ~50 px, y un bloque

@@ -51,9 +51,13 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
       si son más de tres), tanto en la tira como en el mes.
 - [ ] Se puede seleccionar un día, y su detalle aparece debajo sin cambiar de pestaña.
 - [ ] "Próximos días" enseña solo los días con algo, y tocar su fecha los selecciona.
-- [ ] Un tramo de vacaciones se lee como una franja continua, sin cortes entre días.
-- [ ] Las vacaciones se editan desde su leyenda (el único sitio desde el rediseño).
-- [ ] Un descanso se edita desde la agenda del día.
+- [ ] Un tramo de vacaciones o de descanso se lee como un tinte continuo, sin cortes
+      entre días, y redondeado solo en los extremos.
+- [ ] El bloque "Vacaciones y descansos" dice el nombre de la persona y el estado:
+      «de vacaciones hasta el 28 ago», «descansa hoy», «descansa del 3 al 4 sep».
+- [ ] Una ausencia de varios días sale **una vez** en el bloque, no una por día, y no
+      aparece como fila en la agenda del día.
+- [ ] Vacaciones y descansos se editan desde ese bloque (el único sitio).
 - [ ] Se puede crear evento; el `+` de la cabecera lo crea para el día elegido.
 - [ ] Se puede editar evento.
 - [ ] Se puede borrar evento con doble confirmación.

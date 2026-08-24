@@ -1,5 +1,4 @@
-import { eventColor } from '@/lib/assignees'
-import { isVacation, vacationEdges } from '@/lib/events'
+import { isRestDay, isVacation } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -7,10 +6,10 @@ import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
  * Un día como sitio al que ir, no como resumen de lo que pasa en él.
  *
  * La comparten la tira de siete días y la rejilla del mes, que es lo que las
- * hace consistentes: el mismo número, el mismo punto y la misma franja de
- * vacaciones en los dos sitios. La única diferencia es que la tira pone encima
- * la inicial del día de la semana, porque sus columnas ruedan y no hay una
- * cabecera fija que las nombre.
+ * hace consistentes: el mismo número, el mismo punto y el mismo tinte de
+ * ausencia en los dos sitios. La única diferencia es que la tira pone encima la
+ * inicial del día de la semana, porque sus columnas ruedan y no hay una cabecera
+ * fija que las nombre.
  *
  * Todos los días que llegan aquí son del tramo que se está viendo: desde que la
  * rejilla no presta días de los meses vecinos, no hay ninguno que haya que
@@ -26,8 +25,13 @@ import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
  * - **No es varios botones.** Antes cada celda tenía el día, un `+`, una barra
  *   por vacaciones y un punto por descanso, todos pulsables y varios por debajo
  *   del mínimo de toque de 24×24. Ahora la celda es un solo botón: selecciona el
- *   día. Los descansos se editan desde la agenda, donde ya salían, y las
- *   vacaciones desde su leyenda.
+ *   día.
+ * - **No pinta una franja por persona ausente** (24-08-2026). Con dos vacaciones
+ *   a la vez eran dos barras de 3 px bajo el número, compitiendo con los puntos
+ *   de los eventos, con el círculo del día elegido y con el de hoy. Ahora es
+ *   **un** tinte cálido sobre la celda, el mismo para uno o para cinco: dice que
+ *   ese día hay alguien fuera y nada más. Quién y hasta cuándo lo dice el bloque
+ *   de "Vacaciones y descansos", que es donde caben los nombres.
  */
 
 interface DayCellProps {
@@ -45,45 +49,19 @@ interface DayCellProps {
    * tira siguen alineadas cuando solo una lo lleva.
    */
   monthLabel?: string
+  /**
+   * Presente cuando ese día hay alguien de vacaciones o de descanso. `abre` y
+   * `cierra` dicen si el día es un extremo del tramo, para redondear solo ahí y
+   * que varios días seguidos se lean como un bloque y no como celdas con
+   * muescas. Lo calcula la rejilla, que es quien conoce los días vecinos.
+   */
+  ausencia?: { abre: boolean; cierra: boolean }
   events: Event[]
   /** Tareas que vencen este día, ya arrastradas a hoy si venían atrasadas. */
   tasks: Task[]
   kids: Child[]
   members: FamilyMember[]
   onSelect: (day: Date) => void
-}
-
-/**
- * Las vacaciones bajo el número: una franja fina por persona, con los extremos
- * redondeados para que el tramo se lea seguido a lo largo de la semana.
- *
- * Es señal y no control: un `span` y no un botón. Como barra de 3 px nunca podría
- * llegar al mínimo de toque, y estirarla con relleno invisible metía un objetivo
- * táctil grande donde el dedo espera seleccionar el día. Se editan desde
- * `VacationLegend`, que dice de quién son y desde cuándo.
- */
-function VacationBands({ vacaciones, day, kids, members }: {
-  vacaciones: Event[]
-  day: Date
-  kids: Child[]
-  members: FamilyMember[]
-}) {
-  if (vacaciones.length === 0) return <span className="block h-[3px]" aria-hidden />
-
-  return (
-    <span className="flex w-full flex-col gap-[2px]" aria-hidden>
-      {vacaciones.slice(0, 2).map(v => {
-        const { primero, ultimo } = vacationEdges(v, day)
-        return (
-          <span
-            key={v.id}
-            className={`h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`}
-            style={{ backgroundColor: eventColor(v, members, kids) }}
-          />
-        )
-      })}
-    </span>
-  )
 }
 
 export function DayCell({
@@ -93,13 +71,13 @@ export function DayCell({
   isSelected,
   weekdayLabel,
   monthLabel,
+  ausencia,
   events,
   tasks,
   kids,
   members,
   onSelect,
 }: DayCellProps) {
-  const vacaciones = events.filter(isVacation)
   const marcas = marcasDelDia(events, tasks, members, kids)
 
   const numberClass = (() => {
@@ -108,11 +86,19 @@ export function DayCell({
     return 'text-ink'
   })()
 
+  // El tinte no se redondea por su cuenta: solo en los extremos del tramo, y a
+  // escuadra por dentro. Es lo que hace que dos días seguidos se toquen sin
+  // muesca y el tramo se lea como un bloque.
+  const tinte = ausencia
+    ? `bg-warm ${ausencia.abre ? 'rounded-l-xl' : ''} ${ausencia.cierra ? 'rounded-r-xl' : ''}`
+    : 'rounded-xl'
+
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
   const resumen = resumenDelDia({
-    planes: events.filter(e => !isVacation(e)).length,
+    planes: events.filter(e => !isVacation(e) && !isRestDay(e)).length,
     tareas: tasks.length,
-    vacaciones: vacaciones.length > 0,
+    vacaciones: events.filter(isVacation).length,
+    descansos: events.filter(isRestDay).length,
   })
 
   return (
@@ -121,12 +107,14 @@ export function DayCell({
       onClick={() => onSelect(day)}
       aria-pressed={isSelected}
       // El día y lo que tiene, en palabras: es lo que sustituye al tooltip que
-      // llevaba la celda, y funciona con el dedo y con lector de pantalla.
+      // llevaba la celda, y funciona con el dedo y con lector de pantalla. Es
+      // también donde se dice cuántas personas están fuera, que el tinte no
+      // distingue de una a cinco.
       aria-label={`${fecha}, ${resumen}`}
-      // Sin relleno lateral: es lo que deja que la franja de vacaciones de dos
-      // días seguidos se toque y se lea como un tramo. El número es un círculo
-      // de 32 px centrado en una columna de ~52, así que no roza con el vecino.
-      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      // Sin relleno lateral: es lo que deja que el tinte de dos días seguidos se
+      // toque y se lea como un tramo. El número es un círculo de 32 px centrado
+      // en una columna de ~52, así que no roza con el vecino.
+      className={`flex w-full flex-col items-center gap-0.5 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${tinte} ${
         isSelected ? '' : 'hover:bg-canvas'
       }`}
     >
@@ -146,7 +134,6 @@ export function DayCell({
         </span>
       )}
       <DayActivity marcas={marcas} />
-      <VacationBands vacaciones={vacaciones} day={day} kids={kids} members={members} />
     </button>
   )
 }

@@ -1,5 +1,5 @@
 import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
-import { eventCoversDay, isVacation } from './events'
+import { eventCoversDay, isAbsence, isVacation } from './events'
 import { DIAS_AVISO_CADUCIDAD, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
 import type { Document, Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
@@ -232,18 +232,23 @@ export function selectPendingTextsByList(items: ListItem[]): Map<string, string[
 }
 
 /**
- * Las vacaciones que asoman en el tramo que se está mirando, ordenadas por
- * fecha de inicio. Sirven para la leyenda del calendario: la franja de color
- * dice que hay alguien de vacaciones, pero no de quién, y el color solo habla
- * si te lo sabes.
+ * Las **ausencias** —vacaciones y descansos— que asoman en el tramo que se está
+ * mirando, ordenadas por fecha de inicio. Alimentan el bloque "Vacaciones y
+ * descansos" del calendario, que es donde se dice de quién son y hasta cuándo:
+ * el tinte del día avisa de que hay alguien fuera, pero no de quién.
+ *
+ * Antes solo devolvía vacaciones (`selectVisibleVacations`) y los descansos no
+ * tenían bloque: acababan como una fila más de la agenda, repetida en cada día
+ * de su rango. Las dos cosas contestan lo mismo —quién no está disponible—, así
+ * que van juntas.
  *
  * Solapan si empiezan antes de que acabe el tramo y acaban después de que
  * empiece: unas vacaciones de agosto entero salen también mirando la semana
  * del 10, aunque ni empiecen ni acaben en ella.
  */
-export function selectVisibleVacations(events: Event[], desde: string, hasta: string): Event[] {
+export function selectVisibleAbsences(events: Event[], desde: string, hasta: string): Event[] {
   return events
-    .filter(isVacation)
+    .filter(isAbsence)
     .filter(v => {
       const inicio = extractDate(v.start_at)
       const fin = v.end_at ? extractDate(v.end_at) : inicio

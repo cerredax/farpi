@@ -10,7 +10,7 @@ import {
   selectPendingTextsByList,
   selectSortedLists,
   selectTodayTasks,
-  selectVisibleVacations,
+  selectVisibleAbsences,
   selectSortedMeals,
   selectSuggestions,
   selectTaskGroups,
@@ -419,12 +419,14 @@ test.describe('selectListItemGroups', () => {
   })
 })
 
-test.describe('selectVisibleVacations', () => {
+test.describe('selectVisibleAbsences', () => {
   const vac = (title: string, desde: string, hasta: string) =>
     event({ title, kind: 'vacaciones', all_day: true, start_at: `${desde}T00:00:00`, end_at: `${hasta}T00:00:00` })
+  const descanso = (title: string, desde: string, hasta: string) =>
+    event({ title, kind: 'descanso', all_day: true, start_at: `${desde}T00:00:00`, end_at: `${hasta}T00:00:00` })
 
-  test('solo las vacaciones, no los eventos normales', () => {
-    const r = selectVisibleVacations(
+  test('solo las ausencias, no los eventos normales', () => {
+    const r = selectVisibleAbsences(
       [vac('playa', '2026-08-01', '2026-08-15'), event({ title: 'dentista', start_at: '2026-08-05T10:00:00' })],
       '2026-08-03', '2026-08-09',
     )
@@ -433,26 +435,42 @@ test.describe('selectVisibleVacations', () => {
 
   test('cuenta las que atraviesan el tramo sin empezar ni acabar en él', () => {
     // Agosto entero, mirando la semana del 10: ni empieza ni acaba ahí.
-    const r = selectVisibleVacations([vac('agosto', '2026-08-01', '2026-08-31')], '2026-08-10', '2026-08-16')
+    const r = selectVisibleAbsences([vac('agosto', '2026-08-01', '2026-08-31')], '2026-08-10', '2026-08-16')
     expect(r).toHaveLength(1)
   })
 
   test('fuera del tramo no salen', () => {
-    const r = selectVisibleVacations([vac('julio', '2026-07-01', '2026-07-20')], '2026-08-03', '2026-08-09')
+    const r = selectVisibleAbsences([vac('julio', '2026-07-01', '2026-07-20')], '2026-08-03', '2026-08-09')
     expect(r).toHaveLength(0)
   })
 
   test('los extremos cuentan: acabar el primer día del tramo ya solapa', () => {
-    const r = selectVisibleVacations([vac('justo', '2026-07-25', '2026-08-03')], '2026-08-03', '2026-08-09')
+    const r = selectVisibleAbsences([vac('justo', '2026-07-25', '2026-08-03')], '2026-08-03', '2026-08-09')
     expect(r).toHaveLength(1)
   })
 
   test('ordenadas por fecha de inicio', () => {
-    const r = selectVisibleVacations(
+    const r = selectVisibleAbsences(
       [vac('segunda', '2026-08-05', '2026-08-08'), vac('primera', '2026-08-01', '2026-08-04')],
       '2026-08-01', '2026-08-09',
     )
     expect(r.map(v => v.title)).toEqual(['primera', 'segunda'])
+  })
+
+  // Los descansos entraron aquí con el bloque de disponibilidad: antes solo
+  // devolvía vacaciones y un descanso acababa como una fila más de la agenda,
+  // repetida en cada día de su rango.
+  test('los descansos cuentan como ausencia, y se ordenan con las vacaciones', () => {
+    const r = selectVisibleAbsences(
+      [vac('playa', '2026-08-05', '2026-08-08'), descanso('libra Omar', '2026-08-03', '2026-08-03')],
+      '2026-08-01', '2026-08-09',
+    )
+    expect(r.map(v => v.title)).toEqual(['libra Omar', 'playa'])
+  })
+
+  test('un descanso de un solo día también solapa el tramo', () => {
+    const r = selectVisibleAbsences([descanso('libra', '2026-08-05', '2026-08-05')], '2026-08-03', '2026-08-09')
+    expect(r).toHaveLength(1)
   })
 })
 

@@ -1,6 +1,6 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
-import { isVacation } from '@/lib/events'
+import { isAbsence } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 
 /**
@@ -20,9 +20,10 @@ const MAX_MARCAS = 3
  * Los colores de lo que ocupa un día: primero los eventos y después las tareas
  * que vencen ese día.
  *
- * Las vacaciones se quedan fuera a propósito. Tienen su propia señal —la franja
- * continua bajo el día— porque ocupan muchos días seguidos, y contarlas como un
- * punto más pintaría la misma cosa dos veces en cada día del tramo.
+ * Las **ausencias** —vacaciones y descansos— se quedan fuera a propósito. No son
+ * planes: son quién no está, y eso lo dice el tinte del día y, con nombres, el
+ * bloque de "Vacaciones y descansos". Contarlas también como punto pintaría la
+ * misma cosa dos veces, y en un tramo de una semana, siete veces.
  */
 export function marcasDelDia(
   events: Event[],
@@ -31,7 +32,7 @@ export function marcasDelDia(
   kids: Child[],
 ): string[] {
   return [
-    ...events.filter(e => !isVacation(e)).map(e => eventColor(e, members, kids)),
+    ...events.filter(e => !isAbsence(e)).map(e => eventColor(e, members, kids)),
     // Una tarea no tiene color propio en la base, así que se pinta con el de
     // quien la lleva y, si no es de nadie, con el de la familia. Es la misma
     // cadena que `eventColor` aplica a los eventos.
@@ -45,15 +46,21 @@ export function marcasDelDia(
  * Separa planes de tareas en vez de sumarlos: "2 planes, 1 tarea" dice más que
  * "3 cosas", y son dos clases distintas —una pasa, la otra se hace—.
  */
-export function resumenDelDia({ planes, tareas, vacaciones }: {
+export function resumenDelDia({ planes, tareas, vacaciones, descansos }: {
   planes: number
   tareas: number
-  vacaciones: boolean
+  /** Cuántas personas están de vacaciones ese día. */
+  vacaciones: number
+  /** Cuántas descansan ese día. */
+  descansos: number
 }): string {
   const partes: string[] = []
   if (planes > 0) partes.push(`${planes} plan${planes === 1 ? '' : 'es'}`)
   if (tareas > 0) partes.push(`${tareas} tarea${tareas === 1 ? '' : 's'}`)
-  if (vacaciones) partes.push('de vacaciones')
+  // Las ausencias se dicen con número: el tinte avisa de que hay alguien fuera,
+  // pero no de cuántos, y el color de la celda ya no es de nadie en concreto.
+  if (vacaciones > 0) partes.push(`${vacaciones} de vacaciones`)
+  if (descansos > 0) partes.push(`${descansos} descansando`)
   return partes.length > 0 ? partes.join(', ') : 'sin planes'
 }
 

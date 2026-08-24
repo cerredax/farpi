@@ -76,8 +76,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
-  - 73 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 196 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
+  - 74 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -122,6 +122,27 @@ franja inventada como quedarse sin ninguna. Antes de eso, el 06-08-2026, la pasa
 perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
+
+- **Vacaciones y descansos: la rejilla orienta, el bloque explica.** Los dos pasan a ser
+  lo mismo para el calendario (`isAbsence`): quién no está.
+  - **La celda lleva un tinte cálido en vez de una franja por persona.** Con dos
+    ausencias a la vez eran dos barras de 3 px bajo el número, compitiendo con los
+    puntos de los eventos, con el círculo del día elegido y con el de hoy. Ahora es uno,
+    el mismo para uno o para cinco, redondeado solo en los extremos del tramo
+    (`absenceEdges`, con seis tests) para que los días seguidos se toquen sin muescas.
+  - **`Availability` sustituye a `VacationLegend`** y es la fuente: nombre escrito,
+    icono según la clase y el estado en palabras —«de vacaciones hasta el 28 ago» si ya
+    ha empezado, «del 3 al 9 sept» si no, «descansa hoy» o «descansa mañana» si es de un
+    día—. Una ausencia sale **una vez** por larga que sea.
+  - **Los descansos salen de la lista de la agenda**, donde antes se repetían: uno de
+    tres días eran tres filas con el mismo texto. Y dejan de contar como punto de
+    actividad en la celda, que era pintar la misma cosa dos veces.
+  - `selectVisibleVacations` pasa a `selectVisibleAbsences`, y el tramo del que habla el
+    bloque es ahora **el mes** y no sus seis filas: contar las semanas hacía que
+    anunciara un descanso del 3 de septiembre mirando agosto, sin ningún día pintado
+    detrás.
+  - Ojo con el alcance: esto es la vista del calendario. `selectTodayEvents` sigue
+    sacando los descansos en Inicio, que es de antes y no se ha tocado.
 
 - **En una lista se ve de un golpe qué falta y qué es catálogo.** Los dos grupos pasan a
   tener título propio: «Hace falta ahora», con la cuenta al lado, y «Lo de siempre», con

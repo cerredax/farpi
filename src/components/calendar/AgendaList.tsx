@@ -19,7 +19,7 @@ import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
-import { eventCoversDay, isVacation } from '@/lib/events'
+import { eventCoversDay, isAbsence } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 import { DayTasks } from './DayTasks'
 
@@ -139,10 +139,12 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
   const rangeStart = startOfDay(selectedDay)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
-  // Las vacaciones se quedan fuera de la lista: ocupan muchos días seguidos y
-  // se repetirían en todos ellos. Su sitio es la franja bajo el día, que enseña
-  // el tramo de un vistazo, y su leyenda, desde donde se editan.
-  const conFecha = events.filter(event => !isVacation(event))
+  // Las ausencias —vacaciones y descansos— se quedan fuera de la lista: ocupan
+  // días seguidos y se repetirían en todos ellos. Un descanso de tres días salía
+  // tres veces, con el mismo texto. Su sitio es el tinte del día, que enseña el
+  // tramo de un vistazo, y el bloque de "Vacaciones y descansos", que dice de
+  // quién es y hasta cuándo, una vez.
+  const conFecha = events.filter(event => !isAbsence(event))
 
   const hoyStr = getLocalDateString(new Date())
 

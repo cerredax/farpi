@@ -4,7 +4,7 @@
 //  - Estáticos (_next/static, iconos): stale-while-revalidate.
 //  - API, /auth y peticiones cross-origin (Supabase): siempre red.
 
-const CACHE = 'nido-v1'
+const CACHE = 'nido-v2'
 const OFFLINE_URL = '/offline'
 const PRECACHE = ['/offline', '/manifest.json', '/icon-192.png', '/icon-512.png']
 

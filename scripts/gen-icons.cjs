@@ -8,26 +8,24 @@ const ROOT = path.resolve(__dirname, '..')
 const PUBLIC = path.join(ROOT, 'public')
 const APP = path.join(ROOT, 'src', 'app')
 
-// Icono base (mismo trazo que src/app/icon.svg), con la tarjeta crema.
+// Icono base: casa clara sobre verde salvia, con abrazo/familia abstracta.
 const anySvg = `<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="5" y="5" width="54" height="54" rx="16" fill="#FAF7F2"/>
-  <rect x="5" y="5" width="54" height="54" rx="16" stroke="#8BA888" stroke-width="3"/>
-  <path d="M18 28.5L32 17L46 28.5" stroke="#D8A48F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M22 29V42.5C22 45 24 47 26.5 47H37.5C40 47 42 45 42 42.5V29" stroke="#5C7A59" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M27 39L31 43L38.5 35.5" stroke="#8BA888" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M28 29H36" stroke="#E9C46A" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="5" y="5" width="54" height="54" rx="16" fill="#8BA888"/>
+  <path d="M14.3 30.9C13.4 30.1 13.3 28.7 14.1 27.8L29 15.4C30.7 14 33.3 14 35 15.4L49.9 27.8C50.8 28.7 50.7 30.1 49.7 30.9C48.9 31.7 47.6 31.7 46.7 31L45.5 30V44.2C45.5 47.4 42.9 50 39.7 50H24.3C21.1 50 18.5 47.4 18.5 44.2V30L17.3 31C16.4 31.7 15.1 31.7 14.3 30.9Z" fill="#FAF7F2"/>
+  <circle cx="28.2" cy="31.2" r="4.2" fill="#5C7A59"/>
+  <path d="M20.8 44.2C20.8 38 24.8 34 29.4 34C33.5 34 36.5 37 37.2 41.1C34.3 42.4 31.8 45 30.6 48C25.2 47.6 20.8 46 20.8 44.2Z" fill="#5C7A59"/>
+  <circle cx="39.5" cy="34.6" r="3.6" fill="#E9C46A"/>
+  <path d="M32.7 47.4C34 42.9 37.9 39.6 42 39.6C45.2 39.6 47.2 42 47.2 44.8C47.2 46.6 43.7 48.4 39.1 48.7C36.7 48.9 34.5 48.5 32.7 47.4Z" fill="#E9C46A"/>
 </svg>`
 
-// Maskable: fondo a sangre (sin esquinas redondeadas) y la casa dentro de la
-// zona segura (~60%) para que sobreviva al recorte circular del sistema.
-const maskableSvg = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" fill="#FAF7F2"/>
-  <g transform="translate(96,96) scale(5)">
-    <path d="M18 28.5L32 17L46 28.5" stroke="#D8A48F" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M22 29V42.5C22 45 24 47 26.5 47H37.5C40 47 42 45 42 42.5V29" stroke="#5C7A59" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M27 39L31 43L38.5 35.5" stroke="#8BA888" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M28 29H36" stroke="#E9C46A" stroke-width="2.5" stroke-linecap="round"/>
-  </g>
+// Maskable: fondo a sangre para que sobreviva al recorte circular del sistema.
+const maskableSvg = `<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" fill="#8BA888"/>
+  <path d="M14.3 30.9C13.4 30.1 13.3 28.7 14.1 27.8L29 15.4C30.7 14 33.3 14 35 15.4L49.9 27.8C50.8 28.7 50.7 30.1 49.7 30.9C48.9 31.7 47.6 31.7 46.7 31L45.5 30V44.2C45.5 47.4 42.9 50 39.7 50H24.3C21.1 50 18.5 47.4 18.5 44.2V30L17.3 31C16.4 31.7 15.1 31.7 14.3 30.9Z" fill="#FAF7F2"/>
+  <circle cx="28.2" cy="31.2" r="4.2" fill="#5C7A59"/>
+  <path d="M20.8 44.2C20.8 38 24.8 34 29.4 34C33.5 34 36.5 37 37.2 41.1C34.3 42.4 31.8 45 30.6 48C25.2 47.6 20.8 46 20.8 44.2Z" fill="#5C7A59"/>
+  <circle cx="39.5" cy="34.6" r="3.6" fill="#E9C46A"/>
+  <path d="M32.7 47.4C34 42.9 37.9 39.6 42 39.6C45.2 39.6 47.2 42 47.2 44.8C47.2 46.6 43.7 48.4 39.1 48.7C36.7 48.9 34.5 48.5 32.7 47.4Z" fill="#E9C46A"/>
 </svg>`
 
 async function render(svg, size, outPath) {

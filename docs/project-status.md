@@ -123,6 +123,17 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **Icono nuevo de la app.** Pasa de una casa de trazo sobre la tarjeta crema a una
+  casa clara maciza sobre el salvia de marca, con dos figuras abstractas dentro (verde
+  oscuro y amarillo de familia). Cambian `src/app/icon.svg`, `scripts/gen-icons.cjs` y
+  los cinco PNG generados. El `theme_color` del manifest y el `themeColor` de
+  `layout.tsx` ya eran ese salvia, así que no hacía falta tocarlos.
+  - `CACHE` sube a `nido-v2` en `public/sw.js`. `icon-192.png` e `icon-512.png` están en
+    `PRECACHE`: al cambiar su contenido sin subir la versión, un móvil con la app ya
+    instalada seguiría sirviendo el icono viejo hasta que la revalidación en segundo
+    plano lo pillase.
+  - El **porqué** del diseño no está escrito aquí: la decisión no salió de esta sesión.
+
 - **El calendario se rediseña: agenda primero, mes como mapa.** En móvil abre en
   `Agenda` —una tira de siete días para navegar y, debajo, lo que pasa el día elegido
   con su hora y de quién es— y detrás los próximos días con algo. `Mes` es la otra

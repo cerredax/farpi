@@ -414,6 +414,13 @@ otra pestaña del selector y sirve para lo que sirve un mapa: ver dónde hay alg
 allí. En escritorio no hay pestañas —el mes a la izquierda, la agenda a la derecha—
 porque caben las dos cosas.
 
+Lo que viene después del día elegido va **agrupado por tramos**: "Esta semana", "La
+semana que viene" y después uno por mes. Los tramos se miden desde el día elegido, no
+desde hoy, porque el panel entero arranca ahí, y solo se pinta el que tiene algo. Sin
+ellos la lista era plana de aquí a 45 días: el jueves que viene y un cumpleaños de
+octubre se leían igual, y el chip de la fila da el día y el día de la semana pero no el
+mes.
+
 **La rejilla del mes es de un solo mes.** Se sigue dibujando por semanas completas
 —si no, las columnas dejarían de ser días de la semana— pero los huecos de las puntas
 van en blanco en vez de prestar días de los meses vecinos. Antes agosto pintaba once

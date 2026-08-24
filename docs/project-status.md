@@ -177,6 +177,15 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     lleva el mes en pequeño bajo el número; las otras seis columnas reservan el hueco
     vacío para no quedar más bajas. Va en `aria-hidden`, porque la etiqueta del botón ya
     trae la fecha entera.
+  - **"Próximos días" va agrupado por tramos**: "Esta semana", "La semana que viene" y
+    después uno por mes. Cerca se piensa en semanas y lejos en meses, que es como se
+    habla en casa. La lista era plana de aquí a 45 días y el jueves que viene se leía
+    igual que un cumpleaños de octubre; el chip de la fila dice "19 VIE" y no el mes, así
+    que ni eso los separaba. Los tramos van respecto al día elegido y no respecto a hoy,
+    porque el panel entero arranca ahí, y solo se pintan los que tienen algo dentro. El
+    bloque pierde su título visible y gana `aria-label="Próximos días"`, que es lo que
+    lo nombra para el lector de pantalla y el asidero de los tests: buscar "Esta semana"
+    los habría roto los domingos, cuando ese tramo está vacío.
   - **`movil.spec.ts` gana un test para el modo Mes.** El bucle recorre cada ruta como
     se abre, y el calendario abre en agenda: la rejilla del mes —42 celdas en 390 px, lo
     más denso de la app— no llegaba a pintarse nunca.

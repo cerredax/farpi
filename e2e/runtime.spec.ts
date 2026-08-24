@@ -36,9 +36,14 @@ function seccionDeHoy(page: Page): Locator {
   return page.locator('section').filter({ has: page.getByRole('heading', { name: /^Hoy,/ }) })
 }
 
-/** El bloque de lo que viene después del día elegido. */
+/**
+ * El bloque de lo que viene después del día elegido. Se localiza por su nombre
+ * accesible y no por un título visible: dentro va agrupado en tramos ("Esta
+ * semana", "La semana que viene", los meses), y buscar uno concreto haría que el
+ * test dependiera del día de la semana en que se ejecuta.
+ */
 function seccionProximos(page: Page): Locator {
-  return page.locator('section').filter({ has: page.getByRole('heading', { name: 'Próximos días' }) })
+  return page.getByRole('region', { name: 'Próximos días' })
 }
 
 const ROUTES = [

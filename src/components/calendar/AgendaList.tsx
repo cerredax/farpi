@@ -2,8 +2,10 @@
 
 import {
   addDays,
+  addWeeks,
   compareAsc,
   eachDayOfInterval,
+  endOfWeek,
   format,
   isToday,
   isTomorrow,
@@ -79,6 +81,25 @@ function etiquetaDia(day: Date): string {
 }
 
 /**
+ * En qué tramo cae un día de lo que viene. Cerca se piensa en semanas y lejos en
+ * meses, que es como se habla en casa: "esta semana", "la que viene", "en
+ * septiembre". Sin tramos, la lista era plana de aquí a 45 días y el jueves que
+ * viene se leía igual que un cumpleaños de octubre.
+ *
+ * Van respecto al día elegido y no respecto a hoy, porque el panel entero
+ * arranca ahí: mirando el 17 de septiembre, "esta semana" es la suya.
+ */
+function tramoDelDia(day: Date, desde: Date): string {
+  if (day <= endOfWeek(desde, { weekStartsOn: 1 })) return 'Esta semana'
+  if (day <= endOfWeek(addWeeks(desde, 1), { weekStartsOn: 1 })) return 'La semana que viene'
+  // El año solo cuando no es el del día elegido. En 45 días eso solo pasa al
+  // cruzar de diciembre a enero, y ahí "Enero" a secas se leería como el enero
+  // que ya pasó.
+  const mismoAno = day.getFullYear() === desde.getFullYear()
+  return capitalize(format(day, mismoAno ? 'MMMM' : 'MMMM yyyy', { locale: es }))
+}
+
+/**
  * Un evento en una línea: color, hora, título y de quién es. El color va como
  * punto y no como barra lateral porque ya no hay tarjeta que bordear. El
  * nombre se queda —aunque el color ya lo diga— porque el color solo habla si
@@ -144,6 +165,17 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
   const proximos = dayGroups
     .slice(1)
     .filter(group => group.events.length > 0 || group.tasks.length > 0)
+
+  // Los días ya vienen en orden, y los tramos también van de cerca a lejos, así
+  // que agrupar es acumular seguido: en cuanto cambia el rótulo, empieza tramo
+  // nuevo. No hace falta un mapa ni reordenar nada.
+  const tramos: { titulo: string; dias: typeof proximos }[] = []
+  for (const grupo of proximos) {
+    const titulo = tramoDelDia(grupo.day, rangeStart)
+    const ultimo = tramos[tramos.length - 1]
+    if (ultimo && ultimo.titulo === titulo) ultimo.dias.push(grupo)
+    else tramos.push({ titulo, dias: [grupo] })
+  }
 
   const diaVacio = delDia.events.length === 0 && delDia.tasks.length === 0
   const todoVacio = diaVacio && proximos.length === 0
@@ -236,64 +268,72 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
             </div>
           </section>
 
-          {proximos.length > 0 && (
-            <section className="space-y-2">
-              <h2 className={ROTULO}>Próximos días</h2>
-              {/* Una fila por día dentro de una sola tarjeta: fecha a la
-                  izquierda y lo que hay a la derecha. Una tarjeta por día decía
-                  la fecha dos veces y gastaba una línea en contar los eventos
-                  que ya se veían debajo. */}
-              <div className={TARJETA}>
-                <ul className="divide-y divide-hairline">
-                  {proximos.map(group => {
-                    const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
+          {/* El `aria-label` nombra el bloque entero, que ya no tiene un título
+              visible propio: los rótulos son los de cada tramo. Sirve al lector
+              de pantalla y es el asidero estable de los tests, que si no
+              tendrían que buscar "Esta semana" y romperse los domingos. */}
+          {tramos.length > 0 && (
+            <section aria-label="Próximos días" className="space-y-4">
+              {tramos.map(tramo => (
+                <div key={tramo.titulo} className="space-y-2">
+                  <h2 className={ROTULO}>{tramo.titulo}</h2>
+                  {/* Una fila por día dentro de una sola tarjeta: fecha a la
+                      izquierda y lo que hay a la derecha. Una tarjeta por día
+                      decía la fecha dos veces y gastaba una línea en contar los
+                      eventos que ya se veían debajo. */}
+                  <div className={TARJETA}>
+                    <ul className="divide-y divide-hairline">
+                      {tramo.dias.map(group => {
+                        const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
 
-                    return (
-                      <li
-                        key={group.day.toISOString()}
-                        className="flex items-start gap-2 px-2 py-2"
-                      >
-                        <button
-                          onClick={() => onSelectDay(group.day)}
-                          aria-label={`Ver ${dayLabel}`}
-                          className="flex w-11 flex-shrink-0 flex-col items-center rounded-xl py-1 text-ink transition-colors hover:bg-canvas"
-                        >
-                          <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
-                          <span className="mt-0.5 text-[9px] font-bold uppercase leading-none text-muted">
-                            {format(group.day, 'EEE', { locale: es })}
-                          </span>
-                        </button>
+                        return (
+                          <li
+                            key={group.day.toISOString()}
+                            className="flex items-start gap-2 px-2 py-2"
+                          >
+                            <button
+                              onClick={() => onSelectDay(group.day)}
+                              aria-label={`Ver ${dayLabel}`}
+                              className="flex w-11 flex-shrink-0 flex-col items-center rounded-xl py-1 text-ink transition-colors hover:bg-canvas"
+                            >
+                              <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
+                              <span className="mt-0.5 text-[9px] font-bold uppercase leading-none text-muted">
+                                {format(group.day, 'EEE', { locale: es })}
+                              </span>
+                            </button>
 
-                        <div className="min-w-0 flex-1 self-center">
-                          {group.events.map(event => (
-                            <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                          ))}
-                          {onToggleTask && (
-                            <DayTasks
-                              tasks={group.tasks}
-                              kids={kids}
-                              members={members}
-                              hoy={hoyStr}
-                              onToggle={onToggleTask}
-                            />
-                          )}
-                        </div>
+                            <div className="min-w-0 flex-1 self-center">
+                              {group.events.map(event => (
+                                <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
+                              ))}
+                              {onToggleTask && (
+                                <DayTasks
+                                  tasks={group.tasks}
+                                  kids={kids}
+                                  members={members}
+                                  hoy={hoyStr}
+                                  onToggle={onToggleTask}
+                                />
+                              )}
+                            </div>
 
-                        <button
-                          onClick={() => onAdd(group.day)}
-                          aria-label={`Añadir evento el ${dayLabel}`}
-                          // Arriba y no centrado: en un día con seis tareas,
-                          // centrado quedaba flotando a media fila, lejos de su
-                          // fecha.
-                          className="flex h-7 w-7 flex-shrink-0 self-start items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
-                        >
-                          <Plus size={14} strokeWidth={2.5} />
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
+                            <button
+                              onClick={() => onAdd(group.day)}
+                              aria-label={`Añadir evento el ${dayLabel}`}
+                              // Arriba y no centrado: en un día con seis tareas,
+                              // centrado quedaba flotando a media fila, lejos de su
+                              // fecha.
+                              className="flex h-7 w-7 flex-shrink-0 self-start items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
+                            >
+                              <Plus size={14} strokeWidth={2.5} />
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              ))}
             </section>
           )}
         </>

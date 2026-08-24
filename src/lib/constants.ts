@@ -24,55 +24,60 @@ export const FAMILY_COLOR = '#E9C46A'
 
 /**
  * Colores de las personas de la familia, agrupados por a quién representan:
- * tres para hombres adultos, tres para mujeres adultas, dos para niñas y dos
- * para niños. El nombre no es decorativo: es la etiqueta accesible de cada
- * botón del selector, que antes leía el hexadecimal.
+ * cinco para hombres adultos, tres para mujeres adultas, tres para niñas y tres
+ * para niños. Catorce en total. El nombre no es decorativo: es la etiqueta
+ * accesible de cada botón del selector, que antes leía el hexadecimal.
  *
- * Todos son cálidos, y eso es el criterio principal. La versión anterior estaba
- * elegida para aguantar el daltonismo, y ese criterio obligaba a repartir los
- * tonos por todo el círculo: salían azules, verdes fríos y violetas, y una app
- * de casa no se ve como una casa con esa paleta. Se cambió a propósito, sabiendo
- * lo que cuesta.
+ * **La separación entre grupos es la claridad, no el tono.** Los adultos caen en
+ * L* 30-46 y los niños en L* 71-88, y la franja L* 52-62 se esquiva a propósito:
+ * ahí ni el blanco ni la tinta llegan a 4,5:1 encima del color, así que no cabe
+ * un grupo entero. Con esta paleta los ocho adultos llevan blanco encima (el
+ * peor, 5,25:1) y los seis de niño llevan tinta (el peor, 6,92:1), que es lo que
+ * elige `textColorOn` en `assignees.ts`.
  *
- * Lo que cuesta, medido: la peor pareja pasa de ΔE 18,4 a **12,3** (rosa chicle
- * y lila, las dos de niña), y con daltonismo rojo-verde baja a 3,6. Sigue siendo
- * más del doble que los doce pasteles de antes, que estaban en 5,3 con el umbral
- * de "se nota la diferencia" en 2, pero ya no hay garantía para quien no
- * distingue el rojo del verde.
+ * **Azul y Verde bosque rompen el resto a propósito.** Los doce restantes son
+ * cálidos —tierras, rosas y ocres, que es como se ve una casa— pero con solo
+ * tonos cálidos faltaba una expectativa de color que la gente da por hecha: quien
+ * quiere "el azul" no lo encontraba. Los dos entran en el grupo de hombres, que
+ * era el que menos variedad reconocible tenía, y respetan la banda de claridad de
+ * los adultos, así que no cuestan contraste.
  *
- * Por qué se apiñan las de niña: cinco de los diez tienen que leerse como
- * femeninos, o sea que caen en la misma banda de rosas. La separación sale
- * entonces de la claridad, no del tono, y por eso las mujeres van en L* 64-70 y
- * las niñas en 78-84.
- *
- * Y las franjas de claridad esquivan L* 52-62 a propósito: ahí ni el blanco ni
- * la tinta llegan a 4,5:1 encima del color, así que no cabe un grupo entero. Con
- * estos diez, los diez pasan (el peor es 5,39:1) con el color de texto que elige
- * `textColorOn` en `assignees.ts`.
+ * A cambio, la separación perceptual entre los cálidos es la que es: la pareja
+ * más cercana son Calabaza clara y Canela clara, a ΔE00 5,71 (ΔE76 15,8), las dos
+ * de niño. Es menos margen que en versiones anteriores de esta paleta, y es un
+ * compromiso aceptado: los valores vienen calculados desde fuera del código.
  *
  * Ninguno es el `FAMILY_COLOR` ni el verde de la app, que antes sí estaban en la
- * lista: se podía elegir a mano el color que significa "de toda la familia".
+ * lista: se podía elegir a mano el color que significa "de toda la familia". Lo
+ * que sí conviene saber es que Champán dorado queda a ΔE00 9,4 del amarillo de
+ * familia y Coral claro a 8,3 de la terracota de marca. No compiten —un punto de
+ * persona no se pone al lado de un botón— pero si algún día se ven juntos, ahí
+ * está el roce.
  *
  * El orden es el de los grupos, que es como se eligen. Tiene una consecuencia:
  * `defaultMemberColor` reparte por posición cuando nadie ha elegido, así que a
- * los dos primeros adultos les tocan dos colores de hombre. Es un valor por
- * defecto que se cambia de un toque.
+ * los primeros adultos les tocan colores de hombre. Es un valor por defecto que
+ * se cambia de un toque, y la app no sabe de géneros: no hay campo para eso.
  */
 export const PERSON_COLORS: { value: string; label: string }[] = [
   // Hombres adultos
   { value: '#A8503A', label: 'Ladrillo' },
   { value: '#7E5522', label: 'Cuero' },
-  { value: '#6B6E30', label: 'Oliva' },
+  { value: '#7A2E2E', label: 'Vino' },
+  { value: '#4A6C8C', label: 'Azul' },
+  { value: '#3D5C42', label: 'Verde bosque' },
   // Mujeres adultas
-  { value: '#E8799A', label: 'Rosa fuerte' },
-  { value: '#EE9078', label: 'Coral' },
-  { value: '#8A4A68', label: 'Ciruela' },
+  { value: '#A8496A', label: 'Rosa fuerte' },
+  { value: '#8A3D4A', label: 'Granate' },
+  { value: '#8A661F', label: 'Mostaza oscura' },
   // Niñas
-  { value: '#FBC4DC', label: 'Rosa chicle' },
-  { value: '#D9A5E0', label: 'Lila' },
+  { value: '#F7B8CE', label: 'Rosa chicle' },
+  { value: '#FFAFA0', label: 'Coral claro' },
+  { value: '#F5D9A8', label: 'Champán dorado' },
   // Niños
   { value: '#F9BE94', label: 'Melocotón' },
-  { value: '#CDD97A', label: 'Verde manzana' },
+  { value: '#F2A65A', label: 'Calabaza clara' },
+  { value: '#D9A46C', label: 'Canela clara' },
 ]
 
 // ─── Comidas ──────────────────────────────────────────────────────────────────

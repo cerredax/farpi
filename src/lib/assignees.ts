@@ -23,10 +23,11 @@ export function memberColor(members: FamilyMember[], memberId: string, kids: Chi
   if (propio) return propio
 
   const ocupados = new Set<string>([
-    // El amarillo de "toda la familia" cuenta como pillado. Desde que la paleta
-    // de personas dejó de incluir el mostaza esto no puede pasar, pero se queda
-    // como red de seguridad: un adulto con ese color se confundiría con lo que
-    // no es de nadie en particular.
+    // El amarillo de "toda la familia" cuenta como pillado. Desde que ningún
+    // color de persona es exactamente ese amarillo esto no puede pasar, pero se
+    // queda como red de seguridad: un adulto con ese color se confundiría con lo
+    // que no es de nadie en particular. (Ojo: "Mostaza oscura" se parece de
+    // nombre y no es el mismo color, está mucho más oscuro.)
     FAMILY_COLOR,
     ...kids.map(k => k.color),
     ...members.flatMap(m => (m.color ? [m.color] : [])),

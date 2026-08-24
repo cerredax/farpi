@@ -123,6 +123,35 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **La paleta de personas pasa a catorce colores, y dos de ellos no son cálidos.** Cinco
+  de hombre adulto (entran **Azul** `#4A6C8C` y **Verde bosque** `#3D5C42`), tres de mujer,
+  tres de niña y tres de niño. Los valores vienen calculados desde fuera del repositorio y
+  entraron **exactamente** como se pidieron, sin reinterpretar ninguno. La descripción
+  canónica está en `architecture.md`; aquí lo que importa es qué se comprobó y qué chirría.
+  - **Comprobado, no supuesto**: los catorce llegan a 4,5:1 con el color que les elige
+    `textColorOn` —los ocho de adulto con blanco (el peor, Mostaza oscura, 5,25:1) y los
+    seis de niño con tinta (el peor, Canela clara, 6,92:1)—, y ninguno coincide con
+    `FAMILY_COLOR` ni con el verde de marca. Lo verifica el test que ya existía.
+  - **Dos cifras del encargo no cuadraban** y conviene que quede dicho, porque los valores
+    sí se respetaron: los adultos son los **ocho** primeros y los niños los **seis**
+    últimos (el encargo decía «6 primeros» y «8 últimos»), y el peor contraste de adulto
+    con blanco es 5,25:1, no 4,88:1. Ninguna de las dos cosas cambia un hexadecimal.
+  - **Lo que se pierde**: separación perceptual. La pareja más cercana son Calabaza clara y
+    Canela clara, a ΔE00 5,71 (ΔE76 15,8), las dos de niño; antes la peor pareja estaba en
+    12,3. Doce de las noventa y una parejas quedan por debajo de ΔE00 15. Es el precio de
+    meter catorce colores en dos bandas de claridad estrechas y no se ha tocado nada por
+    ello.
+  - Nada dependía del número diez: `defaultMemberColor` y `memberColor` reparten con
+    `PERSON_COLORS.length` y `ColorPicker` es un `flex-wrap` de círculos de 36 px, así que
+    con catorce hace dos filas y ya. Lo único que había que corregir eran dos comentarios
+    con el recuento a mano, uno de ellos ya viejo de la versión de diez.
+
+- **En Inicio, "Lo demás por hacer" desaparece si no hay nada pendiente.** Antes enseñaba
+  una tarjeta que decía "La casa está al día" y ocupaba lo mismo que tres tareas. Los otros
+  vacíos de Inicio se quedan: el del menú y el de la compra cuentan algo que se hace
+  ("improvisar también cuenta"), no solo que no hay nada. `HomeSection` pasa a aceptar
+  vacío opcional para que una sección pueda devolver `null` en vez de fingir contenido.
+
 - **Las franjas de comida se eligen, y son de la familia.** En Ajustes → Comidas salen
   las cuatro con un interruptor cada una; lo que se apaga desaparece de la rejilla de la
   semana, de la lista de móvil, de "Hoy", del menú de Inicio y del formulario de apuntar.
@@ -285,6 +314,8 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     jueves a las cinco.
 
 - **La paleta de personas: diez colores cálidos, agrupados por a quién representan.**
+  *(Superada el 24-08-2026: ahora son catorce y dos no son cálidos. Se queda escrito por
+  los números, que explican de dónde vienen las bandas de claridad.)*
   Tres de hombre adulto, tres de mujer adulta, dos de niña y dos de niño. Se llegó aquí
   en tres pasos el mismo día, y los dos primeros están anotados porque explican los
   números.

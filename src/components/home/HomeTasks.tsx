@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { memo, useMemo } from 'react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { CircleCheck } from '@/components/ui/CircleCheck'
-import { EmptyState } from '@/components/ui/EmptyState'
 import type { Task } from '@/types'
 
 interface HomeTasksProps {
@@ -16,11 +15,17 @@ interface HomeTasksProps {
 export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: HomeTasksProps) {
   const visible = useMemo(() => pendingTasks.slice(0, 5), [pendingTasks])
 
+  // Sin nada pendiente, la sección entera desaparece en vez de enseñar "La casa
+  // está al día". Inicio contesta "¿qué hay que saber hoy?", y una tarjeta que
+  // ocupa lo mismo que tres tareas para decir que no hay ninguna es ruido en la
+  // única pantalla donde el sitio se paga caro. Los demás vacíos de Inicio sí se
+  // quedan: el del menú y el de la compra dicen algo que se hace ("improvisar
+  // también cuenta"), no solo que no hay nada.
+  if (visible.length === 0) return null
+
   return (
     <HomeSection
       label="Lo demás por hacer"
-      isEmpty={visible.length === 0}
-      emptyState={<EmptyState compact emoji="✓" title="La casa está al día" />}
       footer={
         <Link href="/tasks" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary-strong hover:underline">
           Ver todas las tareas

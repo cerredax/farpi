@@ -2,13 +2,15 @@ import { CardSection } from './Card'
 
 interface HomeSectionProps {
   label: string
-  isEmpty: boolean
-  emptyState: React.ReactNode
+  /** Con `emptyState`, para las secciones que se quedan diciendo qué pasa. Una
+   *  sección que preferiría desaparecer no los pasa: devuelve `null` y ya. */
+  isEmpty?: boolean
+  emptyState?: React.ReactNode
   footer: React.ReactNode
   children: React.ReactNode
 }
 
-export function HomeSection({ label, isEmpty, emptyState, footer, children }: HomeSectionProps) {
+export function HomeSection({ label, isEmpty = false, emptyState = null, footer, children }: HomeSectionProps) {
   return (
     <CardSection label={label}>
       <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">

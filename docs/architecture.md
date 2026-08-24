@@ -179,15 +179,36 @@ Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
 
 Los colores que se pueden elegir son `PERSON_COLORS`, en `src/lib/constants.ts`, y son
-**diez, todos cálidos y agrupados por a quién representan**: tres de hombre adulto, tres
-de mujer adulta, dos de niña y dos de niño. El porqué de cada número está escrito en el
-propio archivo, junto a la lista, incluido lo que cuesta: la peor pareja está en ΔE 12,3
-—frente a 5,3 en los doce pasteles del principio y 18,4 en la versión intermedia, que
-estaba elegida para aguantar el daltonismo y por eso salía fría, con azules y violetas.
-Ese criterio se retiró a propósito. `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter
-CIEDE2000 en el repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el
-verde de la app, y que la inicial de cada uno llegue a 4,5:1 con el color de texto que
-le toca.
+**catorce, agrupados por a quién representan** (24-08-2026): cinco de hombre adulto, tres
+de mujer adulta, tres de niña y tres de niño. Ese archivo, junto a la lista, es la fuente
+de verdad; lo que hay que saber aquí es cómo está construida:
+
+- **Los grupos se separan por claridad, no por tono.** Adultos en L* 30-46, niños en
+  L* 71-88, y la franja L* 52-62 se esquiva: ahí ni el blanco ni la tinta llegan a 4,5:1
+  encima del color, así que no cabe un grupo entero. De ahí sale el reparto de texto: los
+  ocho de adulto llevan blanco (el peor, 5,25:1) y los seis de niño llevan tinta (el peor,
+  6,92:1).
+- **Doce son cálidos y dos no, a propósito.** Azul (`#4A6C8C`) y Verde bosque (`#3D5C42`)
+  entran en el grupo de hombres, que era el que menos variedad reconocible tenía: con solo
+  tierras y ocres, quien busca "el azul" no lo encontraba. Respetan la banda de claridad de
+  los adultos, así que no cuestan contraste. No es lo mismo que la versión intermedia que
+  se descartó en su día: aquella era fría **entera** —azules, verdes fríos y violetas por
+  todo el círculo— porque el criterio era aguantar el daltonismo. Ese criterio sigue
+  retirado; esto son dos excepciones deliberadas, no una vuelta atrás.
+- **Lo que cuesta**: la pareja más cercana son Calabaza clara y Canela clara, a ΔE00 5,71
+  (ΔE76 15,8), las dos de niño; hay doce parejas de noventa y una por debajo de ΔE00 15.
+  Es menos margen que la paleta anterior, que estaba en 12,3 en su peor pareja. Se acepta:
+  los valores vienen calculados desde fuera del repositorio y entraron tal cual.
+- Ninguno es el `FAMILY_COLOR` ni el verde de la app. Los roces conocidos son de otra
+  clase: Champán dorado queda a ΔE00 9,4 del amarillo de familia y Coral claro a 8,3 de la
+  terracota de marca. No compiten en pantalla —un punto de persona no se pone al lado de un
+  botón—, pero está medido.
+
+`e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter CIEDE2000 en el
+repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el verde de la app, y
+que la inicial de cada uno llegue a 4,5:1 con el color de texto que le toca. Los recuentos
+—catorce, ocho y seis— viven en comentarios y no en `expect`: lo que hay que sostener es la
+regla, no cuántos colores haya.
 
 Ese color de texto lo decide `textColorOn()`, en `assignees.ts`: blanco o la tinta de
 siempre, el que más contraste dé sobre el fondo. Antes iba en blanco a pelo y encima de

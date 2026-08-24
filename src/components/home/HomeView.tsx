@@ -82,10 +82,15 @@ export function HomeView() {
       : 'Hoy no hay nada señalado. Lo demás puede esperar.'
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+    // En escritorio Inicio deja de ser una columna larga: la tarjeta de hoy
+    // ocupa el ancho —es el titular de la pantalla— y debajo las cuatro
+    // secciones se reparten en dos columnas, para que "qué hay que saber hoy"
+    // entre de una vez sin bajar. La rejilla va en este mismo div y cada hijo
+    // dice si ocupa una o dos, así que por debajo de `lg` el DOM no cambia.
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
       {/* El saludo y la fecha viven en la cabecera: aquí ocupaban media pantalla
           de móvil para decir algo que no se toca. */}
-      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm">
+      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
         <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
         <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
         <div className="relative space-y-3">

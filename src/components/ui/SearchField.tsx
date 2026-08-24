@@ -5,12 +5,18 @@ interface SearchFieldProps {
   onChange: (value: string) => void
   placeholder: string
   ariaLabel: string
+  /**
+   * Clases para la caja del campo. Existe para poder ponerle tope de ancho en
+   * escritorio: sin esto, el buscador de Documentos se estiraba a los 1152 px
+   * del contenedor y la pantalla parecía el móvil ensanchado.
+   */
+  className?: string
 }
 
 /** Campo de búsqueda con lupa y botón de limpiar. Lo comparten los dos buscadores de listas. */
-export function SearchField({ value, onChange, placeholder, ariaLabel }: SearchFieldProps) {
+export function SearchField({ value, onChange, placeholder, ariaLabel, className }: SearchFieldProps) {
   return (
-    <div className="relative">
+    <div className={`relative${className ? ` ${className}` : ''}`}>
       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
       <input
         type="search"

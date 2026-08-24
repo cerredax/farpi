@@ -1,8 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { memo, useMemo } from 'react'
 import { HomeSection } from '@/components/ui/HomeSection'
+import { SectionLink } from '@/components/ui/SectionLink'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import type { Task } from '@/types'
 
@@ -27,9 +27,7 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
     <HomeSection
       label="Lo demás por hacer"
       footer={
-        <Link href="/tasks" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary-strong hover:underline">
-          Ver todas las tareas
-        </Link>
+        <SectionLink href="/tasks">Ver todas las tareas</SectionLink>
       }
     >
       <ul className="divide-y divide-hairline">

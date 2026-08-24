@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { ChevronDown } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import { HomeSection } from '@/components/ui/HomeSection'
+import { SectionLink } from '@/components/ui/SectionLink'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { selectPendingItemsByList } from '@/lib/selectors'
@@ -33,9 +33,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
       isEmpty={items.length === 0}
       emptyState={<EmptyState compact emoji="✓" title="No falta nada" />}
       footer={
-        <Link href="/lists" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary hover:underline">
-          Ver todas las listas
-        </Link>
+        <SectionLink href="/lists">Ver todas las listas</SectionLink>
       }
     >
       <button

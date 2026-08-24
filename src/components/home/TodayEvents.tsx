@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SectionLink } from '@/components/ui/SectionLink'
 import { Heart } from 'lucide-react'
 import { memo } from 'react'
 import type { Event, Child, FamilyMember } from '@/types'
@@ -75,9 +75,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
         })}
       </ul>
       <div className="border-t border-hairline px-4 py-2.5">
-        <Link href="/calendar" className="inline-block -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary hover:underline">
-          Ver calendario
-        </Link>
+        <SectionLink href="/calendar">Ver calendario</SectionLink>
       </div>
     </div>
   )

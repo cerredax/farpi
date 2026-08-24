@@ -340,6 +340,17 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     en un sitio y se olvida en el otro. El de Documentos no entra: allí es una fila de
     `SelectChip` con otra etiqueta y otro orden, y unirlos con una bandera se leería
     peor que las dos versiones.
+  - **`SectionLink`, y el pie de Inicio deja de tener cinco versiones.** El enlace del
+    pie —"Ver calendario", "Ver todas las tareas"— estaba escrito cinco veces con las
+    mismas clases, y una de las cinco se había desviado: "Lo demás por hacer" iba en
+    `text-primary-strong` y las otras cuatro en `text-primary`. Cinco copias son justo
+    las que hacen falta para que una se quede atrás sin que nadie lo vea. Gana el
+    `text-primary` de la mayoría, que es el enlace de la app. **Es el único cambio
+    visible de toda la limpieza**, y es un tono de verde en un enlace.
+  - Con él, `UpcomingEvents` y `TodayMeals` pasan por `HomeSection`, que ya existía y
+    hace justo eso: tarjeta, vacío opcional y pie. Lo reimplementaban a mano mientras
+    `HomeTasks` y `PendingItems` sí lo usaban. `TodayEvents` se queda con tarjeta propia
+    a propósito: vive dentro del bloque del saludo, con otro fondo y otro redondeo.
 
 - **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
   nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra

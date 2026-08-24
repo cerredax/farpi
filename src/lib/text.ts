@@ -11,6 +11,11 @@ export function normalizaParaBuscar(value: string): string {
   return value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '')
 }
 
+/** Quita los guiones que sobran a los lados de un slug: `-ley-aplicable-` pasa a `ley-aplicable`. */
+export function recortaGuiones(value: string): string {
+  return value.replace(/^-+|-+$/g, '')
+}
+
 /** Tamaño de archivo legible: "820 KB", "1.4 MB". */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '—'

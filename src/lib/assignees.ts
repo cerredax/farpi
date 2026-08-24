@@ -52,7 +52,7 @@ export interface Assignee {
   member_id: string | null
 }
 
-export const FAMILY_ASSIGNEE: Assignee = {
+const FAMILY_ASSIGNEE: Assignee = {
   key: 'familia',
   name: 'Familia',
   color: FAMILY_COLOR,

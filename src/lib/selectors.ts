@@ -121,7 +121,7 @@ export function selectSortedLists(lists: List[], items: ListItem[]): List[] {
 }
 
 /** Orden alfabético en español: ignora tildes y mayúsculas, y la ñ va tras la n. */
-export function compararTexto(a: string, b: string): number {
+function compararTexto(a: string, b: string): number {
   return a.localeCompare(b, 'es', { sensitivity: 'base' })
 }
 

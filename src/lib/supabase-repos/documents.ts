@@ -2,15 +2,16 @@ import { createClient } from '../supabase/client'
 import { assertNoError, currentUserId, fail } from './shared'
 import type { Document, DocumentDraft } from '@/types'
 import type { DocumentsRepo } from '../repos/types'
+import { normalizaParaBuscar, recortaGuiones } from '../text'
 
+/**
+ * Nombre de archivo apto para Storage. Reutiliza `normalizaParaBuscar` para bajar
+ * a minúsculas y quitar tildes, y solo añade lo suyo: deja pasar `._-`, cambia el
+ * resto por guiones y cae en 'documento' si no queda nada.
+ */
 function safeFileName(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9._-]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'documento'
+  const slug = normalizaParaBuscar(name).replace(/[^a-z0-9._-]+/g, '-')
+  return recortaGuiones(slug) || 'documento'
 }
 
 export const documentsRepo: DocumentsRepo = {

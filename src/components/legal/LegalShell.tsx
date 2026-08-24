@@ -1,7 +1,7 @@
 import { Children, isValidElement } from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { normalizaParaBuscar } from '@/lib/text'
+import { normalizaParaBuscar, recortaGuiones } from '@/lib/text'
 
 /**
  * El ancla de una sección, sacada de su propio título: "Ley aplicable" pasa a
@@ -10,9 +10,7 @@ import { normalizaParaBuscar } from '@/lib/text'
  * el repositorio.
  */
 export function legalSectionId(heading: string): string {
-  return normalizaParaBuscar(heading)
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+  return recortaGuiones(normalizaParaBuscar(heading).replace(/[^a-z0-9]+/g, '-'))
 }
 
 export function LegalShell({

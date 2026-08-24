@@ -1,7 +1,7 @@
 // Gestión de la familia activa en sesión.
 // Future: derivar del JWT de Supabase (user.app_metadata.family_id).
 
-export const DEFAULT_FAMILY_ID = 'f1'
+const DEFAULT_FAMILY_ID = 'f1'
 
 const ACTIVE_FAMILY_KEY = 'nido_active_family'
 const STORE_KEY         = 'nido_store_v1'

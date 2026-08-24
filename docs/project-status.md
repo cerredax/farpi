@@ -123,6 +123,19 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **El nombre de la pantalla va en verde de marca.** La cabecera es lo primero que se
+  ve y es donde la app dice quién es, así que Calendario, Listas, Tareas, Comidas,
+  Documentos y Ajustes dejan la tinta y pasan al verde, como ya hacía el saludo de
+  Inicio.
+  - Se usa `primary-strong` (#5C7A59) y **no** `primary` (#8BA888), que es el que
+    llevaba Inicio. A 18 px el título no llega al umbral de "texto grande" de WCAG, así
+    que le toca el 4,5:1 de texto normal: el salvia claro se queda en **2,44** sobre el
+    crema y el oscuro da **4,48**. Sigue siendo el mismo verde de la familia.
+  - Inicio cambia también, y eso arregla algo de paso: su saludo era el título más flojo
+    de la app. Ahora las siete pantallas usan el mismo verde y el mismo contraste. Es
+    justo el reparto que `architecture.md` ya describía —el claro para rellenos, el
+    fuerte para texto—, aplicado ahora también a los títulos.
+
 - **Icono nuevo de la app.** Pasa de una casa de trazo sobre la tarjeta crema a una
   casa clara maciza sobre el salvia de marca, con dos figuras abstractas dentro (verde
   oscuro y amarillo de familia). Cambian `src/app/icon.svg`, `scripts/gen-icons.cjs` y

@@ -357,10 +357,13 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   que verlo mirando el mes, sin abrir el día. La raya no daba para eso, porque desde el
   cambio de esta mañana sólo se pinta una por celda y manda la de vacaciones: un
   descanso dentro de las vacaciones de otro se quedaba sin ninguna señal.
-  - **Círculo relleno y no letra de color.** La paleta va en dos bandas de claridad y
+  - **Círculo y no letra de color, y al 50 %.** La paleta va en dos bandas de claridad y
     `ColorPicker` ofrece las dos a cualquiera, así que la abuela puede tener "Champán
-    dorado": escrito sobre blanco da 1,36:1 y no se lee. Relleno, el texto lo elige
-    `textColorOn` y los catorce colores pasan de 4,5:1.
+    dorado": escrito sobre blanco da 1,36:1 y no se lee. A color pleno se probó y gritaba
+    más que "hoy" —una semana de descansos era una fila de círculos oscuros—, así que se
+    bajó al 50 % el mismo día. La rebaja decide el color del número: mezclado con el
+    fondo ningún color admite blanco (el peor, 1,17:1) y todos admiten tinta (el peor,
+    Vino sobre el crema del hover, 5,26:1).
   - **Manda el día elegido, luego hoy, luego el descanso.** Los dos primeros dicen dónde
     estás y eso pesa más que quién falta; cuando tapan el color, la raya y `Availability`
     lo siguen contando. Las vacaciones no tocan el número: ya tienen la banda.

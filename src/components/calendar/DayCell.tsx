@@ -1,4 +1,4 @@
-import { eventColor, textColorOn } from '@/lib/assignees'
+import { eventColor } from '@/lib/assignees'
 import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -145,9 +145,20 @@ export function DayCell({
    * desde la rejilla, y la raya sola no daba para eso — con vacaciones de otro
    * el mismo día ni siquiera se pintaba, porque manda la banda.
    *
-   * Va como círculo relleno y no como letra de color porque la paleta tiene seis
-   * tonos claros: "Champán dorado" escrito sobre blanco da 1,36:1 y no se lee.
-   * Relleno, el texto lo elige `textColorOn`, que garantiza los catorce.
+   * Va como círculo y no como letra de color porque la paleta tiene seis tonos
+   * claros: "Champán dorado" escrito sobre blanco da 1,36:1 y no se lee.
+   *
+   * Y el círculo va **al 50 %**, no a color pleno (24-08-2026, el mismo día que
+   * nació): a plena saturación gritaba más que "hoy", y una semana de descansos
+   * seguidos era una fila de círculos oscuros. Rebajado se lee como un fondo y no
+   * como una chapa.
+   *
+   * Esa rebaja decide también el color del número. Mezclado con el fondo, ningún
+   * color de la paleta admite ya texto blanco —el peor cae a 1,17:1— y todos
+   * admiten tinta: el peor caso es Vino sobre el crema del hover, a 5,26:1, por
+   * encima del mínimo de 4,5:1. De ahí que el número sea `text-ink` y punto: a
+   * color pleno haría falta elegirlo con `textColorOn`, y rebajado la respuesta
+   * es siempre la misma.
    *
    * Con más de un descanso manda el primero, la misma regla que la raya. Cuántos
    * son lo sigue diciendo el nombre accesible del día ("2 descansando"), así que
@@ -161,12 +172,11 @@ export function DayCell({
   const numberClass = (() => {
     if (isSelected) return 'bg-primary text-white'
     if (isToday)    return 'bg-accent text-white'
-    if (colorDescanso) return ''
     return 'text-ink'
   })()
 
   const numberStyle = !isSelected && !isToday && colorDescanso
-    ? { backgroundColor: colorDescanso, color: textColorOn(colorDescanso) }
+    ? { backgroundColor: `${colorDescanso}80` }
     : undefined
 
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })

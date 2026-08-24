@@ -506,10 +506,15 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
   abuelas: el día que una no está hay que verlo desde la rejilla, sin abrir nada. La raya
   sola no daba para eso, porque cuando ese día cae dentro de las vacaciones de otro ni
   siquiera se pinta —manda la banda— y el descanso se quedaba sin ninguna señal.
-  - Va como **círculo relleno y no como letra de color**, y no es una preferencia: la
-    paleta tiene seis tonos claros, y "Champán dorado" escrito sobre blanco da 1,36:1
-    cuando el mínimo es 4,5:1. Relleno, el texto lo elige `textColorOn` y los catorce
-    colores pasan.
+  - Va como **círculo y no como letra de color**, y no es una preferencia: la paleta
+    tiene seis tonos claros, y "Champán dorado" escrito sobre blanco da 1,36:1 cuando el
+    mínimo es 4,5:1.
+  - Y el círculo va **al 50 %**. A color pleno gritaba más que "hoy" y una semana de
+    descansos seguidos era una fila de círculos oscuros; rebajado se lee como un fondo y
+    no como una chapa. La rebaja decide además el color del número: mezclado con el
+    fondo, ningún color admite ya blanco —el peor cae a 1,17:1— y todos admiten tinta,
+    con Vino sobre el crema del hover como peor caso a 5,26:1. Por eso el número es
+    `text-ink` fijo y no hace falta `textColorOn`, que sí haría falta a color pleno.
   - **El día elegido y hoy mandan sobre él**, en ese orden: son dónde estás, y eso pesa
     más que quién falta. Cuando lo tapan, la raya de debajo y `Availability` lo siguen
     contando.

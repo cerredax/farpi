@@ -540,8 +540,8 @@ test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => 
 // descansa cuando la raya no se pinta —con vacaciones de otro el mismo día manda
 // la banda—, y un color se rompe sin que salte ningún test de estructura. Se
 // comprueba el valor exacto: Sofía no tiene color propio, así que le toca el
-// segundo de la paleta de adultos por posición (Cuero, #7E5522 → rgb(126,85,34)),
-// y encima de un tono oscuro `textColorOn` elige blanco.
+// segundo de la paleta de adultos por posición (Cuero, #7E5522), rebajado al
+// 50 %, que es lo que obliga a que el número vaya en tinta y no en blanco.
 test('un descanso pinta el número del día con el color de quien descansa', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
@@ -562,6 +562,6 @@ test('un descanso pinta el número del día con el color de quien descansa', asy
 
   const celda = page.locator('[aria-pressed][aria-label*="12 de agosto"][aria-label*="descansando"]')
   const numero = celda.locator('span', { hasText: /^12$/ }).first()
-  await expect(numero).toHaveCSS('background-color', 'rgb(126, 85, 34)')
-  await expect(numero).toHaveCSS('color', 'rgb(255, 255, 255)')
+  await expect(numero).toHaveCSS('background-color', 'rgba(126, 85, 34, 0.5)')
+  await expect(numero).toHaveCSS('color', 'rgb(37, 37, 37)')
 })

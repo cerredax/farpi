@@ -62,3 +62,39 @@ for (const ruta of RUTAS) {
     expect(pequenos, `Controles por debajo de ${MINIMO_TOQUE}px en ${ruta}`).toEqual([])
   })
 }
+
+// El bucle de arriba recorre cada ruta como se abre, y el calendario abre en la
+// agenda: así la rejilla del mes no llegaba a pintarse nunca y las dos
+// comprobaciones no la miraban. Es justo la vista con más elementos por píxel de
+// la app —42 celdas en 390 px—, así que se pide a mano.
+test('el mes del calendario cabe y se puede tocar a 390 px', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(900)
+  // `exact`: sin él, "Mes" casaría con las flechas "Mes anterior" y "Mes siguiente".
+  await page.getByRole('button', { name: 'Mes', exact: true }).click()
+  await page.waitForTimeout(400)
+
+  const medidas = await page.evaluate(minimo => {
+    const interactivos = [...document.querySelectorAll('button, a[href], input, select, textarea')]
+    return {
+      scroll: document.documentElement.scrollWidth,
+      ancho: document.documentElement.clientWidth,
+      pequenos: interactivos
+        .filter(el => {
+          const r = el.getBoundingClientRect()
+          if (r.width === 0 || r.height === 0) return false
+          if (el.closest('[inert]')) return false
+          return r.width < minimo || r.height < minimo
+        })
+        .slice(0, 8)
+        .map(el => {
+          const r = el.getBoundingClientRect()
+          const texto = el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 30) || el.tagName
+          return `${texto} (${Math.round(r.width)}×${Math.round(r.height)})`
+        }),
+    }
+  }, MINIMO_TOQUE)
+
+  expect(medidas.scroll, 'El mes del calendario se sale del ancho').toBeLessThanOrEqual(medidas.ancho + 1)
+  expect(medidas.pequenos, `Controles por debajo de ${MINIMO_TOQUE}px en el mes`).toEqual([])
+})

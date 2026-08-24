@@ -20,6 +20,27 @@ async function abrirTareasDelDia(raiz: Page | Locator) {
   if (await resumen.count() > 0) await resumen.first().click()
 }
 
+/**
+ * Pasa el calendario al modo Mes. El móvil abre en Agenda —la tira de siete días
+ * y el detalle del día—, así que la rejilla del mes no está en la página hasta
+ * que se pide. `exact` es obligatorio: sin él, "Mes" casaría también con las
+ * flechas "Mes anterior" y "Mes siguiente".
+ */
+async function verEnMes(page: Page) {
+  await page.getByRole('button', { name: 'Mes', exact: true }).click()
+  await page.waitForTimeout(300)
+}
+
+/** El bloque del día elegido, que en el día de hoy se titula "Hoy, …". */
+function seccionDeHoy(page: Page): Locator {
+  return page.locator('section').filter({ has: page.getByRole('heading', { name: /^Hoy,/ }) })
+}
+
+/** El bloque de lo que viene después del día elegido. */
+function seccionProximos(page: Page): Locator {
+  return page.locator('section').filter({ has: page.getByRole('heading', { name: 'Próximos días' }) })
+}
+
 const ROUTES = [
   '/home',
   '/calendar',
@@ -181,8 +202,13 @@ test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
   await page.getByRole('button', { name: 'Apuntar 7 días' }).click()
   await page.waitForTimeout(600)
 
-  // La franja aparece en los siete días del rango, no solo en el primero.
-  await expect(page.locator('[title="Playa"]')).toHaveCount(7)
+  // La señal aparece en los siete días del rango, no solo en el primero. Se
+  // cuenta por la etiqueta del día y no por el `title` de la franja: desde el
+  // rediseño la franja es un `span` decorativo y quien dice que ese día hay
+  // vacaciones es el nombre accesible del botón del día, que es además la vía
+  // que funciona con el dedo.
+  await verEnMes(page)
+  await expect(page.locator('[aria-label*="de vacaciones"]')).toHaveCount(7)
 })
 
 // El rango invertido se rechaza antes de guardar.
@@ -264,9 +290,8 @@ test('lo marcado vuelve al catálogo y se puede volver a pedir', async ({ page }
 })
 
 // Lo que hay que hacer un día es parte de lo que pasa ese día. La tarea se crea
-// en Tareas pero se ve —y se marca— en el calendario, sin volver. Con la semana
-// plegada el calendario enseña el día de hoy sobre su eje de horas, y una tarea
-// vence pero no ocurre a una hora: su sitio es la franja de "todo el día".
+// en Tareas pero se ve —y se marca— en el calendario, sin volver: el calendario
+// abre en la agenda del día de hoy, y ahí las tareas van con los planes.
 // Los datos de demo son de junio, así que la tarea se crea aquí para que caiga
 // en el día que se está pintando.
 test('el calendario enseña las tareas que vencen hoy', async ({ page }) => {
@@ -313,14 +338,17 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
   await page.goto('/calendar')
   await page.waitForTimeout(800)
 
-  // Marcarla no la completa: le empuja la fecha a mañana, que ya no se está
-  // pintando —el calendario enseña un solo día—, así que desaparece de la vista.
-  await abrirTareasDelDia(page)
-  await expect(page.getByText('Regar las plantas')).toBeVisible()
+  // Marcarla no la completa: le empuja la fecha a mañana. Se comprueba por
+  // bloques y no en toda la página, porque desde el rediseño la agenda enseña
+  // también los próximos días: la tarea no desaparece, se muda de sitio, y eso
+  // es justo lo que hay que ver.
+  await abrirTareasDelDia(seccionDeHoy(page))
+  await expect(seccionDeHoy(page).getByText('Regar las plantas')).toBeVisible()
 
   await page.getByRole('button', { name: /Marcar .*Regar las plantas.* como completada/ }).click()
   await page.waitForTimeout(400)
-  await expect(page.getByText('Regar las plantas')).toHaveCount(0)
+  await expect(seccionDeHoy(page).getByText('Regar las plantas')).toHaveCount(0)
+  await expect(seccionProximos(page).getByText('Regar las plantas')).toBeVisible()
 
   // El aviso dice las dos cosas: que se ha hecho y cómo volver atrás.
   await expect(page.getByRole('status')).toContainText('Hecho')
@@ -328,8 +356,8 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
   await page.waitForTimeout(600)
 
   // Vuelve a vencer hoy, y el aviso se retira.
-  await abrirTareasDelDia(page)
-  await expect(page.getByText('Regar las plantas')).toBeVisible()
+  await abrirTareasDelDia(seccionDeHoy(page))
+  await expect(seccionDeHoy(page).getByText('Regar las plantas')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Deshacer' })).toHaveCount(0)
 })
 
@@ -451,7 +479,8 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
   await apuntar.click()
   await page.waitForTimeout(600)
 
-  await expect(page.locator('[title="Vacaciones"]')).toHaveCount(3)
+  await verEnMes(page)
+  await expect(page.locator('[aria-label*="de vacaciones"]')).toHaveCount(3)
 })
 
 // Las cuatro franjas de comida están fijas en el código, pero no todas las casas

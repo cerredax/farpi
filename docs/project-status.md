@@ -76,8 +76,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 207 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 72 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
+  - 73 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -122,6 +122,50 @@ franja inventada como quedarse sin ninguna. Antes de eso, el 06-08-2026, la pasa
 perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
+
+- **El calendario se rediseña: agenda primero, mes como mapa.** En móvil abre en
+  `Agenda` —una tira de siete días para navegar y, debajo, lo que pasa el día elegido
+  con su hora y de quién es— y detrás los próximos días con algo. `Mes` es la otra
+  pestaña y sirve de mapa: ver dónde hay algo e ir allí. En escritorio no hay pestañas,
+  el mes va a la izquierda y la agenda a la derecha. Nada de la lógica de datos cambia:
+  ni el CRUD, ni las recurrencias, ni las vacaciones, ni las tareas arrastradas a hoy,
+  ni la asignación a personas.
+  - **La celda del día es una sola y la comparten la tira y el mes** (`DayCell`), así
+    que las dos dicen lo mismo de la misma forma. Se le quitaron los títulos de eventos
+    (a 50 px de ancho salían como "09:0…"), el tooltip (única vía de leer el día, y no
+    existe con el dedo) y tres de sus cuatro botones. Ahora es un botón que selecciona
+    el día y su nombre accesible dice lo que hay en palabras: "lunes, 24 de agosto,
+    2 planes, 1 tarea, de vacaciones".
+  - **De paso arregla dos incumplimientos del mínimo de toque** que estaban ahí desde
+    siempre y que la suite no veía porque los datos de demo no los pintan: la franja de
+    vacaciones de la celda (3 px de alto) y el punto de descanso (10×10) eran botones.
+    Las vacaciones pasan a señal y se editan desde `VacationLegend`, que gana `min-h-6`;
+    los descansos se editan desde la agenda, donde ya salían.
+  - **La rejilla es de un solo mes.** Se dibuja por semanas completas —si no, las
+    columnas dejarían de ser días de la semana— pero los huecos de las puntas van en
+    blanco en vez de prestar días de los meses vecinos: agosto pintaba once días de
+    julio y septiembre en gris, con la misma forma que los suyos, y se leían como días
+    sueltos que no decían de qué mes eran. Se pierde tocar el 1 de septiembre desde
+    agosto; se llega con la flecha, que es un toque igual. Con eso, `DayCell` se queda
+    sin `isCurrentMonth`: ya no llega ningún día que haya que atenuar por ser de fuera.
+  - **La tira marca el mes cuando cruza.** Al ser siete días rodantes, un tramo puede
+    caer en dos meses y "30, 31, 1, 2" no dice dónde acaba uno. Solo entonces, el día 1
+    lleva el mes en pequeño bajo el número; las otras seis columnas reservan el hueco
+    vacío para no quedar más bajas. Va en `aria-hidden`, porque la etiqueta del botón ya
+    trae la fecha entera.
+  - **`movil.spec.ts` gana un test para el modo Mes.** El bucle recorre cada ruta como
+    se abre, y el calendario abre en agenda: la rejilla del mes —42 celdas en 390 px, lo
+    más denso de la app— no llegaba a pintarse nunca.
+  - **Se retira el eje de horas** (`DayTimeline`, `src/lib/timeline.ts` y sus 19 tests
+    unitarios). En la estructura nueva no hay sitio para una tercera vista y el detalle
+    del día se lee en lista. Lo que se pierde está escrito en `architecture.md`, en la
+    decisión derogada.
+  - **Dos tests de runtime cambian de forma, no de cobertura.** Las vacaciones se
+    contaban por el `title` de la franja y ahora se cuentan por el nombre accesible del
+    día, que es la vía que funciona con el dedo. Y el de la tarea diaria: al marcarla ya
+    no "desaparece" —la agenda enseña también los próximos días—, así que ahora se
+    comprueba que se muda de hoy a mañana, que es lo que de verdad hace.
+
 
 - **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
   nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra
@@ -401,7 +445,7 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-06
 
-- **La semana del calendario pasa a ser el día por horas.** Antes era una lista de
+- **La semana del calendario pasa a ser el día por horas.** *(Superada el 24-08-2026: el rediseño del calendario retiró el eje de horas entero. Se queda escrito porque explica por qué existía y qué se pierde al quitarlo.)* Antes era una lista de
   siete días; ahora, con la semana plegada, se ve el día elegido sobre un eje de
   horas, con cada cita en su hora y con el alto de lo que dura. Es la vista "Día" de
   un calendario al uso. La de siete columnas se descartó a propósito: a 390 px cada

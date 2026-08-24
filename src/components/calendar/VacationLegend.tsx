@@ -29,6 +29,11 @@ function rango(event: Event): string {
  * La franja del calendario dice que hay vacaciones y de qué color, pero no de
  * quién: había que saberse la paleta de memoria. Esto la traduce, y de paso
  * pone las fechas, que en la franja hay que contarlas a ojo.
+ *
+ * Desde el rediseño del 24-08-2026 es además el **único** sitio desde el que se
+ * editan: la franja de la celda pasó a ser señal y no control, porque como barra
+ * de 3 px nunca iba a llegar al mínimo de toque de 24×24. De ahí el `min-h-6` de
+ * cada botón de aquí, que sí lo cumple.
  */
 export function VacationLegend({ vacaciones, kids, members, onEdit }: VacationLegendProps) {
   if (vacaciones.length === 0) return null
@@ -46,7 +51,7 @@ export function VacationLegend({ vacaciones, kids, members, onEdit }: VacationLe
             type="button"
             onClick={() => onEdit(v)}
             aria-label={`Editar ${v.title}, ${quien}, ${rango(v)}`}
-            className="flex items-center gap-1.5 rounded-full px-1 py-0.5 transition-colors hover:bg-surface"
+            className="flex min-h-6 items-center gap-1.5 rounded-full px-1.5 py-1 transition-colors hover:bg-surface"
           >
             <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
             <span className="text-[11px] font-bold text-ink">{quien}</span>

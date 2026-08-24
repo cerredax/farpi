@@ -42,17 +42,27 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 ## 4. Calendario
 
-- [ ] Vista mensual carga.
-- [ ] Días con eventos se distinguen.
-- [ ] Se puede seleccionar un día.
-- [ ] Se puede crear evento.
+- [ ] En móvil abre en `Agenda`, con la tira de siete días y el detalle de hoy debajo.
+- [ ] El selector `Agenda | Mes` cambia lo de arriba y deja el día elegido donde estaba.
+- [ ] Vista mensual carga y las flechas recorren meses; en agenda recorren semanas.
+- [ ] La rejilla del mes solo enseña días de ese mes: las puntas van en blanco.
+- [ ] Si la tira de siete días cruza de mes, el día 1 lleva el mes debajo.
+- [ ] Días con eventos se distinguen (puntos con el color de quien lo lleva, o el número
+      si son más de tres), tanto en la tira como en el mes.
+- [ ] Se puede seleccionar un día, y su detalle aparece debajo sin cambiar de pestaña.
+- [ ] "Próximos días" enseña solo los días con algo, y tocar su fecha los selecciona.
+- [ ] Un tramo de vacaciones se lee como una franja continua, sin cortes entre días.
+- [ ] Las vacaciones se editan desde su leyenda (el único sitio desde el rediseño).
+- [ ] Un descanso se edita desde la agenda del día.
+- [ ] Se puede crear evento; el `+` de la cabecera lo crea para el día elegido.
 - [ ] Se puede editar evento.
 - [ ] Se puede borrar evento con doble confirmación.
 - [ ] Eventos de hijos usan color correcto.
 - [ ] Eventos de todo el día no se desplazan de día.
-- [ ] En la semana (móvil) salen también las tareas que vencen, y se pueden marcar allí.
+- [ ] En la agenda salen también las tareas que vencen, y se pueden marcar allí.
 - [ ] Una tarea vencida antes de hoy aparece en el día de hoy marcada como "Atrasada".
-- [ ] El buscador del calendario encuentra eventos pasados, no solo los del tramo pintado.
+- [ ] El buscador del calendario encuentra eventos pasados, no solo los del tramo pintado,
+      y al vaciarlo se vuelve al día en el que estabas.
 
 ## 5. Tareas
 

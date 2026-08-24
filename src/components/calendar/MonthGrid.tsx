@@ -1,36 +1,42 @@
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addDays, isSameDay, isSameMonth, isToday, getDate, getDay } from 'date-fns'
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, getDate } from 'date-fns'
 import { DayCell } from './DayCell'
-import type { Event, Child, FamilyMember } from '@/types'
+import type { Child, Event, FamilyMember, Task } from '@/types'
 import { eventCoversDay } from '@/lib/events'
+import { getLocalDateString } from '@/lib/date-utils'
+
+/**
+ * El mes como mapa: sirve para saber dónde hay algo y para ir allí, no para
+ * leer lo que hay. Lo que hay se lee en la agenda, debajo en móvil y en la
+ * columna de la derecha en escritorio.
+ *
+ * **Un mes y solo un mes** (24-08-2026). La rejilla se sigue dibujando por
+ * semanas completas —si no, las columnas dejarían de ser días de la semana— pero
+ * los huecos de las puntas van en blanco en vez de prestar días de julio y de
+ * septiembre. Antes pintaba once días de otros meses en gris: con la misma forma
+ * que los de agosto, se leían como días sueltos que no decían de qué mes eran, y
+ * era el mayor foco de ruido de la pantalla. Lo que se pierde es poder tocar el
+ * 1 de septiembre desde agosto; se llega con la flecha, que es un toque igual.
+ *
+ * Toda fila tiene al menos un día del mes —`startOfWeek(startOfMonth)` a
+ * `endOfWeek(endOfMonth)` no puede dar una semana entera fuera—, así que ninguna
+ * queda a cero de alto por mucho que sus huecos estén vacíos.
+ *
+ * Es siempre el mes entero. La variante de "siete días" que tenía antes se
+ * mudó a `WeekStrip`, que es quien la necesita, y con ella se fueron las dos
+ * densidades: la ancha con títulos dentro de las celdas no la usaba nadie.
+ */
 
 const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-
-/** `getDay()` cuenta desde el domingo; aquí la semana empieza en lunes. */
-function dayLabel(day: Date): string {
-  return DAY_LABELS[(getDay(day) + 6) % 7]
-}
 
 interface MonthGridProps {
   currentMonth: Date
   selectedDay: Date
   events: Event[]
+  /** Pendientes de toda la familia; cada día se queda con las que le tocan. */
+  tasks: Task[]
   kids: Child[]
   members: FamilyMember[]
-  density?: 'compact' | 'detailed'
-  /**
-   * Con una fecha, pinta los siete días que empiezan en ella en vez del mes
-   * entero. Es el modo plegado del móvil: el mes completo se come media
-   * pantalla para enseñar sobre todo días que no se van a tocar.
-   *
-   * Son siete días **rodantes**, no la semana natural de lunes a domingo: el
-   * tramo tiene que ser exactamente el que lista la agenda, y esa empieza hoy.
-   * Antes esto recibía un día y pintaba su semana natural, así que la tira
-   * decía "3 al 9" mientras la lista decía "del 6 al 13".
-   */
-  weekStart?: Date | null
   onSelectDay: (day: Date) => void
-  onEditEvent?: (event: Event) => void
-  onAddEvent?: (day: Date) => void
 }
 
 function getMonthDays(month: Date): Date[] {
@@ -40,59 +46,43 @@ function getMonthDays(month: Date): Date[] {
   })
 }
 
-function getWeekDays(start: Date): Date[] {
-  return eachDayOfInterval({ start, end: addDays(start, 6) })
-}
-
-export function MonthGrid({
-  currentMonth,
-  selectedDay,
-  events,
-  kids,
-  members,
-  density = 'compact',
-  weekStart = null,
-  onSelectDay,
-  onEditEvent,
-  onAddEvent,
-}: MonthGridProps) {
-  const days = weekStart ? getWeekDays(weekStart) : getMonthDays(currentMonth)
-  const isDetailed = density === 'detailed'
-
-  // En el mes las columnas son siempre lunes→domingo, así que la cabecera es
-  // fija. En la semana rodante cada columna es el día que le toque, y la
-  // inicial tiene que seguirlo: si el tramo abre en jueves, la primera es J.
-  const labels = weekStart ? days.map(dayLabel) : DAY_LABELS
+export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, members, onSelectDay }: MonthGridProps) {
+  const days = getMonthDays(currentMonth)
+  const hoyStr = getLocalDateString(new Date())
 
   return (
-    <div className={isDetailed ? 'px-1.5 sm:px-2 pb-2' : 'px-2'}>
-      <div className="grid grid-cols-7 mb-1">
-        {labels.map((label, i) => (
-          <div key={i} className={`flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted ${isDetailed ? 'h-6' : 'h-7'}`}>
+    <div className="px-2 pb-1">
+      <div className="mb-1 grid grid-cols-7">
+        {DAY_LABELS.map(label => (
+          <div key={label} className="flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted">
             {label}
           </div>
         ))}
       </div>
-      <div className={`grid grid-cols-7 ${isDetailed ? 'gap-0.5 sm:gap-1' : ''}`}>
-        {days.map(day => (
-          <DayCell
-            key={day.toISOString()}
-            day={day}
-            dayNumber={getDate(day)}
-            isToday={isToday(day)}
-            isSelected={isSameDay(day, selectedDay)}
-            // Plegado no hay "otro mes" del que distinguirse: se ve una semana
-            // suelta, y atenuar sus días la partiría en dos sin motivo.
-            isCurrentMonth={weekStart ? true : isSameMonth(day, currentMonth)}
-            events={events.filter(e => eventCoversDay(e, day))}
-            kids={kids}
-            members={members}
-            density={density}
-            onSelect={onSelectDay}
-            onEditEvent={onEditEvent}
-            onAddEvent={onAddEvent}
-          />
-        ))}
+      {/* Sin hueco entre columnas: las franjas de vacaciones de días seguidos
+          tienen que tocarse para leerse como un tramo. */}
+      <div className="grid grid-cols-7">
+        {days.map(day => {
+          if (!isSameMonth(day, currentMonth)) {
+            return <span key={day.toISOString()} aria-hidden />
+          }
+
+          const diaStr = getLocalDateString(day)
+          return (
+            <DayCell
+              key={day.toISOString()}
+              day={day}
+              dayNumber={getDate(day)}
+              isToday={isToday(day)}
+              isSelected={isSameDay(day, selectedDay)}
+              events={events.filter(e => eventCoversDay(e, day))}
+              tasks={tasks.filter(t => t.due_date && (t.due_date < hoyStr ? diaStr === hoyStr : t.due_date === diaStr))}
+              kids={kids}
+              members={members}
+              onSelect={onSelectDay}
+            />
+          )
+        })}
       </div>
     </div>
   )

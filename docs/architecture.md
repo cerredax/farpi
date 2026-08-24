@@ -407,19 +407,54 @@ exigir un nombre era exigir que alguien se inventara un texto para poder guardar
 campo sigue ahí porque "Playa con los abuelos" vale la pena, pero es opcional y
 `eventTitleOr` pone el nombre del tipo al guardar. Un plan sí lo exige.
 
-**En el móvil, un día por horas; nunca siete columnas.** La semana plegada enseña el
-día elegido sobre un eje de horas (`DayTimeline`), no la rejilla de siete columnas de
-un calendario de escritorio. A 390 px cada columna sería de unos 45 px: bloques de
-color sin texto, que hay que tocar para saber qué son. Es también por lo que Google
-Calendar no pone esa vista por defecto en el teléfono. Con el mes desplegado la
-pregunta cambia a "¿qué hay por delante?", y ahí sí manda una lista (`AgendaList`).
+**El calendario es agenda primero y mes como mapa** (24-08-2026). En móvil la pantalla
+abre en `Agenda`: una tira de siete días para navegar y, debajo, lo que pasa el día
+elegido con su hora y de quién es, y detrás los próximos días con algo. `Mes` es la
+otra pestaña del selector y sirve para lo que sirve un mapa: ver dónde hay algo e ir
+allí. En escritorio no hay pestañas —el mes a la izquierda, la agenda a la derecha—
+porque caben las dos cosas.
 
-Dos cosas que los datos no traen y decide la vista: un evento **sin hora de fin** se
-dibuja con 45 minutos, porque el formulario acepta dejarla vacía y un bloque sin
-duración no se puede pintar; y las **tareas**, que vencen un día pero no ocurren a una
-hora, van en la franja de "todo el día". El eje se recorta a las horas que tienen
-algo: el día de una familia son dos o tres citas, y de 00:00 a 24:00 era casi todo
-blanco.
+**La rejilla del mes es de un solo mes.** Se sigue dibujando por semanas completas
+—si no, las columnas dejarían de ser días de la semana— pero los huecos de las puntas
+van en blanco en vez de prestar días de los meses vecinos. Antes agosto pintaba once
+días de julio y septiembre en gris: con la misma forma que los suyos, se leían como
+días sueltos que no decían de qué mes eran, y era el mayor foco de ruido de la
+pantalla. Lo que se pierde es tocar el 1 de septiembre desde agosto; se llega con la
+flecha, que es un toque igual.
+
+La tira tiene el mismo problema por otra vía: al ser siete días **rodantes**, un tramo
+puede caer en dos meses y "30, 31, 1, 2" no dice dónde acaba uno. Cuando eso pasa, y
+solo entonces, el día 1 lleva el mes en pequeño debajo del número, y las otras seis
+columnas reservan ese hueco vacío para no quedar más bajas.
+
+Las dos vistas de navegación (`WeekStrip` y `MonthGrid`) comparten la misma celda,
+`DayCell`, y por eso dicen lo mismo de la misma forma: número, hasta tres puntos con el
+color de quien lleva cada cosa —o el número si son más de tres— y una franja continua
+si hay vacaciones. Lo que la celda **no** hace, y antes sí, es escribir títulos de
+eventos, llevar tooltip y ser cuatro botones. Los títulos a 50 px de ancho salían como
+"09:0…"; el tooltip era la única vía de leer el día y no existe con el dedo; y de los
+cuatro botones, la franja de vacaciones (3 px de alto) y el punto de descanso (10×10)
+estaban por debajo del mínimo de toque. Ahora la celda es un botón que selecciona el
+día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 planes,
+1 tarea, de vacaciones") y el color es apoyo y nunca la única información.
+
+Los descansos se editan desde la agenda, donde ya salían; las vacaciones desde
+`VacationLegend`, que es ahora el único sitio y por eso sus botones llevan `min-h-6`.
+
+**Nunca siete columnas en el móvil.** Sigue en pie, y es la razón de que la tira sea
+navegación y no una semana en columnas: a 390 px cada columna son ~50 px, y un bloque
+de color sin texto hay que tocarlo para saber qué es. Es también por lo que Google
+Calendar no pone esa vista por defecto en el teléfono.
+
+**Derogado el 24-08-2026: el día sobre un eje de horas.** Hasta ese día el móvil abría
+en `DayTimeline`, con cada cita en su hora y el alto de lo que duraba, y el mes se
+desplegaba con una manija. Se retiró entero con el rediseño —el componente,
+`src/lib/timeline.ts` y sus 19 tests unitarios— porque en la estructura nueva no queda
+sitio para una tercera vista y el detalle del día ya se lee en lista. Lo que se perdió,
+por si algún día se vuelve: la posición como forma de decir la hora, el alto como forma
+de decir la duración y el reparto en columnas de lo que se solapa. Dos decisiones que
+vivían ahí y ya no aplican: un evento sin hora de fin se dibujaba con 45 minutos, y el
+eje se recortaba a las horas con algo porque de 00:00 a 24:00 era casi todo blanco.
 
 **Un abuelo es un adulto sin cuenta, y vive en `children`.** La frontera de la app
 no es adulto/niño, es **con cuenta / sin cuenta**. `family_members` cuelga de
@@ -447,8 +482,10 @@ entra en la app.
 Y una regla que las cruza todas: **buscando sí se enseña todo**, incluido el
 catálogo y el pasado del calendario. Esconder algo que sí coincide sería contestar
 "no hay nada" a una búsqueda que encontró algo. En el calendario eso significa que
-buscar cambia la vista: el día por horas deja paso a la lista de resultados, porque
-una búsqueda atraviesa el calendario entero y no cabe en un día.
+buscar cambia lo que se lee: el detalle del día y los próximos días dejan paso a los
+resultados, porque una búsqueda atraviesa el calendario entero y no cabe en un día. La
+tira y el mes se quedan donde están: son navegación, y al vaciar el campo vuelves justo
+al día en el que estabas.
 
 ## Tono de la interfaz
 

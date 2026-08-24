@@ -5,8 +5,8 @@ import {
   compareAsc,
   eachDayOfInterval,
   format,
-  isSameDay,
   isToday,
+  isTomorrow,
   parseISO,
   startOfDay,
 } from 'date-fns'
@@ -22,17 +22,20 @@ import { capitalize } from '@/lib/text'
 import { DayTasks } from './DayTasks'
 
 /**
- * Lo que viene a partir del día elegido, un día por fila.
+ * La agenda: lo que pasa el día elegido y, debajo, lo que viene.
  *
- * Es la vista de cuando el mes está desplegado, donde la pregunta es "¿qué hay
- * por delante?". El día suelto ya no se lista aquí: con la semana plegada se ve
- * en `DayTimeline`, sobre su eje de horas.
+ * Son dos bloques y no uno, que es el cambio de fondo respecto a la lista de
+ * antes. Esa metía el día elegido como una fila más entre las demás, así que la
+ * pregunta de la pantalla —"¿qué tengo hoy?"— se contestaba con el mismo tamaño
+ * de letra que "¿y el jueves que viene?". Ahora el día elegido es el titular,
+ * con su hora y de quién es cada cosa, y los próximos días van en una lista
+ * compacta detrás.
  *
- * También es lo que se enseña al buscar, en las dos vistas: una búsqueda
- * atraviesa todo el calendario y no cabe en un solo día.
+ * También es lo que se enseña al buscar: una búsqueda atraviesa todo el
+ * calendario, pasado incluido, y no cabe en un solo día.
  */
 
-/** Cuántos días por delante mira la lista de próximos eventos. */
+/** Cuántos días por delante mira la lista de próximos días. */
 const DIAS_POR_DELANTE = 45
 
 interface AgendaListProps {
@@ -43,7 +46,7 @@ interface AgendaListProps {
   /** Tareas pendientes con fecha, para pintarlas en su día junto a los eventos. */
   tasks?: Task[]
   onToggleTask?: (id: string) => void
-  /** Buscador de eventos. Sin él, la lista se comporta como siempre. */
+  /** Buscador de eventos. Sin él, la agenda se comporta como siempre. */
   buscador?: {
     valor: string
     onChange: (valor: string) => void
@@ -64,6 +67,18 @@ function sortEvents(events: Event[]): Event[] {
 }
 
 /**
+ * Cómo se llama un día en la cabecera del detalle. "Hoy" y "Mañana" ganan a la
+ * fecha porque es lo que se pregunta en casa; del jueves en adelante hace falta
+ * la fecha para situarse.
+ */
+function etiquetaDia(day: Date): string {
+  const fecha = capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))
+  if (isToday(day)) return `Hoy, ${fecha.toLowerCase()}`
+  if (isTomorrow(day)) return `Mañana, ${fecha.toLowerCase()}`
+  return fecha
+}
+
+/**
  * Un evento en una línea: color, hora, título y de quién es. El color va como
  * punto y no como barra lateral porque ya no hay tarjeta que bordear. El
  * nombre se queda —aunque el color ya lo diga— porque el color solo habla si
@@ -78,7 +93,7 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
     <button
       onClick={() => onEdit(event)}
       title={asignado ? `${event.title} · ${asignado.name}` : event.title}
-      className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-canvas"
+      className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-canvas"
     >
       <span
         className="w-2 h-2 rounded-full flex-shrink-0 self-center"
@@ -96,13 +111,16 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
   )
 }
 
+const TARJETA = 'overflow-hidden rounded-3xl border border-surface bg-white shadow-sm'
+const ROTULO = 'px-1 text-xs font-bold uppercase tracking-widest text-muted'
+
 export function AgendaList({ selectedDay, events, kids, members, tasks = [], onToggleTask, buscador, onSelectDay, onEdit, onAdd }: AgendaListProps) {
   const rangeStart = startOfDay(selectedDay)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
   // Las vacaciones se quedan fuera de la lista: ocupan muchos días seguidos y
-  // se repetirían en todos ellos. Su sitio es la franja de la cuadrícula, que
-  // enseña el tramo de un vistazo y desde donde también se editan.
+  // se repetirían en todos ellos. Su sitio es la franja bajo el día, que enseña
+  // el tramo de un vistazo, y su leyenda, desde donde se editan.
   const conFecha = events.filter(event => !isVacation(event))
 
   const hoyStr = getLocalDateString(new Date())
@@ -122,42 +140,26 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
     }
   })
 
-  const visibleGroups = dayGroups.filter(
-    group => group.events.length > 0 || group.tasks.length > 0 || isSameDay(group.day, selectedDay)
-  )
+  const delDia = dayGroups[0]
+  const proximos = dayGroups
+    .slice(1)
+    .filter(group => group.events.length > 0 || group.tasks.length > 0)
+
+  const diaVacio = delDia.events.length === 0 && delDia.tasks.length === 0
+  const todoVacio = diaVacio && proximos.length === 0
 
   const buscando = !!buscador && buscador.valor.trim().length > 0
   const coincidencias = buscador?.coincidencias ?? []
 
-  // Una línea y no dos. El rótulo en versalitas encima del rango repetía en
-  // mayúsculas lo que la propia lista ya dice, y gastaba alto antes del primer
-  // plan.
-  const headerText = buscando
-    ? `${coincidencias.length} resultado${coincidencias.length !== 1 ? 's' : ''} en todo el calendario`
-    : `Próximos eventos desde el ${format(selectedDay, "d 'de' MMMM", { locale: es })}`
-
   return (
-    <div className="flex-1 px-4 pt-4 lg:px-0 lg:pt-0">
-      <div className="flex items-center justify-between gap-2 mb-2 px-1">
-        <p className="min-w-0 truncate text-sm font-bold text-ink">{headerText}</p>
-        <button
-          onClick={() => onAdd(selectedDay)}
-          aria-label="Añadir evento"
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover active:scale-95 transition-all"
-        >
-          <Plus size={16} strokeWidth={2.5} />
-        </button>
-      </div>
-
+    <div className="flex-1 space-y-4 px-4 pt-4 lg:px-0 lg:pt-0">
       {buscador && (
-        <div className="mb-3">
-          <SearchField
-            value={buscador.valor}
-            onChange={buscador.onChange}
-            placeholder="Buscar en todo el calendario…"
-            ariaLabel="Buscar eventos"
-          />
-        </div>
+        <SearchField
+          value={buscador.valor}
+          onChange={buscador.onChange}
+          placeholder="Buscar en todo el calendario…"
+          ariaLabel="Buscar eventos"
+        />
       )}
 
       {/* Buscando se enseña el calendario entero, pasado incluido: "¿cuándo fue
@@ -165,108 +167,136 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
           se pinta empieza hoy. Cada resultado lleva su fecha completa porque ya
           no hay columna de día que lo sitúe. */}
       {buscando ? (
-        coincidencias.length === 0 ? (
-          <div className="rounded-3xl border border-surface bg-white shadow-sm">
-            <EmptyState
-              emoji="🔍"
-              title="Sin coincidencias"
-              description={`Ningún evento con «${buscador!.valor.trim()}»`}
-            />
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-surface bg-white shadow-sm overflow-hidden">
-            <ul className="divide-y divide-hairline">
-              {coincidencias.map(event => (
-                <li key={event.id} className="px-2 py-1.5">
-                  <p className="px-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
-                    {capitalize(format(parseISO(event.start_at), "EEEE d 'de' MMMM yyyy", { locale: es }))}
-                  </p>
-                  <EventRow event={event} kids={kids} members={members} onEdit={onEdit} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
-      ) : visibleGroups.length === 0 ? (
+        <section className="space-y-2">
+          <h2 className={ROTULO}>
+            {coincidencias.length} resultado{coincidencias.length !== 1 ? 's' : ''} en todo el calendario
+          </h2>
+          {coincidencias.length === 0 ? (
+            <div className={TARJETA}>
+              <EmptyState
+                emoji="🔍"
+                title="Sin coincidencias"
+                description={`Ningún evento con «${buscador!.valor.trim()}»`}
+              />
+            </div>
+          ) : (
+            <div className={TARJETA}>
+              <ul className="divide-y divide-hairline">
+                {coincidencias.map(event => (
+                  <li key={event.id} className="px-2 py-1.5">
+                    <p className="px-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
+                      {capitalize(format(parseISO(event.start_at), "EEEE d 'de' MMMM yyyy", { locale: es }))}
+                    </p>
+                    <EventRow event={event} kids={kids} members={members} onEdit={onEdit} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      ) : todoVacio ? (
+        /* Un solo vacío y no dos. Con el día y los próximos días vacíos, dos
+           tarjetas seguidas diciendo lo mismo se comían la pantalla para contar
+           que no hay nada: la misma lección que dejó Inicio. */
         <button
           onClick={() => onAdd(selectedDay)}
-          className="w-full bg-white rounded-2xl border border-surface shadow-sm text-left hover:border-primary transition-colors"
+          className={`w-full text-left transition-colors hover:border-primary ${TARJETA}`}
         >
           <EmptyState
             emoji="✨"
-            title="Sin próximos eventos"
+            title="Sin planes"
             description="Toca para añadir un evento"
           />
         </button>
       ) : (
-        /* Una fila por día dentro de una sola tarjeta: fecha a la izquierda y
-           lo que hay a la derecha. Antes cada día era una tarjeta propia que
-           decía la fecha dos veces —"4 AGO" en el recuadro y "Martes 4" al
-           lado— y gastaba una línea en contar los eventos que ya se veían
-           debajo. Esto ocupa la mitad y se lee de un barrido. */
-        <div className="rounded-3xl border border-surface bg-white shadow-sm overflow-hidden">
-          <ul className="divide-y divide-hairline">
-            {visibleGroups.map(group => {
-              const isSelected = isSameDay(group.day, selectedDay)
-              const esHoy = isToday(group.day)
-              const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
-              const vacio = group.events.length === 0 && group.tasks.length === 0
+        <>
+          <section className="space-y-2">
+            <h2 className="px-1 text-sm font-bold text-ink">{etiquetaDia(selectedDay)}</h2>
+            <div className={TARJETA}>
+              {diaVacio ? (
+                <button onClick={() => onAdd(selectedDay)} className="w-full text-left transition-colors hover:bg-canvas">
+                  <EmptyState compact emoji="✨" title="Sin planes. Toca para añadir uno." />
+                </button>
+              ) : (
+                <div className="px-2 py-2">
+                  {delDia.events.map(event => (
+                    <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
+                  ))}
+                  {onToggleTask && (
+                    <DayTasks
+                      tasks={delDia.tasks}
+                      kids={kids}
+                      members={members}
+                      hoy={hoyStr}
+                      onToggle={onToggleTask}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
 
-              return (
-                <li
-                  key={group.day.toISOString()}
-                  id={`day-${format(group.day, 'yyyyMMdd')}`}
-                  className={`flex items-start gap-2 px-2 transition-colors ${vacio ? 'py-1' : 'py-2'} ${isSelected ? 'bg-primary-tint/40' : ''}`}
-                >
-                  <button
-                    onClick={() => onSelectDay(group.day)}
-                    aria-label={dayLabel}
-                    aria-pressed={isSelected}
-                    className={`flex w-11 flex-shrink-0 flex-col items-center rounded-xl py-1 transition-colors ${
-                      esHoy ? 'bg-accent text-white' : 'text-ink hover:bg-canvas'
-                    }`}
-                  >
-                    <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
-                    <span className={`text-[9px] font-bold uppercase leading-none mt-0.5 ${esHoy ? 'text-white/80' : 'text-muted'}`}>
-                      {format(group.day, 'EEE', { locale: es })}
-                    </span>
-                  </button>
+          {proximos.length > 0 && (
+            <section className="space-y-2">
+              <h2 className={ROTULO}>Próximos días</h2>
+              {/* Una fila por día dentro de una sola tarjeta: fecha a la
+                  izquierda y lo que hay a la derecha. Una tarjeta por día decía
+                  la fecha dos veces y gastaba una línea en contar los eventos
+                  que ya se veían debajo. */}
+              <div className={TARJETA}>
+                <ul className="divide-y divide-hairline">
+                  {proximos.map(group => {
+                    const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
 
-                  <div className="min-w-0 flex-1 self-center">
-                    {vacio ? (
-                      <p className="px-1.5 text-xs text-faint">Sin planes</p>
-                    ) : (
-                      <>
-                        {group.events.map(event => (
-                          <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                        ))}
-                        {onToggleTask && (
-                          <DayTasks
-                            tasks={group.tasks}
-                            kids={kids}
-                            members={members}
-                            hoy={hoyStr}
-                            onToggle={onToggleTask}
-                          />
-                        )}
-                      </>
-                    )}
-                  </div>
+                    return (
+                      <li
+                        key={group.day.toISOString()}
+                        className="flex items-start gap-2 px-2 py-2"
+                      >
+                        <button
+                          onClick={() => onSelectDay(group.day)}
+                          aria-label={`Ver ${dayLabel}`}
+                          className="flex w-11 flex-shrink-0 flex-col items-center rounded-xl py-1 text-ink transition-colors hover:bg-canvas"
+                        >
+                          <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
+                          <span className="mt-0.5 text-[9px] font-bold uppercase leading-none text-muted">
+                            {format(group.day, 'EEE', { locale: es })}
+                          </span>
+                        </button>
 
-                  <button
-                    onClick={() => onAdd(group.day)}
-                    aria-label={`Añadir evento el ${dayLabel}`}
-                    // Arriba y no centrado: en un día con seis tareas, centrado
-                    // quedaba flotando a media fila, lejos de su fecha.
-                    className="w-7 h-7 flex-shrink-0 self-start flex items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
-                  >
-                    <Plus size={14} strokeWidth={2.5} />
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
+                        <div className="min-w-0 flex-1 self-center">
+                          {group.events.map(event => (
+                            <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
+                          ))}
+                          {onToggleTask && (
+                            <DayTasks
+                              tasks={group.tasks}
+                              kids={kids}
+                              members={members}
+                              hoy={hoyStr}
+                              onToggle={onToggleTask}
+                            />
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => onAdd(group.day)}
+                          aria-label={`Añadir evento el ${dayLabel}`}
+                          // Arriba y no centrado: en un día con seis tareas,
+                          // centrado quedaba flotando a media fila, lejos de su
+                          // fecha.
+                          className="flex h-7 w-7 flex-shrink-0 self-start items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
+                        >
+                          <Plus size={14} strokeWidth={2.5} />
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   )

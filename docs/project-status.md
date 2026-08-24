@@ -321,6 +321,26 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     gris; antes se quedaba sin texto y solo lo decía el punto amarillo, justo lo que la
     app no quiere: saberse la paleta para entender a quién afecta algo.
 
+- **Limpieza: fuera el código muerto del eje de horas y dos duplicados.** No cambia nada
+  de lo que se ve ni de lo que se guarda; es deuda que dejaron los dos rediseños del
+  24-08-2026.
+  - **Restos del eje de horas.** `extractMinutes` en `date-utils.ts` y la sección
+    "Agenda por horas" de `constants.ts` (`DURACION_SIN_HORA_FIN`, `HORAS_MINIMAS_AGENDA`)
+    se quedaron sin nadie al retirar `DayTimeline`. Cero usos en `src/`, `e2e/` y
+    `scripts/`.
+  - **`runMutation` aprende a devolver.** Crear un evento o una serie devuelve lo creado
+    —la vista salta a esa fecha—, y por eso los tres tenían copiado a mano el mismo
+    `try/catch/finally` que `runMutation` ya encapsulaba. Ahora el motor es
+    `runMutationWith<T>(acción, respaldo, mensaje)` y `runMutation` es su caso sin
+    retorno. `createFamily` se queda fuera a propósito, y escrito en el código: no puede
+    recargar al terminar, porque `switchFamily` ya cambia la familia activa y recargar
+    ahí sería hacerlo con el `familyId` de la familia que acabas de dejar.
+  - **`AssigneePicker`.** El bloque "Asignar a" estaba copiado letra por letra en
+    `EventSheet` y `TaskSheet`; una fila de opciones duplicada es una fila que se cambia
+    en un sitio y se olvida en el otro. El de Documentos no entra: allí es una fila de
+    `SelectChip` con otra etiqueta y otro orden, y unirlos con una bandera se leería
+    peor que las dos versiones.
+
 - **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
   nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra
   vez como título del contenido. Se van los cuatro `h1` repetidos (Comidas tenía uno de

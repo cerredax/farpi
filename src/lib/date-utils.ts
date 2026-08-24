@@ -62,19 +62,6 @@ export function extractTime(dateTime: string): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-/**
- * Minutos desde medianoche de un datetime, en la zona del que mira. Es
- * `extractTime` sin pasar por la cadena: la agenda por horas coloca cada evento
- * por su minuto, y volver a parsear un "HH:mm" recién formateado sobraba.
- * Devuelve `null` cuando no hay hora que leer, para no confundirla con las 00:00.
- */
-export function extractMinutes(dateTime: string): number | null {
-  if (!dateTime.includes('T')) return null
-  const d = new Date(dateTime)
-  if (Number.isNaN(d.getTime())) return null
-  return d.getHours() * 60 + d.getMinutes()
-}
-
 /** Parte de fecha yyyy-MM-dd de un datetime, en la zona del que mira. Ver `extractTime`. */
 export function extractDate(dateTime: string): string {
   if (!dateTime.includes('T')) return dateTime.slice(0, 10)

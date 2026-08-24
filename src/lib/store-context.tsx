@@ -220,22 +220,42 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
   const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
 
-  // Toda escritura pasa por aquí: marca que hay algo en curso y deja el fallo
-  // en `error` para que la UI pueda contarlo. Antes se relanzaba y nadie lo
-  // recogía, así que un fallo de red se quedaba en silencio.
-  const runMutation = useCallback(async (action: () => Promise<unknown>): Promise<void> => {
+  /**
+   * Toda escritura pasa por aquí: marca que hay algo en curso, recarga al
+   * terminar y deja el fallo en `error` para que la UI pueda contarlo. Antes se
+   * relanzaba y nadie lo recogía, así que un fallo de red se quedaba en
+   * silencio.
+   *
+   * Devuelve lo que devolviera la acción, o `fallback` si falló, porque hay
+   * escrituras cuyo resultado necesita la vista: crear un evento la lleva a su
+   * fecha. Las que no devuelven nada usan `runMutation`, aquí debajo.
+   */
+  const runMutationWith = useCallback(async <T,>(
+    action: () => Promise<T>,
+    fallback: T,
+    mensaje: string,
+  ): Promise<T> => {
     setError(null)
     setUndoAction(null)
     setIsSaving(true)
     try {
-      await action()
+      const resultado = await action()
       await reload()
+      return resultado
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el cambio')
+      setError(err instanceof Error ? err.message : mensaje)
+      return fallback
     } finally {
       setIsSaving(false)
     }
   }, [reload])
+
+  /** El caso corriente: se escribe y no hay nada que devolver. */
+  const runMutation = useCallback(
+    (action: () => Promise<unknown>): Promise<void> =>
+      runMutationWith<void>(async () => { await action() }, undefined, 'No se pudo guardar el cambio'),
+    [runMutationWith],
+  )
 
   /**
    * Devolver una tarea a como estaba antes de marcarla. No basta con
@@ -298,6 +318,10 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       todayMeals,
       pendingTasks,
       pendingItems,
+      // La única escritura que se queda fuera de `runMutationWith`: no puede
+      // recargar al terminar. `switchFamily` cambia la familia activa y con ella
+      // el `reload` del provider, que ya se dispara solo; recargar aquí sería
+      // hacerlo con el `familyId` viejo, el de la familia que acabas de dejar.
       createFamily: async (name: string) => {
         setError(null)
         setIsSaving(true)
@@ -321,51 +345,28 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createKid: (draft: ChildDraft) => runMutation(() => repos.children.createKid(familyId, draft)),
       updateKid: (id: string, draft: ChildDraft) => runMutation(() => repos.children.updateKid(id, draft)),
       deleteKid: (id: string) => runMutation(() => repos.children.deleteKid(id)),
-      // Los eventos devuelven lo creado (la vista salta a esa fecha), así que no
-      // pueden usar runMutation tal cual, pero comparten su manejo del fallo:
-      // el error queda en el store y se devuelve un valor vacío.
-      createEvent: async (draft: EventDraft) => {
-        setError(null)
-        setIsSaving(true)
-        try {
-          const event = await repos.events.createEvent(familyId, draft)
-          await reload()
-          return event
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'No se pudo crear el evento')
-          return null
-        } finally {
-          setIsSaving(false)
-        }
-      },
-      createEventSeries: async (draft: EventDraft, weekdays: number[], endDate: string) => {
-        setError(null)
-        setIsSaving(true)
-        try {
-          const events = await repos.events.createEventSeries(familyId, draft, weekdays, endDate)
-          await reload()
-          return events
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'No se pudo crear la serie de eventos')
-          return []
-        } finally {
-          setIsSaving(false)
-        }
-      },
-      createYearlySeries: async (draft: EventDraft, endYear: number) => {
-        setError(null)
-        setIsSaving(true)
-        try {
-          const events = await repos.events.createYearlySeries(familyId, draft, endYear)
-          await reload()
-          return events
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'No se pudo crear la serie de eventos')
-          return []
-        } finally {
-          setIsSaving(false)
-        }
-      },
+      // Los eventos devuelven lo creado —la vista salta a esa fecha—, y por eso
+      // pasan por `runMutationWith` y no por `runMutation`. El tipo va escrito a
+      // mano porque la inferencia no puede sacarlo del valor de respaldo: `null`
+      // y `[]` no dicen de qué son.
+      createEvent: (draft: EventDraft) =>
+        runMutationWith<Event | null>(
+          () => repos.events.createEvent(familyId, draft),
+          null,
+          'No se pudo crear el evento',
+        ),
+      createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) =>
+        runMutationWith<Event[]>(
+          () => repos.events.createEventSeries(familyId, draft, weekdays, endDate),
+          [],
+          'No se pudo crear la serie de eventos',
+        ),
+      createYearlySeries: (draft: EventDraft, endYear: number) =>
+        runMutationWith<Event[]>(
+          () => repos.events.createYearlySeries(familyId, draft, endYear),
+          [],
+          'No se pudo crear la serie de eventos',
+        ),
       updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft)),
       deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id)),
       deleteEventSeries: (groupId: string) => runMutation(() => repos.events.deleteEventSeries(groupId)),
@@ -422,6 +423,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     pendingItems,
     repos,
     runMutation,
+    runMutationWith,
     undoAction,
     restaurarTarea,
   ])

@@ -1,11 +1,11 @@
 'use client'
 
+import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DotOption } from '@/components/ui/DotOption'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
-import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateTaskDraft } from '@/lib/validators'
 import type { Child, FamilyMember, Task, TaskDraft } from '@/types'
@@ -107,19 +107,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
         {/* La pregunta de una tarea compartida es "¿quién la hace?". Iba antes
             que la prioridad porque se contesta más veces: casi todo es prioridad
             media, pero casi nada es de los dos a la vez. */}
-        <Field label="Asignar a" spacing="group">
-          <div className="flex gap-3">
-            {buildAssignees(members, kids).map(a => (
-              <DotOption
-                key={a.key}
-                selected={assigneeKeyOf(draft) === a.key}
-                onClick={() => patch({ child_id: a.child_id, member_id: a.member_id })}
-                color={a.color}
-                label={a.name}
-              />
-            ))}
-          </div>
-        </Field>
+        <AssigneePicker value={draft} onChange={patch} members={members} kids={kids} />
 
         <Field label="Prioridad" spacing="group">
           <div className="flex gap-3">

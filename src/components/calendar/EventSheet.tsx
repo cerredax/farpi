@@ -1,11 +1,10 @@
 'use client'
 
+import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DeleteButton } from '@/components/ui/DeleteButton'
-import { DotOption } from '@/components/ui/DotOption'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
-import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import type { Event, Child, EventDraft, FamilyMember } from '@/types'
 import { EventRecurrenceFields } from './EventRecurrenceFields'
 import { EventSeriesDelete } from './EventSeriesDelete'
@@ -177,19 +176,7 @@ export function EventSheet({
           </div>
         )}
 
-        <Field label="Asignar a" spacing="group">
-          <div className="flex gap-3">
-            {buildAssignees(members, kids).map(a => (
-              <DotOption
-                key={a.key}
-                selected={assigneeKeyOf(s.draft) === a.key}
-                onClick={() => s.patch({ child_id: a.child_id, member_id: a.member_id })}
-                color={a.color}
-                label={a.name}
-              />
-            ))}
-          </div>
-        </Field>
+        <AssigneePicker value={s.draft} onChange={s.patch} members={members} kids={kids} />
 
         {mode === 'create' && !s.esVacaciones && !s.esDescanso && <EventRecurrenceFields s={s} />}
 

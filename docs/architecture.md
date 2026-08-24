@@ -179,30 +179,37 @@ Al eliminar a un miembro, sus asignaciones pasan a ser de toda la familia
 (`on delete set null`); el mock lo imita en `store/family.ts`.
 
 Los colores que se pueden elegir son `PERSON_COLORS`, en `src/lib/constants.ts`, y son
-**catorce, agrupados por a quién representan** (24-08-2026): cinco de hombre adulto, tres
-de mujer adulta, tres de niña y tres de niño. Ese archivo, junto a la lista, es la fuente
-de verdad; lo que hay que saber aquí es cómo está construida:
+**catorce en dos bandas de claridad**: ocho de adulto y seis de niño. Ese archivo, junto a
+la lista, es la fuente de verdad; lo que hay que saber aquí es cómo está construida:
 
-- **Los grupos se separan por claridad, no por tono.** Adultos en L* 30-46, niños en
+- **Los grupos se separan por claridad, no por tono.** Adultos en L* 30-45, niños en
   L* 71-88, y la franja L* 52-62 se esquiva: ahí ni el blanco ni la tinta llegan a 4,5:1
   encima del color, así que no cabe un grupo entero. De ahí sale el reparto de texto: los
-  ocho de adulto llevan blanco (el peor, 5,25:1) y los seis de niño llevan tinta (el peor,
-  6,92:1).
-- **Doce son cálidos y dos no, a propósito.** Azul (`#4A6C8C`) y Verde bosque (`#3D5C42`)
-  entran en el grupo de hombres, que era el que menos variedad reconocible tenía: con solo
-  tierras y ocres, quien busca "el azul" no lo encontraba. Respetan la banda de claridad de
-  los adultos, así que no cuestan contraste. No es lo mismo que la versión intermedia que
-  se descartó en su día: aquella era fría **entera** —azules, verdes fríos y violetas por
-  todo el círculo— porque el criterio era aguantar el daltonismo. Ese criterio sigue
-  retirado; esto son dos excepciones deliberadas, no una vuelta atrás.
-- **Lo que cuesta**: la pareja más cercana son Calabaza clara y Canela clara, a ΔE00 5,71
-  (ΔE76 15,8), las dos de niño; hay doce parejas de noventa y una por debajo de ΔE00 15.
-  Es menos margen que la paleta anterior, que estaba en 12,3 en su peor pareja. Se acepta:
-  los valores vienen calculados desde fuera del repositorio y entraron tal cual.
-- Ninguno es el `FAMILY_COLOR` ni el verde de la app. Los roces conocidos son de otra
-  clase: Champán dorado queda a ΔE00 9,4 del amarillo de familia y Coral claro a 8,3 de la
+  ocho de adulto llevan blanco (el peor, Ladrillo, 5,42:1) y los seis de niño llevan tinta
+  (el peor, Canela clara, 6,92:1).
+- **Los adultos no se reparten por género** (24-08-2026). Estuvieron divididos en "cinco de
+  hombre" y "tres de mujer", y esa cuota obligaba a elegir tonos para rellenarla en vez de
+  por cómo se distinguen. La app no sabe de géneros —no hay campo para eso— así que la
+  paleta tampoco: los ocho son sobrios y se ofrecen igual a cualquiera. Con ese cambio
+  salieron Rosa fuerte y Mostaza oscura, y entraron Pizarra (`#536270`) y Ciruela
+  (`#6B3F6D`).
+- **No son todos cálidos, a propósito.** Azul (`#4A6C8C`), Verde bosque (`#3D5C42`),
+  Pizarra y Ciruela rompen la regla de "solo tierras y ocres": con ella, quien busca "el
+  azul" no lo encontraba. Respetan la banda de claridad de los adultos, así que no cuestan
+  contraste. No es la versión intermedia que se descartó en su día: aquella era fría
+  **entera**, porque el criterio era aguantar el daltonismo. Ese criterio sigue retirado.
+- Ninguno es el `FAMILY_COLOR` ni el verde de la app, y ya **ninguno se le parece**: la que
+  se confundía con el amarillo de familia era Mostaza oscura, y el adulto más cercano ahora
+  es Cuero, a ΔE00 37. Queda un roce medido y de otra clase: Coral claro a ΔE00 8,3 de la
   terracota de marca. No compiten en pantalla —un punto de persona no se pone al lado de un
-  botón—, pero está medido.
+  botón—, pero está anotado.
+- **Lo que cuesta**: once parejas de noventa y una quedan por debajo de ΔE00 15 (eran
+  doce). La más cercana sigue siendo Calabaza clara con Canela clara, a 5,71, las dos de
+  niño; entre adultos, Azul con Pizarra a 7,40 y Vino con Granate a 7,71.
+- **Quitar un color de la lista no toca lo guardado.** `memberColor` devuelve el que la
+  persona tenga, sea de la paleta o no, y `ColorPicker` simplemente no lo marca como
+  elegido. Ya pasa con el `#FBC4DC` de Ana en los datos de demo, que no está en la lista
+  desde hace dos paletas.
 
 `e2e/unit/assignees.spec.ts` vigila lo que se puede vigilar sin meter CIEDE2000 en el
 repositorio: que no se repitan, que ninguno sea el `FAMILY_COLOR` ni el verde de la app, y

@@ -23,58 +23,57 @@ export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
 export const FAMILY_COLOR = '#E9C46A'
 
 /**
- * Colores de las personas de la familia, agrupados por a quién representan:
- * cinco para hombres adultos, tres para mujeres adultas, tres para niñas y tres
- * para niños. Catorce en total. El nombre no es decorativo: es la etiqueta
- * accesible de cada botón del selector, que antes leía el hexadecimal.
+ * Colores de las personas de la familia, en dos grupos por **claridad**: ocho de
+ * adulto en L* 30-45 y seis de niño en L* 71-88. El nombre no es decorativo: es
+ * la etiqueta accesible de cada botón del selector, que antes leía el
+ * hexadecimal.
  *
- * **La separación entre grupos es la claridad, no el tono.** Los adultos caen en
- * L* 30-46 y los niños en L* 71-88, y la franja L* 52-62 se esquiva a propósito:
- * ahí ni el blanco ni la tinta llegan a 4,5:1 encima del color, así que no cabe
- * un grupo entero. Con esta paleta los ocho adultos llevan blanco encima (el
- * peor, 5,25:1) y los seis de niño llevan tinta (el peor, 6,92:1), que es lo que
- * elige `textColorOn` en `assignees.ts`.
+ * La franja L* 52-62 se esquiva a propósito: ahí ni el blanco ni la tinta llegan
+ * a 4,5:1 encima del color, así que no cabe un grupo entero. De la separación
+ * sale el reparto de texto que hace `textColorOn` en `assignees.ts`: los ocho de
+ * adulto llevan blanco (el peor, Ladrillo, 5,42:1) y los seis de niño llevan
+ * tinta (el peor, Canela clara, 6,92:1).
  *
- * **Azul y Verde bosque rompen el resto a propósito.** Los doce restantes son
- * cálidos —tierras, rosas y ocres, que es como se ve una casa— pero con solo
- * tonos cálidos faltaba una expectativa de color que la gente da por hecha: quien
- * quiere "el azul" no lo encontraba. Los dos entran en el grupo de hombres, que
- * era el que menos variedad reconocible tenía, y respetan la banda de claridad de
- * los adultos, así que no cuestan contraste.
+ * **Los adultos ya no se reparten por género** (24-08-2026). Eran "cinco de
+ * hombre" y "tres de mujer", y esa división obligaba a elegir tonos para cumplir
+ * la cuota en vez de por cómo se distinguen. La app no sabe de géneros —no hay
+ * campo para eso— así que la paleta tampoco. Los ocho son sobrios y se ofrecen
+ * igual a cualquiera.
  *
- * A cambio, la separación perceptual entre los cálidos es la que es: la pareja
- * más cercana son Calabaza clara y Canela clara, a ΔE00 5,71 (ΔE76 15,8), las dos
- * de niño. Es menos margen que en versiones anteriores de esta paleta, y es un
- * compromiso aceptado: los valores vienen calculados desde fuera del código.
+ * Salieron con ese cambio Rosa fuerte y **Mostaza oscura**, que era la que se
+ * confundía con el amarillo de "toda la familia"; entraron Pizarra y Ciruela.
+ * Ahora el adulto más cercano a ese amarillo es Cuero, a ΔE00 37. Ninguno es el
+ * `FAMILY_COLOR` ni el verde de la app, que antes sí estaban en la lista: se
+ * podía elegir a mano el color que significa "de toda la familia".
  *
- * Ninguno es el `FAMILY_COLOR` ni el verde de la app, que antes sí estaban en la
- * lista: se podía elegir a mano el color que significa "de toda la familia". Lo
- * que sí conviene saber es que Champán dorado queda a ΔE00 9,4 del amarillo de
- * familia y Coral claro a 8,3 de la terracota de marca. No compiten —un punto de
- * persona no se pone al lado de un botón— pero si algún día se ven juntos, ahí
- * está el roce.
+ * Lo que cuesta, medido: de las noventa y una parejas, once quedan por debajo de
+ * ΔE00 15 (eran doce). La más cercana sigue siendo Calabaza clara con Canela
+ * clara, a 5,71, las dos de niño; entre adultos, Azul con Pizarra a 7,40 y Vino
+ * con Granate a 7,71, que son los dos roces que trae esta paleta.
  *
  * El orden es el de los grupos, que es como se eligen. Tiene una consecuencia:
  * `defaultMemberColor` reparte por posición cuando nadie ha elegido, así que a
- * los primeros adultos les tocan colores de hombre. Es un valor por defecto que
- * se cambia de un toque, y la app no sabe de géneros: no hay campo para eso.
+ * los primeros adultos les tocan los tonos oscuros. Es un valor por defecto que
+ * se cambia de un toque.
+ *
+ * Quitar un color de aquí **no toca lo guardado**: `memberColor` devuelve el que
+ * la persona tenga, sea de la lista o no, y `ColorPicker` simplemente no lo marca
+ * como elegido. Ya pasa hoy con el `#FBC4DC` de Ana en los datos de demo.
  */
 export const PERSON_COLORS: { value: string; label: string }[] = [
-  // Hombres adultos
+  // Adultos
   { value: '#A8503A', label: 'Ladrillo' },
   { value: '#7E5522', label: 'Cuero' },
   { value: '#7A2E2E', label: 'Vino' },
   { value: '#4A6C8C', label: 'Azul' },
   { value: '#3D5C42', label: 'Verde bosque' },
-  // Mujeres adultas
-  { value: '#A8496A', label: 'Rosa fuerte' },
   { value: '#8A3D4A', label: 'Granate' },
-  { value: '#8A661F', label: 'Mostaza oscura' },
-  // Niñas
+  { value: '#536270', label: 'Pizarra' },
+  { value: '#6B3F6D', label: 'Ciruela' },
+  // Hijos
   { value: '#F7B8CE', label: 'Rosa chicle' },
   { value: '#FFAFA0', label: 'Coral claro' },
   { value: '#F5D9A8', label: 'Champán dorado' },
-  // Niños
   { value: '#F9BE94', label: 'Melocotón' },
   { value: '#F2A65A', label: 'Calabaza clara' },
   { value: '#D9A46C', label: 'Canela clara' },

@@ -123,6 +123,26 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **La parte adulta de la paleta pasa a ocho colores sobrios y sin género.** Salen Rosa
+  fuerte y **Mostaza oscura** —la que se confundía con el amarillo de «toda la familia»— y
+  entran **Pizarra** (`#536270`) y **Ciruela** (`#6B3F6D`). Los seis infantiles no se
+  tocan. Siguen siendo catorce.
+  - **Se va la división por género.** Eran «cinco de hombre» y «tres de mujer», y esa
+    cuota obligaba a elegir tonos para rellenarla en vez de por cómo se distinguen. La app
+    no sabe de géneros: no hay campo para eso.
+  - **Medido, no supuesto**: los ocho de adulto llevan blanco y el peor es Ladrillo con
+    5,42:1 (antes el peor era 5,25:1, y era justo Mostaza oscura). Ninguno es el
+    `FAMILY_COLOR` ni el verde de marca, y el adulto más cercano a ese amarillo pasa de
+    confundirse a estar a ΔE00 37 (Cuero).
+  - **Lo que cuesta**: once parejas de noventa y una por debajo de ΔE00 15, una menos que
+    antes. La más cercana sigue siendo Calabaza clara con Canela clara (5,71), las dos de
+    niño; entre adultos aparecen dos roces nuevos, Azul con Pizarra a 7,40 y Vino con
+    Granate a 7,71, los dos azul-grises y vinos.
+  - **Nada se migra.** Quitar un color de la lista no toca lo guardado: `memberColor`
+    devuelve el que la persona tenga y `ColorPicker` no lo marca como elegido. Comprobado
+    en el sheet de Ana, que lleva un `#FBC4DC` fuera de paleta: abre bien, conserva su
+    color y no marca ninguno.
+
 - **En Inicio, cada lista de casa va en su línea.** Las cestas con algo pendiente iban
   en un `flex-wrap` y dos o tres compartían renglón sin nada que las separase: «Casa
   Compra bebé Cosas de Ana» se leía como una sola cosa con un nombre larguísimo, y con

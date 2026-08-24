@@ -101,9 +101,10 @@ test.describe('PERSON_COLORS', () => {
   // Lo que de verdad importa: que la inicial se lea. Va en blanco o en tinta
   // según el color, y con el color que le toca los catorce pasan el 4,5:1 que
   // WCAG pide para texto pequeño: los ocho de adulto con blanco (el peor,
-  // 5,25:1) y los seis de niño con tinta (el peor, 6,92:1). Antes, en blanco a
-  // pelo, once de doce no llegaban ni a 3:1. El recuento va en el comentario y no
-  // en un `expect`: lo que hay que sostener es la regla, no cuántos colores haya.
+  // Ladrillo, 5,42:1) y los seis de niño con tinta (el peor, Canela clara,
+  // 6,92:1). Antes, en blanco a pelo, once de doce no llegaban ni a 3:1. El
+  // recuento va en el comentario y no en un `expect`: lo que hay que sostener es
+  // la regla, no cuántos colores haya.
   test('con el color de texto que les toca, todos llegan a 4,5:1', () => {
     for (const { value, label } of PERSON_COLORS) {
       expect(contraste(value, textColorOn(value)), `${label} ${value}`).toBeGreaterThanOrEqual(4.5)

@@ -26,8 +26,9 @@ export function memberColor(members: FamilyMember[], memberId: string, kids: Chi
     // El amarillo de "toda la familia" cuenta como pillado. Desde que ningún
     // color de persona es exactamente ese amarillo esto no puede pasar, pero se
     // queda como red de seguridad: un adulto con ese color se confundiría con lo
-    // que no es de nadie en particular. (Ojo: "Mostaza oscura" se parece de
-    // nombre y no es el mismo color, está mucho más oscuro.)
+    // que no es de nadie en particular. El que más se le acercaba, "Mostaza
+    // oscura", salió de la paleta el 24-08-2026; el más cercano ahora es Cuero,
+    // a ΔE00 37.
     FAMILY_COLOR,
     ...kids.map(k => k.color),
     ...members.flatMap(m => (m.color ? [m.color] : [])),
@@ -139,14 +140,14 @@ export function eventColor(
  *
  * Iba en blanco a pelo, y encima de la mitad de la paleta no se leía: el
  * amarillo de "toda la familia" daba 1,67:1 cuando el mínimo de WCAG para texto
- * pequeño es 4,5:1. La paleta nueva es de claridad escalonada a propósito
- * —hace falta para que se distingan— y por eso el blanco no puede valer para
- * todos: cuatro de los ocho son claros.
+ * pequeño es 4,5:1. La paleta va en dos bandas de claridad a propósito —hace
+ * falta para que se distingan— y por eso el blanco no puede valer para todas:
+ * los ocho de adulto son oscuros y los seis de niño, claros.
  *
  * Se elige el que más contraste dé, no el que toque por una regla fija, porque
- * el color puede venir de la base de datos y ser cualquiera: un color viejo de
- * antes del cambio de paleta, o el de un evento. Con los ocho de ahora, los ocho
- * pasan de 4,5:1.
+ * el color puede venir de la base de datos y ser cualquiera: uno de una paleta
+ * anterior, o el de un evento. Con los catorce de ahora, los catorce pasan de
+ * 4,5:1.
  */
 const BLANCO = '#FFFFFF'
 /** El mismo `--color-ink` de `globals.css`, aquí como dato porque viaja en `style`. */

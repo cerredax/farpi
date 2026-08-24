@@ -1,6 +1,6 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, List, ListItem, Document,
+  MealPlan, MealSlot, List, ListItem, Document,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, DocumentDraft,
 } from '@/types'
@@ -13,6 +13,8 @@ export interface FamilyRepo {
   getFamily(familyId: string): Promise<Family | undefined>
   getFamilies(): Promise<Family[]>
   setFamilyName(familyId: string, name: string): Promise<Family>
+  /** Qué franjas de comida se ven. Nunca deja la familia sin ninguna. */
+  setFamilyMealSlots(familyId: string, slots: MealSlot[]): Promise<Family>
   createFamily(name: string): Promise<Family>
 }
 

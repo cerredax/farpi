@@ -24,6 +24,7 @@ export function MealsView() {
         initial={s.editingMeal}
         defaultDate={s.sheetDate}
         defaultSlot={s.sheetSlot}
+        slots={s.mealSlots}
         occupiedSlots={s.occupiedSlots}
         historial={s.historialPlatos}
         onClose={() => s.setSheetOpen(false)}
@@ -106,6 +107,7 @@ export function MealsView() {
             </div>
             <WeekList
               weekDays={s.mobileWeek.days}
+              slots={s.slots}
               mealsByCell={s.mealsByCell}
               onCreate={s.openCreate}
               onEdit={s.openEdit}
@@ -164,6 +166,7 @@ export function MealsView() {
         {/* Grid */}
         <WeekGrid
           weekDays={s.desktopWeek.days}
+          slots={s.slots}
           mealsByCell={s.mealsByCell}
           onCreate={s.openCreate}
           onEdit={s.openEdit}

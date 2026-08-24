@@ -7,6 +7,7 @@ import { memberColor, splitPeople } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
+import { MealSlotsCard } from './MealSlotsCard'
 import { NotificationsCard } from './NotificationsCard'
 import { AccountActions } from './AccountActions'
 import { InstallPWA } from './InstallPWA'
@@ -29,8 +30,8 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 export function SettingsView() {
   const {
     family, families, activeFamilyId, switchFamily, createFamily,
-    members, invites, kids,
-    updateFamilyName, inviteMember, updateMember, updateMemberRole, removeMember, cancelInvite,
+    members, invites, kids, mealSlots,
+    updateFamilyName, updateMealSlots, inviteMember, updateMember, updateMemberRole, removeMember, cancelInvite,
     createKid, updateKid, deleteKid,
   } = useStore()
 
@@ -132,6 +133,10 @@ export function SettingsView() {
 
         <Section label="Hijos">
           <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
+        </Section>
+
+        <Section label="Comidas">
+          <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
         </Section>
 
         {IS_DEMO_MODE && (

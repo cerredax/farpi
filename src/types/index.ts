@@ -4,6 +4,12 @@ export type DocMimeType = 'application/pdf' | 'image/jpeg' | 'image/png'
 export interface Family {
   id: string
   name: string
+  /**
+   * Franjas de comida que la familia quiere ver, ya normalizadas: sin repetidos,
+   * sin valores raros y en el orden del día. Ocultar una franja no borra sus
+   * `MealPlan`; solo deja de pintarla. Migración 019.
+   */
+  meal_slots: MealSlot[]
   created_at: string
   updated_at: string
 }

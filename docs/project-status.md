@@ -19,7 +19,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Listas e ítems: lo que falta arriba, lo que ya tenéis plegado como catálogo (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
-- Comidas (día/semana, copiar día).
+- Comidas (día/semana, copiar día). Las cuatro franjas se activan y desactivan por familia desde Ajustes; apagar una no borra lo apuntado en ella.
 - Documentos: subir, abrir/descargar (signed URL 60 s), editar, borrar y aviso de
   caducidad en la tarjeta.
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
@@ -41,7 +41,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 ### Backend / migraciones
 
-- Migraciones Supabase 001–018 aplicadas en el proyecto real. Las 017 (descansos) y 018 (adultos sin cuenta), el 2026-08-21, revalidadas ese mismo día con 51/51. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
+- Migraciones Supabase 001–019 aplicadas en el proyecto real. La 019 (franjas de comida) entró el 2026-08-24 y quedó validada ese mismo día con 58/58. Las 017 (descansos) y 018 (adultos sin cuenta), el 2026-08-21, revalidadas ese mismo día con 51/51. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
@@ -57,7 +57,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó (migración 015).
 - Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario (migración 016).
 - Adultos sin cuenta: un abuelo se da de alta con nombre y color, sin correo y sin acceso a la app, y se le asigna igual que a un hijo (migración 018). Viven en `children` con `kind = 'adulto'`; el porqué está en «Decisiones de producto» de `docs/architecture.md`.
-- `supabase/all_in_one.sql`, las 18 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
+- `supabase/all_in_one.sql`, las 19 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
 
 ### Calidad / infraestructura
 
@@ -72,12 +72,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **259 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **279 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 188 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
-  - 71 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 207 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, colocación en el eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,8 s.
+  - 72 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -104,7 +104,7 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Estado Supabase
 
-- Proyecto Supabase creado, migraciones 001–016 aplicadas y UI conectada. Las 012, 013 y 014 se verificaron contra la base real el 04-08-2026; las 015 y 016 se aplicaron el 05-08-2026.
+- Proyecto Supabase creado, migraciones 001–019 aplicadas y UI conectada. Las 012, 013 y 014 se verificaron contra la base real el 04-08-2026; las 015 y 016 se aplicaron el 05-08-2026; las 017 y 018 el 21-08-2026; la 019 el 24-08-2026.
 - 014 (`update_family_member_profile` + `family_members.color`): la columna existe, la RPC responde y la antigua `update_my_family_profile` está borrada. Editar un miembro funciona en producción.
 - App en producción (Vercel) contra el mismo proyecto Supabase que local.
 - **Validación aislada completada el 2026-08-03: 47/47 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
@@ -113,13 +113,41 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. El 06-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
-real: **51/51**, con las 16 migraciones validadas. Entraron las dos comprobaciones de
-los triggers cross-family de `tasks` (no se puede asignar una tarea a un hijo ni a un
-miembro de otra familia) y las dos del perfil que llegó con la 014. Detalle en
-`docs/supabase-validation.md`.
+Sin pendientes. El 24-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
+real: **58/58**, con las 19 migraciones validadas. Las siete últimas comprobaciones son de
+la 019 (franjas de comida): que la columna nace con las cuatro, que solo un admin las
+cambia —y que un miembro de la familia que no lo es, no— y que el `check` rechaza tanto una
+franja inventada como quedarse sin ninguna. Antes de eso, el 06-08-2026, la pasada dio
+51/51 con las dos comprobaciones de los triggers cross-family de `tasks` y las dos del
+perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
+
+- **Las franjas de comida se eligen, y son de la familia.** En Ajustes → Comidas salen
+  las cuatro con un interruptor cada una; lo que se apaga desaparece de la rejilla de la
+  semana, de la lista de móvil, de "Hoy", del menú de Inicio y del formulario de apuntar.
+  Migración **019**, `families.meal_slots text[]`.
+  - **Se guarda en la familia y no en el móvil** porque «en casa no merendamos» es un
+    hecho de la casa. El porqué de esto y de las otras dos reglas —ocultar no borra,
+    siempre queda una— está en «Decisiones de producto» de `architecture.md`.
+  - **Aplicada y validada el mismo día**: 58/58, con siete comprobaciones nuevas en el
+    arnés (§9 de `supabase-validation.md`). El código aguanta las dos situaciones de todas
+    formas: si la columna no existiera, `mapFamily` la normaliza a las cuatro franjas y la
+    app se ve igual. Es lo que permite desplegar el código antes que el SQL.
+  - No hace falta policy nueva: `families` ya tenía la de update de la 002, así que esto
+    lo cambia un admin, igual que el nombre. Y por lo mismo hereda su límite conocido: la
+    UI ofrece el interruptor a cualquiera, y a un miembro no admin el guardado le va a
+    fallar. Es el mismo agujero que tiene renombrar la familia, no uno nuevo, y arreglarlo
+    pide que el store sepa quién eres.
+  - Lo que **no** se filtra: copiar un día sigue copiando el día entero, franjas ocultas
+    incluidas. Lo copiado tampoco se ve, así que no cambia nada en pantalla, y es
+    coherente con no borrar.
+  - `src/lib/meal-slots.ts` con la lógica (normalizar, encender/apagar, filtrar) y 19
+    unitarios nuevos. El caso vacío significa «las cuatro», nunca «ninguna»: eso cubre a
+    la vez una familia de antes de la 019, un `localStorage` viejo y el intento de
+    apagarlas todas.
+  - `SCHEMA_VER` del mock sube a **8**, que es lo que borra el `localStorage` con la forma
+    vieja de `Family`.
 
 - **La paleta vuelve a ser la original.** Crema `#FAF7F2`, tinta `#252525`, salvia
   `#8BA888`, terracota `#D8A48F`, amarillo `#E9C46A` y rojo `#D96C6C`. Se retiran las dos

@@ -54,6 +54,11 @@ Estado:
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 - Migraciones 001–018 aplicadas y revalidadas. Las 017 y 018 entraron el 2026-08-21 y `node scripts/validate-rls.mjs` volvió a dar 51/51 ese mismo día, el mismo recuento que tras las 015 y 016: ninguna de las dos toca policies ni aislamiento.
+- Migración 019 (`families.meal_slots`) aplicada y validada el 2026-08-24: **58/58**, con
+  siete comprobaciones nuevas. El repo sigue normalizando la columna ausente a "las cuatro
+  franjas" (`mapFamily` en `src/lib/supabase-repos/family.ts`); ya no hace falta para
+  producción, pero es lo que permite desplegar código antes que SQL, que es el orden en el
+  que pasan las cosas aquí.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
@@ -77,6 +82,7 @@ Migraciones:
 - `016_document_expiry.sql` — `expires_on` en `documents` (nullable) e índice por `(family_id, expires_on)`
 - `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` y le exige día completo y fecha final, igual que a las vacaciones
 - `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), para los adultos de la familia que no tienen cuenta
+- `019_meal_slots.sql` — `meal_slots` en `families` (`text[]`, las cuatro por defecto): qué franjas de comida ve la familia. No necesita policy nueva, la de update de la 002 ya vale
 
 Se aplican a mano por el SQL Editor: no hay CLI de Supabase enlazada, así que los
 ficheros numerados son el único registro de qué se aplicó y en qué orden.
@@ -331,6 +337,22 @@ falta es el que antes estaba pendiente. Cambia lo que significa en pantalla.
 **El catálogo se pide con un `+`, no con un tic.** Un tic ahí diría "hecho", que en
 este modelo no significa nada. De ahí que `CircleCheck` y `CirclePlus` sean dos
 componentes hermanos con las mismas medidas.
+
+**Las franjas de comida se eligen, y son de la familia** (migración 019). Las cuatro
+—desayuno, comida, merienda y cena— están fijas en el código, pero en una casa que no
+merienda esa fila es un hueco que la app pide llenar siete veces por semana. En Ajustes se
+apagan las que no se usan. Tres cosas se decidieron a propósito:
+
+- **Se guarda en `families`, no por dispositivo.** "En casa no merendamos" es un hecho de
+  la casa, no la preferencia de un teléfono: configurado una vez, vale para todos los
+  móviles. Como el nombre de la familia, lo cambia un admin (policy de update de la 002).
+- **Ocultar no borra.** `meal_plans` no se toca: lo apuntado en una franja oculta sigue en
+  la base y vuelve a verse si se reactiva. Es la misma idea que el catálogo plegado de las
+  listas: dejar de ver no es dejar de tener.
+- **Siempre queda al menos una**, igual que siempre queda un admin. Con cero franjas la
+  pantalla de comidas se queda sin filas y sin manera de volver a activarlas desde ella. Se
+  comprueba en los tres sitios: el `check` de la 019, `toggleMealSlot` y la propia fila de
+  Ajustes, que lo dice en vez de ofrecer un botón que no hace nada.
 
 **Lo atrasado se arrastra al día de hoy.** El tramo del calendario empieza hoy, así
 que todo lo vencido caía fuera: lo que más urge era lo único invisible. Una tarea

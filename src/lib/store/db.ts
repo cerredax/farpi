@@ -1,3 +1,4 @@
+import { ALL_MEAL_SLOTS } from '../meal-slots'
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, List, ListItem, Document,
@@ -18,7 +19,7 @@ interface DB {
 
 export const db: DB = {
   families: [
-    { id: 'f1', name: 'Familia de Omar, Sofía y Ana', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'f1', name: 'Familia de Omar, Sofía y Ana', meal_slots: [...ALL_MEAL_SLOTS], created_at: '2026-06-01T00:00:00', updated_at: '2026-06-17T08:00:00' },
   ],
 
   members: [

@@ -1,7 +1,7 @@
 import { db } from './db'
 
 const STORAGE_KEY = 'nido_store_v1'
-const SCHEMA_VER  = 7  // v7: Child.kind (hijo | adulto)
+const SCHEMA_VER  = 8  // v8: Family.meal_slots (franjas de comida visibles)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return

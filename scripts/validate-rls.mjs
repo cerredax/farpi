@@ -280,6 +280,39 @@ async function main() {
   })
   comprobar('A sí puede borrar su propio documento', borradoA.ok, `estado ${borradoA.status}`)
 
+  // La 019 guarda en `families` qué franjas de comida ve la casa. No trae policy
+  // nueva —usa la de update de la 002— así que lo que hay que comprobar es que esa
+  // policy sigue diciendo "solo admin" con una columna más, y que el `check`
+  // aguanta los dos casos que romperían la pantalla: una franja inventada y
+  // quedarse sin ninguna. B, a estas alturas, ya es miembro NO admin de la familia
+  // de A (aceptó la invitación en la sección 7), que es justo el caso interesante.
+  console.log('\n== 9. Franjas de comida (019)')
+  comprobar('Una familia nueva nace con las cuatro franjas',
+    JSON.stringify((await api(`/rest/v1/families?id=eq.${famB}&select=meal_slots`, { token: tokB })).cuerpo?.[0]?.meal_slots)
+      === JSON.stringify(['breakfast', 'lunch', 'snack', 'dinner']))
+  comprobar('A (admin) puede cambiar las franjas de su familia',
+    filas(await api(`/rest/v1/families?id=eq.${famA}`, {
+      metodo: 'PATCH', token: tokA, datos: { meal_slots: ['breakfast', 'lunch'] }, cabeceras: REPRESENTACION,
+    })) === 1)
+  comprobar('Las franjas quedan guardadas',
+    JSON.stringify((await api(`/rest/v1/families?id=eq.${famA}&select=meal_slots`, { token: tokA })).cuerpo?.[0]?.meal_slots)
+      === JSON.stringify(['breakfast', 'lunch']))
+  comprobar('El check rechaza una franja que no existe',
+    (await api(`/rest/v1/families?id=eq.${famA}`, {
+      metodo: 'PATCH', token: tokA, datos: { meal_slots: ['brunch'] },
+    })).estado >= 400)
+  comprobar('El check rechaza quedarse sin ninguna franja',
+    (await api(`/rest/v1/families?id=eq.${famA}`, {
+      metodo: 'PATCH', token: tokA, datos: { meal_slots: [] },
+    })).estado >= 400)
+  comprobar('Un miembro NO admin no puede cambiar las franjas',
+    filas(await api(`/rest/v1/families?id=eq.${famA}`, {
+      metodo: 'PATCH', token: tokB, datos: { meal_slots: ['dinner'] }, cabeceras: REPRESENTACION,
+    })) === 0)
+  comprobar('Tras los rechazos, las franjas siguen siendo las de A',
+    JSON.stringify((await api(`/rest/v1/families?id=eq.${famA}&select=meal_slots`, { token: tokA })).cuerpo?.[0]?.meal_slots)
+      === JSON.stringify(['breakfast', 'lunch']))
+
   console.log('\n== limpieza')
   for (const fam of [famA, famB]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })
   for (const uid of [uidA, uidB, uidC]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })

@@ -1,4 +1,5 @@
-import type { Family, FamilyMember, FamilyInvite } from '@/types'
+import type { Family, FamilyMember, FamilyInvite, MealSlot } from '@/types'
+import { ALL_MEAL_SLOTS, normalizeMealSlots } from '../meal-slots'
 import { db } from './db'
 
 export function getFamily(familyId: string): Family | undefined {
@@ -16,9 +17,23 @@ export function setFamilyName(familyId: string, name: string): Family {
   return db.families.find(f => f.id === familyId)!
 }
 
+/**
+ * Imita el update de `families` de la 019: normaliza como el repo real y nunca
+ * se queda sin franjas. Lo que hubiera apuntado en una franja que se oculta no
+ * se toca, igual que en Supabase.
+ */
+export function setFamilyMealSlots(familyId: string, slots: MealSlot[]): Family {
+  const meal_slots = normalizeMealSlots(slots)
+  db.families = db.families.map(f =>
+    f.id !== familyId ? f : { ...f, meal_slots, updated_at: new Date().toISOString() }
+  )
+  return db.families.find(f => f.id === familyId)!
+}
+
 export function createFamily(name: string): Family {
   const now = new Date().toISOString()
-  const f: Family = { id: crypto.randomUUID(), name: name.trim(), created_at: now, updated_at: now }
+  // Las cuatro franjas, que es el `default` de la columna en la 019.
+  const f: Family = { id: crypto.randomUUID(), name: name.trim(), meal_slots: [...ALL_MEAL_SLOTS], created_at: now, updated_at: now }
   db.families = [...db.families, f]
   const adminMember: FamilyMember = {
     id: crypto.randomUUID(),

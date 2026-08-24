@@ -452,3 +452,45 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
 
   await expect(page.locator('[title="Vacaciones"]')).toHaveCount(3)
 })
+
+// Las cuatro franjas de comida están fijas en el código, pero no todas las casas
+// meriendan: en Ajustes se apagan las que no se usan y Comidas deja de pedirlas.
+// Apagar no borra, y por eso al final se vuelve a encender: lo que hubiera
+// apuntado en esa franja sigue ahí.
+test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => {
+  await page.goto('/settings')
+  await page.waitForTimeout(800)
+
+  const merienda = page.getByRole('switch', { name: 'Merienda' })
+  await expect(merienda).toHaveAttribute('aria-checked', 'true')
+  await merienda.click()
+  await page.waitForTimeout(500)
+  await expect(merienda).toHaveAttribute('aria-checked', 'false')
+
+  // La semana, que es donde se ven las franjas una debajo de otra.
+  await page.goto('/meals')
+  await page.waitForTimeout(800)
+  await page.getByRole('button', { name: 'Esta semana' }).click()
+  await page.waitForTimeout(300)
+
+  await expect(page.getByText('Desayuno').first()).toBeVisible()
+  await expect(page.getByText('Merienda')).toHaveCount(0)
+
+  // Y el formulario tampoco la ofrece: no se puede apuntar lo que no se ve.
+  await page.getByRole('button', { name: 'Añadir comida' }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Añadir comida' })
+  await expect(sheet.getByRole('button', { name: /Comida/ }).first()).toBeVisible()
+  await expect(sheet.getByText('Merienda')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
+
+  // Vuelta atrás: la franja reaparece con todo lo que tuviera.
+  await page.goto('/settings')
+  await page.waitForTimeout(800)
+  await page.getByRole('switch', { name: 'Merienda' }).click()
+  await page.waitForTimeout(500)
+  await page.goto('/meals')
+  await page.waitForTimeout(800)
+  await page.getByRole('button', { name: 'Esta semana' }).click()
+  await expect(page.getByText('Merienda').first()).toBeVisible()
+})

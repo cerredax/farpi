@@ -6,6 +6,7 @@ import { mockRepos } from './mock-repos'
 import { supabaseRepos } from './supabase-repos'
 import { IS_DEMO_MODE } from './supabase/client'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
+import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
 import type { Repos } from './repos/types'
 import type {
   Child,
@@ -23,6 +24,7 @@ import type {
   ListItemDraft,
   MealDraft,
   MealPlan,
+  MealSlot,
   PendingItem,
   Task,
   TaskDraft,
@@ -61,10 +63,14 @@ interface StoreValue {
   allListItems: ListItem[]
   meals: MealPlan[]
   documents: Document[]
+  /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
+  mealSlots: MealSlot[]
+  /** Las de hoy, ya sin las franjas ocultas. */
   todayMeals: MealPlan[]
   pendingTasks: Task[]
   pendingItems: PendingItem[]
   updateFamilyName: (name: string) => Promise<void>
+  updateMealSlots: (slots: MealSlot[]) => Promise<void>
   inviteMember: (email: string) => Promise<void>
   updateMember: (id: string, name: string, color: string | null) => Promise<void>
   updateMemberRole: (id: string, role: 'admin' | 'member') => Promise<void>
@@ -202,7 +208,15 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     return () => window.clearTimeout(timer)
   }, [reload])
 
-  const todayMeals = useMemo(() => selectTodayMeals(meals), [meals])
+  // Las franjas ocultas dejan de verse en todas las pantallas a la vez, y por eso
+  // se filtra aquí y no en cada vista: Inicio y la pestaña "Hoy" de Comidas leen
+  // las dos de `todayMeals`, y una tercera pantalla que llegue lo hereda gratis.
+  // Lo apuntado en una franja oculta sigue en `meals`, sin borrar.
+  const mealSlots = useMemo(() => normalizeMealSlots(family?.meal_slots), [family])
+  const todayMeals = useMemo(
+    () => filterMealsBySlots(selectTodayMeals(meals), mealSlots),
+    [meals, mealSlots],
+  )
   const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
   const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
 
@@ -280,6 +294,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       allListItems,
       meals,
       documents,
+      mealSlots,
       todayMeals,
       pendingTasks,
       pendingItems,
@@ -296,6 +311,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         }
       },
       updateFamilyName: (name: string) => runMutation(() => repos.family.setFamilyName(familyId, name)),
+      updateMealSlots: (slots: MealSlot[]) => runMutation(() => repos.family.setFamilyMealSlots(familyId, slots)),
       inviteMember: (email: string) => runMutation(() => repos.invites.createInvite(familyId, email)),
       updateMember: (id: string, name: string, color: string | null) =>
         runMutation(() => repos.members.updateMemberProfile(id, name, color)),
@@ -400,6 +416,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     allListItems,
     meals,
     documents,
+    mealSlots,
     todayMeals,
     pendingTasks,
     pendingItems,

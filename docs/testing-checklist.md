@@ -90,6 +90,13 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Fecha por defecto usa fecha local.
 - [ ] No se crean duplicados por familia, fecha y slot.
 - [ ] Si un slot ya existe, el comportamiento de actualización queda claro.
+- [ ] Ajustes → Comidas: apagar una franja la quita de la semana, de "Hoy", del menú de
+      Inicio y del formulario. Encenderla otra vez devuelve lo que hubiera apuntado en ella.
+- [ ] La última franja encendida no se puede apagar y la fila lo explica.
+- [ ] Con varios móviles: el cambio se ve en el otro al recargar (es de la familia, no del
+      dispositivo).
+- [ ] Con una cuenta que no es admin de la familia, el interruptor da error al guardar (el
+      mismo límite que renombrar la familia).
 
 ## 8. Documentos
 
@@ -193,7 +200,7 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 > es lo que pide `CLAUDE.md` después de tocar una migración, una policy o una RPC.
 > Lo de abajo queda como referencia de qué cubre.
 
-- [ ] Migraciones 001–018 aplicadas en orden.
+- [ ] Migraciones 001–019 aplicadas en orden.
 - [ ] Tablas, índices y triggers existen.
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.

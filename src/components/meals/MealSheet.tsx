@@ -4,8 +4,9 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { Suggestions } from '@/components/ui/Suggestions'
-import { MEAL_SLOTS, PLATOS_SUGERIDOS } from '@/lib/constants'
+import { PLATOS_SUGERIDOS } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
+import { editableMealSlots } from '@/lib/meal-slots'
 import { selectSuggestions } from '@/lib/selectors'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateMealDraft } from '@/lib/validators'
@@ -17,6 +18,8 @@ interface MealSheetProps {
   initial?: MealPlan | null
   defaultDate?: string
   defaultSlot?: MealSlot
+  /** Las franjas que la familia ve. Migración 019; nunca llega vacía. */
+  slots: MealSlot[]
   occupiedSlots?: MealSlot[]
   /** Platos ya usados por la familia; de aquí salen las sugerencias. */
   historial?: string[]
@@ -26,16 +29,42 @@ interface MealSheetProps {
   onDelete: (id: string) => void
 }
 
+/**
+ * La franja preseleccionada al crear. Era siempre la comida, y sigue siéndolo
+ * mientras se vea: es la que más se apunta. Si la familia la ha ocultado se coge
+ * la primera visible, porque preseleccionar un chip que no está en pantalla deja
+ * el formulario diciendo una cosa y guardando otra.
+ */
+function slotPorDefecto(visibles: MealSlot[], pedida?: MealSlot): MealSlot {
+  if (pedida && visibles.includes(pedida)) return pedida
+  if (visibles.includes('lunch')) return 'lunch'
+  return visibles[0]
+}
+
 function initDraft(
   mode: 'create' | 'edit',
   initial: MealPlan | null | undefined,
+  visibles: MealSlot[],
   defaultDate?: string,
-  defaultSlot: MealSlot = 'lunch',
+  defaultSlot?: MealSlot,
 ): MealDraft {
   if (mode === 'edit' && initial) {
     return { date: initial.date, slot: initial.slot, name: initial.name, notes: initial.notes ?? '' }
   }
-  return { date: defaultDate ?? getLocalDateString(), slot: defaultSlot, name: '', notes: '' }
+  return {
+    date: defaultDate ?? getLocalDateString(),
+    slot: slotPorDefecto(visibles, defaultSlot),
+    name: '',
+    notes: '',
+  }
+}
+
+/** Las clases van literales: Tailwind no ve una clase construida en tiempo de ejecución. */
+const COLUMNAS_FRANJA: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
 }
 
 export function MealSheet({
@@ -44,6 +73,7 @@ export function MealSheet({
   initial,
   defaultDate,
   defaultSlot,
+  slots,
   occupiedSlots = [],
   historial = [],
   onClose,
@@ -51,9 +81,13 @@ export function MealSheet({
   onUpdate,
   onDelete,
 }: MealSheetProps) {
+  // Al editar se añade la franja de la propia comida aunque esté oculta: si no,
+  // una merienda apuntada antes de ocultar la merienda no se podría ni abrir.
+  const franjas = editableMealSlots(slots, mode === 'edit' ? initial?.slot : undefined)
+
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<MealDraft>({
     open,
-    initialDraft: () => initDraft(mode, initial, defaultDate, defaultSlot),
+    initialDraft: () => initDraft(mode, initial, franjas.map(f => f.key), defaultDate, defaultSlot),
     validate: validateMealDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
@@ -101,8 +135,8 @@ export function MealSheet({
         </Field>
 
         <Field label="Franja" spacing="group">
-          <div className="grid grid-cols-4 gap-2">
-            {MEAL_SLOTS.map(slot => {
+          <div className={`grid gap-2 ${COLUMNAS_FRANJA[franjas.length] ?? 'grid-cols-4'}`}>
+            {franjas.map(slot => {
               const occupied = mode === 'create' && occupiedSlots.includes(slot.key)
               const selected = draft.slot === slot.key
               return (

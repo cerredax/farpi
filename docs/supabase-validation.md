@@ -1,9 +1,10 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-06. **51/51 comprobaciones correctas.**
+Última ejecución: 2026-08-24. **58/58 comprobaciones correctas.**
 
-Las 47 de la pasada del 03-08-2026 más las cuatro que trajeron las migraciones 014 y
-015: los dos triggers cross-family de `tasks` y las dos del perfil de miembro. Ya no
+Las 51 de la pasada del 06-08-2026 (que a su vez eran las 47 del 03-08-2026 más las
+cuatro de las migraciones 014 y 015: los dos triggers cross-family de `tasks` y las dos
+del perfil de miembro) más las **siete que trae la 019**, las franjas de comida. Ya no
 queda ninguna migración sin validar. La limpieza dejó en la base únicamente la familia
 real; los tres usuarios y las dos familias de prueba se borraron.
 
@@ -41,6 +42,7 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `016_document_expiry.sql` — `documents.expires_on`; columna nullable que no altera el aislamiento: `documents` sigue pasando lectura, escritura y Storage *(validado el 06-08-2026)*
 - [x] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(aplicada y revalidada el 21-08-2026)*
 - [x] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(aplicada y revalidada el 21-08-2026; la columna se comprobó además leyéndola contra la base real)*
+- [x] `019_meal_slots.sql` — `meal_slots` en `families`, qué franjas de comida se ven *(aplicada y validada el 24-08-2026, con siete comprobaciones propias en el arnés)*
 
 ## Validación RLS
 
@@ -113,14 +115,30 @@ Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-**No queda nada pendiente.** Las 18 migraciones están validadas y la pasada del
-21-08-2026 no dejó ninguna comprobación en rojo: 51/51, el mismo recuento que el
-06-08-2026.
+**No queda nada pendiente.** Las 19 migraciones están validadas y la pasada del
+24-08-2026 no dejó ninguna comprobación en rojo: 58/58.
 
 ## Pendiente
 
 Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
+
+### Notas de la ejecución (24-08-2026)
+
+- **58/58.** La 019 se aplicó a mano en el SQL Editor ese día y el arnés gana **siete
+  comprobaciones**, en una sección nueva (§9). Aquí sí valía la pena: la 019 no trae
+  policy propia —reutiliza la de update de la 002— y eso es exactamente lo que hay que
+  comprobar, que esa policy sigue diciendo «solo admin» ahora que hay una columna más que
+  tocar.
+- Las siete: que una familia nueva nace con las cuatro franjas (el `default` de la
+  columna), que un admin las cambia y quedan guardadas, que el `check` rechaza una franja
+  inventada y también quedarse sin ninguna, que **un miembro no admin no las puede
+  cambiar** —B ya es miembro de la familia de A a esas alturas, así que es el caso real y
+  no un ajeno— y que después de los dos rechazos el valor sigue siendo el bueno.
+- El caso del array vacío es el que justificó usar `cardinality` en vez de
+  `array_length` en el `check`: con el array vacío `array_length` devuelve null, un `check`
+  que sale null se considera cumplido y `{}` se habría colado. Se ve rechazado en la
+  ejecución, no solo en el razonamiento.
 
 ### Notas de la ejecución (21-08-2026)
 

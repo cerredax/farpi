@@ -71,7 +71,12 @@ No es una fase que se cierre para siempre: se repite con
 RPC.
 
 **Al día (21-08-2026)**: las 017 y 018 se aplicaron en Supabase y el script volvió a
-dar 51/51 ese mismo día. No queda nada pendiente hasta la próxima migración.
+dar 51/51 ese mismo día.
+
+**Al día (24-08-2026)**: la 019 (franjas de comida) se aplicó en Supabase y el script pasó
+a 58/58. Las siete comprobaciones nuevas son suyas: reutiliza la policy de update de la
+002, así que lo que se comprueba es que esa policy sigue siendo solo de admin y que el
+`check` de la columna aguanta. No queda nada pendiente hasta la próxima migración.
 
 ## Fase 4 - Repositorios Supabase ✅
 

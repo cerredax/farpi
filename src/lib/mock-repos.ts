@@ -9,6 +9,7 @@ export const mockRepos: Repos = {
     getFamily:     (familyId) => Promise.resolve(store.getFamily(familyId)),
     getFamilies:   ()         => Promise.resolve(store.getFamilies()),
     setFamilyName: (familyId, name) => Promise.resolve(store.setFamilyName(familyId, name)),
+    setFamilyMealSlots: (familyId, slots) => Promise.resolve(store.setFamilyMealSlots(familyId, slots)),
     createFamily:  (name)     => Promise.resolve(store.createFamily(name)),
   },
 

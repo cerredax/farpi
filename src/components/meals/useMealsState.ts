@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectMealsByCell, selectOccupiedMealSlots, selectSortedMeals } from '@/lib/selectors'
+import { filterMealsBySlots, visibleMealSlots } from '@/lib/meal-slots'
 import type { MealPlan, MealSlot } from '@/types'
 
 type ViewMode = 'today' | 'week'
@@ -16,7 +17,7 @@ function weekFrom(start: Date) {
 
 /** Estado de la pantalla de comidas: pestañas, semana visible y sheets. */
 export function useMealsState() {
-  const { todayMeals, meals, createMeal, copyMealDay, updateMeal, deleteMeal } = useStore()
+  const { todayMeals, meals, mealSlots, createMeal, copyMealDay, updateMeal, deleteMeal } = useStore()
 
   const [viewMode, setViewMode] = useState<ViewMode>('today')
   const [desktopWeekOffset, setDesktopWeekOffset] = useState(0)
@@ -33,13 +34,21 @@ export function useMealsState() {
     : `create-${sheetDate ?? 'default'}-${sheetSlot ?? 'default'}`
   const copySheetKey = `copy-${copySheetOpen ? 'open' : 'closed'}-${copySourceDate ?? 'none'}`
 
+  // Las franjas que la familia quiere ver (Ajustes → Comidas). Las filas de la
+  // semana salen de aquí, así que apagar una la quita de la rejilla y de la lista
+  // sin tocar lo que hubiera apuntado en ella. `todayMeals` ya viene filtrado del
+  // store, que es de donde lo leen también Inicio y la pestaña "Hoy".
+  const slots = useMemo(() => visibleMealSlots(mealSlots), [mealSlots])
+
   const sortedTodayMeals = selectSortedMeals(todayMeals)
   const mealsByCell = selectMealsByCell(meals)
   const occupiedSlots = selectOccupiedMealSlots(meals, sheetDate)
   const mealDates = useMemo(() => new Set(meals.map(meal => meal.date)), [meals])
   const copySourceMeals = useMemo(
-    () => copySourceDate ? meals.filter(meal => meal.date === copySourceDate) : [],
-    [copySourceDate, meals],
+    () => copySourceDate
+      ? filterMealsBySlots(meals.filter(meal => meal.date === copySourceDate), mealSlots)
+      : [],
+    [copySourceDate, meals, mealSlots],
   )
 
   // Sin fecha se entiende "hoy": así todos los accesos abren el mismo
@@ -90,6 +99,7 @@ export function useMealsState() {
 
   return {
     todayMeals, sortedTodayMeals, mealsByCell, occupiedSlots, historialPlatos,
+    slots, mealSlots,
     hasMealsForDate: (date: string) => mealDates.has(date),
     viewMode, setViewMode,
     setDesktopWeekOffset,

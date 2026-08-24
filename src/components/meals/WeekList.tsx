@@ -4,12 +4,14 @@ import { Copy, Pencil, Plus } from 'lucide-react'
 import { format, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Card } from '@/components/ui/Card'
-import { MEAL_SLOTS } from '@/lib/constants'
+import type { MEAL_SLOTS } from '@/lib/constants'
 import { capitalize } from '@/lib/text'
 import type { MealPlan, MealSlot } from '@/types'
 
 interface WeekListProps {
   weekDays: Date[]
+  /** Las franjas que se ven, ya filtradas por lo que la familia eligió en Ajustes. */
+  slots: typeof MEAL_SLOTS
   mealsByCell: Map<string, MealPlan>
   onCreate: (date: string, slot: MealSlot) => void
   onEdit: (meal: MealPlan) => void
@@ -25,7 +27,7 @@ interface WeekListProps {
  * horizontal sin ninguna pista de que se podía. Aquí caben los siete, y las
  * acciones son las mismas: tocar una comida la edita, tocar un hueco la añade.
  */
-export function WeekList({ weekDays, mealsByCell, onCreate, onEdit, onCopyDay, hasMealsForDate }: WeekListProps) {
+export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCopyDay, hasMealsForDate }: WeekListProps) {
   const today = new Date()
 
   return (
@@ -57,7 +59,7 @@ export function WeekList({ weekDays, mealsByCell, onCreate, onEdit, onCopyDay, h
             </div>
 
             <ul className="divide-y divide-hairline">
-              {MEAL_SLOTS.map(slot => {
+              {slots.map(slot => {
                 const meal = mealsByCell.get(`${dayKey}:${slot.key}`)
                 return (
                   <li key={slot.key}>

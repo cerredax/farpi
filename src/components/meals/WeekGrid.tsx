@@ -4,12 +4,14 @@ import { Plus, Pencil, Copy } from 'lucide-react'
 import { format, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Card } from '@/components/ui/Card'
-import { MEAL_SLOTS } from '@/lib/constants'
+import type { MEAL_SLOTS } from '@/lib/constants'
 import { capitalize } from '@/lib/text'
 import type { MealPlan, MealSlot } from '@/types'
 
 interface WeekGridProps {
   weekDays: Date[]
+  /** Las franjas que se ven, ya filtradas por lo que la familia eligió en Ajustes. */
+  slots: typeof MEAL_SLOTS
   mealsByCell: Map<string, MealPlan>
   onCreate: (date: string, slot: MealSlot) => void
   onEdit: (meal: MealPlan) => void
@@ -35,6 +37,7 @@ const COLUMNAS = 'grid-cols-[132px_repeat(7,minmax(104px,1fr))] lg:grid-cols-[11
 /** Rejilla semanal de comidas (franjas × días), con scroll horizontal en móvil. */
 export function WeekGrid({
   weekDays,
+  slots,
   mealsByCell,
   onCreate,
   onEdit,
@@ -91,7 +94,7 @@ export function WeekGrid({
             })}
           </div>
 
-          {MEAL_SLOTS.map(slot => (
+          {slots.map(slot => (
             <div
               key={slot.key}
               className={`grid border-b border-hairline last:border-b-0 ${COLUMNAS}`}

@@ -1,23 +1,37 @@
 import { createClient } from '../supabase/client'
+import { normalizeMealSlots } from '../meal-slots'
 import { assertNoError, fail } from './shared'
-import type { Family, FamilyInvite, FamilyMember } from '@/types'
+import type { Family, FamilyInvite, FamilyMember, MealSlot } from '@/types'
 import type { FamilyRepo, InvitesRepo, MembersRepo } from '../repos/types'
 
 type Role = 'admin' | 'member'
+
+/** La fila tal como puede llegar: sin `meal_slots` si la 019 no está aplicada. */
+type FamilyRow = Omit<Family, 'meal_slots'> & { meal_slots?: string[] | null }
+
+/**
+ * Normaliza `meal_slots` en la frontera, que es lo que permite desplegar este
+ * código antes de aplicar la 019 a mano en el SQL Editor: mientras la columna no
+ * exista, `select('*')` no la trae, llega `undefined` y aquí se convierte en las
+ * cuatro franjas. Arriba nadie tiene que comprobar nada.
+ */
+function mapFamily(row: FamilyRow): Family {
+  return { ...row, meal_slots: normalizeMealSlots(row.meal_slots) }
+}
 
 export const familyRepo: FamilyRepo = {
   async getFamily(familyId: string): Promise<Family | undefined> {
     const supabase = createClient()
     const { data, error } = await supabase.from('families').select('*').eq('id', familyId).maybeSingle()
     assertNoError(error)
-    return data ?? undefined
+    return data ? mapFamily(data) : undefined
   },
 
   async getFamilies(): Promise<Family[]> {
     const supabase = createClient()
     const { data, error } = await supabase.from('families').select('*').order('created_at')
     assertNoError(error)
-    return data ?? []
+    return (data ?? []).map(mapFamily)
   },
 
   async setFamilyName(familyId: string, name: string): Promise<Family> {
@@ -29,7 +43,19 @@ export const familyRepo: FamilyRepo = {
       .select('*')
       .single()
     assertNoError(error)
-    return data
+    return mapFamily(data)
+  },
+
+  async setFamilyMealSlots(familyId: string, slots: MealSlot[]): Promise<Family> {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('families')
+      .update({ meal_slots: normalizeMealSlots(slots) })
+      .eq('id', familyId)
+      .select('*')
+      .single()
+    assertNoError(error)
+    return mapFamily(data)
   },
 
   async createFamily(name: string): Promise<Family> {

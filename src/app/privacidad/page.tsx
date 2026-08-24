@@ -9,7 +9,7 @@ const CONTACT = 'cerredax@gmail.com'
 
 export default function PrivacidadPage() {
   return (
-    <LegalShell title="Política de privacidad" updated="4 de agosto de 2026">
+    <LegalShell title="Política de privacidad" updated="24 de agosto de 2026">
       <p>
         En Nido nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
         derechos tienes. Nido es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.
@@ -31,6 +31,15 @@ export default function PrivacidadPage() {
         </p>
       </LegalSection>
 
+      <LegalSection heading="Quién puede acceder a tus datos">
+        <p>
+          La información de una familia se comparte con los adultos que forman parte de esa familia dentro de
+          Nido. Esto incluye eventos, tareas, listas, comidas, documentos y datos de hijos o adultos sin cuenta
+          que se hayan añadido para organizar el día a día. Una persona de otra familia no puede acceder a esos
+          datos.
+        </p>
+      </LegalSection>
+
       <LegalSection heading="Para qué los usamos">
         <p>
           Únicamente para prestarte el servicio: mostrar y sincronizar la información de tu familia entre
@@ -41,8 +50,10 @@ export default function PrivacidadPage() {
 
       <LegalSection heading="Base legal">
         <p>
-          El tratamiento se basa en la ejecución del servicio que solicitas y, en el caso de las notificaciones,
-          en tu consentimiento (que puedes retirar cuando quieras desactivándolas).
+          El tratamiento necesario para usar Nido se basa en la ejecución del servicio que solicitas. Las
+          notificaciones push se basan en tu consentimiento, que puedes retirar cuando quieras desactivándolas
+          desde Ajustes o desde tu navegador. Cuando introduces información de menores u otros familiares, eres
+          responsable de contar con autorización suficiente para gestionarla en la app.
         </p>
       </LegalSection>
 
@@ -55,33 +66,74 @@ export default function PrivacidadPage() {
         </p>
       </LegalSection>
 
+      <LegalSection heading="Proveedores y transferencias internacionales">
+        <p>
+          Usamos proveedores técnicos para prestar el servicio: Supabase para base de datos y documentos, Vercel
+          para alojar y ejecutar la aplicación y un proveedor de correo para emails de cuenta e invitaciones. Esos
+          proveedores pueden tratar datos fuera del Espacio Económico Europeo. En ese caso, se aplican las
+          garantías contractuales y medidas exigidas por la normativa de protección de datos.
+        </p>
+      </LegalSection>
+
       <LegalSection heading="Conservación">
         <p>
-          Conservamos tus datos mientras mantengas la cuenta. Si eliminas tu cuenta, se borran tus datos
-          asociados. También puedes solicitar la supresión escribiéndonos.
+          Conservamos los datos mientras tu cuenta o tu familia sigan activas en Nido. Si eliminas tu cuenta, se
+          borran los datos asociados a ella, pero parte del contenido familiar compartido puede mantenerse si
+          pertenece a una familia donde siguen otros adultos. Las suscripciones push se eliminan al desactivar los
+          avisos o cuando dejan de ser válidas. También puedes solicitar la supresión escribiéndonos.
         </p>
       </LegalSection>
 
       <LegalSection heading="Tus derechos">
         <p>
-          Puedes acceder, rectificar, exportar o suprimir tus datos, y oponerte o limitar su tratamiento. Para
-          ejercerlos, escribe a{' '}
-          <a href={`mailto:${CONTACT}`} className="font-semibold text-primary-strong">{CONTACT}</a>. Si resides en
-          la UE, también puedes reclamar ante tu autoridad de protección de datos.
+          Puedes acceder, rectificar, exportar o suprimir tus datos, y oponerte o limitar su tratamiento cuando
+          proceda. Para ejercerlos, escribe a{' '}
+          <a href={`mailto:${CONTACT}`} className="font-semibold text-primary-strong">{CONTACT}</a>. Responderemos
+          sin dilación indebida y, en general, en el plazo de un mes. Si resides en la UE, también puedes reclamar
+          ante tu autoridad de protección de datos; en España, ante la Agencia Española de Protección de Datos
+          (<a href="https://www.aepd.es" className="font-semibold text-primary-strong">www.aepd.es</a>).
         </p>
       </LegalSection>
 
       <LegalSection heading="Datos de menores">
         <p>
-          La información sobre hijos (nombre, fecha de nacimiento, documentos) la introducen y gestionan los
-          adultos de la familia, que son responsables de dicho contenido.
+          La información sobre hijos (nombre, fecha de nacimiento, documentos, eventos o tareas) la introducen y
+          gestionan los adultos de la familia, que son responsables de ese contenido. Nido no está dirigido a
+          menores para crear cuentas propias: está pensado para que los adultos organicen información familiar.
+        </p>
+      </LegalSection>
+
+      <LegalSection heading="Documentos y datos delicados">
+        <p>
+          Nido permite subir documentos familiares. Algunos pueden contener información especialmente delicada,
+          por ejemplo datos de salud, colegio o identificación. Sube solo documentos que tengas derecho a guardar
+          y compartir con tu familia dentro de la app. No uses Nido para almacenar información de terceros sin su
+          autorización.
         </p>
       </LegalSection>
 
       <LegalSection heading="Notificaciones">
         <p>
-          Las notificaciones push son opcionales. Si las activas, guardamos la suscripción de tu dispositivo para
-          poder enviarte recordatorios. Puedes desactivarlas en cualquier momento desde Ajustes.
+          Las notificaciones push son opcionales. Si las activas, guardamos la suscripción técnica de tu
+          dispositivo (endpoint y claves públicas de la suscripción) para poder enviarte recordatorios de eventos,
+          tareas y documentos próximos a caducar. Puedes desactivarlas en cualquier momento desde Ajustes.
+        </p>
+      </LegalSection>
+
+      <LegalSection heading="Cookies y almacenamiento local">
+        <p>
+          No usamos cookies publicitarias ni analítica de terceros. La app puede usar cookies o almacenamiento
+          local estrictamente necesarios para mantener la sesión, recordar preferencias, permitir el modo demo y
+          funcionar como PWA instalada.
+        </p>
+      </LegalSection>
+
+      <LegalSection heading="Seguridad">
+        <p>
+          Aplicamos medidas técnicas razonables para proteger los datos: autenticación de usuarios, separación por
+          familia, reglas de acceso en la base de datos y almacenamiento privado de documentos. Las descargas de
+          documentos se realizan mediante enlaces temporales. Ningún sistema es infalible, por lo que conviene
+          conservar copia propia de la información más importante.
         </p>
       </LegalSection>
 

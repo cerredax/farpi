@@ -327,12 +327,18 @@ cambiar, que sea a propósito.
 
 **Una lista de casa no es una lista de tareas.** "Leche" no se completa: se acaba,
 se compra y se vuelve a acabar. Por eso las listas marcan **lo que falta**, no lo
-que se ha hecho. Arriba lo pendiente; debajo, plegado, "Apuntar de lo de siempre",
-que es el catálogo de lo que compráis siempre y del que se tira con un toque. Lo
+que se ha hecho. Arriba lo pendiente; debajo, "Apuntar de lo de siempre", que es el
+catálogo de lo que compráis siempre y del que se tira con un toque. Lo
 del catálogo no sale tachado ni atenuado: no está muerto, está a un toque de volver
 a hacer falta. Nada de barras de progreso ni de "2/5" — a nadie le importa haber
 comprado el 40% de la compra. En la base de datos no cambia nada: un ítem que hace
 falta es el que antes estaba pendiente. Cambia lo que significa en pantalla.
+
+**El catálogo entra abierto** (24-08-2026). Arrancaba plegado, con el argumento de que
+crece para siempre y taparía lo que de verdad hace falta. En uso resultó que entrar en una
+lista es casi siempre ir a apuntar de ahí, así que el pliegue era un toque de más en el
+camino principal. Se puede plegar a mano y no se recuerda: cada vez que se abre la lista
+vuelve a estar abierto, porque el estado de un pliegue no es un ajuste.
 
 **El catálogo se pide con un `+`, no con un tic.** Un tic ahí diría "hecho", que en
 este modelo no significa nada. De ahí que `CircleCheck` y `CirclePlus` sean dos

@@ -16,7 +16,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
   vista de semana salen también las tareas que vencen, y se pueden marcar allí.
 - Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó.
-- Listas e ítems: lo que falta arriba, lo que ya tenéis plegado como catálogo (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
+- Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
 - Comidas (día/semana, copiar día). Las cuatro franjas se activan y desactivan por familia desde Ajustes; apagar una no borra lo apuntado en ella.
@@ -148,6 +148,11 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     apagarlas todas.
   - `SCHEMA_VER` del mock sube a **8**, que es lo que borra el `localStorage` con la forma
     vieja de `Family`.
+
+- **El catálogo de una lista entra abierto.** Entrar en una lista es casi siempre ir a
+  apuntar de lo de siempre, y el pliegue era un toque de más en el camino principal. Se
+  pliega a mano y no se recuerda. Cambia una decisión de producto que estaba escrita al
+  contrario, así que está anotada de nuevo en `architecture.md` con el motivo.
 
 - **La paleta vuelve a ser la original.** Crema `#FAF7F2`, tinta `#252525`, salvia
   `#8BA888`, terracota `#D8A48F`, amarillo `#E9C46A` y rojo `#D96C6C`. Se retiran las dos

@@ -26,9 +26,12 @@ export function ListDetailView({
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
   // Una lista es lo que falta. Lo demás —lo de siempre, lo que ya tenéis— es el
-  // catálogo del que se tira para apuntar, y arranca plegado: crece para
-  // siempre y taparía las tres cosas que de verdad hacen falta.
-  const [verHechos, setVerHechos] = useState(false)
+  // catálogo del que se tira para apuntar, y **arranca abierto**: entrar en una
+  // lista es casi siempre ir a apuntar de ahí, y plegado costaba un toque de más
+  // cada vez. Sigue plegándose a mano cuando estorba, pero el estado no se
+  // guarda: cada vez que se abre la lista vuelve a estar abierto.
+
+  const [verHechos, setVerHechos] = useState(true)
 
   const puedeBuscar = items.length >= MINIMO_PARA_BUSCAR
   const consulta = normalizaParaBuscar(busqueda.trim())

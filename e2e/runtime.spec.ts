@@ -251,9 +251,10 @@ test('lo marcado vuelve al catálogo y se puede volver a pedir', async ({ page }
   await page.waitForTimeout(700)
   await page.getByText('Farmacia').first().click()
 
-  // "Gasas estériles" viene ya marcado en la demo: está en el catálogo.
-  await expect(page.getByText('Gasas estériles')).toHaveCount(0)
-  await page.getByRole('button', { name: /Apuntar de lo de siempre/ }).click()
+  // "Gasas estériles" viene ya marcado en la demo: está en el catálogo, y el
+  // catálogo entra abierto, así que se ve sin tocar nada. Lo que se ofrece es
+  // plegarlo.
+  await expect(page.getByRole('button', { name: /Ocultar lo de siempre/ })).toBeVisible()
 
   await page.getByRole('button', { name: /Apuntar que hace falta Gasas estériles/ }).click()
   await page.waitForTimeout(300)

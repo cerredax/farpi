@@ -76,7 +76,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 196 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
+  - 191 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
   - 73 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -123,6 +123,12 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **En Inicio, cada lista de casa va en su línea.** Las cestas con algo pendiente iban
+  en un `flex-wrap` y dos o tres compartían renglón sin nada que las separase: «Casa
+  Compra bebé Cosas de Ana» se leía como una sola cosa con un nombre larguísimo, y con
+  nombres cortos era peor porque cabían más en la misma línea. Sigue siendo un solo
+  plegable, sin números: que falten dos cosas o siete no cambia lo que haces.
+
 - **Ajustes se agrupa por para qué entras.** Eran once secciones al mismo nivel
   —familia, familias, adultos, otros adultos, hijos, comidas, demo, notificaciones,
   cuenta y legal— en una columna que en móvil no se acababa. Ahora son cinco bloques con
@@ -146,11 +152,18 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 - **Vacaciones y descansos: la rejilla orienta, el bloque explica.** Los dos pasan a ser
   lo mismo para el calendario (`isAbsence`): quién no está.
-  - **La celda lleva un tinte cálido en vez de una franja por persona.** Con dos
-    ausencias a la vez eran dos barras de 3 px bajo el número, compitiendo con los
-    puntos de los eventos, con el círculo del día elegido y con el de hoy. Ahora es uno,
-    el mismo para uno o para cinco, redondeado solo en los extremos del tramo
-    (`absenceEdges`, con seis tests) para que los días seguidos se toquen sin muescas.
+  - **La celda las pinta como una raya fina, y la forma dice de qué clase son.** Unas
+    vacaciones son una raya a todo el ancho, redondeada en los extremos del tramo, así
+    que varios días seguidos se leen como una barra continua; un descanso es un guion
+    corto y centrado, porque es un día y no un tramo. Como mucho dos por celda.
+  - **Se probó un tinte cálido en toda la celda y se descartó el mismo día.** Dejaba
+    igual una semana entera fuera y un día libre de una persona. Con él se fue
+    `absenceEdges` y sus seis tests, que existían solo para redondearlo. Lo que sí se
+    queda del intento: la raya es decorativa —nunca un botón de 3 px, que no llegaba al
+    mínimo de toque— y el tope de dos.
+  - El icono del descanso pasa de una taza a un sillón: no es una pausa para el café, es
+    que ese día no puedes contar con esa persona, y a 13 px una taza y una palmera se
+    confunden.
   - **`Availability` sustituye a `VacationLegend`** y es la fuente: nombre escrito,
     icono según la clase y el estado en palabras —«de vacaciones hasta el 28 ago» si ya
     ha empezado, «del 3 al 9 sept» si no, «descansa hoy» o «descansa mañana» si es de un

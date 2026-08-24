@@ -51,8 +51,8 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
       si son más de tres), tanto en la tira como en el mes.
 - [ ] Se puede seleccionar un día, y su detalle aparece debajo sin cambiar de pestaña.
 - [ ] "Próximos días" enseña solo los días con algo, y tocar su fecha los selecciona.
-- [ ] Un tramo de vacaciones o de descanso se lee como un tinte continuo, sin cortes
-      entre días, y redondeado solo en los extremos.
+- [ ] Un tramo de vacaciones se lee como una raya continua, sin cortes entre días, y
+      redondeada solo en los extremos. Un descanso de un día es un guion corto.
 - [ ] El bloque "Vacaciones y descansos" dice el nombre de la persona y el estado:
       «de vacaciones hasta el 28 ago», «descansa hoy», «descansa del 3 al 4 sep».
 - [ ] Una ausencia de varios días sale **una vez** en el bloque, no una por día, y no

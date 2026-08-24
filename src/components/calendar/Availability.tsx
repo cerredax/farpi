@@ -1,6 +1,6 @@
 import { format, isSameMonth, isToday, isTomorrow, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Coffee, Palmtree } from 'lucide-react'
+import { Armchair, Palmtree } from 'lucide-react'
 import { extractDate, getLocalDateString } from '@/lib/date-utils'
 import { resolveAssignee } from '@/lib/assignees'
 import { isVacation } from '@/lib/events'
@@ -10,7 +10,7 @@ import type { Event, Child, FamilyMember } from '@/types'
 /**
  * Quién está de vacaciones o de descanso en el tramo que se ve.
  *
- * Es **la** fuente de esta información, y la rejilla solo orienta: el tinte del
+ * Es **la** fuente de esta información, y la rejilla solo orienta: la raya bajo el
  * día dice que alguien no está y aquí se dice quién, de qué clase y hasta cuándo.
  * Antes esto era `VacationLegend`, hablaba solo de vacaciones y traducía una
  * franja de color a un nombre; los descansos no tenían dónde explicarse y
@@ -77,7 +77,10 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
           const color = a.color ?? asignado?.color ?? FAMILY_COLOR
           const quien = asignado?.name ?? 'Familia'
           const estado = estadoDe(a)
-          const Icono = isVacation(a) ? Palmtree : Coffee
+          // Un sillón y no una taza: un descanso no es una pausa para el café,
+          // es que ese día no puedes contar con esa persona. Y a 13 px una taza
+          // y una palmera se confunden.
+          const Icono = isVacation(a) ? Palmtree : Armchair
 
           return (
             <li key={a.id}>

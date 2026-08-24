@@ -44,11 +44,15 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
         aria-expanded={abierto}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface"
       >
-        <div className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+        {/* Una cesta por línea. Iban en un `flex-wrap` y dos o tres compartían
+            renglón sin nada que las separase: "Casa Compra bebé Cosas de Ana" se
+            leía como una sola cosa con un nombre larguísimo. Con nombres cortos
+            el problema era peor, porque cabían más en la misma línea. */}
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           {cestas.map(cesta => (
-            <span key={cesta.id} className="flex items-center gap-1.5 text-sm font-semibold text-ink">
-              <span aria-hidden>{cesta.emoji ?? '📋'}</span>
-              {cesta.name}
+            <span key={cesta.id} className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-ink">
+              <span className="flex-shrink-0" aria-hidden>{cesta.emoji ?? '📋'}</span>
+              <span className="min-w-0 truncate">{cesta.name}</span>
             </span>
           ))}
         </div>

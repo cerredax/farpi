@@ -1,7 +1,7 @@
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, getDate } from 'date-fns'
 import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
-import { absenceEdges, eventCoversDay, isAbsence } from '@/lib/events'
+import { eventCoversDay } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 
 /**
@@ -49,9 +49,6 @@ function getMonthDays(month: Date): Date[] {
 export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, members, onSelectDay }: MonthGridProps) {
   const days = getMonthDays(currentMonth)
   const hoyStr = getLocalDateString(new Date())
-  // Todas las ausencias del lote, para que los extremos del tinte se calculen
-  // mirando los días vecinos y no solo el propio.
-  const ausencias = events.filter(isAbsence)
 
   return (
     <div className="px-2 pb-1">
@@ -62,7 +59,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
           </div>
         ))}
       </div>
-      {/* Sin hueco entre columnas: el tinte de los días de ausencia tiene que
+      {/* Sin hueco entre columnas: la raya de los días de ausencia tiene que
           tocarse para leerse como un tramo. */}
       <div className="grid grid-cols-7">
         {days.map(day => {
@@ -79,7 +76,6 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               dayNumber={getDate(day)}
               isToday={isToday(day)}
               isSelected={isSameDay(day, selectedDay)}
-              ausencia={delDia.some(isAbsence) ? absenceEdges(ausencias, day) : undefined}
               events={delDia}
               tasks={tasks.filter(t => t.due_date && (t.due_date < hoyStr ? diaStr === hoyStr : t.due_date === diaStr))}
               kids={kids}

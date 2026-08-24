@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
 import {
-  absenceEdges,
   daysBetween,
   eventCoversDay,
   eventTitleOr,
@@ -114,43 +113,6 @@ test.describe('isAbsence', () => {
     expect(isAbsence(event({ kind: 'vacaciones' }))).toBe(true)
     expect(isAbsence(event({ kind: 'descanso' }))).toBe(true)
     expect(isAbsence(event({ kind: 'evento' }))).toBe(false)
-  })
-})
-
-test.describe('absenceEdges', () => {
-  const vac = (desde: string, hasta: string) =>
-    event({ kind: 'vacaciones', all_day: true, start_at: `${desde}T00:00:00`, end_at: `${hasta}T00:00:00` })
-
-  test('un solo día abre y cierra el tramo', () => {
-    expect(absenceEdges([vac('2026-08-10', '2026-08-10')], '2026-08-10')).toEqual({ abre: true, cierra: true })
-  })
-
-  test('en un tramo, solo los extremos', () => {
-    const tramo = [vac('2026-08-10', '2026-08-12')]
-    expect(absenceEdges(tramo, '2026-08-10')).toEqual({ abre: true, cierra: false })
-    expect(absenceEdges(tramo, '2026-08-11')).toEqual({ abre: false, cierra: false })
-    expect(absenceEdges(tramo, '2026-08-12')).toEqual({ abre: false, cierra: true })
-  })
-
-  test('dos ausencias pegadas se leen como un tramo seguido', () => {
-    // Miradas por separado, el 12 cerraría y el 13 abriría. Juntas no: en
-    // pantalla es un bloque continuo, y ahí está el porqué de mirar todas.
-    const pegadas = [vac('2026-08-10', '2026-08-12'), vac('2026-08-13', '2026-08-15')]
-    expect(absenceEdges(pegadas, '2026-08-12')).toEqual({ abre: false, cierra: false })
-    expect(absenceEdges(pegadas, '2026-08-13')).toEqual({ abre: false, cierra: false })
-  })
-
-  test('con un día de hueco sí son dos tramos', () => {
-    const separadas = [vac('2026-08-10', '2026-08-11'), vac('2026-08-13', '2026-08-14')]
-    expect(absenceEdges(separadas, '2026-08-11')).toEqual({ abre: false, cierra: true })
-    expect(absenceEdges(separadas, '2026-08-13')).toEqual({ abre: true, cierra: false })
-  })
-
-  test('cruzar de mes no parte el tramo', () => {
-    const tramo = [vac('2026-08-30', '2026-09-02')]
-    expect(absenceEdges(tramo, '2026-08-31')).toEqual({ abre: false, cierra: false })
-    expect(absenceEdges(tramo, '2026-09-01')).toEqual({ abre: false, cierra: false })
-    expect(absenceEdges(tramo, '2026-09-02')).toEqual({ abre: false, cierra: true })
   })
 })
 

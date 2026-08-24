@@ -237,10 +237,9 @@ cubre esa fecha. Las comparaciones se hacen sobre cadenas `yyyy-MM-dd`, no sobre
 `Date`, para no arrastrar líos de zona horaria.
 
 En la rejilla del mes no se dibujan como un punto más, porque de unas vacaciones lo
-que importa es el tramo: el día lleva un **tinte cálido** (`bg-warm`) que se
-redondea solo en los extremos, así que varios días seguidos se leen como un
-bloque. Ver "El calendario es agenda primero" para la representación completa,
-que comparten con los descansos.
+que importa es el tramo: el día lleva una **raya fina** con el color de quien falta,
+redondeada donde el tramo empieza y acaba. Ver "El calendario es agenda primero" para
+la representación completa, que comparten con los descansos.
 
 ## Repositorios
 
@@ -462,12 +461,18 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
 **Vacaciones y descansos son lo mismo para el calendario: quién no está**
 (24-08-2026). Los dos son `isAbsence` y comparten las tres reglas:
 
-- **La celda lleva un tinte, no una franja por persona.** Con dos ausencias a la vez
-  eran dos barras de 3 px bajo el número, compitiendo con los puntos de los eventos,
-  con el círculo del día elegido y con el de hoy. Ahora es **un** tinte cálido, el
-  mismo para uno o para cinco, redondeado solo en los extremos del tramo
-  (`absenceEdges`) para que los días seguidos se toquen sin muescas. La celda dice que
-  ese día hay alguien fuera; cuántos y quién, no.
+- **La celda las pinta como una raya fina, y la forma dice de qué clase son.** Unas
+  vacaciones son una raya a todo el ancho, redondeada donde el tramo empieza y acaba, de
+  modo que varios días seguidos se leen como una barra continua; un descanso es un guion
+  corto y centrado, porque es un día y no un tramo. Como mucho **dos** rayas por celda:
+  con cuatro personas fuera el mismo día, apilar cuatro era la celda saturada que esto
+  vino a arreglar, y cuántos son exactamente lo dice el nombre accesible del día.
+  - **Se probó un tinte cálido en toda la celda y se descartó el mismo día**
+    (24-08-2026). Dejaba igual una semana entera de vacaciones y un día libre de una
+    persona, que son cosas distintas, y la raya se lee mejor. Con él se fue
+    `absenceEdges`, que existía solo para redondear el tinte. Lo que sí se queda del
+    intento: la raya es **decorativa** —nunca un botón de 3 px, que no llegaba al mínimo
+    de toque— y el tope de dos.
 - **No salen en la lista de la agenda.** Ocupan días seguidos y se repetían en todos:
   un descanso de tres días eran tres filas con el mismo texto. Las vacaciones ya
   estaban fuera; los descansos entraron con ellas.

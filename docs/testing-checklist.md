@@ -161,7 +161,8 @@ Y de los adultos sin cuenta, que es lo que la 018 añadió. El alta y que salgan
 «asignar a» están automatizados en `e2e/runtime.spec.ts` («un adulto sin cuenta se da
 de alta en Ajustes y se puede asignar»); el resto, a mano:
 
-- [ ] «Otros adultos» sale entre Adultos e Hijos, con su propio botón.
+- [ ] «Adultos sin cuenta» sale entre «Adultos con cuenta» e «Hijos», dentro del bloque
+      «Personas» y con su propio botón. El vacío dice «Aún no hay adultos sin cuenta».
 - [ ] Se puede añadir un adulto sin correo, con nombre y color.
 - [ ] El sheet avisa de que no entra en la app ni recibe invitación.
 - [ ] Sale en «asignar a» con los adultos, no al final con los hijos.

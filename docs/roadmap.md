@@ -127,16 +127,32 @@ Objetivo: preparar uso diario.
   navegador entre `smoke`, `runtime` y `movil` (`npm run test:e2e`). El recuento
   exacto está en `docs/project-status.md`.
 - ✅ Revisión de accesibilidad: BottomSheet como diálogo (role/aria/Escape/foco/inert), botones de icono etiquetados y label↔input asociados en los sheets.
-- ✅ Descansos familiares en el calendario: marcador circular por día, con rango y
-  lógica de disponibilidad para saber si puedes contar con alguien.
+- ✅ Descansos familiares en el calendario, con rango y lógica de disponibilidad para
+  saber si puedes contar con alguien. El marcador circular por día con el que entraron se
+  fue el 24-08-2026: ahora es un guion corto bajo el número y una fila con nombre en el
+  bloque «Vacaciones y descansos».
 - ✅ Adultos sin cuenta: los abuelos se dan de alta en Ajustes sin correo y se les
-  puede asignar lo mismo que a cualquiera. Tres bloques en Ajustes y `kind` en
-  `children`.
+  puede asignar lo mismo que a cualquiera. `kind` en `children`, y tres grupos dentro del
+  bloque «Personas» de Ajustes: «Adultos con cuenta», «Adultos sin cuenta» e «Hijos»
+  (se llamaban «Adultos» y «Otros adultos» hasta el 24-08-2026).
 - ✅ Paleta de personas medida y rehecha (21-08-2026): diez colores cálidos agrupados por
   a quién representan (3 hombre, 3 mujer, 2 niña, 2 niño). La peor pareja pasa de ΔE 5,3
   a 12,3, y los diez llegan a 4,5:1 con la inicial encima —blanca o en tinta, la que
   contraste— cuando antes once de los doce no llegaban ni a 3:1. Pasó por una versión
   intermedia optimizada para daltonismo (18,4 de separación) que se descartó por fría.
+  - Revisada dos veces más el 24-08-2026: primero a **catorce** colores, y después la
+    parte adulta a **ocho sobrios y sin división por género**. Salió Mostaza oscura, que
+    era la que se confundía con el amarillo de familia, y entraron Pizarra y Ciruela. El
+    peor contraste de adulto queda en 5,42:1 y once de las noventa y una parejas por
+    debajo de ΔE00 15. La descripción canónica está en `architecture.md`.
+- ✅ Rediseño de cuatro pantallas (24-08-2026), sin tocar lógica de datos:
+  - **Calendario**: agenda primero y mes como mapa. Se retiró el eje de horas
+    (`DayTimeline` y `src/lib/timeline.ts`), la rejilla dejó de prestar días de los meses
+    vecinos y «próximos días» va en tramos («esta semana», «la que viene», los meses).
+  - **Listas**: los dos grupos con título propio, «Hace falta ahora» con su cuenta y «Lo
+    de siempre» con el plegable en la misma fila.
+  - **Ajustes**: cinco bloques por intención en vez de once secciones al mismo nivel.
+  - **Cabecera**: cada pantalla dice su nombre una sola vez, y en verde de marca.
 - [ ] Backup/export sencillo si se considera necesario.
 
 ## Fase 9 - Uso diario

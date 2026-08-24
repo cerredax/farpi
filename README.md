@@ -44,7 +44,7 @@ npm run dev         # servidor de desarrollo, puerto 3000
 npm run build       # build de producción
 npm run start       # servir el build
 npm run lint        # eslint
-npm run test:unit   # tests de lógica pura, sin servidor (~0,6 s)
+npm run test:unit   # tests de lógica pura, sin servidor (~0,8 s)
 npm run test:e2e    # la suite entera: unitarios + navegador, en modo demo
 
 node scripts/validate-rls.mjs    # valida RLS, RPCs y triggers contra el Supabase real

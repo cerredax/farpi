@@ -29,7 +29,7 @@ Persistencia:
 
 - Clave: `nido_store_v1`
 - Ubicación: `localStorage`
-- Versión interna: `SCHEMA_VER = 6`, en `src/lib/store/persist.ts`
+- Versión interna: `SCHEMA_VER = 8`, en `src/lib/store/persist.ts` (la 8 entró con `families.meal_slots`)
 
 El mock debe comportarse lo más parecido posible a Supabase:
 

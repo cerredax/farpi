@@ -257,7 +257,9 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     siempre y que la suite no veía porque los datos de demo no los pintan: la franja de
     vacaciones de la celda (3 px de alto) y el punto de descanso (10×10) eran botones.
     Las vacaciones pasan a señal y se editan desde `VacationLegend`, que gana `min-h-6`;
-    los descansos se editan desde la agenda, donde ya salían.
+    los descansos se editan desde la agenda, donde ya salían. *(Las dos cosas cambiaron
+    ese mismo día, más abajo: `Availability` sustituyó a `VacationLegend` y los descansos
+    salieron de la agenda.)*
   - **La rejilla es de un solo mes.** Se dibuja por semanas completas —si no, las
     columnas dejarían de ser días de la semana— pero los huecos de las puntas van en
     blanco en vez de prestar días de los meses vecinos: agosto pintaba once días de
@@ -321,6 +323,8 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     `textColorOn` —los ocho de adulto con blanco (el peor, Mostaza oscura, 5,25:1) y los
     seis de niño con tinta (el peor, Canela clara, 6,92:1)—, y ninguno coincide con
     `FAMILY_COLOR` ni con el verde de marca. Lo verifica el test que ya existía.
+    *(La parte adulta se rehízo ese mismo día, más abajo: Mostaza oscura salió y el peor
+    pasó a ser Ladrillo con 5,42:1.)*
   - **Dos cifras del encargo no cuadraban** y conviene que quede dicho, porque los valores
     sí se respetaron: los adultos son los **ocho** primeros y los niños los **seis**
     últimos (el encargo decía «6 primeros» y «8 últimos»), y el peor contraste de adulto

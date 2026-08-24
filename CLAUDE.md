@@ -124,8 +124,10 @@ Pantallas (src/components/**)
 las navegaciones con fallback a `/offline`, stale-while-revalidate en los estáticos y
 **nunca** cachea `/api`, `/auth` ni Supabase.
 
-Si cambias `PRECACHE`, sube `CACHE` (`nido-v1`, en `public/sw.js`) o los móviles que
-ya tienen la app instalada se quedan con la caché vieja. Es la misma clase de regla
+Si cambias `PRECACHE` —la lista o el **contenido** de lo que precachea, iconos
+incluidos—, sube `CACHE` en `public/sw.js` o los móviles que ya tienen la app instalada
+se quedan con la caché vieja. Va por `nido-v2` desde el 24-08-2026, que subió al cambiar
+los PNG del icono. Es la misma clase de regla
 que el `SCHEMA_VER` del mock.
 
 ### Cabeceras de seguridad
@@ -160,7 +162,7 @@ Si tocas una migración: actualiza tipos en `src/types/index.ts`, el mock y la d
 
 ## Convenciones de código
 
-- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento), `push.ts`, `family-config.ts` y `text.ts`: mírala antes de reescribirla.
+- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts` y `text.ts`: mírala antes de reescribirla.
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, SelectChip, DeleteButton, Suggestions y algunos más.

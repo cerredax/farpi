@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, ArrowLeft, ChevronDown, Pencil } from 'lucide-react'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { selectListItemGroups } from '@/lib/selectors'
@@ -21,6 +22,30 @@ interface ListDetailViewProps {
   puedeMover: boolean
 }
 
+/**
+ * El título de un grupo de la lista, con lo que le toque a la derecha: la cuenta
+ * de lo que falta, o el botón de plegar el catálogo.
+ *
+ * La cuenta solo va en los pendientes. Cuántas cosas faltan **ahora** es la
+ * pregunta de la pantalla; el tamaño del catálogo no se cuenta a propósito, que
+ * eso sería medir lo hecho.
+ *
+ * El botón va en esta misma fila y no debajo: suelto entre el título y las filas
+ * quedaba flotando, y "LO DE SIEMPRE" con "Ocultar lo de siempre" debajo decía
+ * dos veces lo mismo en dos renglones.
+ */
+function GrupoTitulo({ titulo, cuenta, accion }: { titulo: string; cuenta?: number; accion?: React.ReactNode }) {
+  return (
+    <div className="flex min-h-8 items-center justify-between gap-2 px-1 pt-1">
+      <h2 className="min-w-0 truncate text-xs font-bold uppercase tracking-widest text-muted">{titulo}</h2>
+      {cuenta !== undefined && cuenta > 0 && (
+        <span className="flex-shrink-0 rounded-full bg-line px-2 py-0.5 text-xs font-bold text-muted">{cuenta}</span>
+      )}
+      {accion}
+    </div>
+  )
+}
+
 export function ListDetailView({
   list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onOpenMoveItem, onDeleteItem, puedeMover,
 }: ListDetailViewProps) {
@@ -35,16 +60,25 @@ export function ListDetailView({
 
   const puedeBuscar = items.length >= MINIMO_PARA_BUSCAR
   const consulta = normalizaParaBuscar(busqueda.trim())
-  const visibles = consulta
+  const buscando = consulta.length > 0
+  const visibles = buscando
     ? items.filter(item => normalizaParaBuscar(item.text).includes(consulta))
     : items
 
   const { pending, completed } = selectListItemGroups(visibles)
 
-  // Buscando se enseña todo: si lo único que coincide está hecho, esconderlo
-  // detrás del plegado sería contestar "no hay nada" a una búsqueda que sí
-  // encontró algo.
-  const hechosVisibles = verHechos || consulta.length > 0
+  // Buscando se enseña todo: si lo único que coincide está en el catálogo,
+  // esconderlo detrás del plegado sería contestar "no hay nada" a una búsqueda
+  // que sí encontró algo.
+  const hechosVisibles = verHechos || buscando
+
+  // Los dos grupos van siempre bajo su título, que es lo que hacía falta: antes
+  // los pendientes y el catálogo se sucedían sin nada que dijera dónde acababa
+  // uno, y se distinguían solo por el fondo de la fila. Buscando, el grupo sin
+  // coincidencias se calla en vez de decir "no falta nada": no es que no falte,
+  // es que no ha aparecido en esta búsqueda.
+  const verPendientes = pending.length > 0 || !buscando
+  const verCatalogo = completed.length > 0
 
   return (
     <div className="flex flex-col h-full">
@@ -72,63 +106,74 @@ export function ListDetailView({
       )}
 
       {/* Items */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-        {items.length === 0 && (
-          <p className="text-center text-muted text-sm py-12">Lista vacía. ¡Añade el primer ítem!</p>
-        )}
-
-        {items.length > 0 && visibles.length === 0 && (
-          <p className="text-center text-muted text-sm py-12">
+      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
+        {items.length === 0 ? (
+          <EmptyState
+            emoji="📝"
+            title="Esta lista está vacía"
+            description="Apunta lo primero que haga falta"
+          />
+        ) : visibles.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted">
             Ningún ítem coincide con «{busqueda.trim()}».
           </p>
-        )}
-
-        {pending.map(item => (
-          <ListItemRow
-            key={item.id}
-            item={item}
-            puedeMover={puedeMover}
-            onToggle={() => onToggle(item.id)}
-            onEdit={() => onOpenEditItem(item)}
-            onMove={() => onOpenMoveItem(item)}
-            onDelete={() => onDeleteItem(item.id)}
-          />
-        ))}
-
-        {pending.length === 0 && items.length > 0 && !consulta && (
-          <p className="py-8 text-center text-sm text-muted">No falta nada de esta lista.</p>
-        )}
-
-        {completed.length > 0 && (
+        ) : (
           <>
-            {consulta ? (
-              <p className="field-label pt-2 px-1">Lo de siempre</p>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setVerHechos(v => !v)}
-                aria-expanded={verHechos}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
-              >
-                {verHechos ? 'Ocultar lo de siempre' : 'Apuntar de lo de siempre'}
-                <ChevronDown
-                  size={14}
-                  strokeWidth={2.6}
-                  className={`transition-transform ${verHechos ? 'rotate-180' : ''}`}
-                />
-              </button>
+            {verPendientes && (
+              <section className="space-y-2">
+                <GrupoTitulo titulo="Hace falta ahora" cuenta={pending.length} />
+                {pending.length === 0 ? (
+                  <p className="px-1 py-2 text-sm text-muted">No falta nada de esta lista</p>
+                ) : (
+                  pending.map(item => (
+                    <ListItemRow
+                      key={item.id}
+                      item={item}
+                      puedeMover={puedeMover}
+                      onToggle={() => onToggle(item.id)}
+                      onEdit={() => onOpenEditItem(item)}
+                      onMove={() => onOpenMoveItem(item)}
+                      onDelete={() => onDeleteItem(item.id)}
+                    />
+                  ))
+                )}
+              </section>
             )}
-            {hechosVisibles && completed.map(item => (
-              <ListItemRow
-                key={item.id}
-                item={item}
-                puedeMover={puedeMover}
-                onToggle={() => onToggle(item.id)}
-                onEdit={() => onOpenEditItem(item)}
-                onMove={() => onOpenMoveItem(item)}
-                onDelete={() => onDeleteItem(item.id)}
-              />
-            ))}
+
+            {verCatalogo && (
+              <section className="space-y-2">
+                <GrupoTitulo
+                  titulo="Lo de siempre"
+                  /* Buscando no se ofrece plegar: lo que coincide se enseña. */
+                  accion={!buscando && (
+                    <button
+                      type="button"
+                      onClick={() => setVerHechos(v => !v)}
+                      aria-expanded={verHechos}
+                      className="flex min-h-8 flex-shrink-0 items-center gap-1 rounded-xl px-2 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
+                    >
+                      {verHechos ? 'Ocultar lo de siempre' : 'Ver lo de siempre'}
+                      <ChevronDown
+                        size={14}
+                        strokeWidth={2.6}
+                        className={`transition-transform ${verHechos ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                  )}
+                />
+                {hechosVisibles && completed.map(item => (
+                  <ListItemRow
+                    key={item.id}
+                    item={item}
+                    puedeMover={puedeMover}
+                    onToggle={() => onToggle(item.id)}
+                    onEdit={() => onOpenEditItem(item)}
+                    onMove={() => onOpenMoveItem(item)}
+                    onDelete={() => onDeleteItem(item.id)}
+                  />
+                ))}
+              </section>
+            )}
           </>
         )}
       </div>

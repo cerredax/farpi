@@ -361,6 +361,18 @@ lista es casi siempre ir a apuntar de ahí, así que el pliegue era un toque de 
 camino principal. Se puede plegar a mano y no se recuerda: cada vez que se abre la lista
 vuelve a estar abierto, porque el estado de un pliegue no es un ajuste.
 
+**Los dos grupos van bajo su título** (24-08-2026): «Hace falta ahora», con la cuenta de
+lo que falta al lado, y «Lo de siempre», con el botón de plegar en la misma fila. Antes se
+sucedían sin nada que dijera dónde acababa uno, y la única diferencia era el fondo de la
+fila: al entrar en una lista no se veía qué estaba pendiente. La cuenta va solo en los
+pendientes —cuántas cosas faltan **ahora** es la pregunta de la pantalla— y no en el
+catálogo, que sería medir lo hecho.
+
+Entre las dos filas hay tres diferencias y no una: la forma (tarjeta blanca con sombra
+contra plano sobre el fondo), el peso del texto y el círculo (tic contra `+`). Quien no
+distinga un gris de un blanco tiene las otras dos. Lo del catálogo sigue **sin tacharse**:
+cambia de presencia, no de vida.
+
 **El catálogo se pide con un `+`, no con un tic.** Un tic ahí diría "hecho", que en
 este modelo no significa nada. De ahí que `CircleCheck` y `CirclePlus` sean dos
 componentes hermanos con las mismas medidas.
@@ -508,9 +520,10 @@ de una herramienta de trabajo. Al escribir textos nuevos:
 - **Nada de jerga de gestor de proyectos**: ni completado, ni progreso, ni
   porcentajes. Salvo en Tareas, que sí son tareas.
 - **Los ejemplos son de esta casa**: "Ej: Cartilla vacunas Ana", "Ej: Leche entera".
-- Frases cortas y sin signos de admiración. La única excepción del repo es
-  «Lista vacía. ¡Añade el primer ítem!» (`ListDetailView.tsx`), que se quedó de antes
-  y desafina: no la tomes como modelo.
+- Frases cortas y sin signos de admiración. Ya no hay excepciones: la última era
+  «Lista vacía. ¡Añade el primer ítem!» (`ListDetailView.tsx`), que se quedó de antes y
+  desafinaba; el 24-08-2026 pasó a «Esta lista está vacía / Apunta lo primero que haga
+  falta».
 
 ## Decisiones técnicas
 

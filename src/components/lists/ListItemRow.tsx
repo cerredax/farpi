@@ -16,17 +16,28 @@ interface ListItemRowProps {
 /**
  * Una fila de la lista: marcar, renombrar, mover y borrar.
  *
- * Lo marcado no se tacha ni se atenúa hasta desaparecer: no es historial de lo
- * hecho, es el catálogo de lo que compráis. Está a un toque de volver a hacer
- * falta, así que solo cambia de fondo y pierde la sombra. El tic tampoco se
- * queda: en el catálogo la acción es sumar a la lista, no dar nada por hecho.
+ * Lo marcado no se tacha ni desaparece: no es historial de lo hecho, es el
+ * catálogo de lo que compráis, a un toque de volver a hacer falta. Lo que cambia
+ * entre los dos estados es la **presencia**, no la vida: lo que hace falta es una
+ * tarjeta blanca con sombra y la letra fuerte; lo del catálogo va plano sobre el
+ * fondo, sin sombra y con la letra más suave.
+ *
+ * Son tres señales y no una: la forma (tarjeta contra plano), el peso del texto y
+ * el círculo (tic contra `+`). Quien no distinga un gris de un blanco tiene las
+ * otras dos, y encima cada grupo va bajo su propio título.
+ *
+ * El nombre parte por palabras en vez de recortarse: en una lista de casa el
+ * texto **es** el dato, y "Leche entera sin lac…" no sirve de nada. Con
+ * `min-w-0` no puede empujar la fila a lo ancho por larga que sea.
  */
 export function ListItemRow({ item, puedeMover, onToggle, onEdit, onMove, onDelete }: ListItemRowProps) {
+  const enCatalogo = item.completed
+
   return (
-    <div className={`rounded-2xl border border-surface flex items-center gap-2 px-2 py-2 ${
-      item.completed ? 'bg-canvas' : 'bg-white shadow-sm'
+    <div className={`flex items-center gap-2 rounded-2xl border px-2 py-2 transition-colors ${
+      enCatalogo ? 'border-hairline bg-canvas' : 'border-surface bg-white shadow-sm'
     }`}>
-      {item.completed ? (
+      {enCatalogo ? (
         <CirclePlus onClick={onToggle} ariaLabel={`Apuntar que hace falta ${item.text}`} />
       ) : (
         <CircleCheck
@@ -37,7 +48,9 @@ export function ListItemRow({ item, puedeMover, onToggle, onEdit, onMove, onDele
       )}
       <button
         onClick={onEdit}
-        className={`flex-1 text-left text-sm font-medium leading-snug ${item.completed ? 'text-muted' : 'text-ink'}`}
+        className={`min-w-0 flex-1 break-words text-left text-sm leading-snug ${
+          enCatalogo ? 'font-medium text-muted' : 'font-semibold text-ink'
+        }`}
       >
         {item.text}
       </button>

@@ -123,6 +123,24 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **En una lista se ve de un golpe qué falta y qué es catálogo.** Los dos grupos pasan a
+  tener título propio: «Hace falta ahora», con la cuenta al lado, y «Lo de siempre», con
+  el botón de plegar en la misma fila. Antes se sucedían sin separación y la única pista
+  era el fondo de la fila.
+  - La fila gana dos señales más además del fondo: el peso del texto y la forma (tarjeta
+    blanca con sombra para lo pendiente, plano sobre el fondo para el catálogo). Con el
+    círculo —tic contra `+`— son tres, así que el color no es la única diferencia. Lo del
+    catálogo sigue sin tacharse: cambia de presencia, no de vida.
+  - Las tarjetas del índice dicen el estado con palabras y con presencia: «Hace falta:
+    leche, pan…» en blanco con sombra, «Al día» plana y apagada. **Sin número de
+    pendientes**, a propósito: que falten dos cosas o siete no cambia lo que haces, y es
+    la misma razón por la que Inicio no lo lleva. El brief lo dejaba a mi criterio.
+  - El nombre del ítem parte por palabras en vez de recortarse (`break-words` con
+    `min-w-0`): en una lista de casa el texto es el dato, y «Leche entera sin lac…» no
+    sirve. De paso se va la última frase con signos de admiración del repo, que
+    `architecture.md` tenía fichada: «Lista vacía. ¡Añade el primer ítem!» pasa a «Esta
+    lista está vacía / Apunta lo primero que haga falta».
+
 - **El nombre de la pantalla va en verde de marca.** La cabecera es lo primero que se
   ve y es donde la app dice quién es, así que Calendario, Listas, Tareas, Comidas,
   Documentos y Ajustes dejan la tinta y pasan al verde, como ya hacía el saludo de

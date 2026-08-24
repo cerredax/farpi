@@ -76,8 +76,7 @@ export function ListsView() {
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4 lg:max-w-5xl lg:px-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-ink leading-tight">Listas</h1>
-          <p className="text-xs text-muted mt-0.5">{s.lists.length} lista{s.lists.length !== 1 ? 's' : ''} de la familia</p>
+          <p className="text-xs text-muted">{s.lists.length} lista{s.lists.length !== 1 ? 's' : ''} de la familia</p>
         </div>
         <button
           onClick={s.openCreateList}

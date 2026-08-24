@@ -38,15 +38,15 @@ export function TopBar() {
       <div className="flex items-center justify-between h-14 max-w-lg mx-auto px-4 lg:max-w-none lg:px-8">
         {isHome ? (
           <div className="flex flex-col min-w-0">
-            <span className="text-primary font-extrabold tracking-tight text-lg leading-tight truncate">
+            <h1 className="text-primary font-extrabold tracking-tight text-lg leading-tight truncate">
               {ahora ? getGreeting(ahora) : 'Nido'}
-            </span>
+            </h1>
             <span className="text-[10px] font-semibold text-muted leading-none truncate">
               {ahora ? capitalize(format(ahora, "EEEE, d 'de' MMMM", { locale: es })) : family.name}
             </span>
           </div>
         ) : (
-          <span className="font-extrabold tracking-tight text-ink text-lg">{title ?? 'Nido'}</span>
+          <h1 className="font-extrabold tracking-tight text-ink text-lg">{title ?? 'Nido'}</h1>
         )}
         <Link
           href="/settings"

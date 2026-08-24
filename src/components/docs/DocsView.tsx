@@ -18,18 +18,30 @@ export function DocsView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-ink leading-tight">Documentos</h1>
-          <p className="text-xs text-muted mt-0.5">
+      {/* Header. En escritorio el buscador se sube a esta fila: dejarlo debajo y
+          a todo el ancho era lo que hacía que la pantalla pareciese el móvil
+          estirado. El título manda a la izquierda y la acción cierra a la derecha. */}
+      <div className="flex items-center justify-between lg:gap-6">
+        <div className="lg:flex-shrink-0">
+          <p className="text-xs text-muted">
             {s.documents.length} documento{s.documents.length !== 1 ? 's' : ''} guardados
           </p>
         </div>
+
+        {s.puedeBuscar && (
+          <SearchField
+            className="hidden lg:block lg:ml-auto lg:w-full lg:max-w-sm"
+            value={s.busqueda}
+            onChange={s.setBusqueda}
+            placeholder={`Buscar en ${s.documents.length} documentos…`}
+            ariaLabel="Buscar documentos"
+          />
+        )}
+
         <button
           onClick={s.openCreate}
           aria-label="Añadir documento"
-          className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
+          className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors flex-shrink-0"
         >
           <Plus size={20} />
         </button>
@@ -37,6 +49,7 @@ export function DocsView() {
 
       {s.puedeBuscar && (
         <SearchField
+          className="lg:hidden"
           value={s.busqueda}
           onChange={s.setBusqueda}
           placeholder={`Buscar en ${s.documents.length} documentos…`}

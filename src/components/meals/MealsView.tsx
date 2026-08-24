@@ -49,8 +49,7 @@ export function MealsView() {
       <div className="md:hidden max-w-lg mx-auto px-4 py-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-ink leading-tight">Comidas</h1>
-            <p className="text-xs text-muted mt-0.5">Menú de la familia</p>
+            <p className="text-xs text-muted">Menú de la familia</p>
           </div>
           <button
             onClick={() => s.openCreate()}
@@ -123,8 +122,7 @@ export function MealsView() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-ink leading-tight">Comidas</h1>
-            <p className="text-xs text-muted mt-0.5">{s.desktopWeek.label}</p>
+            <p className="text-xs text-muted">{s.desktopWeek.label}</p>
           </div>
 
           <div className="flex items-center gap-3">

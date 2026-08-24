@@ -137,7 +137,7 @@ test.describe('escritorio a 1440 px', () => {
     await page.waitForTimeout(500)
 
     const ancho = await page.evaluate(() => {
-      const caja = document.querySelector('h1')?.closest('.flex.flex-col.h-full')?.parentElement
+      const caja = document.querySelector('main h1')?.closest('.flex.flex-col.h-full')?.parentElement
       return caja ? getComputedStyle(caja).maxWidth : ''
     })
     // `lg:max-w-3xl` = 48rem. En móvil son 32rem (`max-w-lg`).
@@ -214,7 +214,7 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
     await page.waitForTimeout(500)
 
     const ancho = await page.evaluate(() => {
-      const caja = document.querySelector('h1')?.closest('.flex.flex-col.h-full')?.parentElement
+      const caja = document.querySelector('main h1')?.closest('.flex.flex-col.h-full')?.parentElement
       return caja ? getComputedStyle(caja).maxWidth : ''
     })
     expect(ancho).toBe('512px')

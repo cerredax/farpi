@@ -123,6 +123,25 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-24
 
+- **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
+  nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra
+  vez como título del contenido. Se van los cuatro `h1` repetidos (Comidas tenía uno de
+  móvil y otro de escritorio) y se igualan a Calendario, que nunca tuvo título propio y
+  es la que se lee mejor. Tareas ya estaba así. La línea pequeña de debajo se queda,
+  porque cuenta lo que la cabecera no dice: cuántos documentos hay, cuántas listas tiene
+  la familia, qué semana estás viendo.
+  - De paso, el título de `TopBar` pasa de `span` a `h1` —el de la ruta y el saludo de
+    Inicio—. El preflight de Tailwind reinicia tamaño, peso y margen de los encabezados,
+    así que no se mueve un píxel, y las siete pantallas recuperan un `h1`: hasta ahora
+    Calendario tampoco tenía. El `h1` de una lista abierta se queda, que ahí sí es el
+    único título; los dos tests de escritorio que lo buscaban se acotan a `main h1`.
+
+- **Deuda técnica menor, sin efecto en la app.** `safeFileName` (documentos de Supabase)
+  reutiliza `normalizaParaBuscar` en vez de repetir a mano el paso a minúsculas y el
+  despojo de tildes, y el recorte de guiones sobrantes que compartía con `legalSectionId`
+  se va a `text.ts` como `recortaGuiones`. Y tres exports sin ningún consumidor fuera de
+  su archivo pasan a privados: `FAMILY_ASSIGNEE`, `DEFAULT_FAMILY_ID` y `compararTexto`.
+
 - **La paleta de personas pasa a catorce colores, y dos de ellos no son cálidos.** Cinco
   de hombre adulto (entran **Azul** `#4A6C8C` y **Verde bosque** `#3D5C42`), tres de mujer,
   tres de niña y tres de niño. Los valores vienen calculados desde fuera del repositorio y

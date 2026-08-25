@@ -1,16 +1,5 @@
 import { test, expect } from '@playwright/test'
-import {
-  daysBetween,
-  eventCoversDay,
-  eventTitleOr,
-  isPersonAvailableOnDay,
-  isAbsence,
-  isPersonOffOnDay,
-  isRestDay,
-  isVacation,
-  vacationEdges,
-  vacationLength,
-} from '@/lib/events'
+import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isRangeKind, isRestDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
 import { event } from './fixtures'
 
 // Antes de las vacaciones, el calendario daba por hecho que un evento vivía en
@@ -136,4 +125,33 @@ test.describe('eventTitleOr', () => {
   test('a un plan sin título no le pone nada', () => {
     expect(eventTitleOr('evento', '')).toBe('')
   })
+})
+
+// Un festivo es la cuarta cara de `kind`, y la que no es de nadie: dice que ese
+// día no hay trabajo ni colegio, no quién falta. De ahí que se quede fuera de
+// `isAbsence` —que responde "¿con quién no puedo contar?"— y dentro de
+// `isRangeKind`, porque un puente son dos o tres días seguidos.
+test('un festivo ocupa días completos pero no es una ausencia', () => {
+  const festivo = event({ kind: 'festivo', all_day: true, start_at: '2026-12-06T00:00:00', end_at: '2026-12-08T23:59:00' })
+  expect(isHoliday(festivo)).toBe(true)
+  expect(isAbsence(festivo)).toBe(false)
+  expect(isVacation(festivo)).toBe(false)
+  expect(isRestDay(festivo)).toBe(false)
+  expect(eventCoversDay(festivo, '2026-12-07')).toBe(true)
+  expect(eventCoversDay(festivo, '2026-12-09')).toBe(false)
+})
+
+test('los tres tipos de rango piden día final; un plan no', () => {
+  expect(isRangeKind('vacaciones')).toBe(true)
+  expect(isRangeKind('descanso')).toBe(true)
+  expect(isRangeKind('festivo')).toBe(true)
+  expect(isRangeKind('evento')).toBe(false)
+})
+
+// Sin título escrito, cada tipo se guarda con el suyo. Un plan no: ahí el título
+// es obligatorio y lo exige el validador.
+test('un festivo sin título se guarda como "Festivo"', () => {
+  expect(eventTitleOr('festivo', '   ')).toBe('Festivo')
+  expect(eventTitleOr('festivo', 'Hispanidad')).toBe('Hispanidad')
+  expect(eventTitleOr('evento', '   ')).toBe('')
 })

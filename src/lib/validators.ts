@@ -1,4 +1,5 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
+import { isRangeKind } from './events'
 import type { ChildDraft, EventDraft, TaskDraft, MealDraft, ListDraft, ListItemDraft } from '@/types'
 
 // ─── Email ────────────────────────────────────────────────────────────────────
@@ -58,7 +59,7 @@ export function validateEventDraft(draft: EventDraft): string | null {
   // son por el tipo, y `eventTitleOr` les pone el nombre al guardar.
   if (draft.kind === 'evento' && !draft.title.trim()) return 'El título es obligatorio.'
   if (!draft.date) return 'La fecha es obligatoria.'
-  if ((draft.kind === 'vacaciones' || draft.kind === 'descanso') && (!draft.end_date || draft.end_date < draft.date))
+  if (isRangeKind(draft.kind) && (!draft.end_date || draft.end_date < draft.date))
     return 'La fecha final debe ser posterior o igual a la inicial.'
   if (!draft.all_day && draft.end_time && draft.end_time <= draft.start_time)
     return 'La hora de fin debe ser posterior a la de inicio.'

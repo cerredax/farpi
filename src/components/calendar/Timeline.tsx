@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { format, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { eventCoversDay, isAbsence, isVacation } from '@/lib/events'
+import { eventCoversDay, isAbsence, isHoliday, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
@@ -137,6 +137,9 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
        * decir de quién. Se pintan como en la celda del mes: nombre sobre su
        * color al 50 %.
        */
+      // El festivo va aparte de las ausencias: no dice quién falta, dice que ese
+      // día no hay trabajo ni colegio. Y por eso se pinta en gris.
+      festivos: events.filter(e => isHoliday(e) && eventCoversDay(e, diaStr)),
       ausencias: events.filter(e => isAbsence(e) && eventCoversDay(e, diaStr)),
       todoElDia,
       bloques: repartirSolapados(conHora, diaStr),
@@ -157,7 +160,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
   const horas = Array.from({ length: hasta - desde }, (_, i) => desde + i)
   const alto = (hasta - desde) * ALTO_HORA
 
-  const hayAlgoArriba = porDia.some(d => d.ausencias.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
+  const hayAlgoArriba = porDia.some(d => d.festivos.length > 0 || d.ausencias.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
   const columnas = `${CANAL_HORAS}px repeat(${days.length}, minmax(0, 1fr))`
 
   return (
@@ -196,8 +199,16 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           <span className="flex items-center justify-end whitespace-nowrap pr-2 text-[9px] font-bold text-faint">
             Todo el día
           </span>
-          {porDia.map(({ day, ausencias, todoElDia, tasks: delDia }) => (
+          {porDia.map(({ day, festivos, ausencias, todoElDia, tasks: delDia }) => (
             <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1">
+              {festivos.map(event => (
+                <span
+                  key={event.id}
+                  className="truncate rounded bg-line px-1 py-0.5 text-[10px] font-bold text-ink"
+                >
+                  {event.title}
+                </span>
+              ))}
               {ausencias.map(event => {
                 const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
                 return (
@@ -210,7 +221,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
                   </span>
                 )
               })}
-              {todoElDia.filter(e => !isAbsence(e)).map(event => (
+              {todoElDia.filter(e => !isAbsence(e) && !isHoliday(e)).map(event => (
                 <button
                   key={event.id}
                   type="button"

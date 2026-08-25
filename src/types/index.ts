@@ -57,7 +57,7 @@ export interface Child {
 }
 
 /** Un plan puntual, unas vacaciones de varios días o un descanso marcado como no disponible. */
-export type EventKind = 'evento' | 'vacaciones' | 'descanso'
+export type EventKind = 'evento' | 'vacaciones' | 'descanso' | 'festivo'
 
 export interface Event {
   id: string

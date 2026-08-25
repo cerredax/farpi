@@ -76,8 +76,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 220 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 76 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 223 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 79 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -476,6 +476,27 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     casa es cuando más pasa; además en Nido el color significa persona. Tampoco una trama
     de rayas, la otra idea: la celda de escritorio escribe títulos a 10 px y una textura
     detrás se los come.
+- **Los festivos, cuarto tipo de evento.** Migración `020`, calcada de la `017` que metió
+  los descansos: `kind` pasa a admitir `festivo` y se añade su restricción de rango. Se
+  apunta desde el mismo sheet —"Qué es" gana un cuarto botón—, con días completos y día
+  final, porque un puente son dos o tres días.
+  - **Se pinta en gris, no en la paleta.** Un festivo no es de nadie: darle el amarillo de
+    "Familia" lo confundiría con unas vacaciones de todos, y en Nido el color significa
+    persona. Va en gris en la celda, en la franja de la vista Semana y en la lista, donde
+    además dice "Festivo" en vez de un nombre.
+  - **No es una ausencia**, y por eso se queda fuera de `isAbsence`: una ausencia dice
+    quién no está disponible y un festivo es una propiedad del día. Sí entra en
+    `isRangeKind`, un helper nuevo que sustituye al `kind === 'vacaciones' || kind ===
+    'descanso'` que estaba escrito a mano en seis sitios y que habría habido que tocar en
+    los seis.
+  - El título es opcional, como en los otros dos de rango: sin él se guarda como
+    "Festivo". Y los nacionales no vienen puestos a propósito: los de la comunidad, los
+    del pueblo y los del colegio no salen de ninguna lista que sirva para todos.
+  - **Pendiente: aplicar la `020` en el SQL Editor de Supabase.** Hasta entonces la app en
+    producción rechaza guardar un festivo, porque el `check` de la base solo admite tres
+    tipos. Después toca `node scripts/validate-rls.mjs` y actualizar
+    `docs/supabase-validation.md`.
+
   - **Y las ausencias aparecen en Semana y en Día**, que no aparecían: `partirEventosDelDia`
     deja fuera las vacaciones —su sitio era la raya de la rejilla, y ahí no hay rejilla—
     así que una semana entera de vacaciones no salía por ninguna parte. Un descanso sí,

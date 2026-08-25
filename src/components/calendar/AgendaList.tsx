@@ -19,7 +19,7 @@ import type { Event, Child, FamilyMember, Task } from '@/types'
 import { tramoDeAgenda } from '@/lib/agenda'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
-import { eventCoversDay, isAbsence } from '@/lib/events'
+import { eventCoversDay, isAbsence, isHoliday } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 import { DayTasks } from './DayTasks'
 
@@ -97,9 +97,12 @@ function sortEvents(events: Event[]): Event[] {
  */
 function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void }) {
   const asignado = resolveAssignee(event, members, kids)
-  const color = eventColor(event, members, kids)
+  // Un festivo no es de nadie: ni lleva el amarillo de "Familia" —que lo
+  // confundiría con algo de toda la casa— ni dice un nombre. Dice lo que es.
+  const festivo = isHoliday(event)
+  const color = festivo ? 'var(--color-line)' : eventColor(event, members, kids)
   const hora = event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')
-  const quien = asignado?.name ?? 'Familia'
+  const quien = festivo ? 'Festivo' : asignado?.name ?? 'Familia'
 
   return (
     <button
@@ -115,8 +118,8 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
       <span className="text-[11px] font-bold text-muted flex-shrink-0 tabular-nums">{hora}</span>
       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{event.title}</span>
       <span
-        className={`max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold ${asignado ? '' : 'text-muted'}`}
-        style={asignado ? { color: asignado.color } : undefined}
+        className={`max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold ${asignado && !festivo ? '' : 'text-muted'}`}
+        style={asignado && !festivo ? { color: asignado.color } : undefined}
       >
         {quien}
       </span>

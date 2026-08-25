@@ -70,8 +70,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # ~220 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: unitarios + ~76 de navegador (levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # ~223 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: unitarios + ~79 de navegador (levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-all-in-one.mjs    # regenera supabase/all_in_one.sql (--check solo comprueba)
@@ -152,7 +152,7 @@ que hacer lo mismo.
 
 ### Base de datos
 
-`supabase/migrations/001…019`. Se aplican a mano por el SQL Editor (no hay CLI de Supabase enlazada). `all_in_one.sql` es la concatenación de las 19 para levantar un proyecto de cero: **está generado**, no se edita a mano (`node scripts/gen-all-in-one.mjs`, y `--check` avisa si se ha quedado atrás).
+`supabase/migrations/001…020`. Se aplican a mano por el SQL Editor (no hay CLI de Supabase enlazada). `all_in_one.sql` es la concatenación de las 20 para levantar un proyecto de cero: **está generado**, no se edita a mano (`node scripts/gen-all-in-one.mjs`, y `--check` avisa si se ha quedado atrás).
 
 Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
 

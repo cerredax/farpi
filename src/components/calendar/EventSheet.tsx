@@ -5,6 +5,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DeleteButton } from '@/components/ui/DeleteButton'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
+import { isRangeKind } from '@/lib/events'
 import type { Event, Child, EventDraft, FamilyMember } from '@/types'
 import { EventRecurrenceFields } from './EventRecurrenceFields'
 import { EventSeriesDelete } from './EventSeriesDelete'
@@ -92,15 +93,16 @@ export function EventSheet({
                 { valor: 'evento' as const, etiqueta: 'Un plan' },
                 { valor: 'vacaciones' as const, etiqueta: 'Vacaciones' },
                 { valor: 'descanso' as const, etiqueta: 'Descanso' },
+                { valor: 'festivo' as const, etiqueta: 'Festivo' },
               ]).map(({ valor, etiqueta }) => (
                 <button
                   key={valor}
                   type="button"
                   onClick={() => s.patch({
                     kind: valor,
-                    // Las vacaciones y los descansos son días completos por definición.
-                    all_day: valor === 'vacaciones' || valor === 'descanso' ? true : s.draft.all_day,
-                    end_date: (valor === 'vacaciones' || valor === 'descanso') && !s.draft.end_date ? s.draft.date : s.draft.end_date,
+                    // Vacaciones, descansos y festivos son días completos por definición.
+                    all_day: isRangeKind(valor) ? true : s.draft.all_day,
+                    end_date: isRangeKind(valor) && !s.draft.end_date ? s.draft.date : s.draft.end_date,
                   })}
                   className={`rounded-xl py-2 text-xs font-bold transition-colors ${
                     s.draft.kind === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
@@ -122,7 +124,7 @@ export function EventSheet({
             type="text"
             value={s.draft.title}
             onChange={e => s.patch({ title: e.target.value })}
-            placeholder={s.esVacaciones ? 'Vacaciones' : s.esDescanso ? 'Descanso' : '¿Qué ocurre?'}
+            placeholder={s.esVacaciones ? 'Vacaciones' : s.esDescanso ? 'Descanso' : s.esFestivo ? 'Festivo' : '¿Qué ocurre?'}
             className="field-input"
           />
         </Field>
@@ -132,7 +134,7 @@ export function EventSheet({
         </Field>
 
         {/* Fechas. En vacaciones o descansos son un rango de días; en un plan, uno con horas. */}
-        {s.esVacaciones || s.esDescanso ? (
+        {s.esDeRango ? (
           <div className="flex gap-3">
             <div className="flex-1">
               <Field label="Desde" htmlFor="event-date">
@@ -178,7 +180,7 @@ export function EventSheet({
 
         <AssigneePicker value={s.draft} onChange={s.patch} members={members} kids={kids} />
 
-        {mode === 'create' && !s.esVacaciones && !s.esDescanso && <EventRecurrenceFields s={s} />}
+        {mode === 'create' && !s.esDeRango && <EventRecurrenceFields s={s} />}
 
       </form>
     </BottomSheet>

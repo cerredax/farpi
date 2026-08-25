@@ -43,7 +43,21 @@ export function eventTitleOr(kind: EventKind, title: string): string {
   if (limpio) return limpio
   if (kind === 'vacaciones') return 'Vacaciones'
   if (kind === 'descanso') return 'Descanso'
+  if (kind === 'festivo') return 'Festivo'
   return ''
+}
+
+/**
+ * Los tipos que ocupan **días completos y llevan día final**: vacaciones,
+ * descansos y festivos. Un plan es lo contrario: es de una tarde y tiene hora.
+ *
+ * Vive aquí porque esa condición se preguntaba en seis sitios con un `||` de
+ * dos ramas escrito a mano, y al entrar el tercer tipo habría que haber tocado
+ * los seis. La base de datos lo dice con la misma regla, una restricción por
+ * tipo (`events_*_con_rango`).
+ */
+export function isRangeKind(kind: EventKind): boolean {
+  return kind === 'vacaciones' || kind === 'descanso' || kind === 'festivo'
 }
 
 export function isVacation(event: Event): boolean {
@@ -52,6 +66,18 @@ export function isVacation(event: Event): boolean {
 
 export function isRestDay(event: Event): boolean {
   return event.kind === 'descanso'
+}
+
+/**
+ * Un festivo: un día sin trabajo ni colegio.
+ *
+ * **No es una ausencia** y por eso se queda fuera de `isAbsence`. Una ausencia
+ * dice quién no está disponible; un festivo es una propiedad del día y afecta
+ * igual a toda la casa. De ahí también que se pinte en gris y no en la paleta
+ * de personas, donde el color significa siempre de quién es algo.
+ */
+export function isHoliday(event: Event): boolean {
+  return event.kind === 'festivo'
 }
 
 /**

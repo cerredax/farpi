@@ -1,4 +1,5 @@
 import { buildLocalDateTime } from '../date-utils'
+import { isRangeKind } from '../events'
 import { buildWeeklyDates, buildYearlyDates } from '../recurrence'
 import { createClient } from '../supabase/client'
 import { assertNoError, currentUserId } from './shared'
@@ -11,7 +12,7 @@ function localDateTimeToIso(date: string, time = '00:00'): string {
 
 /** En vacaciones `end_at` es el último día; en un evento normal, la hora de fin. */
 function endAtFromDraft(draft: EventDraft): string | null {
-  if (draft.kind === 'vacaciones' || draft.kind === 'descanso') {
+  if (isRangeKind(draft.kind)) {
     return localDateTimeToIso(draft.end_date || draft.date, '23:59')
   }
   return !draft.all_day && draft.end_time ? localDateTimeToIso(draft.date, draft.end_time) : null

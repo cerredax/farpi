@@ -1,5 +1,5 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -93,7 +93,8 @@ interface DayCellProps {
  * cuando la señal no llevaba nombre y apilar dos rayas solo decía "falta gente";
  * con el nombre escrito, la segunda sí añade.
  */
-function AbsenceChips({ vacaciones, descansos, day, kids, members }: {
+function DayChips({ festivos, vacaciones, descansos, day, kids, members }: {
+  festivos: Event[]
   vacaciones: Event[]
   descansos: Event[]
   day: Date
@@ -105,10 +106,24 @@ function AbsenceChips({ vacaciones, descansos, day, kids, members }: {
   // El hueco se reserva aunque no haya nada: si no, los días con ausencia
   // quedarían más altos que los demás y la fila se descuadra. En escritorio no
   // hace falta, que la celda ya tiene alto mínimo.
-  if (ausencias.length === 0) return <span className="block h-[4px] lg:hidden" aria-hidden />
+  if (festivos.length === 0 && ausencias.length === 0) {
+    return <span className="block h-[4px] lg:hidden" aria-hidden />
+  }
 
   return (
     <span className="flex w-full flex-col gap-px" aria-hidden>
+      {/* El festivo primero y **en gris**: no es de nadie, y en Nido el color
+          significa persona. Pintarlo del amarillo de "Familia" lo confundiría
+          con unas vacaciones de todos, que es otra cosa. Va antes que las
+          ausencias porque es una propiedad del día, no de alguien. */}
+      {festivos.slice(0, MAX_AUSENCIAS).map(event => (
+        <span
+          key={event.id}
+          className="block h-[4px] w-full truncate rounded-full bg-line lg:h-auto lg:rounded lg:px-1 lg:text-[10px] lg:font-bold lg:leading-tight lg:text-ink"
+        >
+          <span className="hidden lg:inline">{event.title}</span>
+        </span>
+      ))}
       {ausencias.slice(0, MAX_AUSENCIAS).map(event => {
         const color = eventColor(event, members, kids)
         const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
@@ -154,7 +169,8 @@ export function DayCell({
   // Los planes son lo que no es una ausencia: las ausencias ya las cuenta la
   // raya, y escribir "Vacaciones" en los siete días de un tramo era justo lo que
   // sacó los títulos de la celda en su día.
-  const planes = events.filter(e => !isVacation(e) && !isRestDay(e))
+  const festivos = events.filter(isHoliday)
+  const planes = events.filter(e => !isVacation(e) && !isRestDay(e) && !isHoliday(e))
   const marcas = marcasDelDia(events, tasks, members, kids)
 
   /**
@@ -251,7 +267,7 @@ export function DayCell({
       <span className="lg:hidden">
         <DayActivity marcas={marcas} />
       </span>
-      <AbsenceChips vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
+      <DayChips festivos={festivos} vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
     </button>
 
       {/* Solo en escritorio. Dos títulos como mucho y el resto contado: una

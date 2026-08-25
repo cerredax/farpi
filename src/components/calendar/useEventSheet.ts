@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { extractDate, extractTime, parseLocalDate } from '@/lib/date-utils'
 import { buildWeeklyDates, joinWeekdayNames, maxWeeklyEndDate, weekdayOf } from '@/lib/recurrence'
-import { daysBetween, eventTitleOr } from '@/lib/events'
+import { daysBetween, eventTitleOr, isRangeKind } from '@/lib/events'
 import { validateEventDraft } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { Event, EventDraft } from '@/types'
@@ -38,7 +38,7 @@ function initDraft(mode: EventSheetMode, initial: Event | null | undefined, defa
       child_id: initial.child_id,
       member_id: initial.member_id,
       kind: initial.kind,
-      end_date: (initial.kind === 'vacaciones' || initial.kind === 'descanso') && initial.end_at ? extractDate(initial.end_at) : '',
+      end_date: isRangeKind(initial.kind) && initial.end_at ? extractDate(initial.end_at) : '',
     }
   }
   return {
@@ -79,7 +79,10 @@ export function useEventSheet({
 
   const esVacaciones = draft.kind === 'vacaciones'
   const esDescanso = draft.kind === 'descanso'
-  const diasVacaciones = (esVacaciones || esDescanso) ? daysBetween(draft.date, draft.end_date) : 0
+  const esFestivo = draft.kind === 'festivo'
+  // Los tres ocupan días completos y piden día final; un plan no.
+  const esDeRango = isRangeKind(draft.kind)
+  const diasVacaciones = esDeRango ? daysBetween(draft.date, draft.end_date) : 0
 
   function handleDateChange(newDate: string) {
     patch({ date: newDate })
@@ -122,7 +125,7 @@ export function useEventSheet({
     ? (recurrenceEndYear < startYear ? 'El año final debe ser igual o posterior al año de inicio' : null)
     : null
 
-  const vacacionesError = (esVacaciones || esDescanso) && draft.end_date && draft.end_date < draft.date
+  const vacacionesError = esDeRango && draft.end_date && draft.end_date < draft.date
     ? 'El último día no puede ser anterior al primero'
     : null
 
@@ -146,9 +149,9 @@ export function useEventSheet({
     onClose()
   })
 
-  // El título solo frena el botón en un plan; en vacaciones y descansos es
-  // opcional y se rellena solo.
-  const tituloOpcional = esVacaciones || esDescanso
+  // El título solo frena el botón en un plan; en los de rango es opcional y se
+  // rellena solo con el nombre del tipo.
+  const tituloOpcional = esDeRango
   const canSubmit = (tituloOpcional || draft.title.trim().length > 0)
     && seriesError === null && yearlyError === null && vacacionesError === null
 
@@ -156,8 +159,10 @@ export function useEventSheet({
   // aparezcan cuarenta es una sorpresa que nadie quiere.
   const submitLabel = mode === 'edit'
     ? 'Guardar cambios'
-    : esVacaciones || esDescanso
-      ? (diasVacaciones > 0 ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}` : esVacaciones ? 'Apuntar vacaciones' : 'Apuntar descanso')
+    : esDeRango
+      ? (diasVacaciones > 0
+          ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}`
+          : esVacaciones ? 'Apuntar vacaciones' : esDescanso ? 'Apuntar descanso' : 'Apuntar festivo')
       : recurrence === 'weekly' && seriesCount > 0
         ? `Crear ${seriesCount} eventos`
         : recurrence === 'yearly' && yearlyCount > 0
@@ -170,7 +175,7 @@ export function useEventSheet({
     draft, patch, formError, firstFieldRef, handleSubmit,
     confirmDelete, handleDelete,
     seriesDeleteOpen, setSeriesDeleteOpen,
-    esVacaciones, esDescanso, tituloOpcional,
+    esVacaciones, esDescanso, esFestivo, esDeRango, tituloOpcional,
     recurrence, setNone, setWeekly, setYearly,
     recurrenceWeekdays, toggleWeekday,
     recurrenceEnd, setRecurrenceEnd,

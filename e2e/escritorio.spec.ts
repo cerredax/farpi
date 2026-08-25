@@ -176,6 +176,45 @@ test.describe('escritorio a 1440 px', () => {
     await expect(celda.getByText('Sofía', { exact: true })).toHaveCount(2)
   })
 
+  // Un festivo se apunta como los otros tres tipos y se pinta en la celda con su
+  // nombre. En gris y no en la paleta: no es de nadie, y darle el amarillo de
+  // "Familia" lo confundiría con unas vacaciones de todos.
+  test('un festivo se apunta y se nombra en la celda', async ({ page }) => {
+    await page.goto('/calendar')
+    await page.waitForTimeout(900)
+    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Festivo', exact: true }).click()
+
+    // Como en vacaciones y descansos: días completos, dos fechas y sin horas.
+    await expect(page.locator('#event-end-date')).toBeVisible()
+    await expect(page.locator('#event-start')).toHaveCount(0)
+
+    await page.locator('#event-title').fill('Hispanidad')
+    await page.locator('#event-date').fill('2026-08-12')
+    await page.locator('#event-end-date').fill('2026-08-12')
+    await page.getByRole('button', { name: /Apuntar/ }).click()
+    await page.waitForTimeout(700)
+
+    const celda = page.locator('[aria-pressed][aria-label*="12 de agosto"]')
+    await expect(celda.getByText('Hispanidad', { exact: true })).toHaveCount(1)
+  })
+
+  // El título es opcional, como en los otros dos de rango: el tipo ya dice lo
+  // que es y exigir un nombre es exigir que alguien se lo invente.
+  test('un festivo sin título se guarda como "Festivo"', async ({ page }) => {
+    await page.goto('/calendar')
+    await page.waitForTimeout(900)
+    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Festivo', exact: true }).click()
+    await page.locator('#event-date').fill('2026-08-19')
+    await page.locator('#event-end-date').fill('2026-08-19')
+    await page.getByRole('button', { name: /Apuntar/ }).click()
+    await page.waitForTimeout(700)
+
+    const celda = page.locator('[aria-pressed][aria-label*="19 de agosto"]')
+    await expect(celda.getByText('Festivo', { exact: true })).toHaveCount(1)
+  })
+
   test('la sección donde estás se marca en la barra lateral', async ({ page }) => {
     await page.goto('/meals')
     await page.waitForTimeout(800)

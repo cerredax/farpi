@@ -1,9 +1,6 @@
 'use client'
 
 import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { capitalize } from '@/lib/text'
 
 /**
  * La cabecera del calendario: dónde estás, cómo moverte y cómo añadir.
@@ -36,29 +33,37 @@ export type VistaEscritorio = 'dia' | 'semana' | 'mes'
 const VISTAS: [VistaEscritorio, string][] = [['dia', 'Día'], ['semana', 'Semana'], ['mes', 'Mes']]
 
 interface CalendarHeaderProps {
-  currentMonth: Date
+  /**
+   * Qué estás mirando, escrito: el mes, la semana o el día.
+   *
+   * Lo calcula `CalendarView`, que es quien sabe la vista. Antes se sacaba aquí
+   * del mes y siempre ponía "Agosto 2026", también mirando una semana: las
+   * flechas parecían de mes y no había forma de saber en qué semana estabas.
+   */
+  titulo: string
   /** Si la rejilla del mes está desplegada. Solo manda en móvil. */
   mesAbierto: boolean
   onToggleMes: () => void
   vista: VistaEscritorio
   onVista: (vista: VistaEscritorio) => void
+  /** Qué recorren las flechas, para su etiqueta accesible: "Semana anterior". */
+  unidad: string
   onPrev: () => void
   onNext: () => void
   onAdd: () => void
 }
 
-export function CalendarHeader({ currentMonth, mesAbierto, onToggleMes, vista, onVista, onPrev, onNext, onAdd }: CalendarHeaderProps) {
-  const label = capitalize(format(currentMonth, 'MMMM yyyy', { locale: es }))
+export function CalendarHeader({ titulo, mesAbierto, onToggleMes, vista, onVista, unidad, onPrev, onNext, onAdd }: CalendarHeaderProps) {
 
   const FLECHA = 'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
 
   const anterior = (
-    <button type="button" onClick={onPrev} aria-label="Mes anterior" className={FLECHA}>
+    <button type="button" onClick={onPrev} aria-label={`${unidad} anterior`} className={FLECHA}>
       <ChevronLeft size={20} strokeWidth={2} />
     </button>
   )
   const siguiente = (
-    <button type="button" onClick={onNext} aria-label="Mes siguiente" className={FLECHA}>
+    <button type="button" onClick={onNext} aria-label={`${unidad} siguiente`} className={FLECHA}>
       <ChevronRight size={20} strokeWidth={2} />
     </button>
   )
@@ -76,7 +81,7 @@ export function CalendarHeader({ currentMonth, mesAbierto, onToggleMes, vista, o
             aria-label={mesAbierto ? 'Ocultar el mes' : 'Ver el mes'}
             className="flex min-h-9 min-w-0 items-center gap-1 rounded-xl px-2 py-1 transition-colors hover:bg-line active:bg-grip"
           >
-            <span className="min-w-0 truncate text-base font-extrabold tracking-tight text-ink">{label}</span>
+            <span className="min-w-0 truncate text-base font-extrabold tracking-tight text-ink">{titulo}</span>
             <ChevronDown
               size={18}
               strokeWidth={2.5}
@@ -94,7 +99,7 @@ export function CalendarHeader({ currentMonth, mesAbierto, onToggleMes, vista, o
             un título y las flechas no dependen de nada. */}
         <div className="hidden min-w-0 items-center gap-0.5 lg:flex">
           {anterior}
-          <h2 className="min-w-0 truncate px-1 text-base font-extrabold tracking-tight text-ink">{label}</h2>
+          <h2 className="min-w-0 truncate px-1 text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
           {siguiente}
         </div>
 

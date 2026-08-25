@@ -14,6 +14,8 @@ import {
   startOfMonth,
   startOfWeek,
 } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { capitalize } from '@/lib/text'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
@@ -201,6 +203,27 @@ export function CalendarView() {
     ? { valor: busqueda, onChange: setBusqueda, coincidencias: selectEventMatches(allEvents, busqueda) }
     : undefined
 
+  /**
+   * Qué dice la cabecera y qué recorren las flechas: el mes, la semana o el día.
+   *
+   * Antes siempre ponía el mes, también mirando una semana, y entonces las
+   * flechas parecían de mes: no había forma de saber en qué semana estabas ni de
+   * ver que se movían de siete en siete.
+   *
+   * La semana se escribe como un tramo —"17 – 23 de agosto"— y el mes solo se
+   * repite si el tramo lo cruza, que es cuando hace falta para situarse.
+   */
+  const [titulo, unidad] = (() => {
+    if (!conEje) return [capitalize(format(currentMonth, 'MMMM yyyy', { locale: es })), 'Mes']
+    if (vista === 'dia') return [capitalize(format(selectedDay, "EEEE, d 'de' MMMM", { locale: es })), 'Día']
+
+    const [primero, ultimo] = [diasDelEje[0], diasDelEje[diasDelEje.length - 1]]
+    const mismoMes = isSameMonth(primero, ultimo)
+    const desde = format(primero, mismoMes ? 'd' : "d 'de' MMM", { locale: es })
+    const hasta = format(ultimo, "d 'de' MMMM", { locale: es })
+    return [capitalize(`${desde} – ${hasta}`), 'Semana']
+  })()
+
   const sheetKey = editingEvent
     ? `edit-${editingEvent.id}`
     : `create-${format(selectedDay, 'yyyyMMdd')}`
@@ -209,7 +232,8 @@ export function CalendarView() {
     <>
       <div className="pb-6 lg:mx-auto lg:max-w-5xl lg:px-6 lg:py-4">
         <CalendarHeader
-          currentMonth={currentMonth}
+          titulo={titulo}
+          unidad={unidad}
           mesAbierto={mesAbierto}
           onToggleMes={() => setMesAbierto(a => !a)}
           vista={vista}

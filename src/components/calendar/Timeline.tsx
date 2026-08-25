@@ -24,11 +24,28 @@ import type { Child, Event, FamilyMember, Task } from '@/types'
  * horas del móvil el 24-08-2026 y vuelve intacta, con sus 19 unitarios.
  */
 
-/** Alto de una hora del eje, en píxeles. */
-const ALTO_HORA = 56
+/**
+ * Alto mínimo de una hora del eje. El de verdad se calcula en CSS para que el
+ * día **entre entero sin cortarse**, y este es el suelo: por debajo de 28 px una
+ * cita de media hora no se puede pulsar, así que en una pantalla muy baja el eje
+ * prefiere desliz  arse antes que encogerse más.
+ */
+const ALTO_HORA_MINIMO = 28
 
 /** Alto mínimo de un bloque, para que una cita de quince minutos se pueda pulsar. */
 const ALTO_MINIMO_BLOQUE = 28
+
+/**
+ * El día que se enseña siempre, aunque no haya nada a esas horas.
+ *
+ * `rangoHorario` recorta el eje a lo que hay, que en la vista de móvil tenía
+ * sentido —un día de dos citas no tenía por qué enseñar la madrugada— pero en
+ * escritorio dejaba una semana con dos huecos de tres horas y el resto cortado.
+ * Un calendario de semana sirve para ver los huecos tanto como lo lleno, así que
+ * el eje cubre de siete a diez de la noche como mínimo, y se estira si hay algo
+ * antes o después.
+ */
+const DIA_VISIBLE = { inicio: 7 * 60, fin: 22 * 60 }
 
 /** Ancho del canal de las horas, a la izquierda del eje. */
 const CANAL_HORAS = 56
@@ -44,8 +61,9 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
   const color = eventColor(event, members, kids)
   const asignado = resolveAssignee(event, members, kids)
 
-  const top = ((inicio - desde * 60) / 60) * ALTO_HORA
-  const alto = Math.max(((fin - inicio) / 60) * ALTO_HORA, ALTO_MINIMO_BLOQUE)
+  // En unidades de `--alto-hora`, que la fija el contenedor según lo que quepa.
+  const top = `calc(var(--alto-hora) * ${((inicio - desde * 60) / 60).toFixed(4)})`
+  const alto = `max(calc(var(--alto-hora) * ${((fin - inicio) / 60).toFixed(4)}), ${ALTO_MINIMO_BLOQUE}px)`
   const hora = format(new Date(event.start_at), 'HH:mm')
   const ancho = 100 / columnas
 
@@ -65,9 +83,11 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
       }}
     >
       <span className="block truncate text-[12px] font-bold leading-tight text-ink">{event.title}</span>
-      {/* En un bloque corto no cabe la segunda línea y sobra: la posición ya
-          dice la hora. */}
-      {alto >= 40 && (
+      {/* En un bloque corto no cabe la segunda línea y sobra: la posición ya dice
+          la hora. Se decide por **duración** y no por píxeles porque el alto de
+          una hora ya no es un número fijo: lo reparte el CSS según lo que quepa
+          en la pantalla. De una hora para arriba entra siempre. */}
+      {fin - inicio >= 60 && (
         <span className="block truncate text-[10px] font-semibold leading-tight text-muted">
           {hora}{asignado ? ` · ${asignado.name}` : ''}
         </span>
@@ -85,7 +105,7 @@ function AhoraLine({ minutos, desde }: { minutos: number; desde: number }) {
   return (
     <div
       className="pointer-events-none absolute inset-x-0 z-0 flex items-center"
-      style={{ top: ((minutos - desde * 60) / 60) * ALTO_HORA }}
+      style={{ top: `calc(var(--alto-hora) * ${((minutos - desde * 60) / 60).toFixed(4)})` }}
       aria-hidden
     >
       <span className="h-2 w-2 flex-shrink-0 rounded-full bg-danger" />
@@ -154,19 +174,34 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
    * es justo para lo que sirve mirar la semana.
    */
   const { desde, hasta } = rangoHorario(
-    porDia.flatMap(d => d.bloques),
+    [...porDia.flatMap(d => d.bloques), DIA_VISIBLE],
     days.some(d => isToday(d)) ? (ahora ?? undefined) : undefined,
   )
   const horas = Array.from({ length: hasta - desde }, (_, i) => desde + i)
-  const alto = (hasta - desde) * ALTO_HORA
+
+  /**
+   * El alto de una hora se calcula en CSS y no aquí, y por eso las posiciones van
+   * en `calc()` sobre `--alto-hora`: así el eje se reparte el alto que queda en
+   * la pantalla y el día entra entero, en vez de vivir en una caja con scroll
+   * propio que lo dejaba cortado por abajo.
+   *
+   * `22rem` es lo que ocupan la cabecera de la app, la del calendario, la fila de
+   * los días y el aire de la página. Si no llega, manda el suelo de 28 px y
+   * entonces sí se desliza —mejor deslizarse que no poder pulsar una cita—.
+   */
+  const altoHora = `max(${ALTO_HORA_MINIMO}px, calc((100vh - 22rem) / ${horas.length}))`
+  const enHoras = (n: number) => `calc(var(--alto-hora) * ${n.toFixed(4)})`
+  const alto = enHoras(horas.length)
 
   const hayAlgoArriba = porDia.some(d => d.festivos.length > 0 || d.ausencias.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
   const columnas = `${CANAL_HORAS}px repeat(${days.length}, minmax(0, 1fr))`
 
   return (
     <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
-      {/* Cabecera de columnas: qué día es cada una. Con una sola columna cabe el
-          nombre entero; con siete, la abreviatura. */}
+      {/* Cabecera de columnas: qué día es cada una. **Solo con varias**: en la
+          vista de un día, la cabecera del calendario ya pone "Jueves, 27 de
+          agosto" y repetirlo aquí es decirlo dos veces seguidas. */}
+      {days.length > 1 && (
       <div className="grid border-b border-hairline" style={{ gridTemplateColumns: columnas }}>
         <span aria-hidden />
         {days.map(day => {
@@ -187,6 +222,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           )
         })}
       </div>
+      )}
 
       {/* Lo que no tiene hora: eventos de todo el día y tareas, que vencen pero
           no ocurren a una hora. La franja solo aparece si hay algo, para no
@@ -246,17 +282,23 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
 
       {/* El eje se desliza dentro de la tarjeta: así la cabecera de días se queda
           arriba, que es lo que la hace útil al bajar hasta la tarde. */}
-      <div className="max-h-[62vh] overflow-y-auto">
+      {/* Sin caja con scroll propio: el eje se reparte el alto que queda y el día
+          entra entero. `overflow-y-auto` se queda solo como red para pantallas
+          muy bajas, donde manda el suelo de 28 px por hora. */}
+      <div className="overflow-y-auto">
         {/* El relleno de arriba y abajo no es estética: la etiqueta de cada hora
             va centrada sobre su raya, así que la primera asoma media línea por
             encima del eje y la última por debajo. Sin él se cortaban las dos. */}
-        <div className="grid py-3" style={{ gridTemplateColumns: columnas }}>
+        <div
+          className="grid py-3"
+          style={{ gridTemplateColumns: columnas, ['--alto-hora' as string]: altoHora }}
+        >
           <div className="relative" style={{ height: alto }}>
             {horas.map((hora, i) => (
               <span
                 key={hora}
                 className="absolute right-2 -translate-y-1/2 text-[10px] font-bold text-faint"
-                style={{ top: i * ALTO_HORA }}
+                style={{ top: enHoras(i) }}
               >
                 {String(hora).padStart(2, '0')}:00
               </span>
@@ -276,7 +318,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
                 <span
                   key={hora}
                   className="absolute inset-x-0 border-t border-hairline/70"
-                  style={{ top: i * ALTO_HORA }}
+                  style={{ top: enHoras(i) }}
                   aria-hidden
                 />
               ))}

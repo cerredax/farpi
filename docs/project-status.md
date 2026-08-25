@@ -423,6 +423,23 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **Editar unas vacaciones retrocedía un día la fecha de inicio.** El sheet leía la fecha
+  cortando la cadena (`start_at.slice(0, 10)`). Con el mock funciona —guarda la hora de
+  pared— pero Supabase usa `timestamptz` y devuelve UTC: unas vacaciones del 17 apuntadas
+  en España en verano vuelven como `2026-08-16T22:00:00+00:00`. **Solo fallaba en
+  producción**, y por eso la suite entera no podía verlo: corre en modo demo. `initDraft`
+  se exporta para poder probarla y llegan dos unitarios que construyen el instante desde
+  una fecha local, así que valen en cualquier zona horaria.
+
+- **La semana y el día se veían cortados; ahora el día entra entero.** El eje se recortaba
+  a las horas con algo y vivía en una caja con scroll propio. Ahora cubre de 7 a 22 como
+  mínimo y el alto de una hora se calcula en CSS (`--alto-hora`), con suelo de 28 px.
+- **La cabecera dice qué estás mirando**: "24 – 30 de agosto" en semana, "Jueves, 27 de
+  agosto" en día. Antes siempre ponía el mes y las flechas parecían de mes; ahora se ve
+  que mueven la semana o el día, y sus etiquetas accesibles lo dicen.
+
+
+
 - **Las ausencias se marcan con una franja arriba, sobre un carril gris.** Tercera vuelta
   del día y la que se queda, y la primera que sale de medir en vez de mirar.
   - **La posición** dice que dura: arriba del todo, fuera del flujo donde van las cosas del

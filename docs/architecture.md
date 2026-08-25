@@ -459,6 +459,22 @@ El eje es uno solo para las siete columnas y se calcula sobre lo que hay en toda
 siete ejes distintos no se podría comparar un martes con un jueves, que es para lo que
 sirve mirar la semana.
 
+**El día entra entero y sin cortarse** (26-08-2026). Dos cosas lo rompían. Una, que el eje
+se recortaba solo a las horas con algo: en móvil tenía sentido —un día de dos citas no
+tenía por qué enseñar la madrugada— pero en escritorio dejaba una semana con dos huecos
+de tres horas. Ahora el eje cubre **de siete a diez de la noche como mínimo**, y se estira
+si hay algo antes o después. Y dos, que vivía en una caja con `max-h` y scroll propio, que
+es lo que se veía cortado: ahora el alto de una hora se calcula en CSS —`--alto-hora`, con
+suelo de 28 px para que una cita corta siga siendo pulsable— y las posiciones de los
+bloques van en `calc()` sobre esa variable.
+
+**La cabecera dice qué estás mirando**: el mes, la semana como tramo ("24 – 30 de agosto")
+o el día entero ("Jueves, 27 de agosto"). Antes siempre ponía el mes, también mirando una
+semana, y entonces las flechas parecían de mes: no había forma de saber en qué semana
+estabas ni de ver que se movían de siete en siete. Sus etiquetas accesibles acompañan
+("Semana anterior", "Día siguiente"). En la vista de un día desaparece la cabecera de
+columna, que repetía lo que el título acaba de decir.
+
 Con Día o Semana delante **no hay lista al lado**. Google tampoco la pone, y con ella la
 rejilla se queda sin el ancho que un bloque necesita para decir algo. La lista contesta
 "¿qué viene después?" y esa pregunta la acompaña el mes, que sí la lleva.

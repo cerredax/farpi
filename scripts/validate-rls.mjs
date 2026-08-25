@@ -312,6 +312,39 @@ async function main() {
   comprobar('Tras los rechazos, las franjas siguen siendo las de A',
     JSON.stringify((await api(`/rest/v1/families?id=eq.${famA}&select=meal_slots`, { token: tokA })).cuerpo?.[0]?.meal_slots)
       === JSON.stringify(['breakfast', 'lunch']))
+  // ── 10. Festivos (020) ──────────────────────────────────────────────
+  // La 020 añade el cuarto valor de `kind` y su restricción de rango. Se comprueban
+  // las dos cosas: que el valor nuevo entra, que uno inventado no, y que un festivo
+  // sin día final o que no sea de día completo se rechaza —que es lo que la app ya
+  // exige en `validateEventDraft`, y aquí lo sostiene la base—.
+  console.log('\n== 10. Festivos (020)')
+  comprobar('Un festivo con rango se guarda',
+    filas(await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, title: 'Hispanidad', kind: 'festivo', all_day: true,
+               start_at: '2026-10-12T00:00:00Z', end_at: '2026-10-12T23:59:00Z' },
+    })) === 1)
+  comprobar('El check rechaza un kind que no existe',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'raro', kind: 'puente', all_day: true,
+               start_at: '2026-10-12T00:00:00Z', end_at: '2026-10-12T23:59:00Z' },
+    })).estado >= 400)
+  comprobar('El check rechaza un festivo sin día final',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'sin fin', kind: 'festivo', all_day: true,
+               start_at: '2026-10-12T00:00:00Z' },
+    })).estado >= 400)
+  comprobar('El check rechaza un festivo que no sea de día completo',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'con hora', kind: 'festivo', all_day: false,
+               start_at: '2026-10-12T09:00:00Z', end_at: '2026-10-12T10:00:00Z' },
+    })).estado >= 400)
+  comprobar('Un ajeno no ve el festivo de la familia A',
+    filas(await api(`/rest/v1/events?family_id=eq.${famA}&kind=eq.festivo`, { token: tokC })) === 0)
+
 
   console.log('\n== limpieza')
   for (const fam of [famA, famB]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })

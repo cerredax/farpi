@@ -1,10 +1,8 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-24. **58/58 comprobaciones correctas.**
+Última ejecución: 2026-08-26. **63/63 comprobaciones correctas.**
 
-Las 51 de la pasada del 06-08-2026 (que a su vez eran las 47 del 03-08-2026 más las
-cuatro de las migraciones 014 y 015: los dos triggers cross-family de `tasks` y las dos
-del perfil de miembro) más las **siete que trae la 019**, las franjas de comida. Ya no
+Las 58 de la pasada del 24-08-2026 más las **cinco que trae la 020**, los festivos. Ya no
 queda ninguna migración sin validar. La limpieza dejó en la base únicamente la familia
 real; los tres usuarios y las dos familias de prueba se borraron.
 
@@ -43,6 +41,7 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(aplicada y revalidada el 21-08-2026)*
 - [x] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(aplicada y revalidada el 21-08-2026; la columna se comprobó además leyéndola contra la base real)*
 - [x] `019_meal_slots.sql` — `meal_slots` en `families`, qué franjas de comida se ven *(aplicada y validada el 24-08-2026, con siete comprobaciones propias en el arnés)*
+- [x] `020_event_kind_festivo.sql` — `kind` admite `festivo` y su restricción de rango *(aplicada y validada el 26-08-2026, con cinco comprobaciones propias en el arnés)*
 
 ## Validación RLS
 
@@ -115,13 +114,25 @@ Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-**No queda nada pendiente.** Las 19 migraciones están validadas y la pasada del
-24-08-2026 no dejó ninguna comprobación en rojo: 58/58.
+**No queda nada pendiente.** Las 20 migraciones están validadas y la pasada del
+26-08-2026 no dejó ninguna comprobación en rojo: 63/63.
 
 ## Pendiente
 
 Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
+
+### Notas de la ejecución (26-08-2026)
+
+- **63/63.** La 020 se aplicó a mano en el SQL Editor y el arnés gana **cinco
+  comprobaciones** en una sección nueva (§10). La 020 no trae policy propia —un festivo
+  es una fila de `events` como las demás—, así que lo que hay que comprobar es que los
+  dos `check` hacen su trabajo.
+- Las cinco: que un festivo con rango se guarda, que un `kind` inventado se rechaza, que
+  un festivo **sin día final** se rechaza y que uno **que no sea de día completo** también
+  —las dos condiciones de `events_festivo_con_rango`, que es la red bajo lo que
+  `validateEventDraft` ya exige en la app—, y que un ajeno no ve el festivo de otra
+  familia, o sea que la RLS de siempre sigue cubriendo al tipo nuevo sin tocar nada.
 
 ### Notas de la ejecución (24-08-2026)
 

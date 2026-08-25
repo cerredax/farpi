@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { format, isToday, isWeekend } from 'date-fns'
+import { format, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { eventCoversDay, isAbsence, isVacation } from '@/lib/events'
@@ -253,9 +253,9 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           {porDia.map(({ day, bloques }) => (
             <div
               key={day.toISOString()}
-              // El mismo crema que en la rejilla: el fin de semana se distingue
-              // igual se mire el mes o la semana.
-              className={`relative border-l border-hairline ${isWeekend(day) ? 'bg-canvas' : ''}`}
+              // La misma línea que en la rejilla: el sábado abre con una raya más
+              // marcada y ahí acaba la semana laboral.
+              className={`relative border-l ${day.getDay() === 6 ? 'border-line' : 'border-hairline'}`}
               style={{ height: alto }}
             >
               {horas.map((hora, i) => (

@@ -469,9 +469,13 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     hoy y el día elegido le ganaban, así que un descanso hoy no se veía. Su razón de ser
     tampoco seguía en pie —nació porque con vacaciones de otro la raya no se pintaba— y
     ahora caben dos etiquetas por celda.
-  - **El fin de semana va en crema**, el `canvas` del fondo de la app, en la rejilla y en
-    la vista Semana. Sin colores nuevos: el día de diario es blanco y el de finde, el del
-    fondo. El `hover` de la celda pasa a `surface`, que si no en el finde no se veía.
+  - **El fin de semana se marca con una línea.** El viernes cierra con una raya algo más
+    marcada, de la cabecera al final de la rejilla, y en la vista Semana la abre el
+    sábado. Estuvo unas horas en crema y se descartó el mismo día: rellenar dos de siete
+    columnas mete una masa de color que se lee como "apagado", y el fin de semana en una
+    casa es cuando más pasa; además en Nido el color significa persona. Tampoco una trama
+    de rayas, la otra idea: la celda de escritorio escribe títulos a 10 px y una textura
+    detrás se los come.
   - **Y las ausencias aparecen en Semana y en Día**, que no aparecían: `partirEventosDelDia`
     deja fuera las vacaciones —su sitio era la raya de la rejilla, y ahí no hay rejilla—
     así que una semana entera de vacaciones no salía por ninguna parte. Un descanso sí,

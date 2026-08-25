@@ -1,5 +1,4 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { isWeekend } from 'date-fns'
 import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -41,6 +40,9 @@ const MAX_TITULOS = 2
 
 /** Cuántas ausencias se nombran en la celda antes de pasar a contarlas. */
 const MAX_AUSENCIAS = 2
+
+/** El día que cierra la semana laboral, en la cuenta de `Date.getDay()`. */
+const VIERNES = 5
 
 interface DayCellProps {
   day: Date
@@ -196,10 +198,25 @@ export function DayCell({
      */
     <div
       className={`flex w-full flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline ${
-        // El fin de semana en crema, para separarlo de un vistazo de los días de
-        // diario. Es el mismo `canvas` del fondo de la app, así que no añade un
-        // color nuevo: la celda de diario es blanca y la de finde, la del fondo.
-        isWeekend(day) ? 'bg-canvas' : ''
+        /**
+         * **El fin de semana se marca con una línea, no con un relleno**
+         * (26-08-2026). El viernes cierra con una raya algo más marcada que las
+         * demás, y ahí acaba la semana laboral.
+         *
+         * Estuvo unas horas en crema y se descartó el mismo día por dos razones.
+         * Una, que rellenar dos de siete columnas mete una masa de color que el
+         * ojo lee como "estas celdas están apagadas", y el fin de semana en una
+         * casa es justo cuando más pasa. Y dos, que en Nido el color significa
+         * **persona**: un fondo que no es de nadie va contra esa regla.
+         *
+         * Tampoco una trama de rayas: desde el 25-08 la celda de escritorio
+         * escribe títulos a 10 px y una textura detrás se los come, justo en los
+         * días que más tienen.
+         *
+         * La línea va también en móvil, donde la rejilla no tiene ninguna otra:
+         * es la única, y por eso se lee como lo que es.
+         */
+        day.getDay() === VIERNES ? 'border-r border-line' : ''
       }`}
     >
     <button
@@ -218,7 +235,7 @@ export function DayCell({
       // franja estrecha arriba de una pantalla de 900 px, que es lo que la hacía
       // parecer a medio hacer. En móvil manda el contenido, como siempre.
       className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-        isSelected ? '' : 'hover:bg-surface'
+        isSelected ? '' : 'hover:bg-canvas'
       }`}
     >
       <span

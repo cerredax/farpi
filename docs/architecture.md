@@ -577,11 +577,18 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
     martes de descanso en medio de una semana de vacaciones partía la banda amarilla con
     un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda continua
     dice la verdad más importante.
-- **El fin de semana va en crema** (26-08-2026), el mismo `canvas` del fondo de la app,
-  así que no entra ningún color nuevo: el día de diario es blanco y el de finde, el color
-  del fondo. Va en la rejilla y en la vista Semana, y también en las letras de la cabecera
-  de columnas: si no, la columna en crema empieza a media altura. Con él, el `hover` de la
-  celda pasa a `surface`, que si no en el finde no se veía.
+- **El fin de semana se marca con una línea, no con un relleno** (26-08-2026). El viernes
+  cierra con una raya algo más marcada que las demás —desde las letras de la cabecera
+  hasta abajo— y ahí acaba la semana laboral. Va también en la vista Semana, donde la abre
+  el sábado, y también en móvil, donde es la única línea de la rejilla y por eso se lee
+  como lo que es.
+  - **Estuvo unas horas en crema y se descartó el mismo día.** Rellenar dos de siete
+    columnas mete una masa de color que el ojo lee como "estas celdas están apagadas", y
+    el fin de semana en una casa es justo cuando más pasa. Y en Nido **el color significa
+    persona**: un fondo que no es de nadie va contra esa regla.
+  - **Tampoco una trama de rayas**, que fue la otra idea. Desde el 25-08 la celda de
+    escritorio escribe títulos a 10 px, y una textura detrás se los come justo en los días
+    que más tienen.
 
 - **~~Un descanso pinta el número del día con el color de quien descansa.~~** *(Derogada el
   26-08-2026: duró dos días. Al llegar las etiquetas con nombre eran dos señales para lo

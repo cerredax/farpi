@@ -41,8 +41,9 @@ const MAX_TITULOS = 2
 /** Cuántas ausencias se nombran en la celda antes de pasar a contarlas. */
 const MAX_AUSENCIAS = 2
 
-/** El día que cierra la semana laboral, en la cuenta de `Date.getDay()`. */
-const VIERNES = 5
+/** El fin de semana, en la cuenta de `Date.getDay()`. */
+const SABADO = 6
+const DOMINGO = 0
 
 interface DayCellProps {
   day: Date
@@ -112,16 +113,16 @@ function DayChips({ festivos, vacaciones, descansos, day, kids, members }: {
 
   return (
     <span className="flex w-full flex-col gap-px" aria-hidden>
-      {/* El festivo primero y **en gris**: no es de nadie, y en Nido el color
-          significa persona. Pintarlo del amarillo de "Familia" lo confundiría
-          con unas vacaciones de todos, que es otra cosa. Va antes que las
-          ausencias porque es una propiedad del día, no de alguien. */}
+      {/* El festivo **no lleva chip**: de que el día es festivo ya avisa la trama
+          de toda la celda, y una etiqueta encima sería decirlo dos veces. Lo que
+          queda es su nombre, en gris y sin fondo, que responde a la otra
+          pregunta: cuál es. En móvil no cabe y no se pinta —la trama, sí—. */}
       {festivos.slice(0, MAX_AUSENCIAS).map(event => (
         <span
           key={event.id}
-          className="block h-[4px] w-full truncate rounded-full bg-line lg:h-auto lg:rounded lg:px-1 lg:text-[10px] lg:font-bold lg:leading-tight lg:text-ink"
+          className="hidden w-full truncate px-1 text-[10px] font-bold uppercase leading-tight tracking-wide text-muted lg:block"
         >
-          <span className="hidden lg:inline">{event.title}</span>
+          {event.title}
         </span>
       ))}
       {ausencias.slice(0, MAX_AUSENCIAS).map(event => {
@@ -170,6 +171,8 @@ export function DayCell({
   // raya, y escribir "Vacaciones" en los siete días de un tramo era justo lo que
   // sacó los títulos de la celda en su día.
   const festivos = events.filter(isHoliday)
+  // Sábado, domingo o festivo: los tres se pintan igual.
+  const esDiaLibre = day.getDay() === SABADO || day.getDay() === DOMINGO || festivos.length > 0
   const planes = events.filter(e => !isVacation(e) && !isRestDay(e) && !isHoliday(e))
   const marcas = marcasDelDia(events, tasks, members, kids)
 
@@ -215,24 +218,21 @@ export function DayCell({
     <div
       className={`flex w-full flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline ${
         /**
-         * **El fin de semana se marca con una línea, no con un relleno**
-         * (26-08-2026). El viernes cierra con una raya algo más marcada que las
-         * demás, y ahí acaba la semana laboral.
+         * **Los días en los que no se trabaja llevan trama diagonal**: sábado,
+         * domingo y festivo, los tres igual (26-08-2026). Es un solo concepto y
+         * por eso una sola clase, `dia-libre` en `globals.css`: lo que tienen en
+         * común un sábado y el 12 de octubre es que no hay trabajo ni colegio.
          *
-         * Estuvo unas horas en crema y se descartó el mismo día por dos razones.
-         * Una, que rellenar dos de siete columnas mete una masa de color que el
-         * ojo lee como "estas celdas están apagadas", y el fin de semana en una
-         * casa es justo cuando más pasa. Y dos, que en Nido el color significa
-         * **persona**: un fondo que no es de nadie va contra esa regla.
+         * Antes de esto se probaron dos cosas ese mismo día. **Rellenar la celda
+         * en crema**, y se descartó porque una masa de color se lee como "esto
+         * está apagado", y en una casa el fin de semana es cuando más pasa. Y
+         * **una línea vertical** donde acaba la semana laboral, que a tamaño real
+         * no se distinguía de las otras líneas de la rejilla: era una raya más.
          *
-         * Tampoco una trama de rayas: desde el 25-08 la celda de escritorio
-         * escribe títulos a 10 px y una textura detrás se los come, justo en los
-         * días que más tienen.
-         *
-         * La línea va también en móvil, donde la rejilla no tiene ninguna otra:
-         * es la única, y por eso se lee como lo que es.
+         * La trama va muy separada —1 px cada 7— porque la celda escribe títulos
+         * a 10 px encima y una trama apretada se los come.
          */
-        day.getDay() === VIERNES ? 'border-r border-line' : ''
+        esDiaLibre ? 'dia-libre' : ''
       }`}
     >
     <button
@@ -281,19 +281,25 @@ export function DayCell({
             key={event.id}
             type="button"
             onClick={() => onOpenEvent?.(event)}
-            // El título entero es el objetivo, no solo la palabra: una fila
-            // estrecha en la que hay que acertar con el ratón es peor que una
-            // fila ancha, y el hueco a la derecha no vale para nada más.
-            className="flex min-h-5 w-full min-w-0 items-center gap-1 rounded px-0.5 text-left transition-colors hover:bg-canvas"
+            /**
+             * **El color va al fondo del título, no en un punto aparte**
+             * (26-08-2026). El punto de 6 px era una segunda cosa que mirar para
+             * decir lo mismo que ya puede decir el propio título, y además
+             * obligaba a leer dos elementos por evento en una celda que mide 120
+             * px. Con el nombre sobre su color, de un vistazo se ve de quién es
+             * cada cosa sin contar puntos.
+             *
+             * Al 50 %, como las etiquetas de las ausencias y por la misma razón
+             * de contraste: mezclado con el fondo ningún color de la paleta
+             * admite texto blanco y todos admiten tinta.
+             *
+             * El botón ocupa el ancho entero: una fila estrecha en la que hay que
+             * acertar con el ratón es peor que una fila ancha.
+             */
+            className="min-h-5 w-full min-w-0 truncate rounded px-1 text-left text-[10px] font-bold leading-tight text-ink transition-shadow hover:shadow-sm"
+            style={{ backgroundColor: `${eventColor(event, members, kids)}80` }}
           >
-            <span
-              className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-              style={{ backgroundColor: eventColor(event, members, kids) }}
-              aria-hidden
-            />
-            <span className="min-w-0 truncate text-[10px] font-semibold leading-tight text-ink">
-              {event.title}
-            </span>
+            {event.title}
           </button>
         ))}
         {planes.length > MAX_TITULOS && (

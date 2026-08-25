@@ -81,6 +81,28 @@
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  /* Un día en el que no se trabaja: sábado, domingo o festivo.
+     ---------------------------------------------------------------
+     Una trama diagonal muy fina, no un relleno. El relleno se probó y se
+     descartó el 26-08-2026: rellenar celdas mete una masa de color que el ojo
+     lee como "esto está apagado", y en una casa el fin de semana es cuando más
+     pasa. La trama dice "otra clase de día" sin apagar nada.
+
+     Una raya de 1 px cada 7, en el borde más suave de la paleta. Va tan
+     separada a propósito: la celda de escritorio escribe títulos a 10 px encima
+     y una trama apretada se los come.
+
+     Es un solo concepto para los tres casos, y por eso una sola clase: lo que
+     tienen en común un sábado, un domingo y el 12 de octubre es que no hay
+     trabajo ni colegio. */
+  .dia-libre {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent 0 6px,
+      var(--color-line) 6px 7px
+    );
+  }
 }
 
 *, *::before, *::after {

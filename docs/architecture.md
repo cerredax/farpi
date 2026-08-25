@@ -577,18 +577,19 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
     martes de descanso en medio de una semana de vacaciones partía la banda amarilla con
     un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda continua
     dice la verdad más importante.
-- **El fin de semana se marca con una línea, no con un relleno** (26-08-2026). El viernes
-  cierra con una raya algo más marcada que las demás —desde las letras de la cabecera
-  hasta abajo— y ahí acaba la semana laboral. Va también en la vista Semana, donde la abre
-  el sábado, y también en móvil, donde es la única línea de la rejilla y por eso se lee
-  como lo que es.
-  - **Estuvo unas horas en crema y se descartó el mismo día.** Rellenar dos de siete
-    columnas mete una masa de color que el ojo lee como "estas celdas están apagadas", y
-    el fin de semana en una casa es justo cuando más pasa. Y en Nido **el color significa
-    persona**: un fondo que no es de nadie va contra esa regla.
-  - **Tampoco una trama de rayas**, que fue la otra idea. Desde el 25-08 la celda de
-    escritorio escribe títulos a 10 px, y una textura detrás se los come justo en los días
-    que más tienen.
+- **Los días en los que no se trabaja llevan trama diagonal**: sábado, domingo y festivo,
+  los tres igual (26-08-2026). Es un solo concepto y por eso una sola clase, `dia-libre` en
+  `globals.css`: lo que tienen en común un sábado y el 12 de octubre es que no hay trabajo
+  ni colegio. Va en la rejilla, en la cabecera de columnas y en la vista Semana.
+  - **Se probó rellenar la celda en crema y se descartó el mismo día.** Una masa de color
+    se lee como "esto está apagado", y en una casa el fin de semana es cuando más pasa.
+    Además en Nido **el color significa persona**, y un fondo que no es de nadie va contra
+    esa regla —la trama no es un color, es una textura, y por eso no choca—.
+  - **Y se probó una línea vertical** donde acaba la semana laboral, que sobre el papel
+    era lo más fino. A tamaño real no se distinguía de las otras líneas de la rejilla:
+    era una raya más.
+  - La trama va **muy separada** —1 px cada 7— porque la celda de escritorio escribe
+    títulos a 10 px encima y una trama apretada se los come.
 
 - **~~Un descanso pinta el número del día con el color de quien descansa.~~** *(Derogada el
   26-08-2026: duró dos días. Al llegar las etiquetas con nombre eran dos señales para lo

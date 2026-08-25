@@ -469,17 +469,19 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     hoy y el día elegido le ganaban, así que un descanso hoy no se veía. Su razón de ser
     tampoco seguía en pie —nació porque con vacaciones de otro la raya no se pintaba— y
     ahora caben dos etiquetas por celda.
-  - **El fin de semana se marca con una línea.** El viernes cierra con una raya algo más
-    marcada, de la cabecera al final de la rejilla, y en la vista Semana la abre el
-    sábado. Estuvo unas horas en crema y se descartó el mismo día: rellenar dos de siete
-    columnas mete una masa de color que se lee como "apagado", y el fin de semana en una
-    casa es cuando más pasa; además en Nido el color significa persona. Tampoco una trama
-    de rayas, la otra idea: la celda de escritorio escribe títulos a 10 px y una textura
-    detrás se los come.
-- **Los festivos, cuarto tipo de evento.** Migración `020`, calcada de la `017` que metió
-  los descansos: `kind` pasa a admitir `festivo` y se añade su restricción de rango. Se
-  apunta desde el mismo sheet —"Qué es" gana un cuarto botón—, con días completos y día
-  final, porque un puente son dos o tres días.
+  - **Los días sin trabajo llevan trama diagonal**: sábado, domingo y festivo, los tres
+    igual, con una sola clase (`dia-libre`). Antes se probaron dos cosas y se descartaron
+    el mismo día: rellenar la celda en crema —una masa de color se lee como "apagado", y
+    el finde en una casa es cuando más pasa— y una línea vertical donde acaba la semana
+    laboral, que a tamaño real no se distinguía de las otras líneas de la rejilla.
+  - **El título del evento se lleva el color al fondo y se va el punto.** El punto de 6 px
+    era una segunda cosa que mirar para decir lo que ya puede decir el propio título, y
+    obligaba a leer dos elementos por evento en una celda de 120 px.
+  - **El festivo no sale en la lista ni cuenta como punto.** No es un plan: la lista
+    contesta "¿qué hay que hacer?" y un festivo es cómo es el día. Salía como una fila con
+    su "Todo el día" entre la revisión del coche y la cena. Tampoco lleva chip en la
+    celda: la trama ya dice que lo es y el chip lo diría dos veces; queda su nombre en
+    versalitas grises, que responde a la otra pregunta, cuál es.
   - **Se pinta en gris, no en la paleta.** Un festivo no es de nadie: darle el amarillo de
     "Familia" lo confundiría con unas vacaciones de todos, y en Nido el color significa
     persona. Va en gris en la celda, en la franja de la vista Semana y en la lista, donde

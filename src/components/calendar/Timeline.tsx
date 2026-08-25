@@ -201,10 +201,12 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           </span>
           {porDia.map(({ day, festivos, ausencias, todoElDia, tasks: delDia }) => (
             <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1">
+              {/* Sin chip: la trama de la columna ya dice que es festivo. Aquí
+                  queda su nombre, que es la otra mitad de la respuesta. */}
               {festivos.map(event => (
                 <span
                   key={event.id}
-                  className="truncate rounded bg-line px-1 py-0.5 text-[10px] font-bold text-ink"
+                  className="truncate px-1 text-[10px] font-bold uppercase tracking-wide text-muted"
                 >
                   {event.title}
                 </span>
@@ -261,12 +263,13 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
             ))}
           </div>
 
-          {porDia.map(({ day, bloques }) => (
+          {porDia.map(({ day, bloques, festivos }) => (
             <div
               key={day.toISOString()}
-              // La misma línea que en la rejilla: el sábado abre con una raya más
-              // marcada y ahí acaba la semana laboral.
-              className={`relative border-l ${day.getDay() === 6 ? 'border-line' : 'border-hairline'}`}
+              // La misma trama que en la rejilla: sábado, domingo y festivo.
+              className={`relative border-l border-hairline ${
+                [0, 6].includes(day.getDay()) || festivos.length > 0 ? 'dia-libre' : ''
+              }`}
               style={{ height: alto }}
             >
               {horas.map((hora, i) => (

@@ -134,12 +134,20 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
   const rangeStart = startOfDay(desde)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
-  // Las ausencias —vacaciones y descansos— se quedan fuera de la lista: ocupan
-  // días seguidos y se repetirían en todos ellos. Un descanso de tres días salía
-  // tres veces, con el mismo texto. Su sitio es la raya bajo el día, que avisa de
-  // que falta alguien, y el bloque de "Vacaciones y descansos", que dice de quién
-  // es y hasta cuándo, una vez.
-  const conFecha = events.filter(event => !isAbsence(event))
+  /**
+   * Fuera de la lista: las **ausencias** y los **festivos**.
+   *
+   * Las ausencias, porque ocupan días seguidos y se repetirían en todos ellos: un
+   * descanso de tres días salía tres veces con el mismo texto. Su sitio es la
+   * etiqueta del día y el bloque de "Vacaciones y descansos", que lo dice una vez.
+   *
+   * Los festivos, porque **no son un plan** (26-08-2026). La lista contesta "¿qué
+   * hay que hacer?" y un festivo no es algo que hacer: es cómo es el día. Salía
+   * como una fila más, con su hora en "Todo el día", entre la revisión del coche
+   * y la cena de los abuelos. En la rejilla la trama ya lo dice, y sin gastar una
+   * fila de la agenda.
+   */
+  const conFecha = events.filter(event => !isAbsence(event) && !isHoliday(event))
 
   const hoyStr = getLocalDateString(new Date())
 

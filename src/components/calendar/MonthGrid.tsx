@@ -68,10 +68,10 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
         {DAY_LABELS.map((label, i) => (
           <div
             key={label}
-            // La línea del viernes arranca en la cabecera: empezando en la primera
-            // fila de días se leería despegada de las letras.
+            // Sábado y domingo también en la cabecera: la trama empieza en las
+            // letras, que si no la columna arranca a media altura.
             className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted ${
-              i === 4 ? 'border-r border-line' : ''
+              i >= 5 ? 'dia-libre' : ''
             }`}
           >
             {label}
@@ -85,7 +85,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
           if (!isSameMonth(day, currentMonth)) {
             // Los huecos de las puntas también llevan línea: si no, la rejilla
             // se abre por las esquinas y deja de ser un rectángulo.
-            return <span key={day.toISOString()} className={`${HUECO} ${day.getDay() === 5 ? 'border-r border-line' : ''}`} aria-hidden />
+            return <span key={day.toISOString()} className={`${HUECO} ${[0, 6].includes(day.getDay()) ? 'dia-libre' : ''}`} aria-hidden />
           }
 
           const diaStr = getLocalDateString(day)

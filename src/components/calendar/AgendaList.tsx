@@ -6,7 +6,6 @@ import {
   eachDayOfInterval,
   format,
   isToday,
-  isTomorrow,
   parseISO,
   startOfDay,
 } from 'date-fns'
@@ -40,7 +39,12 @@ import { DayTasks } from './DayTasks'
 const DIAS_POR_DELANTE = 45
 
 interface AgendaListProps {
-  selectedDay: Date
+  /**
+   * Día en el que arranca la lista. En la agenda es **hoy** y no se mueve: es
+   * una lista continua que se desliza. Con el mes delante es el **día elegido**,
+   * porque ahí tocar un día tiene que enseñar ese día.
+   */
+  desde: Date
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
@@ -54,7 +58,6 @@ interface AgendaListProps {
     /** Coincidencias en TODO el calendario, no solo en el tramo pintado. */
     coincidencias: Event[]
   }
-  onSelectDay: (day: Date) => void
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
 }
@@ -65,18 +68,6 @@ function sortEvents(events: Event[]): Event[] {
     if (!a.all_day && b.all_day) return 1
     return compareAsc(parseISO(a.start_at), parseISO(b.start_at))
   })
-}
-
-/**
- * Cómo se llama un día en la cabecera del detalle. "Hoy" y "Mañana" ganan a la
- * fecha porque es lo que se pregunta en casa; del jueves en adelante hace falta
- * la fecha para situarse.
- */
-function etiquetaDia(day: Date): string {
-  const fecha = capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))
-  if (isToday(day)) return `Hoy, ${fecha.toLowerCase()}`
-  if (isTomorrow(day)) return `Mañana, ${fecha.toLowerCase()}`
-  return fecha
 }
 
 /**
@@ -123,8 +114,8 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
 const TARJETA = 'overflow-hidden rounded-3xl border border-surface bg-white shadow-sm'
 const ROTULO = 'px-1 text-xs font-bold uppercase tracking-widest text-muted'
 
-export function AgendaList({ selectedDay, events, kids, members, tasks = [], onToggleTask, buscador, onSelectDay, onEdit, onAdd }: AgendaListProps) {
-  const rangeStart = startOfDay(selectedDay)
+export function AgendaList({ desde, events, kids, members, tasks = [], onToggleTask, buscador, onEdit, onAdd }: AgendaListProps) {
+  const rangeStart = startOfDay(desde)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
   // Las ausencias —vacaciones y descansos— se quedan fuera de la lista: ocupan
@@ -151,25 +142,26 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
     }
   })
 
-  const delDia = dayGroups[0]
-  const proximos = dayGroups
-    .slice(1)
-    .filter(group => group.events.length > 0 || group.tasks.length > 0)
+  // **Una sola lista** (25-08-2026). El día en el que arranca entra como un día
+  // más y es su rótulo —"Hoy", o su fecha— quien lo nombra. Antes tenía tarjeta
+  // propia encima de "lo que viene", y eran dos capas de contenido diciendo lo
+  // mismo de dos formas. Un día sin nada no se pinta, tampoco el primero: en una
+  // lista continua un hueco vacío es ruido, y para añadir están el botón de la
+  // cabecera y el `+` de cada fila.
+  const conAlgo = dayGroups.filter(group => group.events.length > 0 || group.tasks.length > 0)
 
   // Los días ya vienen en orden, y los tramos también van de cerca a lejos, así
   // que agrupar es acumular seguido: en cuanto cambia el rótulo, empieza tramo
   // nuevo. No hace falta un mapa ni reordenar nada.
-  const tramos: { titulo: string; dias: typeof proximos }[] = []
-  for (const grupo of proximos) {
+  const tramos: { titulo: string; dias: typeof conAlgo }[] = []
+  for (const grupo of conAlgo) {
     const titulo = tramoDeAgenda(grupo.day, rangeStart)
     const ultimo = tramos[tramos.length - 1]
     if (ultimo && ultimo.titulo === titulo) ultimo.dias.push(grupo)
     else tramos.push({ titulo, dias: [grupo] })
   }
 
-  const diaVacio = delDia.events.length === 0 && delDia.tasks.length === 0
-  const todoVacio = diaVacio && proximos.length === 0
-  const esHoy = isToday(selectedDay)
+  const todoVacio = conAlgo.length === 0
 
   const buscando = !!buscador && buscador.valor.trim().length > 0
   const coincidencias = buscador?.coincidencias ?? []
@@ -218,11 +210,9 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
           )}
         </section>
       ) : todoVacio ? (
-        /* Un solo vacío y no dos. Con el día y los próximos días vacíos, dos
-           tarjetas seguidas diciendo lo mismo se comían la pantalla para contar
-           que no hay nada: la misma lección que dejó Inicio. */
+        /* Un solo vacío: cuarenta y cinco días por delante sin nada. */
         <button
-          onClick={() => onAdd(selectedDay)}
+          onClick={() => onAdd(rangeStart)}
           className={`w-full text-left transition-colors hover:border-primary ${TARJETA}`}
         >
           <EmptyState
@@ -232,110 +222,81 @@ export function AgendaList({ selectedDay, events, kids, members, tasks = [], onT
           />
         </button>
       ) : (
-        <>
-          <section className="space-y-2">
-            {/* El titular de la pantalla, y por eso más grande que los rótulos de
-                los tramos, que van en versalitas pequeñas. Antes medía lo mismo
-                que ellos: "Hoy, lunes 24 de agosto" y "Esta semana" pesaban igual
-                y no había jerarquía entre el día que estás mirando y el resto. */}
-            <h2 className="px-1 text-base font-extrabold tracking-tight text-ink">{etiquetaDia(selectedDay)}</h2>
-            {/* Y si el día elegido es hoy, el aro verde: el mismo idioma con el
-                que Comidas marca el día de hoy entre los siete de la semana. Solo
-                en hoy —en un día cualquiera no habría nada que distinguir, porque
-                la tarjeta ya es la del día elegido. */}
-            <div className={`${TARJETA} ${esHoy ? 'ring-1 ring-primary/30' : ''}`}>
-              {diaVacio ? (
-                <button onClick={() => onAdd(selectedDay)} className="w-full text-left transition-colors hover:bg-canvas">
-                  <EmptyState compact emoji="✨" title="Sin planes. Toca para añadir uno." />
-                </button>
-              ) : (
-                <div className="px-2 py-2">
-                  {delDia.events.map(event => (
-                    <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                  ))}
-                  {onToggleTask && (
-                    <DayTasks
-                      tasks={delDia.tasks}
-                      kids={kids}
-                      members={members}
-                      hoy={hoyStr}
-                      onToggle={onToggleTask}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
+        /* **Una lista continua y nada más**: la vista Programación de Google
+           Calendar (25-08-2026). Cada tramo es una sección con su rótulo y,
+           dentro, una fila por día con algo. Lo que se fue con este cambio: la
+           tira de siete días de arriba —el segundo navegador de la pantalla— y
+           la tarjeta del día elegido, que repetía como bloque lo que la lista ya
+           dice como fila. De siete bandas apiladas a dos: cabecera y lista. */
+        <section aria-label="Agenda" className="space-y-4">
+          {tramos.map(tramo => (
+            /* El nombre accesible repite el rótulo visible a propósito: nombra el
+               bloque mejor que un genérico y es el asidero de los tests, que
+               antes buscaban un "Próximos días" sin título a la vista. */
+            <section key={tramo.titulo} aria-label={tramo.titulo} className="space-y-2">
+              <h2 className={ROTULO}>{tramo.titulo}</h2>
+              {/* Una fila por día dentro de una sola tarjeta: fecha a la
+                  izquierda y lo que hay a la derecha. Una tarjeta por día decía
+                  la fecha dos veces y gastaba una línea en contar los eventos
+                  que ya se ven debajo. */}
+              <div className={TARJETA}>
+                <ul className="divide-y divide-hairline">
+                  {tramo.dias.map(group => {
+                    const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
+                    // Hoy se marca en el chip de la fecha y no en el rótulo, que
+                    // ya dice "Hoy": es donde lo marca Google y donde lo busca el
+                    // ojo cuando la lista lleva rato deslizándose.
+                    const hoy = isToday(group.day)
 
-          {/* El `aria-label` nombra el bloque entero, que ya no tiene un título
-              visible propio: los rótulos son los de cada tramo. Sirve al lector
-              de pantalla y es el asidero estable de los tests, que si no
-              tendrían que buscar "Esta semana" y romperse los domingos. */}
-          {tramos.length > 0 && (
-            <section aria-label="Próximos días" className="space-y-4">
-              {tramos.map(tramo => (
-                <div key={tramo.titulo} className="space-y-2">
-                  <h2 className={ROTULO}>{tramo.titulo}</h2>
-                  {/* Una fila por día dentro de una sola tarjeta: fecha a la
-                      izquierda y lo que hay a la derecha. Una tarjeta por día
-                      decía la fecha dos veces y gastaba una línea en contar los
-                      eventos que ya se veían debajo. */}
-                  <div className={TARJETA}>
-                    <ul className="divide-y divide-hairline">
-                      {tramo.dias.map(group => {
-                        const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
+                    return (
+                      <li key={group.day.toISOString()} className="flex items-start gap-2 px-2 py-2">
+                        {/* La fecha ya no es un botón. En una lista continua no
+                            lleva a ninguna parte, y anunciarse como "Ver 6 de
+                            septiembre" prometía un salto que ya no ocurre. Para
+                            añadir está el `+` de la derecha. */}
+                        <span
+                          aria-hidden
+                          className={`flex w-11 flex-shrink-0 flex-col items-center py-1 ${hoy ? 'text-accent' : 'text-ink'}`}
+                        >
+                          <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
+                          <span className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-accent' : 'text-muted'}`}>
+                            {format(group.day, 'EEE', { locale: es })}
+                          </span>
+                        </span>
 
-                        return (
-                          <li
-                            key={group.day.toISOString()}
-                            className="flex items-start gap-2 px-2 py-2"
-                          >
-                            <button
-                              onClick={() => onSelectDay(group.day)}
-                              aria-label={`Ver ${dayLabel}`}
-                              className="flex w-11 flex-shrink-0 flex-col items-center rounded-xl py-1 text-ink transition-colors hover:bg-canvas"
-                            >
-                              <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
-                              <span className="mt-0.5 text-[9px] font-bold uppercase leading-none text-muted">
-                                {format(group.day, 'EEE', { locale: es })}
-                              </span>
-                            </button>
+                        <div className="min-w-0 flex-1 self-center">
+                          {group.events.map(event => (
+                            <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
+                          ))}
+                          {onToggleTask && (
+                            <DayTasks
+                              tasks={group.tasks}
+                              kids={kids}
+                              members={members}
+                              hoy={hoyStr}
+                              onToggle={onToggleTask}
+                            />
+                          )}
+                        </div>
 
-                            <div className="min-w-0 flex-1 self-center">
-                              {group.events.map(event => (
-                                <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                              ))}
-                              {onToggleTask && (
-                                <DayTasks
-                                  tasks={group.tasks}
-                                  kids={kids}
-                                  members={members}
-                                  hoy={hoyStr}
-                                  onToggle={onToggleTask}
-                                />
-                              )}
-                            </div>
-
-                            <button
-                              onClick={() => onAdd(group.day)}
-                              aria-label={`Añadir evento el ${dayLabel}`}
-                              // Arriba y no centrado: en un día con seis tareas,
-                              // centrado quedaba flotando a media fila, lejos de su
-                              // fecha.
-                              className="flex h-7 w-7 flex-shrink-0 self-start items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
-                            >
-                              <Plus size={14} strokeWidth={2.5} />
-                            </button>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
-                </div>
-              ))}
+                        <button
+                          onClick={() => onAdd(group.day)}
+                          aria-label={`Añadir evento el ${dayLabel}`}
+                          // Arriba y no centrado: en un día con seis tareas,
+                          // centrado quedaba flotando a media fila, lejos de su
+                          // fecha.
+                          className="flex h-7 w-7 flex-shrink-0 self-start items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
+                        >
+                          <Plus size={14} strokeWidth={2.5} />
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
             </section>
-          )}
-        </>
+          ))}
+        </section>
       )}
     </div>
   )

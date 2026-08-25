@@ -40,16 +40,6 @@ interface DayCellProps {
   dayNumber: number
   isToday: boolean
   isSelected: boolean
-  /** Con texto, se pinta encima del número. Es el modo de la tira de siete días. */
-  weekdayLabel?: string
-  /**
-   * El mes, debajo del número, para cuando el tramo cae en dos meses y "31, 1"
-   * no dice dónde acaba uno. Tres estados a propósito: sin la prop no hay hueco
-   * (la rejilla del mes, que ya no presta días de fuera); con cadena vacía el
-   * hueco se reserva sin escribir nada, que es como las siete columnas de la
-   * tira siguen alineadas cuando solo una lo lleva.
-   */
-  monthLabel?: string
   events: Event[]
   /** Tareas que vencen este día, ya arrastradas a hoy si venían atrasadas. */
   tasks: Task[]
@@ -127,8 +117,6 @@ export function DayCell({
   dayNumber,
   isToday,
   isSelected,
-  weekdayLabel,
-  monthLabel,
   events,
   tasks,
   kids,
@@ -204,24 +192,12 @@ export function DayCell({
         isSelected ? '' : 'hover:bg-canvas'
       }`}
     >
-      {weekdayLabel && (
-        <span className={`text-[9px] font-bold uppercase leading-none ${isToday ? 'text-accent' : 'text-muted'}`}>
-          {weekdayLabel}
-        </span>
-      )}
       <span
         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}
         style={numberStyle}
       >
         {dayNumber}
       </span>
-      {/* El mes va en `aria-hidden` porque la etiqueta del botón ya trae la fecha
-          entera, mes incluido: esto es ayuda para el ojo, no información nueva. */}
-      {monthLabel !== undefined && (
-        <span className="h-3 text-[9px] font-bold uppercase leading-none text-muted" aria-hidden>
-          {monthLabel}
-        </span>
-      )}
       <DayActivity marcas={marcas} />
       <AbsenceMarks vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
     </button>

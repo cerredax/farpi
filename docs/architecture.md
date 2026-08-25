@@ -427,19 +427,44 @@ exigir un nombre era exigir que alguien se inventara un texto para poder guardar
 campo sigue ahí porque "Playa con los abuelos" vale la pena, pero es opcional y
 `eventTitleOr` pone el nombre del tipo al guardar. Un plan sí lo exige.
 
-**El calendario es agenda primero y mes como mapa** (24-08-2026). En móvil la pantalla
-abre en `Agenda`: una tira de siete días para navegar y, debajo, lo que pasa el día
-elegido con su hora y de quién es, y detrás los próximos días con algo. `Mes` es la
-otra pestaña del selector y sirve para lo que sirve un mapa: ver dónde hay algo e ir
-allí. En escritorio no hay pestañas —el mes a la izquierda, la agenda a la derecha—
-porque caben las dos cosas.
+**El calendario es una lista continua, y el mes un mapa** (25-08-2026). En móvil la
+pestaña `Agenda` es la vista Programación de Google Calendar: cabecera y **una sola
+lista** que arranca en hoy y se desliza. `Mes` es la otra pestaña y sirve para lo que
+sirve un mapa: ver dónde hay algo e ir allí. En escritorio no hay pestañas —el mes a
+la izquierda, la agenda a la derecha— porque caben las dos cosas.
 
-Lo que viene después del día elegido va **agrupado por tramos** (`tramoDeAgenda`, en
-`src/lib/agenda.ts`): "Mañana", "Esta semana", "La semana que viene" y después uno por
-mes. Los tramos se miden desde el día elegido, no desde hoy, porque el panel entero
-arranca ahí, y solo se pinta el que tiene algo. Sin ellos la lista era plana de aquí a
-45 días: el jueves que viene y un cumpleaños de octubre se leían igual, y el chip de la
-fila da el día y el día de la semana pero no el mes.
+**De dónde viene, y qué se quitó.** Hasta el 25-08-2026 la agenda apilaba siete bandas
+en una pantalla de 390 px: cabecera con mes y flechas, pestañas, tira de siete días,
+"Vacaciones y descansos", buscador, tarjeta del día elegido y los tramos. El problema
+no era ninguna de ellas: era tener **dos navegadores a la vez** (la tira y la pestaña
+de mes) y **dos capas de contenido** (el día elegido como tarjeta y lo que viene como
+lista). Se fueron la tira (`WeekStrip`, borrado), la tarjeta del día elegido, y el mes
+con sus flechas dejó de pintarse en la agenda. Quedan dos bandas: cabecera y lista.
+
+**Dónde arranca la lista es lo que separa las dos pestañas.** En agenda, **hoy**, y no
+se mueve. Estuvo anclada al día elegido y con la lista continua resultó ser un fallo:
+apuntar algo para el 6 de septiembre movía el ancla allí y la agenda se quedaba
+empezando en septiembre, sin hoy ni el resto de la semana a la vista. Con la tira y la
+tarjeta del día encima se disimulaba; sin ellas, la pantalla perdía lo que tenías
+delante. Con el mes delante arranca en el **día elegido**, porque ahí tocar un día
+tiene que enseñar ese día o la rejilla es un adorno. Es el reparto de Google.
+
+La lista va **agrupada por tramos** (`tramoDeAgenda`, en `src/lib/agenda.ts`): "Hoy",
+"Mañana", "Esta semana", "La semana que viene" y después uno por mes. El día de arranque
+es su propio tramo —"Hoy", o su fecha escrita si se está mirando otro— y es lo que
+sustituye a la tarjeta que tenía: lo nombra sin repetirlo como bloque aparte. Los demás
+se miden desde ese día, y solo se pinta el que tiene algo. Sin tramos la lista era
+plana de aquí a 45 días: el jueves que viene y un cumpleaños de octubre se leían igual,
+y el chip de la fila da el día y el día de la semana pero no el mes.
+
+Un día sin nada **no se pinta**, tampoco el primero. En una lista continua un hueco
+vacío es ruido, y para añadir están el botón de la cabecera y el `+` de cada fila. Solo
+hay un vacío, el de verdad: cuarenta y cinco días por delante sin nada.
+
+Y el chip de la fecha **no es un botón**. Lo fue, y se anunciaba como "Ver 6 de
+septiembre"; en una lista continua no lleva a ninguna parte, así que prometía un salto
+que ya no ocurre. Hoy se marca ahí, en el color del chip, que es donde lo marca Google
+y donde lo busca el ojo cuando la lista lleva rato deslizándose.
 
 La excepción es **"Mañana"**, que sí mira el calendario de verdad y solo sale cuando la
 agenda arranca hoy. Es la pregunta que más se hace después de "¿qué hay hoy?", y dentro
@@ -469,13 +494,12 @@ días sueltos que no decían de qué mes eran, y era el mayor foco de ruido de l
 pantalla. Lo que se pierde es tocar el 1 de septiembre desde agosto; se llega con la
 flecha, que es un toque igual.
 
-La tira tiene el mismo problema por otra vía: al ser siete días **rodantes**, un tramo
-puede caer en dos meses y "30, 31, 1, 2" no dice dónde acaba uno. Cuando eso pasa, y
-solo entonces, el día 1 lleva el mes en pequeño debajo del número, y las otras seis
-columnas reservan ese hueco vacío para no quedar más bajas.
+Con la tira se fueron sus dos rótulos de `DayCell`, que solo ella pasaba: la inicial
+del día de la semana encima del número —la rejilla ya tiene cabecera de columnas— y el
+mes debajo, que existía porque un tramo de siete días rodantes podía cruzar de mes.
+La rejilla es de un solo mes, así que nunca lo necesitó.
 
-Las dos vistas de navegación (`WeekStrip` y `MonthGrid`) comparten la misma celda,
-`DayCell`, y por eso dicen lo mismo de la misma forma: número, **hasta dos puntos** con
+La celda, ya solo la de `MonthGrid`, dice: número, **hasta dos puntos** con
 el color de quien lleva cada cosa —o el número si son más de dos— y **una** raya si
 alguien está fuera. Dos filas de señal y nada más: eran tres puntos y hasta dos rayas
 (24-08-2026), y con eso la celda volvía a ser el resumen del día que la agenda vino a

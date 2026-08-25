@@ -76,7 +76,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 198 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
+  - 201 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
   - 74 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -370,6 +370,47 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   - Lo comprueba un test de navegador nuevo que crea un descanso de dos días y mira el
     color exacto del segundo (el primero queda seleccionado al guardar). Un color se
     rompe sin que salte ningún test de estructura.
+
+## Cerrado el 2026-08-25
+
+- **El calendario pasa a ser una lista continua: la vista Programación de Google.** La
+  pantalla apilaba siete bandas en 390 px —cabecera con mes y flechas, pestañas, tira de
+  siete días, "Vacaciones y descansos", buscador, tarjeta del día elegido y los tramos—
+  y se leía como un amontonamiento. El problema no era ninguna banda suelta: eran **dos
+  navegadores a la vez** (la tira y la pestaña de mes) y **dos capas de contenido** (el
+  día elegido como tarjeta y lo que viene como lista). Quedan dos: cabecera y lista.
+  - **Se va la tira de siete días.** `WeekStrip` borrado. Con ella se va el estado
+    `inicioSemana`, que existía solo para moverla, y los dos rótulos de `DayCell` que
+    solo ella pasaba (la inicial del día y el mes bajo el número): la rejilla tiene
+    cabecera de columnas y es de un solo mes, así que nunca los necesitó.
+  - **Se va la tarjeta del día elegido.** Ahora el día de arranque es un tramo más de la
+    lista, con su rótulo "Hoy" —o su fecha escrita si se mira otro día—. Decía como
+    bloque lo que la lista ya dice como fila.
+  - **El mes y sus flechas no se pintan en la agenda.** No tenían nada que recorrer
+    desde que la lista arranca en hoy: las flechas no movían nada visible y el rótulo se
+    quedaba en un mes que no era el que estabas leyendo. En escritorio siguen, que ahí
+    la rejilla está a la vista.
+  - **Dónde arranca la lista separa las dos pestañas**, y esto salió de mirar una captura,
+    no de leer el código: anclada al día elegido, apuntar algo para el 6 de septiembre
+    dejaba la agenda empezando en septiembre y desaparecían hoy y toda la semana. En
+    agenda arranca en **hoy** y no se mueve; con el mes delante, en el **día elegido**,
+    porque ahí tocar un día tiene que enseñar ese día.
+  - **Un día sin nada no se pinta**, tampoco el primero, y el chip de la fecha deja de
+    ser botón: se anunciaba como "Ver 6 de septiembre" y ya no lleva a ninguna parte.
+    Hoy se marca ahí, en el color del chip.
+  - `CalendarView` se queda sin `useMediaQuery`: desde que el mes y la agenda no
+    comparten estado, quién se ve es cosa de Tailwind (`hidden lg:block`).
+  - Tres unitarios nuevos para el tramo de arranque, y los dos asideros de la suite
+    pasan a ser las regiones "Hoy" y "Mañana", que valen cualquier día de la semana.
+
+- **Pendiente de decisión: sincronizar Google Calendar por usuario.** El login con
+  Google ya está montado sobre Supabase, así que el proyecto en Google Cloud existe y el
+  baile de OAuth está hecho; la sesión trae `provider_token` y `provider_refresh_token`,
+  pero Supabase **no** refresca el del proveedor: habría que hacerlo contra Google.
+  Lo que bloquea no es código: añadir el scope de calendario vuelve la pantalla de
+  consentimiento "sensible", y o se deja la app en modo Prueba —sin verificación, pero
+  **el permiso caduca a los siete días**— o se publica y se pasa la verificación de
+  Google, que son semanas y no dependen de nosotros.
 
 - **Cada pantalla dice su nombre una sola vez.** En Documentos, Listas y Comidas el
   nombre salía dos veces: en la cabecera fija, que lo pinta para todas las rutas, y otra

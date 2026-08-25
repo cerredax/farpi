@@ -22,26 +22,27 @@ interface CalendarHeaderProps {
   currentMonth: Date
   modo: ModoCalendario
   onModo: (modo: ModoCalendario) => void
-  /** Qué recorren las flechas. En agenda se salta de semana, no de mes. */
-  unidad: 'mes' | 'semana'
   onPrev: () => void
   onNext: () => void
   onAdd: () => void
 }
 
-export function CalendarHeader({ currentMonth, modo, onModo, unidad, onPrev, onNext, onAdd }: CalendarHeaderProps) {
-  // Aun saltando de semana, el rótulo sigue siendo el mes: es lo que sitúa, y
-  // "del 3 al 9" obliga a calcular en qué mes se está.
+export function CalendarHeader({ currentMonth, modo, onModo, onPrev, onNext, onAdd }: CalendarHeaderProps) {
   const label = capitalize(format(currentMonth, 'MMMM yyyy', { locale: es }))
 
   return (
     <div className="px-4 pt-3 lg:px-0 lg:pt-0">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-0.5">
+        {/* El mes y sus flechas son del mes. En la agenda no tenían nada que
+            recorrer desde que la lista arranca en hoy y se desliza: las flechas
+            no movían nada visible y el rótulo se quedaba en un mes que no era el
+            que estabas leyendo. En escritorio se quedan siempre, que ahí la
+            rejilla del mes está a la vista. */}
+        <div className={`min-w-0 items-center gap-0.5 lg:flex ${modo === 'agenda' ? 'hidden' : 'flex'}`}>
           <button
             type="button"
             onClick={onPrev}
-            aria-label={unidad === 'mes' ? 'Mes anterior' : 'Semana anterior'}
+            aria-label="Mes anterior"
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip"
           >
             <ChevronLeft size={20} strokeWidth={2} />
@@ -50,7 +51,7 @@ export function CalendarHeader({ currentMonth, modo, onModo, unidad, onPrev, onN
           <button
             type="button"
             onClick={onNext}
-            aria-label={unidad === 'mes' ? 'Mes siguiente' : 'Semana siguiente'}
+            aria-label="Mes siguiente"
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip"
           >
             <ChevronRight size={20} strokeWidth={2} />
@@ -61,7 +62,9 @@ export function CalendarHeader({ currentMonth, modo, onModo, unidad, onPrev, onN
           type="button"
           onClick={onAdd}
           aria-label="Añadir evento"
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95"
+          // `ml-auto` y no solo `justify-between`: en la agenda el bloque del mes
+          // no se pinta, y sin esto el botón se quedaba solo a la izquierda.
+          className="ml-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95"
         >
           <Plus size={20} strokeWidth={2.5} />
         </button>

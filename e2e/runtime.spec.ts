@@ -31,19 +31,24 @@ async function verEnMes(page: Page) {
   await page.waitForTimeout(300)
 }
 
-/** El bloque del día elegido, que en el día de hoy se titula "Hoy, …". */
+/**
+ * Los dos tramos de la agenda que se pueden nombrar sin saber en qué día de la
+ * semana corre el test. Desde que la agenda es una lista continua (25-08-2026)
+ * cada tramo es su propia región, con el mismo nombre que su rótulo visible.
+ *
+ * "Hoy" y "Mañana" valen siempre: la lista arranca hoy, así que el primer tramo
+ * es "Hoy" y el del día siguiente es "Mañana" —también en domingo—. Los demás
+ * ("Esta semana", los meses) sí dependen del día, y por eso no se usan aquí.
+ *
+ * Un tramo sin nada no se pinta, así que estos localizadores pueden no resolver
+ * a nada: es justo lo que comprueba el test de la tarea que se muda de día.
+ */
 function seccionDeHoy(page: Page): Locator {
-  return page.locator('section').filter({ has: page.getByRole('heading', { name: /^Hoy,/ }) })
+  return page.getByRole('region', { name: 'Hoy', exact: true })
 }
 
-/**
- * El bloque de lo que viene después del día elegido. Se localiza por su nombre
- * accesible y no por un título visible: dentro va agrupado en tramos ("Esta
- * semana", "La semana que viene", los meses), y buscar uno concreto haría que el
- * test dependiera del día de la semana en que se ejecuta.
- */
-function seccionProximos(page: Page): Locator {
-  return page.getByRole('region', { name: 'Próximos días' })
+function seccionDeManana(page: Page): Locator {
+  return page.getByRole('region', { name: 'Mañana', exact: true })
 }
 
 const ROUTES = [
@@ -359,7 +364,7 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
   await page.getByRole('button', { name: /Marcar .*Regar las plantas.* como completada/ }).click()
   await page.waitForTimeout(400)
   await expect(seccionDeHoy(page).getByText('Regar las plantas')).toHaveCount(0)
-  await expect(seccionProximos(page).getByText('Regar las plantas')).toBeVisible()
+  await expect(seccionDeManana(page).getByText('Regar las plantas')).toBeVisible()
 
   // El aviso dice las dos cosas: que se ha hecho y cómo volver atrás.
   await expect(page.getByRole('status')).toContainText('Hecho')

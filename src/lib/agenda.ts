@@ -24,6 +24,15 @@ import { capitalize } from './text'
  * sin depender del día en que se corran los tests.
  */
 export function tramoDeAgenda(day: Date, desde: Date, hoy: Date = new Date()): string {
+  // El primer día de la lista es su propio tramo. Desde que la agenda es una
+  // lista continua (25-08-2026) el día elegido no tiene tarjeta aparte, así que
+  // es su rótulo quien lo separa de lo que viene detrás: "Hoy" cuando lo es, y
+  // su fecha cuando se está mirando otro día.
+  if (isSameDay(day, desde)) {
+    return isSameDay(desde, hoy)
+      ? 'Hoy'
+      : capitalize(format(desde, "EEEE d 'de' MMMM", { locale: es }))
+  }
   if (isSameDay(desde, hoy) && isSameDay(day, addDays(hoy, 1))) return 'Mañana'
   if (day <= endOfWeek(desde, { weekStartsOn: 1 })) return 'Esta semana'
   if (day <= endOfWeek(addWeeks(desde, 1), { weekStartsOn: 1 })) return 'La semana que viene'

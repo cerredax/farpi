@@ -4,7 +4,6 @@ import { useState } from 'react'
 import {
   addDays,
   addMonths,
-  addWeeks,
   endOfMonth,
   format,
   isSameMonth,
@@ -18,9 +17,7 @@ import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { CalendarHeader, type ModoCalendario } from './CalendarHeader'
-import { WeekStrip } from './WeekStrip'
 import { MonthGrid } from './MonthGrid'
 import { Availability } from './Availability'
 import { AgendaList } from './AgendaList'
@@ -53,19 +50,12 @@ export function CalendarView() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [busqueda, setBusqueda] = useState('')
 
-  // El primero de los siete días de la tira. Manda a la vez sobre la tira y
-  // sobre la agenda, que es lo que antes no pasaba: la tira pintaba la semana
-  // natural del día elegido y la lista siempre los siete desde hoy, así que
-  // enseñaban tramos distintos y las flechas movían solo la de arriba.
-  // Arranca hoy, no en el lunes: lo atrasado se arrastra al día de hoy y el
-  // tramo tiene que empezar donde eso tiene sentido.
-  const [inicioSemana, setInicioSemana] = useState(startOfDay(today))
 
-  // En escritorio se ven el mes y la agenda a la vez, así que el selector no
-  // pinta nada y el mes está siempre presente. Es un cambio de qué se
-  // renderiza, no de cómo se ve, y por eso no lo puede resolver Tailwind.
-  const esEscritorio = useMediaQuery('(min-width: 1024px)')
-  const mesVisible = esEscritorio || modo === 'mes'
+  // Ya no hace falta preguntar por el ancho. Desde que el mes y la agenda no
+  // comparten estado —la lista arranca en hoy y el mes va por su cuenta— quién
+  // se ve es cosa de Tailwind: `hidden lg:block` en la columna del mes. Aquí
+  // había un `useMediaQuery` porque el tramo del que hablaba "Vacaciones y
+  // descansos" dependía de ello, y eso sí era lógica.
 
   function openCreate(day = selectedDay) {
     setSelectedDay(day)
@@ -82,31 +72,13 @@ export function CalendarView() {
    */
   function selectDay(day: Date) {
     setSelectedDay(day)
-    setInicioSemana(startOfDay(day))
     if (!isSameMonth(day, currentMonth)) setCurrentMonth(startOfMonth(day))
   }
 
-  /**
-   * Las flechas recorren mes o semana según lo que se esté viendo. En agenda
-   * mueven el tramo entero —tira y detalle a la vez— y llevan con él el día
-   * elegido, para que la selección no se quede en una semana que ya no se ve.
-   */
-  function moverSemana(pasos: number) {
-    const nuevoInicio = addWeeks(inicioSemana, pasos)
-    setInicioSemana(nuevoInicio)
-    setSelectedDay(nuevoInicio)
-    setCurrentMonth(startOfMonth(nuevoInicio))
-  }
-
-  function irAnterior() {
-    if (mesVisible) return setCurrentMonth(m => subMonths(m, 1))
-    moverSemana(-1)
-  }
-
-  function irSiguiente() {
-    if (mesVisible) return setCurrentMonth(m => addMonths(m, 1))
-    moverSemana(1)
-  }
+  // Las flechas son del mes y solo se ven con el mes: la agenda arranca en hoy y
+  // se desliza, así que no hay nada que recorrer con ellas.
+  function irAnterior() { setCurrentMonth(m => subMonths(m, 1)) }
+  function irSiguiente() { setCurrentMonth(m => addMonths(m, 1)) }
 
   /**
    * Lleva la vista entera a un día: lo elige, coloca el mes y arrastra con él
@@ -117,7 +89,6 @@ export function CalendarView() {
   function enfocarDia(date: Date) {
     setSelectedDay(date)
     setCurrentMonth(startOfMonth(date))
-    setInicioSemana(startOfDay(date))
   }
 
   async function handleCreate(draft: EventDraft) {
@@ -136,30 +107,41 @@ export function CalendarView() {
     if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
   }
 
-  // El bloque de disponibilidad habla del tramo que se está viendo, no de todo
-  // el año: en la agenda, los siete días de la tira; con el mes, el mes.
+  // "Vacaciones y descansos" vive con el mes y habla de él. Desde que la agenda
+  // es una lista continua (25-08-2026) ya no tiene un tramo del que hablar: iba
+  // con los siete días de la tira, y la tira no existe.
+  //
   // El mes es el mes y no sus seis filas: desde que la rejilla no presta días de
   // julio ni de septiembre, contar sus semanas hacía que el bloque hablara de un
   // descanso del 3 de septiembre mirando agosto, sin ningún día pintado que lo
   // respaldara.
-  const tramoVisible = mesVisible
-    ? {
-        desde: getLocalDateString(startOfMonth(currentMonth)),
-        hasta: getLocalDateString(endOfMonth(currentMonth)),
-      }
-    : {
-        desde: getLocalDateString(inicioSemana),
-        hasta: getLocalDateString(addDays(inicioSemana, 6)),
-      }
+  const ausenciasVisibles = selectVisibleAbsences(
+    allEvents,
+    getLocalDateString(startOfMonth(currentMonth)),
+    getLocalDateString(endOfMonth(currentMonth)),
+  )
 
-  const ausenciasVisibles = selectVisibleAbsences(allEvents, tramoVisible.desde, tramoVisible.hasta)
+  /**
+   * Dónde arranca la lista, y es lo que separa las dos pestañas.
+   *
+   * **En agenda, hoy, y no se mueve.** Iba anclada al día elegido, y con la lista
+   * continua eso resultaba ser un fallo: apuntar algo para el 6 de septiembre
+   * movía el ancla allí y la agenda se quedaba empezando en septiembre, sin hoy
+   * ni el resto de la semana a la vista. Con la tira y la tarjeta del día encima
+   * se disimulaba; sin ellas la pantalla perdía lo que tenías delante.
+   *
+   * **Con el mes, el día elegido**, porque ahí tocar un día tiene que enseñar
+   * ese día; si no, la rejilla es un adorno. Es el reparto de Google: la lista
+   * de Programación empieza hoy y la del mes, donde tocas.
+   */
+  const desdeAgenda = modo === 'mes' ? startOfDay(selectedDay) : startOfDay(today)
 
-  // La agenda solo necesita el tramo que va a listar; la tira y el mes reciben
-  // todos los eventos y se quedan con los de cada día, que ya saben hacerlo.
+  // La agenda solo necesita el tramo que va a listar. El mes recibe todos los
+  // eventos y se queda con los de cada día, que ya sabe hacerlo.
   const agendaEvents = allEvents.filter(event =>
     isWithinInterval(parseISO(event.start_at), {
-      start: startOfDay(selectedDay),
-      end: addDays(startOfDay(selectedDay), 45),
+      start: desdeAgenda,
+      end: addDays(desdeAgenda, 45),
     })
   )
 
@@ -184,7 +166,6 @@ export function CalendarView() {
           currentMonth={currentMonth}
           modo={modo}
           onModo={setModo}
-          unidad={mesVisible ? 'mes' : 'semana'}
           onPrev={irAnterior}
           onNext={irSiguiente}
           onAdd={() => openCreate(selectedDay)}
@@ -195,36 +176,22 @@ export function CalendarView() {
             mes. La rejilla es solo de `lg` en adelante, así que por debajo el
             DOM es el de siempre. */}
         <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[380px_1fr] lg:gap-6 lg:items-start">
-          <div>
+          {/* El mes y su bloque de ausencias van juntos y en el mismo sitio: en
+              móvil solo en la pestaña "Mes", y en escritorio siempre, que ahí
+              caben los dos a la vez. En agenda, el móvil no pinta nada de esto:
+              esa pantalla es cabecera y lista, y ya está. */}
+          <div className={modo === 'mes' ? '' : 'hidden lg:block'}>
             <div className="mx-4 lg:mx-0">
               <Card padded={false}>
-                {/* La tira solo en móvil y solo en agenda: en escritorio manda
-                    el mes, que cabe entero y dice más. */}
-                {modo === 'agenda' && (
-                  <div className="lg:hidden">
-                    <WeekStrip
-                      inicioSemana={inicioSemana}
-                      selectedDay={selectedDay}
-                      events={allEvents}
-                      tasks={tareasPendientes}
-                      kids={kids}
-                      members={members}
-                      onSelectDay={selectDay}
-                    />
-                  </div>
-                )}
-
-                <div className={modo === 'mes' ? '' : 'hidden lg:block'}>
-                  <MonthGrid
-                    currentMonth={currentMonth}
-                    selectedDay={selectedDay}
-                    events={allEvents}
-                    tasks={tareasPendientes}
-                    kids={kids}
-                    members={members}
-                    onSelectDay={selectDay}
-                  />
-                </div>
+                <MonthGrid
+                  currentMonth={currentMonth}
+                  selectedDay={selectedDay}
+                  events={allEvents}
+                  tasks={tareasPendientes}
+                  kids={kids}
+                  members={members}
+                  onSelectDay={selectDay}
+                />
 
                 <Availability
                   ausencias={ausenciasVisibles}
@@ -238,14 +205,13 @@ export function CalendarView() {
 
           <div>
             <AgendaList
-              selectedDay={selectedDay}
+              desde={desdeAgenda}
               events={agendaEvents}
               kids={kids}
               members={members}
               tasks={tareasPendientes}
               onToggleTask={toggleTask}
               buscador={buscador}
-              onSelectDay={selectDay}
               onEdit={openEdit}
               onAdd={openCreate}
             />

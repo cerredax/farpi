@@ -49,3 +49,22 @@ test.describe('tramoDeAgenda', () => {
     expect(tramoDeAgenda(new Date(2026, 8, 1), domingo, domingo)).toBe('La semana que viene')
   })
 })
+
+// El día en el que arranca la lista es su propio tramo desde que la agenda es
+// continua: sin eso caía dentro de "Esta semana" junto al resto de la semana, y
+// lo que estás mirando se leía igual que el sábado.
+test.describe('tramoDeAgenda: el día en el que arranca', () => {
+  test('si la lista arranca hoy, su tramo es "Hoy"', () => {
+    expect(tramoDeAgenda(LUNES, LUNES, LUNES)).toBe('Hoy')
+  })
+
+  test('si arranca en otro día, su tramo es su fecha escrita', () => {
+    const futuro = new Date(2026, 8, 14)
+    expect(tramoDeAgenda(futuro, futuro, LUNES)).toBe('Lunes 14 de septiembre')
+  })
+
+  test('el día de arranque gana a "Mañana": mirando mañana, mañana es el titular', () => {
+    const manana = new Date(2026, 7, 25)
+    expect(tramoDeAgenda(manana, manana, LUNES)).toBe('Martes 25 de agosto')
+  })
+})

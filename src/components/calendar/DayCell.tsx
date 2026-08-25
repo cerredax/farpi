@@ -1,4 +1,4 @@
-import { eventColor } from '@/lib/assignees'
+import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -38,6 +38,9 @@ import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 /** Cuántos títulos se escriben en la celda antes de pasar a contarlos. Escritorio. */
 const MAX_TITULOS = 2
 
+/** Cuántas ausencias se nombran en la celda antes de pasar a contarlas. */
+const MAX_AUSENCIAS = 2
+
 interface DayCellProps {
   day: Date
   dayNumber: number
@@ -57,65 +60,76 @@ interface DayCellProps {
 }
 
 /**
- * Las ausencias bajo el número, como una raya fina con el color de quien falta.
+ * Las ausencias del día, como **etiquetas con el nombre de quien falta**
+ * (26-08-2026): el idioma con el que Google marca lo que dura varios días.
  *
- * La forma distingue la clase sin depender del color: **unas vacaciones son una
- * raya a todo el ancho**, redondeada donde el tramo empieza y acaba, así que
- * varios días seguidos se leen como una barra continua; **un descanso es un
- * guion corto y centrado**, porque es un día y no un tramo.
+ * Antes era una raya de 3 px bajo el número, y con la rejilla ya dibujada se vio
+ * lo que fallaba: una rayita de color flotando bajo la fecha se lee como un
+ * subrayado, no dice "vacaciones" y no dice de quién. El argumento de que varios
+ * días seguidos formaban "una barra continua" tampoco se sostenía: la banda se
+ * parte igual al cambiar de semana, y ahora también en cada línea de la rejilla.
  *
- * Son `span` y no botones: como barra de 3 px nunca podrían llegar al mínimo de
- * toque de 24×24, y estirarlas con relleno invisible metía un objetivo táctil
- * grande donde el dedo espera seleccionar el día. Se editan desde `Availability`.
+ * La etiqueta escribe el nombre —"Mamá", o "Familia" si no es de nadie— sobre el
+ * color de esa persona al 50 %, la misma rebaja que el número de un descanso y
+ * por la misma razón: mezclado con el fondo, ningún color de la paleta admite
+ * texto blanco y todos admiten tinta.
  *
- * **Una sola raya, siempre** (24-08-2026, antes hasta dos). La celda avisa de que
- * falta alguien; quién es y hasta cuándo lo dice `Availability`, que es la fuente.
- * Con dos rayas apiladas, un día con la madre de vacaciones y el padre de
- * descanso pedía dos filas de señal y tres colores para no decir nada más que
- * "hoy falta gente": la celda volvía a ser el resumen del día que la agenda vino
- * a quitarle. Cuántas personas son exactamente sigue en el nombre accesible.
+ * En móvil el nombre no cabe —una celda son 50 px— así que allí la etiqueta se
+ * queda en la barra de color y el nombre sale solo en `lg`. Es lo mismo que hace
+ * la celda con los títulos de los eventos.
  *
- * Con más de una ausencia el mismo día manda la primera, y si hay vacaciones
- * manda la de vacaciones. Se probó pintar la raya en gris cuando falta más de
- * uno —el color ya no es de nadie en concreto— y se descartó al verlo: un martes
- * de descanso en medio de una semana de vacaciones partía la banda amarilla con
- * un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda
- * continua dice la verdad más importante; los nombres los da `Availability`.
+ * Se redondea donde el tramo empieza y acaba de verdad (`vacationEdges`), para
+ * que los días de en medio encadenen.
+ *
+ * Siguen siendo `span` y no botones, como la raya: en móvil una barra de 4 px no
+ * llega ni de lejos al mínimo de toque de 24×24, y estirarla con relleno
+ * invisible metería un objetivo táctil grande donde el dedo espera seleccionar el
+ * día. Las ausencias se editan desde `Availability`, que es su sitio.
+ *
+ * Hasta **dos** por celda, y el resto contado. Eran una sola desde el 24-08-2026,
+ * cuando la señal no llevaba nombre y apilar dos rayas solo decía "falta gente";
+ * con el nombre escrito, la segunda sí añade.
  */
-function AbsenceMarks({ vacaciones, descansos, day, kids, members }: {
+function AbsenceChips({ vacaciones, descansos, day, kids, members }: {
   vacaciones: Event[]
   descansos: Event[]
   day: Date
   kids: Child[]
   members: FamilyMember[]
 }) {
+  const ausencias = [...vacaciones, ...descansos]
+
   // El hueco se reserva aunque no haya nada: si no, los días con ausencia
-  // quedarían más altos que los demás y la fila se descuadra.
-  if (vacaciones.length === 0 && descansos.length === 0) {
-    return <span className="block h-[3px]" aria-hidden />
-  }
-
-  // Unas vacaciones ganan la forma: son un tramo, y un tramo se lee como barra
-  // continua entre días vecinos. Un día con vacaciones y descanso a la vez tiene
-  // una barra que sigue, que es la información que se pierde si gana el guion.
-  const tramo = vacaciones.length > 0
-
-  // La barra se redondea donde acaba el tramo de verdad: si **alguna** ausencia
-  // sigue en el día de al lado, no se cierra ahí. Sin esto, dos vacaciones
-  // solapadas dejaban una punta redonda en medio de la banda.
-  const primero = vacaciones.every(event => vacationEdges(event, day).primero)
-  const ultimo  = vacaciones.every(event => vacationEdges(event, day).ultimo)
-
-  const color = eventColor(tramo ? vacaciones[0] : descansos[0], members, kids)
+  // quedarían más altos que los demás y la fila se descuadra. En escritorio no
+  // hace falta, que la celda ya tiene alto mínimo.
+  if (ausencias.length === 0) return <span className="block h-[4px] lg:hidden" aria-hidden />
 
   return (
-    <span className="flex w-full justify-center" aria-hidden>
-      <span
-        className={tramo
-          ? `h-[3px] w-full ${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
-          : 'h-[3px] w-3 rounded-full'}
-        style={{ backgroundColor: color }}
-      />
+    <span className="flex w-full flex-col gap-px" aria-hidden>
+      {ausencias.slice(0, MAX_AUSENCIAS).map(event => {
+        const color = eventColor(event, members, kids)
+        const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
+        // Un descanso es un día suelto: empieza y acaba en él, así que se cierra
+        // por los dos lados sin preguntar.
+        const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
+
+        return (
+          <span
+            key={event.id}
+            className={`block h-[4px] w-full truncate lg:h-auto lg:px-1 lg:text-[10px] lg:font-bold lg:leading-tight lg:text-ink ${
+              primero ? 'rounded-l-full lg:rounded-l' : ''
+            } ${ultimo ? 'rounded-r-full lg:rounded-r' : ''}`}
+            style={{ backgroundColor: `${color}80` }}
+          >
+            <span className="hidden lg:inline">{quien}</span>
+          </span>
+        )
+      })}
+      {ausencias.length > MAX_AUSENCIAS && (
+        <span className="hidden pl-1 text-[10px] font-bold leading-tight text-muted lg:block">
+          +{ausencias.length - MAX_AUSENCIAS} más
+        </span>
+      )}
     </span>
   )
 }
@@ -200,7 +214,7 @@ export function DayCell({
      * En móvil no cambia nada: allí no hay títulos, así que el contenedor solo
      * tiene el botón y el área que se toca es la misma de siempre.
      */
-    <div className="flex w-full flex-col lg:min-h-[104px]">
+    <div className="flex w-full flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline">
     <button
       type="button"
       onClick={() => onSelect(day)}
@@ -234,7 +248,7 @@ export function DayCell({
       <span className="lg:hidden">
         <DayActivity marcas={marcas} />
       </span>
-      <AbsenceMarks vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
+      <AbsenceChips vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
     </button>
 
       {/* Solo en escritorio. Dos títulos como mucho y el resto contado: una

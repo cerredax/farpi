@@ -555,12 +555,22 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
 **Vacaciones y descansos son lo mismo para el calendario: quién no está**
 (24-08-2026). Los dos son `isAbsence` y comparten las tres reglas:
 
-- **La celda las pinta como una raya fina, y la forma dice de qué clase son.** Unas
-  vacaciones son una raya a todo el ancho, redondeada donde el tramo empieza y acaba, de
-  modo que varios días seguidos se leen como una barra continua; un descanso es un guion
-  corto y centrado, porque es un día y no un tramo. **Una sola raya por celda**, por
-  mucha gente que falte: la celda avisa de que falta alguien y `Availability` dice quién.
-  Cuántos son exactamente lo dice el nombre accesible del día.
+- **La celda las pinta como una etiqueta con el nombre de quien falta** (26-08-2026),
+  el idioma con el que Google marca lo que dura varios días. Fue una raya de 3 px bajo el
+  número hasta que la rejilla se dibujó de verdad y se vio el problema: una rayita de
+  color flotando bajo la fecha se lee como un subrayado, no dice "vacaciones" y no dice de
+  quién. El argumento de que varios días seguidos formaban "una barra continua" tampoco se
+  sostenía —la banda se parte al cambiar de semana, y ahora también en cada línea de la
+  rejilla—.
+  - La etiqueta lleva el nombre sobre el color de esa persona **al 50 %**, la misma rebaja
+    que el número de un descanso y por la misma razón: mezclado con el fondo ningún
+    color de la paleta admite texto blanco y todos admiten tinta.
+  - En móvil el nombre no cabe —la celda son 50 px— así que allí la etiqueta se queda en
+    la barra de color, igual que la celda hace con los títulos de los eventos.
+  - Se redondea donde el tramo empieza y acaba de verdad, para que los días de en medio
+    encadenen. **Hasta dos por celda** y el resto contado: eran una sola desde el
+    24-08-2026, cuando la señal no llevaba nombre y apilar dos solo decía "falta gente";
+    con el nombre escrito, la segunda sí añade.
   - Con más de una ausencia el mismo día manda la primera, y si hay vacaciones manda la
     de vacaciones, que es la que tiene tramo. **Se probó pintar la raya en gris** cuando
     falta más de uno —el color ya no es de nadie en concreto— y se descartó al verlo: un

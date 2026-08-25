@@ -450,6 +450,21 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   día. La celda pasa a ser un contenedor con el botón del día arriba y un botón por
   título. En móvil no cambia nada: allí no hay títulos.
 
+- **La rejilla se dibuja como una rejilla, y las ausencias dicen de quién son.** Dos cosas
+  que salieron de mirar una captura del mes en escritorio.
+  - **No había ni una línea.** Eran números flotando en un fondo blanco, y una pantalla
+    grande con pocos eventos se leía como un vacío en vez de como un calendario. Ahora las
+    celdas llevan borde, solo en `lg`: a 50 px las líneas son más ruido que estructura, y
+    en móvil la rejilla se lee bien por proximidad.
+  - **La raya de las ausencias pasa a ser una etiqueta con el nombre.** Con la rejilla ya
+    dibujada se vio por qué no convencía: una rayita de color bajo la fecha se lee como un
+    subrayado, no dice "vacaciones" y no dice de quién. Y lo de la "barra continua" no se
+    sostenía, porque se parte al cambiar de semana. Ahora pone "Mamá" —o "Familia"— sobre
+    su color al 50 %, se redondea donde el tramo empieza y acaba, y caben dos por celda.
+    En móvil el nombre no cabe y se queda la barra de color.
+  - Siguen sin ser botones: en móvil una barra de 4 px no llega al mínimo de toque de
+    24×24, y las ausencias se editan desde `Availability`, que es su sitio.
+
 - **Pendiente de decisión: sincronizar Google Calendar por usuario.** El login con
   Google ya está montado sobre Supabase, así que el proyecto en Google Cloud existe y el
   baile de OAuth está hecho; la sesión trae `provider_token` y `provider_refresh_token`,

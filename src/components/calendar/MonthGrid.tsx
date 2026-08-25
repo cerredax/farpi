@@ -28,6 +28,9 @@ import { getLocalDateString } from '@/lib/date-utils'
 
 const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
+/** Las líneas de la rejilla, solo en escritorio. Las comparten las celdas y los huecos. */
+const HUECO = 'lg:border-b lg:border-r lg:border-hairline'
+
 interface MonthGridProps {
   currentMonth: Date
   selectedDay: Date
@@ -53,8 +56,15 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
   const hoyStr = getLocalDateString(new Date())
 
   return (
-    <div className="px-2 pb-1">
-      <div className="mb-1 grid grid-cols-7">
+    /**
+     * **La rejilla se dibuja como una rejilla** en escritorio (26-08-2026). No
+     * tenía ni una línea: eran números flotando en un fondo blanco, y una
+     * pantalla grande con pocos eventos se leía como un vacío en vez de como un
+     * calendario. En móvil no se pintan: a 50 px de celda las líneas son más
+     * ruido que estructura, y ahí la rejilla se lee bien por proximidad.
+     */
+    <div className="px-2 pb-1 lg:px-0 lg:pb-0">
+      <div className="mb-1 grid grid-cols-7 lg:mb-0 lg:border-b lg:border-hairline">
         {DAY_LABELS.map(label => (
           <div key={label} className="flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted">
             {label}
@@ -66,7 +76,9 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
       <div className="grid grid-cols-7">
         {days.map(day => {
           if (!isSameMonth(day, currentMonth)) {
-            return <span key={day.toISOString()} aria-hidden />
+            // Los huecos de las puntas también llevan línea: si no, la rejilla
+            // se abre por las esquinas y deja de ser un rectángulo.
+            return <span key={day.toISOString()} className={HUECO} aria-hidden />
           }
 
           const diaStr = getLocalDateString(day)

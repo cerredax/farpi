@@ -345,6 +345,32 @@ async function main() {
   comprobar('Un ajeno no ve el festivo de la familia A',
     filas(await api(`/rest/v1/events?family_id=eq.${famA}&kind=eq.festivo`, { token: tokC })) === 0)
 
+  // ── 11. Unidades de la lista (021) ──────────────────────────────────
+  // La 021 no trae policy propia —una unidad es una columna más de `list_items`—,
+  // así que lo que hay que comprobar es el `default` y el `check`: que lo que ya
+  // existía nació en 1 sin cambiar de significado, y que ni el cero ni un número
+  // absurdo entran. El tope también lo acotan los dos repositorios, pero la base es
+  // la que lo sostiene.
+  console.log('\n== 11. Unidades de la lista (021)')
+  comprobar('Un ítem nace con una unidad',
+    (await api(`/rest/v1/list_items?list_id=eq.${listaA}&select=quantity`, { token: tokA })).cuerpo?.[0]?.quantity === 1)
+  comprobar('A puede cambiar las unidades de su ítem',
+    filas(await api(`/rest/v1/list_items?list_id=eq.${listaA}`, {
+      metodo: 'PATCH', token: tokA, datos: { quantity: 6 }, cabeceras: REPRESENTACION,
+    })) === 1)
+  comprobar('Las unidades quedan guardadas',
+    (await api(`/rest/v1/list_items?list_id=eq.${listaA}&select=quantity`, { token: tokA })).cuerpo?.[0]?.quantity === 6)
+  comprobar('El check rechaza cero unidades',
+    (await api(`/rest/v1/list_items?list_id=eq.${listaA}`, {
+      metodo: 'PATCH', token: tokA, datos: { quantity: 0 },
+    })).estado >= 400)
+  comprobar('El check rechaza pasarse del tope',
+    (await api(`/rest/v1/list_items?list_id=eq.${listaA}`, {
+      metodo: 'PATCH', token: tokA, datos: { quantity: 100 },
+    })).estado >= 400)
+  comprobar('Tras los rechazos, las unidades siguen siendo las de A',
+    (await api(`/rest/v1/list_items?list_id=eq.${listaA}&select=quantity`, { token: tokA })).cuerpo?.[0]?.quantity === 6)
+
 
   console.log('\n== limpieza')
   for (const fam of [famA, famB]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })

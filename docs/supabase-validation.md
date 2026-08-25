@@ -1,9 +1,9 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-26. **63/63 comprobaciones correctas.**
+Última ejecución: 2026-08-26. **69/69 comprobaciones correctas.**
 
-Las 58 de la pasada del 24-08-2026 más las **cinco que trae la 020**, los festivos. Ya no
-queda ninguna migración sin validar. La limpieza dejó en la base únicamente la familia
+Las 58 de la pasada del 24-08-2026 más las **cinco de la 020** (los festivos) y las **seis
+de la 021** (las unidades de la lista). Ya no queda ninguna migración sin validar. La limpieza dejó en la base únicamente la familia
 real; los tres usuarios y las dos familias de prueba se borraron.
 
 ## Estado
@@ -42,6 +42,7 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 - [x] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(aplicada y revalidada el 21-08-2026; la columna se comprobó además leyéndola contra la base real)*
 - [x] `019_meal_slots.sql` — `meal_slots` en `families`, qué franjas de comida se ven *(aplicada y validada el 24-08-2026, con siete comprobaciones propias en el arnés)*
 - [x] `020_event_kind_festivo.sql` — `kind` admite `festivo` y su restricción de rango *(aplicada y validada el 26-08-2026, con cinco comprobaciones propias en el arnés)*
+- [x] `021_list_item_quantity.sql` — `quantity` en `list_items`, cuántas unidades hacen falta *(aplicada y validada el 26-08-2026, con seis comprobaciones propias en el arnés)*
 
 ## Validación RLS
 
@@ -114,8 +115,8 @@ Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
 
 **Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
 
-**No queda nada pendiente.** Las 20 migraciones están validadas y la pasada del
-26-08-2026 no dejó ninguna comprobación en rojo: 63/63.
+**No queda nada pendiente.** Las 21 migraciones están validadas y la pasada del
+26-08-2026 no dejó ninguna comprobación en rojo: 69/69.
 
 ## Pendiente
 
@@ -124,8 +125,14 @@ próxima vez que se toque una migración, una policy o una RPC.
 
 ### Notas de la ejecución (26-08-2026)
 
-- **63/63.** La 020 se aplicó a mano en el SQL Editor y el arnés gana **cinco
-  comprobaciones** en una sección nueva (§10). La 020 no trae policy propia —un festivo
+- **69/69.** Se aplicaron a mano dos migraciones ese día y el arnés gana dos secciones.
+- La **021** trae **seis comprobaciones** (§11). Tampoco tiene policy propia —una unidad
+  es una columna más de `list_items`—, así que lo que se comprueba es el `default` y el
+  `check`: que un ítem nace en 1 (lo que ya existía no cambia de significado), que se
+  puede cambiar y queda guardado, que **el cero se rechaza** y que **pasarse del tope
+  también**, y que tras los dos rechazos el valor sigue siendo el bueno. El tope lo acotan
+  además los dos repositorios, para que el botón deje de subir en vez de rebotar aquí.
+- La **020** trae **cinco comprobaciones** (§10). La 020 no trae policy propia —un festivo
   es una fila de `events` como las demás—, así que lo que hay que comprobar es que los
   dos `check` hacen su trabajo.
 - Las cinco: que un festivo con rango se guarda, que un `kind` inventado se rechaza, que

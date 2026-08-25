@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { initDraft } from '@/components/calendar/useEventSheet'
 import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isRangeKind, isRestDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
 import { event } from './fixtures'
 
@@ -154,4 +155,40 @@ test('un festivo sin título se guarda como "Festivo"', () => {
   expect(eventTitleOr('festivo', '   ')).toBe('Festivo')
   expect(eventTitleOr('festivo', 'Hispanidad')).toBe('Hispanidad')
   expect(eventTitleOr('evento', '   ')).toBe('')
+})
+
+// El borrador con el que abre el sheet al editar. Aquí vivió un fallo que la
+// suite de navegador no podía ver: el mock guarda la hora de pared tal cual
+// ("2026-08-17T00:00:00") y Supabase, que usa timestamptz, devuelve el instante
+// en UTC ("2026-08-16T22:00:00+00:00"). Cortando la cadena por el día, lo primero
+// funciona y lo segundo devuelve el día anterior en cualquier zona al este de
+// Greenwich. Editar unas vacaciones del 17 abría el formulario en el 16.
+test.describe('initDraft: la fecha de un evento guardado', () => {
+  // Se construye el instante desde una fecha local, así la comprobación vale en
+  // cualquier zona horaria y no solo en la de quien la escribió.
+  function comoLoGuardaSupabase(anio: number, mes: number, dia: number): string {
+    return new Date(anio, mes - 1, dia, 0, 0, 0).toISOString()
+  }
+
+  test('un evento de todo el día vuelve a su día, no al anterior', () => {
+    const guardado = event({
+      kind: 'vacaciones',
+      all_day: true,
+      start_at: comoLoGuardaSupabase(2026, 8, 17),
+      end_at: comoLoGuardaSupabase(2026, 8, 21),
+    })
+    const draft = initDraft('edit', guardado, undefined)
+    expect(draft.date).toBe('2026-08-17')
+    expect(draft.end_date).toBe('2026-08-21')
+  })
+
+  test('un plan con hora también conserva su día', () => {
+    const guardado = event({
+      kind: 'evento',
+      all_day: false,
+      start_at: new Date(2026, 0, 1, 9, 30).toISOString(),
+      end_at: null,
+    })
+    expect(initDraft('edit', guardado, undefined).date).toBe('2026-01-01')
+  })
 })

@@ -26,12 +26,24 @@ interface Params {
   onDelete: (id: string) => void
 }
 
-function initDraft(mode: EventSheetMode, initial: Event | null | undefined, defaultDate: Date | undefined): EventDraft {
+/**
+ * El borrador con el que abre el sheet: vacío al crear, y relleno con el evento
+ * al editar.
+ *
+ * Se exporta para poder probarla: aquí vivía un fallo que la suite no podía ver
+ * porque **el mock y Supabase guardan la fecha de distinta forma**. El mock
+ * escribe la hora de pared tal cual (`2026-08-17T00:00:00`) y Supabase, que usa
+ * `timestamptz`, devuelve el instante en UTC (`2026-08-16T22:00:00+00:00`). Con
+ * lo primero, cortar la cadena por el día funciona; con lo segundo, en España en
+ * verano devuelve el día anterior. De ahí que las fechas se lean siempre con
+ * `extractDate` y nunca cortando, que es lo que avisa `date-utils.ts`.
+ */
+export function initDraft(mode: EventSheetMode, initial: Event | null | undefined, defaultDate: Date | undefined): EventDraft {
   if (mode === 'edit' && initial) {
     return {
       title: initial.title,
       description: initial.description ?? '',
-      date: initial.start_at.slice(0, 10),
+      date: extractDate(initial.start_at),
       all_day: initial.all_day,
       start_time: initial.all_day ? '' : extractTime(initial.start_at),
       end_time: initial.end_at && !initial.all_day ? extractTime(initial.end_at) : '',

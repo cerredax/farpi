@@ -555,19 +555,36 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
 **Vacaciones y descansos son lo mismo para el calendario: quién no está**
 (24-08-2026). Los dos son `isAbsence` y comparten las tres reglas:
 
-- **La celda las pinta como la trama de día libre, en el color de quien falta**
-  (26-08-2026, por la tarde). Una ausencia es el día libre **de una persona**, y ya había
-  un idioma para "aquí no se trabaja": el mismo que usan sábados, domingos y festivos. La
-  diferencia es de quién, y eso lo lleva el color de la trama (`--trama` en `dia-libre`).
-  - **Sustituye a la etiqueta con nombre que duró unas horas esa misma mañana.** El
-    problema apareció al convertir los títulos de los eventos en etiquetas de color:
-    entonces unas vacaciones y una cita se leían igual —rectángulo de color con texto— y
-    solo las distinguía el ancho. Encima la banda se partía en el borde de cada celda, así
-    que de lunes a viernes eran cinco trozos y no una barra. Una trama no tiene ese
-    problema: interrumpida por una línea de pelo se sigue leyendo como una sola cosa.
-  - Con más de una ausencia manda la primera y las vacaciones ganan al descanso. **El
-    nombre ya no está en la celda**: lo dice `Availability`, una sola vez, que es la
-    fuente. Cuántas personas son lo dice el nombre accesible del día.
+- **La celda las pinta como una franja pegada al borde de arriba, sobre un carril gris**
+  (26-08-2026, tercera vuelta y la que se queda). Dos piezas, cada una resolviendo un
+  problema distinto:
+  - **La posición** —arriba del todo, fuera del flujo donde van las cosas del día— dice
+    que **dura**, y por eso no se confunde con la etiqueta de un evento. Esa confusión
+    apareció al convertir los títulos en etiquetas de color: dos rectángulos de color con
+    texto, distinguidos solo por el ancho.
+  - **El carril gris** dice que **hay algo**, siempre con el mismo peso, y el color solo lo
+    rellena. Sin él, el color carga con dos trabajos y falla en uno: una barra maciza de
+    "Champán dorado" sobre blanco da 1,37:1 y no se ve, mientras que "Vino" da 9,30:1.
+    Siete veces de diferencia, porque la paleta va en dos bandas de claridad a propósito.
+
+  Detrás hay una regla general que conviene no olvidar: **el color puede decir "de quién",
+  pero nunca "qué" ni "si"**. Lo que significa una marca va en su forma y su sitio, que se
+  leen igual en blanco y negro; el color añade el matiz. Con daltonismo rojo-verde —en
+  torno al 8 % de los hombres— varios colores de la paleta se juntan: Coral claro con
+  Melocotón son indistinguibles, y Cuero con Granate y con Vino, casi. Si el color fuera
+  la única vía, esas familias perderían información; siendo el matiz, solo pierden el
+  matiz.
+
+  Se redondea donde el tramo empieza y acaba de verdad, para que los días de en medio
+  encadenen. Caben dos por celda, y son decorativas: a 7 px nunca llegarían al mínimo de
+  toque, y las ausencias se editan desde `Availability`, que es quien las nombra.
+
+- **~~La celda las tiñe con la trama de día libre, en el color de quien falta.~~**
+  *(Derogada el 26-08-2026, el mismo día: la paleta va en dos bandas de claridad, así que
+  la misma opacidad daba pesos incompatibles —las vacaciones de un adulto pesaban cuatro
+  veces más que el fin de semana y las de un hijo se veían menos—, y bajarla no arregla
+  nada porque los tonos claros no llegan al peso del gris ni al 100 %. Un fondo no puede
+  decir "día libre" y "de quién" a la vez.)*
 
 - **~~La celda las pinta como una etiqueta con el nombre de quien falta.~~** *(Derogada el
   26-08-2026, unas horas después de nacer; ver arriba. Se queda escrito porque explica por

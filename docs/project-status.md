@@ -423,6 +423,19 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **Las ausencias se marcan con una franja arriba, sobre un carril gris.** Tercera vuelta
+  del día y la que se queda, y la primera que sale de medir en vez de mirar.
+  - **La posición** dice que dura: arriba del todo, fuera del flujo donde van las cosas del
+    día, así que no se confunde con la etiqueta de un evento.
+  - **El carril gris** dice que hay algo, siempre con el mismo peso, y el color solo lo
+    rellena. Es lo que arregla el problema de fondo: una barra maciza de "Champán dorado"
+    sobre blanco da 1,37:1 y "Vino" da 9,30:1 —siete veces—, porque la paleta va en dos
+    bandas de claridad. Con carril, el color deja de cargar con "¿se ve o no?".
+  - **La regla que sale de aquí**, y que conviene no olvidar: el color puede decir "de
+    quién", nunca "qué" ni "si". Con daltonismo rojo-verde varios colores de la paleta se
+    juntan —Coral claro con Melocotón son indistinguibles—, así que si el color fuera la
+    única vía, esas familias perderían información.
+
 - **Las ausencias pasan a teñir la celda con la trama de día libre, en el color de quien
   falta.** La etiqueta con nombre duró unas horas: el problema apareció al convertir los
   títulos de los eventos en etiquetas de color, porque entonces unas vacaciones y una cita

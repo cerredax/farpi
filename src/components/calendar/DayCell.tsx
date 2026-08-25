@@ -1,5 +1,5 @@
 import { eventColor } from '@/lib/assignees'
-import { holidayName, isHoliday, isRestDay, isVacation } from '@/lib/events'
+import { holidayName, isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -119,19 +119,17 @@ export function DayCell({
   // sacó los títulos de la celda en su día.
   const festivos = events.filter(isHoliday)
   /**
-   * El día libre y de quién. Sábado, domingo y festivo lo son de toda la casa y
-   * van en el gris de la trama; unas vacaciones o un descanso lo son **de una
-   * persona**, y entonces la trama toma su color.
+   * La trama es de la casa entera: sábado, domingo y festivo. **Las ausencias no
+   * la usan**, aunque unas vacaciones sean el día libre de alguien: se probó y se
+   * descartó el mismo día porque un fondo no puede decir "día libre" y "de
+   * quién" a la vez sin que el peso baile. Lo de quién lo lleva la franja.
    *
-   * Con más de una ausencia manda la primera y las vacaciones ganan al descanso,
-   * la misma regla que tenía la raya. Cuántas personas son exactamente lo dice el
-   * nombre accesible del día, y quiénes, `Availability`.
+   * Con más de una ausencia manda la primera y las vacaciones ganan al descanso.
+   * Cuántas personas son lo dice el nombre accesible del día, y quiénes,
+   * `Availability`.
    */
-  const ausencia = vacaciones[0] ?? descansos[0]
-  const esDiaLibre = day.getDay() === SABADO || day.getDay() === DOMINGO || festivos.length > 0 || !!ausencia
-  const trama = ausencia
-    ? ({ '--trama': `${eventColor(ausencia, members, kids)}80` } as React.CSSProperties)
-    : undefined
+  const esDiaLibre = day.getDay() === SABADO || day.getDay() === DOMINGO || festivos.length > 0
+  const ausencias = [...vacaciones, ...descansos].slice(0, MAX_AUSENCIAS)
   const planes = events.filter(e => !isVacation(e) && !isRestDay(e) && !isHoliday(e))
   const marcas = marcasDelDia(events, tasks, members, kids)
 
@@ -193,8 +191,33 @@ export function DayCell({
          */
         esDiaLibre ? 'dia-libre' : ''
       }`}
-      style={trama}
     >
+      {/**
+        * Las franjas de ausencia, pegadas al borde de arriba y **antes que nada**.
+        * Ahí está la mitad del truco: lo que dura va fuera del flujo donde van las
+        * cosas del día, así que no se puede confundir con la etiqueta de un
+        * evento. La otra mitad la hace el carril gris de `franja-ausencia`.
+        *
+        * Se redondea donde el tramo empieza y acaba de verdad, para que los días
+        * de en medio encadenen. Un descanso es un día suelto y se cierra por los
+        * dos lados sin preguntar.
+        *
+        * Decorativas, como lo era la raya: a 7 px de alto nunca llegarían al
+        * mínimo de toque de 24×24, y las ausencias se editan desde `Availability`.
+        */}
+      {ausencias.map(event => {
+        const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
+        const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
+        return (
+          <span key={event.id} className={`franja-ausencia ${redondeo}`} aria-hidden>
+            <span
+              className={`block h-full w-full ${redondeo}`}
+              style={{ backgroundColor: eventColor(event, members, kids) }}
+            />
+          </span>
+        )
+      })}
+
     <button
       type="button"
       onClick={() => onSelect(day)}

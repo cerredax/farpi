@@ -154,11 +154,12 @@ test.describe('escritorio a 1440 px', () => {
     await expect(page.getByPlaceholder('Buscar en todo el calendario…')).toBeVisible()
   })
 
-  // Una ausencia tiñe la celda entera con la trama de "día libre", en el color de
-  // quien falta. Ya no escribe su nombre ahí: desde que los eventos son etiquetas
-  // de color, una etiqueta de vacaciones se leía igual que una cita. El nombre lo
-  // dice `Availability`, una sola vez.
-  test('una ausencia tiñe la celda del mes', async ({ page }) => {
+  // Una ausencia se marca con una franja pegada al borde de arriba de la celda,
+  // sobre un carril gris. La posición —fuera del flujo donde van las cosas del
+  // día— es lo que la separa de la etiqueta de un evento; el carril es lo que la
+  // hace visible con cualquier color. La celda **no** se tiñe: la trama es de la
+  // casa entera (finde y festivos), no de una persona.
+  test('una ausencia pone su franja en la celda del mes', async ({ page }) => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
     await page.getByRole('button', { name: 'Añadir evento' }).first().click()
@@ -169,10 +170,13 @@ test.describe('escritorio a 1440 px', () => {
     await page.getByRole('button', { name: /Apuntar/ }).click()
     await page.waitForTimeout(700)
 
-    // Los dos días del rango quedan marcados, y con trama, no con etiqueta.
+    // Los dos días del rango quedan marcados, cada uno con su franja.
     const celda = page.locator('[aria-pressed][aria-label*="descansando"]')
     await expect(celda).toHaveCount(2)
-    await expect(page.locator('.dia-libre').filter({ has: celda })).toHaveCount(2)
+    await expect(page.locator('.franja-ausencia')).toHaveCount(2)
+
+    // Y no se tiñen: el 11 y el 12 de agosto de 2026 son martes y miércoles.
+    await expect(page.locator('.dia-libre').filter({ has: celda })).toHaveCount(0)
 
     // Y el nombre sale una sola vez, en "Vacaciones y descansos".
     await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)

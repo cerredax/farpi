@@ -97,16 +97,42 @@
      tienen en común un sábado, un domingo y el 12 de octubre es que no hay
      trabajo ni colegio.
 
-     El color de la raya se puede cambiar con `--trama`, y hay un cuarto caso que
-     lo usa: **unas vacaciones o un descanso**, que son el día libre de una
-     persona y no de la casa entera. Ahí la trama va en el color de esa persona
-     en vez de en el gris del borde. */
+     **Siempre en gris.** Se probó llevarla al color de la persona para marcar
+     unas vacaciones y se descartó el mismo día, con los números delante: la
+     paleta va en dos bandas de claridad, así que la misma opacidad daba pesos
+     incompatibles —las vacaciones de un adulto pesaban cuatro veces más que el
+     fin de semana y las de un hijo se veían menos—, y bajarla no arregla nada
+     porque los tonos claros no llegan al peso del gris ni al 100 %. Un fondo no
+     puede decir "día libre" y "de quién" a la vez. Lo de quién lo dice la
+     franja, aquí debajo. */
   .dia-libre {
     background-image: repeating-linear-gradient(
       45deg,
       transparent 0 6px,
-      var(--trama, var(--color-line)) 6px 7px
+      var(--color-line) 6px 7px
     );
+  }
+
+  /* Que alguien no está esos días: vacaciones o descanso.
+     ---------------------------------------------------------------
+     Una franja pegada al borde de arriba de la celda, que cruza los días
+     seguidos. **La posición dice que dura** —arriba, fuera del flujo donde van
+     las cosas del día— y por eso no se confunde con la etiqueta de un evento,
+     que es lo que pasaba cuando las dos eran un rectángulo de color con texto.
+
+     Va sobre un **carril gris**, y esa es la pieza que lo hace funcionar. El
+     color de una persona solo puede decir de quién; si además tiene que decir
+     "aquí hay algo", falla: "Champán dorado" macizo sobre blanco da 1,37:1 y no
+     se ve, mientras que "Vino" da 9,30:1. El carril se ve siempre, con el mismo
+     peso, y el color solo lo rellena. Si el color falla —porque es claro, o
+     porque quien mira no distingue rojos de verdes— no se pierde la información,
+     solo el matiz. */
+  .franja-ausencia {
+    display: block;
+    width: 100%;
+    height: 7px;
+    padding-block: 1px;
+    background-color: var(--color-line);
   }
 }
 

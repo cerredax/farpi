@@ -61,6 +61,12 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 - Si tocas una migración, una policy o una RPC: ejecuta `node scripts/validate-rls.mjs`
   y actualiza `docs/supabase-validation.md`.
 - Para cambios relevantes, ejecuta `npm run lint` y `npm run build`.
+- **La suite entera se corre una vez, justo antes del commit.** `npm run test:e2e` levanta
+  el servidor y tarda unos dos minutos; encadenarla tras cada retoque no aporta nada y se
+  come la sesión. Mientras se trabaja basta con `npx tsc --noEmit`, `npm run lint` y, si
+  hace falta, el archivo o el test concretos (`npx playwright test <archivo>`,
+  `-g "<título>"`). La pasada completa es la que da el visto bueno antes de commitear, no
+  un cronómetro de fondo.
 - Si aparecen warnings por archivos temporales, límpialos o exclúyelos.
 
 ## Comandos

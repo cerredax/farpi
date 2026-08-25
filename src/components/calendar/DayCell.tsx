@@ -49,6 +49,11 @@ interface DayCellProps {
   kids: Child[]
   members: FamilyMember[]
   onSelect: (day: Date) => void
+  /**
+   * Abrir un evento desde la celda. Solo lo usa escritorio, que es donde la
+   * celda escribe títulos: en móvil no hay nada escrito que pulsar.
+   */
+  onOpenEvent?: (event: Event) => void
 }
 
 /**
@@ -125,6 +130,7 @@ export function DayCell({
   kids,
   members,
   onSelect,
+  onOpenEvent,
 }: DayCellProps) {
   const vacaciones = events.filter(isVacation)
   const descansos = events.filter(isRestDay)
@@ -183,6 +189,18 @@ export function DayCell({
   })
 
   return (
+    /**
+     * La celda es un contenedor, no un botón.
+     *
+     * Lo fue hasta el 26-08-2026, y con los títulos de escritorio dentro dejó de
+     * poder serlo: un botón no puede llevar botones dentro, así que los títulos
+     * se pintaban pulsables y no lo eran —pulsarlos seleccionaba el día—. Ahora
+     * el botón del día ocupa la parte de arriba y cada título es el suyo.
+     *
+     * En móvil no cambia nada: allí no hay títulos, así que el contenedor solo
+     * tiene el botón y el área que se toca es la misma de siempre.
+     */
+    <div className="flex w-full flex-col lg:min-h-[104px]">
     <button
       type="button"
       onClick={() => onSelect(day)}
@@ -198,7 +216,7 @@ export function DayCell({
       // El alto mínimo es de escritorio: sin él la rejilla se queda en una
       // franja estrecha arriba de una pantalla de 900 px, que es lo que la hacía
       // parecer a medio hacer. En móvil manda el contenido, como siempre.
-      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-[104px] lg:justify-start ${
+      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
         isSelected ? '' : 'hover:bg-canvas'
       }`}
     >
@@ -217,35 +235,45 @@ export function DayCell({
         <DayActivity marcas={marcas} />
       </span>
       <AbsenceMarks vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
+    </button>
 
       {/* Solo en escritorio. Dos títulos como mucho y el resto contado: una
           celda que crece con lo que tiene descuadra la rejilla entera, y a
           partir del tercero se lee mejor en la agenda de al lado. Las tareas van
           en una línea contada y no una a una: vencen ese día, no ocurren a una
           hora, y su sitio es Tareas. */}
-      <span className="mt-0.5 hidden w-full flex-col gap-px px-0.5 lg:flex" aria-hidden>
+      <div className="mt-0.5 hidden w-full flex-col gap-px px-0.5 lg:flex">
         {planes.slice(0, MAX_TITULOS).map(event => (
-          <span key={event.id} className="flex min-w-0 items-center gap-1">
+          <button
+            key={event.id}
+            type="button"
+            onClick={() => onOpenEvent?.(event)}
+            // El título entero es el objetivo, no solo la palabra: una fila
+            // estrecha en la que hay que acertar con el ratón es peor que una
+            // fila ancha, y el hueco a la derecha no vale para nada más.
+            className="flex min-h-5 w-full min-w-0 items-center gap-1 rounded px-0.5 text-left transition-colors hover:bg-canvas"
+          >
             <span
               className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
               style={{ backgroundColor: eventColor(event, members, kids) }}
+              aria-hidden
             />
             <span className="min-w-0 truncate text-[10px] font-semibold leading-tight text-ink">
               {event.title}
             </span>
-          </span>
+          </button>
         ))}
         {planes.length > MAX_TITULOS && (
-          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted">
+          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted" aria-hidden>
             +{planes.length - MAX_TITULOS} más
           </span>
         )}
         {tasks.length > 0 && (
-          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted">
+          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted" aria-hidden>
             {tasks.length} tarea{tasks.length === 1 ? '' : 's'}
           </span>
         )}
-      </span>
-    </button>
+      </div>
+    </div>
   )
 }

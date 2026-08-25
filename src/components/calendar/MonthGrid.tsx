@@ -37,6 +37,8 @@ interface MonthGridProps {
   kids: Child[]
   members: FamilyMember[]
   onSelectDay: (day: Date) => void
+  /** Abrir un evento desde la celda. Escritorio: es donde se escriben los títulos. */
+  onOpenEvent?: (event: Event) => void
 }
 
 function getMonthDays(month: Date): Date[] {
@@ -46,7 +48,7 @@ function getMonthDays(month: Date): Date[] {
   })
 }
 
-export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, members, onSelectDay }: MonthGridProps) {
+export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, members, onSelectDay, onOpenEvent }: MonthGridProps) {
   const days = getMonthDays(currentMonth)
   const hoyStr = getLocalDateString(new Date())
 
@@ -81,6 +83,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               kids={kids}
               members={members}
               onSelect={onSelectDay}
+              onOpenEvent={onOpenEvent}
             />
           )
         })}

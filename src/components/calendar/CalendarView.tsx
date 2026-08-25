@@ -197,6 +197,7 @@ export function CalendarView() {
                   kids={kids}
                   members={members}
                   onSelectDay={selectDay}
+                  onOpenEvent={openEdit}
                 />
 
                 <Availability

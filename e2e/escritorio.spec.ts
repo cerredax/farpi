@@ -83,6 +83,33 @@ test.describe('escritorio a 1440 px', () => {
     }
   })
 
+  // En escritorio la celda del mes escribe los títulos de lo que hay ese día, y
+  // tienen que abrir el evento. Estuvieron pintados y muertos: la celda era un
+  // solo botón —no caben botones dentro de un botón— y pulsar un título
+  // seleccionaba el día sin abrir nada.
+  test('un título escrito en la celda del mes abre su evento', async ({ page }) => {
+    const hoy = new Date()
+    const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+    await page.goto('/calendar')
+    await page.waitForTimeout(900)
+    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.locator('#event-title').fill('Revisión del coche')
+    await page.locator('#event-date').fill(iso)
+    await page.locator('#event-start').fill('10:00')
+    await page.getByRole('button', { name: /Guardar|Crear|Apuntar/ }).first().click()
+    await page.waitForTimeout(700)
+
+    // El botón de la rejilla y no la fila de la agenda de al lado: `exact` los
+    // separa, porque la fila de la agenda se llama "10:00 Revisión del coche
+    // Familia" y el título de la celda se llama solo como el evento.
+    const enLaRejilla = page.getByRole('button', { name: 'Revisión del coche', exact: true })
+    await expect(enLaRejilla).toHaveCount(1)
+    await enLaRejilla.click()
+
+    await expect(page.getByRole('dialog', { name: 'Editar evento' })).toBeVisible()
+  })
+
   test('la sección donde estás se marca en la barra lateral', async ({ page }) => {
     await page.goto('/meals')
     await page.waitForTimeout(800)

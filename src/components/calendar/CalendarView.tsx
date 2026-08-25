@@ -17,7 +17,7 @@ import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import { CalendarHeader, type ModoCalendario } from './CalendarHeader'
+import { CalendarHeader } from './CalendarHeader'
 import { MonthGrid } from './MonthGrid'
 import { Availability } from './Availability'
 import { AgendaList } from './AgendaList'
@@ -43,7 +43,10 @@ export function CalendarView() {
   const { kids, members, allEvents, tasks, toggleTask, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
 
   const today = new Date()
-  const [modo, setModo] = useState<ModoCalendario>('agenda')
+  // La rejilla del mes empieza guardada: la pantalla abre en la lista, que es la
+  // respuesta a "¿qué hay?". En escritorio no manda nada, que allí el mes está
+  // siempre a la vista.
+  const [mesAbierto, setMesAbierto] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
   const [selectedDay, setSelectedDay]   = useState(today)
   const [sheetOpen, setSheetOpen]       = useState(false)
@@ -122,19 +125,17 @@ export function CalendarView() {
   )
 
   /**
-   * Dónde arranca la lista, y es lo que separa las dos pestañas.
+   * La lista arranca **siempre en hoy** y no se mueve.
    *
-   * **En agenda, hoy, y no se mueve.** Iba anclada al día elegido, y con la lista
-   * continua eso resultaba ser un fallo: apuntar algo para el 6 de septiembre
-   * movía el ancla allí y la agenda se quedaba empezando en septiembre, sin hoy
-   * ni el resto de la semana a la vista. Con la tira y la tarjeta del día encima
-   * se disimulaba; sin ellas la pantalla perdía lo que tenías delante.
+   * Estuvo anclada al día elegido y resultó ser un fallo: apuntar algo para el 6
+   * de septiembre movía el ancla allí y la agenda se quedaba empezando en
+   * septiembre, sin hoy ni el resto de la semana a la vista.
    *
-   * **Con el mes, el día elegido**, porque ahí tocar un día tiene que enseñar
-   * ese día; si no, la rejilla es un adorno. Es el reparto de Google: la lista
-   * de Programación empieza hoy y la del mes, donde tocas.
+   * Elegir un día en la rejilla no mueve el ancla: **desliza** la lista hasta él.
+   * Es lo que hace Google, y deja que el mes sirva de índice sin quitarte de
+   * delante lo que viene antes.
    */
-  const desdeAgenda = modo === 'mes' ? startOfDay(selectedDay) : startOfDay(today)
+  const desdeAgenda = startOfDay(today)
 
   // La agenda solo necesita el tramo que va a listar. El mes recibe todos los
   // eventos y se queda con los de cada día, que ya sabe hacerlo.
@@ -164,8 +165,8 @@ export function CalendarView() {
       <div className="pb-6 lg:mx-auto lg:max-w-5xl lg:px-6 lg:py-4">
         <CalendarHeader
           currentMonth={currentMonth}
-          modo={modo}
-          onModo={setModo}
+          mesAbierto={mesAbierto}
+          onToggleMes={() => setMesAbierto(a => !a)}
           onPrev={irAnterior}
           onNext={irSiguiente}
           onAdd={() => openCreate(selectedDay)}
@@ -175,12 +176,17 @@ export function CalendarView() {
             Móvil: una columna, y el selector decide si arriba va la tira o el
             mes. La rejilla es solo de `lg` en adelante, así que por debajo el
             DOM es el de siempre. */}
-        <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[380px_1fr] lg:gap-6 lg:items-start">
+        {/* En escritorio manda el mes y la agenda le hace de acompañante: la
+            rejilla se lleva el espacio libre —en 1440 px pasa de 380 a más de
+            900— y la lista se queda en una columna fija. Estaba al revés, con el
+            mes encajado en 380 px y mil píxeles de crema al lado, y la pantalla
+            se veía a medio hacer. */}
+        <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-6 lg:items-start">
           {/* El mes y su bloque de ausencias van juntos y en el mismo sitio: en
               móvil solo en la pestaña "Mes", y en escritorio siempre, que ahí
               caben los dos a la vez. En agenda, el móvil no pinta nada de esto:
               esa pantalla es cabecera y lista, y ya está. */}
-          <div className={modo === 'mes' ? '' : 'hidden lg:block'}>
+          <div className={mesAbierto ? '' : 'hidden lg:block'}>
             <div className="mx-4 lg:mx-0">
               <Card padded={false}>
                 <MonthGrid
@@ -206,6 +212,7 @@ export function CalendarView() {
           <div>
             <AgendaList
               desde={desdeAgenda}
+              focusDay={selectedDay}
               events={agendaEvents}
               kids={kids}
               members={members}

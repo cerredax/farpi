@@ -403,6 +403,24 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   - Tres unitarios nuevos para el tramo de arranque, y los dos asideros de la suite
     pasan a ser las regiones "Hoy" y "Mañana", que valen cualquier día de la semana.
 
+- **Segunda pasada el mismo día, mirando la app y no el código.** La lista continua
+  dejaba dos cosas mal, y las dos salieron de abrirla:
+  - **El calendario se abría sin enseñar ningún calendario.** La pestaña por defecto era
+    la lista, y la rejilla estaba en la otra. Sobre el boceto parecía correcto —la vista
+    Programación de Google tampoco tiene rejilla— pero al entrar faltaba algo que mirar.
+    Se van las pestañas `Agenda`/`Mes` y el rótulo de la cabecera pasa a ser un botón
+    que despliega el mes encima de la lista. Ya no hay que elegir entre ver el mes o ver
+    lo que hay, que era una elección falsa.
+  - Tocar un día en la rejilla **desliza** la lista hasta él en vez de reencuadrarla:
+    reencuadrar escondía todo lo anterior, el mismo fallo que anclarla al día elegido.
+  - **El escritorio se veía a medio hacer**, y con razón: no se había tocado. El mes
+    estaba encajado en una columna de 380 px con mil píxeles de crema al lado. Ahora la
+    rejilla se lleva el espacio libre y la agenda queda en columna fija a la derecha.
+  - Y a ese ancho **la celda escribe títulos**: hasta dos con su punto, el resto contado
+    y una línea de tareas. Solo en `lg:`; los puntos se quedan para el móvil. No
+    contradice la decisión de sacarlos de la celda —la razón era el ancho, y a 50 px un
+    título sale como "09:0…"— porque una celda de escritorio pasa de 120 px.
+
 - **Pendiente de decisión: sincronizar Google Calendar por usuario.** El login con
   Google ya está montado sobre Supabase, así que el proyecto en Google Cloud existe y el
   baile de OAuth está hecho; la sesión trae `provider_token` y `provider_refresh_token`,

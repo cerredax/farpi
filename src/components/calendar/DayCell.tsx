@@ -35,6 +35,9 @@ import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
  * apila — es una por celda, por mucha gente que falte.
  */
 
+/** Cuántos títulos se escriben en la celda antes de pasar a contarlos. Escritorio. */
+const MAX_TITULOS = 2
+
 interface DayCellProps {
   day: Date
   dayNumber: number
@@ -125,6 +128,10 @@ export function DayCell({
 }: DayCellProps) {
   const vacaciones = events.filter(isVacation)
   const descansos = events.filter(isRestDay)
+  // Los planes son lo que no es una ausencia: las ausencias ya las cuenta la
+  // raya, y escribir "Vacaciones" en los siete días de un tramo era justo lo que
+  // sacó los títulos de la celda en su día.
+  const planes = events.filter(e => !isVacation(e) && !isRestDay(e))
   const marcas = marcasDelDia(events, tasks, members, kids)
 
   /**
@@ -188,7 +195,10 @@ export function DayCell({
       // Sin relleno lateral: es lo que deja que la raya de dos días seguidos se
       // toque y se lea como un tramo. El número es un círculo de 32 px centrado
       // en una columna de ~52, así que no roza con el vecino.
-      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      // El alto mínimo es de escritorio: sin él la rejilla se queda en una
+      // franja estrecha arriba de una pantalla de 900 px, que es lo que la hacía
+      // parecer a medio hacer. En móvil manda el contenido, como siempre.
+      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:min-h-[104px] lg:justify-start ${
         isSelected ? '' : 'hover:bg-canvas'
       }`}
     >
@@ -198,8 +208,44 @@ export function DayCell({
       >
         {dayNumber}
       </span>
-      <DayActivity marcas={marcas} />
+      {/* Los puntos son el idioma del móvil, donde una celda mide 50 px y un
+          título sale como "09:0…". En escritorio la celda pasa de 150 px y ahí
+          sí cabe leerlo, así que los puntos dejan sitio a los títulos: la razón
+          por la que la celda dejó de escribirlos era el ancho, y a este ancho no
+          se aplica. */}
+      <span className="lg:hidden">
+        <DayActivity marcas={marcas} />
+      </span>
       <AbsenceMarks vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
+
+      {/* Solo en escritorio. Dos títulos como mucho y el resto contado: una
+          celda que crece con lo que tiene descuadra la rejilla entera, y a
+          partir del tercero se lee mejor en la agenda de al lado. Las tareas van
+          en una línea contada y no una a una: vencen ese día, no ocurren a una
+          hora, y su sitio es Tareas. */}
+      <span className="mt-0.5 hidden w-full flex-col gap-px px-0.5 lg:flex" aria-hidden>
+        {planes.slice(0, MAX_TITULOS).map(event => (
+          <span key={event.id} className="flex min-w-0 items-center gap-1">
+            <span
+              className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
+              style={{ backgroundColor: eventColor(event, members, kids) }}
+            />
+            <span className="min-w-0 truncate text-[10px] font-semibold leading-tight text-ink">
+              {event.title}
+            </span>
+          </span>
+        ))}
+        {planes.length > MAX_TITULOS && (
+          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted">
+            +{planes.length - MAX_TITULOS} más
+          </span>
+        )}
+        {tasks.length > 0 && (
+          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted">
+            {tasks.length} tarea{tasks.length === 1 ? '' : 's'}
+          </span>
+        )}
+      </span>
     </button>
   )
 }

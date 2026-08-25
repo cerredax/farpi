@@ -427,11 +427,31 @@ exigir un nombre era exigir que alguien se inventara un texto para poder guardar
 campo sigue ahí porque "Playa con los abuelos" vale la pena, pero es opcional y
 `eventTitleOr` pone el nombre del tipo al guardar. Un plan sí lo exige.
 
-**El calendario es una lista continua, y el mes un mapa** (25-08-2026). En móvil la
-pestaña `Agenda` es la vista Programación de Google Calendar: cabecera y **una sola
-lista** que arranca en hoy y se desliza. `Mes` es la otra pestaña y sirve para lo que
-sirve un mapa: ver dónde hay algo e ir allí. En escritorio no hay pestañas —el mes a
-la izquierda, la agenda a la derecha— porque caben las dos cosas.
+**El calendario es una lista continua, y el mes un mapa que se despliega** (25-08-2026).
+En móvil la pantalla es la vista Programación de Google Calendar: cabecera y **una sola
+lista** que arranca en hoy y se desliza. El mes **no es otra pestaña**: el rótulo de la
+cabecera es un botón y la rejilla se despliega encima de la lista, como en Google.
+
+Hubo pestañas `Agenda` / `Mes` durante unas horas de ese mismo día, y se fueron al abrir
+la app: la pestaña por defecto era la lista, así que **el calendario se abría sin
+enseñar ningún calendario**. Sobre el boceto parecía correcto —la vista Programación de
+Google tampoco tiene rejilla— pero al entrar faltaba algo que mirar, y obligar a elegir
+entre ver el mes o ver lo que hay era una elección falsa. Plegable, no hay que elegir.
+
+Elegir un día en la rejilla **no reencuadra la lista: la desliza** hasta él
+(`scrollIntoView` sobre el `id` de la fila). Reencuadrarla escondía todo lo anterior al
+día tocado, que es el mismo fallo que tenía anclarla al día elegido.
+
+En escritorio no se pliega nada y **manda el mes**: la rejilla se lleva el espacio libre
+—de 380 px a más de 900 en una pantalla de 1440— y la agenda se queda en una columna
+fija de 380 a la derecha. Estaba al revés, con el mes encajado en 380 px y mil píxeles
+de crema al lado, y la pantalla se veía a medio hacer.
+
+Y a ese ancho **la celda sí escribe títulos**: hasta dos, con su punto de color, más el
+resto contado y una línea con las tareas del día si las hay. Los puntos se quedan para
+el móvil (`lg:hidden`). No contradice la decisión de quitar los títulos de la celda: la
+razón de aquello era el ancho —a 50 px un título sale como "09:0…"— y una celda de
+escritorio pasa de 120 px.
 
 **De dónde viene, y qué se quitó.** Hasta el 25-08-2026 la agenda apilaba siete bandas
 en una pantalla de 390 px: cabecera con mes y flechas, pestañas, tira de siete días,

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
+
 import {
   addDays,
   compareAsc,
@@ -45,6 +47,12 @@ interface AgendaListProps {
    * porque ahí tocar un día tiene que enseñar ese día.
    */
   desde: Date
+  /**
+   * Día al que deslizarse cuando cambia. Es lo que hace útil la rejilla del mes:
+   * tocar un día no reencuadra la lista —eso escondía todo lo anterior— sino que
+   * la desliza hasta él.
+   */
+  focusDay?: Date
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
@@ -60,6 +68,11 @@ interface AgendaListProps {
   }
   onEdit: (event: Event) => void
   onAdd: (day?: Date) => void
+}
+
+/** El ancla de cada día en el DOM, para poder deslizarse hasta él desde el mes. */
+function idDeDia(day: Date): string {
+  return `dia-${getLocalDateString(day)}`
 }
 
 function sortEvents(events: Event[]): Event[] {
@@ -114,7 +127,7 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
 const TARJETA = 'overflow-hidden rounded-3xl border border-surface bg-white shadow-sm'
 const ROTULO = 'px-1 text-xs font-bold uppercase tracking-widest text-muted'
 
-export function AgendaList({ desde, events, kids, members, tasks = [], onToggleTask, buscador, onEdit, onAdd }: AgendaListProps) {
+export function AgendaList({ desde, focusDay, events, kids, members, tasks = [], onToggleTask, buscador, onEdit, onAdd }: AgendaListProps) {
   const rangeStart = startOfDay(desde)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
@@ -162,6 +175,23 @@ export function AgendaList({ desde, events, kids, members, tasks = [], onToggleT
   }
 
   const todoVacio = conAlgo.length === 0
+
+  /**
+   * Deslizar hasta el día elegido cuando cambia.
+   *
+   * Se salta el primer render a propósito: al entrar, el día elegido es hoy y
+   * hoy ya está arriba del todo, así que animar el salto sería mover la pantalla
+   * nada más abrirla. Y si el día no tiene nada no se pinta ninguna fila: no hay
+   * a dónde ir, y la rejilla ya lo deja marcado.
+   */
+  const primerRender = useRef(true)
+  useEffect(() => {
+    if (primerRender.current) { primerRender.current = false; return }
+    if (!focusDay) return
+    document
+      .getElementById(idDeDia(focusDay))
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [focusDay])
 
   const buscando = !!buscador && buscador.valor.trim().length > 0
   const coincidencias = buscador?.coincidencias ?? []
@@ -249,7 +279,11 @@ export function AgendaList({ desde, events, kids, members, tasks = [], onToggleT
                     const hoy = isToday(group.day)
 
                     return (
-                      <li key={group.day.toISOString()} className="flex items-start gap-2 px-2 py-2">
+                      <li
+                        key={group.day.toISOString()}
+                        id={idDeDia(group.day)}
+                        className="flex items-start gap-2 px-2 py-2"
+                      >
                         {/* La fecha ya no es un botón. En una lista continua no
                             lleva a ninguna parte, y anunciarse como "Ver 6 de
                             septiembre" prometía un salto que ya no ocurre. Para

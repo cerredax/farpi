@@ -21,13 +21,12 @@ async function abrirTareasDelDia(raiz: Page | Locator) {
 }
 
 /**
- * Pasa el calendario al modo Mes. El móvil abre en Agenda —la tira de siete días
- * y el detalle del día—, así que la rejilla del mes no está en la página hasta
- * que se pide. `exact` es obligatorio: sin él, "Mes" casaría también con las
- * flechas "Mes anterior" y "Mes siguiente".
+ * Despliega la rejilla del mes. La pantalla abre con ella guardada: es una lista
+ * continua, y el mes se pide tocando el rótulo de la cabecera. Sin desplegarlo no
+ * hay celdas de día en el DOM, que es lo que buscan varios tests.
  */
 async function verEnMes(page: Page) {
-  await page.getByRole('button', { name: 'Mes', exact: true }).click()
+  await page.getByRole('button', { name: 'Ver el mes' }).click()
   await page.waitForTimeout(300)
 }
 

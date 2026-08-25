@@ -72,7 +72,20 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
                 className="w-10"
               />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-ink text-sm leading-snug">{item.text}</p>
+                {/* Las unidades pegadas al nombre y no como columna aparte: es
+                    "dos leches", no dos cosas distintas. Y solo cuando pasan de
+                    una, que "×1" es decir lo que ya dice la fila.
+
+                    Lo que no se pone es el total por cesta: se probó en agosto y
+                    se quitó el 04-08-2026 porque el número no decidía nada —que
+                    falten dos cosas o siete no cambia lo que haces— y pegado al
+                    nombre de la lista se leía como parte de él, "Casa 2". */}
+                <p className="font-medium text-ink text-sm leading-snug">
+                  {item.text}
+                  {item.quantity > 1 && (
+                    <span className="ml-1 font-bold text-muted tabular-nums">×{item.quantity}</span>
+                  )}
+                </p>
                 <span className="text-[10px] text-muted">
                   <span aria-hidden className="mr-1">{item.list_emoji ?? '📋'}</span>
                   {item.list_name}

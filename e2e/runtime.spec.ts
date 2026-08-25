@@ -595,3 +595,27 @@ test('las unidades de la compra se cambian desde la fila', async ({ page }) => {
   await menos.click()
   await expect(menos).toHaveCount(0)
 })
+
+// En Inicio, lo que falta se pliega por cesta. Al desplegarlo, cada ítem dice sus
+// unidades si pasan de una: "Pñales talla 1 ×2". Lo que **no** se pone es el total
+// por cesta, que se probó y se quitó el 04-08-2026: el número no decidía nada y
+// pegado al nombre de la lista se leía como parte de él, "Casa 2".
+test('en Inicio, cada ítem dice sus unidades', async ({ page }) => {
+  await page.goto('/home')
+  await page.waitForTimeout(1000)
+
+  // La sección abre plegada: primero se despliega.
+  const cestas = page.getByRole('button', { expanded: false }).filter({ hasText: 'Casa' }).first()
+  await cestas.click()
+
+  // Acotado a su sección: arriba hay una tarea que se llama "Comprar pañales
+  // talla 1" y se colaba en la búsqueda por texto.
+  const seccion = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Listas de casa' }) })
+
+  const fila = seccion.getByText('Pañales talla 1', { exact: false }).first()
+  await expect(fila).toBeVisible()
+  await expect(fila).toContainText('×2')
+
+  // Y un ítem de uno no escribe nada: "×1" diría lo que ya dice la fila.
+  await expect(seccion.getByText('Toallitas sin perfume', { exact: false }).first()).not.toContainText('×')
+})

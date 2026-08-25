@@ -77,7 +77,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 223 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 80 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 81 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -422,6 +422,16 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     título sale como "09:0…"— porque una celda de escritorio pasa de 120 px.
 
 ## Cerrado el 2026-08-26
+
+- **Las unidades se ven también fuera de la lista**: en el desplegable de "Listas de casa"
+  de Inicio y en los resultados de búsqueda, pegadas al nombre —"Pañales talla 1 ×2"— y
+  solo cuando pasan de una. Es "dos leches", no dos cosas distintas, por eso van pegadas
+  al nombre y no en una columna aparte.
+  - **Lo que no se pone es el total por cesta.** Se probó y se quitó el 04-08-2026, y las
+    dos razones siguen valiendo: el número no decide nada —que falten dos cosas o siete no
+    cambia lo que haces— y pegado al nombre de la lista se leía como parte de él, "Casa 2".
+    Lo que sí decide, cero o algo, ya lo dice el bloque apareciendo o no.
+  - En el catálogo tampoco: ahí el número no es del nombre.
 
 - **Repaso al formulario y a la fila de la agenda.**
   - **El título de los sheets, en verde.** Un solo cambio en `BottomSheet`, que los

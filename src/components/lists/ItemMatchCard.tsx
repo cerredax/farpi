@@ -36,6 +36,12 @@ export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProp
           {/* Sin tachar: lo marcado no es historial, es lo que ya tenéis. */}
           <span className={`block text-sm font-semibold leading-snug ${match.completed ? 'text-muted' : 'text-ink'}`}>
             {match.text}
+            {/* Las unidades también aquí: buscar "leche" y que no diga que hacen
+                falta dos es la misma laguna que en la lista. En el catálogo no
+                se pintan, que ahí el número no es del nombre. */}
+            {!match.completed && match.quantity > 1 && (
+              <span className="ml-1 font-bold text-muted tabular-nums">×{match.quantity}</span>
+            )}
           </span>
           <span className="block text-[11px] text-muted mt-0.5 truncate">
             {match.list_emoji ?? '📋'} {match.list_name}

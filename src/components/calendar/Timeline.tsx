@@ -65,13 +65,16 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
   const top = `calc(var(--alto-hora) * ${((inicio - desde * 60) / 60).toFixed(4)})`
   const alto = `max(calc(var(--alto-hora) * ${((fin - inicio) / 60).toFixed(4)}), ${ALTO_MINIMO_BLOQUE}px)`
   const hora = format(new Date(event.start_at), 'HH:mm')
+  // Lo que no es de nadie dice "Familia", como en la lista y en la celda del mes:
+  // el punto de color solo habla si te sabes la paleta.
+  const quien = asignado?.name ?? 'Familia'
   const ancho = 100 / columnas
 
   return (
     <button
       type="button"
       onClick={() => onEdit(event)}
-      aria-label={`${hora} ${event.title}${asignado ? `, ${asignado.name}` : ''}`}
+      aria-label={`${hora} ${event.title}, ${quien}`}
       className="absolute z-10 overflow-hidden rounded-lg px-1.5 py-0.5 text-left transition-shadow hover:shadow-md"
       style={{
         top,
@@ -83,15 +86,15 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
       }}
     >
       <span className="block truncate text-[12px] font-bold leading-tight text-ink">{event.title}</span>
-      {/* En un bloque corto no cabe la segunda línea y sobra: la posición ya dice
-          la hora. Se decide por **duración** y no por píxeles porque el alto de
-          una hora ya no es un número fijo: lo reparte el CSS según lo que quepa
-          en la pantalla. De una hora para arriba entra siempre. */}
-      {fin - inicio >= 60 && (
-        <span className="block truncate text-[10px] font-semibold leading-tight text-muted">
-          {hora}{asignado ? ` · ${asignado.name}` : ''}
-        </span>
-      )}
+      {/* La hora y de quién es, **siempre**. Estuvo condicionada al alto del
+          bloque y luego a su duración, y las dos veces dejaba fuera justo el caso
+          más común: un evento **sin hora de fin**, que se dibuja con 45 minutos
+          por defecto (`DURACION_SIN_HORA_FIN`) y por tanto nunca llegaba al
+          mínimo. Si el bloque es muy corto, el recorte lo hace `overflow-hidden`,
+          que es mejor que decidir por él que no lo necesita. */}
+      <span className="block truncate text-[10px] font-semibold leading-tight text-muted">
+        {hora} · {quien}
+      </span>
     </button>
   )
 }

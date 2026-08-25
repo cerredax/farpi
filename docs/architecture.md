@@ -442,7 +442,28 @@ Elegir un día en la rejilla **no reencuadra la lista: la desliza** hasta él
 (`scrollIntoView` sobre el `id` de la fila). Reencuadrarla escondía todo lo anterior al
 día tocado, que es el mismo fallo que tenía anclarla al día elegido.
 
-En escritorio no se pliega nada y **manda el mes**: la rejilla se lleva el espacio libre
+**En escritorio hay tres vistas: Día, Semana y Mes** (26-08-2026), el trio de Google
+Calendar, con su selector en la cabecera. En móvil no existe ese selector: la pantalla
+es la lista continua con el mes plegable, y ahí sigue mandando `mes`.
+
+Día y Semana son **la misma vista** (`Timeline`) con una columna o con siete. La
+aritmética es `src/lib/timeline.ts`: dónde cae cada bloque, cómo se reparten en columnas
+los que se pisan y qué horas se pintan. Ese archivo **se retiró con el eje de horas del
+móvil el 24-08-2026 y volvió intacto**, con sus 19 unitarios, sin tocar una línea; con
+él volvieron `extractMinutes`, `DURACION_SIN_HORA_FIN` y `HORAS_MINIMAS_AGENDA`, que se
+habían borrado por muertos. La decisión de quitar la semana en columnas **no se
+contradice**: su razón era el ancho —a 390 px una columna son ~45 px y los bloques se
+quedan sin texto— y a 1440 px una columna pasa de 170.
+
+El eje es uno solo para las siete columnas y se calcula sobre lo que hay en todas: con
+siete ejes distintos no se podría comparar un martes con un jueves, que es para lo que
+sirve mirar la semana.
+
+Con Día o Semana delante **no hay lista al lado**. Google tampoco la pone, y con ella la
+rejilla se queda sin el ancho que un bloque necesita para decir algo. La lista contesta
+"¿qué viene después?" y esa pregunta la acompaña el mes, que sí la lleva.
+
+Con el mes, la rejilla se lleva el espacio libre
 —de 380 px a más de 900 en una pantalla de 1440— y la agenda se queda en una columna
 fija de 380 a la derecha. Estaba al revés, con el mes encajado en 380 px y mil píxeles
 de crema al lado, y la pantalla se veía a medio hacer.

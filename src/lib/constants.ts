@@ -130,6 +130,24 @@ export const MINIMO_PARA_BUSCAR = 3
  */
 export const TAREAS_PARA_PLEGAR = 3
 
+// ─── Agenda por horas ─────────────────────────────────────────────────────────
+
+/**
+ * Cuánto dura, a efectos de dibujo, un evento sin hora de fin. El formulario la
+ * acepta vacía a propósito ("sin hora de fin es válido"), pero un bloque sin
+ * duración no se puede pintar. 45 minutos da una caja que se lee y que no
+ * exagera lo que ocupa una cita corta.
+ */
+export const DURACION_SIN_HORA_FIN = 45
+
+/**
+ * Alto mínimo del eje de horas, en horas. El día de una familia tiene dos o
+ * tres citas, así que el eje se recorta a las horas que tienen algo: pintar de
+ * 00:00 a 24:00 era casi todo blanco. Por debajo de seis horas deja de parecer
+ * un día y parece un recorte, de ahí el suelo.
+ */
+export const HORAS_MINIMAS_AGENDA = 6
+
 /**
  * Cuántos platos ya cocinados se ofrecen al planificar una comida. Muy por
  * encima de las 5 sugerencias sueltas del resto de formularios: aquí el bloque

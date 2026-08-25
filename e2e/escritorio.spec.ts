@@ -110,6 +110,50 @@ test.describe('escritorio a 1440 px', () => {
     await expect(page.getByRole('dialog', { name: 'Editar evento' })).toBeVisible()
   })
 
+  // El trio de vistas de escritorio. La semana en columnas no existe en móvil
+  // —a 390 px cada columna son ~45 px— así que este es el único sitio donde se
+  // puede comprobar que el eje de horas se pinta y que sus bloques se abren.
+  test('las vistas Día, Semana y Mes enseñan cada una lo suyo', async ({ page }) => {
+    const hoy = new Date()
+    const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+    await page.goto('/calendar')
+    await page.waitForTimeout(900)
+    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.locator('#event-title').fill('Pediatra Ana')
+    await page.locator('#event-date').fill(iso)
+    await page.locator('#event-start').fill('09:30')
+    await page.locator('#event-end').fill('10:15')
+    await page.getByRole('button', { name: /Guardar|Crear|Apuntar/ }).first().click()
+    await page.waitForTimeout(700)
+
+    // Semana: siete columnas de día y el eje de horas con su bloque.
+    await page.getByRole('button', { name: 'Semana', exact: true }).click()
+    await page.waitForTimeout(500)
+    for (const dia of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']) {
+      await expect(page.getByText(dia, { exact: true })).toBeVisible()
+    }
+    const bloque = page.getByRole('button', { name: '09:30 Pediatra Ana' })
+    await expect(bloque).toHaveCount(1)
+
+    // Y el bloque abre su evento, que es lo que se espera de un calendario.
+    await bloque.click()
+    await expect(page.getByRole('dialog', { name: 'Editar evento' })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(400)
+
+    // Día: una sola columna, con el nombre del día entero y no abreviado.
+    await page.getByRole('button', { name: 'Día', exact: true }).click()
+    await page.waitForTimeout(500)
+    await expect(page.getByRole('button', { name: '09:30 Pediatra Ana' })).toHaveCount(1)
+    await expect(page.getByText('Sáb', { exact: true })).toHaveCount(0)
+
+    // Mes: vuelve la rejilla y con ella la agenda de al lado, que el eje no lleva.
+    await page.getByRole('button', { name: 'Mes', exact: true }).click()
+    await page.waitForTimeout(500)
+    await expect(page.getByPlaceholder('Buscar en todo el calendario…')).toBeVisible()
+  })
+
   test('la sección donde estás se marca en la barra lateral', async ({ page }) => {
     await page.goto('/meals')
     await page.waitForTimeout(800)

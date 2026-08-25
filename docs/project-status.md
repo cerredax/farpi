@@ -76,8 +76,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 201 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`, ~0,7 s. Eran 207: los 19 de `timeline.spec.ts` se fueron con el eje de horas el 24-08-2026.
-  - 75 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 220 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 76 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -420,6 +420,35 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     y una línea de tareas. Solo en `lg:`; los puntos se quedan para el móvil. No
     contradice la decisión de sacarlos de la celda —la razón era el ancho, y a 50 px un
     título sale como "09:0…"— porque una celda de escritorio pasa de 120 px.
+
+## Cerrado el 2026-08-26
+
+- **El escritorio gana las vistas Día, Semana y Mes.** El trio de Google Calendar, con su
+  selector en la cabecera. En móvil no existe: esa pantalla es la lista continua con el
+  mes plegable, y la semana en columnas no cabe a 390 px.
+  - **Día y Semana son la misma vista** (`Timeline`) con una columna o con siete.
+  - **El motor volvió del historial sin tocar una línea.** `src/lib/timeline.ts` y sus 19
+    unitarios se retiraron el 24-08-2026 con el eje de horas del móvil; se recuperaron de
+    ese mismo commit y pasan en verde a la primera. Con ellos volvieron `extractMinutes`,
+    `DURACION_SIN_HORA_FIN` y `HORAS_MINIMAS_AGENDA`, que se habían borrado por muertos el
+    24-08 y resultaron no estarlo del todo.
+  - No contradice haber quitado la semana en columnas: la razón era el ancho —a 390 px
+    una columna son ~45 px— y a 1440 px pasa de 170.
+  - **Con Día o Semana no hay lista al lado**, como en Google: con ella la rejilla se
+    queda sin el ancho que un bloque necesita. La lista acompaña al mes.
+  - El eje es **uno solo para las siete columnas**, calculado sobre lo que hay en todas:
+    con siete ejes distintos no se podría comparar un martes con un jueves.
+  - Vuelve el `useMediaQuery` que se había ido el 25-08: ya no vale esconder con CSS,
+    porque escritorio y móvil pintan cosas distintas y las dos quedarían en el DOM —y la
+    lista pone un `id` por día que se duplicaría.
+  - Arranca en `mes` y no en `semana` como Google: es lo que ya había, y cambiar de vista
+    al entrar sorprendería sin pedirlo.
+
+- **Los títulos de la celda del mes abren su evento.** Estaban pintados y muertos desde
+  que se añadieron el 25-08: la celda era un solo botón y un botón no puede llevar
+  botones dentro, así que iban como spans en `aria-hidden` y pulsarlos seleccionaba el
+  día. La celda pasa a ser un contenedor con el botón del día arriba y un botón por
+  título. En móvil no cambia nada: allí no hay títulos.
 
 - **Pendiente de decisión: sincronizar Google Calendar por usuario.** El login con
   Google ya está montado sobre Supabase, así que el proyecto en Google Cloud existe y el

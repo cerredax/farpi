@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import {
   addDays,
+  addWeeks,
   addMonths,
   endOfMonth,
   format,
@@ -11,13 +12,15 @@ import {
   parseISO,
   startOfDay,
   startOfMonth,
-  subMonths,
+  startOfWeek,
 } from 'date-fns'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import { CalendarHeader } from './CalendarHeader'
+import { CalendarHeader, type VistaEscritorio } from './CalendarHeader'
+import { Timeline } from './Timeline'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { MonthGrid } from './MonthGrid'
 import { Availability } from './Availability'
 import { AgendaList } from './AgendaList'
@@ -53,6 +56,34 @@ export function CalendarView() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [busqueda, setBusqueda] = useState('')
 
+  /**
+   * Qué enseña el escritorio: día, semana o mes (26-08-2026). Es el trio de
+   * Google Calendar, y aquí cabe porque una columna de semana pasa de 170 px.
+   *
+   * **Solo escritorio.** En móvil no hay selector: la pantalla es la lista
+   * continua con el mes plegable, y la semana en columnas no cabe a 390 px.
+   *
+   * Arranca en `mes` y no en `semana` como Google: es lo que ya había antes de
+   * que existiera el selector, y cambiar de vista al entrar sorprendería sin
+   * pedirlo. Se cambia con un valor.
+   */
+  const [vista, setVista] = useState<VistaEscritorio>('mes')
+
+  /**
+   * Aquí vuelve el `useMediaQuery`, que se había ido el 25-08-2026 cuando quién
+   * se ve pasó a ser cosa de Tailwind. Ya no vale: el escritorio y el móvil
+   * pintan **cosas distintas** —el eje de horas contra la lista—, y esconder una
+   * con CSS dejaría las dos en el DOM. La lista pone un `id` por día para poder
+   * deslizarse hasta él, y duplicada esos `id` se repetirían.
+   */
+  const esEscritorio = useMediaQuery('(min-width: 1024px)')
+  const conEje = esEscritorio && vista !== 'mes'
+
+  // Los días que pinta el eje: uno en la vista Día, la semana entera en Semana.
+  const diasDelEje = vista === 'dia'
+    ? [startOfDay(selectedDay)]
+    : Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(selectedDay, { weekStartsOn: 1 }), i))
+
 
   // Ya no hace falta preguntar por el ancho. Desde que el mes y la agenda no
   // comparten estado —la lista arranca en hoy y el mes va por su cuenta— quién
@@ -78,10 +109,24 @@ export function CalendarView() {
     if (!isSameMonth(day, currentMonth)) setCurrentMonth(startOfMonth(day))
   }
 
-  // Las flechas son del mes y solo se ven con el mes: la agenda arranca en hoy y
-  // se desliza, así que no hay nada que recorrer con ellas.
-  function irAnterior() { setCurrentMonth(m => subMonths(m, 1)) }
-  function irSiguiente() { setCurrentMonth(m => addMonths(m, 1)) }
+  /**
+   * Las flechas recorren lo que se esté viendo: un mes, una semana o un día.
+   *
+   * En móvil solo aparecen con el mes desplegado —la lista arranca en hoy y se
+   * desliza, no hay nada que recorrer— y ahí `vista` vale `mes`, que es su valor
+   * de partida y el móvil no lo toca.
+   */
+  function mover(pasos: number) {
+    if (!conEje) return setCurrentMonth(m => addMonths(m, pasos))
+    const nuevo = vista === 'dia'
+      ? addDays(selectedDay, pasos)
+      : addWeeks(selectedDay, pasos)
+    setSelectedDay(nuevo)
+    setCurrentMonth(startOfMonth(nuevo))
+  }
+
+  function irAnterior() { mover(-1) }
+  function irSiguiente() { mover(1) }
 
   /**
    * Lleva la vista entera a un día: lo elige, coloca el mes y arrastra con él
@@ -167,64 +212,78 @@ export function CalendarView() {
           currentMonth={currentMonth}
           mesAbierto={mesAbierto}
           onToggleMes={() => setMesAbierto(a => !a)}
+          vista={vista}
+          onVista={setVista}
           onPrev={irAnterior}
           onNext={irSiguiente}
           onAdd={() => openCreate(selectedDay)}
         />
 
-        {/* Escritorio: el mes a la izquierda como mapa y la agenda a la derecha.
-            Móvil: una columna, y el selector decide si arriba va la tira o el
-            mes. La rejilla es solo de `lg` en adelante, así que por debajo el
-            DOM es el de siempre. */}
-        {/* En escritorio manda el mes y la agenda le hace de acompañante: la
-            rejilla se lleva el espacio libre —en 1440 px pasa de 380 a más de
-            900— y la lista se queda en una columna fija. Estaba al revés, con el
-            mes encajado en 380 px y mil píxeles de crema al lado, y la pantalla
-            se veía a medio hacer. */}
-        <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-6 lg:items-start">
-          {/* El mes y su bloque de ausencias van juntos y en el mismo sitio: en
-              móvil solo en la pestaña "Mes", y en escritorio siempre, que ahí
-              caben los dos a la vez. En agenda, el móvil no pinta nada de esto:
-              esa pantalla es cabecera y lista, y ya está. */}
-          <div className={mesAbierto ? '' : 'hidden lg:block'}>
-            <div className="mx-4 lg:mx-0">
-              <Card padded={false}>
-                <MonthGrid
-                  currentMonth={currentMonth}
-                  selectedDay={selectedDay}
-                  events={allEvents}
-                  tasks={tareasPendientes}
-                  kids={kids}
-                  members={members}
-                  onSelectDay={selectDay}
-                  onOpenEvent={openEdit}
-                />
-
-                <Availability
-                  ausencias={ausenciasVisibles}
-                  kids={kids}
-                  members={members}
-                  onEdit={openEdit}
-                />
-              </Card>
-            </div>
-          </div>
-
-          <div>
-            <AgendaList
-              desde={desdeAgenda}
-              focusDay={selectedDay}
-              events={agendaEvents}
+        {/* Con el eje de horas delante, la pantalla es solo el eje: Google no
+            pone lista al lado en Semana ni en Día, y con ella la rejilla se
+            queda sin el ancho que necesita para que un bloque diga algo. La
+            lista es la respuesta a "¿qué viene?" y esa pregunta la contesta el
+            mes, que sí la lleva al lado. */}
+        {conEje ? (
+          <div className="mt-4">
+            <Timeline
+              days={diasDelEje}
+              events={allEvents}
               kids={kids}
               members={members}
               tasks={tareasPendientes}
-              onToggleTask={toggleTask}
-              buscador={buscador}
               onEdit={openEdit}
               onAdd={openCreate}
             />
           </div>
-        </div>
+        ) : (
+          /* El mes, con la agenda al lado en escritorio y debajo en móvil. La
+             rejilla se lleva el espacio libre —en 1440 px pasa de 380 a más de
+             900— y la lista se queda en una columna fija. */
+          <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-6 lg:items-start">
+            {/* El mes y su bloque de ausencias van juntos: en móvil solo cuando
+                se despliega, y en escritorio siempre. En la lista de móvil no se
+                pinta nada de esto: esa pantalla es cabecera y lista. */}
+            <div className={mesAbierto ? '' : 'hidden lg:block'}>
+              <div className="mx-4 lg:mx-0">
+                <Card padded={false}>
+                  <MonthGrid
+                    currentMonth={currentMonth}
+                    selectedDay={selectedDay}
+                    events={allEvents}
+                    tasks={tareasPendientes}
+                    kids={kids}
+                    members={members}
+                    onSelectDay={selectDay}
+                    onOpenEvent={openEdit}
+                  />
+
+                  <Availability
+                    ausencias={ausenciasVisibles}
+                    kids={kids}
+                    members={members}
+                    onEdit={openEdit}
+                  />
+                </Card>
+              </div>
+            </div>
+
+            <div>
+              <AgendaList
+                desde={desdeAgenda}
+                focusDay={selectedDay}
+                events={agendaEvents}
+                kids={kids}
+                members={members}
+                tasks={tareasPendientes}
+                onToggleTask={toggleTask}
+                buscador={buscador}
+                onEdit={openEdit}
+                onAdd={openCreate}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <EventSheet

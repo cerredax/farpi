@@ -27,17 +27,27 @@ import { capitalize } from '@/lib/text'
  * porque Tailwind puede esconder un elemento pero no convertirlo en otro.
  */
 
+/**
+ * Qué enseña el escritorio. El trio de Google Calendar; en móvil no existe, que
+ * ahí la pantalla es la lista continua con el mes plegable.
+ */
+export type VistaEscritorio = 'dia' | 'semana' | 'mes'
+
+const VISTAS: [VistaEscritorio, string][] = [['dia', 'Día'], ['semana', 'Semana'], ['mes', 'Mes']]
+
 interface CalendarHeaderProps {
   currentMonth: Date
   /** Si la rejilla del mes está desplegada. Solo manda en móvil. */
   mesAbierto: boolean
   onToggleMes: () => void
+  vista: VistaEscritorio
+  onVista: (vista: VistaEscritorio) => void
   onPrev: () => void
   onNext: () => void
   onAdd: () => void
 }
 
-export function CalendarHeader({ currentMonth, mesAbierto, onToggleMes, onPrev, onNext, onAdd }: CalendarHeaderProps) {
+export function CalendarHeader({ currentMonth, mesAbierto, onToggleMes, vista, onVista, onPrev, onNext, onAdd }: CalendarHeaderProps) {
   const label = capitalize(format(currentMonth, 'MMMM yyyy', { locale: es }))
 
   const FLECHA = 'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
@@ -88,11 +98,30 @@ export function CalendarHeader({ currentMonth, mesAbierto, onToggleMes, onPrev, 
           {siguiente}
         </div>
 
+        {/* El selector de vista es de escritorio y de nadie más: en móvil una
+            semana en columnas son siete tiras de 45 px sin sitio para un
+            título, que es por lo que esa vista se descartó en su día. */}
+        <div className="ml-auto hidden gap-1 rounded-2xl bg-surface p-1 lg:flex">
+          {VISTAS.map(([valor, texto]) => (
+            <button
+              key={valor}
+              type="button"
+              onClick={() => onVista(valor)}
+              aria-pressed={vista === valor}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
+                vista === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
+              }`}
+            >
+              {texto}
+            </button>
+          ))}
+        </div>
+
         <button
           type="button"
           onClick={onAdd}
           aria-label="Añadir evento"
-          className="ml-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95"
+          className="ml-auto flex h-10 w-10 flex-shrink-0 lg:ml-2 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95"
         >
           <Plus size={20} strokeWidth={2.5} />
         </button>

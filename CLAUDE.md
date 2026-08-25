@@ -70,8 +70,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # ~200 tests de lógica pura (~0,7 s, sin servidor)
-npm run test:e2e       # suite completa: unitarios + ~74 de navegador (levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # ~220 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: unitarios + ~76 de navegador (levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-all-in-one.mjs    # regenera supabase/all_in_one.sql (--check solo comprueba)

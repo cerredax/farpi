@@ -198,7 +198,7 @@ test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
   await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-  await page.getByRole('button', { name: 'Vacaciones' }).click()
+  await page.locator('#event-kind').selectOption('vacaciones')
 
   // En vacaciones se piden dos fechas y desaparecen las horas.
   await expect(page.locator('#event-end-date')).toBeVisible()
@@ -231,7 +231,7 @@ test('unas vacaciones no pueden acabar antes de empezar', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
   await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-  await page.getByRole('button', { name: 'Vacaciones' }).click()
+  await page.locator('#event-kind').selectOption('vacaciones')
   await page.locator('#event-title').fill('Imposible')
   await page.locator('#event-date').fill('2026-08-16')
   await page.locator('#event-end-date').fill('2026-08-10')
@@ -481,7 +481,7 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
   await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-  await page.getByRole('button', { name: 'Vacaciones' }).click()
+  await page.locator('#event-kind').selectOption('vacaciones')
 
   // El campo lo dice, y enseña con qué nombre se va a guardar.
   await expect(page.locator('#event-title')).toHaveAttribute('placeholder', 'Vacaciones')
@@ -548,7 +548,7 @@ test('un descanso marca todos los días de su rango', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
   await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-  await page.getByRole('button', { name: 'Descanso' }).click()
+  await page.locator('#event-kind').selectOption('descanso')
 
   await page.locator('#event-date').fill('2026-08-11')
   await page.locator('#event-end-date').fill('2026-08-12')

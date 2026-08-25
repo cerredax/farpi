@@ -72,7 +72,9 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
-          <h3 id={titleId} className="font-extrabold text-ink text-base">{title}</h3>
+          {/* En verde, como el nombre de la pantalla en la cabecera: es el
+              título de lo que estás haciendo, no una línea de texto más. */}
+          <h3 id={titleId} className="text-base font-extrabold text-primary-strong">{title}</h3>
           <div className="flex items-center gap-2">
             {headerActions}
             <button

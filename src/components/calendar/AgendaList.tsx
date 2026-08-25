@@ -12,7 +12,6 @@ import {
   startOfDay,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
@@ -110,16 +109,22 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
       title={`${event.title} · ${quien}`}
       className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-canvas"
     >
-      <span
-        className="w-2 h-2 rounded-full flex-shrink-0 self-center"
-        style={{ backgroundColor: color }}
-        aria-hidden
-      />
       <span className="text-[11px] font-bold text-muted flex-shrink-0 tabular-nums">{hora}</span>
       <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{event.title}</span>
+      {/**
+        * **El color va al fondo del nombre, y el punto se va** (26-08-2026).
+        * Eran dos cosas que mirar para decir una: de quién es. Es el mismo
+        * cambio que hizo la celda del mes, y ahora las dos filas —la de la
+        * rejilla y la de la lista— hablan igual.
+        *
+        * Con el punto, lo de toda la familia era la única fila con color, porque
+        * el amarillo no vale como texto —no llega al contraste— y el nombre se
+        * escribía en gris. Al 50 % de fondo sí vale, así que "Familia" recupera
+        * su color sin perder legibilidad.
+        */}
       <span
-        className={`max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold ${asignado && !festivo ? '' : 'text-muted'}`}
-        style={asignado && !festivo ? { color: asignado.color } : undefined}
+        className="max-w-[4.5rem] flex-shrink-0 truncate rounded px-1 py-px text-[11px] font-bold text-ink"
+        style={{ backgroundColor: `${color}80` }}
       >
         {quien}
       </span>
@@ -300,11 +305,18 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                             septiembre" prometía un salto que ya no ocurre. Para
                             añadir está el `+` de la derecha. */}
                         <span
-                          aria-hidden
                           className={`flex w-11 flex-shrink-0 flex-col items-center py-1 ${hoy ? 'text-accent' : 'text-ink'}`}
                         >
-                          <span className="text-sm font-black leading-none">{format(group.day, 'd')}</span>
-                          <span className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-accent' : 'text-muted'}`}>
+                          {/* La fecha entera, solo para quien escucha. El chip
+                              dice "13 JUE", que con la vista basta y a oídas no:
+                              se leyó "trece jueves" cuando la fecha dejó de ser un
+                              botón con su etiqueta. */}
+                          <span className="sr-only">{dayLabel}</span>
+                          <span className="text-sm font-black leading-none" aria-hidden>{format(group.day, 'd')}</span>
+                          <span
+                            aria-hidden
+                            className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-accent' : 'text-muted'}`}
+                          >
                             {format(group.day, 'EEE', { locale: es })}
                           </span>
                         </span>
@@ -324,16 +336,6 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                           )}
                         </div>
 
-                        <button
-                          onClick={() => onAdd(group.day)}
-                          aria-label={`Añadir evento el ${dayLabel}`}
-                          // Arriba y no centrado: en un día con seis tareas,
-                          // centrado quedaba flotando a media fila, lejos de su
-                          // fecha.
-                          className="flex h-7 w-7 flex-shrink-0 self-start items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary"
-                        >
-                          <Plus size={14} strokeWidth={2.5} />
-                        </button>
                       </li>
                     )
                   })}

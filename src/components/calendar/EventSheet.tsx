@@ -85,33 +85,34 @@ export function EventSheet({
         )}
 
         {/* Qué es se elige al crear y ya no se cambia: unas vacaciones y un plan
-            de una tarde no son la misma cosa con otro nombre. */}
+            de una tarde no son la misma cosa con otro nombre.
+
+            **Desplegable y no botones** (26-08-2026). Eran cuatro botones en una
+            rejilla de dos por dos, y con el cuarto ya ocupaban dos filas enteras
+            del formulario para una decisión que se toma una vez y casi siempre
+            es la de por defecto. Un desplegable ocupa una línea, y sobre todo
+            aguanta el quinto y el sexto tipo sin volver a reordenar nada. */}
         {mode === 'create' && (
-          <Field label="Qué es" spacing="group">
-            <div className="grid grid-cols-2 gap-1 rounded-2xl bg-surface p-1">
-              {([
-                { valor: 'evento' as const, etiqueta: 'Un plan' },
-                { valor: 'vacaciones' as const, etiqueta: 'Vacaciones' },
-                { valor: 'descanso' as const, etiqueta: 'Descanso' },
-                { valor: 'festivo' as const, etiqueta: 'Festivo' },
-              ]).map(({ valor, etiqueta }) => (
-                <button
-                  key={valor}
-                  type="button"
-                  onClick={() => s.patch({
-                    kind: valor,
-                    // Vacaciones, descansos y festivos son días completos por definición.
-                    all_day: isRangeKind(valor) ? true : s.draft.all_day,
-                    end_date: isRangeKind(valor) && !s.draft.end_date ? s.draft.date : s.draft.end_date,
-                  })}
-                  className={`rounded-xl py-2 text-xs font-bold transition-colors ${
-                    s.draft.kind === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
-                  }`}
-                >
-                  {etiqueta}
-                </button>
-              ))}
-            </div>
+          <Field label="Qué es" htmlFor="event-kind">
+            <select
+              id="event-kind"
+              value={s.draft.kind}
+              onChange={e => {
+                const valor = e.target.value as EventDraft['kind']
+                s.patch({
+                  kind: valor,
+                  // Vacaciones, descansos y festivos son días completos por definición.
+                  all_day: isRangeKind(valor) ? true : s.draft.all_day,
+                  end_date: isRangeKind(valor) && !s.draft.end_date ? s.draft.date : s.draft.end_date,
+                })
+              }}
+              className="field-input"
+            >
+              <option value="evento">Un plan</option>
+              <option value="vacaciones">Vacaciones</option>
+              <option value="descanso">Descanso</option>
+              <option value="festivo">Festivo</option>
+            </select>
           </Field>
         )}
 

@@ -423,6 +423,27 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **Repaso al formulario y a la fila de la agenda.**
+  - **El título de los sheets, en verde.** Un solo cambio en `BottomSheet`, que los
+    comparten todos: nuevo evento, nueva tarea, nueva lista, añadir ítem, añadir documento
+    y añadir comida. Es el título de lo que estás haciendo, como el nombre de la pantalla
+    en la cabecera.
+  - **"Qué es" pasa de cuatro botones a un desplegable.** Con el cuarto tipo ocupaban dos
+    filas enteras del formulario para una decisión que se toma una vez y casi siempre es
+    la de por defecto. Un desplegable ocupa una línea y aguanta el quinto tipo sin
+    reordenar nada. Los tests pasan de `click` a `selectOption`.
+  - **Fuera el punto de color de la fila de la agenda**, que era el último que quedaba: el
+    nombre se lleva el color al fondo, como en la celda del mes. De paso **"Familia"
+    recupera su color**, que lo había perdido —iba en gris porque el amarillo no llega al
+    contraste como texto, y al 50 % de fondo sí vale—. Lo mismo en las tareas del día,
+    que comparten tarjeta y no pueden hablar de dos maneras.
+  - **Fuera el `+` de cada fila**: la cabecera ya tiene el suyo y el formulario deja elegir
+    la fecha. Con él se fue la última cosa que leía la fecha entera en voz alta, así que
+    el chip gana un `sr-only` con la fecha completa: a la vista "13 JUE" basta, a oídas se
+    leía "trece jueves".
+
+
+
 - **La lista de la compra lleva unidades.** Migración `021`: `list_items` gana `quantity`,
   un entero con `check` entre 1 y 99 y `default 1`, para que lo que ya existe no cambie de
   significado. Hasta ahora la cantidad se escribía dentro del propio nombre ("leche x2"),

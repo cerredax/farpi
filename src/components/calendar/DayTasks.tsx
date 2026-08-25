@@ -43,8 +43,13 @@ function TaskRow({ task, kids, members, atrasada, onToggle }: {
       {/* Tope de ancho: el nombre no cedía nunca y el título cedía siempre, así
           que "Pedir cita tarjeta sanitaria" se quedaba en "Pedir cita tarjeta
           san…" para dejar sitio a un nombre entero. */}
+      {/* El nombre sobre su color, como en la fila de al lado y en la celda del
+          mes: dentro de la misma tarjeta no pueden hablar de dos maneras. */}
       {asignado && (
-        <span className="max-w-[4.5rem] flex-shrink-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
+        <span
+          className="max-w-[4.5rem] flex-shrink-0 truncate rounded px-1 py-px text-[11px] font-bold text-ink"
+          style={{ backgroundColor: `${asignado.color}80` }}
+        >
           {asignado.name}
         </span>
       )}

@@ -162,7 +162,7 @@ test.describe('escritorio a 1440 px', () => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
     await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-    await page.getByRole('button', { name: 'Descanso' }).click()
+    await page.locator('#event-kind').selectOption('descanso')
     await page.locator('#event-date').fill('2026-08-11')
     await page.locator('#event-end-date').fill('2026-08-12')
     await page.getByRole('button', { name: 'Sofía' }).click()
@@ -183,7 +183,7 @@ test.describe('escritorio a 1440 px', () => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
     await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-    await page.getByRole('button', { name: 'Festivo', exact: true }).click()
+    await page.locator('#event-kind').selectOption('festivo')
 
     // Como en vacaciones y descansos: días completos, dos fechas y sin horas.
     await expect(page.locator('#event-end-date')).toBeVisible()
@@ -207,7 +207,7 @@ test.describe('escritorio a 1440 px', () => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
     await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-    await page.getByRole('button', { name: 'Festivo', exact: true }).click()
+    await page.locator('#event-kind').selectOption('festivo')
     await page.locator('#event-date').fill('2026-08-19')
     await page.locator('#event-end-date').fill('2026-08-19')
     await page.getByRole('button', { name: /Apuntar/ }).click()

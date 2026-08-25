@@ -91,9 +91,17 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
                 className="flex min-h-8 w-full items-center gap-2 rounded-xl px-1 text-left transition-colors hover:bg-surface"
               >
                 <Icono size={13} strokeWidth={2.2} className="flex-shrink-0 text-muted" aria-hidden />
-                <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
+                {/* El nombre se lleva el color al fondo, como en la celda del mes
+                    (26-08-2026). Antes iba en negro con un punto de color al lado,
+                    y eran dos cosas que mirar para decir una: quién. Al 50 %, la
+                    rebaja de siempre, que es la que deja leer la tinta encima. */}
                 <span className="min-w-0 truncate text-[11px]">
-                  <span className="font-bold text-ink">{quien}</span>
+                  <span
+                    className="rounded px-1 py-px font-bold text-ink"
+                    style={{ backgroundColor: `${color}80` }}
+                  >
+                    {quien}
+                  </span>
                   <span className="text-muted"> · {estado}</span>
                 </span>
               </button>

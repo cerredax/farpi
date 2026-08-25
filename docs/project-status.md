@@ -477,6 +477,17 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   - **El título del evento se lleva el color al fondo y se va el punto.** El punto de 6 px
     era una segunda cosa que mirar para decir lo que ya puede decir el propio título, y
     obligaba a leer dos elementos por evento en una celda de 120 px.
+  - **El nombre de una ausencia se escribe una vez por banda, no en cada día.** Unas
+    vacaciones de lunes a viernes ponían "Sofía" cinco veces seguidas. Se escribe donde la
+    banda empieza a la vista: el primer día del tramo, y el lunes cuando viene de la
+    semana anterior. Ojo con el alto: los días de en medio van sin texto y sin `min-h` la
+    etiqueta se quedaba en cero y la banda desaparecía a partir del segundo día.
+  - **Un festivo sin nombre propio no escribe nada**: "FESTIVO" sobre una celda que ya va
+    con trama es decirlo dos veces y gastar la única línea de texto de la celda. El título
+    por defecto se sigue guardando —la búsqueda y el sheet lo necesitan— pero la celda
+    solo escribe el nombre cuando dice algo que la trama no dice: "Hispanidad".
+  - **En "Vacaciones y descansos", el nombre se lleva el color y se va el punto**, como en
+    la celda: eran dos cosas que mirar para decir una, quién.
   - **El festivo no sale en la lista ni cuenta como punto.** No es un plan: la lista
     contesta "¿qué hay que hacer?" y un festivo es cómo es el día. Salía como una fila con
     su "Todo el día" entre la revisión del coche y la cena. Tampoco lleva chip en la

@@ -1,5 +1,5 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { holidayName, isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -44,6 +44,9 @@ const MAX_AUSENCIAS = 2
 /** El fin de semana, en la cuenta de `Date.getDay()`. */
 const SABADO = 6
 const DOMINGO = 0
+
+/** El primer día de la semana en la rejilla, en la cuenta de `Date.getDay()`. */
+const LUNES = 1
 
 interface DayCellProps {
   day: Date
@@ -117,12 +120,12 @@ function DayChips({ festivos, vacaciones, descansos, day, kids, members }: {
           de toda la celda, y una etiqueta encima sería decirlo dos veces. Lo que
           queda es su nombre, en gris y sin fondo, que responde a la otra
           pregunta: cuál es. En móvil no cabe y no se pinta —la trama, sí—. */}
-      {festivos.slice(0, MAX_AUSENCIAS).map(event => (
+      {festivos.slice(0, MAX_AUSENCIAS).map(event => holidayName(event) && (
         <span
           key={event.id}
           className="hidden w-full truncate px-1 text-[10px] font-bold uppercase leading-tight tracking-wide text-muted lg:block"
         >
-          {event.title}
+          {holidayName(event)}
         </span>
       ))}
       {ausencias.slice(0, MAX_AUSENCIAS).map(event => {
@@ -132,15 +135,31 @@ function DayChips({ festivos, vacaciones, descansos, day, kids, members }: {
         // por los dos lados sin preguntar.
         const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
 
+        /**
+         * **El nombre se escribe una vez por banda, no en cada día** (26-08-2026).
+         * Unas vacaciones de lunes a viernes ponían "Sofía" cinco veces seguidas,
+         * que es ruido: la banda ya es continua y el color ya es el suyo, así
+         * que a partir del segundo día el nombre no añade nada.
+         *
+         * Se escribe donde la banda **empieza a la vista**: el primer día del
+         * tramo, y el lunes cuando el tramo viene de la semana anterior —si no,
+         * una banda que cruza el domingo se quedaría sin nombre en toda su
+         * segunda fila—.
+         */
+        const abreBanda = primero || day.getDay() === LUNES
+
         return (
           <span
             key={event.id}
-            className={`block h-[4px] w-full truncate lg:h-auto lg:px-1 lg:text-[10px] lg:font-bold lg:leading-tight lg:text-ink ${
+            // `lg:min-h` y no `lg:h-auto` a secas: los días de en medio de la banda
+            // van sin texto, y sin alto mínimo la etiqueta se quedaba en cero y la
+            // banda desaparecía a partir del segundo día.
+            className={`block h-[4px] w-full truncate lg:h-auto lg:min-h-[15px] lg:px-1 lg:text-[10px] lg:font-bold lg:leading-tight lg:text-ink ${
               primero ? 'rounded-l-full lg:rounded-l' : ''
             } ${ultimo ? 'rounded-r-full lg:rounded-r' : ''}`}
             style={{ backgroundColor: `${color}80` }}
           >
-            <span className="hidden lg:inline">{quien}</span>
+            <span className="hidden lg:inline">{abreBanda ? quien : ''}</span>
           </span>
         )
       })}

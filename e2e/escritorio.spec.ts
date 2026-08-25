@@ -199,9 +199,11 @@ test.describe('escritorio a 1440 px', () => {
     await expect(celda.getByText('Hispanidad', { exact: true })).toHaveCount(1)
   })
 
-  // El título es opcional, como en los otros dos de rango: el tipo ya dice lo
-  // que es y exigir un nombre es exigir que alguien se lo invente.
-  test('un festivo sin título se guarda como "Festivo"', async ({ page }) => {
+  // El título es opcional, como en los otros dos de rango. Pero un festivo sin
+  // nombre propio **no escribe nada en la celda**: de que el día es festivo ya
+  // avisa la trama, y poner "FESTIVO" encima sería decirlo dos veces gastando la
+  // única línea de texto que tiene la celda.
+  test('un festivo sin nombre propio no escribe nada en la celda', async ({ page }) => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
     await page.getByRole('button', { name: 'Añadir evento' }).first().click()
@@ -212,7 +214,10 @@ test.describe('escritorio a 1440 px', () => {
     await page.waitForTimeout(700)
 
     const celda = page.locator('[aria-pressed][aria-label*="19 de agosto"]')
-    await expect(celda.getByText('Festivo', { exact: true })).toHaveCount(1)
+    await expect(celda.getByText('Festivo', { exact: true })).toHaveCount(0)
+
+    // Pero el día sí queda marcado como día libre, que es lo que tenía que pasar.
+    await expect(page.locator('.dia-libre').filter({ has: celda })).toHaveCount(1)
   })
 
   test('la sección donde estás se marca en la barra lateral', async ({ page }) => {

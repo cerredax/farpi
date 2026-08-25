@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { format, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { eventCoversDay, isAbsence, isHoliday, isVacation } from '@/lib/events'
+import { eventCoversDay, holidayName, isAbsence, isHoliday, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
@@ -203,12 +203,12 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
             <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1">
               {/* Sin chip: la trama de la columna ya dice que es festivo. Aquí
                   queda su nombre, que es la otra mitad de la respuesta. */}
-              {festivos.map(event => (
+              {festivos.map(event => holidayName(event) && (
                 <span
                   key={event.id}
                   className="truncate px-1 text-[10px] font-bold uppercase tracking-wide text-muted"
                 >
-                  {event.title}
+                  {holidayName(event)}
                 </span>
               ))}
               {ausencias.map(event => {

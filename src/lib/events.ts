@@ -81,6 +81,21 @@ export function isHoliday(event: Event): boolean {
 }
 
 /**
+ * El nombre propio de un festivo, o cadena vacía si no le pusieron uno.
+ *
+ * Un festivo sin título se guarda como "Festivo" —igual que unas vacaciones sin
+ * título se guardan como "Vacaciones"— para que la búsqueda y el sheet tengan algo
+ * que enseñar. Pero escribir "FESTIVO" dentro de una celda que **ya va con la
+ * trama de día libre** es decir dos veces lo mismo y gastar la única línea de
+ * texto que tiene la celda. Aquí solo interesa el nombre cuando dice algo que la
+ * trama no dice: "Hispanidad", "Fiesta del pueblo".
+ */
+export function holidayName(event: Event): string {
+  const limpio = event.title.trim()
+  return limpio === eventTitleOr('festivo', '') ? '' : limpio
+}
+
+/**
  * Vacaciones y descansos juntos: los dos contestan lo mismo —quién no está
  * disponible— y por eso el calendario los trata igual. No son planes del día, así
  * que no salen en la lista de la agenda; van en su bloque, donde se dice de quién

@@ -540,21 +540,16 @@ test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => 
   await expect(page.getByText('Merienda').first()).toBeVisible()
 })
 
-// El color del número es la única vía visual de saber que ese día alguien
-// descansa cuando la raya no se pinta —con vacaciones de otro el mismo día manda
-// la banda—, y un color se rompe sin que salte ningún test de estructura. Se
-// comprueba el valor exacto: Sofía no tiene color propio, así que le toca el
-// segundo de la paleta de adultos por posición (Cuero, #7E5522), rebajado al
-// 50 %, que es lo que obliga a que el número vaya en tinta y no en blanco.
-test('un descanso pinta el número del día con el color de quien descansa', async ({ page }) => {
+// Un descanso deja marcados **todos** los días de su rango, no solo el primero.
+// Se cuenta por el nombre accesible del día y no por el color, que es la vía que
+// funciona con el dedo y con lector de pantalla; el color de la etiqueta, que en
+// móvil va sin nombre, se comprueba en `escritorio.spec.ts`, donde sí lo lleva.
+test('un descanso marca todos los días de su rango', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
   await page.getByRole('button', { name: 'Añadir evento' }).first().click()
   await page.getByRole('button', { name: 'Descanso' }).click()
 
-  // Dos días a propósito: al guardar, la vista salta al primero y lo deja
-  // seleccionado, y el día elegido manda sobre el descanso —es dónde estás—. El
-  // color se comprueba en el segundo, que es una celda cualquiera.
   await page.locator('#event-date').fill('2026-08-11')
   await page.locator('#event-end-date').fill('2026-08-12')
   await page.getByRole('button', { name: 'Sofía' }).click()
@@ -564,8 +559,6 @@ test('un descanso pinta el número del día con el color de quien descansa', asy
   await verEnMes(page)
   await expect(page.locator('[aria-pressed][aria-label*="descansando"]')).toHaveCount(2)
 
-  const celda = page.locator('[aria-pressed][aria-label*="12 de agosto"][aria-label*="descansando"]')
-  const numero = celda.locator('span', { hasText: /^12$/ }).first()
-  await expect(numero).toHaveCSS('background-color', 'rgba(126, 85, 34, 0.5)')
-  await expect(numero).toHaveCSS('color', 'rgb(37, 37, 37)')
+  // Y una vez en el bloque, con nombre y fechas: dos días no son dos filas.
+  await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
 })

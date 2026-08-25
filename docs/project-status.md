@@ -464,6 +464,20 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     En móvil el nombre no cabe y se queda la barra de color.
   - Siguen sin ser botones: en móvil una barra de 4 px no llega al mínimo de toque de
     24×24, y las ausencias se editan desde `Availability`, que es su sitio.
+  - **Se deroga el color del número en los descansos**, que duró dos días. Con la etiqueta
+    con nombre eran dos señales para lo mismo, y el número decía menos y no era fiable:
+    hoy y el día elegido le ganaban, así que un descanso hoy no se veía. Su razón de ser
+    tampoco seguía en pie —nació porque con vacaciones de otro la raya no se pintaba— y
+    ahora caben dos etiquetas por celda.
+  - **El fin de semana va en crema**, el `canvas` del fondo de la app, en la rejilla y en
+    la vista Semana. Sin colores nuevos: el día de diario es blanco y el de finde, el del
+    fondo. El `hover` de la celda pasa a `surface`, que si no en el finde no se veía.
+  - **Y las ausencias aparecen en Semana y en Día**, que no aparecían: `partirEventosDelDia`
+    deja fuera las vacaciones —su sitio era la raya de la rejilla, y ahí no hay rejilla—
+    así que una semana entera de vacaciones no salía por ninguna parte. Un descanso sí,
+    pero como evento de todo el día titulado "Descanso", sin decir de quién. Ahora las dos
+    van en la franja de arriba con el mismo idioma: "Sofía · descansa", "Familia ·
+    vacaciones".
 
 - **Pendiente de decisión: sincronizar Google Calendar por usuario.** El login con
   Google ya está montado sobre Supabase, así que el proyecto en Google Cloud existe y el

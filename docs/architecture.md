@@ -577,7 +577,19 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
     martes de descanso en medio de una semana de vacaciones partía la banda amarilla con
     un trozo gris, que se lee como que las vacaciones se acaban ahí. La banda continua
     dice la verdad más importante.
-- **Un descanso pinta el número del día con el color de quien descansa.** Nació de las
+- **El fin de semana va en crema** (26-08-2026), el mismo `canvas` del fondo de la app,
+  así que no entra ningún color nuevo: el día de diario es blanco y el de finde, el color
+  del fondo. Va en la rejilla y en la vista Semana, y también en las letras de la cabecera
+  de columnas: si no, la columna en crema empieza a media altura. Con él, el `hover` de la
+  celda pasa a `surface`, que si no en el finde no se veía.
+
+- **~~Un descanso pinta el número del día con el color de quien descansa.~~** *(Derogada el
+  26-08-2026: duró dos días. Al llegar las etiquetas con nombre eran dos señales para lo
+  mismo, y de las dos el número decía menos —"aquí pasa algo", y para saber quién había
+  que saberse la paleta— y además no era fiable, porque hoy y el día elegido le ganaban y
+  un descanso hoy no se veía. Su razón de ser tampoco seguía en pie: nació porque con
+  vacaciones de otro el mismo día la raya no se pintaba, y ahora caben dos etiquetas por
+  celda. El número vuelve a decir solo dónde estás.)* Nació de las
   abuelas: el día que una no está hay que verlo desde la rejilla, sin abrir nada. La raya
   sola no daba para eso, porque cuando ese día cae dentro de las vacaciones de otro ni
   siquiera se pinta —manda la banda— y el descanso se quedaba sin ninguna señal.

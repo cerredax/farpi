@@ -1,4 +1,5 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { isWeekend } from 'date-fns'
 import { isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -155,44 +156,23 @@ export function DayCell({
   const marcas = marcasDelDia(events, tasks, members, kids)
 
   /**
-   * Un descanso pinta el número del día con el color de quien descansa
-   * (24-08-2026). Nació de las abuelas: el día que una no está hay que verlo
-   * desde la rejilla, y la raya sola no daba para eso — con vacaciones de otro
-   * el mismo día ni siquiera se pintaba, porque manda la banda.
+   * El número dice **dónde estás** y nada más: el día elegido y hoy.
    *
-   * Va como círculo y no como letra de color porque la paleta tiene seis tonos
-   * claros: "Champán dorado" escrito sobre blanco da 1,36:1 y no se lee.
+   * Entre el 24 y el 26-08-2026 también dijo quién descansa, con el círculo en su
+   * color al 50 %. Se quita al llegar las etiquetas con nombre: eran dos señales
+   * para lo mismo, y de las dos el número decía menos —"aquí pasa algo", y para
+   * saber quién había que saberse la paleta— y además no era fiable, porque hoy
+   * y el día elegido le ganaban y un descanso hoy no se veía.
    *
-   * Y el círculo va **al 50 %**, no a color pleno (24-08-2026, el mismo día que
-   * nació): a plena saturación gritaba más que "hoy", y una semana de descansos
-   * seguidos era una fila de círculos oscuros. Rebajado se lee como un fondo y no
-   * como una chapa.
-   *
-   * Esa rebaja decide también el color del número. Mezclado con el fondo, ningún
-   * color de la paleta admite ya texto blanco —el peor cae a 1,17:1— y todos
-   * admiten tinta: el peor caso es Vino sobre el crema del hover, a 5,26:1, por
-   * encima del mínimo de 4,5:1. De ahí que el número sea `text-ink` y punto: a
-   * color pleno haría falta elegirlo con `textColorOn`, y rebajado la respuesta
-   * es siempre la misma.
-   *
-   * Con más de un descanso manda el primero, la misma regla que la raya. Cuántos
-   * son lo sigue diciendo el nombre accesible del día ("2 descansando"), así que
-   * el color no es la única vía.
+   * Su razón de ser tampoco sigue en pie: nació porque con vacaciones de otro el
+   * mismo día la raya no se pintaba y el descanso se quedaba sin señal. Ahora
+   * caben dos etiquetas por celda.
    */
-  const colorDescanso = descansos.length > 0 ? eventColor(descansos[0], members, kids) : null
-
-  // El número dice una sola cosa, y manda la de arriba: el día elegido y hoy son
-  // dónde estás, y eso gana a quién falta. Cuando hoy tapa un descanso, la raya
-  // de debajo y `Availability` siguen contándolo.
   const numberClass = (() => {
     if (isSelected) return 'bg-primary text-white'
     if (isToday)    return 'bg-accent text-white'
     return 'text-ink'
   })()
-
-  const numberStyle = !isSelected && !isToday && colorDescanso
-    ? { backgroundColor: `${colorDescanso}80` }
-    : undefined
 
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
   const resumen = resumenDelDia({
@@ -214,7 +194,14 @@ export function DayCell({
      * En móvil no cambia nada: allí no hay títulos, así que el contenedor solo
      * tiene el botón y el área que se toca es la misma de siempre.
      */
-    <div className="flex w-full flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline">
+    <div
+      className={`flex w-full flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline ${
+        // El fin de semana en crema, para separarlo de un vistazo de los días de
+        // diario. Es el mismo `canvas` del fondo de la app, así que no añade un
+        // color nuevo: la celda de diario es blanca y la de finde, la del fondo.
+        isWeekend(day) ? 'bg-canvas' : ''
+      }`}
+    >
     <button
       type="button"
       onClick={() => onSelect(day)}
@@ -231,12 +218,11 @@ export function DayCell({
       // franja estrecha arriba de una pantalla de 900 px, que es lo que la hacía
       // parecer a medio hacer. En móvil manda el contenido, como siempre.
       className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-        isSelected ? '' : 'hover:bg-canvas'
+        isSelected ? '' : 'hover:bg-surface'
       }`}
     >
       <span
         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${numberClass}`}
-        style={numberStyle}
       >
         {dayNumber}
       </span>

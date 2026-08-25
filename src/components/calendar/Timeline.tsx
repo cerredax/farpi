@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { format, isToday } from 'date-fns'
+import { format, isToday, isWeekend } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { eventCoversDay, isAbsence, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
@@ -126,6 +127,17 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
     const { todoElDia, conHora } = partirEventosDelDia(events, diaStr)
     return {
       day,
+      /**
+       * Las ausencias, con el nombre de quien falta, arriba del todo.
+       *
+       * `partirEventosDelDia` deja fuera las vacaciones —su sitio era la raya de
+       * la rejilla— y aquí no hay rejilla, así que quedaban invisibles: una
+       * semana entera de vacaciones no salía por ninguna parte. Y un descanso
+       * sí salía, pero como un evento de todo el día titulado "Descanso", sin
+       * decir de quién. Se pintan como en la celda del mes: nombre sobre su
+       * color al 50 %.
+       */
+      ausencias: events.filter(e => isAbsence(e) && eventCoversDay(e, diaStr)),
       todoElDia,
       bloques: repartirSolapados(conHora, diaStr),
       // Lo atrasado se arrastra a hoy, igual que en la lista.
@@ -145,7 +157,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
   const horas = Array.from({ length: hasta - desde }, (_, i) => desde + i)
   const alto = (hasta - desde) * ALTO_HORA
 
-  const hayAlgoArriba = porDia.some(d => d.todoElDia.length > 0 || d.tasks.length > 0)
+  const hayAlgoArriba = porDia.some(d => d.ausencias.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
   const columnas = `${CANAL_HORAS}px repeat(${days.length}, minmax(0, 1fr))`
 
   return (
@@ -184,9 +196,21 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           <span className="flex items-center justify-end whitespace-nowrap pr-2 text-[9px] font-bold text-faint">
             Todo el día
           </span>
-          {porDia.map(({ day, todoElDia, tasks: delDia }) => (
+          {porDia.map(({ day, ausencias, todoElDia, tasks: delDia }) => (
             <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1">
-              {todoElDia.map(event => (
+              {ausencias.map(event => {
+                const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
+                return (
+                  <span
+                    key={event.id}
+                    className="truncate rounded px-1 py-0.5 text-[10px] font-bold text-ink"
+                    style={{ backgroundColor: `${eventColor(event, members, kids)}80` }}
+                  >
+                    {quien}{isVacation(event) ? ' · vacaciones' : ' · descansa'}
+                  </span>
+                )
+              })}
+              {todoElDia.filter(e => !isAbsence(e)).map(event => (
                 <button
                   key={event.id}
                   type="button"
@@ -227,7 +251,13 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           </div>
 
           {porDia.map(({ day, bloques }) => (
-            <div key={day.toISOString()} className="relative border-l border-hairline" style={{ height: alto }}>
+            <div
+              key={day.toISOString()}
+              // El mismo crema que en la rejilla: el fin de semana se distingue
+              // igual se mire el mes o la semana.
+              className={`relative border-l border-hairline ${isWeekend(day) ? 'bg-canvas' : ''}`}
+              style={{ height: alto }}
+            >
               {horas.map((hora, i) => (
                 <span
                   key={hora}

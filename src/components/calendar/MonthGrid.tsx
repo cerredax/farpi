@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, getDate } from 'date-fns'
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, isWeekend, getDate } from 'date-fns'
 import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { eventCoversDay } from '@/lib/events'
@@ -65,8 +65,15 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
      */
     <div className="px-2 pb-1 lg:px-0 lg:pb-0">
       <div className="mb-1 grid grid-cols-7 lg:mb-0 lg:border-b lg:border-hairline">
-        {DAY_LABELS.map(label => (
-          <div key={label} className="flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted">
+        {DAY_LABELS.map((label, i) => (
+          <div
+            key={label}
+            // Sábado y domingo también arriba: si no, la columna en crema empieza
+            // a media altura y la cabecera se lee despegada de ella.
+            className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted ${
+              i >= 5 ? 'bg-canvas' : ''
+            }`}
+          >
             {label}
           </div>
         ))}
@@ -78,7 +85,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
           if (!isSameMonth(day, currentMonth)) {
             // Los huecos de las puntas también llevan línea: si no, la rejilla
             // se abre por las esquinas y deja de ser un rectángulo.
-            return <span key={day.toISOString()} className={HUECO} aria-hidden />
+            return <span key={day.toISOString()} className={`${HUECO} ${isWeekend(day) ? 'bg-canvas' : ''}`} aria-hidden />
           }
 
           const diaStr = getLocalDateString(day)

@@ -69,6 +69,15 @@ export interface ListItemsRepo {
   updateListItem(id: string, draft: ListItemDraft): Promise<void>
   deleteListItem(id: string): Promise<void>
   toggleListItem(id: string): Promise<void>
+  /**
+   * Cambiar solo las unidades, sin pasar por el draft entero.
+   *
+   * Los botones de más y de menos viven en la propia fila y no abren nada, así
+   * que no tienen a mano el texto ni la lista destino: pedir un `ListItemDraft`
+   * completo obligaría a la vista a rearmarlo en cada toque. Es el mismo caso
+   * que `toggleListItem`.
+   */
+  setListItemQuantity(id: string, quantity: number): Promise<void>
 }
 
 export interface MealsRepo {

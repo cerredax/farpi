@@ -77,7 +77,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 223 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 79 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 80 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -422,6 +422,26 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     título sale como "09:0…"— porque una celda de escritorio pasa de 120 px.
 
 ## Cerrado el 2026-08-26
+
+- **La lista de la compra lleva unidades.** Migración `021`: `list_items` gana `quantity`,
+  un entero con `check` entre 1 y 99 y `default 1`, para que lo que ya existe no cambie de
+  significado. Hasta ahora la cantidad se escribía dentro del propio nombre ("leche x2"),
+  que se lee peor, no se puede cambiar sin reescribirlo y ensucia el catálogo de "lo de
+  siempre", donde el nombre tiene que quedar limpio para volver a pedirlo.
+  - **Entero y no texto libre**, a propósito: en el súper se toca, no se teclea, y un
+    número admite los dos botones. Lo que no cabe —"2 kg", "media docena"— se sigue
+    escribiendo en el nombre, que es donde ya se escribía.
+  - **Los botones viven en la fila**, no dentro del ítem: se tocan con una mano y sin abrir
+    nada. Miden 28 px, por encima del mínimo de 24×24. En 1 no se escribe el número ni se
+    ofrece el menos: "×1" es decir lo que ya dice la fila, y un botón que no hace nada
+    ocupa sitio e invita a pulsarlo.
+  - **Solo en lo que hace falta**, no en el catálogo: "lo de siempre" es una lista de
+    nombres para volver a pedir, y el número es de esta compra, no del nombre.
+  - `SCHEMA_VER` del mock sube a **9**: cambia la forma de lo guardado en `localStorage`.
+  - **Pendiente: aplicar la `021` en el SQL Editor.** Hasta entonces la app en producción
+    no puede guardar unidades. Después toca `validate-rls.mjs` y este documento.
+
+
 
 - **El escritorio gana las vistas Día, Semana y Mes.** El trio de Google Calendar, con su
   selector en la cabecera. En móvil no existe: esa pantalla es la lista continua con el

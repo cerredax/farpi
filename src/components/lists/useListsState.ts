@@ -7,7 +7,7 @@ export function useListsState() {
   const {
     lists, allListItems,
     createList, updateList, deleteList,
-    createListItem, updateListItem, deleteListItem, toggleListItem,
+    createListItem, updateListItem, deleteListItem, toggleListItem, setListItemQuantity,
   } = useStore()
 
   const [selectedListId, setSelectedListId] = useState<string | null>(null)
@@ -88,5 +88,6 @@ export function useListsState() {
     createList, updateList, handleDeleteList,
     handleCreateItem, updateListItem, deleteListItem,
     toggleListItem,
+    setListItemQuantity,
   }
 }

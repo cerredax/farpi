@@ -95,6 +95,8 @@ export interface ListItem {
   list_id: string
   family_id: string
   text: string
+  /** Cuántas unidades hacen falta. Siempre ≥ 1: uno es "hace falta", no "ninguno". */
+  quantity: number
   completed: boolean
   completed_at: string | null
   completed_by: string | null

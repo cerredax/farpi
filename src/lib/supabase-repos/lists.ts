@@ -1,3 +1,4 @@
+import { MAX_UNIDADES } from '../constants'
 import { createClient } from '../supabase/client'
 import { assertNoError, currentUserId } from './shared'
 import type { List, ListDraft, ListItem, ListItemDraft } from '@/types'
@@ -61,7 +62,7 @@ export const listItemsRepo: ListItemsRepo = {
     const sortOrder = ((existing?.[0]?.sort_order as number | undefined) ?? -1) + 1
     const { data, error } = await supabase
       .from('list_items')
-      .insert({ list_id: listId, family_id: familyId, text: draft.text.trim(), sort_order: sortOrder, created_by: userId })
+      .insert({ list_id: listId, family_id: familyId, text: draft.text.trim(), quantity: 1, sort_order: sortOrder, created_by: userId })
       .select('*')
       .single()
     assertNoError(error)
@@ -102,6 +103,18 @@ export const listItemsRepo: ListItemsRepo = {
         completed_by: completed ? userId : null,
       })
       .eq('id', id)
+    assertNoError(error)
+  },
+
+  /**
+   * Las unidades se acotan también aquí, antes de salir. El `check` de la 021 las
+   * acota igualmente, pero rebotar contra la base para decirle a alguien que 100
+   * no vale es peor que no dejar llegar ahí: el botón simplemente deja de subir.
+   */
+  async setListItemQuantity(id: string, quantity: number): Promise<void> {
+    const supabase = createClient()
+    const acotada = Math.min(Math.max(Math.round(quantity), 1), MAX_UNIDADES)
+    const { error } = await supabase.from('list_items').update({ quantity: acotada }).eq('id', id)
     assertNoError(error)
   },
 }

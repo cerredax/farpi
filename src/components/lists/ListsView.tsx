@@ -38,6 +38,7 @@ export function ListsView() {
           items={s.selectedItems}
           onBack={() => s.setSelectedListId(null)}
           onToggle={s.toggleListItem}
+          onQuantity={s.setListItemQuantity}
           onOpenEdit={() => s.openEditList(s.selectedList!)}
           onOpenAddItem={s.openAddItem}
           onOpenEditItem={s.openEditItem}

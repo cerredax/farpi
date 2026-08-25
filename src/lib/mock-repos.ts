@@ -71,6 +71,7 @@ export const mockRepos: Repos = {
     updateListItem:  (id, draft) => Promise.resolve(store.updateListItem(id, draft)),
     deleteListItem:  (id) => Promise.resolve(store.deleteListItem(id)),
     toggleListItem:  (id) => Promise.resolve(store.toggleListItem(id)),
+    setListItemQuantity: (id, quantity) => Promise.resolve(store.setListItemQuantity(id, quantity)),
   },
 
   meals: {

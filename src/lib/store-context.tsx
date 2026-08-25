@@ -96,6 +96,7 @@ interface StoreValue {
   updateListItem: (id: string, draft: ListItemDraft) => Promise<void>
   deleteListItem: (id: string) => Promise<void>
   toggleListItem: (id: string) => Promise<void>
+  setListItemQuantity: (id: string, quantity: number) => Promise<void>
   createMeal: (draft: MealDraft) => Promise<void>
   copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => Promise<void>
   updateMeal: (id: string, draft: MealDraft) => Promise<void>
@@ -389,6 +390,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       updateListItem: (id: string, draft: ListItemDraft) => runMutation(() => repos.listItems.updateListItem(id, draft)),
       deleteListItem: (id: string) => runMutation(() => repos.listItems.deleteListItem(id)),
       toggleListItem: (id: string) => runMutation(() => repos.listItems.toggleListItem(id)),
+      setListItemQuantity: (id: string, quantity: number) =>
+        runMutation(() => repos.listItems.setListItemQuantity(id, quantity)),
       createMeal: (draft: MealDraft) => runMutation(() => repos.meals.createMeal(familyId, draft)),
       copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) =>
         runMutation(() => repos.meals.copyMealDay(familyId, sourceDate, targetDate, repeatUntil)),

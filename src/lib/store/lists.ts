@@ -1,4 +1,5 @@
 import type { List, ListItem, ListDraft, ListItemDraft } from '@/types'
+import { MAX_UNIDADES } from '../constants'
 import { db } from './db'
 
 export function getLists(familyId: string): List[] {
@@ -43,6 +44,8 @@ export function createListItem(listId: string, familyId: string, draft: ListItem
     list_id: listId,
     family_id: familyId,
     text: draft.text.trim(),
+    // Se apunta lo que falta, y de partida hace falta uno.
+    quantity: 1,
     completed: false,
     completed_at: null,
     completed_by: null,
@@ -77,6 +80,15 @@ export function updateListItem(id: string, draft: ListItemDraft): void {
 
 export function deleteListItem(id: string): void {
   db.listItems = db.listItems.filter(i => i.id !== id)
+}
+
+/**
+ * Las unidades, acotadas aquí igual que en la base (`check` de la 021). El mock
+ * tiene que imitar a Supabase también cuando dice que no.
+ */
+export function setListItemQuantity(id: string, quantity: number): void {
+  const acotada = Math.min(Math.max(Math.round(quantity), 1), MAX_UNIDADES)
+  db.listItems = db.listItems.map(i => (i.id !== id ? i : { ...i, quantity: acotada }))
 }
 
 export function toggleListItem(id: string): void {

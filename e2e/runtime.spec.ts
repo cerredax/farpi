@@ -562,3 +562,36 @@ test('un descanso marca todos los días de su rango', async ({ page }) => {
   // Y una vez en el bloque, con nombre y fechas: dos días no son dos filas.
   await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
 })
+
+// Las unidades de un ítem se suben y se bajan **desde la propia fila**, sin abrir
+// nada: se tocan en el súper, con una mano. En 1 no se escribe el número ni se
+// ofrece el menos, que "×1" es decir lo que ya dice la fila.
+//
+// Se apunta un ítem nuevo en vez de coger uno de los de demo: lo recién apuntado
+// arranca siempre en uno, y así el test no depende de las cantidades del seed.
+// Y se espera por estado y no por reloj, que cada toque pasa por el store y
+// recarga: con esperas fijas los clics se atropellaban.
+test('las unidades de la compra se cambian desde la fila', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(800)
+  await page.getByText('Farmacia').first().click()
+  await page.waitForTimeout(500)
+
+  await page.getByRole('button', { name: 'Añadir ítem' }).click()
+  await page.locator('#item-text').fill('Ibuprofeno')
+  await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+
+  const mas = page.getByRole('button', { name: 'Añadir una unidad de Ibuprofeno' })
+  const menos = page.getByRole('button', { name: 'Quitar una unidad de Ibuprofeno' })
+
+  // Recién apuntado hace falta uno: ni número escrito ni botón de quitar.
+  await expect(mas).toHaveCount(1)
+  await expect(menos).toHaveCount(0)
+
+  await mas.click()
+  await expect(menos).toHaveCount(1)
+
+  // Y de vuelta a uno, donde el menos se retira solo.
+  await menos.click()
+  await expect(menos).toHaveCount(0)
+})

@@ -130,6 +130,13 @@ export const MINIMO_PARA_BUSCAR = 3
  */
 export const TAREAS_PARA_PLEGAR = 3
 
+/**
+ * Cuántas unidades como mucho de un ítem de la lista. Lo mismo que el `check` de
+ * la migración 021: sin tope, un dedo apoyado en el botón de más deja un número
+ * absurdo que la fila tiene que pintar. Noventa y nueve sobra para una casa.
+ */
+export const MAX_UNIDADES = 99
+
 // ─── Agenda por horas ─────────────────────────────────────────────────────────
 
 /**

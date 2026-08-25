@@ -63,6 +63,7 @@ export function listItem(over: Partial<ListItem> = {}): ListItem {
     list_id: 'l1',
     family_id: 'f1',
     text: 'Ítem',
+    quantity: 1,
     completed: false,
     completed_at: null,
     completed_by: null,

@@ -13,6 +13,7 @@ interface ListDetailViewProps {
   items: ListItem[]
   onBack: () => void
   onToggle: (id: string) => void
+  onQuantity: (id: string, quantity: number) => void
   onOpenEdit: () => void
   onOpenAddItem: () => void
   onOpenEditItem: (item: ListItem) => void
@@ -47,7 +48,7 @@ function GrupoTitulo({ titulo, cuenta, accion }: { titulo: string; cuenta?: numb
 }
 
 export function ListDetailView({
-  list, items, onBack, onToggle, onOpenEdit, onOpenAddItem, onOpenEditItem, onOpenMoveItem, onDeleteItem, puedeMover,
+  list, items, onBack, onToggle, onQuantity, onOpenEdit, onOpenAddItem, onOpenEditItem, onOpenMoveItem, onDeleteItem, puedeMover,
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
   // Una lista es lo que falta. Lo demás —lo de siempre, lo que ya tenéis— es el
@@ -131,6 +132,7 @@ export function ListDetailView({
                       item={item}
                       puedeMover={puedeMover}
                       onToggle={() => onToggle(item.id)}
+                      onQuantity={q => onQuantity(item.id, q)}
                       onEdit={() => onOpenEditItem(item)}
                       onMove={() => onOpenMoveItem(item)}
                       onDelete={() => onDeleteItem(item.id)}
@@ -167,6 +169,7 @@ export function ListDetailView({
                     item={item}
                     puedeMover={puedeMover}
                     onToggle={() => onToggle(item.id)}
+                    onQuantity={q => onQuantity(item.id, q)}
                     onEdit={() => onOpenEditItem(item)}
                     onMove={() => onOpenMoveItem(item)}
                     onDelete={() => onDeleteItem(item.id)}

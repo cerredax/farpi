@@ -14,7 +14,8 @@ export const metadata: Metadata = {
   description: 'Tu espacio familiar privado',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon.svg',
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
   },
 }
 
@@ -37,3 +38,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
+

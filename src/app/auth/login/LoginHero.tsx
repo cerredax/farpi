@@ -1,4 +1,5 @@
-import { Heart, Home, ShieldCheck } from 'lucide-react'
+import Image from 'next/image'
+import { Heart, ShieldCheck } from 'lucide-react'
 
 /**
  * Columna de presentación del login: marca y bienvenida.
@@ -18,9 +19,15 @@ export function LoginHero() {
   return (
   <section className="flex min-h-[52dvh] flex-col px-6 py-7 sm:px-10 lg:min-h-dvh lg:px-14 lg:py-12 xl:px-20">
     <header className="flex items-center gap-3">
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-deepest text-white shadow-sm">
-        <Home size={21} strokeWidth={2.4} />
-      </div>
+      <Image
+        src="/app-icon.svg"
+        width={40}
+        height={40}
+        alt=""
+        aria-hidden
+        priority
+        className="h-10 w-10 rounded-2xl shadow-sm"
+      />
       <div>
         <p className="text-lg font-black leading-none tracking-tight">Nido</p>
         <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Familia en calma</p>
@@ -49,3 +56,4 @@ export function LoginHero() {
   </section>
   )
 }
+

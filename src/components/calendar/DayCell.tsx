@@ -1,5 +1,5 @@
-import { eventColor, resolveAssignee } from '@/lib/assignees'
-import { holidayName, isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { eventColor } from '@/lib/assignees'
+import { holidayName, isHoliday, isRestDay, isVacation } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -45,8 +45,6 @@ const MAX_AUSENCIAS = 2
 const SABADO = 6
 const DOMINGO = 0
 
-/** El primer día de la semana en la rejilla, en la cuenta de `Date.getDay()`. */
-const LUNES = 1
 
 interface DayCellProps {
   day: Date
@@ -67,59 +65,29 @@ interface DayCellProps {
 }
 
 /**
- * Las ausencias del día, como **etiquetas con el nombre de quien falta**
- * (26-08-2026): el idioma con el que Google marca lo que dura varios días.
+ * El nombre de un festivo, cuando tiene uno propio.
  *
- * Antes era una raya de 3 px bajo el número, y con la rejilla ya dibujada se vio
- * lo que fallaba: una rayita de color flotando bajo la fecha se lee como un
- * subrayado, no dice "vacaciones" y no dice de quién. El argumento de que varios
- * días seguidos formaban "una barra continua" tampoco se sostenía: la banda se
- * parte igual al cambiar de semana, y ahora también en cada línea de la rejilla.
+ * **Las ausencias ya no se pintan aquí** (26-08-2026). Fueron una raya de 3 px,
+ * luego una etiqueta con el nombre, y con la etiqueta apareció el problema de
+ * fondo: desde que los eventos también son etiquetas de color, unas vacaciones y
+ * una cita se leían igual —rectángulo de color con texto— y solo las distinguía
+ * el ancho. Encima la banda se partía en el borde de cada celda, así que de
+ * lunes a viernes eran cinco trozos y no una barra.
  *
- * La etiqueta escribe el nombre —"Mamá", o "Familia" si no es de nadie— sobre el
- * color de esa persona al 50 %, la misma rebaja que el número de un descanso y
- * por la misma razón: mezclado con el fondo, ningún color de la paleta admite
- * texto blanco y todos admiten tinta.
+ * Ahora una ausencia **tiñe la celda entera con la trama diagonal**, en el color
+ * de esa persona. Es el mismo idioma que ya dice "aquí no se trabaja" en sábados,
+ * domingos y festivos, que es exactamente lo que son unas vacaciones para quien
+ * las tiene; la diferencia es de quién, y eso lo lleva el color. Quién es y hasta
+ * cuándo lo dice `Availability`, que es la fuente y lo dice una sola vez.
  *
- * En móvil el nombre no cabe —una celda son 50 px— así que allí la etiqueta se
- * queda en la barra de color y el nombre sale solo en `lg`. Es lo mismo que hace
- * la celda con los títulos de los eventos.
- *
- * Se redondea donde el tramo empieza y acaba de verdad (`vacationEdges`), para
- * que los días de en medio encadenen.
- *
- * Siguen siendo `span` y no botones, como la raya: en móvil una barra de 4 px no
- * llega ni de lejos al mínimo de toque de 24×24, y estirarla con relleno
- * invisible metería un objetivo táctil grande donde el dedo espera seleccionar el
- * día. Las ausencias se editan desde `Availability`, que es su sitio.
- *
- * Hasta **dos** por celda, y el resto contado. Eran una sola desde el 24-08-2026,
- * cuando la señal no llevaba nombre y apilar dos rayas solo decía "falta gente";
- * con el nombre escrito, la segunda sí añade.
+ * Del festivo queda el nombre, y solo si le pusieron uno: la trama ya dice que lo
+ * es. En móvil no cabe y no se pinta.
  */
-function DayChips({ festivos, vacaciones, descansos, day, kids, members }: {
-  festivos: Event[]
-  vacaciones: Event[]
-  descansos: Event[]
-  day: Date
-  kids: Child[]
-  members: FamilyMember[]
-}) {
-  const ausencias = [...vacaciones, ...descansos]
-
-  // El hueco se reserva aunque no haya nada: si no, los días con ausencia
-  // quedarían más altos que los demás y la fila se descuadra. En escritorio no
-  // hace falta, que la celda ya tiene alto mínimo.
-  if (festivos.length === 0 && ausencias.length === 0) {
-    return <span className="block h-[4px] lg:hidden" aria-hidden />
-  }
+function DayChips({ festivos }: { festivos: Event[] }) {
+  if (festivos.length === 0) return null
 
   return (
     <span className="flex w-full flex-col gap-px" aria-hidden>
-      {/* El festivo **no lleva chip**: de que el día es festivo ya avisa la trama
-          de toda la celda, y una etiqueta encima sería decirlo dos veces. Lo que
-          queda es su nombre, en gris y sin fondo, que responde a la otra
-          pregunta: cuál es. En móvil no cabe y no se pinta —la trama, sí—. */}
       {festivos.slice(0, MAX_AUSENCIAS).map(event => holidayName(event) && (
         <span
           key={event.id}
@@ -128,46 +96,6 @@ function DayChips({ festivos, vacaciones, descansos, day, kids, members }: {
           {holidayName(event)}
         </span>
       ))}
-      {ausencias.slice(0, MAX_AUSENCIAS).map(event => {
-        const color = eventColor(event, members, kids)
-        const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
-        // Un descanso es un día suelto: empieza y acaba en él, así que se cierra
-        // por los dos lados sin preguntar.
-        const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
-
-        /**
-         * **El nombre se escribe una vez por banda, no en cada día** (26-08-2026).
-         * Unas vacaciones de lunes a viernes ponían "Sofía" cinco veces seguidas,
-         * que es ruido: la banda ya es continua y el color ya es el suyo, así
-         * que a partir del segundo día el nombre no añade nada.
-         *
-         * Se escribe donde la banda **empieza a la vista**: el primer día del
-         * tramo, y el lunes cuando el tramo viene de la semana anterior —si no,
-         * una banda que cruza el domingo se quedaría sin nombre en toda su
-         * segunda fila—.
-         */
-        const abreBanda = primero || day.getDay() === LUNES
-
-        return (
-          <span
-            key={event.id}
-            // `lg:min-h` y no `lg:h-auto` a secas: los días de en medio de la banda
-            // van sin texto, y sin alto mínimo la etiqueta se quedaba en cero y la
-            // banda desaparecía a partir del segundo día.
-            className={`block h-[4px] w-full truncate lg:h-auto lg:min-h-[15px] lg:px-1 lg:text-[10px] lg:font-bold lg:leading-tight lg:text-ink ${
-              primero ? 'rounded-l-full lg:rounded-l' : ''
-            } ${ultimo ? 'rounded-r-full lg:rounded-r' : ''}`}
-            style={{ backgroundColor: `${color}80` }}
-          >
-            <span className="hidden lg:inline">{abreBanda ? quien : ''}</span>
-          </span>
-        )
-      })}
-      {ausencias.length > MAX_AUSENCIAS && (
-        <span className="hidden pl-1 text-[10px] font-bold leading-tight text-muted lg:block">
-          +{ausencias.length - MAX_AUSENCIAS} más
-        </span>
-      )}
     </span>
   )
 }
@@ -190,8 +118,20 @@ export function DayCell({
   // raya, y escribir "Vacaciones" en los siete días de un tramo era justo lo que
   // sacó los títulos de la celda en su día.
   const festivos = events.filter(isHoliday)
-  // Sábado, domingo o festivo: los tres se pintan igual.
-  const esDiaLibre = day.getDay() === SABADO || day.getDay() === DOMINGO || festivos.length > 0
+  /**
+   * El día libre y de quién. Sábado, domingo y festivo lo son de toda la casa y
+   * van en el gris de la trama; unas vacaciones o un descanso lo son **de una
+   * persona**, y entonces la trama toma su color.
+   *
+   * Con más de una ausencia manda la primera y las vacaciones ganan al descanso,
+   * la misma regla que tenía la raya. Cuántas personas son exactamente lo dice el
+   * nombre accesible del día, y quiénes, `Availability`.
+   */
+  const ausencia = vacaciones[0] ?? descansos[0]
+  const esDiaLibre = day.getDay() === SABADO || day.getDay() === DOMINGO || festivos.length > 0 || !!ausencia
+  const trama = ausencia
+    ? ({ '--trama': `${eventColor(ausencia, members, kids)}80` } as React.CSSProperties)
+    : undefined
   const planes = events.filter(e => !isVacation(e) && !isRestDay(e) && !isHoliday(e))
   const marcas = marcasDelDia(events, tasks, members, kids)
 
@@ -253,6 +193,7 @@ export function DayCell({
          */
         esDiaLibre ? 'dia-libre' : ''
       }`}
+      style={trama}
     >
     <button
       type="button"
@@ -286,7 +227,7 @@ export function DayCell({
       <span className="lg:hidden">
         <DayActivity marcas={marcas} />
       </span>
-      <DayChips festivos={festivos} vacaciones={vacaciones} descansos={descansos} day={day} kids={kids} members={members} />
+      <DayChips festivos={festivos} />
     </button>
 
       {/* Solo en escritorio. Dos títulos como mucho y el resto contado: una

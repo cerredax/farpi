@@ -95,12 +95,17 @@
 
      Es un solo concepto para los tres casos, y por eso una sola clase: lo que
      tienen en común un sábado, un domingo y el 12 de octubre es que no hay
-     trabajo ni colegio. */
+     trabajo ni colegio.
+
+     El color de la raya se puede cambiar con `--trama`, y hay un cuarto caso que
+     lo usa: **unas vacaciones o un descanso**, que son el día libre de una
+     persona y no de la casa entera. Ahí la trama va en el color de esa persona
+     en vez de en el gris del borde. */
   .dia-libre {
     background-image: repeating-linear-gradient(
       45deg,
       transparent 0 6px,
-      var(--color-line) 6px 7px
+      var(--trama, var(--color-line)) 6px 7px
     );
   }
 }

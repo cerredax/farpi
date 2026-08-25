@@ -423,6 +423,19 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **Las ausencias pasan a teñir la celda con la trama de día libre, en el color de quien
+  falta.** La etiqueta con nombre duró unas horas: el problema apareció al convertir los
+  títulos de los eventos en etiquetas de color, porque entonces unas vacaciones y una cita
+  se leían igual y solo las distinguía el ancho. Y la banda se partía en el borde de cada
+  celda: de lunes a viernes eran cinco trozos, no una barra.
+  - Una trama no tiene ese problema —interrumpida por una línea de pelo se sigue leyendo
+    como una sola cosa— y además reutiliza un idioma que ya existía: "aquí no se trabaja".
+    Unas vacaciones son eso para quien las tiene; la diferencia es de quién, y eso lo
+    lleva el color (`--trama`).
+  - **El nombre sale de la celda.** Lo dice `Availability`, una sola vez, que es la fuente.
+  - En la vista Semana no cambia nada: allí las ausencias van en la franja de "todo el
+    día", separadas de los bloques de hora, y no se confunden con nada.
+
 - **Las unidades se ven también fuera de la lista**: en el desplegable de "Listas de casa"
   de Inicio y en los resultados de búsqueda, pegadas al nombre —"Pañales talla 1 ×2"— y
   solo cuando pasan de una. Es "dos leches", no dos cosas distintas, por eso van pegadas

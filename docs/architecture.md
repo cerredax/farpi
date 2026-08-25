@@ -555,7 +555,23 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
 **Vacaciones y descansos son lo mismo para el calendario: quién no está**
 (24-08-2026). Los dos son `isAbsence` y comparten las tres reglas:
 
-- **La celda las pinta como una etiqueta con el nombre de quien falta** (26-08-2026),
+- **La celda las pinta como la trama de día libre, en el color de quien falta**
+  (26-08-2026, por la tarde). Una ausencia es el día libre **de una persona**, y ya había
+  un idioma para "aquí no se trabaja": el mismo que usan sábados, domingos y festivos. La
+  diferencia es de quién, y eso lo lleva el color de la trama (`--trama` en `dia-libre`).
+  - **Sustituye a la etiqueta con nombre que duró unas horas esa misma mañana.** El
+    problema apareció al convertir los títulos de los eventos en etiquetas de color:
+    entonces unas vacaciones y una cita se leían igual —rectángulo de color con texto— y
+    solo las distinguía el ancho. Encima la banda se partía en el borde de cada celda, así
+    que de lunes a viernes eran cinco trozos y no una barra. Una trama no tiene ese
+    problema: interrumpida por una línea de pelo se sigue leyendo como una sola cosa.
+  - Con más de una ausencia manda la primera y las vacaciones ganan al descanso. **El
+    nombre ya no está en la celda**: lo dice `Availability`, una sola vez, que es la
+    fuente. Cuántas personas son lo dice el nombre accesible del día.
+
+- **~~La celda las pinta como una etiqueta con el nombre de quien falta.~~** *(Derogada el
+  26-08-2026, unas horas después de nacer; ver arriba. Se queda escrito porque explica por
+  qué la raya de 3 px no valía:*
   el idioma con el que Google marca lo que dura varios días. Fue una raya de 3 px bajo el
   número hasta que la rejilla se dibujó de verdad y se vio el problema: una rayita de
   color flotando bajo la fecha se lee como un subrayado, no dice "vacaciones" y no dice de

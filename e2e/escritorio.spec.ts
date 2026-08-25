@@ -154,11 +154,11 @@ test.describe('escritorio a 1440 px', () => {
     await expect(page.getByPlaceholder('Buscar en todo el calendario…')).toBeVisible()
   })
 
-  // La etiqueta de una ausencia escribe el nombre de quien falta, que es lo que
-  // sustituyó a la raya de 3 px: una rayita de color no dice "vacaciones" ni dice
-  // de quién. En móvil no cabe el nombre y se queda la barra, así que esto solo
-  // se puede comprobar aquí.
-  test('una ausencia se nombra en la celda del mes', async ({ page }) => {
+  // Una ausencia tiñe la celda entera con la trama de "día libre", en el color de
+  // quien falta. Ya no escribe su nombre ahí: desde que los eventos son etiquetas
+  // de color, una etiqueta de vacaciones se leía igual que una cita. El nombre lo
+  // dice `Availability`, una sola vez.
+  test('una ausencia tiñe la celda del mes', async ({ page }) => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
     await page.getByRole('button', { name: 'Añadir evento' }).first().click()
@@ -169,11 +169,13 @@ test.describe('escritorio a 1440 px', () => {
     await page.getByRole('button', { name: /Apuntar/ }).click()
     await page.waitForTimeout(700)
 
-    // Una etiqueta por día del rango, y las dos con su nombre. El bloque de
-    // "Vacaciones y descansos" lo nombra una sola vez, de ahí el 2 y no el 3.
+    // Los dos días del rango quedan marcados, y con trama, no con etiqueta.
     const celda = page.locator('[aria-pressed][aria-label*="descansando"]')
     await expect(celda).toHaveCount(2)
-    await expect(celda.getByText('Sofía', { exact: true })).toHaveCount(2)
+    await expect(page.locator('.dia-libre').filter({ has: celda })).toHaveCount(2)
+
+    // Y el nombre sale una sola vez, en "Vacaciones y descansos".
+    await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
   })
 
   // Un festivo se apunta como los otros tres tipos y se pinta en la celda con su

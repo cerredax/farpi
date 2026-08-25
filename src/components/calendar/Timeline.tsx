@@ -50,6 +50,9 @@ const DIA_VISIBLE = { inicio: 7 * 60, fin: 22 * 60 }
 /** Ancho del canal de las horas, a la izquierda del eje. */
 const CANAL_HORAS = 56
 
+/** Ancho mínimo de la columna de un día, para que un título se lea. */
+const ANCHO_MINIMO_COLUMNA = 110
+
 function EventBlock({ bloque, desde, kids, members, onEdit }: {
   bloque: BloqueDia
   desde: number
@@ -197,10 +200,24 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
   const alto = enHoras(horas.length)
 
   const hayAlgoArriba = porDia.some(d => d.festivos.length > 0 || d.ausencias.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
-  const columnas = `${CANAL_HORAS}px repeat(${days.length}, minmax(0, 1fr))`
+  /**
+   * Las columnas, con **ancho mínimo**. A 390 px, siete columnas salen a 43 px y
+   * un bloque no tiene sitio ni para cuatro letras —"Ped…"—, que es por lo que
+   * esta vista no existía en móvil. Con un mínimo de 110 px se leen los títulos y
+   * la semana se recorre pasando el dedo, que es lo que hacen las apps que sí la
+   * ofrecen ahí.
+   *
+   * En escritorio no cambia nada: la columna ya mide 150 px de sobra, así que el
+   * mínimo no llega a aplicarse y no aparece ninguna barra.
+   */
+  const columnas = `${CANAL_HORAS}px repeat(${days.length}, minmax(${ANCHO_MINIMO_COLUMNA}px, 1fr))`
 
   return (
     <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
+      {/* Las tres rejillas —días, todo el día y el eje— comparten un solo
+          contenedor que se desliza a lo ancho: si cada una tuviera el suyo, la
+          cabecera se quedaría quieta mientras las horas se mueven. */}
+      <div className="overflow-x-auto">
       {/* Cabecera de columnas: qué día es cada una. **Solo con varias**: en la
           vista de un día, la cabecera del calendario ya pone "Jueves, 27 de
           agosto" y repetirlo aquí es decirlo dos veces seguidas. */}
@@ -286,9 +303,8 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
       {/* El eje se desliza dentro de la tarjeta: así la cabecera de días se queda
           arriba, que es lo que la hace útil al bajar hasta la tarde. */}
       {/* Sin caja con scroll propio: el eje se reparte el alto que queda y el día
-          entra entero. `overflow-y-auto` se queda solo como red para pantallas
-          muy bajas, donde manda el suelo de 28 px por hora. */}
-      <div className="overflow-y-auto">
+          entra entero. */}
+      <div>
         {/* El relleno de arriba y abajo no es estética: la etiqueta de cada hora
             va centrada sobre su raya, así que la primera asoma media línea por
             encima del eje y la última por debajo. Sin él se cortaban las dos. */}
@@ -353,6 +369,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
             </div>
           ))}
         </div>
+      </div>
       </div>
     </div>
   )

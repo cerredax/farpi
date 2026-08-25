@@ -423,6 +423,25 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **El móvil gana las vistas Día, Semana y Mes**, con un selector de cuatro:
+  `Agenda · Día · Semana · Mes`. Agenda es la lista continua y sigue siendo la de
+  partida. **El escritorio no se toca**: mantiene sus tres y sigue abriendo en Mes.
+  - Son **dos estados de vista y no uno**: móvil y escritorio no ofrecen lo mismo ni
+    arrancan igual, y con uno solo el valor de partida tendría que depender del ancho, que
+    no se sabe en el primer pintado.
+  - **La semana en móvil se desliza a lo ancho.** A 390 px, siete columnas salen a 43 px y
+    no cabe ni "Ped…", que es por lo que esta vista no existía ahí. Con un mínimo de
+    110 px por columna se leen los títulos y se recorre pasando el dedo. En escritorio el
+    mínimo no llega a aplicarse, así que no cambia nada.
+  - **Se va el plegable del mes**, que duró un día: con una pestaña Mes eran dos maneras
+    de pedir lo mismo, y la pestaña enseña el mes **y** la lista debajo, que es justo lo
+    que daba el plegable.
+- **Ajustes sale de la cabecera y baja al final de Inicio** (solo móvil). Arriba a la
+  derecha es la esquina más alcanzable del pulgar y la ocupaba algo que se toca dos veces
+  al año. En escritorio nunca hizo falta: `SideNav` lo lleva desde siempre.
+
+
+
 - **Editar unas vacaciones retrocedía un día la fecha de inicio.** El sheet leía la fecha
   cortando la cadena (`start_at.slice(0, 10)`). Con el mock funciona —guarda la hora de
   pared— pero Supabase usa `timestamptz` y devuelve UTC: unas vacaciones del 17 apuntadas

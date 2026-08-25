@@ -21,12 +21,12 @@ async function abrirTareasDelDia(raiz: Page | Locator) {
 }
 
 /**
- * Despliega la rejilla del mes. La pantalla abre con ella guardada: es una lista
- * continua, y el mes se pide tocando el rótulo de la cabecera. Sin desplegarlo no
- * hay celdas de día en el DOM, que es lo que buscan varios tests.
+ * Pasa a la vista Mes. La pantalla abre en `Agenda` —la lista continua— y el mes
+ * es otra pestaña del selector, así que sin pasar por aquí no hay ninguna celda
+ * de día en el DOM, que es lo que buscan varios tests.
  */
 async function verEnMes(page: Page) {
-  await page.getByRole('button', { name: 'Ver el mes' }).click()
+  await page.getByRole('button', { name: 'Mes', exact: true }).click()
   await page.waitForTimeout(300)
 }
 

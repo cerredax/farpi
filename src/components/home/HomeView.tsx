@@ -11,6 +11,8 @@ import { TodayMeals } from './TodayMeals'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
+import Link from 'next/link'
+import { Settings } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import type { Task } from '@/types'
 
@@ -109,6 +111,19 @@ export function HomeView() {
       <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
       <UpcomingEvents events={upcoming} kids={kids} members={members} />
       <TodayMeals meals={todayMeals} />
+
+      {/* Ajustes, al final del recorrido y solo en móvil (26-08-2026). Sale de la
+          esquina de arriba a la derecha de la cabecera, que es el sitio más
+          alcanzable del pulgar y estaba ocupado por algo que se toca dos veces al
+          año. En escritorio no se pinta: `SideNav` lo lleva desde siempre y aquí
+          sería decirlo dos veces. */}
+      <Link
+        href="/settings"
+        className="flex min-h-11 items-center justify-center gap-2 rounded-2xl text-sm font-bold text-muted transition-colors hover:bg-surface hover:text-ink lg:hidden"
+      >
+        <Settings size={16} strokeWidth={2.2} aria-hidden />
+        Ajustes
+      </Link>
 
       <OffDayConfirmSheet
         open={!!confirmTask}

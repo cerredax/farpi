@@ -20,7 +20,7 @@ import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import { CalendarHeader, type VistaEscritorio } from './CalendarHeader'
+import { CalendarHeader, type VistaCalendario } from './CalendarHeader'
 import { Timeline } from './Timeline'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { MonthGrid } from './MonthGrid'
@@ -48,10 +48,7 @@ export function CalendarView() {
   const { kids, members, allEvents, tasks, toggleTask, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
 
   const today = new Date()
-  // La rejilla del mes empieza guardada: la pantalla abre en la lista, que es la
-  // respuesta a "¿qué hay?". En escritorio no manda nada, que allí el mes está
-  // siempre a la vista.
-  const [mesAbierto, setMesAbierto] = useState(false)
+
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(today))
   const [selectedDay, setSelectedDay]   = useState(today)
   const [sheetOpen, setSheetOpen]       = useState(false)
@@ -59,17 +56,19 @@ export function CalendarView() {
   const [busqueda, setBusqueda] = useState('')
 
   /**
-   * Qué enseña el escritorio: día, semana o mes (26-08-2026). Es el trio de
-   * Google Calendar, y aquí cabe porque una columna de semana pasa de 170 px.
+   * Qué enseña el calendario, y son **dos estados y no uno** a propósito.
    *
-   * **Solo escritorio.** En móvil no hay selector: la pantalla es la lista
-   * continua con el mes plegable, y la semana en columnas no cabe a 390 px.
+   * Móvil y escritorio no ofrecen lo mismo ni arrancan igual: en escritorio son
+   * Día, Semana y Mes, y abre en Mes —lo que había antes del selector, y cambiarlo
+   * al entrar sorprendería—; en móvil se añade **Agenda**, la lista continua, que
+   * es la de partida porque contesta "¿qué hay?" sin pedir nada.
    *
-   * Arranca en `mes` y no en `semana` como Google: es lo que ya había antes de
-   * que existiera el selector, y cambiar de vista al entrar sorprendería sin
-   * pedirlo. Se cambia con un valor.
+   * Con un solo estado, el valor de partida tendría que depender del ancho, y el
+   * ancho no se sabe en el primer pintado: la pantalla abriría en una vista y
+   * saltaría a otra al hidratar.
    */
-  const [vista, setVista] = useState<VistaEscritorio>('mes')
+  const [vistaEscritorio, setVistaEscritorio] = useState<VistaCalendario>('mes')
+  const [vistaMovil, setVistaMovil] = useState<VistaCalendario>('agenda')
 
   /**
    * Aquí vuelve el `useMediaQuery`, que se había ido el 25-08-2026 cuando quién
@@ -79,7 +78,12 @@ export function CalendarView() {
    * deslizarse hasta él, y duplicada esos `id` se repetirían.
    */
   const esEscritorio = useMediaQuery('(min-width: 1024px)')
-  const conEje = esEscritorio && vista !== 'mes'
+  const vista = esEscritorio ? vistaEscritorio : vistaMovil
+  const setVista = esEscritorio ? setVistaEscritorio : setVistaMovil
+  const vistas: VistaCalendario[] = esEscritorio
+    ? ['dia', 'semana', 'mes']
+    : ['agenda', 'dia', 'semana', 'mes']
+  const conEje = vista === 'dia' || vista === 'semana'
 
   // Los días que pinta el eje: uno en la vista Día, la semana entera en Semana.
   const diasDelEje = vista === 'dia'
@@ -234,10 +238,9 @@ export function CalendarView() {
         <CalendarHeader
           titulo={titulo}
           unidad={unidad}
-          mesAbierto={mesAbierto}
-          onToggleMes={() => setMesAbierto(a => !a)}
           vista={vista}
           onVista={setVista}
+          vistas={vistas}
           onPrev={irAnterior}
           onNext={irSiguiente}
           onAdd={() => openCreate(selectedDay)}
@@ -268,7 +271,7 @@ export function CalendarView() {
             {/* El mes y su bloque de ausencias van juntos: en móvil solo cuando
                 se despliega, y en escritorio siempre. En la lista de móvil no se
                 pinta nada de esto: esa pantalla es cabecera y lista. */}
-            <div className={mesAbierto ? '' : 'hidden lg:block'}>
+            <div className={vista === 'mes' ? '' : 'hidden lg:block'}>
               <div className="mx-4 lg:mx-0">
                 <Card padded={false}>
                   <MonthGrid

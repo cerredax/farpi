@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 /**
  * La cabecera del calendario: dónde estás, cómo moverte y cómo añadir.
@@ -25,12 +25,17 @@ import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
  */
 
 /**
- * Qué enseña el escritorio. El trio de Google Calendar; en móvil no existe, que
- * ahí la pantalla es la lista continua con el mes plegable.
+ * Qué enseña el calendario.
+ *
+ * En escritorio son tres, el trio de Google. En móvil son cuatro: se le añade
+ * **Agenda**, la lista continua, que ahí es la vista de partida y la que contesta
+ * "¿qué hay?" sin pedir nada.
  */
-export type VistaEscritorio = 'dia' | 'semana' | 'mes'
+export type VistaCalendario = 'agenda' | 'dia' | 'semana' | 'mes'
 
-const VISTAS: [VistaEscritorio, string][] = [['dia', 'Día'], ['semana', 'Semana'], ['mes', 'Mes']]
+const NOMBRES: Record<VistaCalendario, string> = {
+  agenda: 'Agenda', dia: 'Día', semana: 'Semana', mes: 'Mes',
+}
 
 interface CalendarHeaderProps {
   /**
@@ -41,11 +46,10 @@ interface CalendarHeaderProps {
    * flechas parecían de mes y no había forma de saber en qué semana estabas.
    */
   titulo: string
-  /** Si la rejilla del mes está desplegada. Solo manda en móvil. */
-  mesAbierto: boolean
-  onToggleMes: () => void
-  vista: VistaEscritorio
-  onVista: (vista: VistaEscritorio) => void
+  vista: VistaCalendario
+  onVista: (vista: VistaCalendario) => void
+  /** Qué vistas se ofrecen. Móvil y escritorio no ofrecen las mismas. */
+  vistas: VistaCalendario[]
   /** Qué recorren las flechas, para su etiqueta accesible: "Semana anterior". */
   unidad: string
   onPrev: () => void
@@ -53,7 +57,7 @@ interface CalendarHeaderProps {
   onAdd: () => void
 }
 
-export function CalendarHeader({ titulo, mesAbierto, onToggleMes, vista, onVista, unidad, onPrev, onNext, onAdd }: CalendarHeaderProps) {
+export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev, onNext, onAdd }: CalendarHeaderProps) {
 
   const FLECHA = 'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
 
@@ -70,44 +74,20 @@ export function CalendarHeader({ titulo, mesAbierto, onToggleMes, vista, onVista
 
   return (
     <div className="px-4 pt-3 lg:px-0 lg:pt-0">
+      {/* Una sola fila para las dos versiones: el título con sus flechas y, a la
+          derecha, el selector y el `+`. El plegable del mes se fue al entrar la
+          vista Mes en móvil (26-08-2026): eran dos maneras de pedir lo mismo. */}
       <div className="flex items-center justify-between gap-2">
-        {/* Móvil: el rótulo abre y cierra el mes. Las flechas solo cuando está
-            abierto — con la rejilla guardada no habría nada que recorrer. */}
-        <div className="flex min-w-0 items-center gap-0.5 lg:hidden">
-          <button
-            type="button"
-            onClick={onToggleMes}
-            aria-expanded={mesAbierto}
-            aria-label={mesAbierto ? 'Ocultar el mes' : 'Ver el mes'}
-            className="flex min-h-9 min-w-0 items-center gap-1 rounded-xl px-2 py-1 transition-colors hover:bg-line active:bg-grip"
-          >
-            <span className="min-w-0 truncate text-base font-extrabold tracking-tight text-ink">{titulo}</span>
-            <ChevronDown
-              size={18}
-              strokeWidth={2.5}
-              aria-hidden
-              className={`flex-shrink-0 text-muted transition-transform ${mesAbierto ? 'rotate-180' : ''}`}
-            />
-          </button>
-          {/* En móvil las dos juntas detrás del rótulo: el rótulo es un botón
-              y meterle una flecha a cada lado deja tres objetivos táctiles
-              pegados donde el pulgar no acierta. */}
-          {mesAbierto && (<>{anterior}{siguiente}</>)}
-        </div>
-
-        {/* Escritorio: la rejilla está siempre a la vista, así que el rótulo es
-            un título y las flechas no dependen de nada. */}
-        <div className="hidden min-w-0 items-center gap-0.5 lg:flex">
+        <div className="flex min-w-0 items-center gap-0.5">
           {anterior}
           <h2 className="min-w-0 truncate px-1 text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
           {siguiente}
         </div>
 
-        {/* El selector de vista es de escritorio y de nadie más: en móvil una
-            semana en columnas son siete tiras de 45 px sin sitio para un
-            título, que es por lo que esa vista se descartó en su día. */}
+        {/* En escritorio el selector va en esta misma fila, a la derecha, que es
+            donde estaba y donde cabe: tres pestañas y sitio de sobra. */}
         <div className="ml-auto hidden gap-1 rounded-2xl bg-surface p-1 lg:flex">
-          {VISTAS.map(([valor, texto]) => (
+          {vistas.map(valor => (
             <button
               key={valor}
               type="button"
@@ -117,7 +97,7 @@ export function CalendarHeader({ titulo, mesAbierto, onToggleMes, vista, onVista
                 vista === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
               }`}
             >
-              {texto}
+              {NOMBRES[valor]}
             </button>
           ))}
         </div>
@@ -126,10 +106,29 @@ export function CalendarHeader({ titulo, mesAbierto, onToggleMes, vista, onVista
           type="button"
           onClick={onAdd}
           aria-label="Añadir evento"
-          className="ml-auto flex h-10 w-10 flex-shrink-0 lg:ml-2 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95"
+          className="ml-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95 lg:ml-2"
         >
           <Plus size={20} strokeWidth={2.5} />
         </button>
+      </div>
+
+      {/* El selector, debajo en móvil y en la misma fila en escritorio. Debajo
+          porque en móvil son cuatro pestañas y no caben al lado del título; y a
+          todo el ancho, que es donde el pulgar acierta. */}
+      <div className="mt-2 flex gap-1 rounded-2xl bg-surface p-1 lg:mt-0 lg:hidden">
+        {vistas.map(valor => (
+          <button
+            key={valor}
+            type="button"
+            onClick={() => onVista(valor)}
+            aria-pressed={vista === valor}
+            className={`flex-1 rounded-xl py-2 text-sm font-bold transition-colors ${
+              vista === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
+            }`}
+          >
+            {NOMBRES[valor]}
+          </button>
+        ))}
       </div>
     </div>
   )

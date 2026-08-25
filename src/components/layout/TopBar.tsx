@@ -1,10 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Settings } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
 import { getGreeting } from '@/lib/date-utils'
@@ -56,13 +54,11 @@ export function TopBar() {
         ) : (
           <h1 className="font-extrabold tracking-tight text-primary-strong text-lg">{title ?? 'Nido'}</h1>
         )}
-        <Link
-          href="/settings"
-          className="p-2 rounded-full text-muted hover:text-ink hover:bg-line transition-colors"
-          aria-label="Ajustes"
-        >
-          <Settings size={20} strokeWidth={1.8} />
-        </Link>
+        {/* La rueda de Ajustes ya no vive aquí (26-08-2026). Arriba a la derecha
+            es el sitio de lo que se usa a diario, y Ajustes se toca dos veces al
+            año: ocupaba la esquina más alcanzable del pulgar para nada. Ahora es
+            una fila al final de Inicio, donde acaba el recorrido de la pantalla.
+            En escritorio nunca hizo falta, que `SideNav` la lleva desde siempre. */}
       </div>
     </header>
   )

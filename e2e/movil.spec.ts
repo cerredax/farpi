@@ -70,9 +70,9 @@ for (const ruta of RUTAS) {
 test('el mes del calendario cabe y se puede tocar a 390 px', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(900)
-  // La rejilla se despliega desde el rótulo de la cabecera: la pantalla abre en la
-  // lista continua y sin esto no hay ninguna celda de día que medir.
-  await page.getByRole('button', { name: 'Ver el mes' }).click()
+  // El mes es una pestaña del selector: la pantalla abre en la lista continua y
+  // sin esto no hay ninguna celda de día que medir.
+  await page.getByRole('button', { name: 'Mes', exact: true }).click()
   await page.waitForTimeout(400)
 
   const medidas = await page.evaluate(minimo => {

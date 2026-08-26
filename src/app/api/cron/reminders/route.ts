@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
 import { RANGE_KINDS } from '@/lib/events'
 
@@ -80,6 +80,19 @@ function formatDate(parts: ZonedDateParts): string {
   ].join('-')
 }
 
+/**
+ * Una consulta que falla no puede acabar en un 200. El envío push ya contaba sus
+ * fallos, pero las consultas de arriba seguían perdiéndose en silencio: si la de
+ * suscripciones petaba, la respuesta era exactamente la misma que un día en que
+ * nadie se ha suscrito, y el cron salía en verde en el panel de Vercel mientras
+ * las notificaciones llevaban semanas sin llegar. El contexto viaja en el cuerpo
+ * porque a esta ruta solo llega quien trae el `CRON_SECRET`.
+ */
+function fallo(contexto: string, mensaje: string) {
+  console.error(`[cron] ${contexto}:`, mensaje)
+  return NextResponse.json({ error: 'No se pudieron preparar los recordatorios', contexto }, { status: 500 })
+}
+
 export async function GET(req: NextRequest) {
   // Esta ruta queda fuera del control de sesión del proxy (el cron de Vercel
   // llama sin cookies), así que el secreto es su única defensa: sin él
@@ -94,36 +107,45 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 
+  if (FALTA_SERVICE_ROLE) return respuestaSinServiceRole('cron')
+
   const supabase = createAdminClient()
 
-  await supabase.from('families').select('id').limit(1)
+  // El keep-alive es lo único que puede fallar sin abortar: su trabajo es que
+  // Supabase no duerma el proyecto, y si no lo consigue el resto ya se quejará.
+  // Pero entonces `keptAlive` tiene que decir la verdad.
+  const { error: keepAliveError } = await supabase.from('families').select('id').limit(1)
+  if (keepAliveError) console.error('[cron] Keep-alive:', keepAliveError.message)
+  const keptAlive = !keepAliveError
 
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   const privateKey = process.env.VAPID_PRIVATE_KEY
   const subject = process.env.VAPID_SUBJECT
   if (!publicKey || !privateKey || !subject) {
-    return NextResponse.json({ skipped: 'VAPID no configurado', keptAlive: true })
+    return NextResponse.json({ skipped: 'VAPID no configurado', keptAlive })
   }
   webpush.setVapidDetails(subject, publicKey, privateKey)
 
-  const { data: subs } = await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth')
+  const { data: subs, error: subsError } = await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth')
+  if (subsError) return fallo('consulta de suscripciones', subsError.message)
   // Cada salida temprana se distingue de las demás: si todas devolvieran
   // `{ sent: 0 }`, la primera vez que esto se ejecute de verdad no habría forma
   // de saber si es que nadie se ha suscrito o es que no había nada que contar.
   if (!subs || subs.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, keptAlive: true, sinSuscripciones: true })
+    return NextResponse.json({ ok: true, sent: 0, keptAlive, sinSuscripciones: true })
   }
 
   const userIds = [...new Set(subs.map(s => s.user_id))]
 
-  const { data: members } = await supabase
+  const { data: members, error: membersError } = await supabase
     .from('family_members')
     .select('user_id, family_id')
     .in('user_id', userIds)
+  if (membersError) return fallo('consulta de miembros', membersError.message)
 
   const familyIds = [...new Set((members ?? []).map(m => m.family_id))]
   if (familyIds.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, keptAlive: true, sinFamilias: true })
+    return NextResponse.json({ ok: true, sent: 0, keptAlive, sinFamilias: true })
   }
 
   const todayParts = getZonedDateParts(new Date(), REMINDER_TIME_ZONE)
@@ -136,7 +158,7 @@ export async function GET(req: NextRequest) {
   // un DNI. Un papel caducado no avisa por su cuenta.
   const limiteCaducidad = formatDate(addDays(todayParts, DIAS_AVISO_CADUCIDAD))
 
-  const [{ data: events }, { data: tasks }, { data: docs }] = await Promise.all([
+  const [eventsRes, tasksRes, docsRes] = await Promise.all([
     // Solo planes, igual que `selectTodayEvents`: ni vacaciones, ni descansos, ni
     // festivos. Avisar de que "tenéis 1 evento" el día que empiezan contradice lo
     // que enseña la pantalla de inicio esa misma mañana, y un festivo no es un
@@ -144,8 +166,18 @@ export async function GET(req: NextRequest) {
     // misma lista que usa `isPlan`, para que no puedan separarse otra vez.
     supabase.from('events').select('family_id').not('kind', 'in', `(${RANGE_KINDS.join(',')})`).gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
-    supabase.from('documents').select('family_id').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
+    // `expires_on` viene con los datos porque un papel vencido y uno que vence
+    // la semana que viene no se cuentan en la misma frase.
+    supabase.from('documents').select('family_id, expires_on').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
   ])
+
+  // Con una sola de las tres rota, los recuentos salen incompletos: mejor no
+  // mandar nada que avisar de una tarea cuando había tres eventos más.
+  const errorDelDia = eventsRes.error ?? tasksRes.error ?? docsRes.error
+  if (errorDelDia) return fallo('consulta de eventos, tareas o documentos', errorDelDia.message)
+  const { data: events } = eventsRes
+  const { data: tasks } = tasksRes
+  const { data: docs } = docsRes
 
   let sent = 0
   let fallidos = 0
@@ -155,8 +187,10 @@ export async function GET(req: NextRequest) {
     const fams = (members ?? []).filter(m => m.user_id === userId).map(m => m.family_id)
     const eventCount = (events ?? []).filter(e => fams.includes(e.family_id)).length
     const taskCount = (tasks ?? []).filter(t => fams.includes(t.family_id)).length
-    const docCount = (docs ?? []).filter(d => fams.includes(d.family_id)).length
-    if (eventCount === 0 && taskCount === 0 && docCount === 0) continue
+    const docsUsuario = (docs ?? []).filter(d => fams.includes(d.family_id))
+    const vencidos = docsUsuario.filter(d => d.expires_on !== null && d.expires_on < today).length
+    const porVencer = docsUsuario.length - vencidos
+    if (eventCount === 0 && taskCount === 0 && docsUsuario.length === 0) continue
 
     const parts: string[] = []
     if (eventCount > 0) parts.push(`${eventCount} evento${eventCount !== 1 ? 's' : ''}`)
@@ -165,9 +199,18 @@ export async function GET(req: NextRequest) {
     // Lo que caduca va en frase aparte: no es de hoy, es un aviso con margen, y
     // colarlo en "para hoy" haría correr por algo que aún no corre prisa.
     const cuerpo = parts.length > 0 ? `Tenéis ${parts.join(' y ')} para hoy.` : ''
-    const caducan = docCount > 0
-      ? `${docCount} documento${docCount !== 1 ? 's' : ''} caduca${docCount !== 1 ? 'n' : ''} este mes.`
-      : ''
+
+    // Lo ya vencido se sigue avisando cada día a propósito —un papel caducado no
+    // avisa por su cuenta, igual que en la tarjeta del documento—, pero no puede
+    // decir que "caduca este mes" algo que venció en marzo. Son dos frases.
+    const avisos: string[] = []
+    if (vencidos > 0) {
+      avisos.push(vencidos === 1 ? '1 documento está caducado.' : `${vencidos} documentos están caducados.`)
+    }
+    if (porVencer > 0) {
+      avisos.push(porVencer === 1 ? '1 documento caduca este mes.' : `${porVencer} documentos caducan este mes.`)
+    }
+    const caducan = avisos.join(' ')
 
     const payload = JSON.stringify({
       title: 'Hoy en casa',

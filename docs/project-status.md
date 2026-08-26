@@ -41,7 +41,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 ### Backend / migraciones
 
-- Migraciones Supabase 001–019 aplicadas en el proyecto real. La 019 (franjas de comida) entró el 2026-08-24 y quedó validada ese mismo día con 58/58. Las 017 (descansos) y 018 (adultos sin cuenta), el 2026-08-21, revalidadas ese mismo día con 51/51. Las 015 (dueño de la tarea) y 016 (caducidad de documentos), el 2026-08-05.
+- **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
+  con la base como está, aplicado en el proyecto real y validado el 26-08-2026 con
+  **69/69**. Las 21 migraciones numeradas que lo precedieron se aplastaron ese mismo día
+  y siguen en el historial de git, que es donde va la historia; este documento contaba
+  hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
+  veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
+  SQL Editor y se vuelve a pasar `node scripts/validate-rls.mjs`.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
@@ -111,7 +117,9 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Estado Supabase
 
-- Proyecto Supabase creado, migraciones 001–019 aplicadas y UI conectada. Las 012, 013 y 014 se verificaron contra la base real el 04-08-2026; las 015 y 016 se aplicaron el 05-08-2026; las 017 y 018 el 21-08-2026; la 019 el 24-08-2026.
+- Proyecto Supabase creado, `supabase/schema.sql` aplicado y UI conectada. Comprobado
+  contra la base real el 26-08-2026: el esquema responde y las dos últimas cosas que
+  entraron —el festivo y las unidades de la lista— están vivas en producción.
 - 014 (`update_family_member_profile` + `family_members.color`): la columna existe, la RPC responde y la antigua `update_my_family_profile` está borrada. Editar un miembro funciona en producción.
 - App en producción (Vercel) contra el mismo proyecto Supabase que local.
 - **Validación aislada completada el 2026-08-03: 47/47 comprobaciones correctas** (RLS por tabla con dos usuarios reales, RPCs, regla del último admin, invitaciones y triggers cross-family). Resultados en `docs/supabase-validation.md`.
@@ -120,13 +128,13 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. El 24-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
-real: **58/58**, con las 19 migraciones validadas. Las siete últimas comprobaciones son de
-la 019 (franjas de comida): que la columna nace con las cuatro, que solo un admin las
-cambia —y que un miembro de la familia que no lo es, no— y que el `check` rechaza tanto una
-franja inventada como quedarse sin ninguna. Antes de eso, el 06-08-2026, la pasada dio
-51/51 con las dos comprobaciones de los triggers cross-family de `tasks` y las dos del
-perfil de la 014. Detalle en `docs/supabase-validation.md`.
+Sin pendientes. El 26-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
+real: **69/69**. Son las 58 del 24-08-2026 más las cinco de los festivos (que el `check`
+rechaza un tipo inventado, un festivo sin día final y uno que no sea de día completo) y
+las seis de las unidades de la lista (que un ítem nace con una, que solo la familia las
+cambia y que el `check` para el cero y el tope). La limpieza dejó en la base únicamente
+la familia real. Detalle en `docs/supabase-validation.md`, que es el sitio donde vive
+esto; aquí solo el titular.
 
 ## Cerrado el 2026-08-24
 
@@ -470,10 +478,26 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     usa `NIDO_TIME_ZONE`. Real, pero arreglarlo de verdad es dejar de guardar las fechas
     familiares como `timestamptz`. Para una familia en Madrid no compensa: queda anotado
     como límite conocido.
-  - **Recuento de tests y estado de las migraciones en este mismo documento.** Lo
-    primero se corrige aquí (eran 309, ahora 310, y la línea que decía 279 llevaba
-    tiempo mintiendo). Lo segundo sigue **pendiente de comprobar en el SQL Editor**: hay
-    entradas que dicen que la `020` y la `021` están sin aplicar en producción.
+  - **Recuento de tests y estado de las migraciones en este mismo documento.** Eran 309
+    y la línea que decía 279 llevaba tiempo mintiendo; con el test nuevo son 310. Y lo de
+    las migraciones se comprobó contra la base real en vez de dejarlo a medias: la `020`
+    y la `021` **están aplicadas** —hay festivos guardados y `list_items.quantity`
+    responde con datos—, así que las dos entradas que las daban por pendientes estaban
+    obsoletas. `validate-rls.mjs` se volvió a pasar: **69/69**.
+
+  Lo que deja la lección, otra vez: este documento se desactualiza solo, y lo hace en las
+  secciones de estado, no en el registro. La lista de migraciones aplicadas se había
+  quedado corta dos veces, y por eso desaparece: el estado del esquema ahora se cuenta
+  con `supabase/schema.sql`, que es un archivo y no una lista que haya que ir sumando.
+
+- **La CSP tenía su propia idea de qué es el modo demo.** `buildCsp()` en
+  `next.config.ts` miraba la URL a mano (`includes('placeholder')`) en vez de preguntar a
+  `IS_DEMO_MODE`, que es el único sitio donde esa regla debe vivir. Tercera copia de la
+  misma regla, y ya hay precedente de cómo acaba: la de "esto es un plan del día" llegó a
+  estar escrita de cuatro maneras y dos se quedaron cortas. Ahora usa `IS_DEMO_MODE` y
+  `SUPABASE_URL`, y de paso reconoce una clave de relleno y no solo una URL de relleno.
+  Comprobado contra el build servido por los dos lados: con credenciales reales
+  `connect-src` sale con la URL del proyecto y su `wss:`; en modo demo, `'self'`.
 
 - **Los festivos y los descansos se colaban en Inicio.** Un festivo apuntado para hoy
   salía en "lo que hay que hacer hoy" y en "esta semana", y el correo de las siete lo
@@ -670,8 +694,9 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   - **Solo en lo que hace falta**, no en el catálogo: "lo de siempre" es una lista de
     nombres para volver a pedir, y el número es de esta compra, no del nombre.
   - `SCHEMA_VER` del mock sube a **9**: cambia la forma de lo guardado en `localStorage`.
-  - **Pendiente: aplicar la `021` en el SQL Editor.** Hasta entonces la app en producción
-    no puede guardar unidades. Después toca `validate-rls.mjs` y este documento.
+  - ~~Pendiente: aplicar la `021` en el SQL Editor.~~ **Aplicada.** Confirmado contra la
+    base real el 26-08-2026: la columna existe con datos y las seis comprobaciones de
+    `validate-rls.mjs` pasan.
 
 
 
@@ -757,10 +782,9 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
   - El título es opcional, como en los otros dos de rango: sin él se guarda como
     "Festivo". Y los nacionales no vienen puestos a propósito: los de la comunidad, los
     del pueblo y los del colegio no salen de ninguna lista que sirva para todos.
-  - **Pendiente: aplicar la `020` en el SQL Editor de Supabase.** Hasta entonces la app en
-    producción rechaza guardar un festivo, porque el `check` de la base solo admite tres
-    tipos. Después toca `node scripts/validate-rls.mjs` y actualizar
-    `docs/supabase-validation.md`.
+  - ~~Pendiente: aplicar la `020` en el SQL Editor de Supabase.~~ **Aplicada.** Confirmado
+    contra la base real el 26-08-2026: hay festivos guardados y el `check` rechaza los
+    tres casos malos. Las cinco comprobaciones están en `validate-rls.mjs`.
 
   - **Y las ausencias aparecen en Semana y en Día**, que no aparecían: `partirEventosDelDia`
     deja fuera las vacaciones —su sitio era la raya de la rejilla, y ahí no hay rejilla—

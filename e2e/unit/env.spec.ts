@@ -25,6 +25,8 @@ test('los placeholders cuentan como modo demo', () => {
   expect(isDemoConfig('your-supabase-project-url', CLAVE_OK)).toBe(true)
   expect(isDemoConfig('https://placeholder.supabase.co', CLAVE_OK)).toBe(true)
   expect(isDemoConfig(URL_OK, 'your-anon-key')).toBe(true)
+  // La que reparte `.env.example`, que no es la misma cadena y se colaba.
+  expect(isDemoConfig(URL_OK, 'your-supabase-anon-key')).toBe(true)
 })
 
 test('ignora los espacios alrededor de los valores', () => {

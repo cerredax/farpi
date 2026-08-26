@@ -1,13 +1,26 @@
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { requiereSesion } from '@/lib/supabase/guard'
 
 export const runtime = 'nodejs'
+
+/**
+ * El motivo va al log del servidor y no a la respuesta, como en `/api/push` y
+ * `/api/invite`: el mensaje de Postgres o del Admin API no le dice nada a quien
+ * borra su cuenta y sí a quien sondea. La única excepción es el aviso del
+ * último administrador, que es una regla de negocio y hay que poder leerla.
+ */
+function fallo(contexto: string, mensaje: string) {
+  console.error(`[account/delete] ${contexto}:`, mensaje)
+  return NextResponse.json({ error: 'No se pudo borrar la cuenta' }, { status: 500 })
+}
 
 export async function POST() {
   const guardia = await requiereSesion()
   if (guardia.fallo) return guardia.fallo
   const { user } = guardia
+
+  if (FALTA_SERVICE_ROLE) return respuestaSinServiceRole('account/delete')
 
   const admin = createAdminClient()
 
@@ -17,7 +30,7 @@ export async function POST() {
     .eq('user_id', user.id)
 
   if (membershipsError) {
-    return NextResponse.json({ error: membershipsError.message }, { status: 500 })
+    return fallo('lectura de membresías', membershipsError.message)
   }
 
   const familyIdsToDelete: string[] = []
@@ -29,7 +42,7 @@ export async function POST() {
       .eq('family_id', membership.family_id)
 
     if (membersError) {
-      return NextResponse.json({ error: membersError.message }, { status: 500 })
+      return fallo('lectura de los miembros de la familia', membersError.message)
     }
 
     const memberCount = familyMembers?.length ?? 0
@@ -55,26 +68,26 @@ export async function POST() {
       .eq('family_id', familyId)
 
     if (docsError) {
-      return NextResponse.json({ error: docsError.message }, { status: 500 })
+      return fallo('lectura de documentos', docsError.message)
     }
 
     const paths = (docs ?? []).map(doc => doc.storage_path).filter(Boolean)
     if (paths.length > 0) {
       const { error: storageError } = await admin.storage.from('documents').remove(paths)
       if (storageError) {
-        return NextResponse.json({ error: storageError.message }, { status: 500 })
+        return fallo('borrado de archivos', storageError.message)
       }
     }
 
     const { error: familyDeleteError } = await admin.from('families').delete().eq('id', familyId)
     if (familyDeleteError) {
-      return NextResponse.json({ error: familyDeleteError.message }, { status: 500 })
+      return fallo('borrado de la familia', familyDeleteError.message)
     }
   }
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(user.id)
   if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    return fallo('borrado del usuario', deleteError.message)
   }
 
   return NextResponse.json({ ok: true })

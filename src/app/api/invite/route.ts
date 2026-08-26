@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { requiereSesion } from '@/lib/supabase/guard'
 
 export async function POST(req: NextRequest) {
@@ -64,6 +64,8 @@ export async function POST(req: NextRequest) {
   }
   const origin = configurado ?? req.nextUrl.origin
   const redirectTo = `${origin}/auth/callback?invite_id=${invite.id}`
+
+  if (FALTA_SERVICE_ROLE) return respuestaSinServiceRole('invite')
 
   const admin = createAdminClient()
   const { error: magicError } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo })

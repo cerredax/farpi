@@ -117,8 +117,14 @@ encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
 - `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app.
   Sin eso, un enlace de correo legítimo podía acabar en otra web justo después
   de iniciar sesión.
-- Cabeceras en `next.config.ts`. Sin CSP a propósito: Next inyecta scripts en
-  línea y una CSP mal puesta rompe producción sin avisar en local.
+- Cinco cabeceras en `next.config.ts`, **CSP incluida** desde el 26-08-2026. Estuvo
+  meses aparcada por un motivo que sigue siendo cierto —Next inyecta scripts en línea y
+  una CSP mal puesta rompe producción sin avisar en local—, y por eso lleva
+  `'unsafe-inline'` en `script-src`: no para un XSS en línea, pero sí cargar scripts de
+  otro dominio, `<object>`, el iframe, reescribir `base`, enviar un formulario fuera y
+  hablar con cualquier servidor que no sea Supabase. `connect-src` se arma con la URL
+  real del proyecto, no con un comodín. Se prueba contra el build servido, no contra
+  `npm run dev`.
 
 No hay `dangerouslySetInnerHTML` ni `eval` en todo el código.
 

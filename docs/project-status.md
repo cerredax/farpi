@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-24.
+Última revisión: 2026-08-26.
 
 ## Resumen
 
@@ -72,11 +72,11 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **279 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **310 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 228 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 229 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
   - 81 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -87,7 +87,14 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - `family_invites` update con `using` + `with check`.
 - `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app. Sin eso,
   un enlace de correo legítimo podía acabar en otra web justo después de iniciar sesión.
-- Cabeceras de seguridad en `next.config.ts`. Sin CSP a propósito (ver `architecture.md`).
+- Cinco cabeceras de seguridad en `next.config.ts`, **CSP incluida** desde el
+  26-08-2026 (ver `architecture.md`: lleva `'unsafe-inline'` en los scripts porque Next
+  los inyecta, y `connect-src` se arma con la URL real del proyecto).
+- Rutas API: el motivo de un fallo va al log del servidor y la respuesta lleva un mensaje
+  genérico, en las tres (`/api/push`, `/api/invite`, `/api/account/delete`). La excepción
+  es el aviso del último administrador, que es una regla de negocio y hay que leerla.
+- Sin `SUPABASE_SERVICE_ROLE_KEY`, las rutas que usan el cliente admin responden 503 en
+  vez de reventar con el «supabaseKey is required» de la librería.
 
 ## Regla del último admin — DECISIÓN TOMADA
 
@@ -422,6 +429,51 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     título sale como "09:0…"— porque una celda de escritorio pasa de 120 px.
 
 ## Cerrado el 2026-08-26
+
+- **Repaso de una auditoría externa: nueve hallazgos, seis arreglados.** El resto se
+  queda como está y por escrito, que es la mitad que suele perderse.
+
+  - **Poner solo la hora de fin creaba un evento a medianoche.** `validateEventDraft`
+    comparaba `end_time <= start_time`, pero un evento nuevo nace con `start_time`
+    vacío y cualquier hora es mayor que la cadena vacía: no saltaba nunca, y
+    `eventInsert` lo guardaba con su `|| '00:00'`. Ahora se pide primero la hora de
+    inicio.
+  - **El cron devolvía 200 aunque Supabase fallara.** Las cuatro consultas ignoraban su
+    `error`: si petaba la de suscripciones, la respuesta era `sinSuscripciones: true`,
+    indistinguible de un día sin suscriptores, y el cron salía verde en Vercel mientras
+    las notificaciones no llegaban. Curiosamente el envío push **sí** contaba sus fallos
+    desde hacía días; era la misma lección a medio aprender. Ahora un fallo es un 500 con
+    contexto en el log, y `keptAlive` deja de decir siempre que sí.
+  - **El aviso de caducidad decía "caduca este mes" de un papel vencido en marzo.**
+    Seguir avisando de lo ya vencido cada día es deliberado —un papel caducado no avisa
+    por su cuenta, y es lo mismo que hace la tarjeta del documento—, pero eran dos cosas
+    distintas metidas en una frase. Ahora son dos.
+  - **`.env.example` reparte una clave que la detección de modo demo no reconocía.**
+    `your-supabase-anon-key` frente a `your-anon-key`: copiar la plantilla y cambiar solo
+    la URL arrancaba contra Supabase con una clave de mentira.
+  - **`/api/account/delete` devolvía mensajes crudos de Postgres y del Admin API**, en
+    seis sitios y sin registrarlos en ninguno. `/api/push` e `/api/invite` ya hacían lo
+    correcto desde antes; esta se había quedado atrás.
+  - **El cliente admin se construía con una clave vacía** si faltaba
+    `SUPABASE_SERVICE_ROLE_KEY`, y reventaba con un 500 de la librería que no dice qué
+    variable falta.
+
+  Los tres que no se tocan, y por qué:
+
+  - **Los sheets se cierran sin esperar a que la escritura termine.** Es cierto, pero no
+    es silencioso: `SaveStatus` existe justo para eso y pinta "No se ha guardado el
+    cambio" con el motivo. Lo que se pierde es el borrador, y en `DocSheet` también el
+    archivo elegido. Arreglarlo bien es `useSheetForm` con `onValid` async más los ocho
+    sheets y sus props, y el mock nunca falla, así que la suite no cubriría nada de eso.
+    Cuando haya que tocar los sheets por otra razón.
+  - **Zona horaria.** `supabase-repos/events.ts` convierte con la del navegador y el cron
+    usa `NIDO_TIME_ZONE`. Real, pero arreglarlo de verdad es dejar de guardar las fechas
+    familiares como `timestamptz`. Para una familia en Madrid no compensa: queda anotado
+    como límite conocido.
+  - **Recuento de tests y estado de las migraciones en este mismo documento.** Lo
+    primero se corrige aquí (eran 309, ahora 310, y la línea que decía 279 llevaba
+    tiempo mintiendo). Lo segundo sigue **pendiente de comprobar en el SQL Editor**: hay
+    entradas que dicen que la `020` y la `021` están sin aplicar en producción.
 
 - **Los festivos y los descansos se colaban en Inicio.** Un festivo apuntado para hoy
   salía en "lo que hay que hacer hoy" y en "esta semana", y el correo de las siete lo

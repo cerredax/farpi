@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { IS_DEMO_MODE, SUPABASE_URL } from "./src/lib/supabase/env";
 
 /**
  * Cabeceras de seguridad. No había ninguna, y Nido guarda documentos de la
@@ -30,16 +31,19 @@ import type { NextConfig } from "next";
  *
  * `connect-src` se arma con la URL real del proyecto en vez de un comodín
  * `*.supabase.co`: si un día se cuela una clave de otro proyecto, la petición no
- * sale. En modo demo no hay URL y se queda en `'self'`, que es lo correcto porque
- * ahí no se habla con nadie.
+ * sale. En modo demo se queda en `'self'`, que es lo correcto porque ahí no se
+ * habla con nadie. Quién está en modo demo lo dice `IS_DEMO_MODE` y nadie más:
+ * esta función tenía su propia versión de la regla, mirando solo la URL, y una
+ * regla escrita dos veces es una regla que acaba diciendo dos cosas.
  *
  * `'unsafe-eval'` solo en desarrollo: lo necesita el refresco en caliente, y en
  * el build servido no hace falta.
  */
 function buildCsp(): string {
-  const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim().replace(/\/$/, '')
-  const esDemo = !supabase || supabase.includes('placeholder') || supabase.includes('your-supabase')
-  const conexiones = esDemo
+  // La barra final se quita aquí y no en `env.ts` porque es cosa de la cabecera:
+  // un origen de CSP no la lleva.
+  const supabase = SUPABASE_URL.replace(/\/$/, '')
+  const conexiones = IS_DEMO_MODE
     ? "'self'"
     : `'self' ${supabase} ${supabase.replace(/^https:/, 'wss:')}`
 

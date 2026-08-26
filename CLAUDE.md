@@ -138,11 +138,20 @@ que el `SCHEMA_VER` del mock.
 
 ### Cabeceras de seguridad
 
-`next.config.ts` pone cuatro en todas las rutas (`X-Frame-Options: DENY`, `nosniff`,
-`Referrer-Policy`, `Permissions-Policy`), porque Nido guarda DNI, informes médicos y el
-libro de familia. **No hay CSP a propósito**: Next inyecta scripts en línea y una CSP mal
-puesta rompe producción sin haber avisado en local. No añadir una sin probarla contra el
-build servido (`npm run build && npm run start`), no contra `npm run dev`.
+`next.config.ts` pone cinco en todas las rutas, porque Nido guarda DNI, informes médicos
+y el libro de familia: `Content-Security-Policy`, `X-Frame-Options: DENY`, `nosniff`,
+`Referrer-Policy` y `Permissions-Policy`.
+
+**La CSP lleva `'unsafe-inline'` en los scripts** porque Next los inyecta, así que no para
+un XSS en línea; sí para cargar scripts de otro dominio, `<object>`, el iframe, reescribir
+`base`, **enviar un formulario fuera** y hablar con cualquier servidor que no sea Supabase.
+`connect-src` se arma con la URL real del proyecto, no con un comodín.
+
+Si se toca: **probarla contra el build servido** (`npm run build && npm run start`), no
+contra `npm run dev`, que no sirve lo mismo. La forma de comprobarlo es recorrer las rutas
+escuchando `securitypolicyviolation`, y hacerlo dos veces: con credenciales reales —que
+prueba el `connect-src` de Supabase— y con un build en modo demo, que es el único que deja
+entrar en las pantallas con sesión sin credenciales.
 
 ### Rutas API
 

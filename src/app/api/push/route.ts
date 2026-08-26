@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
       { onConflict: 'endpoint' },
     )
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    // El motivo va al log del servidor y no a la respuesta: el mensaje de
+    // Postgres no le dice nada a quien usa la app y sí a quien sondea.
+    console.error('[push] alta de suscripción:', error.message)
+    return NextResponse.json({ error: 'No se pudo guardar la suscripción' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
@@ -57,7 +60,10 @@ export async function DELETE(req: NextRequest) {
     .eq('endpoint', endpoint)
     .eq('user_id', user.id)
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    // El motivo va al log del servidor y no a la respuesta: el mensaje de
+    // Postgres no le dice nada a quien usa la app y sí a quien sondea.
+    console.error('[push] baja de suscripción:', error.message)
+    return NextResponse.json({ error: 'No se pudo borrar la suscripción' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

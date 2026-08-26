@@ -423,6 +423,35 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **Repaso de seguridad y refactor de cierre.** La revisión no encontró ningún punto
+  crítico: el service role solo vive en las tres rutas API server-side, las que llama la UI
+  cortan en demo y validan sesión, `/api/invite` además comprueba que quien invita es admin
+  de esa familia, el cron exige `CRON_SECRET` y **falla cerrado** si falta, `safeNextPath`
+  rechaza las rutas que no son locales, y la policy de `push_subscriptions` impide robar la
+  suscripción de otro. Lo que sí salió fueron tres cosas de endurecimiento y dos
+  duplicaciones.
+  - **Entra la CSP**, que llevaba meses aparcada con motivo. Lleva `'unsafe-inline'` en los
+    scripts —Next los inyecta— así que no para un XSS en línea; sí para cargar scripts de
+    otro dominio, `<object>`, el iframe, reescribir `base`, enviar un formulario fuera y
+    hablar con cualquier servidor que no sea Supabase. Probada contra el **build servido**
+    dos veces: con credenciales reales y con un build en modo demo, recorriendo las once
+    rutas y escuchando `securitypolicyviolation`. Cero violaciones.
+  - **El `redirectTo` del magic link ya no se adivina.** Caía a `req.nextUrl.origin`, que
+    sale de la cabecera `Host`; si `NEXT_PUBLIC_SITE_URL` faltara, un `Host` falsificado
+    haría que el enlace —que **inicia sesión**— llevara a otro dominio. Ahora el fallback
+    solo vale en local y en cualquier otro sitio se corta.
+  - **Las rutas API dejan de devolver el mensaje crudo de Postgres.** Va al log del
+    servidor; al cliente, un motivo en castellano. El duplicado de invitación sí se sigue
+    contando, que es útil y no revela nada.
+  - **La etiqueta de persona estaba escrita cinco veces.** El 50 % del fondo es carga
+    estructural —de él dependen las cuentas de contraste— y estaba como literal en cinco
+    componentes. Pasa a `fondoDePersona` en `assignees.ts` y a la clase `.etiqueta-persona`.
+  - **El fin de semana se calculaba de tres formas**, en tres archivos. Ahora es `isWeekend`
+    de date-fns, que de hecho estuvo importado y se perdió al cambiar el relleno por la
+    línea. La cabecera de columnas sigue mirando el índice, que ahí no hay fecha.
+
+
+
 - **Los días de las puntas del mes se pintan, rellenos en gris.** Cuando septiembre empieza
   en martes, el lunes de esa fila es el 31 de agosto: en blanco, la semana quedaba partida
   por la mitad y la fila dejaba de leerse como una semana. Ahora sale el número en gris

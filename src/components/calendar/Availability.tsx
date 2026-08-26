@@ -2,7 +2,7 @@ import { format, isSameMonth, isToday, isTomorrow, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Armchair, Palmtree } from 'lucide-react'
 import { extractDate, getLocalDateString } from '@/lib/date-utils'
-import { resolveAssignee } from '@/lib/assignees'
+import { fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { isVacation } from '@/lib/events'
 import { FAMILY_COLOR } from '@/lib/constants'
 import type { Event, Child, FamilyMember } from '@/types'
@@ -97,8 +97,8 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
                     rebaja de siempre, que es la que deja leer la tinta encima. */}
                 <span className="min-w-0 truncate text-[11px]">
                   <span
-                    className="rounded px-1 py-px font-bold text-ink"
-                    style={{ backgroundColor: `${color}80` }}
+                    className="etiqueta-persona px-1 py-px"
+                    style={{ backgroundColor: fondoDePersona(color) }}
                   >
                     {quien}
                   </span>

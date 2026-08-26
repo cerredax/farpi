@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isSameMonth, isToday, getDate } from 'date-fns'
+import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
 import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { eventCoversDay } from '@/lib/events'
@@ -69,7 +69,9 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
           <div
             key={label}
             // Sábado y domingo también en la cabecera: la trama empieza en las
-            // letras, que si no la columna arranca a media altura.
+            // letras, que si no la columna arranca a media altura. Aquí se mira el
+            // índice de columna y no una fecha —no hay ninguna—: son las dos
+            // últimas de `DAY_LABELS`.
             className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted ${
               i >= 5 ? 'dia-libre' : ''
             }`}
@@ -108,7 +110,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                 key={day.toISOString()}
                 aria-hidden
                 className={`${HUECO} flex flex-col items-center bg-canvas py-1 lg:min-h-[104px] ${
-                  [0, 6].includes(day.getDay()) ? 'dia-libre' : ''
+                  isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >
                 <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">

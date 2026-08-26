@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle, ChevronDown } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { TAREAS_PARA_PLEGAR } from '@/lib/constants'
-import { resolveAssignee } from '@/lib/assignees'
+import { fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import type { Child, FamilyMember, Task } from '@/types'
 
 /**
@@ -47,8 +47,8 @@ function TaskRow({ task, kids, members, atrasada, onToggle }: {
           mes: dentro de la misma tarjeta no pueden hablar de dos maneras. */}
       {asignado && (
         <span
-          className="max-w-[4.5rem] flex-shrink-0 truncate rounded px-1 py-px text-[11px] font-bold text-ink"
-          style={{ backgroundColor: `${asignado.color}80` }}
+          className="etiqueta-persona max-w-[4.5rem] flex-shrink-0 px-1 py-px text-[11px]"
+          style={{ backgroundColor: fondoDePersona(asignado.color) }}
         >
           {asignado.name}
         </span>

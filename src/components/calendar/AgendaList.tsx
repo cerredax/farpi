@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
 import { tramoDeAgenda } from '@/lib/agenda'
-import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
 import { eventCoversDay, isAbsence, isHoliday } from '@/lib/events'
 import { capitalize } from '@/lib/text'
@@ -123,8 +123,8 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
         * su color sin perder legibilidad.
         */}
       <span
-        className="max-w-[4.5rem] flex-shrink-0 truncate rounded px-1 py-px text-[11px] font-bold text-ink"
-        style={{ backgroundColor: `${color}80` }}
+        className="etiqueta-persona max-w-[4.5rem] flex-shrink-0 px-1 py-px text-[11px]"
+        style={{ backgroundColor: fondoDePersona(color) }}
       >
         {quien}
       </span>

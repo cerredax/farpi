@@ -174,6 +174,24 @@ export function textColorOn(background: string): string {
   return contraste(1) >= contraste(LUM_TINTA) ? BLANCO : TINTA
 }
 
+/**
+ * El fondo de una **etiqueta de persona**: su color al 50 %.
+ *
+ * Ese 50 % es carga estructural y no decoración, y por eso vive aquí con un
+ * nombre en vez de repetido como `\`${color}80\`` por media docena de
+ * componentes. La paleta va en dos bandas de claridad a propósito, así que
+ * mezclada con el fondo **ningún color admite texto blanco** —el peor cae a
+ * 1,17:1— y **todos admiten tinta**: el peor caso es Vino sobre el crema del
+ * hover, a 5,26:1, por encima del mínimo de 4,5:1. Bajar la mezcla al 30 %
+ * rompería esa cuenta en silencio, y subirla dejaría ilegible la tinta.
+ *
+ * Va en pareja con la clase `.etiqueta-persona` de `globals.css`, que pone la
+ * forma y fija el texto en tinta.
+ */
+export function fondoDePersona(color: string): string {
+  return `${color}80`
+}
+
 /** La opción que corresponde al estado actual de un draft. */
 export function assigneeKeyOf(entidad: { child_id: string | null; member_id: string | null }): string {
   if (entidad.member_id) return `m:${entidad.member_id}`

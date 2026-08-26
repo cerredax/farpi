@@ -1,4 +1,5 @@
-import { eventColor } from '@/lib/assignees'
+import { isWeekend } from 'date-fns'
+import { eventColor, fondoDePersona } from '@/lib/assignees'
 import { holidayName, isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -40,10 +41,6 @@ const MAX_TITULOS = 2
 
 /** Cuántas ausencias se nombran en la celda antes de pasar a contarlas. */
 const MAX_AUSENCIAS = 2
-
-/** El fin de semana, en la cuenta de `Date.getDay()`. */
-const SABADO = 6
-const DOMINGO = 0
 
 
 interface DayCellProps {
@@ -128,7 +125,7 @@ export function DayCell({
    * Cuántas personas son lo dice el nombre accesible del día, y quiénes,
    * `Availability`.
    */
-  const esDiaLibre = day.getDay() === SABADO || day.getDay() === DOMINGO || festivos.length > 0
+  const esDiaLibre = isWeekend(day) || festivos.length > 0
   const ausencias = [...vacaciones, ...descansos].slice(0, MAX_AUSENCIAS)
   const planes = events.filter(e => !isVacation(e) && !isRestDay(e) && !isHoliday(e))
   const marcas = marcasDelDia(events, tasks, members, kids)
@@ -279,8 +276,8 @@ export function DayCell({
              * El botón ocupa el ancho entero: una fila estrecha en la que hay que
              * acertar con el ratón es peor que una fila ancha.
              */
-            className="min-h-5 w-full min-w-0 truncate rounded px-1 text-left text-[10px] font-bold leading-tight text-ink transition-shadow hover:shadow-sm"
-            style={{ backgroundColor: `${eventColor(event, members, kids)}80` }}
+            className="etiqueta-persona min-h-5 w-full min-w-0 px-1 text-left text-[10px] leading-tight transition-shadow hover:shadow-sm"
+            style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
           >
             {event.title}
           </button>

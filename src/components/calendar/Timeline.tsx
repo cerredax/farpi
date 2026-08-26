@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { format, isToday } from 'date-fns'
+import { format, isToday, isWeekend } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { eventCoversDay, holidayName, isAbsence, isHoliday, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
@@ -272,8 +272,8 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
                 return (
                   <span
                     key={event.id}
-                    className="truncate rounded px-1 py-0.5 text-[10px] font-bold text-ink"
-                    style={{ backgroundColor: `${eventColor(event, members, kids)}80` }}
+                    className="etiqueta-persona px-1 py-0.5 text-[10px]"
+                    style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
                   >
                     {quien}{isVacation(event) ? ' · vacaciones' : ' · descansa'}
                   </span>
@@ -329,7 +329,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
               key={day.toISOString()}
               // La misma trama que en la rejilla: sábado, domingo y festivo.
               className={`relative border-l border-hairline ${
-                [0, 6].includes(day.getDay()) || festivos.length > 0 ? 'dia-libre' : ''
+                isWeekend(day) || festivos.length > 0 ? 'dia-libre' : ''
               }`}
               style={{ height: alto }}
             >

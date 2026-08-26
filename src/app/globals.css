@@ -113,6 +113,26 @@
     );
   }
 
+  /* El nombre de alguien sobre su color.
+     ---------------------------------------------------------------
+     La forma de la etiqueta con la que el calendario dice "esto es de", ya sea
+     una cita, una tarea o unas vacaciones. Estuvo copiada en cinco componentes
+     con clases casi iguales; lo que no puede divergir es que el texto vaya en
+     **tinta**, porque el fondo es el color de la persona al 50 % y a esa mezcla
+     el blanco no llega al contraste en ningún color de la paleta.
+
+     El tamaño y el relleno los pone cada sitio: en una celda de 120 px el texto
+     va a 10 px y en una fila de la agenda a 11. El color de fondo lo calcula
+     `fondoDePersona`, en `assignees.ts`. */
+  .etiqueta-persona {
+    border-radius: 0.25rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
   /* Que alguien no está esos días: vacaciones o descanso.
      ---------------------------------------------------------------
      Una franja pegada al borde de arriba de la celda, que cruza los días

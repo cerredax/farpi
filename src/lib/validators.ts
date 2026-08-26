@@ -61,6 +61,11 @@ export function validateEventDraft(draft: EventDraft): string | null {
   if (!draft.date) return 'La fecha es obligatoria.'
   if (isRangeKind(draft.kind) && (!draft.end_date || draft.end_date < draft.date))
     return 'La fecha final debe ser posterior o igual a la inicial.'
+  // Sin esto la comparación de abajo no salta —cualquier hora es mayor que la
+  // cadena vacía— y el evento se guardaba empezando a las 00:00, que es lo que
+  // pone `eventInsert` cuando no hay hora de inicio.
+  if (!draft.all_day && draft.end_time && !draft.start_time)
+    return 'Indica primero la hora de inicio.'
   if (!draft.all_day && draft.end_time && draft.end_time <= draft.start_time)
     return 'La hora de fin debe ser posterior a la de inicio.'
   return null

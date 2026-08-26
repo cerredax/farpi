@@ -97,6 +97,14 @@ test.describe('validateEventDraft', () => {
   test('sin hora de fin es válido', () => {
     expect(validateEventDraft({ ...base, end_time: '' })).toBeNull()
   })
+
+  // Rellenar solo "hasta" pasaba la validación —cualquier hora es mayor que la
+  // cadena vacía— y el evento acababa guardado empezando a las 00:00.
+  test('rechaza una hora de fin sin hora de inicio', () => {
+    expect(validateEventDraft({ ...base, start_time: '', end_time: '10:00' })).not.toBeNull()
+    expect(validateEventDraft({ ...base, start_time: '', end_time: '' })).toBeNull()
+    expect(validateEventDraft({ ...base, all_day: true, start_time: '', end_time: '10:00' })).toBeNull()
+  })
 })
 
 test.describe('validateTaskDraft', () => {

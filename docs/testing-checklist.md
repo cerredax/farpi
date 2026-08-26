@@ -6,7 +6,7 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 - [ ] `npm run lint` termina sin errores y sin warnings relevantes.
 - [ ] `npm run build` termina correctamente.
-- [ ] `npm run test:unit` — los tests de lógica pura, sin servidor (~0,6 s).
+- [ ] `npm run test:unit` — los tests de lógica pura, sin servidor (~2 s).
 - [ ] `npm run test:e2e` — la suite entera: los unitarios más los de navegador.
 - [ ] No hay archivos temporales afectando a lint.
 
@@ -23,10 +23,13 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 > desborda a lo ancho o si aparece un control por debajo de 24×24 px. Lo que
 > queda aquí es lo que hay que mirar con el móvil en la mano.
 
-- [ ] La bottom nav muestra Inicio, Calendario, Listas, Comidas y Docs.
+- [ ] La barra de abajo muestra las seis secciones: Inicio, Calendario, Listas, Tareas,
+      Comidas y Docs. Documentos sale abreviado a «Docs» **solo aquí**: a 390 px no cabe
+      entero. En la barra lateral de escritorio se lee «Documentos».
 - [ ] La ruta activa se resalta correctamente.
-- [ ] `/tasks` sigue accesible desde Inicio o Listas.
-- [ ] La bottom nav no tapa contenido.
+- [ ] Ajustes **no** está en la barra de abajo ni en la rueda de la cabecera: vive al
+      final de Inicio, después de todo lo demás (26-08-2026).
+- [ ] La barra de abajo no tapa contenido.
 
 ## 3. Inicio
 
@@ -39,34 +42,91 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Permite marcar ítems de lista desde Inicio.
 - [ ] Muestra próximos eventos ordenados.
 - [ ] En "Esta semana", cada evento lleva el punto de color de quien lo tiene; los de toda la familia, el amarillo.
+- [ ] Un ítem de lista con más de una unidad enseña «×3» detrás del nombre. Con una sola
+      no se escribe nada, que «×1» es decir lo que ya dice la fila.
+- [ ] **Ni las vacaciones, ni los descansos, ni los festivos salen aquí**, ni en "hoy" ni
+      en "esta semana". No son planes: dicen quién no está o que el día no es de nadie, y
+      su sitio es el calendario. Apunta un festivo para hoy y comprueba que no aparece.
+- [ ] Abajo del todo, el enlace a Ajustes (solo en móvil; en escritorio está en la barra
+      lateral).
 
 ## 4. Calendario
 
-- [ ] En móvil abre en `Agenda`, con la tira de siete días y el detalle de hoy debajo.
-- [ ] El selector `Agenda | Mes` cambia lo de arriba y deja el día elegido donde estaba.
-- [ ] Vista mensual carga y las flechas recorren meses; en agenda recorren semanas.
-- [ ] La rejilla del mes solo enseña días de ese mes: las puntas van en blanco.
-- [ ] Si la tira de siete días cruza de mes, el día 1 lleva el mes debajo.
-- [ ] Días con eventos se distinguen (puntos con el color de quien lo lleva, o el número
-      si son más de tres), tanto en la tira como en el mes.
-- [ ] Se puede seleccionar un día, y su detalle aparece debajo sin cambiar de pestaña.
-- [ ] "Próximos días" enseña solo los días con algo, y tocar su fecha los selecciona.
-- [ ] Un tramo de vacaciones se lee como una raya continua, sin cortes entre días, y
-      redondeada solo en los extremos. Un descanso de un día es un guion corto.
-- [ ] El bloque "Vacaciones y descansos" dice el nombre de la persona y el estado:
+> Rehecho entero el 25 y el 26 de agosto de 2026. Lo que había aquí antes describía la
+> pantalla vieja —una tira de siete días, un selector `Agenda | Mes`, las puntas del mes
+> en blanco— y mandaba comprobar justo lo contrario de lo que hay.
+>
+> Automatizado en `e2e/escritorio.spec.ts`: las tres vistas de escritorio, que un título
+> escrito en la celda del mes abre su evento, la franja de una ausencia y el nombre de un
+> festivo (con y sin nombre propio). Lo de aquí es lo que hay que mirar con los ojos.
+
+### Las vistas
+
+- [ ] En móvil hay cuatro pestañas: **Agenda, Día, Semana y Mes**. En escritorio, tres:
+      **Día, Semana y Mes** (la agenda no está: para eso está el mes con sus títulos).
+- [ ] **Las dos abren en Mes.**
+- [ ] Cambiar de vista en el móvil no cambia la del escritorio, ni al revés: son dos
+      estados separados. Se comprueba estrechando y ensanchando la ventana.
+- [ ] La cabecera dice dónde estás según la vista: el mes en Mes, el día entero en Día
+      («Miércoles, 26 de agosto») y el tramo en Semana («24 – 30 de agosto»; si
+      el tramo cruza de mes, el extremo de la izquierda lleva también el suyo).
+- [ ] Las flechas recorren lo que se está viendo: meses en Mes, semanas en Semana y días
+      en Día.
+- [ ] El `+` de la cabecera crea un evento para el día elegido.
+
+### La rejilla del mes
+
+- [ ] **Las puntas se pintan, rellenas en gris y con el número tenue.** Si el mes empieza
+      en martes, el lunes de esa fila es el 31 del anterior y se ve, para que la semana no
+      quede cortada. No son botones y no enseñan nada de lo que pasa ese día.
+- [ ] Los fines de semana y los festivos llevan **trama diagonal**, la misma para los dos:
+      dicen lo mismo, que ese día no se trabaja.
+- [ ] En escritorio la rejilla se ve como una rejilla, con sus líneas. En móvil no hay
+      líneas: es la misma cuadrícula sin el dibujo.
+- [ ] En escritorio, los títulos de los eventos se escriben dentro de la celda y **se
+      pueden pulsar** para abrirlos. En móvil, en su lugar van las marcas de color.
+- [ ] Un festivo escribe su nombre en la celda **solo si tiene uno propio** («Hispanidad»).
+      Un festivo sin título no escribe «FESTIVO»: eso ya lo dice la trama.
+
+### Vacaciones y descansos
+
+- [ ] Se ven como una **franja sobre un carril gris**, redondeada solo en los extremos del
+      tramo, sin cortes entre días. El color dice de quién es; nunca qué es ni si lo hay.
+- [ ] Como mucho dos por celda.
+- [ ] El bloque «Vacaciones y descansos» dice el nombre de la persona y su estado:
       «de vacaciones hasta el 28 ago», «descansa hoy», «descansa del 3 al 4 sep».
 - [ ] Una ausencia de varios días sale **una vez** en el bloque, no una por día, y no
-      aparece como fila en la agenda del día.
-- [ ] Vacaciones y descansos se editan desde ese bloque (el único sitio).
-- [ ] Se puede crear evento; el `+` de la cabecera lo crea para el día elegido.
-- [ ] Se puede editar evento.
-- [ ] Se puede borrar evento con doble confirmación.
-- [ ] Eventos de hijos usan color correcto.
-- [ ] Eventos de todo el día no se desplazan de día.
+      aparece como fila en la agenda.
+- [ ] Se editan desde ese bloque, que es el único sitio.
+- [ ] El bloque solo anuncia ausencias del tramo que se está pintando: mirando agosto no
+      aparece un descanso de septiembre.
+
+### Día y Semana (el eje de horas)
+
+- [ ] **El día entra entero sin cortarse**: el alto de la hora se calcula para que quepa.
+- [ ] El eje cubre de siete de la mañana a diez de la noche como mínimo, y se estira si
+      hay algo antes o después.
+- [ ] Lo que se solapa se reparte en columnas, sin taparse.
+- [ ] Cada bloque dice el título y, debajo, la hora y de quién es. **También cuando el
+      evento no tiene hora de fin**, que es el caso más común.
+- [ ] La raya de la hora actual cruza el eje sin tachar los títulos.
+- [ ] Las ausencias y los festivos van arriba, fuera del eje: no ocupan horas.
+
+### Lo de siempre
+
+- [ ] Se puede crear, editar y borrar un evento; el borrado pide doble confirmación.
+- [ ] Los eventos de los hijos usan su color.
+- [ ] Un evento de todo el día no se desplaza de día.
+- [ ] **Al editar unas vacaciones, la fecha de inicio no retrocede un día.** Falló solo
+      contra Supabase, nunca en modo demo, así que esto hay que mirarlo con datos reales.
 - [ ] En la agenda salen también las tareas que vencen, y se pueden marcar allí.
-- [ ] Una tarea vencida antes de hoy aparece en el día de hoy marcada como "Atrasada".
-- [ ] El buscador del calendario encuentra eventos pasados, no solo los del tramo pintado,
-      y al vaciarlo se vuelve al día en el que estabas.
+- [ ] Una tarea vencida antes de hoy aparece en el día de hoy marcada como «Atrasada».
+- [ ] El buscador vive en la pestaña **Agenda** y solo aparece a partir de unos cuantos
+      eventos (`MINIMO_PARA_BUSCAR`). Encuentra los pasados, no solo los del tramo
+      pintado, y al vaciarlo se vuelve al día en el que estabas.
+- [ ] Al apuntar un evento, el tipo se elige en un desplegable: Evento, Vacaciones,
+      Descanso o Festivo. Los tres últimos ocupan días completos y piden fecha final; solo
+      el evento exige título.
 
 ## 5. Tareas
 
@@ -92,6 +152,12 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Marcar un ítem lo baja al catálogo ("Apuntar de lo de siempre"), que sale abierto al entrar en la lista y se puede plegar a mano.
 - [ ] En el catálogo el botón es un `+`, no un tic: vuelve a apuntar que hace falta.
 - [ ] Se puede mover un ítem a otra lista; la lista en la que ya está no se ofrece.
+- [ ] **Las unidades se cambian desde la propia fila**, con los botones de más y de menos,
+      sin abrir nada: en el súper se toca con una mano.
+- [ ] Un ítem nuevo arranca en 1, y en 1 no se escribe el número ni se ofrece el menos.
+- [ ] El tope es 99: el botón de más se desactiva ahí.
+- [ ] Lo que no cabe en un número («2 kg», «media docena») se sigue escribiendo en el
+      nombre, que es donde tiene sentido leerlo.
 - [ ] Se puede borrar ítem.
 
 ## 7. Comidas
@@ -198,8 +264,10 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 - [ ] En Tareas, dos columnas de pendientes y el recuento arriba ocupando el ancho.
 - [ ] En Listas, el índice en rejilla; al abrir una lista, más ancha pero aún en columna.
 - [ ] En Documentos, la rejilla de tarjetas y los cinco filtros sin arrastrar.
-- [ ] Home y Ajustes siguen centradas: se ve raro pero no roto. Es lo que queda por
-      hacer del layout de escritorio.
+- [ ] En el calendario, las vistas Día y Semana enseñan el día entero sin cortarlo, y la
+      rejilla del mes se ve con sus líneas.
+- [ ] Ajustes sigue con el ancho de móvil centrado (`SettingsView` no tiene ni una
+      variante `lg:`): se ve raro pero no roto. Es lo que queda del layout de escritorio.
 
 ## 14. Persistencia
 
@@ -212,10 +280,11 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 > Esta lista está **automatizada** en `scripts/validate-rls.mjs`, que la recorre con
 > sesiones de usuario reales y crea y borra sus propios usuarios y familias de
 > prueba. Ejecutarlo (`node scripts/validate-rls.mjs`) es más fiable que ir a mano, y
-> es lo que pide `CLAUDE.md` después de tocar una migración, una policy o una RPC.
+> es lo que pide `CLAUDE.md` después de tocar el esquema, una policy o una RPC. La
+> última pasada fue de **69/69** (26-08-2026).
 > Lo de abajo queda como referencia de qué cubre.
 
-- [ ] Migraciones 001–019 aplicadas en orden.
+- [ ] `supabase/schema.sql` aplicado (sustituye a las 21 migraciones desde el 26-08-2026).
 - [ ] Tablas, índices y triggers existen.
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.
@@ -229,8 +298,11 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 - [ ] Trigger rechaza `list_item` con `family_id` y `list_id` de familias distintas.
 - [ ] Trigger rechaza `event` con `child_id` de otra familia.
 - [ ] Trigger rechaza `document` con `child_id` de otra familia.
-- [ ] Trigger rechaza `task` con `child_id` de otra familia (migración 015).
-- [ ] Trigger rechaza `task` con `member_id` de otra familia (migración 015).
+- [ ] Trigger rechaza `task` con `child_id` de otra familia.
+- [ ] Trigger rechaza `task` con `member_id` de otra familia.
+- [ ] `events.kind` solo acepta `evento`, `vacaciones`, `descanso` y `festivo`, y los tres
+      últimos exigen día completo y fecha final.
+- [ ] `list_items.quantity` solo acepta de 1 a 99.
 - [ ] Bucket `documents` es privado.
 - [ ] Usuario de la familia puede leer su documento.
 - [ ] Usuario de otra familia no puede leer el documento aunque conozca el path.

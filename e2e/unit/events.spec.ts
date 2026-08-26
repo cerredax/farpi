@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isRangeKind, isRestDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
+import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
 import { event } from './fixtures'
 
 // Antes de las vacaciones, el calendario daba por hecho que un evento vivía en
@@ -190,5 +190,27 @@ test.describe('initDraft: la fecha de un evento guardado', () => {
       end_at: null,
     })
     expect(initDraft('edit', guardado, undefined).date).toBe('2026-01-01')
+  })
+})
+
+// `isPlan` es la regla única de "esto es un plan del día". Estuvo escrita de
+// cuatro maneras por la app y dos de ellas solo apartaban las vacaciones, así
+// que el descanso y el festivo se colaban en Inicio y en el aviso de las siete.
+// Este test es el que hace que no puedan volver a separarse.
+test.describe('isPlan', () => {
+  test('un evento es un plan', () => {
+    expect(isPlan(event({ kind: 'evento' }))).toBe(true)
+  })
+
+  test('lo que ocupa un rango no lo es: no dice qué hay que hacer hoy', () => {
+    expect(isPlan(event({ kind: 'vacaciones' }))).toBe(false)
+    expect(isPlan(event({ kind: 'descanso' }))).toBe(false)
+    expect(isPlan(event({ kind: 'festivo' }))).toBe(false)
+  })
+
+  test('es exactamente lo contrario de `isRangeKind`, para que no se separen', () => {
+    for (const kind of ['evento', 'vacaciones', 'descanso', 'festivo'] as const) {
+      expect(isPlan(event({ kind }))).toBe(!isRangeKind(kind))
+    }
   })
 })

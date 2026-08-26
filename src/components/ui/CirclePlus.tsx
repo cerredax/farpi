@@ -3,9 +3,9 @@ import { Plus } from 'lucide-react'
 interface CirclePlusProps {
   onClick: () => void
   ariaLabel?: string
-  /** sm = w-5 h-5 (compact rows), md = w-6 h-6 (default) */
+  /** sm = w-5 h-5, para filas apretadas; md = w-6 h-6, el normal. */
   size?: 'sm' | 'md'
-  /** Extra classes for the outer button (tap area) */
+  /** Clases extra para el botón de fuera, que es el área de toque. */
   className?: string
 }
 

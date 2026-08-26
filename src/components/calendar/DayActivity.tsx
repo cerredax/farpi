@@ -1,6 +1,6 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
-import { isAbsence, isHoliday } from '@/lib/events'
+import { isPlan } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 
 /**
@@ -44,7 +44,7 @@ export function marcasDelDia(
     // Los festivos tampoco cuentan como punto. No son un plan del día y no son de
     // nadie, así que un punto de color mentiría dos veces; de que el día es
     // festivo ya avisa la trama de la celda. Es la misma regla que las ausencias.
-    ...events.filter(e => !isAbsence(e) && !isHoliday(e)).map(e => eventColor(e, members, kids)),
+    ...events.filter(isPlan).map(e => eventColor(e, members, kids)),
     // Una tarea no tiene color propio en la base, así que se pinta con el de
     // quien la lleva y, si no es de nadie, con el de la familia. Es la misma
     // cadena que `eventColor` aplica a los eventos.

@@ -56,8 +56,10 @@ export function eventTitleOr(kind: EventKind, title: string): string {
  * los seis. La base de datos lo dice con la misma regla, una restricción por
  * tipo (`events_*_con_rango`).
  */
+export const RANGE_KINDS: EventKind[] = ['vacaciones', 'descanso', 'festivo']
+
 export function isRangeKind(kind: EventKind): boolean {
-  return kind === 'vacaciones' || kind === 'descanso' || kind === 'festivo'
+  return RANGE_KINDS.includes(kind)
 }
 
 export function isVacation(event: Event): boolean {
@@ -103,6 +105,23 @@ export function holidayName(event: Event): string {
  */
 export function isAbsence(event: Event): boolean {
   return isVacation(event) || isRestDay(event)
+}
+
+/**
+ * Un plan: algo que alguien hace a una hora o en un día concreto.
+ *
+ * Lo contrario son los tres tipos que ocupan un rango y contestan otra pregunta:
+ * las vacaciones y los descansos dicen quién no está, y un festivo dice que el
+ * día no es de nadie. Ninguno es un plan, y por eso ninguno sale en Inicio, ni
+ * en la lista de la agenda, ni en el aviso de las siete de la mañana.
+ *
+ * Existe porque esta regla estaba escrita de cuatro maneras por la app y dos de
+ * ellas solo apartaban las vacaciones. Cuando entró el descanso, y después el
+ * festivo, nadie volvió a mirarlas: los dos se colaban en los planes de hoy y en
+ * el correo de las siete. Una regla, un sitio.
+ */
+export function isPlan(event: Event): boolean {
+  return !isRangeKind(event.kind)
 }
 
 /**

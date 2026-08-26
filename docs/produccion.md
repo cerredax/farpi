@@ -76,7 +76,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 58/58 comprobaciones correctas, con las 19 migraciones validadas (última pasada, 24-08-2026). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 69/69 comprobaciones correctas, con el esquema entero validado (última pasada, 26-08-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.

@@ -2,17 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Calendar, ClipboardList, CheckSquare, UtensilsCrossed, FolderOpen, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
-
-const navItems = [
-  { href: ROUTES.home,     label: 'Inicio',     icon: Home },
-  { href: ROUTES.calendar, label: 'Calendario', icon: Calendar },
-  { href: ROUTES.lists,    label: 'Listas',     icon: CheckSquare },
-  { href: ROUTES.tasks,    label: 'Tareas',     icon: ClipboardList },
-  { href: ROUTES.meals,    label: 'Comidas',    icon: UtensilsCrossed },
-  { href: ROUTES.docs,     label: 'Documentos', icon: FolderOpen },
-]
+import { SECCIONES } from './secciones'
 
 /**
  * La navegación en escritorio: una columna a la izquierda en lugar de la barra
@@ -22,8 +14,9 @@ const navItems = [
  * que la coloque— y manda `BottomNav`, que a su vez desaparece en `lg:hidden`.
  * Las dos son la misma lista de secciones; lo único que cambia es dónde se pone.
  *
- * Aquí sí cabe "Ajustes", que en móvil vive en la rueda de `TopBar` porque en la
- * barra de abajo no caben siete etiquetas a 390 px. Y el nombre de la casa
+ * Aquí sí cabe "Ajustes", que en móvil bajó al final de Inicio (26-08-2026)
+ * porque en la barra de abajo no caben siete etiquetas a 390 px y la rueda de la
+ * cabecera gastaba el mejor sitio en lo que se toca dos veces al año. Y el nombre de la casa
  * arriba, a la altura de `TopBar` (`h-14`), para que las dos cabeceras estén en
  * la misma línea.
  */
@@ -41,7 +34,7 @@ export function SideNav() {
       </div>
 
       <ul className="flex-1 space-y-1 px-3 py-2">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {SECCIONES.map(({ href, label, icon: Icon }) => {
           const activa = esActiva(href)
           return (
             <li key={href}>

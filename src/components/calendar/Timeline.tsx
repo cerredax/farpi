@@ -279,7 +279,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
                   </span>
                 )
               })}
-              {todoElDia.filter(e => !isAbsence(e) && !isHoliday(e)).map(event => (
+              {todoElDia.map(event => (
                 <button
                   key={event.id}
                   type="button"

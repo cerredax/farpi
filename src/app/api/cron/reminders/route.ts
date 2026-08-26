@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
+import { RANGE_KINDS } from '@/lib/events'
 
 export const runtime = 'nodejs'
 
@@ -136,10 +137,12 @@ export async function GET(req: NextRequest) {
   const limiteCaducidad = formatDate(addDays(todayParts, DIAS_AVISO_CADUCIDAD))
 
   const [{ data: events }, { data: tasks }, { data: docs }] = await Promise.all([
-    // Sin vacaciones, igual que `selectTodayEvents`: no son un plan del día, y
-    // avisar de que "tenéis 1 evento" el día que empiezan contradice lo que
-    // enseña la pantalla de inicio esa misma mañana.
-    supabase.from('events').select('family_id').neq('kind', 'vacaciones').gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
+    // Solo planes, igual que `selectTodayEvents`: ni vacaciones, ni descansos, ni
+    // festivos. Avisar de que "tenéis 1 evento" el día que empiezan contradice lo
+    // que enseña la pantalla de inicio esa misma mañana, y un festivo no es un
+    // plan que haya que recordarle a nadie a las siete. El filtro se arma con la
+    // misma lista que usa `isPlan`, para que no puedan separarse otra vez.
+    supabase.from('events').select('family_id').not('kind', 'in', `(${RANGE_KINDS.join(',')})`).gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
     supabase.from('documents').select('family_id').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
   ])

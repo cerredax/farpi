@@ -153,6 +153,35 @@ Objetivo: preparar uso diario.
     de siempre» con el plegable en la misma fila.
   - **Ajustes**: cinco bloques por intención en vez de once secciones al mismo nivel.
   - **Cabecera**: cada pantalla dice su nombre una sola vez, y en verde de marca.
+- ✅ **El calendario, rehecho en dos días** (25 y 26-08-2026). El detalle está en
+  `project-status.md`; en orden de trabajo:
+  - La pantalla de móvil pasó a **lista continua** —la vista Programación de Google— y se
+    fue la tira de siete días (`WeekStrip`, borrado).
+  - **Escritorio ganó Día, Semana y Mes**, y con ellas volvió `src/lib/timeline.ts` con
+    sus 19 unitarios, retirado el 24-08 y recuperado intacto.
+  - **Móvil ganó las mismas** más Agenda: cuatro pestañas, con la semana deslizándose a
+    lo ancho. Los dos abren en Mes.
+  - La **rejilla se dibuja como una rejilla** (líneas en `lg:`), las puntas de los meses
+    vecinos se rellenan para cerrar la semana, y el fin de semana y los festivos llevan
+    **trama diagonal**.
+  - Las **ausencias** pasaron por tres formas en un día —etiqueta con nombre, trama en el
+    color de la persona, y por fin **franja sobre carril gris**—. La regla que salió de
+    medirlo está en `architecture.md`: el color puede decir "de quién", nunca "qué" ni
+    "si".
+  - **Ajustes salió de la cabecera** y bajó al final de Inicio, solo en móvil.
+- ✅ **Festivos** (26-08-2026): cuarto valor de `kind`, migración `020`, aplicada y
+  validada. Se pintan en gris porque no son de nadie.
+- ✅ **Unidades en la lista de la compra** (26-08-2026): `quantity` en `list_items`,
+  migración `021`, aplicada y validada. Botones de más y menos en la propia fila.
+- ✅ **Una sola regla para "esto es un plan del día"** (26-08-2026). Estaba escrita de
+  cuatro maneras y dos se quedaron cortas: los festivos y los descansos salían en Inicio
+  y en el aviso de las siete como si fueran planes. Ahora es `isPlan`, y sus tests miran
+  los tres tipos y no solo las vacaciones, que es lo que dejó pasar la fuga.
+- ✅ **Repaso de seguridad y CSP** (26-08-2026). La revisión no encontró nada crítico.
+  Entra la **Content-Security-Policy**, que llevaba meses aparcada, probada contra el
+  build servido y no contra `dev`; el `redirectTo` del magic link deja de adivinar el
+  dominio desde la cabecera `Host`; y las rutas API dejan de devolver el mensaje crudo de
+  Postgres.
 - [ ] Backup/export sencillo si se considera necesario.
 
 ## Fase 9 - Uso diario
@@ -161,12 +190,18 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
 
 - [ ] **Un teléfono de verdad.** Los cuatro puntos abiertos de la Fase 2. Es lo
   primero, porque es lo que puede sacar un fallo que no ve ninguna herramienta.
-- [ ] **Notificaciones push.** El código está entero; faltan las claves VAPID en
-  Vercel (`node scripts/gen-vapid.cjs`) y un redespliegue. Ver `docs/notificaciones.md`.
+- [ ] **Notificaciones push.** El código está entero y las claves VAPID **ya están
+  generadas en local**; falta confirmarlas en Vercel, redesplegar y, sobre todo,
+  **probarlas**: ese camino no se ha recorrido nunca de punta a punta. Ver
+  `docs/notificaciones.md`.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
   de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
-- ✅ **RLS revalidado** tras las migraciones 015 y 016 el 06-08-2026: 51/51, las 16
-  migraciones validadas (Fase 3).
+- ✅ **RLS revalidado** por última vez el 26-08-2026: **69/69**, con el esquema
+  entero validado, incluidos los festivos y las unidades de la lista (Fase 3).
+- ✅ **Las 21 migraciones, aplastadas en `supabase/schema.sql`** (26-08-2026). Un
+  solo archivo que describe la base como está, en vez de veintiuno que cuentan
+  cómo llegó hasta aquí. El historial se queda en git. Falta el único aval que no
+  se puede dar desde aquí: aplicarlo a un proyecto vacío y comprobarlo.
 - [ ] **Google Play (TWA)**, si se decide publicar: package name, SHA-256 de la
   firma, `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`. La PWA
   y la política de privacidad ya están.

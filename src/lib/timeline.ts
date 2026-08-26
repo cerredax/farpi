@@ -1,5 +1,5 @@
 import { extractDate, extractMinutes } from './date-utils'
-import { eventCoversDay, isVacation } from './events'
+import { eventCoversDay, isPlan } from './events'
 import { DURACION_SIN_HORA_FIN, HORAS_MINIMAS_AGENDA } from './constants'
 import type { Event } from '@/types'
 
@@ -29,12 +29,13 @@ export interface BloqueDia {
 /**
  * Separa los eventos de un día en los que tienen hora y los que no.
  *
- * Las vacaciones se quedan fuera de las dos listas: no son un plan del día, y
- * su sitio es la franja de la rejilla. Es la misma regla que ya aplica la lista
- * de la agenda, y está explicada en "Decisiones de producto".
+ * Las vacaciones, los descansos y los festivos se quedan fuera de las dos
+ * listas: no son planes del día, y su sitio es la franja de la rejilla. Es la
+ * misma regla que aplica la lista de la agenda —`isPlan`—, y está explicada en
+ * "Decisiones de producto".
  */
 export function partirEventosDelDia(events: Event[], dia: string): { todoElDia: Event[]; conHora: Event[] } {
-  const delDia = events.filter(e => !isVacation(e) && eventCoversDay(e, dia))
+  const delDia = events.filter(e => isPlan(e) && eventCoversDay(e, dia))
   return {
     todoElDia: delDia.filter(e => e.all_day),
     conHora: delDia.filter(e => !e.all_day),

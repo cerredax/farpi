@@ -57,7 +57,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó (migración 015).
 - Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario (migración 016).
 - Adultos sin cuenta: un abuelo se da de alta con nombre y color, sin correo y sin acceso a la app, y se le asigna igual que a un hijo (migración 018). Viven en `children` con `kind = 'adulto'`; el porqué está en «Decisiones de producto» de `docs/architecture.md`.
-- `supabase/all_in_one.sql`, las 19 migraciones concatenadas para levantar un proyecto de cero. Generado con `scripts/gen-all-in-one.mjs`, no editado a mano.
+- `supabase/schema.sql`, el esquema entero en un archivo para levantar un proyecto de cero. Sustituye desde el 26-08-2026 a las 21 migraciones numeradas y al `all_in_one.sql` generado.
 
 ### Calidad / infraestructura
 
@@ -76,7 +76,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 223 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 228 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
   - 81 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -422,6 +422,44 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
     título sale como "09:0…"— porque una celda de escritorio pasa de 120 px.
 
 ## Cerrado el 2026-08-26
+
+- **Los festivos y los descansos se colaban en Inicio.** Un festivo apuntado para hoy
+  salía en "lo que hay que hacer hoy" y en "esta semana", y el correo de las siete lo
+  anunciaba como "tenéis 1 evento". Los descansos, igual. Las vacaciones no: esas eran
+  las únicas que el filtro apartaba.
+
+  La causa no era el filtro sino que había cuatro. La regla "esto es un plan del día"
+  estaba escrita de cuatro maneras distintas por la app —`!isAbsence && !isHoliday` en
+  tres pantallas, la versión larga en `DayCell`, y `!isVacation` a secas en
+  `selectors.ts` y en `timeline.ts`— y las dos últimas se quedaron cortas cuando entró
+  el descanso (017) y después el festivo (020). Ahora hay **una**: `isPlan(event)` en
+  `src/lib/events.ts`, definida como lo contrario de `isRangeKind`, y un test que
+  comprueba justo esa equivalencia para que no puedan volver a separarse. El cron arma
+  su filtro contra Postgres con la misma lista (`RANGE_KINDS`) en vez de con un
+  `.neq('kind', 'vacaciones')` escrito a mano.
+
+  Lo que deja la lección más clara: **los tests también miraban solo las vacaciones**.
+  Por eso la fuga sobrevivió dos días en verde. Ahora comprueban los tres tipos, y se
+  vio además con una captura de Inicio a 390 px con un festivo, un descanso y un evento
+  normal apuntados para hoy: sale el evento, no salen los otros dos.
+
+- **La base de datos deja de contarse en 21 capítulos.** Las migraciones `001…021`,
+  `all_in_one.sql` y su generador se aplastan en **`supabase/schema.sql`**, un solo
+  archivo que describe la base como está en vez de cómo llegó hasta aquí. El historial
+  se queda en git. La equivalencia se comprobó objeto por objeto con un comparador
+  escrito para esto —11 tablas, 37 restricciones, 17 índices, 13 triggers, 14 funciones,
+  20 policies, 5 grants y las columnas de cada tabla, todo cuadra—, pero **el archivo no
+  se ha aplicado nunca a un proyecto vacío**: esa última confirmación la dará quien
+  levante uno de cero.
+
+- **Cuatro duplicaciones menores, cerradas.** La guarda de las rutas API (modo demo más
+  sesión) estaba copiada en cuatro sitios y pasa a `requiereSesion()` en
+  `src/lib/supabase/guard.ts`; olvidarla en una ruta nueva rompe el modo demo entero, así
+  que no convenía que dependiera de acordarse. La lista de secciones estaba duplicada en
+  `BottomNav` y `SideNav` y ya había divergido —"Docs" abajo, "Documentos" al lado—: ahora
+  es una sola en `secciones.ts`, con la diferencia dicha a propósito (`abreviado`, porque
+  a 390 px no cabe). Y se fueron los últimos comentarios en inglés de `src/`, uno de
+  ellos con una instrucción que dejó de aplicar cuando nació `supabase-repos/`.
 
 - **Repaso de seguridad y refactor de cierre.** La revisión no encontró ningún punto
   crítico: el service role solo vive en las tres rutas API server-side, las que llama la UI

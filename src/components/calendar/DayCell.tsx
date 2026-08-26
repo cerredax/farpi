@@ -1,6 +1,6 @@
 import { isWeekend } from 'date-fns'
 import { eventColor, fondoDePersona } from '@/lib/assignees'
-import { holidayName, isHoliday, isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { holidayName, isHoliday, isPlan, isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -127,7 +127,7 @@ export function DayCell({
    */
   const esDiaLibre = isWeekend(day) || festivos.length > 0
   const ausencias = [...vacaciones, ...descansos].slice(0, MAX_AUSENCIAS)
-  const planes = events.filter(e => !isVacation(e) && !isRestDay(e) && !isHoliday(e))
+  const planes = events.filter(isPlan)
   const marcas = marcasDelDia(events, tasks, members, kids)
 
   /**

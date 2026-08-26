@@ -7,7 +7,7 @@ Estado y pasos para activar los recordatorios por notificación push.
 - **Service worker** (`public/sw.js`): maneja `push` (muestra la notificación) y `notificationclick` (enfoca/abre la app).
 - **Cliente** (`src/lib/push.ts`): pedir permiso, suscribirse y cancelar. Degrada solo si el navegador no soporta o falta configuración.
 - **API** (`src/app/api/push/route.ts`): `POST` guarda la suscripción, `DELETE` la borra (autenticado; bloqueada en modo demo).
-- **BD** (`supabase/migrations/010_push_subscriptions.sql`): tabla `push_subscriptions` con RLS por usuario. Incluida en `all_in_one.sql`.
+- **BD** (`supabase/schema.sql`): tabla `push_subscriptions` con RLS por usuario, ya aplicada.
 - **UI**: tarjeta "Recordatorios" en Ajustes (solo en modo real) para activar/desactivar.
 
 La UI solo ofrece activar cuando hay **backend real** y **clave VAPID pública**; si no, muestra "Estarán disponibles próximamente".

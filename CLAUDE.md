@@ -76,11 +76,10 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # ~223 tests de lógica pura (~2 s, sin servidor)
+npm run test:unit      # ~228 tests de lógica pura (~2 s, sin servidor)
 npm run test:e2e       # suite completa: unitarios + ~81 de navegador (levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
-node scripts/gen-all-in-one.mjs    # regenera supabase/all_in_one.sql (--check solo comprueba)
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
 node scripts/gen-icons.cjs         # PNG de la PWA desde el SVG (necesita sharp)
 python scripts/gen-email-templates.py   # plantillas de correo de Supabase, a mano cuando cambie el diseño
@@ -167,13 +166,13 @@ que hacer lo mismo.
 
 ### Base de datos
 
-`supabase/migrations/001…021`. Se aplican a mano por el SQL Editor (no hay CLI de Supabase enlazada). `all_in_one.sql` es la concatenación de las 21 para levantar un proyecto de cero: **está generado**, no se edita a mano (`node scripts/gen-all-in-one.mjs`, y `--check` avisa si se ha quedado atrás).
+El esquema entero vive en **`supabase/schema.sql`**, un solo archivo: tablas, restricciones, índices, triggers, funciones, RLS, RPCs y el bucket de documentos. Se aplica a mano por el SQL Editor (no hay CLI de Supabase enlazada, a propósito: local y producción son el mismo proyecto). Las 21 migraciones numeradas que había antes se aplastaron el 26-08-2026 y siguen en el historial de git.
 
 Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
 
 Lo que **no** se hace con policies va por RPC `security definer`: `create_family_with_admin`, `update_family_member_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`. Regla del último admin (una familia siempre tiene ≥1 admin) validada en esas RPCs y en `/api/account/delete`; la UI solo la refuerza.
 
-Si tocas una migración: actualiza tipos en `src/types/index.ts`, el mock y la documentación, y regenera `all_in_one.sql`.
+Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto en el SQL Editor —las dos cosas, o el archivo miente—, y actualiza los tipos en `src/types/index.ts`, el mock y la documentación.
 
 ## Convenciones de código
 

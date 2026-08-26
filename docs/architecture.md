@@ -49,47 +49,44 @@ Usos:
 
 Estado:
 
-- Proyecto Supabase creado y migraciones subidas.
+- Proyecto Supabase creado y esquema aplicado.
 - UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
 - Auth, invitaciones por magic link, roles y documentos en Storage operativos.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
-- Migraciones 001–018 aplicadas y revalidadas. Las 017 y 018 entraron el 2026-08-21 y `node scripts/validate-rls.mjs` volvió a dar 51/51 ese mismo día, el mismo recuento que tras las 015 y 016: ninguna de las dos toca policies ni aislamiento.
-- Migración 019 (`families.meal_slots`) aplicada y validada el 2026-08-24: **58/58**, con
-  siete comprobaciones nuevas. El repo sigue normalizando la columna ausente a "las cuatro
-  franjas" (`mapFamily` en `src/lib/supabase-repos/family.ts`); ya no hace falta para
-  producción, pero es lo que permite desplegar código antes que SQL, que es el orden en el
-  que pasan las cosas aquí.
+- Esquema al día y revalidado. La última pasada de `node scripts/validate-rls.mjs`
+  es del 26-08-2026: **69/69**, con los festivos y las unidades de la lista dentro. El
+  historial de cada pasada está en `docs/supabase-validation.md`, que es donde vive.
+- `mapFamily` (`src/lib/supabase-repos/family.ts`) normaliza `meal_slots` ausente a "las
+  cuatro franjas". Para producción ya no hace falta, pero es lo que permite desplegar
+  código antes que SQL, que es el orden en el que pasan las cosas aquí.
 
 La detección de "modo demo" (sin credenciales reales) está centralizada en `src/lib/supabase/env.ts` y la comparten cliente, servidor, proxy (`middleware.ts`) y rutas API, para evitar divergencias entre capas.
 
-Migraciones:
+El esquema completo está en **`supabase/schema.sql`**: un solo archivo con las
+tablas, las restricciones, los índices, los triggers, las funciones, la RLS, las
+RPCs y el bucket de documentos con sus policies. Aplicado sobre un proyecto
+Supabase vacío deja una base idéntica a la de producción.
 
-- `001_initial_schema.sql` — tablas, índices, triggers `updated_at`
-- `002_rls_policies.sql` — RLS + función `my_family_ids()` (security definer, search_path fijo)
-- `003_rpc.sql` — `create_family_with_admin`, `update_my_family_profile` (sustituida en `014`)
-- `004_family_invites_storage.sql` — tabla `family_invites`, policies, bucket `documents`
-- `005_task_recurrence.sql` — columnas `recurrence` y `recurrence_end` en `tasks`
-- `006_event_recurrence.sql` — columna `recurrence_group_id` en `events`
-- `007_cross_family_integrity.sql` — triggers que impiden que `list_items`, `events` y `documents` crucen familias
-- `008_admin_rpcs.sql` — `remove_family_member`, `update_family_member_role` (security definer); reemplaza policy `Admin gestiona miembros` por `Admin inserta miembros`
-- `009_accept_invite_rpc.sql` — `accept_family_invite(p_invite_id)` (security definer): crea `family_member` y marca la invitación como aceptada; devuelve el `family_id`
-- `010_push_subscriptions.sql` — tabla `push_subscriptions` con RLS por usuario
-- `011_account_deletion.sql` — `created_by` pasa a nullable (`on delete set null`)
-- `012_member_assignment.sql` — `member_id` en `events` y `documents`, para asignar a adultos y no solo a hijos
-- `013_event_kind.sql` — `kind` en `events` (`evento` | `vacaciones`), con `check` que obliga a las vacaciones a tener día final
-- `014_member_profile.sql` — `color` en `family_members` y RPC `update_family_member_profile`, que sustituye a `update_my_family_profile`
-- `015_task_assignment.sql` — `child_id`, `member_id` y `completed_by` en `tasks`, con el mismo `check` de exclusión que eventos y documentos, y los triggers cross-family correspondientes
-- `016_document_expiry.sql` — `expires_on` en `documents` (nullable) e índice por `(family_id, expires_on)`
-- `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` y le exige día completo y fecha final, igual que a las vacaciones
-- `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), para los adultos de la familia que no tienen cuenta
-- `019_meal_slots.sql` — `meal_slots` en `families` (`text[]`, las cuatro por defecto): qué franjas de comida ve la familia. No necesita policy nueva, la de update de la 002 ya vale
+Se aplica a mano por el SQL Editor. **No hay CLI de Supabase enlazada, y es a
+propósito**: local y producción apuntan al mismo proyecto, así que un `db push`
+distraído escribiría sobre los datos de una familia de verdad.
 
-Se aplican a mano por el SQL Editor: no hay CLI de Supabase enlazada, así que los
-ficheros numerados son el único registro de qué se aplicó y en qué orden.
-`all_in_one.sql` es la concatenación de todas para levantar un proyecto de cero, y
-**está generado** por `scripts/gen-all-in-one.mjs` (con `--check` avisa si se ha
-quedado atrás). Antes se mantenía a mano, con el riesgo evidente de que dejara de
-coincidir en silencio.
+Hasta el 26-08-2026 esto eran 21 migraciones numeradas (`001…021`) más un
+`all_in_one.sql` generado por concatenación. Se aplastaron al cerrar el proyecto,
+porque el historial había dejado de ayudar: para saber qué valores admitía
+`events.kind` había que abrir tres archivos y seguir dos `drop constraint`. Las
+21 siguen en git —en el commit anterior al aplastado— para cuando haga falta el
+porqué de una decisión concreta, que es lo único que aportaban ya.
+
+El precio de aplastar, dicho claro: el archivo nuevo **no se ha aplicado nunca a
+un proyecto vacío**, así que su equivalencia con la base real está comprobada
+objeto por objeto (tablas, columnas, restricciones, índices, triggers, funciones,
+policies y grants, todos cuadran) pero no ejecutada de punta a punta. Quien
+levante un proyecto de cero es quien lo confirmará.
+
+**Para cambiar algo**: se edita `schema.sql` *y* se aplica el `alter` suelto en el
+SQL Editor. Las dos cosas, o el archivo miente. Después, `node
+scripts/validate-rls.mjs` y se anota la pasada en `docs/supabase-validation.md`.
 
 Regla central de RLS:
 
@@ -697,8 +694,18 @@ mes —no sus seis filas, desde que la rejilla no presta días de fuera— y los
 de la tira en modo agenda. Contar las seis filas hacía que el bloque anunciara un
 descanso del 3 de septiembre mirando agosto, sin ningún día pintado que lo respaldara.
 
-Ojo con el alcance: esto es la **vista del calendario**. `selectTodayEvents` sigue
-sacando los descansos en Inicio, que es de antes y no se ha tocado.
+**Cerrado el 26-08-2026, y era una fuga.** Este párrafo decía que el alcance era solo
+la vista del calendario y que `selectTodayEvents` seguía sacando los descansos en
+Inicio. Lo seguía haciendo, y los festivos también en cuanto entraron: los dos salían
+en "lo que hay que hacer hoy", en "esta semana" y en el correo de las siete de la
+mañana, donde un festivo se anunciaba como "tenéis 1 evento".
+
+La causa era que la regla estaba escrita de cuatro maneras por la app y dos de ellas
+solo apartaban las vacaciones, así que al entrar el descanso (017) y el festivo (020)
+nadie volvió a mirarlas. Ahora es **una sola**: `isPlan(event)` en `src/lib/events.ts`,
+lo contrario de `isRangeKind`, y el cron arma su filtro contra Postgres con la misma
+lista (`RANGE_KINDS`). Los tests que la cubrían también miraban solo las vacaciones,
+que es por lo que la fuga sobrevivió en verde; ahora comprueban los tres.
 
 **Nunca siete columnas en el móvil.** Sigue en pie, y es la razón de que la tira sea
 navegación y no una semana en columnas: a 390 px cada columna son ~50 px, y un bloque

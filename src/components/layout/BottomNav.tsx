@@ -2,17 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Calendar, ClipboardList, CheckSquare, UtensilsCrossed, FolderOpen } from 'lucide-react'
-import { ROUTES } from '@/lib/constants'
-
-const navItems = [
-  { href: ROUTES.home,     label: 'Inicio',     icon: Home },
-  { href: ROUTES.calendar, label: 'Calendario', icon: Calendar },
-  { href: ROUTES.lists,    label: 'Listas',     icon: CheckSquare },
-  { href: ROUTES.tasks,    label: 'Tareas',     icon: ClipboardList },
-  { href: ROUTES.meals,    label: 'Comidas',    icon: UtensilsCrossed },
-  { href: ROUTES.docs,     label: 'Docs',       icon: FolderOpen },
-]
+import { SECCIONES } from './secciones'
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -22,7 +12,7 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-line safe-area-pb lg:hidden">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {SECCIONES.map(({ href, label, abreviado, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
@@ -44,7 +34,7 @@ export function BottomNav() {
                   dibuja la fuente, y lo que sobresalía se cortaba. Son seis
                   palabras cortas, así que basta con que no partan en dos. */}
               <span className={`text-[10px] font-semibold leading-tight whitespace-nowrap ${active ? 'text-primary' : ''}`}>
-                {label}
+                {abreviado ?? label}
               </span>
             </Link>
           )

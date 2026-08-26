@@ -1,5 +1,5 @@
 import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
-import { eventCoversDay, isAbsence, isVacation } from './events'
+import { eventCoversDay, isAbsence, isPlan } from './events'
 import { DIAS_AVISO_CADUCIDAD, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
 import type { Document, Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
@@ -272,9 +272,10 @@ export function selectOccupiedMealSlots(meals: MealPlan[], date?: string): MealS
 
 export function selectTodayEvents(events: Event[]): Event[] {
   const today = new Date()
-  // Sin vacaciones: durarían días o semanas y saldrían aquí todas las mañanas
-  // como si fueran un plan del día. Su sitio es el calendario.
-  return events.filter(e => !isVacation(e) && eventCoversDay(e, today))
+  // Solo planes. Las vacaciones, los descansos y los festivos duran días o
+  // semanas y saldrían aquí todas las mañanas como si fueran un plan del día.
+  // Su sitio es el calendario.
+  return events.filter(e => isPlan(e) && eventCoversDay(e, today))
 }
 
 /**
@@ -292,7 +293,7 @@ export function selectUpcomingEvents(events: Event[], limit = 5, dias = 7): Even
 
   return events
     .filter(e => {
-      if (isVacation(e)) return false
+      if (!isPlan(e)) return false
       const d = new Date(e.start_at)
       if (isSameLocalDay(d, now)) return false
       const dia = getLocalDateString(d)

@@ -1,5 +1,12 @@
-// SUPABASE SWAP: replace each method body with a Supabase query.
-// The interface contracts in repos/types.ts are the stable boundary.
+// La implementación en memoria del contrato de `repos/types.ts`, que es la
+// frontera estable. La otra es `supabase-repos/`, y las dos tienen que
+// comportarse igual: filtrar por `family_id`, dejar `child_id` a null al borrar
+// un hijo, una comida por familia/fecha/franja.
+//
+// Este archivo nació con un aviso que decía "sustituir cada método por una
+// consulta a Supabase". Ya no aplica: Supabase tiene su propia implementación al
+// lado y el mock se queda, porque es el fallback sin credenciales y el entorno
+// donde corre la suite e2e.
 import * as store from './store/index'
 import { db } from './store/db'
 import type { Repos } from './repos/types'

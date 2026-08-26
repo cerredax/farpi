@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { IS_DEMO_MODE } from '@/lib/supabase/env'
+import { requiereSesion } from '@/lib/supabase/guard'
 
 export async function POST(req: NextRequest) {
-  if (IS_DEMO_MODE) {
-    return NextResponse.json({ error: 'No disponible en modo demo' }, { status: 400 })
-  }
-
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-  }
+  const guardia = await requiereSesion()
+  if (guardia.fallo) return guardia.fallo
+  const { supabase, user } = guardia
 
   const body = await req.json().catch(() => ({})) as {
     endpoint?: string
@@ -39,15 +32,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (IS_DEMO_MODE) {
-    return NextResponse.json({ error: 'No disponible en modo demo' }, { status: 400 })
-  }
-
-  const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-  }
+  const guardia = await requiereSesion()
+  if (guardia.fallo) return guardia.fallo
+  const { supabase, user } = guardia
 
   const { endpoint } = await req.json().catch(() => ({})) as { endpoint?: string }
   if (!endpoint) {

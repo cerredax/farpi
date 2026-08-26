@@ -48,7 +48,6 @@ npm run test:unit   # tests de lógica pura, sin servidor (~0,8 s)
 npm run test:e2e    # la suite entera: unitarios + navegador, en modo demo
 
 node scripts/validate-rls.mjs    # valida RLS, RPCs y triggers contra el Supabase real
-node scripts/gen-all-in-one.mjs  # regenera supabase/all_in_one.sql desde las migraciones
 node scripts/gen-vapid.cjs       # genera el par de claves para las notificaciones push
 node scripts/gen-icons.cjs       # regenera los iconos de la PWA
 ```
@@ -81,7 +80,7 @@ src/lib/repos              Contrato que cumplen las dos implementaciones
 src/proxy.ts               Middleware de Next 16, refresca la sesión
 e2e                        Tests de navegador; e2e/unit, los de lógica pura
 scripts                    Validación de RLS, claves VAPID e iconos de la PWA
-supabase/migrations        Esquema, RLS, RPCs, integridad, invitaciones y Storage
+supabase/schema.sql        Esquema, RLS, RPCs, integridad, invitaciones y Storage
 docs                       Documentación de proyecto, QA y roadmap
 ```
 

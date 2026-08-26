@@ -18,7 +18,7 @@ import type { Event, Child, FamilyMember, Task } from '@/types'
 import { tramoDeAgenda } from '@/lib/agenda'
 import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
-import { eventCoversDay, isAbsence, isHoliday } from '@/lib/events'
+import { eventCoversDay, isHoliday, isPlan } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 import { DayTasks } from './DayTasks'
 
@@ -152,7 +152,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
    * y la cena de los abuelos. En la rejilla la trama ya lo dice, y sin gastar una
    * fila de la agenda.
    */
-  const conFecha = events.filter(event => !isAbsence(event) && !isHoliday(event))
+  const conFecha = events.filter(isPlan)
 
   const hoyStr = getLocalDateString(new Date())
 

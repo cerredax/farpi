@@ -257,11 +257,16 @@ test.describe('eventos', () => {
     expect(r.map(e => e.title)).toEqual(['hoy'])
   })
 
-  test('selectTodayEvents deja fuera las vacaciones: durarían días y no son un plan del día', () => {
+  test('selectTodayEvents deja fuera lo que ocupa un rango: duran días y no son un plan del día', () => {
     const hoy = getLocalDateString()
+    const rango = { all_day: true, start_at: `${hoy}T00:00:00`, end_at: `${hoy}T00:00:00` }
     const r = selectTodayEvents([
       event({ title: 'cita', start_at: `${hoy}T10:00:00` }),
-      event({ title: 'playa', kind: 'vacaciones', all_day: true, start_at: `${hoy}T00:00:00`, end_at: `${hoy}T00:00:00` }),
+      event({ title: 'playa', kind: 'vacaciones', ...rango }),
+      // Estos dos se colaban hasta el 26-08-2026: el filtro solo apartaba las
+      // vacaciones y este test solo comprobaba las vacaciones.
+      event({ title: 'libra la abuela', kind: 'descanso', ...rango }),
+      event({ title: 'Hispanidad', kind: 'festivo', ...rango }),
     ])
     expect(r.map(e => e.title)).toEqual(['cita'])
   })
@@ -289,11 +294,14 @@ test.describe('eventos', () => {
     expect(r.map(e => e.title)).toEqual(['esta-semana'])
   })
 
-  test('selectUpcomingEvents deja fuera las vacaciones', () => {
+  test('selectUpcomingEvents deja fuera vacaciones, descansos y festivos', () => {
     const manana = getLocalDateString(new Date(Date.now() + 86400000))
+    const rango = { all_day: true, start_at: `${manana}T00:00:00`, end_at: `${manana}T00:00:00` }
     const r = selectUpcomingEvents([
       event({ title: 'cita', start_at: `${manana}T10:00:00` }),
-      event({ title: 'playa', kind: 'vacaciones', all_day: true, start_at: `${manana}T00:00:00`, end_at: `${manana}T00:00:00` }),
+      event({ title: 'playa', kind: 'vacaciones', ...rango }),
+      event({ title: 'libra la abuela', kind: 'descanso', ...rango }),
+      event({ title: 'Hispanidad', kind: 'festivo', ...rango }),
     ])
     expect(r.map(e => e.title)).toEqual(['cita'])
   })

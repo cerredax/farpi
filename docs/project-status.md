@@ -423,6 +423,21 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 
 ## Cerrado el 2026-08-26
 
+- **Los días de las puntas del mes se pintan, rellenos en gris.** Cuando septiembre empieza
+  en martes, el lunes de esa fila es el 31 de agosto: en blanco, la semana quedaba partida
+  por la mitad y la fila dejaba de leerse como una semana. Ahora sale el número en gris
+  claro sobre fondo teñido, y lo mismo al final del mes hasta cerrar la última semana.
+  - **No es volver atrás.** Estuvieron en blanco desde el 24-08 porque antes se pintaban
+    *igual* que los días del mes, solo con el número en gris, y se leían como días sueltos
+    sin mes. El relleno es lo que lo arregla: con el fondo teñido ya no tienen la misma
+    forma que los suyos.
+  - Es el mismo relleno que se descartó para los fines de semana porque "se lee como que
+    estas celdas están apagadas". Aquí eso es justo lo que hay que decir.
+  - Siguen sin ser botones y sin enseñar nada de lo que pasa ese día: están para cerrar la
+    semana. Al 1 de septiembre se llega con la flecha.
+
+
+
 - **El móvil gana las vistas Día, Semana y Mes**, con un selector de cuatro:
   `Agenda · Día · Semana · Mes`. Agenda es la lista continua. **El escritorio no se
   toca**: mantiene sus tres y sigue abriendo en Mes.

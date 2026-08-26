@@ -83,9 +83,39 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
       <div className="grid grid-cols-7">
         {days.map(day => {
           if (!isSameMonth(day, currentMonth)) {
-            // Los huecos de las puntas también llevan línea: si no, la rejilla
-            // se abre por las esquinas y deja de ser un rectángulo.
-            return <span key={day.toISOString()} className={`${HUECO} ${[0, 6].includes(day.getDay()) ? 'dia-libre' : ''}`} aria-hidden />
+            /**
+             * **Los días de las puntas se pintan, pero rellenos** (26-08-2026).
+             * Cuando un mes empieza en martes, el lunes de esa fila es el 31 del
+             * mes anterior, y dejarlo en blanco corta la semana por la mitad: la
+             * fila deja de leerse como una semana.
+             *
+             * Estuvieron en blanco desde el 24-08-2026, y con motivo: antes se
+             * pintaban **igual que los días del mes**, solo con el número en
+             * gris, y así se leían como días sueltos que no decían de qué mes
+             * eran. El relleno arregla justo eso: con el fondo teñido ya no
+             * tienen la misma forma que los suyos.
+             *
+             * Es el mismo relleno que se descartó para los fines de semana
+             * porque se leía como "estas celdas están apagadas". Aquí eso es
+             * exactamente lo que hay que decir.
+             *
+             * Siguen sin ser botones y sin enseñar nada de lo que pasa ese día:
+             * están para cerrar la semana, no para consultarlos. Al 1 de
+             * septiembre se llega con la flecha, que es un toque igual.
+             */
+            return (
+              <span
+                key={day.toISOString()}
+                aria-hidden
+                className={`${HUECO} flex flex-col items-center bg-canvas py-1 lg:min-h-[104px] ${
+                  [0, 6].includes(day.getDay()) ? 'dia-libre' : ''
+                }`}
+              >
+                <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">
+                  {getDate(day)}
+                </span>
+              </span>
+            )
           }
 
           const diaStr = getLocalDateString(day)

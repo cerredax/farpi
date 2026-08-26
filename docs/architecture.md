@@ -543,13 +543,23 @@ para entender a quién afecta algo. En gris y no en el amarillo de la familia po
 color no tiene contraste como texto; para eso existe `sand-strong`, y aquí basta con que
 la palabra esté.
 
-**La rejilla del mes es de un solo mes.** Se sigue dibujando por semanas completas
-—si no, las columnas dejarían de ser días de la semana— pero los huecos de las puntas
-van en blanco en vez de prestar días de los meses vecinos. Antes agosto pintaba once
-días de julio y septiembre en gris: con la misma forma que los suyos, se leían como
-días sueltos que no decían de qué mes eran, y era el mayor foco de ruido de la
-pantalla. Lo que se pierde es tocar el 1 de septiembre desde agosto; se llega con la
-flecha, que es un toque igual.
+**La rejilla del mes es de un solo mes, y las puntas se rellenan** (26-08-2026). Se
+dibuja por semanas completas —si no, las columnas dejarían de ser días de la semana— y
+los días de los meses vecinos **sí se pintan**, con su número en gris claro y **el fondo
+teñido**. Cuando septiembre empieza en martes, el lunes de esa fila es el 31 de agosto:
+dejarlo en blanco parte la semana por la mitad y la fila deja de leerse como una semana.
+
+Estuvieron en blanco entre el 24 y el 26-08-2026, y con motivo: antes se pintaban
+**igual que los días del mes**, solo con el número en gris, y así se leían como días
+sueltos que no decían de qué mes eran —era el mayor foco de ruido de la pantalla—. El
+relleno es lo que lo arregla: con el fondo teñido ya no tienen la misma forma que los
+suyos. Es, por cierto, el mismo relleno que se descartó para los fines de semana porque
+"se lee como que estas celdas están apagadas"; aquí eso es exactamente lo que hay que
+decir.
+
+Siguen sin ser botones y sin enseñar nada de lo que pasa ese día: están para cerrar la
+semana, no para consultarlos. Al 1 de septiembre se llega con la flecha, que es un toque
+igual.
 
 Con la tira se fueron sus dos rótulos de `DayCell`, que solo ella pasaba: la inicial
 del día de la semana encima del número —la rejilla ya tiene cabecera de columnas— y el

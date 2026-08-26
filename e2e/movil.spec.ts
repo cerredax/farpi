@@ -70,8 +70,8 @@ for (const ruta of RUTAS) {
 test('el mes del calendario cabe y se puede tocar a 390 px', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(900)
-  // El mes es una pestaña del selector: la pantalla abre en la lista continua y
-  // sin esto no hay ninguna celda de día que medir.
+  // El mes es la vista de partida, pero se pide igualmente: el test mide celdas de
+  // día y no debe depender de cuál sea el valor por defecto hoy.
   await page.getByRole('button', { name: 'Mes', exact: true }).click()
   await page.waitForTimeout(400)
 

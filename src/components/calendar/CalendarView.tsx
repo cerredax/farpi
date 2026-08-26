@@ -58,17 +58,23 @@ export function CalendarView() {
   /**
    * Qué enseña el calendario, y son **dos estados y no uno** a propósito.
    *
-   * Móvil y escritorio no ofrecen lo mismo ni arrancan igual: en escritorio son
-   * Día, Semana y Mes, y abre en Mes —lo que había antes del selector, y cambiarlo
-   * al entrar sorprendería—; en móvil se añade **Agenda**, la lista continua, que
-   * es la de partida porque contesta "¿qué hay?" sin pedir nada.
+   * Móvil y escritorio no ofrecen lo mismo: en escritorio son Día, Semana y Mes,
+   * y en móvil se añade **Agenda**, la lista continua.
    *
-   * Con un solo estado, el valor de partida tendría que depender del ancho, y el
-   * ancho no se sabe en el primer pintado: la pantalla abriría en una vista y
-   * saltaría a otra al hidratar.
+   * **Los dos abren en Mes** (26-08-2026). En móvil, la pestaña Mes no es solo la
+   * rejilla: es la rejilla **y la lista debajo**, así que no pierde nada de lo que
+   * daba abrir en Agenda y añade saber dónde cae cada cosa. Y no abre en `dia`
+   * aunque parezca lo más directo: eso es lo que había hasta el 24-08-2026 y se
+   * retiró porque lo de mañana y lo del jueves no se veían, y un día de familia
+   * con dos citas deja diecisiete horas en blanco.
+   *
+   * Siguen siendo **dos estados y no uno**: con uno solo, el valor de partida
+   * tendría que depender del ancho, y el ancho no se sabe en el primer pintado,
+   * así que la pantalla abriría en una vista y saltaría a otra al hidratar. Y
+   * cambiar de vista en el móvil no tiene por qué cambiarla en el escritorio.
    */
   const [vistaEscritorio, setVistaEscritorio] = useState<VistaCalendario>('mes')
-  const [vistaMovil, setVistaMovil] = useState<VistaCalendario>('agenda')
+  const [vistaMovil, setVistaMovil] = useState<VistaCalendario>('mes')
 
   /**
    * Aquí vuelve el `useMediaQuery`, que se había ido el 25-08-2026 cuando quién

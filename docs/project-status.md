@@ -424,8 +424,13 @@ perfil de la 014. Detalle en `docs/supabase-validation.md`.
 ## Cerrado el 2026-08-26
 
 - **El móvil gana las vistas Día, Semana y Mes**, con un selector de cuatro:
-  `Agenda · Día · Semana · Mes`. Agenda es la lista continua y sigue siendo la de
-  partida. **El escritorio no se toca**: mantiene sus tres y sigue abriendo en Mes.
+  `Agenda · Día · Semana · Mes`. Agenda es la lista continua. **El escritorio no se
+  toca**: mantiene sus tres y sigue abriendo en Mes.
+  - **Los dos abren en Mes.** En móvil esa pestaña no es solo la rejilla: es la rejilla y
+    la lista debajo, así que no pierde nada de lo que daba abrir en Agenda y añade saber
+    dónde cae cada cosa. No abre en `dia` aunque parezca lo más directo: eso es lo que
+    había hasta el 24-08-2026 y se retiró porque lo de mañana y lo del jueves no se veían,
+    y un día de familia con dos citas deja diecisiete horas en blanco.
   - Son **dos estados de vista y no uno**: móvil y escritorio no ofrecen lo mismo ni
     arrancan igual, y con uno solo el valor de partida tendría que depender del ancho, que
     no se sabe en el primer pintado.

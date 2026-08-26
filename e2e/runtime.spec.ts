@@ -21,9 +21,11 @@ async function abrirTareasDelDia(raiz: Page | Locator) {
 }
 
 /**
- * Pasa a la vista Mes. La pantalla abre en `Agenda` —la lista continua— y el mes
- * es otra pestaña del selector, así que sin pasar por aquí no hay ninguna celda
- * de día en el DOM, que es lo que buscan varios tests.
+ * Se asegura de estar en la vista Mes.
+ *
+ * Es la de partida desde el 26-08-2026, así que casi siempre no hace nada; se
+ * queda porque un test no debe depender de cuál sea el valor por defecto hoy, y
+ * porque alguno llega aquí después de haber pasado por otra pestaña.
  */
 async function verEnMes(page: Page) {
   await page.getByRole('button', { name: 'Mes', exact: true }).click()

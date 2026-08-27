@@ -62,7 +62,7 @@ export function EventSheet({
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Nuevo evento' : 'Editar evento'}
+      title={mode === 'create' ? 'Apuntar en el calendario' : 'Editar lo apuntado'}
       onClose={onClose}
       headerActions={headerActions}
       footer={

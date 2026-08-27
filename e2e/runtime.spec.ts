@@ -89,7 +89,7 @@ const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
-  { route: '/calendar', button: 'Añadir evento', dialog: 'Nuevo evento' },
+  { route: '/calendar', button: 'Apuntar algo', dialog: 'Apuntar en el calendario' },
   { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
 ]
 
@@ -178,15 +178,15 @@ test('el buscador de ítems aparece al crecer la lista y filtra', async ({ page 
 test('un evento se puede asignar a un adulto y se ve quién es', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
-  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
 
-  const dialogo = page.getByRole('dialog', { name: 'Nuevo evento' })
+  const dialogo = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
   await expect(dialogo.getByRole('button', { name: 'Familia', exact: true })).toBeVisible()
   await expect(dialogo.getByRole('button', { name: 'Omar', exact: true })).toBeVisible()
 
   await page.locator('#event-title').fill('Dentista')
   await dialogo.getByRole('button', { name: 'Sofía', exact: true }).click()
-  await page.getByRole('button', { name: /^Crear evento/ }).click()
+  await page.getByRole('button', { name: 'Apuntar', exact: true }).click()
 
   // En la agenda, el evento aparece con el nombre de la persona asignada.
   // (En la celda del día también, pero ahí es un tooltip que solo se ve al pasar
@@ -200,7 +200,7 @@ test('un evento se puede asignar a un adulto y se ve quién es', async ({ page }
 test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
-  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
   await page.locator('#event-kind').selectOption('vacaciones')
 
   // En vacaciones se piden dos fechas y desaparecen las horas.
@@ -233,7 +233,7 @@ test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
 test('unas vacaciones no pueden acabar antes de empezar', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
-  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
   await page.locator('#event-kind').selectOption('vacaciones')
   await page.locator('#event-title').fill('Imposible')
   await page.locator('#event-date').fill('2026-08-16')
@@ -476,7 +476,7 @@ test('el calendario busca también en el pasado', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(800)
 
-  await page.getByLabel('Buscar eventos').fill('registro civil')
+  await page.getByLabel('Buscar en el calendario').fill('registro civil')
 
   // La cabecera dice cuántos hay y dónde ha mirado. Antes ponía "Búsqueda" en
   // una línea aparte, encima del recuento; ahora es una sola línea, que dice lo
@@ -523,8 +523,8 @@ test('un adulto sin cuenta se da de alta en Ajustes y se puede asignar', async (
   // Y ya se le puede asignar un evento, como a cualquier adulto de la familia.
   await page.goto('/calendar')
   await page.waitForTimeout(800)
-  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
-  const evento = page.getByRole('dialog', { name: 'Nuevo evento' })
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  const evento = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
   await expect(evento.getByRole('button', { name: 'Carmen', exact: true })).toBeVisible()
 })
 
@@ -534,7 +534,7 @@ test('un adulto sin cuenta se da de alta en Ajustes y se puede asignar', async (
 test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
-  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
   await page.locator('#event-kind').selectOption('vacaciones')
 
   // El campo lo dice, y enseña con qué nombre se va a guardar.
@@ -601,13 +601,13 @@ test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => 
 test('un descanso marca todos los días de su rango', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(700)
-  await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
   await page.locator('#event-kind').selectOption('descanso')
 
   await page.locator('#event-date').fill('2026-08-11')
   await page.locator('#event-end-date').fill('2026-08-12')
   await page.getByRole('button', { name: 'Sofía' }).click()
-  await page.getByRole('button', { name: /Apuntar/ }).click()
+  await page.locator('button[type="submit"][form="event-form"]').click()
   await page.waitForTimeout(600)
 
   await verEnMes(page)

@@ -15,6 +15,11 @@ const RUTAS = ['/home', '/calendar', '/tasks', '/lists', '/meals', '/docs', '/se
 // esto se cambia por getByRole.
 const BARRA_ABAJO = 'nav.fixed.bottom-0'
 
+// El botón de guardar del sheet del calendario, por lo que es y no por lo que
+// dice: desde que el `+` de la cabecera se llama "Apuntar algo", buscar el
+// guardar por /Apuntar/ engancha los dos y Playwright para por ambigüedad.
+const GUARDAR_EVENTO = 'button[type="submit"][form="event-form"]'
+
 /**
  * La rejilla de comidas, medida por lo que es y no por lo que dice: la única
  * con ocho columnas (la de la franja más los siete días). Buscarla por el texto
@@ -93,11 +98,11 @@ test.describe('escritorio a 1440 px', () => {
 
     await page.goto('/calendar')
     await page.waitForTimeout(900)
-    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
     await page.locator('#event-title').fill('Revisión del coche')
     await page.locator('#event-date').fill(iso)
     await page.locator('#event-start').fill('10:00')
-    await page.getByRole('button', { name: /Guardar|Crear|Apuntar/ }).first().click()
+    await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
     // El botón de la rejilla y no la fila de la agenda de al lado: `exact` los
@@ -107,7 +112,7 @@ test.describe('escritorio a 1440 px', () => {
     await expect(enLaRejilla).toHaveCount(1)
     await enLaRejilla.click()
 
-    await expect(page.getByRole('dialog', { name: 'Editar evento' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Editar lo apuntado' })).toBeVisible()
   })
 
   // El trio de vistas de escritorio. La semana en columnas no existe en móvil
@@ -119,12 +124,12 @@ test.describe('escritorio a 1440 px', () => {
 
     await page.goto('/calendar')
     await page.waitForTimeout(900)
-    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
     await page.locator('#event-title').fill('Pediatra Ana')
     await page.locator('#event-date').fill(iso)
     await page.locator('#event-start').fill('09:30')
     await page.locator('#event-end').fill('10:15')
-    await page.getByRole('button', { name: /Guardar|Crear|Apuntar/ }).first().click()
+    await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
     // Semana: siete columnas de día y el eje de horas con su bloque.
@@ -138,7 +143,7 @@ test.describe('escritorio a 1440 px', () => {
 
     // Y el bloque abre su evento, que es lo que se espera de un calendario.
     await bloque.click()
-    await expect(page.getByRole('dialog', { name: 'Editar evento' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Editar lo apuntado' })).toBeVisible()
     await page.keyboard.press('Escape')
     await page.waitForTimeout(400)
 
@@ -162,12 +167,12 @@ test.describe('escritorio a 1440 px', () => {
   test('una ausencia pone su franja en la celda del mes', async ({ page }) => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
-    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
     await page.locator('#event-kind').selectOption('descanso')
     await page.locator('#event-date').fill('2026-08-11')
     await page.locator('#event-end-date').fill('2026-08-12')
     await page.getByRole('button', { name: 'Sofía' }).click()
-    await page.getByRole('button', { name: /Apuntar/ }).click()
+    await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
     // Los dos días del rango quedan marcados, cada uno con su franja.
@@ -188,7 +193,7 @@ test.describe('escritorio a 1440 px', () => {
   test('un festivo se apunta y se nombra en la celda', async ({ page }) => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
-    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
     await page.locator('#event-kind').selectOption('festivo')
 
     // Como en vacaciones y descansos: días completos, dos fechas y sin horas.
@@ -198,7 +203,7 @@ test.describe('escritorio a 1440 px', () => {
     await page.locator('#event-title').fill('Hispanidad')
     await page.locator('#event-date').fill('2026-08-12')
     await page.locator('#event-end-date').fill('2026-08-12')
-    await page.getByRole('button', { name: /Apuntar/ }).click()
+    await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
     const celda = page.locator('[aria-pressed][aria-label*="12 de agosto"]')
@@ -212,11 +217,11 @@ test.describe('escritorio a 1440 px', () => {
   test('un festivo sin nombre propio no escribe nada en la celda', async ({ page }) => {
     await page.goto('/calendar')
     await page.waitForTimeout(900)
-    await page.getByRole('button', { name: 'Añadir evento' }).first().click()
+    await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
     await page.locator('#event-kind').selectOption('festivo')
     await page.locator('#event-date').fill('2026-08-19')
     await page.locator('#event-end-date').fill('2026-08-19')
-    await page.getByRole('button', { name: /Apuntar/ }).click()
+    await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
     const celda = page.locator('[aria-pressed][aria-label*="19 de agosto"]')

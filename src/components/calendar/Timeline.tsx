@@ -348,7 +348,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
               <button
                 type="button"
                 onClick={() => onAdd(day)}
-                aria-label={`Añadir evento el ${format(day, "d 'de' MMMM", { locale: es })}`}
+                aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })}`}
                 className="absolute inset-0 h-full w-full"
               />
 

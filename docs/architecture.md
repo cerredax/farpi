@@ -961,6 +961,15 @@ de una herramienta de trabajo. Al escribir textos nuevos:
   "marcar como hecho".
 - **Nada de jerga de gestor de proyectos**: ni completado, ni progreso, ni
   porcentajes. Salvo en Tareas, que sí son tareas.
+- **En el calendario no se nombra la cosa, se dice qué haces** (27-08-2026). La
+  palabra "evento" desapareció de la interfaz: el sheet se titula «Apuntar en el
+  calendario», el `+` es «Apuntar algo» y el vacío de la agenda, «Toca para
+  apuntar algo». La razón es que no hay un sustantivo que valga a la vez para el
+  dentista y para la barbacoa: "plan" suena a ocio, "cita" a médico, "aviso" a
+  que alguien tiene que enterarse y "recordatorio" ya está cogido por las
+  notificaciones diarias. *Apuntar* vale para los cuatro tipos, vacaciones
+  incluidas, y ya era el verbo del botón de guardar de las ausencias. En base el
+  tipo se sigue llamando `kind: 'evento'`: es un valor guardado, no un texto.
 - **Los ejemplos son de esta casa**: "Ej: Cartilla vacunas Ana", "Ej: Leche entera".
 - Frases cortas y sin signos de admiración. Ya no hay excepciones: la última era
   «Lista vacía. ¡Añade el primer ítem!» (`ListDetailView.tsx`), que se quedó de antes y

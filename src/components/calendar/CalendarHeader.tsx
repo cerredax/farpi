@@ -105,7 +105,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
         <button
           type="button"
           onClick={onAdd}
-          aria-label="Añadir evento"
+          aria-label="Apuntar algo"
           className="ml-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95 lg:ml-2"
         >
           <Plus size={20} strokeWidth={2.5} />

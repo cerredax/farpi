@@ -167,8 +167,10 @@ export function useEventSheet({
   const canSubmit = (tituloOpcional || draft.title.trim().length > 0)
     && seriesError === null && yearlyError === null && vacacionesError === null
 
-  // El botón dice cuántas cosas va a crear: pulsar "Crear evento" y que
-  // aparezcan cuarenta es una sorpresa que nadie quiere.
+  // El botón dice cuántas cosas va a crear: pulsar "Apuntar" y que aparezcan
+  // cuarenta es una sorpresa que nadie quiere. Y lo dice en días, que es la
+  // unidad que ya usaban las vacaciones: una serie no son "12 eventos", son los
+  // 12 días en los que eso pasa.
   const submitLabel = mode === 'edit'
     ? 'Guardar cambios'
     : esDeRango
@@ -176,10 +178,10 @@ export function useEventSheet({
           ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}`
           : esVacaciones ? 'Apuntar vacaciones' : esDescanso ? 'Apuntar descanso' : 'Apuntar festivo')
       : recurrence === 'weekly' && seriesCount > 0
-        ? `Crear ${seriesCount} eventos`
+        ? `Apuntar ${seriesCount} días`
         : recurrence === 'yearly' && yearlyCount > 0
-          ? `Crear ${yearlyCount} evento${yearlyCount !== 1 ? 's' : ''}`
-          : 'Crear evento'
+          ? `Apuntar ${yearlyCount} día${yearlyCount !== 1 ? 's' : ''}`
+          : 'Apuntar'
 
   const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && !!recurrenceEnd && seriesCount > 0
 

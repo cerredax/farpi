@@ -339,7 +339,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
           value={buscador.valor}
           onChange={buscador.onChange}
           placeholder="Buscar en todo el calendario…"
-          ariaLabel="Buscar eventos"
+          ariaLabel="Buscar en el calendario"
         />
       )}
 
@@ -413,7 +413,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
           <EmptyState
             emoji="✨"
             title="Sin planes"
-            description="Toca para añadir un evento"
+            description="Toca para apuntar algo"
           />
         </button>
       ) : eje === 'persona' ? (

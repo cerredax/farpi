@@ -91,12 +91,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **341 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **353 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 259 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 82 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 270 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 83 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -1186,6 +1186,58 @@ esto; aquí solo el titular.
 La app está en producción y en uso diario por la familia, y probada en un móvil
 real. Lo que queda son dos comprobaciones baratas y funcionalidades que no existen.
 
+### Copia de seguridad de la familia (27-08-2026)
+
+Un botón en Ajustes → "Tu familia" que descarga un `.json` con todo. La decisión que
+lo hizo pequeño: **el store ya tiene en memoria todo lo de la familia activa, y ya
+filtrado por RLS**, que es exactamente lo que significa "tus datos". Así que es
+lógica pura sobre lo que la pantalla ya tenía: ninguna ruta API, ningún
+`service_role`, ninguna tabla, ninguna dependencia. Y funciona en modo demo, que es
+lo que permite que la suite lo pruebe descargando el archivo de verdad.
+
+No nació de una idea, nació de una incoherencia: `/privacidad` ya prometía que
+puedes "exportar tus datos" y `/terminos` recomienda **dos veces** "conservar copias
+de la información importante", sin que la app diera manera de hacerlo. La promesa
+existía y el mecanismo no.
+
+**Qué no lleva, y no es olvido:** `storage_connections` (son tokens de Google Drive;
+un refresh token no baja a la carpeta de Descargas ni por accidente) y
+`push_subscriptions` (endpoints técnicos de cada navegador, que no son datos de la
+familia). Hay un test unitario y otro de navegador que lo comprueban sobre el archivo
+real, porque es lo que podría colarse en silencio.
+
+Los **archivos** de los documentos tampoco: están en el Drive de quien los subió, que
+es un disco de verdad con su propia papelera. Va la ficha, con `storage_path` y
+`storage_owner`, que es el puntero para volver a encontrarlos.
+
+#### El camino de vuelta
+
+No hay pantalla de restauración a propósito: es bastante maquinaria para algo que
+pasará cero o una vez, y con el archivo delante se resuelve con un script. Pero el
+camino tiene que estar escrito **antes** del desastre, así que:
+
+1. Las claves de `datos` son los nombres de las tablas tal cual. Se insertan en
+   orden de dependencias: `families` → `family_members` → `children` → `lists` →
+   `list_items`, `events`, `tasks`, `meal_plans`, `documents`, `family_invites`.
+2. **El obstáculo real son los usuarios.** Si el proyecto Supabase desapareció,
+   `auth.users` desapareció con él, así que `family_members.user_id`,
+   `documents.created_by` y `documents.storage_owner` apuntan a identificadores que
+   ya no existen. Hay que crear las cuentas primero y traducir esos ids. Todo lo
+   demás entra tal cual.
+3. Los documentos siguen en el Drive de su dueño y sus identificadores de archivo no
+   cambian, así que las fichas restauradas vuelven a abrirlos en cuanto esa persona
+   reconecte.
+
+#### Lo que se dejó fuera
+
+- **Copia automática semanal.** El cron ya corre a diario y con Drive conectado
+  podría dejar el JSON en la carpeta Nido. Encaja, pero una copia manual de un toque
+  cubre el caso; la automática se añade si se demuestra que nadie pulsa el botón.
+- **Cifrar el archivo.** Lleva DNI, informes médicos y fechas de nacimiento de los
+  niños, así que la tarjeta lo dice: *guárdalo donde guardarías los papeles*. Una
+  contraseña que se olvida convierte la copia en nada.
+- **CSV o PDF.** Un segundo formato es un segundo formato que mantener.
+
 ### El cambio a Google Drive, cerrado (27-08-2026)
 
 **Desplegado y funcionando.** Esquema aplicado y validado (80/80), bucket borrado,
@@ -1247,7 +1299,9 @@ Las dos que había aquí se cerraron el 06-08-2026:
    Vercel y **volver a desplegar** (las `NEXT_PUBLIC_*` se hornean en el build). Sin
    ellas el botón de activarlas no aparece y el cron responde
    `skipped: 'VAPID no configurado'`. Ver `docs/notificaciones.md`.
-4. **Backup/export de datos de la familia.** No urge, pero es lo insustituible. Con
+4. ~~**Backup/export de datos de la familia.**~~ **Hecho el 27-08-2026** (ver
+   "Copia de seguridad" más abajo). Lo que sigue siendo verdad, y por lo que era
+   insustituible: con
    los documentos en Drive el riesgo cambia de forma más que de tamaño: los archivos
    están ahora en una cuenta de Google de verdad (con su propia papelera y su propio
    backup), pero a cambio dependen de que esa persona siga en la familia y con el

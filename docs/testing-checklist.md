@@ -279,6 +279,20 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 - [ ] Se puede editar y borrar, y al borrarlo lo suyo queda sin asignar.
 - [ ] Un adulto sin cuenta no recibe invitación ni puede iniciar sesión.
 
+## 11.1 Copia de seguridad
+
+Lo automatiza `e2e/runtime.spec.ts`, que descarga el archivo y lo lee. Lo que queda a
+mano es el navegador de verdad, porque las descargas de un blob son de las cosas que
+cada uno hace a su manera:
+
+- [ ] En Ajustes → Tu familia, el botón descarga un `.json` con el nombre de la
+      familia y la fecha de hoy.
+- [ ] El recuento que sale bajo el botón cuadra con lo que hay en la app.
+- [ ] **En el iPhone, con Nido instalado como PWA.** Es el caso que más falla: las
+      descargas de blob dentro de una app instalada no se comportan como en Safari.
+- [ ] Abrir el archivo y comprobar que **no** aparece `refresh_token`,
+      `access_token` ni `storage_connections`.
+
 ## 12. Reset demo
 
 - [ ] Reset pide confirmación.

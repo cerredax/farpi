@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 
 // Recorre las pantallas en modo demo y verifica que cargan sin errores de
 // consola ni excepciones no capturadas.
@@ -416,6 +417,39 @@ test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
   await page.waitForTimeout(700)
 
   await expect(page.getByText(/Caduc[óa] el 20 ago\.? 2026/)).toBeVisible()
+})
+
+// La copia de seguridad de la familia. Se descarga de verdad y se lee: es lo único
+// que prueba el camino completo —store, JSON, blob y descarga—, y sobre todo lo
+// único que puede confirmar que dentro no hay tokens. El resto de la lógica está en
+// `e2e/unit/export.spec.ts`, que no necesita navegador.
+test('la copia de seguridad se descarga y lleva los datos de la familia', async ({ page }) => {
+  await page.goto('/settings')
+  await page.waitForTimeout(800)
+
+  const descarga = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Descargar una copia de todo' }).click()
+  const archivo = await descarga
+
+  // El nombre lleva la familia y la fecha local.
+  expect(archivo.suggestedFilename()).toMatch(/^nido-.+-\d{4}-\d{2}-\d{2}\.json$/)
+
+  const ruta = await archivo.path()
+  const contenido = JSON.parse(readFileSync(ruta, 'utf8'))
+
+  expect(contenido.nido_export).toBe(1)
+  expect(contenido.familia.nombre).toBeTruthy()
+  // Los datos demo tienen documentos, eventos y personas: si alguno viene vacío,
+  // es que el store no llegó a la exportación.
+  expect(contenido.datos.documents.length).toBeGreaterThan(0)
+  expect(contenido.datos.events.length).toBeGreaterThan(0)
+  expect(contenido.datos.family_members.length).toBeGreaterThan(0)
+
+  // Lo que no puede estar, mirado sobre el archivo real y no sobre el objeto.
+  const bruto = readFileSync(ruta, 'utf8')
+  for (const prohibido of ['refresh_token', 'access_token', 'storage_connections', 'p256dh']) {
+    expect(bruto).not.toContain(prohibido)
+  }
 })
 
 // Los archivos viven en el Google Drive de quien los sube, pero en modo demo no

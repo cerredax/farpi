@@ -210,7 +210,10 @@ Objetivo: preparar uso diario.
   build servido y no contra `dev`; el `redirectTo` del magic link deja de adivinar el
   dominio desde la cabecera `Host`; y las rutas API dejan de devolver el mensaje crudo de
   Postgres.
-- [ ] Backup/export sencillo si se considera necesario.
+- ✅ **Copia de seguridad de la familia** (27-08-2026): un botón en Ajustes descarga
+  un `.json` con todo. Sin ruta API ni tabla nueva —el store ya lo tenía todo en
+  memoria— y sin tokens dentro. Nació de una incoherencia: los papeles ya prometían
+  la exportación y recomendaban guardar copias, sin dar manera de hacerlo.
 
 ## Fase 9 - Uso diario
 

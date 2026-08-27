@@ -91,7 +91,9 @@ export default function PrivacidadPage() {
       <LegalSection heading="Tus derechos">
         <p>
           Puedes acceder, rectificar, exportar o suprimir tus datos, y oponerte o limitar su tratamiento cuando
-          proceda. Para ejercerlos, escribe a{' '}
+          proceda. Dos de ellos no hace falta pedirlos: en <strong>Ajustes</strong> puedes{' '}
+          <strong>descargar una copia de todos los datos de tu familia</strong> en un archivo, y borrar tu cuenta.
+          Para el resto, escribe a{' '}
           <a href={`mailto:${CONTACT}`} className="font-semibold text-primary-strong">{CONTACT}</a>. Responderemos
           sin dilación indebida y, en general, en el plazo de un mes. Si resides en la UE, también puedes reclamar
           ante tu autoridad de protección de datos; en España, ante la Agencia Española de Protección de Datos

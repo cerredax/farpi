@@ -10,6 +10,7 @@ import { FamilyCard } from './FamilyCard'
 import { MealSlotsCard } from './MealSlotsCard'
 import { NotificationsCard } from './NotificationsCard'
 import { StorageCard } from './StorageCard'
+import { BackupCard } from './BackupCard'
 import { AccountActions } from './AccountActions'
 import { InstallPWA } from './InstallPWA'
 import { MembersList } from './MembersList'
@@ -158,6 +159,11 @@ export function SettingsView() {
               </button>
             )}
           </div>
+
+          {/* La copia de seguridad va aquí y no en "Cuenta y seguridad": son datos
+              de la familia, no de tu cuenta. Y ese bloque está oculto en modo demo,
+              lo que dejaría esta función sin poder probarse. */}
+          <BackupCard />
         </Bloque>
 
         <Bloque titulo="Personas">

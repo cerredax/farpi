@@ -189,6 +189,17 @@ export const PLATOS_SUGERIDOS = 30
  */
 export const DIAS_AVISO_CADUCIDAD = 30
 
+/**
+ * Con cuánta antelación asoma un cumpleaños en Inicio. Dos semanas: lo justo
+ * para comprar un regalo o cuadrar una comida, y poco para que el bloque no se
+ * quede fijo en la pantalla todo el mes diciendo lo mismo.
+ *
+ * El aviso de las siete no usa esta ventana: ahí solo se felicita el mismo día.
+ * Un "faltan once días" a las siete de la mañana no es algo que haya que saber
+ * hoy en casa.
+ */
+export const DIAS_AVISO_CUMPLE = 14
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {

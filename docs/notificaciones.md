@@ -76,7 +76,7 @@ Cómo leer la respuesta:
 ### 4. El emisor de recordatorios (hecho)
 Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `vercel.json` (**cron diario a las 07:00 UTC**). Cada ejecución:
 1. Hace un **keep-alive** a Supabase (evita la pausa por inactividad del plan free).
-2. Lee `push_subscriptions`, agrupa por usuario y busca sus eventos de hoy, sus tareas pendientes que vencen (o vencidas) y los documentos que caducan dentro de `DIAS_AVISO_CADUCIDAD` (30 días, en `src/lib/constants.ts`).
+2. Lee `push_subscriptions`, agrupa por usuario y busca sus eventos de hoy, sus tareas pendientes que vencen (o vencidas), los documentos que caducan dentro de `DIAS_AVISO_CADUCIDAD` (30 días, en `src/lib/constants.ts`) y los **cumpleaños de hoy**, deducidos de la fecha de nacimiento de las personas de la casa con `proximosCumples` (`src/lib/birthdays.ts`).
 3. Envía el push con `web-push` (payload `{ title, body, url }`).
 4. Borra las suscripciones caducadas (respuesta 404/410).
 
@@ -93,3 +93,7 @@ Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
 - Cada dispositivo/navegador genera su propia suscripción; por eso la tabla es por `endpoint`.
 - El aviso diario no cuenta las vacaciones como evento del día, igual que
   `selectTodayEvents`: son del calendario, no un plan de hoy.
+- El cumpleaños abre el cuerpo del aviso, delante de las tareas y de lo que caduca: es lo
+  único de los tres que caduca el mismo día. Y solo se felicita **el día**, sin
+  antelación: avisar con once días de margen a las siete de la mañana no es algo que haya
+  que saber hoy en casa.

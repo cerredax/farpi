@@ -47,6 +47,11 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] **Ni las vacaciones, ni los descansos, ni los festivos salen aquí**, ni en "hoy" ni
       en "esta semana". No son planes: dicen quién no está o que el día no es de nadie, y
       su sitio es el calendario. Apunta un festivo para hoy y comprueba que no aparece.
+- [ ] **Cumpleaños.** Ponle a un hijo la fecha de nacimiento de hoy (cambiando el año) en
+      Ajustes: el cumpleaños abre la tarjeta de hoy, con la tarta y su color, y dice los
+      años que cumple. Ponle a otra persona una fecha dentro de la semana que viene: sale
+      en el bloque «Cumpleaños», y el de hoy **no** se repite ahí. Con una fecha a dos
+      meses vista, el bloque no aparece (la ventana es de catorce días).
 - [ ] Abajo del todo, el enlace a Ajustes (solo en móvil; en escritorio está en la barra
       lateral).
 

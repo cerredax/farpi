@@ -223,6 +223,12 @@ Objetivo: preparar uso diario.
   de la pregunta de una casa con varios: no "¿qué hay el jueves?" sino "¿qué lleva cada
   uno?". Se descartó la columna por persona, que no cabe en un móvil.
 
+- ✅ **Cumpleaños** (27-08-2026): la fecha de nacimiento llevaba desde el principio
+  guardada en Ajustes sin servir para nada. Ahora el cumpleaños de hoy abre la tarjeta de
+  Inicio, los de los próximos catorce días van en su bloque y el aviso de las siete
+  felicita el mismo día. Sin tabla ni migración: es dato derivado, no un evento. Se
+  descartó crearlos como eventos recurrentes.
+
 ## Fase 9 - Uso diario
 
 Objetivo: que la app funcione sola, sin nadie mirándola.

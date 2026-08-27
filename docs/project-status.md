@@ -26,6 +26,9 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   archivos están en el Google Drive de quien los sube y los sirve Nido con el token
   del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
   detrás.
+- Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
+  Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
+  catorce días van en su bloque; el aviso de las siete felicita el mismo día.
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
   y cerrar una familia entera (un admin, y nunca la última que le queda).
@@ -1191,6 +1194,36 @@ esto; aquí solo el titular.
 
 La app está en producción y en uso diario por la familia, y probada en un móvil
 real. Lo que queda son dos comprobaciones baratas y funcionalidades que no existen.
+
+### Los cumpleaños (27-08-2026)
+
+Una casa se acuerda de los cumpleaños o no se acuerda, y la app tenía la fecha de
+nacimiento de cada uno guardada desde el principio sin hacer nada con ella. Ahora la usa.
+
+**Lo que lo hizo pequeño**: un cumpleaños no se guarda, se deduce. Es lógica pura
+(`src/lib/birthdays.ts`) sobre datos que el store ya tiene, así que no hay tabla, ni
+migración, ni nada que mantener sincronizado cuando alguien corrige una fecha. El porqué
+completo, y lo que se descartó —crearlos como eventos recurrentes—, está en «Decisiones de
+producto» de `docs/architecture.md`.
+
+Dónde sale:
+
+- **En Inicio**, partido en dos porque no se leen igual: el de hoy abre la tarjeta de hoy
+  con la tarta y el color de la persona, y los siguientes catorce días
+  (`DIAS_AVISO_CUMPLE`) van en su bloque «Cumpleaños», que no se pinta si no hay ninguno.
+- **En el aviso de las siete**, delante de las tareas y de los papeles que caducan, y solo
+  el mismo día.
+
+**Solo los hijos y los adultos sin cuenta**, que son los que llevan `birth_date`. Los
+miembros con cuenta se quedan fuera: darles fecha de nacimiento obliga a un `alter` en la
+base real y a cambiar la RPC del perfil, y esto no lo pedía.
+
+**En el calendario no sale**, y no es olvido: la agenda contesta «qué hay que hacer» y un
+cumpleaños no es un plan. Si se echa de menos ahí, se añade a propósito.
+
+Los dos bordes del calendario que podían salir mal están probados en
+`e2e/unit/birthdays.spec.ts`: el 29 de febrero se celebra el 1 de marzo en los años que no
+lo tienen, y el cumpleaños que ya pasó salta al año siguiente en vez de desaparecer.
 
 ### Copia de seguridad de la familia (27-08-2026)
 

@@ -934,6 +934,27 @@ resultados, porque una búsqueda atraviesa el calendario entero y no cabe en un 
 tira y el mes se quedan donde están: son navegación, y al vaciar el campo vuelves justo
 al día en el que estabas.
 
+**Un cumpleaños no es un evento** (27-08-2026). Se pensó en crearlos como eventos
+recurrentes al guardar la fecha de nacimiento, y se descartó: habría que darlos de alta,
+borrarlos al borrar a la persona, arrastrarlos al cambiar la fecha y decidir qué se hace
+con los años ya pasados. Un cumpleaños **se deduce** de un dato que ya estaba guardado en
+Ajustes, así que es dato derivado (`src/lib/birthdays.ts`), como "lo que falta en cada
+lista": nada que mantener y nada que se desincronice. La consecuencia, y es a propósito:
+no se puede editar, ni asignar, ni tiene hora, ni sale en el calendario. Se cambia donde
+se cambia la persona.
+
+Solo lo tienen los **hijos y los adultos sin cuenta**, que son los que llevan
+`birth_date`. Los miembros con cuenta no lo tienen: añadirlo obliga a tocar el esquema en
+producción y la RPC del perfil, y no se hizo con esto.
+
+**El de hoy y los que vienen se leen distinto.** El de hoy abre la tarjeta de hoy, con la
+tarta y el color de la persona; los siguientes van en su bloque, con catorce días de
+ventana (`DIAS_AVISO_CUMPLE`). Es lo único de Inicio que **caduca el mismo día** —una cita
+se recupera por la tarde, un cumpleaños visto a las once de la noche ya no se felicita— y
+por eso el aviso de las siete lo pone delante de las tareas y de los papeles que caducan.
+Ese aviso solo felicita **el mismo día**: avisar con antelación no es recordar un
+cumpleaños, es adelantarlo.
+
 **Ajustes se agrupa por para qué entras** (24-08-2026): "Tu familia", "Personas",
 "Preferencias de la casa", "Cuenta y seguridad" y "Legal", más "Modo demo" cuando toca.
 Eran once secciones al mismo nivel en una columna que en móvil no se acababa nunca.

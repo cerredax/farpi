@@ -5,7 +5,10 @@ import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
+import { proximosCumples } from '@/lib/birthdays'
 import { TodayEvents } from './TodayEvents'
+import { TodayBirthdays } from './TodayBirthdays'
+import { UpcomingBirthdays } from './UpcomingBirthdays'
 import { TodayTasks } from './TodayTasks'
 import { TodayMeals } from './TodayMeals'
 import { PendingItems } from './PendingItems'
@@ -66,6 +69,13 @@ export function HomeView() {
   const todayEvents = useMemo(() => selectTodayEvents(allEvents), [allEvents])
   const upcoming    = useMemo(() => selectUpcomingEvents(allEvents), [allEvents])
 
+  // Los cumpleaños no se guardan: salen de la fecha de nacimiento que ya está en
+  // Ajustes. Se calculan una vez y se parten en dos, porque el de hoy y los que
+  // vienen no se leen igual: uno se felicita y los otros se preparan.
+  const cumples     = useMemo(() => proximosCumples(kids), [kids])
+  const cumplesHoy  = cumples.filter(c => c.dias === 0)
+  const cumplesProximos = cumples.filter(c => c.dias > 0)
+
   // Lo de hoy sube a la tarjeta; lo demás baja a "Cosas por hacer". Antes esa
   // lista mezclaba lo de esta tarde con lo de dentro de tres semanas, y hoy no
   // aparecía por ningún lado pese a que la tarjeta lo prometía.
@@ -76,7 +86,7 @@ export function HomeView() {
 
   // El mensaje de calma solo cuando el día está vacío de verdad: si hay tareas
   // para hoy, la tarjeta ya tiene algo que enseñar.
-  const diaVacio = todayEvents.length === 0 && tareasHoy.length === 0
+  const diaVacio = todayEvents.length === 0 && tareasHoy.length === 0 && cumplesHoy.length === 0
   const calmMessage = !diaVacio
     ? null
     : pendingTasks.length === 0 && pendingItems.length === 0
@@ -100,6 +110,7 @@ export function HomeView() {
 
           {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
               entera para repetir nombres que ya salen en cada plan. */}
+          <TodayBirthdays cumples={cumplesHoy} />
           <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
           <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
         </div>
@@ -110,6 +121,7 @@ export function HomeView() {
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
       <UpcomingEvents events={upcoming} kids={kids} members={members} />
+      <UpcomingBirthdays cumples={cumplesProximos} />
       <TodayMeals meals={todayMeals} />
 
       {/* Ajustes, al final del recorrido y solo en móvil (26-08-2026). Sale de la

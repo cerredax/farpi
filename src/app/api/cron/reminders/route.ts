@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
+import { fraseDeCumples, proximosCumples } from '@/lib/birthdays'
 import { RANGE_KINDS } from '@/lib/events'
 
 export const runtime = 'nodejs'
@@ -158,7 +159,7 @@ export async function GET(req: NextRequest) {
   // un DNI. Un papel caducado no avisa por su cuenta.
   const limiteCaducidad = formatDate(addDays(todayParts, DIAS_AVISO_CADUCIDAD))
 
-  const [eventsRes, tasksRes, docsRes] = await Promise.all([
+  const [eventsRes, tasksRes, docsRes, kidsRes] = await Promise.all([
     // Solo planes, igual que `selectTodayEvents`: ni vacaciones, ni descansos, ni
     // festivos. Avisar de que "tenéis 1 evento" el día que empiezan contradice lo
     // que enseña la pantalla de inicio esa misma mañana, y un festivo no es un
@@ -169,15 +170,21 @@ export async function GET(req: NextRequest) {
     // `expires_on` viene con los datos porque un papel vencido y uno que vence
     // la semana que viene no se cuentan en la misma frase.
     supabase.from('documents').select('family_id, expires_on').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
+    // Los cumpleaños no son eventos: se deducen de la fecha de nacimiento de las
+    // personas de la casa, así que no se pueden filtrar por fecha aquí. Se traen
+    // las que tienen fecha —nunca son muchas— y el día se resuelve abajo, con la
+    // misma función que usa Inicio.
+    supabase.from('children').select('family_id, name, birth_date').not('birth_date', 'is', null).in('family_id', familyIds),
   ])
 
   // Con una sola de las tres rota, los recuentos salen incompletos: mejor no
   // mandar nada que avisar de una tarea cuando había tres eventos más.
-  const errorDelDia = eventsRes.error ?? tasksRes.error ?? docsRes.error
-  if (errorDelDia) return fallo('consulta de eventos, tareas o documentos', errorDelDia.message)
+  const errorDelDia = eventsRes.error ?? tasksRes.error ?? docsRes.error ?? kidsRes.error
+  if (errorDelDia) return fallo('consulta de eventos, tareas, documentos o personas', errorDelDia.message)
   const { data: events } = eventsRes
   const { data: tasks } = tasksRes
   const { data: docs } = docsRes
+  const { data: kids } = kidsRes
 
   let sent = 0
   let fallidos = 0
@@ -190,7 +197,10 @@ export async function GET(req: NextRequest) {
     const docsUsuario = (docs ?? []).filter(d => fams.includes(d.family_id))
     const vencidos = docsUsuario.filter(d => d.expires_on !== null && d.expires_on < today).length
     const porVencer = docsUsuario.length - vencidos
-    if (eventCount === 0 && taskCount === 0 && docsUsuario.length === 0) continue
+    // Con ventana de cero días: hoy o nada. Felicitar con antelación no es un
+    // recordatorio, es adelantar el cumpleaños.
+    const cumplesHoy = proximosCumples((kids ?? []).filter(k => fams.includes(k.family_id)), today, 0)
+    if (eventCount === 0 && taskCount === 0 && docsUsuario.length === 0 && cumplesHoy.length === 0) continue
 
     const parts: string[] = []
     if (eventCount > 0) parts.push(`${eventCount} evento${eventCount !== 1 ? 's' : ''}`)
@@ -212,9 +222,15 @@ export async function GET(req: NextRequest) {
     }
     const caducan = avisos.join(' ')
 
+    // El cumpleaños abre el aviso. Es lo único de los tres que **caduca el mismo
+    // día** —una tarea se hace por la tarde, un papel caduca dentro de un mes—, y
+    // leído detrás de "tenéis 2 tareas pendientes" se queda en la segunda línea
+    // que ya nadie mira.
+    const felicitacion = fraseDeCumples(cumplesHoy)
+
     const payload = JSON.stringify({
       title: 'Hoy en casa',
-      body: [cuerpo, caducan].filter(Boolean).join(' '),
+      body: [felicitacion, cuerpo, caducan].filter(Boolean).join(' '),
       url: '/home',
     })
 

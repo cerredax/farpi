@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { ANOS_DE_CUMPLE } from '@/lib/constants'
 import { extractDate, extractTime, parseLocalDate } from '@/lib/date-utils'
 import { buildWeeklyDates, joinWeekdayNames, maxWeeklyEndDate, weekdayOf } from '@/lib/recurrence'
 import { daysBetween, eventTitleOr, isRangeKind } from '@/lib/events'
@@ -51,13 +52,14 @@ export function initDraft(mode: EventSheetMode, initial: Event | null | undefine
       member_id: initial.member_id,
       kind: initial.kind,
       end_date: isRangeKind(initial.kind) && initial.end_at ? extractDate(initial.end_at) : '',
+      birth_year: initial.birth_year ? String(initial.birth_year) : '',
     }
   }
   return {
     title: '', description: '',
     date: format(defaultDate ?? new Date(), 'yyyy-MM-dd'),
     all_day: false, start_time: '', end_time: '', child_id: null, member_id: null,
-    kind: 'evento', end_date: '',
+    kind: 'evento', end_date: '', birth_year: '',
   }
 }
 
@@ -92,6 +94,7 @@ export function useEventSheet({
   const esVacaciones = draft.kind === 'vacaciones'
   const esDescanso = draft.kind === 'descanso'
   const esFestivo = draft.kind === 'festivo'
+  const esCumple  = draft.kind === 'cumple'
   // Los tres ocupan días completos y piden día final; un plan no.
   const esDeRango = isRangeKind(draft.kind)
   const diasVacaciones = esDeRango ? daysBetween(draft.date, draft.end_date) : 0
@@ -149,7 +152,12 @@ export function useEventSheet({
       onClose()
       return
     }
-    if (recurrence === 'weekly') {
+    // Un cumpleaños se repite todos los años por definición: el tipo manda
+    // sobre el selector de recurrencia, que ni siquiera se enseña. Igual que
+    // "vacaciones" manda que sean días completos.
+    if (esCumple) {
+      onCreateYearlySeries?.(conTitulo, startYear + ANOS_DE_CUMPLE)
+    } else if (recurrence === 'weekly') {
       if (seriesError) return
       onCreateSeries?.(conTitulo, recurrenceWeekdays, recurrenceEnd)
     } else if (recurrence === 'yearly') {
@@ -173,6 +181,8 @@ export function useEventSheet({
   // 12 días en los que eso pasa.
   const submitLabel = mode === 'edit'
     ? 'Guardar cambios'
+    : esCumple
+    ? 'Apuntar cumpleaños'
     : esDeRango
       ? (diasVacaciones > 0
           ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}`
@@ -189,7 +199,7 @@ export function useEventSheet({
     draft, patch, formError, firstFieldRef, handleSubmit,
     confirmDelete, handleDelete,
     seriesDeleteOpen, setSeriesDeleteOpen,
-    esVacaciones, esDescanso, esFestivo, esDeRango, tituloOpcional,
+    esVacaciones, esDescanso, esFestivo, esCumple, esDeRango, tituloOpcional,
     recurrence, setNone, setWeekly, setYearly,
     recurrenceWeekdays, toggleWeekday,
     recurrenceEnd, setRecurrenceEnd,

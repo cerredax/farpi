@@ -1,7 +1,7 @@
 import { db } from './db'
 
 const STORAGE_KEY = 'nido_store_v1'
-const SCHEMA_VER  = 10 // v10: Document.storage_provider y storage_owner (los archivos pasan a Drive)
+const SCHEMA_VER  = 11 // v11: Event.birth_year (los cumpleaños de fuera de casa se apuntan como evento)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return

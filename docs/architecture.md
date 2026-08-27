@@ -947,6 +947,38 @@ Solo lo tienen los **hijos y los adultos sin cuenta**, que son los que llevan
 `birth_date`. Los miembros con cuenta no lo tienen: añadirlo obliga a tocar el esquema en
 producción y la RPC del perfil, y no se hizo con esto.
 
+**Y el de la abuela sí es un evento** (27-08-2026). La regla de arriba vale para quien
+está en la casa. Para la abuela, un primo o el amigo del cole no hay ninguna ficha de la
+que deducir nada, y la única forma de apuntar su cumpleaños era **darle de alta como
+persona**: con su color, asignable, y saliendo en todos los selectores de "de quién es
+esto". Eso es meter en la familia a quien solo queremos felicitar.
+
+La salida es un tipo de evento, `kind = 'cumple'`: se apunta en el calendario, que es
+donde ya vive todo lo que tiene fecha. Reglas, y por qué:
+
+- **El tipo manda sobre la recurrencia.** Un cumpleaños es anual por definición, así que
+  el sheet no enseña el selector de repetición: guarda la serie de veinte años
+  (`ANOS_DE_CUMPLE`) con la misma maquinaria que los festivos. Preguntar "¿hasta qué año?"
+  al apuntar el cumpleaños de la abuela es trabajo administrativo.
+- **Día completo, un solo día, de nadie.** Ni hora ni asignación: el color significa "de
+  quién es esto" en el resto de la app, y un cumpleaños de fuera no le toca a nadie en
+  particular. Lo fija la base con `events_cumple_de_un_dia`.
+- **El año de nacimiento es opcional** (`events.birth_year`). De la abuela se sabe; del
+  amigo del cole, casi nunca. Lo único que cambia es si Inicio dice "cumple 77 años" o
+  "hoy es el cumple de X". Va en la fila y no se deduce de `start_at` porque la serie
+  arranca en el año en curso: la fecha dice el día que se celebra, no el día que nació.
+- **En Inicio se juntan los dos orígenes** (`cumplesDeLaCasa`), porque en la tarjeta de hoy
+  son lo mismo. Pero un cumpleaños **no cuenta como plan del día** (`isDigestPlan`): sin
+  esa distinción salía dos veces en la misma pantalla, arriba como celebración y debajo
+  como una cita más.
+
+La asimetría que esto deja, asumida a propósito: **el cumpleaños de fuera se ve en el
+calendario y el de casa no.** Es explicable —en el calendario está lo que se apunta, y el
+de casa no está apuntado en ninguna parte— y la alternativa era peor: si el apuntado
+tampoco se viera ahí, no habría dónde corregirlo ni borrarlo. Por eso el pie del bloque de
+Inicio lleva al calendario cuando todo lo que enseña son cumpleaños apuntados, y a Ajustes
+cuando hay alguno de la casa.
+
 **El de hoy y los que vienen se leen distinto.** El de hoy abre la tarjeta de hoy, con la
 tarta y el color de la persona; los siguientes van en su bloque, con catorce días de
 ventana (`DIAS_AVISO_CUMPLE`). Es lo único de Inicio que **caduca el mismo día** —una cita

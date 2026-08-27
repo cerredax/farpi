@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
-import { fraseDeCumples, proximosCumples } from '@/lib/birthdays'
+import { fraseDeCumplesDeLaCasa, proximosCumples, type CumpleEnCasa } from '@/lib/birthdays'
 import { RANGE_KINDS } from '@/lib/events'
 
 export const runtime = 'nodejs'
@@ -165,16 +165,20 @@ export async function GET(req: NextRequest) {
     // que enseña la pantalla de inicio esa misma mañana, y un festivo no es un
     // plan que haya que recordarle a nadie a las siete. El filtro se arma con la
     // misma lista que usa `isPlan`, para que no puedan separarse otra vez.
-    supabase.from('events').select('family_id').not('kind', 'in', `(${RANGE_KINDS.join(',')})`).gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
+    // Los cumpleaños apuntados vienen en esta misma consulta —son eventos, y
+    // caen en el día como cualquier otro— pero no se cuentan como "1 evento":
+    // se separan abajo con `kind` y van a la frase de felicitar. Por eso el
+    // select trae el título y el año, que un recuento no necesitaría.
+    supabase.from('events').select('family_id, id, kind, title, birth_year').not('kind', 'in', `(${RANGE_KINDS.join(',')})`).gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
     // `expires_on` viene con los datos porque un papel vencido y uno que vence
     // la semana que viene no se cuentan en la misma frase.
     supabase.from('documents').select('family_id, expires_on').not('expires_on', 'is', null).lte('expires_on', limiteCaducidad).in('family_id', familyIds),
-    // Los cumpleaños no son eventos: se deducen de la fecha de nacimiento de las
-    // personas de la casa, así que no se pueden filtrar por fecha aquí. Se traen
-    // las que tienen fecha —nunca son muchas— y el día se resuelve abajo, con la
-    // misma función que usa Inicio.
-    supabase.from('children').select('family_id, name, birth_date').not('birth_date', 'is', null).in('family_id', familyIds),
+    // Los cumpleaños de la casa no son eventos: se deducen de la fecha de
+    // nacimiento de las personas, así que no se pueden filtrar por fecha aquí.
+    // Se traen las que tienen fecha —nunca son muchas— y el día se resuelve
+    // abajo, con la misma función que usa Inicio.
+    supabase.from('children').select('family_id, id, name, birth_date').not('birth_date', 'is', null).in('family_id', familyIds),
   ])
 
   // Con una sola de las tres rota, los recuentos salen incompletos: mejor no
@@ -192,14 +196,30 @@ export async function GET(req: NextRequest) {
 
   for (const userId of userIds) {
     const fams = (members ?? []).filter(m => m.user_id === userId).map(m => m.family_id)
-    const eventCount = (events ?? []).filter(e => fams.includes(e.family_id)).length
+    const eventosUsuario = (events ?? []).filter(e => fams.includes(e.family_id))
+    const eventCount = eventosUsuario.filter(e => e.kind !== 'cumple').length
     const taskCount = (tasks ?? []).filter(t => fams.includes(t.family_id)).length
     const docsUsuario = (docs ?? []).filter(d => fams.includes(d.family_id))
     const vencidos = docsUsuario.filter(d => d.expires_on !== null && d.expires_on < today).length
     const porVencer = docsUsuario.length - vencidos
     // Con ventana de cero días: hoy o nada. Felicitar con antelación no es un
-    // recordatorio, es adelantar el cumpleaños.
-    const cumplesHoy = proximosCumples((kids ?? []).filter(k => fams.includes(k.family_id)), today, 0)
+    // recordatorio, es adelantar el cumpleaños. Los de casa salen de la fecha de
+    // nacimiento y los de fuera de los eventos apuntados; en la felicitación son
+    // lo mismo, así que se juntan en una sola lista como hace Inicio.
+    const cumplesHoy: CumpleEnCasa[] = [
+      ...proximosCumples((kids ?? []).filter(k => fams.includes(k.family_id)), today, 0)
+        .map(c => ({ id: c.persona.id, nombre: c.persona.name, fecha: c.fecha, dias: 0, edad: c.edad, color: null, apuntado: false })),
+      ...eventosUsuario.filter(e => e.kind === 'cumple')
+        .map(e => ({
+          id: e.id,
+          nombre: e.title,
+          fecha: today,
+          dias: 0,
+          edad: e.birth_year ? Number(today.slice(0, 4)) - e.birth_year : null,
+          color: null,
+          apuntado: true,
+        })),
+    ]
     if (eventCount === 0 && taskCount === 0 && docsUsuario.length === 0 && cumplesHoy.length === 0) continue
 
     const parts: string[] = []
@@ -226,7 +246,7 @@ export async function GET(req: NextRequest) {
     // día** —una tarea se hace por la tarde, un papel caduca dentro de un mes—, y
     // leído detrás de "tenéis 2 tareas pendientes" se queda en la segunda línea
     // que ya nadie mira.
-    const felicitacion = fraseDeCumples(cumplesHoy)
+    const felicitacion = fraseDeCumplesDeLaCasa(cumplesHoy)
 
     const payload = JSON.stringify({
       title: 'Hoy en casa',

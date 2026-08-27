@@ -229,6 +229,13 @@ Objetivo: preparar uso diario.
   felicita el mismo día. Sin tabla ni migración: es dato derivado, no un evento. Se
   descartó crearlos como eventos recurrentes.
 
+- ✅ **Cumpleaños de fuera de casa** (27-08-2026): la abuela y el amigo del cole no tienen
+  ficha en Ajustes, y apuntar su cumpleaños obligaba a darles de alta como persona de la
+  familia. Ahora son un tipo de evento (`cumple`) que se apunta en el calendario, se
+  repite solo todos los años y sube a los mismos bloques de Inicio que los de casa. El año
+  de nacimiento es opcional: solo cambia si se dice la edad. Se descartó una pestaña
+  propia.
+
 ## Fase 9 - Uso diario
 
 Objetivo: que la app funcione sola, sin nadie mirándola.

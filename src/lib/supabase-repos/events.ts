@@ -10,6 +10,13 @@ function localDateTimeToIso(date: string, time = '00:00'): string {
   return new Date(buildLocalDateTime(date, time)).toISOString()
 }
 
+/** El año de nacimiento solo se guarda en un cumpleaños, y solo si lo pusieron. */
+function birthYearFromDraft(draft: EventDraft): number | null {
+  if (draft.kind !== 'cumple') return null
+  const ano = Number(draft.birth_year)
+  return draft.birth_year.trim() && Number.isInteger(ano) ? ano : null
+}
+
 /** En vacaciones `end_at` es el último día; en un evento normal, la hora de fin. */
 function endAtFromDraft(draft: EventDraft): string | null {
   if (isRangeKind(draft.kind)) {
@@ -29,6 +36,7 @@ function eventInsert(familyId: string, userId: string, draft: EventDraft, groupI
     end_at: endAtFromDraft(draft),
     all_day: draft.all_day,
     kind: draft.kind,
+    birth_year: birthYearFromDraft(draft),
     color: null,
     recurrence_group_id: groupId,
     created_by: userId,
@@ -45,6 +53,7 @@ function eventUpdate(draft: EventDraft) {
     end_at: endAtFromDraft(draft),
     all_day: draft.all_day,
     kind: draft.kind,
+    birth_year: birthYearFromDraft(draft),
   }
 }
 

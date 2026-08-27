@@ -57,7 +57,7 @@ export interface Child {
 }
 
 /** Un plan puntual, unas vacaciones de varios días o un descanso marcado como no disponible. */
-export type EventKind = 'evento' | 'vacaciones' | 'descanso' | 'festivo'
+export type EventKind = 'evento' | 'vacaciones' | 'descanso' | 'festivo' | 'cumple'
 
 export interface Event {
   id: string
@@ -72,6 +72,13 @@ export interface Event {
   end_at: string | null
   all_day: boolean
   kind: EventKind
+  /**
+   * El año en que nació quien cumple, solo en `kind = 'cumple'` y solo si se
+   * sabe. De ahí sale la edad. Va en la fila y no calculado de `start_at`
+   * porque la serie anual se genera desde el año en curso: la fecha dice el día
+   * que se celebra, no el día que nació.
+   */
+  birth_year: number | null
   color: string | null
   recurrence_group_id: string | null
   created_by: string | null
@@ -204,6 +211,8 @@ export interface EventDraft {
   kind: EventKind
   /** Último día, solo en vacaciones. En un evento normal manda `end_time`. */
   end_date: string
+  /** Año de nacimiento, solo en cumpleaños y opcional. Cadena vacía = no se sabe. */
+  birth_year: string
 }
 
 export interface TaskDraft {

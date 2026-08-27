@@ -58,7 +58,17 @@ export function validateEventDraft(draft: EventDraft): string | null {
   // Solo un plan necesita nombre. Unas vacaciones o un descanso ya dicen lo que
   // son por el tipo, y `eventTitleOr` les pone el nombre al guardar.
   if (draft.kind === 'evento' && !draft.title.trim()) return 'El título es obligatorio.'
+  // Un cumpleaños es el nombre de alguien: sin él no queda nada que felicitar,
+  // y "Cumpleaños" a secas en la tarjeta de hoy no dice de quién.
+  if (draft.kind === 'cumple' && !draft.title.trim()) return 'Pon de quién es el cumpleaños.'
   if (!draft.date) return 'La fecha es obligatoria.'
+  if (draft.kind === 'cumple' && draft.birth_year.trim()) {
+    const ano = Number(draft.birth_year)
+    // El año solo sirve para decir la edad, así que un año imposible o
+    // posterior al día que se celebra daría una edad negativa o absurda.
+    if (!Number.isInteger(ano) || ano < 1900 || ano > Number(draft.date.slice(0, 4)))
+      return 'El año de nacimiento no parece correcto.'
+  }
   if (isRangeKind(draft.kind) && (!draft.end_date || draft.end_date < draft.date))
     return 'La fecha final debe ser posterior o igual a la inicial.'
   // Sin esto la comparación de abajo no salta —cualquier hora es mayor que la

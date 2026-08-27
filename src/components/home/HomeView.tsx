@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
-import { proximosCumples } from '@/lib/birthdays'
+import { cumplesDeLaCasa } from '@/lib/birthdays'
 import { TodayEvents } from './TodayEvents'
 import { TodayBirthdays } from './TodayBirthdays'
 import { UpcomingBirthdays } from './UpcomingBirthdays'
@@ -69,10 +69,13 @@ export function HomeView() {
   const todayEvents = useMemo(() => selectTodayEvents(allEvents), [allEvents])
   const upcoming    = useMemo(() => selectUpcomingEvents(allEvents), [allEvents])
 
-  // Los cumpleaños no se guardan: salen de la fecha de nacimiento que ya está en
-  // Ajustes. Se calculan una vez y se parten en dos, porque el de hoy y los que
-  // vienen no se leen igual: uno se felicita y los otros se preparan.
-  const cumples     = useMemo(() => proximosCumples(kids), [kids])
+  // Los cumpleaños de casa no se guardan: salen de la fecha de nacimiento que ya
+  // está en Ajustes. Los de fuera —la abuela, el amigo del cole— sí están
+  // apuntados, como evento del calendario. Aquí se juntan, porque en la tarjeta
+  // de hoy son lo mismo: alguien de quien hay que acordarse. Se parten en dos
+  // porque el de hoy y los que vienen no se leen igual: uno se felicita y los
+  // otros se preparan.
+  const cumples     = useMemo(() => cumplesDeLaCasa(kids, allEvents), [kids, allEvents])
   const cumplesHoy  = cumples.filter(c => c.dias === 0)
   const cumplesProximos = cumples.filter(c => c.dias > 0)
 

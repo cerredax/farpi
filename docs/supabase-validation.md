@@ -1,12 +1,18 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-27, ya con el borrado de familias. **79/79 comprobaciones
+Última ejecución: 2026-08-27, ya con los cumpleaños apuntados. **86/86 comprobaciones
 correctas.**
 
-Son las 70 del esquema con los documentos en Drive más las **nueve de la §13, cerrar
-una familia** (`delete_family`): que no la cierra ni un miembro no admin, ni un ajeno,
-ni un `delete` directo saltándose la RPC; que nadie se queda sin ninguna familia; y que
-el camino bueno se lleva en cascada lo que colgaba de ella.
+Son las 79 anteriores más las **siete de la §9 bis, cumpleaños de fuera de casa**: que el
+quinto valor de `kind` (`cumple`) entra, con y sin `birth_year`; que la base rechaza un
+cumpleaños con día final o con hora —es de día completo y de un solo día, al revés que un
+festivo—; que un año de nacimiento colgado de algo que no es un cumpleaños no pasa; que un
+año imposible tampoco; y que un ajeno no los ve.
+
+Las 79 eran las 70 del esquema con los documentos en Drive más las **nueve de la §13,
+cerrar una familia** (`delete_family`): que no la cierra ni un miembro no admin, ni un
+ajeno, ni un `delete` directo saltándose la RPC; que nadie se queda sin ninguna familia; y
+que el camino bueno se lleva en cascada lo que colgaba de ella.
 
 > De 80 a 79 no es una regresión. La pasada del 26-08-2026 dio 69, y la primera del
 > 27-08 dio 80 con las once del paso de los documentos a Google Drive (siete de

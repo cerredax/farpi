@@ -200,6 +200,16 @@ export const DIAS_AVISO_CADUCIDAD = 30
  */
 export const DIAS_AVISO_CUMPLE = 14
 
+/**
+ * Cuántos años por delante se apunta un cumpleaños de fuera de casa.
+ *
+ * La serie anual se materializa —una fila por año, como los festivos—, así que
+ * hay que elegir un final. Veinte filas por persona no las nota nadie, y
+ * preguntar "¿hasta qué año?" al apuntar el cumpleaños de la abuela es la clase
+ * de trabajo administrativo que esta app existe para no pedir.
+ */
+export const ANOS_DE_CUMPLE = 20
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {

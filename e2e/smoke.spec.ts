@@ -87,3 +87,63 @@ test('la agenda se puede agrupar por persona', async ({ page }) => {
   // y una comparación con "Omar" pasaría sin mirar las filas.
   await expect(page.getByRole('region', { name: 'Omar' }).locator('.etiqueta-persona')).toHaveCount(1)
 })
+
+// El botón de guardar del sheet del calendario, por lo que es y no por lo que
+// dice: buscarlo por /Apuntar/ engancharía también el `+` de la cabecera.
+const GUARDAR_EVENTO = 'button[type="submit"][form="event-form"]'
+
+/**
+ * Los cumpleaños de fuera de casa: la abuela, el amigo del cole.
+ *
+ * Se prueba en el navegador y no solo en unitarios —`cumplesDeLaCasa` ya cubre
+ * la cuenta— porque lo que puede romperse aquí es la costura: que el tipo de
+ * evento fuerce la serie anual sin preguntar, que el cumpleaños suba al bloque
+ * de la tarjeta de hoy y que **no** salga además como un plan más, que era la
+ * forma en que se veía dos veces.
+ */
+test('un cumpleaños de fuera se apunta y sube a la tarjeta de hoy', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  await page.locator('#event-kind').selectOption('cumple')
+
+  // Un cumpleaños no tiene hora, no se asigna a nadie y no pregunta cada cuánto
+  // se repite: es anual por definición.
+  await expect(page.locator('#event-start')).toHaveCount(0)
+  await expect(page.locator('#event-end-date')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Cada año' })).toHaveCount(0)
+
+  await page.locator('#event-title').fill('Abuela Carmen')
+  await page.locator('#event-birth-year').fill('1949')
+  await page.locator('#event-date').fill(iso)
+  await page.locator(GUARDAR_EVENTO).click()
+
+  // En la agenda se lee como lo apuntado que es, y de nadie en concreto.
+  await page.getByRole('button', { name: 'Agenda', exact: true }).click()
+  const enAgenda = page.getByText('Abuela Carmen').locator('visible=true').first()
+  await expect(enAgenda).toBeVisible()
+
+  // Y en Inicio va arriba, con la edad que cumple, no en la lista de planes.
+  await page.goto('/home')
+  const anos = hoy.getFullYear() - 1949
+  await expect(page.getByText(`Hoy Abuela Carmen cumple ${anos} años`)).toBeVisible()
+})
+
+// Sin año de nacimiento no hay edad, y la felicitación tiene que seguir
+// funcionando: es el caso normal del amigo del cole.
+test('un cumpleaños sin año de nacimiento se felicita sin edad', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  await page.locator('#event-kind').selectOption('cumple')
+  await page.locator('#event-title').fill('Nico del cole')
+  await page.locator('#event-date').fill(iso)
+  await page.locator(GUARDAR_EVENTO).click()
+
+  await page.goto('/home')
+  await expect(page.getByText('Hoy es el cumple de Nico del cole')).toBeVisible()
+})

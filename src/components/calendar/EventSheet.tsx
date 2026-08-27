@@ -101,9 +101,13 @@ export function EventSheet({
                 const valor = e.target.value as EventDraft['kind']
                 s.patch({
                   kind: valor,
-                  // Vacaciones, descansos y festivos son días completos por definición.
-                  all_day: isRangeKind(valor) ? true : s.draft.all_day,
+                  // Vacaciones, descansos y festivos son días completos por
+                  // definición, y un cumpleaños también: nadie cumple de seis a ocho.
+                  all_day: isRangeKind(valor) || valor === 'cumple' ? true : s.draft.all_day,
                   end_date: isRangeKind(valor) && !s.draft.end_date ? s.draft.date : s.draft.end_date,
+                  // Un plan no lleva año de nacimiento: si se cambia de idea
+                  // después de escribirlo, se va con el tipo.
+                  birth_year: valor === 'cumple' ? s.draft.birth_year : '',
                 })
               }}
               className="field-input"
@@ -112,20 +116,21 @@ export function EventSheet({
               <option value="vacaciones">Vacaciones</option>
               <option value="descanso">Descanso</option>
               <option value="festivo">Festivo</option>
+              <option value="cumple">Cumpleaños</option>
             </select>
           </Field>
         )}
 
         {/* En vacaciones y descansos el título sobra: el tipo ya dice lo que es,
             y el placeholder enseña con qué nombre se va a guardar. */}
-        <Field label={s.tituloOpcional ? 'Título (opcional)' : 'Título'} htmlFor="event-title">
+        <Field label={s.esCumple ? 'De quién' : s.tituloOpcional ? 'Título (opcional)' : 'Título'} htmlFor="event-title">
           <input
             id="event-title"
             ref={firstFieldRef}
             type="text"
             value={s.draft.title}
             onChange={e => s.patch({ title: e.target.value })}
-            placeholder={s.esVacaciones ? 'Vacaciones' : s.esDescanso ? 'Descanso' : s.esFestivo ? 'Festivo' : '¿Qué ocurre?'}
+            placeholder={s.esVacaciones ? 'Vacaciones' : s.esDescanso ? 'Descanso' : s.esFestivo ? 'Festivo' : s.esCumple ? 'Abuela Carmen' : '¿Qué ocurre?'}
             className="field-input"
           />
         </Field>
@@ -145,6 +150,38 @@ export function EventSheet({
             <div className="flex-1">
               <Field label="Hasta" htmlFor="event-end-date">
                 <input id="event-end-date" type="date" value={s.draft.end_date} min={s.draft.date} onChange={e => s.patch({ end_date: e.target.value })} className="field-input" />
+              </Field>
+            </div>
+          </div>
+        ) : s.esCumple ? (
+          /* Un cumpleaños es un día y, si se sabe, un año de nacimiento. No
+             lleva hora ni "todo el día": nadie cumple de seis a ocho. El año es
+             opcional a propósito —de la abuela se sabe, del amigo del cole
+             normalmente no— y lo único que cambia es si Inicio puede decir la
+             edad o solo el nombre.
+
+             `items-end` porque "Año de nacimiento (opcional)" no cabe en una
+             línea a 390 px y la etiqueta se parte en dos: sin esto, su campo
+             baja un renglón y la fila queda descuadrada contra la del día. */
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Field label="Día" htmlFor="event-date">
+                <input id="event-date" type="date" value={s.draft.date} onChange={e => s.handleDateChange(e.target.value)} className="field-input" />
+              </Field>
+            </div>
+            <div className="flex-1">
+              <Field label="Año de nacimiento (opcional)" htmlFor="event-birth-year">
+                <input
+                  id="event-birth-year"
+                  type="number"
+                  inputMode="numeric"
+                  min={1900}
+                  max={s.draft.date.slice(0, 4)}
+                  value={s.draft.birth_year}
+                  onChange={e => s.patch({ birth_year: e.target.value })}
+                  placeholder="1949"
+                  className="field-input"
+                />
               </Field>
             </div>
           </div>
@@ -179,9 +216,15 @@ export function EventSheet({
           </div>
         )}
 
-        <AssigneePicker value={s.draft} onChange={s.patch} members={members} kids={kids} />
+        {/* De quién es no aplica a un cumpleaños de fuera: no es de nadie de la
+            casa, es de todos. Poner el color de alguien sería decir que le
+            "toca" a esa persona, que es lo que significa el color en el resto
+            de la app. */}
+        {!s.esCumple && <AssigneePicker value={s.draft} onChange={s.patch} members={members} kids={kids} />}
 
-        {mode === 'create' && !s.esDeRango && <EventRecurrenceFields s={s} />}
+        {/* El selector de repetición tampoco: un cumpleaños es anual por
+            definición y el sheet lo apunta ya para veinte años. */}
+        {mode === 'create' && !s.esDeRango && !s.esCumple && <EventRecurrenceFields s={s} />}
 
       </form>
     </BottomSheet>

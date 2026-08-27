@@ -83,6 +83,25 @@ export function isHoliday(event: Event): boolean {
 }
 
 /**
+ * Un cumpleaños de alguien que **no es de la casa**: la abuela, un primo, el
+ * amigo del cole.
+ *
+ * Los cumpleaños de la familia no pasan por aquí: se deducen de la fecha de
+ * nacimiento que ya está en Ajustes y no se guardan en ningún sitio
+ * (`birthdays.ts` explica por qué). Pero para alguien de fuera no hay ninguna
+ * ficha de la que deducirlos, y darle una —con su color, asignable, en los
+ * selectores de "de quién es esto"— sería meter en la familia a quien solo
+ * queremos felicitar. De ahí que sea un tipo de evento: se apunta en el
+ * calendario, que es donde ya vive todo lo que tiene fecha.
+ *
+ * Es un día completo, de un solo día, y siempre se guarda como serie anual: no
+ * hay cumpleaños que ocurra una vez. Eso lo hace el sheet, no esta función.
+ */
+export function isBirthday(event: Event): boolean {
+  return event.kind === 'cumple'
+}
+
+/**
  * El nombre propio de un festivo, o cadena vacía si no le pusieron uno.
  *
  * Un festivo sin título se guarda como "Festivo" —igual que unas vacaciones sin
@@ -122,6 +141,23 @@ export function isAbsence(event: Event): boolean {
  */
 export function isPlan(event: Event): boolean {
   return !isRangeKind(event.kind)
+}
+
+/**
+ * Lo que cuenta como plan **en el resumen del día**: Inicio y el aviso de las
+ * siete. Es `isPlan` menos los cumpleaños.
+ *
+ * Un cumpleaños sí es un plan para el calendario —se apunta, se toca, se edita,
+ * y por eso `isPlan` lo deja pasar—, pero en Inicio tiene bloque propio con la
+ * tarta y la edad. Sin esta distinción salía dos veces en la misma pantalla:
+ * una arriba como celebración y otra debajo como una cita más de las siete de
+ * la mañana.
+ *
+ * Está aquí y no repetido en cada selector por lo mismo que `isPlan`: cuando
+ * entre el sexto tipo de evento, esta es la única línea que hay que mirar.
+ */
+export function isDigestPlan(event: Event): boolean {
+  return isPlan(event) && !isBirthday(event)
 }
 
 /**

@@ -65,8 +65,26 @@ test.describe('validateEventDraft', () => {
   const base = {
     title: 'Cita', description: '', date: '2026-08-03',
     all_day: false, start_time: '10:00', end_time: '', child_id: null, member_id: null,
-    kind: 'evento' as const, end_date: '',
+    kind: 'evento' as const, end_date: '', birth_year: '',
   }
+
+  // Un cumpleaños es el nombre de alguien y, opcionalmente, el año en que
+  // nació: sin nombre no hay a quién felicitar, y un año imposible daría una
+  // edad absurda en la tarjeta de hoy.
+  test('un cumpleaños necesita de quién es', () => {
+    expect(validateEventDraft({ ...base, kind: 'cumple', title: '  ' })).not.toBeNull()
+    expect(validateEventDraft({ ...base, kind: 'cumple', title: 'Abuela Carmen' })).toBeNull()
+  })
+
+  test('el año de nacimiento es opcional, pero tiene que ser posible', () => {
+    const cumple = { ...base, kind: 'cumple' as const, title: 'Abuela Carmen', date: '2026-08-27' }
+    expect(validateEventDraft({ ...cumple, birth_year: '' })).toBeNull()
+    expect(validateEventDraft({ ...cumple, birth_year: '1949' })).toBeNull()
+    expect(validateEventDraft({ ...cumple, birth_year: '1800' })).not.toBeNull()
+    // Posterior al día que se celebra: la edad saldría negativa.
+    expect(validateEventDraft({ ...cumple, birth_year: '2030' })).not.toBeNull()
+    expect(validateEventDraft({ ...cumple, birth_year: 'mil' })).not.toBeNull()
+  })
 
   test('exige título y fecha', () => {
     expect(validateEventDraft({ ...base, title: ' ' })).not.toBeNull()

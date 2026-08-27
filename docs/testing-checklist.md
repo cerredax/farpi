@@ -52,6 +52,12 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
       años que cumple. Ponle a otra persona una fecha dentro de la semana que viene: sale
       en el bloque «Cumpleaños», y el de hoy **no** se repite ahí. Con una fecha a dos
       meses vista, el bloque no aparece (la ventana es de catorce días).
+- [ ] **Cumpleaños de fuera de casa.** En el calendario, `+` → "Cumpleaños": no pide hora,
+      ni de quién es, ni cada cuánto se repite. Pon "Abuela Carmen", el día de hoy y 1949:
+      el botón dice "Apuntar cumpleaños". En Inicio sale arriba con la edad, y **no**
+      aparece además en la lista de planes de hoy. Apunta otro sin año de nacimiento: dice
+      "Hoy es el cumple de X", sin edad. Los dos se ven en el calendario y se pueden abrir
+      para corregirlos; al eliminar, ofrece borrar solo ese año o la serie entera.
 - [ ] Abajo del todo, el enlace a Ajustes (solo en móvil; en escritorio está en la barra
       lateral).
 

@@ -1219,11 +1219,48 @@ miembros con cuenta se quedan fuera: darles fecha de nacimiento obliga a un `alt
 base real y a cambiar la RPC del perfil, y esto no lo pedía.
 
 **En el calendario no sale**, y no es olvido: la agenda contesta «qué hay que hacer» y un
-cumpleaños no es un plan. Si se echa de menos ahí, se añade a propósito.
+cumpleaños no es un plan.
 
 Los dos bordes del calendario que podían salir mal están probados en
 `e2e/unit/birthdays.spec.ts`: el 29 de febrero se celebra el 1 de marzo en los años que no
 lo tienen, y el cumpleaños que ya pasó salta al año siguiente en vez de desaparecer.
+
+### Los cumpleaños de fuera de casa (27-08-2026)
+
+Lo de arriba deja fuera a la abuela, al primo y al amigo del cole: no tienen ficha en
+Ajustes, así que no había de dónde deducir su cumpleaños. La única forma de apuntarlo era
+darles de alta **como persona de la familia**, con color y apareciendo en todos los
+selectores de "de quién es esto". Eso no se quería.
+
+**Lo que se hizo**: un tipo de evento, `kind = 'cumple'`. Se apunta en el calendario como
+cualquier otra cosa con fecha, y el tipo manda sobre todo lo demás: día completo, un solo
+día, sin asignar y con la serie anual ya montada para veinte años (`ANOS_DE_CUMPLE`), sin
+preguntar hasta cuándo. Hay un campo nuevo, **`events.birth_year`** (int, nullable), que
+solo sirve para decir la edad y es opcional: de la abuela se sabe, del amigo del cole no.
+
+Dónde sale:
+
+- **En Inicio, en los bloques de cumpleaños que ya existían**, junto a los de casa:
+  `cumplesDeLaCasa` junta los dos orígenes y las pantallas no saben de dónde viene cada
+  uno. Sin año de nacimiento la frase se queda en «Hoy es el cumple de Nico del cole».
+- **En el calendario**, porque es donde se apunta y donde hay que poder corregirlo o
+  borrarlo. Esto deja una asimetría a la vista —el de la abuela se ve en el mes y el de la
+  hija no— que está asumida y explicada en `docs/architecture.md`.
+- **En el aviso de las siete**, en la misma frase que los de casa. Ojo: el cron cuenta los
+  eventos del día y un cumpleaños **no** cuenta como evento, o diría "tenéis 1 evento" el
+  día del cumpleaños de la abuela.
+
+**La regla que evita verlo dos veces** es `isDigestPlan` (`src/lib/events.ts`): un
+cumpleaños sí es plan para el calendario y no lo es para el resumen del día. Sin ella
+salía arriba como celebración y debajo como una cita más de las siete de la mañana.
+
+Probado en `e2e/unit/birthdays.spec.ts` (la mezcla de los dos orígenes, la edad, y que las
+otras diecinueve filas de la serie no se cuelen en el bloque), en
+`e2e/unit/validators.spec.ts` (el año imposible) y en `e2e/smoke.spec.ts` (el recorrido
+entero, con y sin año de nacimiento).
+
+**Pendiente de aplicar en la base real**: el `alter` de `birth_year` y las dos
+restricciones nuevas. Están en `supabase/schema.sql`; el SQL Editor no se ha tocado.
 
 ### Copia de seguridad de la familia (27-08-2026)
 

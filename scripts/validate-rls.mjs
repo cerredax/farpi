@@ -284,6 +284,51 @@ async function main() {
   comprobar('Un ajeno no ve el festivo de la familia A',
     filas(await api(`/rest/v1/events?family_id=eq.${famA}&kind=eq.festivo`, { token: tokC })) === 0)
 
+  // ── 9 bis. Cumpleaños de fuera de casa (27-08-2026) ─────────────────
+  // El quinto valor de `kind` y la columna `birth_year`. Un cumpleaños es al revés
+  // que un festivo: día completo pero de un solo día, así que `end_at` tiene que ir
+  // vacío. Y el año solo puede existir en un cumpleaños, para que no aparezca una
+  // edad colgada de un plan cualquiera.
+  console.log('\n== 9 bis. Cumpleaños (27-08-2026)')
+  comprobar('Un cumpleaños de un día con año de nacimiento se guarda',
+    filas(await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, title: 'Abuela Carmen', kind: 'cumple', all_day: true,
+               start_at: '2026-09-14T00:00:00Z', birth_year: 1949 },
+    })) === 1)
+  comprobar('Un cumpleaños sin año de nacimiento también',
+    filas(await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, title: 'Nico del cole', kind: 'cumple', all_day: true,
+               start_at: '2026-09-20T00:00:00Z' },
+    })) === 1)
+  comprobar('El check rechaza un cumpleaños con día final',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'largo', kind: 'cumple', all_day: true,
+               start_at: '2026-09-14T00:00:00Z', end_at: '2026-09-15T23:59:00Z' },
+    })).estado >= 400)
+  comprobar('El check rechaza un cumpleaños con hora',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'con hora', kind: 'cumple', all_day: false,
+               start_at: '2026-09-14T18:00:00Z' },
+    })).estado >= 400)
+  comprobar('El check rechaza un año de nacimiento en algo que no es un cumpleaños',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'un plan', kind: 'evento', all_day: false,
+               start_at: '2026-09-14T18:00:00Z', birth_year: 1949 },
+    })).estado >= 400)
+  comprobar('El check rechaza un año imposible',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'imposible', kind: 'cumple', all_day: true,
+               start_at: '2026-09-14T00:00:00Z', birth_year: 1500 },
+    })).estado >= 400)
+  comprobar('Un ajeno no ve los cumpleaños de la familia A',
+    filas(await api(`/rest/v1/events?family_id=eq.${famA}&kind=eq.cumple`, { token: tokC })) === 0)
+
   // ── 10. Unidades de la lista (021) ──────────────────────────────────
   // La 021 no trae policy propia —una unidad es una columna más de `list_items`—,
   // así que lo que hay que comprobar es el `default` y el `check`: que lo que ya

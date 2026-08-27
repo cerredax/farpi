@@ -8,6 +8,13 @@ import { db } from './db'
  * En unas vacaciones `end_at` marca el último día; en un evento normal, la hora
  * de fin del mismo día. Es el único punto donde esa diferencia importa.
  */
+/** El año de nacimiento solo se guarda en un cumpleaños, y solo si lo pusieron. */
+function birthYearFromDraft(draft: EventDraft): number | null {
+  if (draft.kind !== 'cumple') return null
+  const ano = Number(draft.birth_year)
+  return draft.birth_year.trim() && Number.isInteger(ano) ? ano : null
+}
+
 function endAtFromDraft(draft: EventDraft): string | null {
   if (isRangeKind(draft.kind)) {
     return buildLocalDateTime(draft.end_date || draft.date, '23:59')
@@ -29,6 +36,7 @@ function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: strin
     start_at, end_at,
     all_day: draft.all_day,
     kind: draft.kind,
+    birth_year: birthYearFromDraft(draft),
     color: null,
     recurrence_group_id: groupId,
     created_by: 'u1',
@@ -47,6 +55,7 @@ function applyEventDraft(event: Event, draft: EventDraft): Event {
     start_at, end_at,
     all_day: draft.all_day,
     kind: draft.kind,
+    birth_year: birthYearFromDraft(draft),
     child_id: draft.child_id,
     member_id: draft.member_id,
     updated_at: new Date().toISOString(),

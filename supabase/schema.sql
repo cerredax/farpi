@@ -127,6 +127,11 @@ create table if not exists public.events (
   all_day             boolean not null default false,
   color               text,
   kind                text not null default 'evento',
+  -- El año en que nació quien cumple, solo en `kind = 'cumple'` y solo si se
+  -- sabe: de ahí sale la edad. No se deduce de `start_at` porque la serie anual
+  -- arranca en el año en curso, así que la fecha dice el día que se celebra y
+  -- no el día que nació.
+  birth_year          int,
   -- Las repeticiones se materializan como filas sueltas que comparten grupo, en
   -- vez de guardar una regla y calcularla al vuelo: así se puede mover o borrar
   -- una sola ocurrencia sin inventar excepciones.
@@ -134,10 +139,15 @@ create table if not exists public.events (
   created_by          uuid references auth.users(id) on delete set null,
   created_at          timestamptz not null default now(),
   updated_at          timestamptz not null default now(),
-  constraint events_kind_valido check (kind in ('evento', 'vacaciones', 'descanso', 'festivo')),
+  constraint events_kind_valido check (kind in ('evento', 'vacaciones', 'descanso', 'festivo', 'cumple')),
   constraint events_vacaciones_con_rango check (kind <> 'vacaciones' or (all_day = true and end_at is not null)),
   constraint events_descanso_con_rango   check (kind <> 'descanso'   or (all_day = true and end_at is not null)),
   constraint events_festivo_con_rango    check (kind <> 'festivo'    or (all_day = true and end_at is not null)),
+  -- Un cumpleaños ocupa el día entero y solo ese día: no tiene hora ni dura
+  -- hasta el jueves.
+  constraint events_cumple_de_un_dia     check (kind <> 'cumple'     or (all_day = true and end_at is null)),
+  -- El año solo tiene sentido en un cumpleaños, y solo si es un año posible.
+  constraint events_birth_year_valido    check (birth_year is null or (kind = 'cumple' and birth_year between 1900 and 2200)),
   constraint events_una_sola_asignacion  check (child_id is null or member_id is null)
 );
 

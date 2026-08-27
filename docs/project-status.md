@@ -1186,10 +1186,23 @@ esto; aquí solo el titular.
 La app está en producción y en uso diario por la familia, y probada en un móvil
 real. Lo que queda son dos comprobaciones baratas y funcionalidades que no existen.
 
-### Lo que falta para cerrar el cambio a Google Drive (27-08-2026)
+### El cambio a Google Drive, cerrado (27-08-2026)
 
-El código está entero, con `npx tsc --noEmit`, `npm run lint` y la suite en verde.
-Lo que queda es lo que no se puede hacer desde el repositorio:
+**Desplegado y funcionando.** Esquema aplicado y validado (80/80), bucket borrado,
+las cuatro variables en Vercel, consentimiento de Google en "In production", commit
+`3fd216e` en producción y la CSP comprobada contra el dominio real: `connect-src`
+incluye `www.googleapis.com`.
+
+Quedan **dos comprobaciones sin hacer**, y se anotan en vez de darlas por buenas:
+
+- **Abrir un documento desde una segunda cuenta de la familia** sin Drive conectado.
+  Es el corazón del diseño —el proxy sirviendo con el token del dueño— y es lo único
+  que de verdad lo prueba.
+- **Subir un archivo de 10-15 MB.** Por debajo de ~4 MB la subida funciona igual
+  aunque el camino directo a Google estuviera roto, porque cabe en el cuerpo de una
+  función de Vercel. Solo un archivo grande distingue las dos cosas.
+
+Lo demás quedó hecho así:
 
 1. **Aplicar el esquema** en el SQL Editor: las dos columnas de `documents` y la tabla
    `storage_connections`, tal y como están en `supabase/schema.sql`. Después,

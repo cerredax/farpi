@@ -196,6 +196,10 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 ### 8.1 Google Drive — solo con credenciales reales
 
+> Estado (27-08-2026): desplegado y en uso. Conectar y subir funcionan. **Sin
+> comprobar todavía**: abrir desde una segunda cuenta sin Drive conectado, y subir un
+> archivo de 10-15 MB. Son los dos puntos marcados en negrita más abajo.
+
 Esto no lo cubre Playwright y no puede: la suite corre en modo demo forzado y sin
 credenciales, así que el viaje a Google no se puede automatizar. Es la parte que hay
 que recorrer a mano, y **contra el build servido** (`npm run build && npm run start`),

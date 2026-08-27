@@ -63,7 +63,7 @@ export const db: DB = {
     { id: 'l1', family_id: 'f1', name: 'Compra bebé',     emoji: '👶', color: null, created_by: 'u1', created_at: '2026-06-05T00:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'l2', family_id: 'f1', name: 'Farmacia',        emoji: '💊', color: null, created_by: 'u1', created_at: '2026-06-05T00:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'l3', family_id: 'f1', name: 'Casa',            emoji: '🧺', color: null, created_by: 'u2', created_at: '2026-06-05T00:00:00', updated_at: '2026-06-17T08:00:00' },
-    { id: 'l4', family_id: 'f1', name: 'Trámites de Ana', emoji: '📄', color: null, created_by: 'u1', created_at: '2026-06-08T00:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'l4', family_id: 'f1', name: 'Trámites de Ana', emoji: '📋', color: null, created_by: 'u1', created_at: '2026-06-08T00:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'l5', family_id: 'f1', name: 'Limpieza',        emoji: '🧽', color: null, created_by: 'u2', created_at: '2026-06-09T00:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'l6', family_id: 'f1', name: 'Cosas de Ana',    emoji: '🎀', color: null, created_by: 'u1', created_at: '2026-06-09T00:00:00', updated_at: '2026-06-17T08:00:00' },
   ],

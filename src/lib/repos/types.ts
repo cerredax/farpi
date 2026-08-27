@@ -16,6 +16,11 @@ export interface FamilyRepo {
   /** Qué franjas de comida se ven. Nunca deja la familia sin ninguna. */
   setFamilyMealSlots(familyId: string, slots: MealSlot[]): Promise<Family>
   createFamily(name: string): Promise<Family>
+  /**
+   * Cierra la familia y se lleva todo lo suyo. Solo un admin, y nunca la última
+   * que le queda a quien la borra: la app siempre trabaja dentro de una familia.
+   */
+  deleteFamily(familyId: string): Promise<void>
 }
 
 export interface MembersRepo {

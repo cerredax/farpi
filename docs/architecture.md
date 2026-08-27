@@ -172,6 +172,35 @@ en servidor, la invitación se perdía en silencio y el usuario quedaba autentic
 fuera de la familia. La página atiende los dos flujos —fragmento y `?code=` de PKCE— y
 muestra un mensaje claro cuando el enlace ha caducado o ya se usó.
 
+## Cerrar una familia
+
+**Decisión de producto (27-08-2026):** una familia se puede eliminar, y hasta ahora no.
+Crear una era un toque y deshacerlo no existía: quien creaba una por probar se la
+quedaba para siempre en la lista de Ajustes. Con dos reglas:
+
+- **Solo un admin de esa familia.** Ser admin de otra no sirve, igual que en el resto
+  de RPCs de miembros.
+- **Nunca la última que te queda.** Nido siempre trabaja *dentro* de una familia
+  —`AppShell` resuelve una activa antes de pintar nada—, así que quedarse sin ninguna
+  no es un estado del que la app sepa volver. Para dejarlo todo está borrar la cuenta,
+  que sí se lleva las familias donde estabas solo. Cuando no se puede, el sheet lo dice:
+  la ausencia del botón sin explicación era justo lo que no se entendía.
+
+Con más gente dentro **sí se puede**, y es deliberado: manda el admin, como en todo lo
+demás. Lo que hace la interfaz es contar lo que se lleva por delante —"3 personas, 12
+eventos y 4 documentos"— en el segundo paso del borrado, en vez de un genérico "se
+borrará todo". El resumen lo arma `selectFamilySummary` en `src/lib/selectors.ts`.
+
+**Implementación:** RPC `delete_family(p_family_id uuid)`, `security definer`. No es un
+`delete` normal porque `families` **no tiene policy de `delete`** —igual que
+`family_members` no tiene de `update` ni `delete`—: las dos comprobaciones de arriba no
+caben en una policy. Lo demás se va solo, por el `on delete cascade` de todas las tablas
+que cuelgan de `families`; el mock lo imita a mano en `store/family.ts`.
+
+**Los archivos de los documentos no se tocan**, por lo mismo que en
+`/api/account/delete`: están en el Google Drive de quien los subió y son suyos. Lo que
+se va con la familia es la ficha. El sheet lo avisa antes de borrar.
+
 ## Asignación de eventos, tareas y documentos
 
 Un evento, una tarea o un documento puede pertenecer a **toda la familia**, a **un miembro
@@ -473,6 +502,25 @@ cambia de presencia, no de vida.
 este modelo no significa nada. De ahí que `CircleCheck` y `CirclePlus` sean dos
 componentes hermanos con las mismas medidas.
 
+**La prioridad de una tarea no se dice con color** (27-08-2026). En el sheet eran tres
+círculos de color con su etiqueta —el mismo `DotOption` de "Asignar a"—, y quedaban en el
+`Field` inmediatamente siguiente: dos filas idénticas seguidas, dos significados. Peor
+aún, el círculo de "Media" era `#E9C46A`, el `FAMILY_COLOR` **exacto** (ΔE00 0), con
+Champán dorado a 9,4 y Canela clara a 12,1 por detrás, los dos por debajo del umbral 15
+que se le exige a cualquier pareja de `PERSON_COLORS`.
+
+No se retocaron los tonos porque el problema no era el tono, y por eso `TASK_PRIORITIES`
+ya no tiene campo `color`: es la regla de más abajo aplicada del revés. **El color dice
+"de quién"**, y la prioridad es un grado, no una identidad. Ahora son chips de texto, los
+mismos que "Repetición", que está justo debajo: la palabra dice "Alta" sin que haya que
+aprenderse qué significa un punto rojo. `DotOption` se queda para `AssigneePicker` y solo
+para ella, que es donde el círculo de color sí es la identidad de alguien.
+
+En la lista sí queda señal de color —la banda de 4 px al borde de la tarjeta, en
+`PRIORITY_BORDER`—, y ahí no choca: una banda pegada al canto no se confunde con un punto
+que además lleva el nombre al lado. Es la misma distinción de forma y sitio que separa la
+franja de vacaciones de la etiqueta de un evento.
+
 **Las franjas de comida se eligen, y son de la familia** (migración 019). Las cuatro
 —desayuno, comida, merienda y cena— están fijas en el código, pero en una casa que no
 merienda esa fila es un hueco que la app pide llenar siete veces por semana. En Ajustes se
@@ -530,9 +578,47 @@ Elegir un día en la rejilla **no reencuadra la lista: la desliza** hasta él
 (`scrollIntoView` sobre el `id` de la fila). Reencuadrarla escondía todo lo anterior al
 día tocado, que es el mismo fallo que tenía anclarla al día elegido.
 
+**La lista tiene dos ejes: por días y por persona** (27-08-2026). Una casa con varios se
+hace dos preguntas —"¿qué hay el jueves?" y "¿qué lleva cada uno?"— y la agenda solo
+contestaba la primera: de quién era cada cosa se decía fila a fila, en la etiqueta de la
+derecha, así que verlo junto era ir sumando de memoria. Con el eje por persona el rótulo
+pasa de ser el tramo ("Hoy", "Esta semana") a ser la persona, y debajo van sus días con
+las filas de siempre.
+
+**Es un eje, no una vista nueva.** La misma lista, los mismos cuarenta y cinco días, las
+mismas filas; lo único que se mueve es el rótulo. Por eso el interruptor vive en la lista
+y no en la cabecera del calendario —el mes y el eje de horas se agrupan por días y no
+tienen otra forma de agruparse— y por eso tampoco se recuerda entre visitas, igual que la
+vista: se entra por la pregunta de siempre.
+
+Lo que se descartó fue **una columna por persona**, que era la idea de partida. Choca con
+la razón por la que no hay siete columnas en el móvil: a 390 px, una casa de cinco deja
+columnas de ~65 px y un bloque ahí no dice nada. Agrupar no necesita ancho.
+
+Las reglas del reparto están en `agruparPorPersona` (`src/lib/agenda.ts`), con sus
+unitarios:
+
+- **El orden de las personas es el de siempre**, el de `buildAssignees`: familia, adultos,
+  hijos. La agenda no inventa un orden propio. La familia va primera: no es de nadie en
+  particular pero afecta a todos, y colgarla del final sería esconder la cena de los
+  abuelos debajo del pequeño.
+- **Quien no tiene nada no sale**, que es la misma regla que ya cumple un día vacío.
+- Un evento de varios días **sale en cada día que ocupa**, igual que en el eje de días:
+  cambiarlo en un eje y no en el otro sería que la misma fila se cuente de dos maneras
+  según el rótulo que tenga encima.
+- Dentro del grupo, las filas **dejan de decir el nombre**: ya está en el rótulo, y
+  repetirlo era escribir tres veces "Marta" para tres citas de Marta. El título recupera
+  ese ancho. Vale para el evento y para la tarea, que dentro de la misma tarjeta no
+  pueden hablar de dos maneras.
+- El salto desde el mes va por `id` y un mismo día sale bajo varias personas: **el ancla
+  se la queda la primera aparición**. Dos elementos con el mismo `id` dejarían el salto a
+  merced de cuál encuentre el navegador primero.
+
 **En escritorio hay tres vistas: Día, Semana y Mes** (26-08-2026), el trio de Google
-Calendar, con su selector en la cabecera. En móvil no existe ese selector: la pantalla
-es la lista continua con el mes plegable, y ahí sigue mandando `mes`.
+Calendar, con su selector en la cabecera. En móvil el selector también está, con una
+cuarta —Agenda, la lista continua— y va debajo del título y a todo el ancho, porque
+cuatro pestañas no caben al lado de "Agosto 2026" y ahí es donde acierta el pulgar. Con
+él se fue el plegable del mes: eran dos maneras de pedir lo mismo.
 
 Día y Semana son **la misma vista** (`Timeline`) con una columna o con siete. La
 aritmética es `src/lib/timeline.ts`: dónde cae cada bloque, cómo se reparten en columnas

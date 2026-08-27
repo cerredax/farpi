@@ -374,8 +374,44 @@ async function main() {
   comprobar('Un ajeno NO ve el documento de A aunque conozca su id de Drive',
     filas(await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=id', { token: tokC })) === 0)
 
+  // ── 13. Cerrar una familia (delete_family) ──────────────────────────
+  // `families` no tiene policy de `delete`, así que cerrar una casa va por RPC.
+  // Lo que hay que comprobar es lo que la RPC añade y una policy no sabría: que
+  // solo la cierra un admin **de esa familia**, y que nadie se queda sin ninguna
+  // —la app siempre trabaja dentro de una, y sin familia activa no hay pantalla—.
+  // B es, a estas alturas, miembro NO admin de la familia de A (sección 7), que es
+  // justo el caso que parece inofensivo: está dentro, pero no manda.
+  console.log('\n== 13. Cerrar una familia (delete_family)')
+  comprobar('B, miembro no admin, NO puede cerrar la familia de A',
+    (await api('/rest/v1/rpc/delete_family', { metodo: 'POST', token: tokB, datos: { p_family_id: famA } })).estado >= 400)
+  comprobar('Un ajeno NO puede cerrar la familia de A',
+    (await api('/rest/v1/rpc/delete_family', { metodo: 'POST', token: tokC, datos: { p_family_id: famA } })).estado >= 400)
+  comprobar('A NO puede cerrar la única familia que tiene',
+    (await api('/rest/v1/rpc/delete_family', { metodo: 'POST', token: tokA, datos: { p_family_id: famA } })).estado >= 400)
+  comprobar('A NO puede saltarse la RPC con un delete por PostgREST',
+    filas(await api(`/rest/v1/families?id=eq.${famA}`, { metodo: 'DELETE', token: tokA, cabeceras: REPRESENTACION })) === 0)
+  comprobar('Tras los rechazos, la familia de A sigue en pie',
+    filas(await api(`/rest/v1/families?id=eq.${famA}&select=id`, { token: tokA })) === 1)
+
+  // Y el camino bueno: A crea una segunda familia y cierra esa. Se le cuelga una
+  // tarea antes para ver la cascada, que es lo que de verdad se lleva el borrado.
+  const famA2 = (await api('/rest/v1/rpc/create_family_with_admin', {
+    metodo: 'POST', token: tokA, datos: { family_name: 'Familia Test A2' },
+  })).cuerpo
+  await api('/rest/v1/tasks', {
+    metodo: 'POST', token: tokA, datos: { family_id: famA2, title: 'tarea que se va con la familia' },
+  })
+  comprobar('A cierra la familia que le sobra',
+    (await api('/rest/v1/rpc/delete_family', { metodo: 'POST', token: tokA, datos: { p_family_id: famA2 } })).estado < 400)
+  comprobar('La familia cerrada ya no existe',
+    filas(await api(`/rest/v1/families?id=eq.${famA2}&select=id`)) === 0)
+  comprobar('Lo que colgaba de ella se fue en cascada',
+    filas(await api(`/rest/v1/tasks?family_id=eq.${famA2}&select=id`)) === 0)
+  comprobar('La familia de A sigue intacta',
+    filas(await api(`/rest/v1/families?id=eq.${famA}&select=id`, { token: tokA })) === 1)
+
   console.log('\n== limpieza')
-  for (const fam of [famA, famB]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })
+  for (const fam of [famA, famB, famA2]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })
   // `storage_connections` cuelga del usuario y no de la familia, así que se iría
   // con el borrado del usuario (on delete cascade). Se borra igual por si el
   // script se corta antes de llegar ahí.

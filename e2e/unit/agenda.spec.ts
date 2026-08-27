@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { tramoDeAgenda } from '@/lib/agenda'
+import { agruparPorPersona, tramoDeAgenda } from '@/lib/agenda'
 
 // Los rótulos de la agenda son fechas dichas en palabras, y por eso se prueban
 // aquí: "Mañana" o "La semana que viene" salen mal por un día de diferencia y
@@ -66,5 +66,45 @@ test.describe('tramoDeAgenda: el día en el que arranca', () => {
   test('el día de arranque gana a "Mañana": mirando mañana, mañana es el titular', () => {
     const manana = new Date(2026, 7, 25)
     expect(tramoDeAgenda(manana, manana, LUNES)).toBe('Martes 25 de agosto')
+  })
+})
+
+// Agrupar por persona es reparto puro: quién se queda con qué y quién no sale.
+// Se prueba aquí porque los fallos son de los que no se ven —una persona sin
+// nada que ocupa un rótulo, o una tarea que se cuela en la columna de al lado.
+
+const FAMILIA = { key: 'familia' }
+const MARTA = { key: 'm:1' }
+const LEO = { key: 'c:9' }
+
+function ev(id: string, de: { member_id?: string; child_id?: string }) {
+  return { id, member_id: de.member_id ?? null, child_id: de.child_id ?? null }
+}
+
+test.describe('agruparPorPersona', () => {
+  const dias = [
+    { day: LUNES, events: [ev('a', { member_id: '1' }), ev('b', {})], tasks: [ev('t1', { child_id: '9' })] },
+    { day: new Date(2026, 7, 25), events: [ev('c', { child_id: '9' })], tasks: [] },
+  ]
+
+  test('cada cosa cae bajo quien la lleva', () => {
+    const grupos = agruparPorPersona(dias, [FAMILIA, MARTA, LEO])
+    expect(grupos.map(g => g.persona.key)).toEqual(['familia', 'm:1', 'c:9'])
+    expect(grupos[0].dias[0].events.map(e => e.id)).toEqual(['b'])
+    expect(grupos[1].dias[0].events.map(e => e.id)).toEqual(['a'])
+    // Leo tiene una tarea el lunes y un evento el martes: dos días, no uno.
+    expect(grupos[2].dias.map(d => d.tasks.length + d.events.length)).toEqual([1, 1])
+  })
+
+  test('quien no tiene nada no ocupa un rótulo', () => {
+    const grupos = agruparPorPersona(dias, [FAMILIA, MARTA, LEO, { key: 'm:2' }])
+    expect(grupos.map(g => g.persona.key)).not.toContain('m:2')
+  })
+
+  test('un día sin nada de esa persona no se pinta', () => {
+    const [marta] = agruparPorPersona(dias, [MARTA])
+    // El martes no es suyo, así que su lista tiene un solo día.
+    expect(marta.dias).toHaveLength(1)
+    expect(marta.dias[0].day).toBe(LUNES)
   })
 })

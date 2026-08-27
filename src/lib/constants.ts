@@ -102,10 +102,26 @@ export const TASK_RECURRENCES: { value: TaskRecurrence; label: string; shortLabe
   { value: 'monthly', label: 'Mensual',      shortLabel: 'Mensual' },
 ]
 
-export const TASK_PRIORITIES: { value: TaskPriority; label: string; color: string }[] = [
-  { value: 'high',   label: 'Alta',  color: '#D96C6C' },
-  { value: 'medium', label: 'Media', color: '#E9C46A' },
-  { value: 'low',    label: 'Baja',  color: '#8BA888' },
+/**
+ * El orden manda dos veces: es el de los botones del sheet y el peso con el que
+ * `selectors.ts` ordena las tareas a igual fecha.
+ *
+ * **Sin color desde el 27-08-2026.** Cada prioridad tenía su hex y solo se
+ * usaba para pintar tres círculos en el sheet de la tarea, justo debajo de los
+ * círculos de "Asignar a": el mismo control, dos filas seguidas, dos
+ * significados. Y el de "Media" era `#E9C46A`, el `FAMILY_COLOR` exacto (ΔE00
+ * 0), con Champán dorado a 9,4 y Canela clara a 12,1 por detrás, los dos por
+ * debajo del umbral 15 que se le exige a `PERSON_COLORS`.
+ *
+ * No se cambiaron los tonos porque el problema no era el tono: en Nido el color
+ * dice **de quién es algo**, y la prioridad es un grado, no una identidad. En la
+ * lista sigue habiendo señal de color, pero como banda al borde de la tarjeta
+ * (`PRIORITY_BORDER` en `TaskItem`), que no se confunde con un punto con nombre.
+ */
+export const TASK_PRIORITIES: { value: TaskPriority; label: string }[] = [
+  { value: 'high',   label: 'Alta'  },
+  { value: 'medium', label: 'Media' },
+  { value: 'low',    label: 'Baja'  },
 ]
 
 /**

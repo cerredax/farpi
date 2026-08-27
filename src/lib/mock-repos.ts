@@ -18,6 +18,7 @@ export const mockRepos: Repos = {
     setFamilyName: (familyId, name) => Promise.resolve(store.setFamilyName(familyId, name)),
     setFamilyMealSlots: (familyId, slots) => Promise.resolve(store.setFamilyMealSlots(familyId, slots)),
     createFamily:  (name)     => Promise.resolve(store.createFamily(name)),
+    deleteFamily:  (familyId) => Promise.resolve(store.deleteFamily(familyId)),
   },
 
   members: {

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useStore } from '@/lib/store-context'
 import { memberColor, splitPeople } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
+import { selectFamilySummary } from '@/lib/selectors'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
 import { MealSlotsCard } from './MealSlotsCard'
@@ -59,8 +60,8 @@ function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode
 
 export function SettingsView() {
   const {
-    family, families, activeFamilyId, switchFamily, createFamily,
-    members, invites, kids, mealSlots, documents,
+    family, families, activeFamilyId, switchFamily, createFamily, deleteFamily,
+    members, invites, kids, mealSlots, documents, allEvents, tasks, lists, meals,
     updateFamilyName, updateMealSlots, inviteMember, updateMember, updateMemberRole, removeMember, cancelInvite,
     createKid, updateKid, deleteKid,
   } = useStore()
@@ -79,6 +80,17 @@ export function SettingsView() {
     hijos.length === 1 ? '1 hijo' : `${hijos.length} hijos`,
     ...(invites.length > 0 ? [invites.length === 1 ? '1 invitación' : `${invites.length} invitaciones`] : []),
   ].join(' · ')
+
+  // Lo que hay dentro de la familia, para el aviso de borrarla. Las personas van
+  // juntas —con cuenta y sin ella— porque al cerrarla se van todas igual.
+  const contenidoFamilia = selectFamilySummary({
+    personas: members.length + kids.length,
+    eventos: allEvents.length,
+    tareas: tasks.length,
+    listas: lists.length,
+    comidas: meals.length,
+    documentos: documents.length,
+  })
 
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
@@ -236,7 +248,17 @@ export function SettingsView() {
         </Bloque>
       </div>
 
-      <FamilySheet key={familySheetOpen ? 'open' : 'closed'} open={familySheetOpen} family={family} onClose={() => setFamilySheetOpen(false)} onSave={updateFamilyName} />
+      <FamilySheet
+        key={familySheetOpen ? 'open' : 'closed'}
+        open={familySheetOpen}
+        family={family}
+        contenido={contenidoFamilia}
+        puedeEliminar={families.length > 1}
+        hayDocumentos={documents.length > 0}
+        onClose={() => setFamilySheetOpen(false)}
+        onSave={updateFamilyName}
+        onDelete={deleteFamily}
+      />
 
       <MemberSheet
         key={memberSheetKey}

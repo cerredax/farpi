@@ -7,7 +7,7 @@ interface FamilyCardProps {
 }
 
 /**
- * La casa: su nombre y cómo cambiarlo.
+ * La casa: su nombre, cómo cambiarlo y —desde el mismo sheet— cómo cerrarla.
  *
  * Llevaba debajo "3 adultos · 2 hijos" y se lo ha quedado el bloque de
  * "Personas", que es donde se cambian: el recuento salía dos veces en la misma
@@ -22,7 +22,7 @@ export function FamilyCard({ family, onEdit }: FamilyCardProps) {
       <p className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
       <button
         onClick={onEdit}
-        aria-label="Editar nombre de la familia"
+        aria-label="Editar familia"
         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-all hover:bg-surface hover:text-ink active:scale-95"
       >
         <Pencil size={17} strokeWidth={1.8} />

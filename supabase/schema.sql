@@ -532,6 +532,10 @@ alter table public.push_subscriptions enable row level security;
 alter table public.storage_connections enable row level security;
 
 -- --- families ---------------------------------------------------------------
+--
+-- Select para los miembros, update solo para los admin, y **ninguna policy de
+-- `delete`**: cerrar una familia va por la RPC `delete_family` (§6), que antes
+-- comprueba que quien borra es admin de esa familia y que le queda alguna otra.
 drop policy if exists "Miembros ven su familia" on public.families;
 create policy "Miembros ven su familia"
   on public.families for select
@@ -740,6 +744,52 @@ end;
 $$;
 
 grant execute on function public.create_family_with_admin(text) to authenticated;
+
+-- Cerrar una familia y llevarse todo lo suyo. Tampoco puede ser un `delete`
+-- normal: `families` no tiene policy de `delete`, y no es un olvido —igual que en
+-- `family_members`— porque antes hay dos cosas que comprobar y una policy no sabe
+-- hacerlo. Que quien borra sea **admin de esa familia**, y que le quede alguna
+-- otra: la app siempre trabaja dentro de una familia, así que quedarse sin
+-- ninguna es un estado que no existe. Para dejarlo todo está borrar la cuenta,
+-- que sí se lleva las familias donde estabas solo.
+--
+-- Los archivos de los documentos no se tocan, por lo mismo que en
+-- `/api/account/delete`: están en el Google Drive de quien los subió y son suyos.
+-- Lo que se va con la familia es la ficha, en cascada.
+create or replace function public.delete_family(p_family_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  v_caller_uid  uuid := auth.uid();
+  v_otras_count int;
+begin
+  if v_caller_uid is null then
+    raise exception 'Acceso denegado: usuario no autenticado';
+  end if;
+
+  if not exists (
+    select 1 from public.family_members
+    where family_id = p_family_id and user_id = v_caller_uid and role = 'admin'
+  ) then
+    raise exception 'Acceso denegado: el usuario no es administrador de esta familia';
+  end if;
+
+  select count(*) into v_otras_count
+  from public.family_members
+  where user_id = v_caller_uid and family_id <> p_family_id;
+
+  if v_otras_count = 0 then
+    raise exception 'No se puede eliminar la única familia: crea otra antes o borra tu cuenta';
+  end if;
+
+  delete from public.families where id = p_family_id;
+end;
+$$;
+
+grant execute on function public.delete_family(uuid) to authenticated;
 
 -- Editar nombre y color de un miembro. Uno mismo siempre; a los demás, solo un
 -- admin **de esa familia** —ser admin de otra no sirve, y por eso se comprueba

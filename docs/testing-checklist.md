@@ -244,6 +244,10 @@ verdad, que es que el otro vea el documento sin conectar nada.
 - [ ] Se puede cambiar familia activa.
 - [ ] Recargar conserva familia activa.
 - [ ] Datos de una familia no aparecen en otra.
+- [x] Se puede eliminar una familia creada de más (automatizado en `e2e/smoke.spec.ts`:
+      se crea, se borra y la app salta sola a la que queda).
+- [ ] Con una sola familia, el sheet no ofrece eliminar y explica por qué.
+- [ ] Con credenciales reales: quien no es admin de esa familia no puede cerrarla.
 
 ## 10. Ajustes - miembros e invitaciones
 

@@ -7,7 +7,9 @@ interface DotOptionProps {
 
 /**
  * Opción con círculo de color y etiqueta debajo, en fila de ancho repartido.
- * La usan la prioridad de las tareas y el asignado de los eventos.
+ * La usa `AssigneePicker`, y solo ella: el círculo de color significa "de
+ * quién es" y nada más. La prioridad de las tareas la usaba y dejó de
+ * hacerlo (ver `TASK_PRIORITIES`).
  */
 export function DotOption({ selected, onClick, color, label }: DotOptionProps) {
   return (

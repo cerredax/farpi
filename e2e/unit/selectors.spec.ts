@@ -16,6 +16,7 @@ import {
   selectTaskGroups,
   selectTaskMatches,
   selectEventMatches,
+  selectFamilySummary,
   selectExpiryState,
   selectTodayEvents,
   selectTodayMeals,
@@ -559,5 +560,26 @@ test.describe('buscadores', () => {
 
   test('sin consulta el calendario no devuelve resultados, que no es lo mismo que devolverlo todo', () => {
     expect(selectEventMatches([event(), event()], '')).toHaveLength(0)
+  })
+})
+
+test.describe('selectFamilySummary', () => {
+  const VACIA = { personas: 0, eventos: 0, tareas: 0, listas: 0, comidas: 0, documentos: 0 }
+
+  test('devuelve null cuando la familia está vacía', () => {
+    expect(selectFamilySummary(VACIA)).toBeNull()
+  })
+
+  test('una sola cosa va sin conjunción', () => {
+    expect(selectFamilySummary({ ...VACIA, personas: 3 })).toBe('3 personas')
+  })
+
+  test('singular y plural según el número', () => {
+    expect(selectFamilySummary({ ...VACIA, personas: 1, documentos: 1 })).toBe('1 persona y 1 documento')
+  })
+
+  test('enumera con comas y una "y" al final, saltándose lo que está a cero', () => {
+    expect(selectFamilySummary({ personas: 2, eventos: 12, tareas: 0, listas: 3, comidas: 0, documentos: 4 }))
+      .toBe('2 personas, 12 eventos, 3 listas y 4 documentos')
   })
 })

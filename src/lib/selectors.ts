@@ -360,3 +360,37 @@ export function selectEventMatches(events: Event[], query: string): Event[] {
     .filter(e => normalizaParaBuscar(`${e.title} ${e.description ?? ''}`).includes(consulta))
     .sort((a, b) => a.start_at.localeCompare(b.start_at))
 }
+
+/**
+ * Qué hay dentro de una familia, dicho en palabras: "3 personas, 12 eventos y 2
+ * documentos". Se usa al cerrarla, que es lo único irreversible de Ajustes: el
+ * aviso dice lo que se lleva por delante en vez de un genérico "se borrará todo".
+ *
+ * Devuelve `null` si no hay nada, para que quien lo pinta pueda decir otra cosa
+ * —una familia recién creada y vacía no necesita que le enumeren el vacío—.
+ */
+export function selectFamilySummary(counts: {
+  personas: number
+  eventos: number
+  tareas: number
+  listas: number
+  comidas: number
+  documentos: number
+}): string | null {
+  const partes: [number, string, string][] = [
+    [counts.personas,   'persona',   'personas'],
+    [counts.eventos,    'evento',    'eventos'],
+    [counts.tareas,     'tarea',     'tareas'],
+    [counts.listas,     'lista',     'listas'],
+    [counts.comidas,    'comida',    'comidas'],
+    [counts.documentos, 'documento', 'documentos'],
+  ]
+
+  const textos = partes
+    .filter(([n]) => n > 0)
+    .map(([n, uno, varios]) => `${n} ${n === 1 ? uno : varios}`)
+
+  if (textos.length === 0) return null
+  if (textos.length === 1) return textos[0]
+  return `${textos.slice(0, -1).join(', ')} y ${textos[textos.length - 1]}`
+}

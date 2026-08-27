@@ -64,6 +64,15 @@ export const familyRepo: FamilyRepo = {
     assertNoError(error)
     return familyRepo.getFamily(familyId) as Promise<Family>
   },
+
+  // Por RPC como el alta, y por el mismo motivo: no hay policy de `delete` en
+  // `families`. La RPC comprueba que quien borra es admin de esa familia y que le
+  // queda alguna otra; el mensaje de esos dos casos sube tal cual a la interfaz.
+  async deleteFamily(familyId: string): Promise<void> {
+    const supabase = createClient()
+    const { error } = await supabase.rpc('delete_family', { p_family_id: familyId })
+    assertNoError(error)
+  },
 }
 
 // El alta, el rol y la baja van por RPC `security definer`: la regla del último

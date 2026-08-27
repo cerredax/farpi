@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
   addDays,
@@ -15,8 +15,8 @@ import { es } from 'date-fns/locale'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
-import { tramoDeAgenda } from '@/lib/agenda'
-import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
+import { agruparPorPersona, tramoDeAgenda } from '@/lib/agenda'
+import { buildAssignees, eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
 import { eventCoversDay, isHoliday, isPlan } from '@/lib/events'
 import { capitalize } from '@/lib/text'
@@ -93,8 +93,12 @@ function sortEvents(events: Event[]): Event[] {
  * saberse la paleta para entender a quién afecta. Va en gris y no en el amarillo
  * de la familia porque ese color no tiene contraste suficiente como texto — para
  * eso existe `sand-strong`—, y aquí basta con que la palabra esté.
+ *
+ * `mostrarPersona` la apaga cuando la lista va agrupada por persona: ahí el
+ * nombre ya está en el rótulo de arriba y repetirlo en cada fila es decir tres
+ * veces "Marta" para tres citas de Marta. El título recupera ese ancho.
  */
-function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void }) {
+function EventRow({ event, kids, members, onEdit, mostrarPersona = true }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void; mostrarPersona?: boolean }) {
   const asignado = resolveAssignee(event, members, kids)
   // Un festivo no es de nadie: ni lleva el amarillo de "Familia" —que lo
   // confundiría con algo de toda la casa— ni dice un nombre. Dice lo que es.
@@ -122,12 +126,14 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
         * escribía en gris. Al 50 % de fondo sí vale, así que "Familia" recupera
         * su color sin perder legibilidad.
         */}
-      <span
-        className="etiqueta-persona max-w-[4.5rem] flex-shrink-0 px-1 py-px text-[11px]"
-        style={{ backgroundColor: fondoDePersona(color) }}
-      >
-        {quien}
-      </span>
+      {mostrarPersona && (
+        <span
+          className="etiqueta-persona max-w-[4.5rem] flex-shrink-0 px-1 py-px text-[11px]"
+          style={{ backgroundColor: fondoDePersona(color) }}
+        >
+          {quien}
+        </span>
+      )}
     </button>
   )
 }
@@ -135,7 +141,94 @@ function EventRow({ event, kids, members, onEdit }: { event: Event; kids: Child[
 const TARJETA = 'overflow-hidden rounded-3xl border border-surface bg-white shadow-sm'
 const ROTULO = 'px-1 text-xs font-bold uppercase tracking-widest text-muted'
 
+
+/**
+ * Un día de la lista: la fecha a la izquierda y lo que hay a la derecha.
+ *
+ * Es la fila de siempre, sacada a su propio componente porque ahora la usan los
+ * **dos ejes** de la agenda: agrupada por días la pintan los tramos, y agrupada
+ * por persona la pinta cada persona con lo suyo. La fila no cambia entre uno y
+ * otro; lo único que cambia es el rótulo que tiene encima.
+ */
+function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onToggleTask, mostrarPersona = true, ancla = true }: {
+  day: Date
+  events: Event[]
+  tasks: Task[]
+  kids: Child[]
+  members: FamilyMember[]
+  hoyStr: string
+  onEdit: (event: Event) => void
+  onToggleTask?: (id: string) => void
+  mostrarPersona?: boolean
+  /**
+   * Si esta fila es el destino al que se desliza el mes. Agrupando por persona
+   * un mismo día sale en varias filas, y dos elementos con el mismo `id` dejan
+   * el salto a merced de cuál encuentre el navegador primero: el ancla se la
+   * queda la primera aparición del día y las demás van sin ella.
+   */
+  ancla?: boolean
+}) {
+  const dayLabel = capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))
+  // Hoy se marca en el chip de la fecha y no en el rótulo, que
+  // ya dice "Hoy": es donde lo marca Google y donde lo busca el
+  // ojo cuando la lista lleva rato deslizándose.
+  const hoy = isToday(day)
+
+  return (
+    <li id={ancla ? idDeDia(day) : undefined} className="flex items-start gap-2 px-2 py-2">
+      {/* La fecha ya no es un botón. En una lista continua no
+          lleva a ninguna parte, y anunciarse como "Ver 6 de
+          septiembre" prometía un salto que ya no ocurre. Para
+          añadir está el `+` de la derecha. */}
+      <span className={`flex w-11 flex-shrink-0 flex-col items-center py-1 ${hoy ? 'text-accent' : 'text-ink'}`}>
+        {/* La fecha entera, solo para quien escucha. El chip
+            dice "13 JUE", que con la vista basta y a oídas no:
+            se leyó "trece jueves" cuando la fecha dejó de ser un
+            botón con su etiqueta. */}
+        <span className="sr-only">{dayLabel}</span>
+        <span className="text-sm font-black leading-none" aria-hidden>{format(day, 'd')}</span>
+        <span
+          aria-hidden
+          className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-accent' : 'text-muted'}`}
+        >
+          {format(day, 'EEE', { locale: es })}
+        </span>
+      </span>
+
+      <div className="min-w-0 flex-1 self-center">
+        {events.map(event => (
+          <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} mostrarPersona={mostrarPersona} />
+        ))}
+        {onToggleTask && (
+          <DayTasks
+            tasks={tasks}
+            kids={kids}
+            members={members}
+            hoy={hoyStr}
+            onToggle={onToggleTask}
+            mostrarPersona={mostrarPersona}
+          />
+        )}
+      </div>
+    </li>
+  )
+}
+
 export function AgendaList({ desde, focusDay, events, kids, members, tasks = [], onToggleTask, buscador, onEdit, onAdd }: AgendaListProps) {
+  /**
+   * **El eje de la lista** (27-08-2026): por días, como siempre, o por persona.
+   *
+   * Son las dos preguntas de una casa con varios —"¿qué hay el jueves?" y "¿qué
+   * lleva cada uno?"— y hasta ahora la lista solo contestaba la primera: quién
+   * tiene cada cosa se decía fila a fila, en la etiqueta de la derecha, así que
+   * verlo junto era ir sumando de memoria.
+   *
+   * Es un eje y no una vista nueva: la misma lista, los mismos días, el mismo
+   * tramo de cuarenta y cinco días. Lo único que se mueve es el rótulo, que pasa
+   * de ser el tramo a ser la persona. Por eso tampoco se recuerda entre visitas,
+   * igual que la vista del calendario: se entra por la pregunta de siempre.
+   */
+  const [eje, setEje] = useState<'dia' | 'persona'>('dia')
   const rangeStart = startOfDay(desde)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
@@ -190,6 +283,33 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
     else tramos.push({ titulo, dias: [grupo] })
   }
 
+  /**
+   * Las personas de la casa con lo suyo, en el orden de siempre: familia,
+   * adultos, hijos. Quien no tiene nada en el tramo no sale.
+   */
+  const personas = buildAssignees(members, kids)
+  const gruposPersona = agruparPorPersona(conAlgo, personas)
+
+  /**
+   * Qué fila se queda el ancla de cada día. Agrupando por persona un mismo día
+   * sale bajo cada uno de los que tienen algo, y el salto desde el mes va por
+   * `id`: se lo lleva la primera aparición, que es la que deja el día a la vista.
+   */
+  const anclaDe = new Map<string, string>()
+  for (const grupo of gruposPersona) {
+    for (const dia of grupo.dias) {
+      const clave = getLocalDateString(dia.day)
+      if (!anclaDe.has(clave)) anclaDe.set(clave, grupo.persona.key)
+    }
+  }
+
+  /**
+   * El interruptor solo aparece cuando hay a quién repartir. `personas` siempre
+   * trae a la familia, así que con una sola persona más la lista agrupada sería
+   * la misma con un rótulo de adorno encima.
+   */
+  const mereceEje = personas.length > 2
+
   const todoVacio = conAlgo.length === 0
 
   /**
@@ -221,6 +341,35 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
           placeholder="Buscar en todo el calendario…"
           ariaLabel="Buscar eventos"
         />
+      )}
+
+      {/* El interruptor del eje. Va aquí y no en la cabecera del calendario
+          porque es de la lista y solo de la lista: la rejilla del mes y el eje
+          de horas se agrupan por días y no tienen otra forma de agruparse.
+          Buscando no se pinta —una búsqueda ya trae lo suyo ordenado por fecha—
+          ni con la lista vacía, donde no hay nada que repartir.
+
+          Dos pastillas y no un botón que dice lo contrario de lo que se ve:
+          "Agrupar por persona" en pantalla mientras la lista va por días se lee
+          como el estado, no como la acción. Aquí lo blanco es lo que hay. */}
+      {mereceEje && !buscando && !todoVacio && (
+        <div className="flex justify-end">
+          <div className="flex gap-1 rounded-2xl bg-surface p-1">
+            {([['dia', 'Por día'], ['persona', 'Por persona']] as const).map(([valor, texto]) => (
+              <button
+                key={valor}
+                type="button"
+                onClick={() => setEje(valor)}
+                aria-pressed={eje === valor}
+                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
+                  eje === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
+                }`}
+              >
+                {texto}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Buscando se enseña el calendario entero, pasado incluido: "¿cuándo fue
@@ -267,6 +416,49 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
             description="Toca para añadir un evento"
           />
         </button>
+      ) : eje === 'persona' ? (
+        /* **La misma lista con el rótulo cambiado de sitio.** Arriba la persona
+           y debajo sus días, con las filas de siempre: el día a la izquierda y
+           lo suyo a la derecha, ya sin repetir su nombre en cada línea. Lo que
+           es de toda la casa va en su propio grupo, "Familia", y el primero: no
+           es de nadie en particular pero afecta a todos, y colgarlo del último
+           sería esconder la cena de los abuelos debajo del pequeño. */
+        <section aria-label="Agenda por persona" className="space-y-4">
+          {gruposPersona.map(grupo => (
+            <section key={grupo.persona.key} aria-label={grupo.persona.name} className="space-y-2">
+              {/* El nombre sobre su color, como en la fila del evento y en la
+                  celda del mes. Un punto al lado del nombre volvería a ser lo
+                  que se quitó en agosto: dos cosas que mirar para decir una. */}
+              <h2 className="px-1">
+                <span
+                  className="etiqueta-persona inline-block max-w-full px-1.5 py-0.5 text-xs uppercase tracking-wide"
+                  style={{ backgroundColor: fondoDePersona(grupo.persona.color) }}
+                >
+                  {grupo.persona.name}
+                </span>
+              </h2>
+              <div className={TARJETA}>
+                <ul className="divide-y divide-hairline">
+                  {grupo.dias.map(dia => (
+                    <FilaDia
+                      key={dia.day.toISOString()}
+                      day={dia.day}
+                      events={dia.events}
+                      tasks={dia.tasks}
+                      kids={kids}
+                      members={members}
+                      hoyStr={hoyStr}
+                      onEdit={onEdit}
+                      onToggleTask={onToggleTask}
+                      mostrarPersona={false}
+                      ancla={anclaDe.get(getLocalDateString(dia.day)) === grupo.persona.key}
+                    />
+                  ))}
+                </ul>
+              </div>
+            </section>
+          ))}
+        </section>
       ) : (
         /* **Una lista continua y nada más**: la vista Programación de Google
            Calendar (25-08-2026). Cada tramo es una sección con su rótulo y,
@@ -287,58 +479,19 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                   que ya se ven debajo. */}
               <div className={TARJETA}>
                 <ul className="divide-y divide-hairline">
-                  {tramo.dias.map(group => {
-                    const dayLabel = capitalize(format(group.day, "EEEE d 'de' MMMM", { locale: es }))
-                    // Hoy se marca en el chip de la fecha y no en el rótulo, que
-                    // ya dice "Hoy": es donde lo marca Google y donde lo busca el
-                    // ojo cuando la lista lleva rato deslizándose.
-                    const hoy = isToday(group.day)
-
-                    return (
-                      <li
-                        key={group.day.toISOString()}
-                        id={idDeDia(group.day)}
-                        className="flex items-start gap-2 px-2 py-2"
-                      >
-                        {/* La fecha ya no es un botón. En una lista continua no
-                            lleva a ninguna parte, y anunciarse como "Ver 6 de
-                            septiembre" prometía un salto que ya no ocurre. Para
-                            añadir está el `+` de la derecha. */}
-                        <span
-                          className={`flex w-11 flex-shrink-0 flex-col items-center py-1 ${hoy ? 'text-accent' : 'text-ink'}`}
-                        >
-                          {/* La fecha entera, solo para quien escucha. El chip
-                              dice "13 JUE", que con la vista basta y a oídas no:
-                              se leyó "trece jueves" cuando la fecha dejó de ser un
-                              botón con su etiqueta. */}
-                          <span className="sr-only">{dayLabel}</span>
-                          <span className="text-sm font-black leading-none" aria-hidden>{format(group.day, 'd')}</span>
-                          <span
-                            aria-hidden
-                            className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-accent' : 'text-muted'}`}
-                          >
-                            {format(group.day, 'EEE', { locale: es })}
-                          </span>
-                        </span>
-
-                        <div className="min-w-0 flex-1 self-center">
-                          {group.events.map(event => (
-                            <EventRow key={event.id} event={event} kids={kids} members={members} onEdit={onEdit} />
-                          ))}
-                          {onToggleTask && (
-                            <DayTasks
-                              tasks={group.tasks}
-                              kids={kids}
-                              members={members}
-                              hoy={hoyStr}
-                              onToggle={onToggleTask}
-                            />
-                          )}
-                        </div>
-
-                      </li>
-                    )
-                  })}
+                  {tramo.dias.map(group => (
+                    <FilaDia
+                      key={group.day.toISOString()}
+                      day={group.day}
+                      events={group.events}
+                      tasks={group.tasks}
+                      kids={kids}
+                      members={members}
+                      hoyStr={hoyStr}
+                      onEdit={onEdit}
+                      onToggleTask={onToggleTask}
+                    />
+                  ))}
                 </ul>
               </div>
             </section>

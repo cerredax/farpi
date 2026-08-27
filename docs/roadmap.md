@@ -214,6 +214,14 @@ Objetivo: preparar uso diario.
   un `.json` con todo. Sin ruta API ni tabla nueva —el store ya lo tenía todo en
   memoria— y sin tokens dentro. Nació de una incoherencia: los papeles ya prometían
   la exportación y recomendaban guardar copias, sin dar manera de hacerlo.
+- ✅ **Cerrar una familia** (27-08-2026): crear una era un toque y deshacerlo no
+  existía. RPC `delete_family` —solo un admin, y nunca la última que te queda— más el
+  aviso que cuenta lo que se lleva por delante. RPC aplicada y validada el mismo día.
+- ✅ **La agenda se agrupa por persona** (27-08-2026): un interruptor sobre la lista
+  cambia el rótulo de tramo ("Hoy", "Esta semana") a persona, y debajo van sus días con
+  las filas de siempre, ya sin repetir el nombre en cada línea. Contesta la otra mitad
+  de la pregunta de una casa con varios: no "¿qué hay el jueves?" sino "¿qué lleva cada
+  uno?". Se descartó la columna por persona, que no cabe en un móvil.
 
 ## Fase 9 - Uso diario
 
@@ -227,8 +235,9 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   `docs/notificaciones.md`.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
   de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
-- ✅ **RLS revalidado** por última vez el 27-08-2026: **80/80**, con el esquema
-  entero validado, incluidas las conexiones de Google Drive (Fase 3).
+- ✅ **RLS revalidado** por última vez el 27-08-2026: **79/79**, con el esquema
+  entero validado, incluidas las conexiones de Google Drive (Fase 3) y el cierre de
+  una familia.
 - ✅ **Las 21 migraciones, aplastadas en `supabase/schema.sql`** (26-08-2026). Un
   solo archivo que describe la base como está, en vez de veintiuno que cuentan
   cómo llegó hasta aquí. El historial se queda en git. Falta el único aval que no

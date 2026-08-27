@@ -19,12 +19,13 @@ import type { Child, FamilyMember, Task } from '@/types'
  * está mirando, y bajar a Tareas para tachar lo de hoy es el viaje que nadie
  * hace.
  */
-function TaskRow({ task, kids, members, atrasada, onToggle }: {
+function TaskRow({ task, kids, members, atrasada, onToggle, mostrarPersona }: {
   task: Task
   kids: Child[]
   members: FamilyMember[]
   atrasada: boolean
   onToggle: (id: string) => void
+  mostrarPersona: boolean
 }) {
   const asignado = resolveAssignee(task, members, kids)
 
@@ -45,7 +46,7 @@ function TaskRow({ task, kids, members, atrasada, onToggle }: {
           san…" para dejar sitio a un nombre entero. */}
       {/* El nombre sobre su color, como en la fila de al lado y en la celda del
           mes: dentro de la misma tarjeta no pueden hablar de dos maneras. */}
-      {asignado && (
+      {mostrarPersona && asignado && (
         <span
           className="etiqueta-persona max-w-[4.5rem] flex-shrink-0 px-1 py-px text-[11px]"
           style={{ backgroundColor: fondoDePersona(asignado.color) }}
@@ -110,13 +111,19 @@ function TaskSummary({ total, atrasadas, abierto, onToggle }: {
   )
 }
 
-export function DayTasks({ tasks, kids, members, hoy, onToggle }: {
+export function DayTasks({ tasks, kids, members, hoy, onToggle, mostrarPersona = true }: {
   tasks: Task[]
   kids: Child[]
   members: FamilyMember[]
   /** Fecha de hoy en yyyy-MM-dd, para saber qué va tarde. */
   hoy: string
   onToggle: (id: string) => void
+  /**
+   * El nombre de quien la lleva. Se apaga cuando la lista va agrupada por
+   * persona y el rótulo de arriba ya lo dice, igual que en la fila del evento
+   * de al lado: dentro de la misma tarjeta las dos filas hablan igual.
+   */
+  mostrarPersona?: boolean
 }) {
   const [abierto, setAbierto] = useState(false)
 
@@ -143,6 +150,7 @@ export function DayTasks({ tasks, kids, members, hoy, onToggle }: {
           members={members}
           atrasada={!!task.due_date && task.due_date < hoy}
           onToggle={onToggle}
+          mostrarPersona={mostrarPersona}
         />
       ))}
     </>

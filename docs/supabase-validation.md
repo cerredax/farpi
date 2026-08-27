@@ -1,19 +1,23 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-27. **80/80 comprobaciones correctas.**
+Última ejecución: 2026-08-27, ya con el borrado de familias. **79/79 comprobaciones
+correctas.**
 
-Las 69 de la pasada del 26-08-2026 más las **siete de `storage_connections`** y las
-**cuatro de los documentos con proveedor y dueño**, que llegan con el paso de los
-archivos a Google Drive.
+Son las 70 del esquema con los documentos en Drive más las **nueve de la §13, cerrar
+una familia** (`delete_family`): que no la cierra ni un miembro no admin, ni un ajeno,
+ni un `delete` directo saltándose la RPC; que nadie se queda sin ninguna familia; y que
+el camino bueno se lleva en cascada lo que colgaba de ella.
 
-> Después de esa pasada se borró el bucket `documents` y con él las **diez
-> comprobaciones de Storage** del arnés, que ya no tenían nada que comprobar. La
-> siguiente ejecución dará **70/70**, y no es una regresión: son las mismas menos las
-> del bucket que ya no existe. Las secciones se renumeraron: lo que era §9…§13 pasa a
-> §8…§12.
+> De 80 a 79 no es una regresión. La pasada del 26-08-2026 dio 69, y la primera del
+> 27-08 dio 80 con las once del paso de los documentos a Google Drive (siete de
+> `storage_connections` y cuatro de las columnas nuevas de `documents`). Después se
+> borró el bucket `documents` y con él las **diez comprobaciones de Storage** del arnés,
+> que ya no tenían nada que comprobar: 80 − 10 + 9 = 79. Las secciones se renumeraron
+> entonces: lo que era §9…§13 pasó a §8…§12, y la §13 es ahora la del borrado.
 
-La limpieza dejó en la base únicamente la familia real; los tres
-usuarios y las dos familias de prueba se borraron.
+La limpieza borró los tres usuarios y las dos familias de
+prueba que quedaban en pie —la tercera, la que crea la §13, la cierra el propio arnés—;
+los datos reales no se tocaron.
 
 ## Estado
 

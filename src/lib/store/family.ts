@@ -49,6 +49,32 @@ export function createFamily(name: string): Family {
   return f
 }
 
+/**
+ * Imita el `on delete cascade` de Supabase: al irse la familia se va todo lo que
+ * cuelga de ella. Aquí no hay claves ajenas que lo hagan solas, así que se
+ * recorre tabla por tabla; si se añade una nueva con `family_id`, hay que
+ * acordarse de esta lista.
+ *
+ * Lo que **no** se toca son los archivos de los documentos: viven en el Google
+ * Drive de quien los subió, igual que en la app real. Lo que se borra es la ficha.
+ *
+ * Quién puede borrar y cuándo lo decide la capa de arriba (`store-context`), que
+ * es donde en Supabase manda la RPC `delete_family`.
+ */
+export function deleteFamily(familyId: string): void {
+  const listaIds = db.lists.filter(l => l.family_id === familyId).map(l => l.id)
+  db.families  = db.families.filter(f => f.id !== familyId)
+  db.members   = db.members.filter(m => m.family_id !== familyId)
+  db.invites   = db.invites.filter(i => i.family_id !== familyId)
+  db.kids      = db.kids.filter(k => k.family_id !== familyId)
+  db.events    = db.events.filter(e => e.family_id !== familyId)
+  db.tasks     = db.tasks.filter(t => t.family_id !== familyId)
+  db.lists     = db.lists.filter(l => l.family_id !== familyId)
+  db.listItems = db.listItems.filter(i => i.family_id !== familyId && !listaIds.includes(i.list_id))
+  db.mealPlans = db.mealPlans.filter(m => m.family_id !== familyId)
+  db.documents = db.documents.filter(d => d.family_id !== familyId)
+}
+
 export function getMembers(familyId: string): FamilyMember[] {
   return db.members.filter(m => m.family_id === familyId)
 }

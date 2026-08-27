@@ -2,7 +2,6 @@
 
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { DotOption } from '@/components/ui/DotOption'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
@@ -109,16 +108,26 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
             media, pero casi nada es de los dos a la vez. */}
         <AssigneePicker value={draft} onChange={patch} members={members} kids={kids} />
 
+        {/* Chips de texto, no círculos de color. La prioridad es un grado, no
+            una identidad: el color en Nido dice "de quién es" y ya lo gasta la
+            fila de arriba. Con círculos eran dos filas idénticas seguidas y el
+            punto de "Media" era el amarillo exacto de "toda la familia". Mismo
+            control que Repetición, que está justo debajo. */}
         <Field label="Prioridad" spacing="group">
-          <div className="flex gap-3">
+          <div className="grid grid-cols-3 gap-1.5">
             {TASK_PRIORITIES.map(opt => (
-              <DotOption
+              <button
                 key={opt.value}
-                selected={draft.priority === opt.value}
+                type="button"
                 onClick={() => patch({ priority: opt.value })}
-                color={opt.color}
-                label={opt.label}
-              />
+                className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
+                  draft.priority === opt.value
+                    ? 'bg-primary text-white'
+                    : 'bg-canvas text-muted border border-line'
+                }`}
+              >
+                {opt.label}
+              </button>
             ))}
           </div>
         </Field>

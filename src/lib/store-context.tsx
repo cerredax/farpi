@@ -54,6 +54,8 @@ interface StoreValue {
   families: Family[]
   switchFamily: (id: string) => void
   createFamily: (name: string) => Promise<void>
+  /** Cierra la familia activa y salta a otra. Falla si es la única. */
+  deleteFamily: () => Promise<void>
   family: Family
   members: FamilyMember[]
   invites: FamilyInvite[]
@@ -360,6 +362,25 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           switchFamily(created.id)
         } catch (err) {
           setError(err instanceof Error ? err.message : 'No se pudo crear la familia')
+        } finally {
+          setIsSaving(false)
+        }
+      },
+      // Fuera de `runMutationWith` por lo mismo que `createFamily`: al terminar no
+      // hay nada que recargar con este `familyId`, porque la familia ya no está.
+      // Se salta a otra y el remonte del provider hace la carga buena.
+      deleteFamily: async () => {
+        setError(null)
+        setIsSaving(true)
+        try {
+          const otra = families.find(f => f.id !== familyId)
+          // La interfaz ya esconde el botón, y en Supabase manda la RPC. Esto es
+          // el tercer cerrojo, el que sostiene el modo demo.
+          if (!otra) throw new Error('No puedes eliminar tu única familia.')
+          await repos.family.deleteFamily(familyId)
+          switchFamily(otra.id)
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'No se pudo eliminar la familia')
         } finally {
           setIsSaving(false)
         }

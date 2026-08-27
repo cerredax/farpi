@@ -14,7 +14,9 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 - Inicio / Hoy, con "Esta semana" y lo que va atrasado arrastrado al día de hoy.
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
-  vista de semana salen también las tareas que vencen, y se pueden marcar allí.
+  vista de semana salen también las tareas que vencen, y se pueden marcar allí. La
+  agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor sobre
+  la lista.
 - Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó.
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
@@ -25,7 +27,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
   detrás.
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
-- Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro.
+- Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
+  y cerrar una familia entera (un admin, y nunca la última que le queda).
 - Cuenta: cambiar contraseña y borrar cuenta (`AccountActions.tsx`).
 - Páginas legales públicas `/privacidad` y `/terminos`.
 - Modo demo con persistencia en `localStorage`.
@@ -95,8 +98,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 270 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 83 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 277 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 85 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -141,13 +144,16 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. El 27-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
-real: **80/80**. Son las 69 del 26-08-2026 más las once del paso de los documentos a
-Google Drive: siete de `storage_connections` —que **nadie la lee por PostgREST, ni su
+Sin pendientes. La última pasada es del 27-08-2026, con `node scripts/validate-rls.mjs`
+contra la base real y ya con `delete_family` aplicada: **79/79**. Son las 70 del esquema
+con los documentos en Drive más las nueve de **cerrar una familia** (§13): que no la
+cierra ni un miembro no admin, ni un ajeno, ni un `delete` saltándose la RPC, que nadie
+se queda sin familia, y que la cascada se lleva lo que colgaba. Las once que trajo el
+paso a Google Drive siguen ahí: siete de `storage_connections` —que **nadie la lee por PostgREST, ni su
 propia fila**, que es lo que mantiene los refresh tokens fuera del alcance del
 navegador— y cuatro de las columnas nuevas de `documents`, entre ellas que un ajeno no
-ve el documento aunque conozca su identificador de archivo de Drive. La limpieza dejó en la base únicamente
-la familia real. Detalle en `docs/supabase-validation.md`, que es el sitio donde vive
+ve el documento aunque conozca su identificador de archivo de Drive. La limpieza se llevó los tres usuarios y las dos familias
+de prueba que quedaban en pie; los datos reales no se tocaron. Detalle en `docs/supabase-validation.md`, que es el sitio donde vive
 esto; aquí solo el titular.
 
 ## Cerrado el 2026-08-24

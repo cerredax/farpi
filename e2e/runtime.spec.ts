@@ -426,6 +426,8 @@ test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
 test('la copia de seguridad se descarga y lleva los datos de la familia', async ({ page }) => {
   await page.goto('/settings')
   await page.waitForTimeout(800)
+  // La copia de seguridad vive en la pestaña "Cuenta", no en la que abre por defecto.
+  await page.getByRole('tab', { name: 'Cuenta' }).click()
 
   const descarga = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Descargar una copia de todo' }).click()
@@ -559,6 +561,8 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
 test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => {
   await page.goto('/settings')
   await page.waitForTimeout(800)
+  // Las franjas de comida viven en la pestaña "Casa", no en la que abre por defecto.
+  await page.getByRole('tab', { name: 'Casa' }).click()
 
   const merienda = page.getByRole('switch', { name: 'Merienda' })
   await expect(merienda).toHaveAttribute('aria-checked', 'true')
@@ -583,9 +587,12 @@ test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => 
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
 
-  // Vuelta atrás: la franja reaparece con todo lo que tuviera.
+  // Vuelta atrás: la franja reaparece con todo lo que tuviera. La pestaña
+  // vuelve a abrir en "Familia" por defecto, así que hay que volver a entrar
+  // en "Casa".
   await page.goto('/settings')
   await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Casa' }).click()
   await page.getByRole('switch', { name: 'Merienda' }).click()
   await page.waitForTimeout(500)
   await page.goto('/meals')

@@ -13,6 +13,7 @@ import { NotificationsCard } from './NotificationsCard'
 import { StorageCard } from './StorageCard'
 import { BackupCard } from './BackupCard'
 import { AccountActions } from './AccountActions'
+import { DeleteAccountCard } from './DeleteAccountCard'
 import { InstallPWA } from './InstallPWA'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
@@ -26,17 +27,34 @@ import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/type
  *
  * Antes eran once secciones al mismo nivel —familia, familias, adultos, otros
  * adultos, hijos, comidas, demo, notificaciones, cuenta y legal— en una columna
- * que en móvil no se acababa nunca. Ahora son cinco bloques con un título humano
- * y, dentro, los grupos que hagan falta.
+ * que en móvil no se acababa nunca. Se resolvió con cinco bloques en una sola
+ * columna, **sin plegables**: esconder contenido ya había salido mal dos veces
+ * en este repositorio (el catálogo de las listas, las tareas del día), así que
+ * la solución fue nombrar bien los bloques, no ocultarlos.
  *
- * **Sin plegables**, y a propósito. Este repositorio ya se dio ese golpe dos
- * veces: el catálogo de las listas arrancaba plegado y se abrió porque "el
- * pliegue era un toque de más en el camino principal", y las tareas del día solo
- * se plegan porque hoy acumula todo lo atrasado y el recuento se queda a la vista
- * ("resumir no es esconder"). Ajustes no acumula nada: la lista es de largo fijo
- * y se entra con un objetivo concreto —apagar la merienda, cerrar sesión—, así
- * que un pliegue esconde justo lo que se viene a buscar.
+ * Esa razón se mantiene para el resto de la app, pero Ajustes ha vuelto a
+ * crecer —ahora también hay conexión de Google Drive— y en escritorio una
+ * columna larga y estrecha se ve desproporcionada en una pantalla ancha. Aquí
+ * se hace una excepción consciente: pestañas. La diferencia con un plegable es
+ * que aquí no hay "lo que se viene a buscar" escondido por sorpresa dentro de
+ * un bloque que ya se está mirando — son secciones distintas de la pantalla,
+ * cada una con su propio propósito (familia, casa, cuenta, sincronización,
+ * legal), así que cambiar de pestaña es una decisión de navegación, no un
+ * contenido que se pierde de vista sin querer.
+ *
+ * La pestaña por defecto es siempre "Familia", sin recordar la última
+ * visitada: es la más predecible, y es la que más se usa.
  */
+
+type PestañaKey = 'familia' | 'casa' | 'cuenta' | 'sincronizacion' | 'legal'
+
+const TODAS_LAS_PESTAÑAS: { key: PestañaKey; label: string }[] = [
+  { key: 'familia', label: 'Familia' },
+  { key: 'casa', label: 'Casa' },
+  { key: 'cuenta', label: 'Cuenta' },
+  { key: 'sincronizacion', label: 'Sincronización' },
+  { key: 'legal', label: 'Legal' },
+]
 
 /** Un bloque de Ajustes: el nivel de "¿a qué he entrado?". */
 function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -128,124 +146,181 @@ export function SettingsView() {
     resetDemoData()
   }
 
+  // Sincronización no tiene nada que enseñar en modo demo (no hay proveedor al
+  // que conectarse): en vez de una pestaña vacía, no se ofrece. "Cuenta" sí se
+  // mantiene, porque la copia de seguridad vive ahí y tiene que poder probarse
+  // en la suite, que corre siempre en modo demo forzado.
+  const pestañas = IS_DEMO_MODE
+    ? TODAS_LAS_PESTAÑAS.filter(p => p.key !== 'sincronizacion')
+    : TODAS_LAS_PESTAÑAS
+
+  const [pestañaActiva, setPestañaActiva] = useState<PestañaKey>('familia')
+
   return (
     <>
-      <div className="max-w-lg mx-auto px-4 py-4 pb-10 space-y-7">
-        <Bloque titulo="Tu familia">
-          <FamilyCard family={family} onEdit={() => setFamilySheetOpen(true)} />
+      <div className="max-w-lg mx-auto px-4 py-4 pb-10">
+        {/* Mismo patrón que los filtros de Documentos: se arrastra en móvil,
+            sangrando hasta el borde, y cabe entero en escritorio. */}
+        <div
+          role="tablist"
+          aria-label="Secciones de ajustes"
+          className="mb-6 flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0"
+        >
+          {pestañas.map(p => (
+            <button
+              key={p.key}
+              type="button"
+              role="tab"
+              id={`tab-${p.key}`}
+              aria-selected={pestañaActiva === p.key}
+              aria-controls={`panel-${p.key}`}
+              onClick={() => setPestañaActiva(p.key)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                pestañaActiva === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
 
-          <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
-            {/* Con una sola familia la lista repetía el nombre que ya está en la
-                tarjeta de arriba, y tocarla no hacía nada. Se enseña cuando hay
-                de dónde elegir; crear una nueva se puede siempre. */}
-            {families.length > 1 && families.map((f: Family) => (
-              <button
-                key={f.id}
-                onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
-              >
-                <span className="text-sm font-semibold text-ink">{f.name}</span>
-                {f.id === activeFamilyId && (
-                  <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">activa</span>
-                )}
-              </button>
-            ))}
-            {creatingFamily ? (
-              <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3">
-                <input
-                  autoFocus
-                  value={newFamilyName}
-                  onChange={e => setNewFamilyName(e.target.value)}
-                  placeholder="Nombre de la familia"
-                  className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
-                <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex-shrink-0 px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>
-              </form>
-            ) : (
-              <button
-                onClick={() => setCreatingFamily(true)}
-                className="w-full px-4 py-3 text-sm text-primary-strong font-semibold text-left hover:bg-canvas transition-colors"
-              >
-                + Nueva familia
-              </button>
-            )}
-          </div>
+        <div id="panel-familia" role="tabpanel" aria-labelledby="tab-familia" hidden={pestañaActiva !== 'familia'} className="space-y-7">
+          <Bloque titulo="Tu familia">
+            <FamilyCard family={family} onEdit={() => setFamilySheetOpen(true)} />
 
-          {/* La copia de seguridad va aquí y no en "Cuenta y seguridad": son datos
-              de la familia, no de tu cuenta. Y ese bloque está oculto en modo demo,
-              lo que dejaría esta función sin poder probarse. */}
-          <BackupCard />
-        </Bloque>
-
-        <Bloque titulo="Personas">
-          <p className="-mt-1 px-1 text-xs text-muted">{resumenPersonas}</p>
-
-          {/* "Con cuenta" y "sin cuenta" es la frontera de verdad de la app, no
-              adulto/niño: para estar en `family_members` hace falta correo,
-              cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
-              dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
-          <Grupo titulo="Adultos con cuenta">
-            <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
-          </Grupo>
-
-          <Grupo titulo="Adultos sin cuenta">
-            <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
-          </Grupo>
-
-          <Grupo titulo="Hijos">
-            <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
-          </Grupo>
-        </Bloque>
-
-        <Bloque titulo="Preferencias de la casa">
-          {/* Solo aparece cuando el navegador ofrece instalar. */}
-          <InstallPWA />
-
-          <Grupo titulo="Franjas de comida">
-            <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
-          </Grupo>
-
-          {!IS_DEMO_MODE && (
-            <Grupo titulo="Notificaciones">
-              <NotificationsCard />
-            </Grupo>
-          )}
-        </Bloque>
-
-        {!IS_DEMO_MODE && (
-          <Bloque titulo="Cuenta y seguridad">
-            {/* Solo se pinta si esta persona tiene (o tuvo) Drive conectado. */}
-            <StorageCard />
-            <AccountActions />
-          </Bloque>
-        )}
-
-        {IS_DEMO_MODE && (
-          <Bloque titulo="Modo demo">
-            <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm space-y-3">
-              <p className="text-xs text-muted">Los datos son de prueba y viven en este navegador.</p>
-              <button
-                onClick={handleReset}
-                onBlur={() => setConfirmReset(false)}
-                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
-              >
-                {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
-              </button>
+            <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
+              {/* Con una sola familia la lista repetía el nombre que ya está en la
+                  tarjeta de arriba, y tocarla no hacía nada. Se enseña cuando hay
+                  de dónde elegir; crear una nueva se puede siempre. */}
+              {families.length > 1 && families.map((f: Family) => (
+                <button
+                  key={f.id}
+                  onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
+                >
+                  <span className="text-sm font-semibold text-ink">{f.name}</span>
+                  {f.id === activeFamilyId && (
+                    <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">activa</span>
+                  )}
+                </button>
+              ))}
+              {creatingFamily ? (
+                <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3">
+                  <input
+                    autoFocus
+                    value={newFamilyName}
+                    onChange={e => setNewFamilyName(e.target.value)}
+                    placeholder="Nombre de la familia"
+                    className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
+                  <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex-shrink-0 px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setCreatingFamily(true)}
+                  className="w-full px-4 py-3 text-sm text-primary-strong font-semibold text-left hover:bg-canvas transition-colors"
+                >
+                  + Nueva familia
+                </button>
+              )}
             </div>
           </Bloque>
+
+          <Bloque titulo="Personas">
+            <p className="-mt-1 px-1 text-xs text-muted">{resumenPersonas}</p>
+
+            {/* "Con cuenta" y "sin cuenta" es la frontera de verdad de la app, no
+                adulto/niño: para estar en `family_members` hace falta correo,
+                cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
+                dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
+            <Grupo titulo="Adultos con cuenta">
+              <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
+            </Grupo>
+
+            <Grupo titulo="Adultos sin cuenta">
+              <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
+            </Grupo>
+
+            <Grupo titulo="Hijos">
+              <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
+            </Grupo>
+          </Bloque>
+        </div>
+
+        <div id="panel-casa" role="tabpanel" aria-labelledby="tab-casa" hidden={pestañaActiva !== 'casa'} className="space-y-7">
+          <Bloque titulo="Preferencias de la casa">
+            {/* Solo aparece cuando el navegador ofrece instalar. */}
+            <InstallPWA />
+
+            <Grupo titulo="Franjas de comida">
+              <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
+            </Grupo>
+          </Bloque>
+        </div>
+
+        <div id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" hidden={pestañaActiva !== 'cuenta'} className="space-y-7">
+          <Bloque titulo="Cuenta">
+            {!IS_DEMO_MODE && (
+              <Grupo titulo="Notificaciones">
+                <NotificationsCard />
+              </Grupo>
+            )}
+
+            {/* La copia de seguridad son datos de la familia, no de tu cuenta,
+                pero vive en esta pestaña porque es donde se buscan las cosas de
+                "gestionar mi cuenta y mis datos". Funciona igual en modo demo
+                (exporta lo que hay en localStorage), así que no depende de
+                IS_DEMO_MODE: si dependiera, la suite no podría probarla. */}
+            <BackupCard />
+
+            {!IS_DEMO_MODE && <AccountActions />}
+          </Bloque>
+        </div>
+
+        {!IS_DEMO_MODE && (
+          <div id="panel-sincronizacion" role="tabpanel" aria-labelledby="tab-sincronizacion" hidden={pestañaActiva !== 'sincronizacion'} className="space-y-7">
+            <Bloque titulo="Sincronización">
+              {/* Solo se pinta si esta persona tiene (o tuvo) Drive conectado. */}
+              <StorageCard />
+            </Bloque>
+          </div>
         )}
 
-        <Bloque titulo="Legal">
-          <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
-            <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
-              Política de privacidad <span className="text-faint">›</span>
-            </Link>
-            <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
-              Términos de servicio <span className="text-faint">›</span>
-            </Link>
+        <div id="panel-legal" role="tabpanel" aria-labelledby="tab-legal" hidden={pestañaActiva !== 'legal'} className="space-y-7">
+          <Bloque titulo="Legal">
+            <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
+              <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
+                Política de privacidad <span className="text-faint">›</span>
+              </Link>
+              <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
+                Términos de servicio <span className="text-faint">›</span>
+              </Link>
+            </div>
+
+            {!IS_DEMO_MODE && <DeleteAccountCard />}
+          </Bloque>
+        </div>
+
+        {/* Modo demo no entra en pestañas: no es una sección más de la
+            pantalla, es un aviso sobre la pantalla entera, así que se queda
+            siempre a la vista debajo, pase lo que pase con la pestaña activa. */}
+        {IS_DEMO_MODE && (
+          <div className="mt-7">
+            <Bloque titulo="Modo demo">
+              <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm space-y-3">
+                <p className="text-xs text-muted">Los datos son de prueba y viven en este navegador.</p>
+                <button
+                  onClick={handleReset}
+                  onBlur={() => setConfirmReset(false)}
+                  className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
+                >
+                  {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
+                </button>
+              </div>
+            </Bloque>
           </div>
-        </Bloque>
+        )}
       </div>
 
       <FamilySheet

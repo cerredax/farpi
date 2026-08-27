@@ -2,7 +2,7 @@ import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, MealSlot, List, ListItem, Document,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
-  ListDraft, ListItemDraft, DocumentDraft,
+  ListDraft, ListItemDraft, DocumentDraft, StorageConnection,
 } from '@/types'
 
 // ─── Contratos de repositorios ─────────────────────────────────────────────────
@@ -93,7 +93,32 @@ export interface DocumentsRepo {
   createDocument(familyId: string, draft: DocumentDraft): Promise<Document>
   updateDocument(id: string, draft: DocumentDraft): Promise<void>
   deleteDocument(id: string): Promise<void>
+  /**
+   * A dónde ir para ver el archivo. Ya no es una URL firmada del proveedor sino
+   * una ruta de la propia app (`/api/documents/{id}/file`): los archivos viven en
+   * el Drive de quien los sube y los sirve Nido, no Google. Comprueba antes que
+   * el archivo siga estando, para poder fallar con un mensaje y no con una
+   * pestaña en blanco.
+   */
   getDownloadUrl(document: Document): Promise<string>
+}
+
+/**
+ * La conexión de **quien está usando la app** con su almacenamiento.
+ *
+ * Es lo único de todo esto que la interfaz necesita saber, y por eso es tan
+ * pequeño: si hay que enseñar el botón de conectar, a dónde lleva ese botón y
+ * cómo se deshace. Ni un token asoma por aquí. Casi nadie de la familia verá
+ * nunca esta parte — solo hace falta para subir, no para mirar.
+ */
+export interface StorageProvidersRepo {
+  getConnection(): Promise<StorageConnection>
+  /**
+   * A dónde navegar para conectar. `null` cuando no hay nada que conectar (modo
+   * demo), que es lo que la interfaz usa para no ofrecerlo.
+   */
+  connectUrl(): string | null
+  disconnect(): Promise<void>
 }
 
 // ─── Aggregate ────────────────────────────────────────────────────────────────
@@ -109,4 +134,5 @@ export interface Repos {
   listItems: ListItemsRepo
   meals: MealsRepo
   documents: DocumentsRepo
+  storageProviders: StorageProvidersRepo
 }

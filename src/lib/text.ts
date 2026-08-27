@@ -16,6 +16,20 @@ export function recortaGuiones(value: string): string {
   return value.replace(/^-+|-+$/g, '')
 }
 
+/**
+ * Nombre de archivo apto para viajar: reutiliza `normalizaParaBuscar` para bajar
+ * a minúsculas y quitar tildes, y solo añade lo suyo —deja pasar `._-`, cambia
+ * el resto por guiones y cae en 'documento' si no queda nada—.
+ *
+ * Se usa en las dos puntas del viaje de un documento: al subirlo a Drive y al
+ * servirlo desde Nido, donde va en la cabecera `Content-Disposition`, que no
+ * admite acentos ni comillas sin codificar.
+ */
+export function safeFileName(name: string): string {
+  const slug = normalizaParaBuscar(name).replace(/[^a-z0-9._-]+/g, '-')
+  return recortaGuiones(slug) || 'documento'
+}
+
 /** Tamaño de archivo legible: "820 KB", "1.4 MB". */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '—'

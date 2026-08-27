@@ -192,6 +192,45 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Archivo inválido muestra error.
 - [ ] Archivo mayor de 20 MB muestra error.
 - [ ] Queda claro que en demo no se sube contenido real.
+- [ ] En demo, el sheet **no** ofrece "Conectar Google Drive" (no hay a qué conectarse).
+
+### 8.1 Google Drive — solo con credenciales reales
+
+Esto no lo cubre Playwright y no puede: la suite corre en modo demo forzado y sin
+credenciales, así que el viaje a Google no se puede automatizar. Es la parte que hay
+que recorrer a mano, y **contra el build servido** (`npm run build && npm run start`),
+no contra `npm run dev`: la CSP no sirve lo mismo en los dos.
+
+Hace falta un segundo usuario en la misma familia para probar lo que importa de
+verdad, que es que el otro vea el documento sin conectar nada.
+
+- [ ] Sin Drive conectado, el sheet de crear enseña "Conectar Google Drive" en el
+      hueco del selector de archivo, y el botón de guardar está apagado.
+- [ ] Al conectar, Google pide permiso **solo** para "ver y gestionar los archivos
+      de Drive que abras o crees con esta app" (eso es `drive.file`). Si pide más,
+      parar: el scope está mal.
+- [ ] Al volver, `/docs` dice que se conectó y el sheet ya deja elegir archivo.
+- [ ] Subir un PDF pequeño: aparece en la lista y en el Drive del que sube, dentro
+      de una carpeta llamada **Nido**.
+- [ ] **Subir uno grande, de 10-15 MB.** Es la comprobación que justifica que la
+      subida vaya directa del navegador a Google: por el servidor no cabría.
+- [ ] Abrirlo desde **la otra cuenta** de la familia, que no tiene Drive conectado:
+      se abre igual y en ningún momento se le pide nada.
+- [ ] La otra cuenta borra el documento: desaparece de la lista y también del Drive
+      del dueño.
+- [ ] En Ajustes → Cuenta y seguridad, la tarjeta de Google Drive dice con qué correo
+      está conectado. A la otra cuenta, que no ha conectado nada, **no le sale**.
+- [ ] Desconectar desde Ajustes. Los archivos siguen en el Drive del dueño.
+- [ ] Con la conexión deshecha, la otra cuenta intenta abrir un documento: el aviso
+      **nombra al dueño** y dice que tiene que volver a conectar. Que no diga solo
+      "no se pudo abrir": así no se sabe a quién avisar.
+- [ ] Volver a conectar: los mismos documentos se abren otra vez, sin resubir nada.
+- [ ] Borrar a mano el archivo desde el Drive del dueño: el aviso es **distinto**
+      («ya no está en el Drive de…»), no el de reconectar.
+- [ ] En Ajustes, al abrir a un miembro que ha subido documentos, sale el aviso con
+      el recuento antes de poder quitarlo de la familia.
+- [ ] Con `npm run start`, recorrer las rutas escuchando `securitypolicyviolation`:
+      la subida a `www.googleapis.com` no debe disparar ninguna.
 
 ## 9. Ajustes - familias
 
@@ -281,7 +320,7 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 > sesiones de usuario reales y crea y borra sus propios usuarios y familias de
 > prueba. Ejecutarlo (`node scripts/validate-rls.mjs`) es más fiable que ir a mano, y
 > es lo que pide `CLAUDE.md` después de tocar el esquema, una policy o una RPC. La
-> última pasada fue de **69/69** (26-08-2026).
+> última pasada fue de **80/80** (27-08-2026).
 > Lo de abajo queda como referencia de qué cubre.
 
 - [ ] `supabase/schema.sql` aplicado (sustituye a las 21 migraciones desde el 26-08-2026).
@@ -303,7 +342,12 @@ de alta en Ajustes y se puede asignar»); el resto, a mano:
 - [ ] `events.kind` solo acepta `evento`, `vacaciones`, `descanso` y `festivo`, y los tres
       últimos exigen día completo y fecha final.
 - [ ] `list_items.quantity` solo acepta de 1 a 99.
-- [ ] Bucket `documents` es privado.
-- [ ] Usuario de la familia puede leer su documento.
-- [ ] Usuario de otra familia no puede leer el documento aunque conozca el path.
+- [x] ~~Bucket `documents`~~: **borrado el 27-08-2026**. No hay Storage que comprobar;
+      los archivos viven en el Google Drive de quien los sube y los sirve Nido por
+      `/api/documents/[id]/file`. Lo que lo cubre ahora son las dos comprobaciones de
+      aquí abajo.
+- [ ] **`storage_connections`: nadie la lee por PostgREST, ni su propia fila.** Es la
+      comprobación que no puede fallar: dentro hay tokens de Google Drive, y la CSP
+      no para un XSS en línea.
+- [ ] `documents.storage_provider` solo acepta `google_drive`, y por defecto es eso.
 - [ ] Resultados documentados en `docs/supabase-validation.md`.

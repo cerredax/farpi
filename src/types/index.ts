@@ -124,6 +124,30 @@ export interface MealPlan {
   updated_at: string
 }
 
+/**
+ * Quién guarda de verdad los archivos. Hoy solo Google Drive, pero la columna
+ * existe desde el primer día porque es la que elige implementación en
+ * `src/lib/document-storage`: sin ella, añadir Dropbox u OneDrive obligaría a
+ * mirar la fila y adivinar.
+ */
+export type StorageProviderId = 'google_drive'
+
+/**
+ * Lo que la interfaz sabe de la conexión de quien está mirando. **Nunca lleva
+ * tokens**: los tokens no salen del servidor ni por asomo, y por eso esto no es
+ * una fila de la tabla sino lo que devuelve `/api/documents/providers`.
+ */
+export interface StorageConnection {
+  provider: StorageProviderId
+  conectada: boolean
+  /** Estaba conectada y dejó de valer: hay que volver a autorizar. */
+  revocada: boolean
+  /** La cuenta de Google en la que caen los archivos, si se pudo averiguar. */
+  email: string | null
+  /** En modo demo no hay nada que conectar y la interfaz lo dice en vez de ofrecerlo. */
+  demo: boolean
+}
+
 export interface Document {
   id: string
   family_id: string
@@ -134,7 +158,19 @@ export interface Document {
   name: string
   description: string | null
   category: DocCategory | null
+  /**
+   * Dónde está el archivo **para su proveedor**: el `fileId` de Google Drive.
+   * Se llama `storage_path` por herencia del bucket de Supabase, que es lo que
+   * había antes; el nombre se queda para no renombrar una columna en producción.
+   */
   storage_path: string
+  storage_provider: StorageProviderId
+  /**
+   * En el Drive de quién vive el archivo. Es a esta persona a la que se le pide
+   * el token prestado para servirlo al resto de la familia, así que si se
+   * desconecta, el documento deja de poder abrirse (la ficha se queda).
+   */
+  storage_owner: string | null
   mime_type: DocMimeType
   size_bytes: number
   /** Cuándo caduca, si caduca. La mayoría de documentos no lo hacen. */

@@ -97,4 +97,21 @@ export const mockRepos: Repos = {
     deleteDocument:  (id) => Promise.resolve(store.deleteDocument(id)),
     getDownloadUrl:  () => Promise.reject(new Error('En modo demo no se guardan archivos reales, así que no hay nada que abrir.')),
   },
+
+  // En modo demo no hay proveedor al que conectarse: los archivos nunca salen de
+  // este navegador. `connectUrl` devuelve `null` y con eso la interfaz sabe que
+  // no debe ofrecer el botón, en vez de enseñar uno que no lleva a ninguna parte.
+  // Es la misma idea que la guarda de modo demo de las rutas API: el camino se
+  // corta al principio y no a mitad, con un error.
+  storageProviders: {
+    getConnection: () => Promise.resolve({
+      provider: 'google_drive' as const,
+      conectada: false,
+      revocada: false,
+      email: null,
+      demo: true,
+    }),
+    connectUrl: () => null,
+    disconnect: () => Promise.resolve(),
+  },
 }

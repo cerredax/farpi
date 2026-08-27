@@ -61,24 +61,15 @@ export async function POST() {
     }
   }
 
+  // Los archivos de los documentos **no se tocan**.
+  //
+  // Antes vivían en un bucket de Supabase que era de Nido, así que borrar la
+  // cuenta tenía que llevárselos. Desde que están en el Google Drive de quien los
+  // subió son suyos y están en su disco: entrar a borrar ahí sería usar un
+  // permiso que se dio para guardar papeles de la familia para vaciarle el Drive,
+  // y eso no es lo que nadie autorizó. Lo que se va es la ficha, con la familia.
+  // La conexión (`storage_connections`) sí se va, en cascada al borrar el usuario.
   for (const familyId of familyIdsToDelete) {
-    const { data: docs, error: docsError } = await admin
-      .from('documents')
-      .select('storage_path')
-      .eq('family_id', familyId)
-
-    if (docsError) {
-      return fallo('lectura de documentos', docsError.message)
-    }
-
-    const paths = (docs ?? []).map(doc => doc.storage_path).filter(Boolean)
-    if (paths.length > 0) {
-      const { error: storageError } = await admin.storage.from('documents').remove(paths)
-      if (storageError) {
-        return fallo('borrado de archivos', storageError.message)
-      }
-    }
-
     const { error: familyDeleteError } = await admin.from('families').delete().eq('id', familyId)
     if (familyDeleteError) {
       return fallo('borrado de la familia', familyDeleteError.message)

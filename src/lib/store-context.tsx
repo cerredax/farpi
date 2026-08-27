@@ -26,6 +26,7 @@ import type {
   MealPlan,
   MealSlot,
   PendingItem,
+  StorageConnection,
   Task,
   TaskDraft,
 } from '@/types'
@@ -105,6 +106,18 @@ interface StoreValue {
   updateDocument: (id: string, draft: DocumentDraft) => Promise<void>
   deleteDocument: (id: string) => Promise<void>
   getDocumentUrl: (document: Document) => Promise<string>
+  /**
+   * Si quien mira tiene su almacenamiento conectado. `null` mientras no se ha
+   * preguntado, que es casi siempre: **no entra en `reload()` a propósito**. La
+   * mayoría de la familia nunca sube un documento y no hay por qué gastarle una
+   * petición en cada carga de Inicio; lo pide quien lo necesita —el sheet de
+   * documentos y Ajustes— cuando lo necesita.
+   */
+  storageConnection: StorageConnection | null
+  reloadStorageConnection: () => Promise<void>
+  /** A dónde lleva "Conectar Google Drive". `null` en modo demo: no se ofrece. */
+  connectStorageUrl: string | null
+  disconnectStorage: () => Promise<void>
 }
 
 const StoreCtx = createContext<StoreValue>(null!)
@@ -146,6 +159,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [allListItems, setListItems] = useState<ListItem[]>(EMPTY_SLICES.allListItems)
   const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
   const [documents, setDocuments] = useState<Document[]>(EMPTY_SLICES.documents)
+  const [storageConnection, setStorageConnection] = useState<StorageConnection | null>(null)
 
   const reload = useCallback(async () => {
     setIsLoading(true)
@@ -208,6 +222,21 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     }, 0)
     return () => window.clearTimeout(timer)
   }, [reload])
+
+  /**
+   * Preguntar por la conexión de almacenamiento. Si falla no se cuenta como
+   * error de la app: no poder saber si hay Drive conectado no rompe ninguna
+   * pantalla, solo hace que se ofrezca conectarlo. Y sobre todo, **no se
+   * registra en consola**: `e2e/runtime.spec.ts` tumba la suite ante cualquier
+   * `console.error`.
+   */
+  const reloadStorageConnection = useCallback(async () => {
+    try {
+      setStorageConnection(await repos.storageProviders.getConnection())
+    } catch {
+      setStorageConnection({ provider: 'google_drive', conectada: false, revocada: false, email: null, demo: false })
+    }
+  }, [repos])
 
   // Las franjas ocultas dejan de verse en todas las pantallas a la vez, y por eso
   // se filtra aquí y no en cada vista: Inicio y la pestaña "Hoy" de Comidas leen
@@ -401,6 +430,13 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),
       getDocumentUrl: (document: Document) => repos.documents.getDownloadUrl(document),
+      storageConnection,
+      reloadStorageConnection,
+      connectStorageUrl: repos.storageProviders.connectUrl(),
+      disconnectStorage: async () => {
+        await repos.storageProviders.disconnect()
+        await reloadStorageConnection()
+      },
     }
   }, [
     isLoading,
@@ -429,6 +465,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     runMutationWith,
     undoAction,
     restaurarTarea,
+    storageConnection,
+    reloadStorageConnection,
   ])
 
   if (isLoading && !value) {

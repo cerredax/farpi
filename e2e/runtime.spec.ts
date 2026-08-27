@@ -418,6 +418,24 @@ test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
   await expect(page.getByText(/Caduc[óa] el 20 ago\.? 2026/)).toBeVisible()
 })
 
+// Los archivos viven en el Google Drive de quien los sube, pero en modo demo no
+// hay proveedor al que conectarse: los papeles no salen de este navegador. El
+// sheet tiene que decirlo y **no** ofrecer un botón que no lleva a ningún sitio,
+// que es lo que pasaría si `connectUrl` no fuese `null` en el mock.
+test('en modo demo el sheet de documentos no ofrece conectar Drive', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir documento' })
+  await expect(dialog).toBeVisible()
+
+  // El selector de archivo de siempre sigue estando: en demo se sube igual, al
+  // almacenamiento del navegador.
+  await expect(dialog.getByText('Seleccionar archivo…')).toBeVisible()
+  await expect(dialog.getByRole('link', { name: /Conectar Google Drive/ })).toHaveCount(0)
+})
+
 // Buscar en el calendario mira todo el histórico y no el tramo que se pinta:
 // "¿cuándo fue la revisión?" es una pregunta sobre el pasado.
 test('el calendario busca también en el pasado', async ({ page }) => {

@@ -4,8 +4,11 @@
 --
 -- Este archivo describe la base **tal como está**, no cómo llegó hasta aquí.
 -- Aplicándolo sobre un proyecto Supabase vacío queda una base idéntica a la de
--- producción: tablas, restricciones, índices, triggers, funciones, RLS, RPCs y
--- el bucket de documentos con sus policies.
+-- producción: tablas, restricciones, índices, triggers, funciones, RLS y RPCs.
+--
+-- Ya no hay Storage. Los archivos de los documentos viven en el Google Drive de
+-- quien los sube desde el 27-08-2026; aquí queda la ficha y, en
+-- `storage_connections`, el permiso prestado de cada persona.
 --
 -- Sustituye a las 21 migraciones incrementales (`001…021`) con las que se
 -- construyó entre junio y agosto de 2026. Se aplastaron el 26-08-2026, al cerrar
@@ -187,10 +190,11 @@ create table if not exists public.meal_plans (
   unique(family_id, date, slot)
 );
 
--- Los papeles: DNI, informes médicos, el libro de familia. El archivo vive en
--- Storage (bucket privado `documents`) y aquí queda la ficha. `size_bytes` y
--- `mime_type` están acotados en la propia tabla y no solo en la app, porque la
--- app no es el único camino hasta la base.
+-- Los papeles: DNI, informes médicos, el libro de familia. Aquí queda **solo la
+-- ficha**: el archivo vive en el Google Drive de quien lo subió (27-08-2026;
+-- antes estaba en el bucket privado `documents`). `size_bytes` y `mime_type`
+-- están acotados en la propia tabla y no solo en la app, porque la app no es el
+-- único camino hasta la base.
 create table if not exists public.documents (
   id            uuid primary key default uuid_generate_v4(),
   family_id     uuid not null references public.families(id) on delete cascade,
@@ -199,7 +203,20 @@ create table if not exists public.documents (
   name          text not null,
   description   text,
   category      text check (category is null or category in ('salud', 'colegio', 'personal', 'otros')),
+  -- Dónde está el archivo para su proveedor: el `fileId` de Drive. El nombre es
+  -- herencia del bucket y se queda: renombrar una columna en producción para
+  -- ganar precisión de vocabulario no compensa.
   storage_path  text not null,
+  -- Quién lo guarda. Hoy solo hay un valor, y aun así la columna existe: es la
+  -- que elige implementación en `src/lib/document-storage`. Añadir Dropbox u
+  -- OneDrive será un valor más en este check y una clase nueva.
+  storage_provider text not null default 'google_drive'
+    check (storage_provider in ('google_drive')),
+  -- En el Drive de **quién** vive. Es a esta persona a la que se le pide el
+  -- token prestado para servírselo al resto de la familia. No es lo mismo que
+  -- `created_by` aunque hoy coincidan: uno dice quién dio de alta la ficha y
+  -- otro en qué disco están los bytes.
+  storage_owner uuid references auth.users(id) on delete set null,
   mime_type     text not null check (mime_type in ('application/pdf', 'image/jpeg', 'image/png')),
   size_bytes    bigint not null default 0 check (size_bytes >= 0 and size_bytes <= 20971520),
   -- Cuándo caduca, para avisar antes: el pasaporte del niño, la tarjeta sanitaria.
@@ -208,6 +225,39 @@ create table if not exists public.documents (
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
   constraint documents_una_sola_asignacion check (child_id is null or member_id is null)
+);
+
+-- El permiso prestado de cada persona sobre su almacenamiento externo. Cuelga
+-- del usuario, no de la familia: el Drive es suyo, y si está en dos familias es
+-- la misma conexión para las dos.
+--
+-- **Los dos tokens se guardan cifrados** (AES-256-GCM, `DOCS_TOKEN_KEY`), y esta
+-- tabla tiene RLS activada **sin una sola policy**, a propósito: así no entra
+-- nadie salvo el service role desde una ruta API. Dar `select` al dueño parece
+-- inofensivo y no lo es — la CSP lleva `'unsafe-inline'` en los scripts y por
+-- tanto no para un XSS en línea, que con esa policy se llevaría un refresh token
+-- y con él acceso permanente al Drive de una persona. La interfaz no lee esto:
+-- pregunta a `/api/documents/providers`, que devuelve si hay conexión y con qué
+-- correo, y ni un token.
+create table if not exists public.storage_connections (
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  provider      text not null check (provider in ('google_drive')),
+  -- La cuenta de Google donde caen los archivos. Solo para poder decir "conectado
+  -- como…": con varias cuentas en el mismo navegador es fácil autorizar la que no
+  -- era y no enterarse hasta que otro no puede abrir el documento.
+  account_email text,
+  access_token  text not null,
+  refresh_token text not null,
+  expires_at    timestamptz not null,
+  -- La carpeta "Nido" dentro de ese Drive, cacheada para no buscarla en cada
+  -- subida. Si se borra a mano, se vuelve a crear sola.
+  folder_ref    text,
+  -- Se marca, no se borra: la interfaz necesita distinguir "nunca conectó" de
+  -- "conectó y dejó de valer", que son dos mensajes distintos.
+  revoked_at    timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  primary key (user_id, provider)
 );
 
 -- Los pendientes. Lo atrasado no se marca en rojo y ya: la app lo arrastra a hoy,
@@ -276,6 +326,9 @@ create index if not exists meal_plans_family_date_idx on public.meal_plans(famil
 create index if not exists documents_family_idx   on public.documents(family_id, created_at desc);
 create index if not exists idx_documents_member    on public.documents(member_id);
 create index if not exists idx_documents_expires   on public.documents(family_id, expires_on);
+-- Para el aviso al quitar a un miembro: "esta persona subió N documentos que
+-- dejarán de poder abrirse".
+create index if not exists idx_documents_storage_owner on public.documents(storage_owner);
 
 create index if not exists tasks_family_idx    on public.tasks(family_id);
 create index if not exists tasks_due_date_idx  on public.tasks(family_id, due_date);
@@ -311,6 +364,7 @@ drop trigger if exists set_lists_updated_at      on public.lists;
 drop trigger if exists set_meal_plans_updated_at on public.meal_plans;
 drop trigger if exists set_documents_updated_at  on public.documents;
 drop trigger if exists set_tasks_updated_at      on public.tasks;
+drop trigger if exists set_storage_connections_updated_at on public.storage_connections;
 
 create trigger set_families_updated_at   before update on public.families   for each row execute function public.set_updated_at();
 create trigger set_events_updated_at     before update on public.events     for each row execute function public.set_updated_at();
@@ -318,6 +372,7 @@ create trigger set_lists_updated_at      before update on public.lists      for 
 create trigger set_meal_plans_updated_at before update on public.meal_plans for each row execute function public.set_updated_at();
 create trigger set_documents_updated_at  before update on public.documents  for each row execute function public.set_updated_at();
 create trigger set_tasks_updated_at      before update on public.tasks      for each row execute function public.set_updated_at();
+create trigger set_storage_connections_updated_at before update on public.storage_connections for each row execute function public.set_updated_at();
 
 -- ----------------------------------------------------------------------------
 -- Integridad entre familias
@@ -474,6 +529,7 @@ alter table public.documents          enable row level security;
 alter table public.tasks              enable row level security;
 alter table public.family_invites     enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.storage_connections enable row level security;
 
 -- --- families ---------------------------------------------------------------
 drop policy if exists "Miembros ven su familia" on public.families;
@@ -609,64 +665,31 @@ create policy "Usuario gestiona sus push"
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
+-- --- storage_connections ----------------------------------------------------
+-- Aquí no hay policy, y no es un olvido: con RLS activada y ninguna policy, la
+-- tabla queda cerrada para `anon` y `authenticated`, y solo entra el service role
+-- desde una ruta API. Es lo contrario de `push_subscriptions` a propósito —una
+-- suscripción push es un endpoint del navegador, un refresh token es una llave
+-- permanente al Drive de una persona—. Si alguien añade aquí un `select` "para
+-- que la interfaz sepa si está conectada", que lea antes el comentario de la
+-- tabla: para eso está `/api/documents/providers`.
+drop policy if exists "Usuario gestiona sus conexiones" on public.storage_connections;
+
 -- ============================================================================
--- 5. Storage: el bucket de documentos
+-- 5. Storage: nada. Los archivos no los guarda Nido
 -- ============================================================================
 --
--- Privado. Los archivos se sirven con URL firmada de 60 segundos, nunca por URL
--- pública. La carpeta de primer nivel es el `family_id`, y de ahí sale la
--- comprobación: `(storage.foldername(name))[1]` tiene que ser una familia del
--- usuario.
-
-insert into storage.buckets (id, name, public)
-values ('documents', 'documents', false)
-on conflict (id) do nothing;
-
-drop policy if exists "Miembros leen documentos de su familia" on storage.objects;
-create policy "Miembros leen documentos de su familia"
-  on storage.objects for select
-  using (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] in (
-      select family_id::text from public.family_members where user_id = auth.uid()
-    )
-  );
-
-drop policy if exists "Miembros suben documentos a su familia" on storage.objects;
-create policy "Miembros suben documentos a su familia"
-  on storage.objects for insert
-  with check (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] in (
-      select family_id::text from public.family_members where user_id = auth.uid()
-    )
-  );
-
-drop policy if exists "Miembros actualizan documentos de su familia" on storage.objects;
-create policy "Miembros actualizan documentos de su familia"
-  on storage.objects for update
-  using (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] in (
-      select family_id::text from public.family_members where user_id = auth.uid()
-    )
-  )
-  with check (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] in (
-      select family_id::text from public.family_members where user_id = auth.uid()
-    )
-  );
-
-drop policy if exists "Miembros borran documentos de su familia" on storage.objects;
-create policy "Miembros borran documentos de su familia"
-  on storage.objects for delete
-  using (
-    bucket_id = 'documents'
-    and (storage.foldername(name))[1] in (
-      select family_id::text from public.family_members where user_id = auth.uid()
-    )
-  );
+-- Aquí vivía el bucket privado `documents` con sus cuatro policies. Se borró el
+-- 27-08-2026, al pasar los archivos al Google Drive de quien los sube: la base se
+-- queda con la ficha (`public.documents`) y el papel con su dueño.
+--
+-- La sección se queda vacía y con nombre para que el hueco se lea como una
+-- decisión y no como un descuido. El bucket, sus policies y las diez
+-- comprobaciones que tenía en `scripts/validate-rls.mjs` siguen en el historial de
+-- git, en el commit que las quitó.
+--
+-- Quien guarda ahora es `src/lib/document-storage/`, y el permiso prestado de cada
+-- persona está en `public.storage_connections`, más arriba.
 
 -- ============================================================================
 -- 6. RPCs

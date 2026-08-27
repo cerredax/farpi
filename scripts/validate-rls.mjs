@@ -10,6 +10,10 @@
 // camino que recorre la app) y borra todo lo que ha creado al terminar. Los
 // datos reales de la familia no se tocan.
 //
+// El 27-08-2026 se fue la sección de Storage (§8, diez comprobaciones): el bucket
+// `documents` se borró al pasar los archivos al Google Drive de quien los sube.
+// Lo que las sustituye son las §11 y §12, que cubren el camino nuevo.
+//
 // Lee las credenciales de .env.local. Resultados esperados en
 // docs/supabase-validation.md.
 import { readFileSync } from 'node:fs'
@@ -215,78 +219,13 @@ async function main() {
   comprobar('Miembro NO admin no puede invitar',
     (await api('/rest/v1/family_invites', { metodo: 'POST', token: tokB, datos: { family_id: famA, email: 'otro2@test.invalid', invited_by: uidB } })).estado >= 400)
 
-  console.log('\n== 8. Storage privado')
-  const bucket = (await api('/storage/v1/bucket/documents')).cuerpo
-  comprobar('El bucket documents existe y es privado', bucket?.public === false)
-
-  // Ruta con el convenio de la app: {family_id}/{document_id}/{filename},
-  // dentro del bucket `documents`.
-  const docId = randomUUID()
-  const rutaObjeto = `${famA}/${docId}/informe.pdf`
-  const enBucket = `documents/${rutaObjeto}`
-  const contenido = new Blob(['%PDF-1.4 prueba de validacion'], { type: 'application/pdf' })
-
-  const subida = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
-    method: 'POST',
-    headers: { apikey: ANON, Authorization: `Bearer ${tokA}`, 'Content-Type': 'application/pdf' },
-    body: contenido,
-  })
-  comprobar('A sube un documento a la carpeta de su familia', subida.ok, `estado ${subida.status}`)
-
-  const firmar = async token => api(`/storage/v1/object/sign/${enBucket}`, {
-    metodo: 'POST', token, datos: { expiresIn: 60 },
-  })
-
-  const firmaA = await firmar(tokA)
-  comprobar('A obtiene una signed URL de su propio documento',
-    firmaA.estado === 200 && !!firmaA.cuerpo?.signedURL, `estado ${firmaA.estado}`)
-
-  if (firmaA.cuerpo?.signedURL) {
-    const descarga = await fetch(`${URL_BASE}/storage/v1${firmaA.cuerpo.signedURL}`)
-    comprobar('La signed URL de A descarga el contenido', descarga.ok, `estado ${descarga.status}`)
-  }
-
-  // El caso que de verdad importa: un usuario ajeno conoce la ruta exacta e
-  // intenta llegar al archivo. Se usa C porque B ya es miembro de la familia A.
-  const firmaC = await firmar(tokC)
-  comprobar('Un ajeno NO puede firmar el documento de A aun conociendo la ruta',
-    firmaC.estado >= 400, `estado ${firmaC.estado}`)
-
-  const directaC = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
-    headers: { apikey: ANON, Authorization: `Bearer ${tokC}` },
-  })
-  comprobar('Un ajeno NO puede descargar el documento de A directamente',
-    !directaC.ok, `estado ${directaC.status}`)
-
-  const listadoC = await api('/storage/v1/object/list/documents', {
-    metodo: 'POST', token: tokC, datos: { prefix: `${famA}/`, limit: 100 },
-  })
-  comprobar('Un ajeno NO ve el contenido de la carpeta de A al listar',
-    Array.isArray(listadoC.cuerpo) && listadoC.cuerpo.length === 0,
-    `elementos: ${Array.isArray(listadoC.cuerpo) ? listadoC.cuerpo.length : listadoC.estado}`)
-
-  const borradoC = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
-    method: 'DELETE', headers: { apikey: ANON, Authorization: `Bearer ${tokC}` },
-  })
-  comprobar('Un ajeno NO puede borrar el documento de A', !borradoC.ok, `estado ${borradoC.status}`)
-
-  // B sí debe poder verlo: en la sección 7 se unió a la familia A.
-  const firmaMiembro = await firmar(tokB)
-  comprobar('Un miembro de la familia SÍ puede firmar el documento',
-    firmaMiembro.estado === 200, `estado ${firmaMiembro.estado}`)
-
-  const borradoA = await fetch(`${URL_BASE}/storage/v1/object/${enBucket}`, {
-    method: 'DELETE', headers: { apikey: ANON, Authorization: `Bearer ${tokA}` },
-  })
-  comprobar('A sí puede borrar su propio documento', borradoA.ok, `estado ${borradoA.status}`)
-
   // La 019 guarda en `families` qué franjas de comida ve la casa. No trae policy
   // nueva —usa la de update de la 002— así que lo que hay que comprobar es que esa
   // policy sigue diciendo "solo admin" con una columna más, y que el `check`
   // aguanta los dos casos que romperían la pantalla: una franja inventada y
   // quedarse sin ninguna. B, a estas alturas, ya es miembro NO admin de la familia
   // de A (aceptó la invitación en la sección 7), que es justo el caso interesante.
-  console.log('\n== 9. Franjas de comida (019)')
+  console.log('\n== 8. Franjas de comida (019)')
   comprobar('Una familia nueva nace con las cuatro franjas',
     JSON.stringify((await api(`/rest/v1/families?id=eq.${famB}&select=meal_slots`, { token: tokB })).cuerpo?.[0]?.meal_slots)
       === JSON.stringify(['breakfast', 'lunch', 'snack', 'dinner']))
@@ -312,12 +251,12 @@ async function main() {
   comprobar('Tras los rechazos, las franjas siguen siendo las de A',
     JSON.stringify((await api(`/rest/v1/families?id=eq.${famA}&select=meal_slots`, { token: tokA })).cuerpo?.[0]?.meal_slots)
       === JSON.stringify(['breakfast', 'lunch']))
-  // ── 10. Festivos (020) ──────────────────────────────────────────────
+  // ── 9. Festivos (020) ──────────────────────────────────────────────
   // La 020 añade el cuarto valor de `kind` y su restricción de rango. Se comprueban
   // las dos cosas: que el valor nuevo entra, que uno inventado no, y que un festivo
   // sin día final o que no sea de día completo se rechaza —que es lo que la app ya
   // exige en `validateEventDraft`, y aquí lo sostiene la base—.
-  console.log('\n== 10. Festivos (020)')
+  console.log('\n== 9. Festivos (020)')
   comprobar('Un festivo con rango se guarda',
     filas(await api('/rest/v1/events', {
       metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
@@ -345,13 +284,13 @@ async function main() {
   comprobar('Un ajeno no ve el festivo de la familia A',
     filas(await api(`/rest/v1/events?family_id=eq.${famA}&kind=eq.festivo`, { token: tokC })) === 0)
 
-  // ── 11. Unidades de la lista (021) ──────────────────────────────────
+  // ── 10. Unidades de la lista (021) ──────────────────────────────────
   // La 021 no trae policy propia —una unidad es una columna más de `list_items`—,
   // así que lo que hay que comprobar es el `default` y el `check`: que lo que ya
   // existía nació en 1 sin cambiar de significado, y que ni el cero ni un número
   // absurdo entran. El tope también lo acotan los dos repositorios, pero la base es
   // la que lo sostiene.
-  console.log('\n== 11. Unidades de la lista (021)')
+  console.log('\n== 10. Unidades de la lista (021)')
   comprobar('Un ítem nace con una unidad',
     (await api(`/rest/v1/list_items?list_id=eq.${listaA}&select=quantity`, { token: tokA })).cuerpo?.[0]?.quantity === 1)
   comprobar('A puede cambiar las unidades de su ítem',
@@ -372,8 +311,75 @@ async function main() {
     (await api(`/rest/v1/list_items?list_id=eq.${listaA}&select=quantity`, { token: tokA })).cuerpo?.[0]?.quantity === 6)
 
 
+  // ── 11. Conexiones de almacenamiento ────────────────────────────────
+  // La tabla que guarda los tokens de Google Drive tiene RLS activada y **ninguna
+  // policy**, a propósito: solo entra el service role desde una ruta API. Esto es
+  // lo que hay que comprobar de verdad, porque el fallo sería silencioso — si
+  // alguien le añadiera un `select` "para que la interfaz sepa si está conectada",
+  // un XSS en línea (que la CSP no para) se llevaría un refresh token, y con él
+  // acceso permanente al Drive de una persona.
+  //
+  // Se prueba con A sobre **su propia fila**, que es el caso que parece inofensivo
+  // y no lo es. La fila se siembra con el service role, porque por el otro camino
+  // no hay forma de meterla.
+  console.log('\n== 11. Conexiones de almacenamiento (storage_connections)')
+  const sembradaConexion = await api('/rest/v1/storage_connections', {
+    metodo: 'POST',
+    datos: {
+      user_id: uidA,
+      provider: 'google_drive',
+      access_token: 'v1.cifrado-de-prueba',
+      refresh_token: 'v1.cifrado-de-prueba',
+      expires_at: '2030-01-01T00:00:00Z',
+      account_email: 'prueba@nido-test.invalid',
+    },
+    cabeceras: REPRESENTACION,
+  })
+  comprobar('El service role puede sembrar una conexión', sembradaConexion.estado < 400, `estado ${sembradaConexion.estado}`)
+
+  comprobar('A NO puede leer su propia conexión (ni la suya)',
+    filas(await api(`/rest/v1/storage_connections?user_id=eq.${uidA}&select=user_id`, { token: tokA })) === 0)
+  comprobar('B NO puede leer la conexión de A',
+    filas(await api(`/rest/v1/storage_connections?user_id=eq.${uidA}&select=user_id`, { token: tokB })) === 0)
+  comprobar('Un ajeno NO puede listar conexiones',
+    filas(await api('/rest/v1/storage_connections?select=user_id', { token: tokC })) === 0)
+  comprobar('A NO puede insertarse una conexión a mano',
+    (await api('/rest/v1/storage_connections', {
+      metodo: 'POST', token: tokA,
+      datos: { user_id: uidA, provider: 'google_drive', access_token: 'x', refresh_token: 'x', expires_at: '2030-01-01T00:00:00Z' },
+    })).estado >= 400)
+  comprobar('A NO puede borrar su conexión por PostgREST (se hace por la ruta API)',
+    filas(await api(`/rest/v1/storage_connections?user_id=eq.${uidA}`, { metodo: 'DELETE', token: tokA, cabeceras: REPRESENTACION })) === 0)
+  comprobar('El check de provider rechaza un proveedor que no existe',
+    (await api('/rest/v1/storage_connections', {
+      metodo: 'POST',
+      datos: { user_id: uidB, provider: 'dropbox', access_token: 'x', refresh_token: 'x', expires_at: '2030-01-01T00:00:00Z' },
+    })).estado >= 400)
+
+  // La columna que dice en el disco de quién está el archivo. Sin ella, el proxy
+  // de lectura no sabría a quién pedirle el token prestado.
+  console.log('\n== 12. Documentos con proveedor y dueño')
+  const docConDueno = await api('/rest/v1/documents', {
+    metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+    datos: { family_id: famA, name: 'doc drive', storage_path: 'id-de-drive-123', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 100 },
+  })
+  comprobar('A crea un documento con dueño de almacenamiento', docConDueno.estado < 400, `estado ${docConDueno.estado}`)
+  comprobar('El proveedor por defecto es google_drive',
+    docConDueno.cuerpo?.[0]?.storage_provider === 'google_drive')
+  comprobar('El check rechaza un proveedor que no existe',
+    (await api('/rest/v1/documents', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, name: 'doc raro', storage_path: 'x', storage_provider: 'disquete', mime_type: 'application/pdf', size_bytes: 10 },
+    })).estado >= 400)
+  comprobar('Un ajeno NO ve el documento de A aunque conozca su id de Drive',
+    filas(await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=id', { token: tokC })) === 0)
+
   console.log('\n== limpieza')
   for (const fam of [famA, famB]) await api(`/rest/v1/families?id=eq.${fam}`, { metodo: 'DELETE' })
+  // `storage_connections` cuelga del usuario y no de la familia, así que se iría
+  // con el borrado del usuario (on delete cascade). Se borra igual por si el
+  // script se corta antes de llegar ahí.
+  for (const uid of [uidA, uidB, uidC]) await api(`/rest/v1/storage_connections?user_id=eq.${uid}`, { metodo: 'DELETE' })
   for (const uid of [uidA, uidB, uidC]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })
   const familias = (await api('/rest/v1/families?select=name')).cuerpo
   console.log('   familias que quedan:', Array.isArray(familias) ? familias.map(f => f.name) : familias)

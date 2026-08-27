@@ -6,7 +6,8 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
-import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember } from '@/types'
+import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember, StorageConnection } from '@/types'
+import { ConnectStorage } from './ConnectStorage'
 import { FileTypeIcon } from './FileTypeIcon'
 import { DOC_CATEGORIES } from '@/lib/constants'
 import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
@@ -51,9 +52,12 @@ interface DocSheetProps {
   onSave: (draft: DocumentDraft) => void
   onDelete?: (id: string) => void
   onOpenFile?: (doc: Document) => Promise<string>
+  /** `null` mientras no se sabe: se da por conectada y no se estorba. */
+  conexion?: StorageConnection | null
+  connectUrl?: string | null
 }
 
-export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, onDelete, onOpenFile }: DocSheetProps) {
+export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, onDelete, onOpenFile, conexion = null, connectUrl = null }: DocSheetProps) {
   const { draft, setDraft, patch, firstFieldRef, submitHandler } = useSheetForm<DocumentDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -122,6 +126,17 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     }
   }
 
+  /**
+   * Hay que conectar antes de poder subir.
+   *
+   * Mientras la respuesta no ha llegado (`null`) se da por buena la conexión y se
+   * enseña el selector de archivo de siempre: quien ya está conectado —que va a
+   * ser el caso normal— no ve ni un parpadeo, y en el caso raro de que no lo
+   * esté, la subida falla con el mensaje del servidor. Al revés, todo el mundo
+   * vería un aviso de conectar durante medio segundo cada vez que abre el sheet.
+   */
+  const faltaConectar = !!conexion && !conexion.conectada && !conexion.demo && !!connectUrl
+
   const fileName_display = mode === 'edit' && initial
     ? initial.storage_path.split('/').pop() ?? initial.name
     : fileName
@@ -135,7 +150,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
         <SheetFooter
           form="doc-form"
           submitLabel={mode === 'create' ? 'Guardar documento' : 'Guardar cambios'}
-          disabled={!draft.name.trim() || !!fileError || (mode === 'create' && !selectedFile)}
+          disabled={!draft.name.trim() || !!fileError || faltaConectar || (mode === 'create' && !selectedFile)}
           onDelete={mode === 'edit' && onDelete
             ? { confirming: confirmDelete, onClick: handleDelete, idleLabel: 'Eliminar documento', confirmLabel: 'Confirmar eliminación' }
             : undefined}
@@ -144,7 +159,9 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     >
       <form id="doc-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         <Field label="Archivo" spacing="group">
-          {mode === 'create' ? (
+          {mode === 'create' && faltaConectar && conexion ? (
+            <ConnectStorage conexion={conexion} connectUrl={connectUrl} />
+          ) : mode === 'create' ? (
             <>
               <button
                 type="button"

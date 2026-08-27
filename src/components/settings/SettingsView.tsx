@@ -9,6 +9,7 @@ import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { FamilyCard } from './FamilyCard'
 import { MealSlotsCard } from './MealSlotsCard'
 import { NotificationsCard } from './NotificationsCard'
+import { StorageCard } from './StorageCard'
 import { AccountActions } from './AccountActions'
 import { InstallPWA } from './InstallPWA'
 import { MembersList } from './MembersList'
@@ -58,7 +59,7 @@ function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode
 export function SettingsView() {
   const {
     family, families, activeFamilyId, switchFamily, createFamily,
-    members, invites, kids, mealSlots,
+    members, invites, kids, mealSlots, documents,
     updateFamilyName, updateMealSlots, inviteMember, updateMember, updateMemberRole, removeMember, cancelInvite,
     createKid, updateKid, deleteKid,
   } = useStore()
@@ -196,6 +197,8 @@ export function SettingsView() {
 
         {!IS_DEMO_MODE && (
           <Bloque titulo="Cuenta y seguridad">
+            {/* Solo se pinta si esta persona tiene (o tuvo) Drive conectado. */}
+            <StorageCard />
             <AccountActions />
           </Bloque>
         )}
@@ -235,6 +238,7 @@ export function SettingsView() {
         mode={memberMode}
         initial={editingMember}
         isOnlyAdmin={editingMember?.role === 'admin' && adminCount <= 1}
+        documentosSubidos={editingMember ? documents.filter(d => d.storage_owner === editingMember.user_id).length : 0}
         defaultColor={editingMember ? memberColor(members, editingMember.id, kids) : undefined}
         onClose={() => setMemberSheetOpen(false)}
         onInvite={(email) => inviteMember(email)}

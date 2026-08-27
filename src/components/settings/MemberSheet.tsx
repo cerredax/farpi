@@ -19,6 +19,12 @@ interface MemberSheetProps {
   mode: Mode
   initial?: FamilyMember | null
   isOnlyAdmin?: boolean
+  /**
+   * Cuántos documentos de la familia viven en el Google Drive de esta persona.
+   * Se usa para avisar antes de quitarla: al salir de la familia, la app deja de
+   * poder pedirle prestado el permiso y esos papeles no se abren.
+   */
+  documentosSubidos?: number
   /** El color que se le está mostrando hoy, elegido o heredado de su posición. */
   defaultColor?: string
   onClose: () => void
@@ -43,7 +49,7 @@ function initDraft(mode: Mode, initial: FamilyMember | null | undefined, default
   }
 }
 
-export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, defaultColor = PERSON_COLORS[0].value, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
+export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, documentosSubidos = 0, defaultColor = PERSON_COLORS[0].value, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
   const { draft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<MemberDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultColor),
@@ -176,6 +182,23 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, defaultC
                   ? <p className="text-[11px] text-danger font-medium">{roleError}</p>
                   : <p className="text-[10px] text-faint">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
                 }
+              </div>
+            )}
+
+            {/* Quitar a alguien de la familia tiene una consecuencia que no se ve
+                desde aquí: los documentos que subió están en **su** Google Drive,
+                y Nido los sirve con un permiso que le pide prestado. Si sale, ese
+                permiso deja de valer y los papeles dejan de abrirse aunque su
+                ficha siga en la lista. Se avisa antes y no después, porque después
+                no tiene arreglo desde la app. */}
+            {documentosSubidos > 0 && (
+              <div className="mt-2 rounded-xl border border-danger-line bg-danger-soft px-3 py-2.5">
+                <p className="text-[11px] font-semibold leading-relaxed text-ink">
+                  {documentosSubidos === 1
+                    ? 'Hay 1 documento guardado en el Google Drive de esta persona.'
+                    : `Hay ${documentosSubidos} documentos guardados en el Google Drive de esta persona.`}{' '}
+                  Si la quitas de la familia, dejarán de poder abrirse en Nido.
+                </p>
               </div>
             )}
           </Field>

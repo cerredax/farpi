@@ -1,10 +1,19 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-26. **69/69 comprobaciones correctas.**
+Última ejecución: 2026-08-27. **80/80 comprobaciones correctas.**
 
-Las 58 de la pasada del 24-08-2026 más las **cinco de la 020** (los festivos) y las **seis
-de la 021** (las unidades de la lista). Ya no queda ninguna migración sin validar. La limpieza dejó en la base únicamente la familia
-real; los tres usuarios y las dos familias de prueba se borraron.
+Las 69 de la pasada del 26-08-2026 más las **siete de `storage_connections`** y las
+**cuatro de los documentos con proveedor y dueño**, que llegan con el paso de los
+archivos a Google Drive.
+
+> Después de esa pasada se borró el bucket `documents` y con él las **diez
+> comprobaciones de Storage** del arnés, que ya no tenían nada que comprobar. La
+> siguiente ejecución dará **70/70**, y no es una regresión: son las mismas menos las
+> del bucket que ya no existe. Las secciones se renumeraron: lo que era §9…§13 pasa a
+> §8…§12.
+
+La limpieza dejó en la base únicamente la familia real; los tres
+usuarios y las dos familias de prueba se borraron.
 
 ## Estado
 
@@ -86,17 +95,45 @@ Casos obligatorios:
 - [x] Aceptar invitación crea `family_member` y marca la invitación como `accepted`.
 - [x] Tras aceptar, el nuevo miembro **sí** ve los datos de la familia, y como no-admin no puede eliminar miembros ni invitar.
 
-## Validación Storage
+## Validación Storage — retirada (27-08-2026)
 
-- [x] Bucket `documents` existe.
-- [x] Bucket `documents` es privado (`public = false`).
-- [x] Path esperado: `{family_id}/{document_id}/{filename}` (lo impone `src/lib/supabase-repos/documents.ts`).
-- [x] Un miembro de la familia sube, firma, descarga y borra su documento.
-- [x] Un usuario ajeno **no** puede firmar el documento aunque conozca la ruta exacta.
-- [x] Un usuario ajeno **no** puede descargarlo directamente.
-- [x] Un usuario ajeno **no** ve nada al listar la carpeta de otra familia.
-- [x] Un usuario ajeno **no** puede borrarlo.
-- [x] Un miembro que se une por invitación **sí** pasa a poder firmarlo.
+Aquí había **diez comprobaciones** del bucket privado `documents`: que existía y no era
+público, que un miembro subía, firmaba, descargaba y borraba, y que un ajeno no podía
+firmar, descargar, listar ni borrar aunque conociera la ruta exacta. Todas pasaron en la
+pasada del 27-08-2026, y después el bucket se borró: los archivos viven en el Google Drive
+de quien los sube y los sirve Nido.
+
+Se retiran porque no quedaba nada que comprobar, no porque dejaran de importar. Lo que
+cubre ahora ese terreno son las dos secciones siguientes, y el aislamiento que probaban
+—conocer el identificador de un archivo no da acceso a él— se comprueba igual, con el
+`fileId` de Drive en vez de con la ruta del bucket.
+
+## Validación de las conexiones de almacenamiento
+
+La tabla `storage_connections` guarda los permisos de Google Drive de cada persona, con
+los tokens cifrados. Tiene RLS activada y **ninguna policy**, a propósito: solo entra el
+service role desde una ruta API. Es la comprobación que no puede fallar de todo el
+documento — dentro hay refresh tokens, y la CSP de Nido lleva `'unsafe-inline'` en los
+scripts, así que no para un XSS en línea.
+
+- [x] El service role **sí** puede sembrar una conexión (201). Por ahí entran las rutas API.
+- [x] A **no** puede leer **su propia** conexión. Es el caso que parece inofensivo y no lo es.
+- [x] B, que está en la misma familia, **no** puede leer la conexión de A.
+- [x] Un ajeno **no** ve nada al listar la tabla entera.
+- [x] A **no** puede insertarse una conexión a mano.
+- [x] A **no** puede borrar su conexión por PostgREST. Desconectar se hace por
+      `DELETE /api/documents/providers`, que además revoca el permiso en Google.
+- [x] El `check` de `provider` rechaza un proveedor que no existe (`dropbox`), que es lo
+      que habrá que ampliar el día que se añada de verdad.
+
+## Validación de los documentos en Drive
+
+- [x] Un miembro crea un documento con `storage_owner` (201).
+- [x] `storage_provider` vale `google_drive` por defecto, sin que la app lo mande.
+- [x] El `check` rechaza un proveedor inventado.
+- [x] Un ajeno **no** ve el documento aunque conozca su identificador de archivo de Drive.
+      Es lo que sostiene el modelo proxy: el identificador no es un secreto, el acceso lo
+      decide la RLS.
 
 ## Validación Integridad
 
@@ -113,15 +150,46 @@ Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
 
 **El aislamiento entre familias funciona.** Un usuario solo ve y escribe en las familias donde figura en `family_members`; lo demás le resulta invisible en lectura y prohibido en escritura. La regla del último admin la aplica el servidor, no solo la UI. Los triggers de integridad impiden mezclar identificadores entre familias.
 
-**Storage aísla igual que la base de datos.** Conocer la ruta exacta de un documento no sirve de nada desde fuera de la familia: no se puede firmar, ni descargar, ni listar, ni borrar. Y en cuanto alguien entra en la familia por invitación, pasa a tener acceso, que es el comportamiento esperado.
+**Ya no hay Storage que aislar.** El bucket se borró el 27-08-2026 tras comprobar por
+última vez que aislaba bien. Lo que hay que sostener ahora es lo mismo dicho de otra
+forma: conocer el identificador de un archivo de Drive no da acceso al documento — lo
+decide la RLS, y el proveedor solo es el disco.
 
-**No queda nada pendiente.** Las 21 migraciones están validadas y la pasada del
-26-08-2026 no dejó ninguna comprobación en rojo: 69/69.
+**Los tokens de Google Drive no salen de la base.** `storage_connections` no se puede leer
+por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fila. Solo entra
+el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
+que puede ver el documento del que cuelga el token.
+
+**No queda nada pendiente.** El esquema está validado y la pasada del 27-08-2026 no dejó
+ninguna comprobación en rojo: 80/80.
 
 ## Pendiente
 
 Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
+
+### Notas de la ejecución (27-08-2026)
+
+- **80/80.** El esquema de los documentos en Google Drive se aplicó a mano en el SQL
+  Editor ese día (las dos columnas de `documents` y la tabla `storage_connections`), y el
+  arnés gana **dos secciones y once comprobaciones**.
+- La **§11** (§12 en la pasada del 27) es la que justifica el cambio. `storage_connections` es la primera tabla del
+  proyecto con RLS activada y **cero policies**, y eso es exactamente lo que hay que
+  verificar: que no es un olvido que deje la puerta abierta, sino la puerta cerrada. Se
+  prueba con A sobre **su propia fila** —el caso que parece inofensivo— y también con B,
+  que está en su misma familia, y con C, que es ajeno. Los tres reciben cero filas.
+  También se comprueba que A no puede insertar ni borrar por ahí: desconectar pasa por la
+  ruta API, que además revoca el permiso del lado de Google.
+- La fila de prueba se siembra con el service role, porque por el otro camino no hay forma
+  de meterla — que es justo lo que se está comprobando.
+- La **§12** cubre las dos columnas nuevas de `documents`. La que importa es la última: un
+  ajeno **no** ve el documento aunque conozca su identificador de archivo de Drive. Es lo
+  que sostiene el modelo proxy — el identificador viaja en la ficha y no es un secreto; lo
+  que decide el acceso es la RLS, y el proveedor solo es el disco.
+- El `check` de `storage_provider` rechaza un valor inventado y por defecto pone
+  `google_drive`, así que las filas que ya existían quedan bien sin tocarlas.
+- La sección de Storage (§8) se queda, con el título cambiado: el bucket ya no se usa pero
+  sigue existiendo, y mientras exista se comprueba.
 
 ### Notas de la ejecución (26-08-2026)
 

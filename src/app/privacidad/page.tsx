@@ -26,8 +26,10 @@ export default function PrivacidadPage() {
       <LegalSection heading="Qué datos tratamos">
         <p>
           Datos de tu cuenta (correo electrónico y nombre para mostrar) y el contenido que creas en la app:
-          familias y miembros, hijos, eventos, tareas, listas, comidas y los documentos que subes. Los
-          documentos se guardan en un almacenamiento privado y solo son accesibles por tu familia.
+          familias y miembros, hijos, eventos, tareas, listas, comidas y los documentos que subes. De cada
+          documento guardamos su ficha (nombre, categoría, fecha de caducidad); <strong>el archivo en sí se
+          guarda en el Google Drive de la persona que lo sube</strong>, en una carpeta llamada «Nido». Solo tu
+          familia puede verlo, y siempre a través de la app.
         </p>
       </LegalSection>
 
@@ -59,17 +61,19 @@ export default function PrivacidadPage() {
 
       <LegalSection heading="Dónde se almacenan">
         <p>
-          Los datos se alojan en la infraestructura de <strong>Supabase</strong> (base de datos y almacenamiento
-          de archivos) y la aplicación se sirve desde <strong>Vercel</strong>. Los correos (confirmación de cuenta
-          e invitaciones) se envían a través de un proveedor de email. Estos proveedores actúan como encargados
-          del tratamiento.
+          Los datos se alojan en la infraestructura de <strong>Supabase</strong> (base de datos) y la aplicación
+          se sirve desde <strong>Vercel</strong>. Los archivos de los documentos se guardan en el
+          <strong>Google Drive</strong> de quien los sube, en su propia cuenta de Google. Los correos
+          (confirmación de cuenta e invitaciones) se envían a través de un proveedor de email. Estos proveedores
+          actúan como encargados del tratamiento.
         </p>
       </LegalSection>
 
       <LegalSection heading="Proveedores y transferencias internacionales">
         <p>
-          Usamos proveedores técnicos para prestar el servicio: Supabase para base de datos y documentos, Vercel
-          para alojar y ejecutar la aplicación y un proveedor de correo para emails de cuenta e invitaciones. Esos
+          Usamos proveedores técnicos para prestar el servicio: Supabase para la base de datos, Google Drive para
+          los archivos de los documentos, Vercel para alojar y ejecutar la aplicación y un proveedor de correo
+          para emails de cuenta e invitaciones. Esos
           proveedores pueden tratar datos fuera del Espacio Económico Europeo. En ese caso, se aplican las
           garantías contractuales y medidas exigidas por la normativa de protección de datos.
         </p>
@@ -110,6 +114,13 @@ export default function PrivacidadPage() {
           y compartir con tu familia dentro de la app. No uses Nido para almacenar información de terceros sin su
           autorización.
         </p>
+        <p>
+          Para subir documentos hace falta conectar tu Google Drive. Nido pide el permiso mínimo
+          (<code>drive.file</code>): solo puede ver y gestionar los archivos que la propia app crea, nunca el
+          resto de tu Drive. Puedes retirar ese permiso cuando quieras desde Ajustes o desde tu cuenta de
+          Google; los archivos seguirán siendo tuyos y en tu Drive, pero tu familia dejará de poder abrirlos
+          desde Nido. Los documentos que subas están sujetos también a las condiciones de Google Drive.
+        </p>
       </LegalSection>
 
       <LegalSection heading="Notificaciones">
@@ -131,8 +142,9 @@ export default function PrivacidadPage() {
       <LegalSection heading="Seguridad">
         <p>
           Aplicamos medidas técnicas razonables para proteger los datos: autenticación de usuarios, separación por
-          familia, reglas de acceso en la base de datos y almacenamiento privado de documentos. Las descargas de
-          documentos se realizan mediante enlaces temporales. Ningún sistema es infalible, por lo que conviene
+          familia y reglas de acceso en la base de datos. Los archivos nunca son públicos: los sirve la propia
+          app tras comprobar que quien los pide es de la familia, y los permisos de acceso a Google Drive se
+          guardan cifrados. Ningún sistema es infalible, por lo que conviene
           conservar copia propia de la información más importante.
         </p>
       </LegalSection>

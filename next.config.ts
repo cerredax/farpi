@@ -7,6 +7,20 @@ import { IS_DEMO_MODE, SUPABASE_URL } from "./src/lib/supabase/env";
  */
 
 /**
+ * El único destino externo además de Supabase.
+ *
+ * Los documentos se guardan en el Google Drive de quien los sube, y **la subida
+ * va del navegador a Google directamente**, sin pasar por el servidor: una
+ * función de Vercel corta el cuerpo de la petición muy por debajo de los 20 MB
+ * que admite un documento. Leerlos sí pasa por Nido —ahí el token es prestado— y
+ * por eso no hace falta abrir nada más.
+ *
+ * Es el host de la API, no un comodín `*.google.com`: lo que se autoriza es
+ * hablar con Drive, no con Google.
+ */
+const GOOGLE_API = 'https://www.googleapis.com'
+
+/**
  * Content Security Policy (26-08-2026).
  *
  * Durante meses no hubo, y por una razón buena: Next inyecta scripts en línea y
@@ -27,12 +41,14 @@ import { IS_DEMO_MODE, SUPABASE_URL } from "./src/lib/supabase/env";
  * - reescribir la base de las rutas relativas (`base-uri`);
  * - **enviar un formulario a otro dominio** (`form-action`), que es como se
  *   exfiltran credenciales con solo inyectar HTML, sin script;
- * - hablar con cualquier servidor que no sea Supabase (`connect-src`).
+ * - hablar con cualquier servidor que no sean Supabase y la API de Google Drive
+ *   (`connect-src`).
  *
  * `connect-src` se arma con la URL real del proyecto en vez de un comodín
  * `*.supabase.co`: si un día se cuela una clave de otro proyecto, la petición no
- * sale. En modo demo se queda en `'self'`, que es lo correcto porque ahí no se
- * habla con nadie. Quién está en modo demo lo dice `IS_DEMO_MODE` y nadie más:
+ * sale. Google entra por la misma puerta y con el mismo criterio —el host de la
+ * API y nada más— porque los documentos se suben del navegador a Drive. En modo
+ * demo se queda en `'self'`, que es lo correcto porque ahí no se habla con nadie. Quién está en modo demo lo dice `IS_DEMO_MODE` y nadie más:
  * esta función tenía su propia versión de la regla, mirando solo la URL, y una
  * regla escrita dos veces es una regla que acaba diciendo dos cosas.
  *
@@ -44,8 +60,10 @@ function buildCsp(): string {
   // un origen de CSP no la lleva.
   const supabase = SUPABASE_URL.replace(/\/$/, '')
   const conexiones = IS_DEMO_MODE
+    // En modo demo no se habla con nadie: ni Supabase ni Drive. Los archivos no
+    // salen del navegador.
     ? "'self'"
-    : `'self' ${supabase} ${supabase.replace(/^https:/, 'wss:')}`
+    : `'self' ${supabase} ${supabase.replace(/^https:/, 'wss:')} ${GOOGLE_API}`
 
   const scripts = process.env.NODE_ENV === 'development'
     ? "'self' 'unsafe-inline' 'unsafe-eval'"
@@ -56,8 +74,9 @@ function buildCsp(): string {
     `script-src ${scripts}`,
     // Tailwind y Next escriben estilos en línea; sin esto no se pinta nada.
     "style-src 'self' 'unsafe-inline'",
-    // `data:` por los iconos en línea y `blob:` por las descargas de documentos,
-    // que se sirven desde una URL firmada y se abren como blob.
+    // `data:` por los iconos en línea y `blob:` por las imágenes que el navegador
+    // arma en memoria. Los documentos ya no necesitan más: los sirve la propia
+    // app desde `/api/documents/…`, que entra por `'self'`.
     "img-src 'self' data: blob:",
     // La fuente la autoaloja `next/font`, así que no hace falta abrir ningún host.
     "font-src 'self'",

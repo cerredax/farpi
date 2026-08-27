@@ -45,17 +45,20 @@ Usos:
 - Auth.
 - PostgreSQL.
 - Row Level Security.
-- Storage privado para documentos.
+- ~~Storage privado para documentos.~~ El bucket se borró el 27-08-2026: los archivos
+  viven en el Google Drive de quien los sube (ver "Documentos en Google Drive" más
+  abajo). Supabase se queda con la base y la autenticación, y ya no guarda archivos.
 
 Estado:
 
 - Proyecto Supabase creado y esquema aplicado.
 - UI conectada mediante repositorios reales (`src/lib/supabase-repos/`, un módulo por dominio igual que el mock).
-- Auth, invitaciones por magic link, roles y documentos en Storage operativos.
+- Auth, invitaciones por magic link y roles operativos. Los documentos pasaron de
+  Storage a Google Drive el 27-08-2026.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 - Esquema al día y revalidado. La última pasada de `node scripts/validate-rls.mjs`
-  es del 26-08-2026: **69/69**, con los festivos y las unidades de la lista dentro. El
-  historial de cada pasada está en `docs/supabase-validation.md`, que es donde vive.
+  es del 27-08-2026: **80/80**, con las conexiones de Google Drive dentro. El historial
+  de cada pasada está en `docs/supabase-validation.md`, que es donde vive.
 - `mapFamily` (`src/lib/supabase-repos/family.ts`) normaliza `meal_slots` ausente a "las
   cuatro franjas". Para producción ya no hace falta, pero es lo que permite desplegar
   código antes que SQL, que es el orden en el que pasan las cosas aquí.
@@ -64,7 +67,7 @@ La detección de "modo demo" (sin credenciales reales) está centralizada en `sr
 
 El esquema completo está en **`supabase/schema.sql`**: un solo archivo con las
 tablas, las restricciones, los índices, los triggers, las funciones, la RLS, las
-RPCs y el bucket de documentos con sus policies. Aplicado sobre un proyecto
+RPCs. Aplicado sobre un proyecto
 Supabase vacío deja una base idéntica a la de producción.
 
 Se aplica a mano por el SQL Editor. **No hay CLI de Supabase enlazada, y es a
@@ -106,8 +109,15 @@ encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
 - `/api/invite` usa la service role **solo** para mandar el email; la invitación
   se inserta con el cliente del usuario (RLS) y antes comprueba que quien llama
   es admin de esa familia.
-- `/api/account/delete` aplica la regla del último admin y borra los documentos
-  de Storage antes que la familia.
+- `/api/account/delete` aplica la regla del último admin. **Ya no borra archivos**:
+  desde que viven en el Drive de quien los subió son suyos y están en su disco, y
+  usar el permiso que dio para guardar papeles de la familia para vaciarle el Drive
+  no es lo que autorizó. Se va la ficha, con la familia; la conexión se va en
+  cascada al borrar el usuario.
+- `/api/documents/*` son las cuatro rutas nuevas de los documentos. La regla que
+  las sostiene: **primero** se comprueba con el cliente del usuario (RLS) que puede
+  ver la ficha, y **solo después** se usa el cliente de servicio para leer el token
+  del dueño. Al revés serían una puerta a los documentos de cualquier familia.
 - `/api/push` se apoya en la policy de `push_subscriptions`: un upsert con el
   endpoint de otra persona no puede robar su suscripción porque el `using` de la
   policy no deja tocar filas ajenas.
@@ -264,6 +274,81 @@ UI / Pantallas
 ```
 
 `StoreProvider` consume la frontera async de repositorios y elige implementación según `IS_DEMO_MODE`, manteniendo modo demo y Supabase sin duplicar la UI. El hook experimental `src/hooks/useFamily.ts` y los stubs sueltos de `src/lib/repos/*` (salvo `types.ts`) se eliminaron por quedar obsoletos.
+
+## Documentos en Google Drive
+
+Desde el 27-08-2026 los archivos de los documentos **no los guarda Nido**: viven en
+el Google Drive de quien los sube. La familia no se entera —los ve igual, en la
+misma pantalla— y nadie más de la casa tiene que conectar nada.
+
+### La segunda frontera
+
+`src/lib/repos/types.ts` es la frontera de la interfaz. Esta es otra, distinta y
+más abajo:
+
+```text
+                    Repos (frontera de la interfaz, navegador)
+                      └─ documents → /api/documents/*
+                                        ↓ (solo servidor)
+              DocumentStorageProvider (src/lib/document-storage/types.ts)
+                └─ googleDrive (google-drive.ts)
+                   [futuro: dropbox (App folder), oneDrive (Microsoft Graph)]
+```
+
+La regla que la mantiene pequeña: **el proveedor es solo el disco**. No sabe qué es
+una familia, no decide quién puede leer y no toca la base. Quien manda sigue siendo
+la RLS. Añadir Dropbox u OneDrive es implementar la interfaz, registrarla en
+`document-storage/index.ts` y añadir el valor al `check` de `documents.storage_provider`.
+Esa columna existe con un solo valor a propósito: es la que hace que el contrato se
+use de verdad (`getProvider(doc.storage_provider)`) en vez de quedar de adorno.
+
+### Modelo de acceso: proxy para leer, directo para subir
+
+- **Leer**: nadie habla con Drive salvo el servidor. Cuando otro miembro abre un
+  documento, Nido usa el token guardado del **dueño**, se trae el archivo y lo sirve
+  él por `/api/documents/[id]/file`, aplicando el control de acceso de siempre.
+- **Subir**: el navegador manda los bytes **directamente a Google**, a una dirección
+  de un solo uso que abre el servidor (`/api/documents/upload-session`). No es una
+  excepción caprichosa: una función de Vercel corta el cuerpo de la petición muy por
+  debajo de los 20 MB que admite un documento, así que proxiar la subida sería bajar
+  el tope del producto. Y quien sube es el dueño del Drive, que es el caso en el que
+  el proxy no compra nada. Por eso `connect-src` de la CSP abre `www.googleapis.com`.
+
+### El permiso prestado
+
+- Scope **`drive.file`** y ninguno más: solo los archivos que crea esta app. Es un
+  scope **no sensible**, así que Nido no pasa por la verificación de Google ni por la
+  auditoría CASA. Cambiarlo por `drive` o `drive.readonly` mete el proyecto en un
+  proceso de semanas.
+- Los tokens viven en `storage_connections`, **cifrados** (AES-256-GCM, `DOCS_TOKEN_KEY`
+  en Vercel), en una tabla con RLS activada y **ninguna policy**: solo entra el service
+  role desde una ruta API. Dar `select` al dueño parece inofensivo y no lo es — la CSP
+  lleva `'unsafe-inline'` en los scripts y por tanto no para un XSS en línea, que con esa
+  policy se llevaría un refresh token.
+- Refresco perezoso, con un minuto de margen antes de caducar. Se hace por adelantado
+  y no ante un 401 porque el 401 llega a mitad de una descarga ya empezada.
+
+### Lo que pasa cuando se cae
+
+`invalid_grant` no es un fallo pasajero: el permiso se revocó, o caducó. Se marca
+`revoked_at` y **no se borra nada**, ni la conexión ni las fichas ni el archivo.
+
+- A quien intenta abrir se le dice con nombre: «lo subió Marta y su almacenamiento ya
+  no está conectado». Sin el nombre el aviso no se puede resolver, porque no dice a
+  quién avisar.
+- Al dueño le vuelve a salir el botón de conectar, y al reconectar todo revive: los
+  identificadores de archivo no cambian.
+- Es distinto de que el dueño borre el archivo en su Drive (`archivo_no_esta`), que no
+  tiene arreglo desde la app. Los dos mensajes son distintos a propósito.
+- Quitar a un miembro de la familia tiene el mismo efecto, y el sheet lo avisa antes
+  con el recuento de documentos que se quedarán sin poder abrirse.
+
+### Estado de publicación en Google
+
+Con la pantalla de consentimiento en **"Testing"**, Google caduca los refresh tokens a
+los **7 días** y solo dejan entrar las cuentas de la lista de usuarios de prueba. Las
+dos cosas rompen el sistema en silencio y con retraso. Hay que dejarla **"In
+production"**; con solo `drive.file` no hace falta verificación para hacerlo.
 
 ## Fechas
 

@@ -100,7 +100,7 @@ Objetivo: cambiar de mock síncrono a datos async.
 - ✅ Soportar usuario sin familia (onboarding real).
 - ✅ Mantener modo demo como fallback.
 
-## Fase 6 - Documentos reales
+## Fase 6 - Documentos reales ✅
 
 Objetivo: conectar Supabase Storage.
 
@@ -108,6 +108,34 @@ Objetivo: conectar Supabase Storage.
 - ✅ Metadata en tabla `documents`.
 - ✅ Descargar o abrir documento (signed URLs, 60 s).
 - ✅ Borrar archivo y metadata.
+
+## Fase 6b - Los archivos, al Drive de quien los sube (27-08-2026)
+
+Objetivo: que Nido deje de guardar archivos. La ficha se queda en la base; el papel
+vive en el Google Drive de quien lo sube, y la familia lo ve igual **sin conectar
+nada ni saber que hay un Drive detrás**.
+
+- ✅ Contrato `DocumentStorageProvider` (`src/lib/document-storage/types.ts`), con
+  Google Drive como primera y única implementación. Dropbox ("App folder") y OneDrive
+  (Microsoft Graph) caben sin rediseñar: una clase y un valor más en el `check`.
+- ✅ Scope `drive.file` y nada más — no sensible, sin verificación ni CASA.
+- ✅ Modelo proxy para leer: el archivo lo sirve Nido con el token del dueño, con la
+  RLS de siempre por delante. El proveedor es el disco, no decide permisos.
+- ✅ Subida directa del navegador a Drive por sesión reanudable: por el servidor no
+  caben 20 MB.
+- ✅ Tokens cifrados (AES-256-GCM) en `storage_connections`, con RLS y **sin policies**.
+- ✅ Conectar solo hace falta para subir, y se ofrece dentro del sheet de subir.
+- ✅ Aviso con nombre cuando la conexión del dueño se cae, y al quitar a un miembro
+  que tiene documentos subidos.
+- ✅ Esquema aplicado en el SQL Editor y revalidado el 27-08-2026: **80/80**.
+- [ ] Google Cloud: Drive API, cliente OAuth y consentimiento **"In production"** — en
+  "Testing" los refresh tokens caducan a los 7 días.
+- [ ] Las cuatro variables en Vercel y volver a desplegar.
+- ✅ Bucket borrado (27-08-2026), con sus policies y las diez comprobaciones que tenía
+  en el arnés de RLS. Los cuatro documentos que había dentro —dos DNI, un certificado
+  de nacimiento y una tarjeta sanitaria— se descargaron y verificaron antes, junto con
+  sus fichas; quedan pendientes de volver a subir ya con Drive.
+- [ ] QA a mano del flujo entero con dos cuentas (`docs/testing-checklist.md` §8.1).
 
 ## Fase 7 - Invitaciones reales ✅
 
@@ -196,8 +224,8 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   `docs/notificaciones.md`.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
   de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
-- ✅ **RLS revalidado** por última vez el 26-08-2026: **69/69**, con el esquema
-  entero validado, incluidos los festivos y las unidades de la lista (Fase 3).
+- ✅ **RLS revalidado** por última vez el 27-08-2026: **80/80**, con el esquema
+  entero validado, incluidas las conexiones de Google Drive (Fase 3).
 - ✅ **Las 21 migraciones, aplastadas en `supabase/schema.sql`** (26-08-2026). Un
   solo archivo que describe la base como está, en vez de veintiuno que cuentan
   cómo llegó hasta aquí. El historial se queda en git. Falta el único aval que no

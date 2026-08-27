@@ -1,10 +1,10 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-26.
+Última revisión: 2026-08-27.
 
 ## Resumen
 
-Nido está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding, invitaciones por magic link y documentos reales en Storage. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
+Nido está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Nido: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
 La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Lo que queda no es código de producto: dos comprobaciones baratas y funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
@@ -20,8 +20,10 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
 - Comidas (día/semana, copiar día). Las cuatro franjas se activan y desactivan por familia desde Ajustes; apagar una no borra lo apuntado en ella.
-- Documentos: subir, abrir/descargar (signed URL 60 s), editar, borrar y aviso de
-  caducidad en la tarjeta.
+- Documentos: subir, abrir, editar, borrar y aviso de caducidad en la tarjeta. Los
+  archivos están en el Google Drive de quien los sube y los sirve Nido con el token
+  del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
+  detrás.
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro.
 - Cuenta: cambiar contraseña y borrar cuenta (`AccountActions.tsx`).
@@ -35,7 +37,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - `StoreProvider` async con estados loading/error y `reload()`.
 - Onboarding real (`/onboarding` → `create_family_with_admin`) y resolución de familia activa en `AppShell`.
 - Invitaciones por email vía magic link (`/api/invite` con service role) y aceptación automática en `/auth/callback` (`accept_family_invite`).
-- Documentos reales en Storage con path `{family_id}/{document_id}/{filename}`, subida con rollback y descarga por signed URL.
+- Documentos en Google Drive (27-08-2026), tras el contrato `DocumentStorageProvider`
+  de `src/lib/document-storage/`: subida directa del navegador a Drive por sesión
+  reanudable (una función de Vercel no admite 20 MB de cuerpo), lectura por proxy desde
+  `/api/documents/[id]/file` con el token del dueño, y tokens cifrados en
+  `storage_connections`. Sustituye al bucket de Supabase Storage, que se borró el
+  mismo día.
 - Gestión de roles desde Ajustes (`update_family_member_role`) con bloqueo del último admin en la UI.
 - Detección de modo demo unificada en `src/lib/supabase/env.ts` (cliente, servidor, proxy y API).
 
@@ -43,7 +50,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 - **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
   con la base como está, aplicado en el proyecto real y validado el 26-08-2026 con
-  **69/69**. Las 21 migraciones numeradas que lo precedieron se aplastaron ese mismo día
+  **80/80** (última pasada, 27-08-2026). Las 21 migraciones numeradas que lo precedieron se aplastaron ese mismo día
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
   veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
@@ -52,7 +59,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - RPC `create_family_with_admin` con nombre normalizado.
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
 - Tabla de invitaciones con policies idempotentes y `with check`.
-- Bucket privado `documents` con policies completas (SELECT por familia habilita signed URLs).
+- ~~Bucket privado `documents`~~: **borrado el 27-08-2026**, con sus cuatro policies y
+  las diez comprobaciones que tenía en el arnés de RLS. Nido ya no guarda archivos. La
+  sección 5 de `supabase/schema.sql` se queda vacía y con nombre, para que el hueco se
+  lea como una decisión y no como un descuido.
+- Tabla `storage_connections` (27-08-2026): los permisos de Google Drive de cada persona,
+  con los tokens cifrados (AES-256-GCM) y **RLS activada sin ninguna policy**, para que
+  solo entre el service role desde una ruta API.
 - Triggers de integridad cross-family (`family_id`, `list_id`, `child_id`), incluidos
   los de `tasks` que llegaron con la 015.
 - RPCs admin `remove_family_member` y `update_family_member_role` con control de último admin.
@@ -78,12 +91,12 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **310 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **341 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 229 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 81 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 259 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 82 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -128,11 +141,12 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. El 26-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
-real: **69/69**. Son las 58 del 24-08-2026 más las cinco de los festivos (que el `check`
-rechaza un tipo inventado, un festivo sin día final y uno que no sea de día completo) y
-las seis de las unidades de la lista (que un ítem nace con una, que solo la familia las
-cambia y que el `check` para el cero y el tope). La limpieza dejó en la base únicamente
+Sin pendientes. El 27-08-2026 se pasó `node scripts/validate-rls.mjs` contra la base
+real: **80/80**. Son las 69 del 26-08-2026 más las once del paso de los documentos a
+Google Drive: siete de `storage_connections` —que **nadie la lee por PostgREST, ni su
+propia fila**, que es lo que mantiene los refresh tokens fuera del alcance del
+navegador— y cuatro de las columnas nuevas de `documents`, entre ellas que un ajeno no
+ve el documento aunque conozca su identificador de archivo de Drive. La limpieza dejó en la base únicamente
 la familia real. Detalle en `docs/supabase-validation.md`, que es el sitio donde vive
 esto; aquí solo el titular.
 
@@ -1172,6 +1186,37 @@ esto; aquí solo el titular.
 La app está en producción y en uso diario por la familia, y probada en un móvil
 real. Lo que queda son dos comprobaciones baratas y funcionalidades que no existen.
 
+### Lo que falta para cerrar el cambio a Google Drive (27-08-2026)
+
+El código está entero, con `npx tsc --noEmit`, `npm run lint` y la suite en verde.
+Lo que queda es lo que no se puede hacer desde el repositorio:
+
+1. **Aplicar el esquema** en el SQL Editor: las dos columnas de `documents` y la tabla
+   `storage_connections`, tal y como están en `supabase/schema.sql`. Después,
+   `node scripts/validate-rls.mjs` y anotar el resultado en `docs/supabase-validation.md`,
+   que ahora mismo lleva una nota de PENDIENTE.
+2. **Google Cloud**: habilitar la Drive API, crear el cliente OAuth con la URI de
+   redirección exacta y —lo que rompe en silencio si se olvida— dejar la pantalla de
+   consentimiento **"In production"**, no "Testing". En Testing, Google caduca los
+   refresh tokens a los 7 días. Ver `docs/produccion.md` §2.4.
+3. **Las cuatro variables** en Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+   `GOOGLE_REDIRECT_URI` y `DOCS_TOKEN_KEY`.
+4. **Volver a subir los cuatro documentos que había en el bucket**, ya con Drive
+   conectado. Están rescatados en `Downloads/nido-documentos-bucket/`, con sus fichas
+   en `fichas.json` (nombre, categoría, de quién, caducidad) para poder recrearlas
+   iguales. Después, borrar las cuatro filas viejas:
+   `delete from public.documents where storage_path like '%/%';`
+
+   *Aquí se estuvo a punto de perder algo.* Se dio por hecho que en el bucket había
+   "un solo archivo de prueba que no merecía el viaje" **sin haberlo mirado**, y eran
+   cuatro documentos de verdad: dos DNI, un certificado de nacimiento y una tarjeta
+   sanitaria. Los cuatro se descargaron y se verificaron (PDF de 1 página y tres JPEG
+   a resolución completa) antes de borrar nada. La lección es la de siempre en este
+   repositorio, aplicada a los datos y no a la interfaz: mirar, no deducir.
+5. **QA a mano del flujo entero** (`docs/testing-checklist.md` §8.1), contra
+   `npm run build && npm run start` y con dos cuentas de la misma familia. Playwright
+   no puede cubrir esto: la suite corre en modo demo forzado y sin credenciales.
+
 ### Las comprobaciones que quedaban: ninguna
 
 Las dos que había aquí se cerraron el 06-08-2026:
@@ -1189,9 +1234,12 @@ Las dos que había aquí se cerraron el 06-08-2026:
    Vercel y **volver a desplegar** (las `NEXT_PUBLIC_*` se hornean en el build). Sin
    ellas el botón de activarlas no aparece y el cron responde
    `skipped: 'VAPID no configurado'`. Ver `docs/notificaciones.md`.
-4. **Backup/export de datos de la familia.** No urge, pero es lo insustituible: los
-   documentos y el calendario viven en un único proyecto Supabase del plan gratuito,
-   sin exportación.
+4. **Backup/export de datos de la familia.** No urge, pero es lo insustituible. Con
+   los documentos en Drive el riesgo cambia de forma más que de tamaño: los archivos
+   están ahora en una cuenta de Google de verdad (con su propia papelera y su propio
+   backup), pero a cambio dependen de que esa persona siga en la familia y con el
+   permiso dado. El calendario y las fichas siguen en un único proyecto Supabase del
+   plan gratuito, sin exportación.
 
 ### Decisión abierta
 

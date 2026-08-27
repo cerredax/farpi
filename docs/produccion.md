@@ -2,7 +2,7 @@
 
 Estado y pasos para llevar Nido a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-08-05.
+> Última actualización: 2026-08-27.
 
 ---
 
@@ -12,7 +12,9 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 
 - Supabase conectado de extremo a extremo: auth, repositorios reales, store async.
 - Onboarding, invitaciones por magic link, gestión de miembros y roles.
-- Documentos reales en Storage: subir, abrir/descargar (signed URL) y borrar.
+- Documentos con los archivos en el **Google Drive de quien los sube** (27-08-2026):
+  subir, abrir y borrar. La familia los ve igual y sin conectar nada. El bucket de
+  Supabase Storage que había antes se borró el mismo día.
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
@@ -37,6 +39,9 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 
 - [ ] `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` — *(opcional)* sin ellas las notificaciones push quedan desactivadas: el botón de activarlas no aparece (`src/lib/push.ts`) y el cron responde `skipped: 'VAPID no configurado'` pero mantiene el keep-alive. Se generan con `node scripts/gen-vapid.cjs`, que las imprime ya con el nombre de cada variable. Después de guardarlas hay que **volver a desplegar**: las `NEXT_PUBLIC_*` se hornean en el build.
 
+- [ ] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — **obligatorias para los documentos**. Sin ellas, las rutas de `/api/documents/*` responden 503 y no se puede subir ni abrir ningún papel. La `REDIRECT_URI` tiene que ser exactamente `https://<dominio>/api/documents/providers/google/callback`.
+- [ ] `DOCS_TOKEN_KEY` — clave de 32 bytes con la que se cifran los tokens de Drive antes de guardarlos (`openssl rand -hex 32`). **Si se pierde o se rota, todas las conexiones guardadas dejan de descifrarse** y cada persona tiene que volver a conectar su Drive.
+
 > La lista completa, incluidas las de notificaciones push (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), `CRON_SECRET` y `NIDO_TIME_ZONE`, está en **`.env.example`** en la raíz del repositorio. Ese fichero es la plantilla de referencia: no lo lee ningún código, pero es el inventario de lo que la app necesita.
 
 > **Cuidado al pegarlas.** En la puesta en marcha se colaron dos veces valores recortados (un espacio delante y la última letra perdida), y el síntoma fue un "Failed to fetch" opaco en el navegador. Para comprobar qué valores hay realmente horneados en producción, basta con buscar la URL en el JS servido: `curl -s https://<dominio>/auth/login` y seguir los chunks de `/_next/static`.
@@ -48,8 +53,15 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 - [x] Migraciones `001`–`016` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012) y `family_members.color` (014). Las 015 y 016 se aplicaron el 05-08-2026 y quedaron **revalidadas el 06-08-2026** con `node scripts/validate-rls.mjs`: 51/51 (§4).
 - [x] Migraciones `017_event_kind_descanso.sql` (guardar un descanso) y `018_person_kind.sql` (`children.kind`, los adultos sin cuenta) aplicadas el 21-08-2026 y **revalidadas** ese mismo día: 51/51 (§4).
 - [x] Migración `019_meal_slots.sql` (`families.meal_slots`, qué franjas de comida ve la familia) aplicada el 24-08-2026 y **validada** ese mismo día: 58/58, con siete comprobaciones propias (§4).
-- [x] Bucket `documents` existe y es **privado** (`storage.buckets.public = false`).
-- [x] RLS activo en todas las tablas privadas.
+- [x] **Documentos en Google Drive**: las dos columnas de `documents`
+      (`storage_provider`, `storage_owner`) y la tabla `storage_connections` aplicadas
+      el 27-08-2026 y **validadas** ese mismo día: **80/80**, con once comprobaciones
+      propias (§4). `storage_connections` no se puede leer por PostgREST con ninguna
+      sesión de usuario, ni siquiera la de su dueño.
+- [x] ~~Bucket `documents`~~ **borrado el 27-08-2026**, con sus policies. Nido ya no
+      guarda archivos: viven en el Google Drive de quien los sube.
+- [x] RLS activo en todas las tablas privadas. `storage_connections` la lleva activada
+      y **sin ninguna policy**, que es lo que la deja solo para el service role.
 
 ### 2.3 Supabase — Auth
 
@@ -62,6 +74,30 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
 > Estado a 2026-08-03: esquema completo (11 tablas), claves nuevas funcionando, SMTP propio configurado y primer usuario creado. Solo está activo el proveedor `email`; Google sigue desactivado.
 
 ---
+
+### 2.4 Google Cloud — Drive para los documentos
+
+En **Google Cloud Console → APIs y servicios**:
+
+- [ ] Habilitar la **Google Drive API** en el proyecto.
+- [ ] Crear un **ID de cliente de OAuth** de tipo *Aplicación web*. En **URI de
+      redirección autorizados**, añadir la de producción y, si se va a probar en
+      local, `http://localhost:3000/api/documents/providers/google/callback`.
+      Google compara la cadena **entera**: un preview de Vercel con URL aleatoria
+      no puede conectar, solo producción y localhost.
+- [ ] En la pantalla de consentimiento, dejar como único scope
+      `https://www.googleapis.com/auth/drive.file`. Es **no sensible**, así que no
+      hace falta verificación ni auditoría CASA. Añadir `drive` o `drive.readonly`
+      metería el proyecto en un proceso de semanas.
+- [ ] **Publicar la app: estado "In production", no "Testing".** Es el punto que
+      rompe el sistema en silencio si se olvida:
+      - en *Testing*, Google **caduca los refresh tokens a los 7 días** y toda la
+        familia tendría que reconectar cada semana;
+      - en *Testing*, además, solo entran las cuentas añadidas a mano a la lista de
+        usuarios de prueba (máximo 100): a quien no esté, Google le contesta
+        `access_denied`.
+      Con solo `drive.file` se puede publicar sin pasar verificación. Sí hacen falta
+      la URL de la política de privacidad (`/privacidad`) y la del dominio.
 
 ## 3. Desplegar
 
@@ -76,7 +112,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 69/69 comprobaciones correctas, con el esquema entero validado (última pasada, 26-08-2026). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 80/80 comprobaciones correctas, con el esquema entero validado (última pasada, 27-08-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.

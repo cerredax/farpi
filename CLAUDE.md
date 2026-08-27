@@ -76,8 +76,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # ~229 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: unitarios + ~81 de navegador (levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # ~259 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: unitarios + ~82 de navegador (levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -135,6 +135,32 @@ se quedan con la caché vieja. Va por `nido-v2` desde el 24-08-2026, que subió 
 los PNG del icono. Es la misma clase de regla
 que el `SCHEMA_VER` del mock.
 
+### Documentos: los archivos no los guarda Nido
+
+Desde el 27-08-2026 el archivo de cada documento vive en el **Google Drive de quien lo
+sube**; en la base solo queda la ficha. La familia los ve igual y **nadie más tiene que
+conectar nada**: conectar hace falta para subir, no para mirar.
+
+Es una segunda frontera, distinta de la de `repos/types.ts` y **solo de servidor**:
+`src/lib/document-storage/` con el contrato `DocumentStorageProvider` y `googleDrive`
+como única implementación. Reglas que no se negocian:
+
+- **El proveedor es el disco y no decide permisos.** Quien manda sigue siendo la RLS.
+- **Leer va por proxy** (`/api/documents/[id]/file`): Nido usa el token del **dueño** y
+  sirve el archivo. En esas rutas se comprueba **primero** con el cliente del usuario que
+  puede ver la ficha, y **solo después** se toca el cliente de servicio. Al revés son una
+  puerta a los documentos de cualquier familia.
+- **Subir va directo** del navegador a Drive por sesión reanudable: una función de Vercel
+  no admite un cuerpo de 20 MB. Por eso `connect-src` abre `www.googleapis.com`.
+- Scope **`drive.file`** y ninguno más (no sensible: sin verificación ni CASA).
+- Los tokens viven cifrados en `storage_connections`, tabla con RLS y **sin ninguna
+  policy**. No añadir una: para saber si hay conexión está `/api/documents/providers`.
+- El bucket `documents` **ya no existe**. Si algo lo menciona, es que está desactualizado.
+- La pantalla de consentimiento de Google tiene que estar **"In production"**. En
+  "Testing" los refresh tokens caducan a los 7 días y todo se cae sin avisar.
+
+Detalle completo en `docs/architecture.md`, sección "Documentos en Google Drive".
+
 ### Cabeceras de seguridad
 
 `next.config.ts` pone cinco en todas las rutas, porque Nido guarda DNI, informes médicos
@@ -158,15 +184,22 @@ entrar en las pantallas con sesión sin credenciales.
 - `/api/account/delete` — borrado de cuenta; bloquea si dejaría una familia compartida sin admin.
 - `/api/push` — alta/baja de suscripciones Web Push.
 - `/api/cron/reminders` — cron diario (`vercel.json`, 07:00 UTC): keep-alive de Supabase + envío de recordatorios.
+- `/api/documents/*` — los documentos en Google Drive: abrir sesión de subida, guardar la ficha, servir el archivo por proxy, borrar y gestionar la conexión con el proveedor.
 
 Las tres primeras las llama la UI, así que **cortan al principio si `IS_DEMO_MODE`**: sin
 esa guarda, el modo demo intenta hablar con Supabase y la suite e2e se cae. La del cron no
 la necesita porque solo la invoca Vercel. Una ruta API nueva que la UI vaya a llamar tiene
 que hacer lo mismo.
 
+Y un detalle que se paga caro: **sin sesión, el proxy contesta 307 a `/auth/login` antes de
+que la ruta llegue a devolver su 401**, y `fetch` sigue el redirect, así que lo que ve quien
+llamó es un 200 con el HTML del login. Un `res.ok` no basta para dar por buena la respuesta;
+hay que mirar `res.redirected`. Está resuelto en `src/lib/supabase-repos/api-nido.ts`, que es
+por donde pasan todas las llamadas de la UI a rutas propias.
+
 ### Base de datos
 
-El esquema entero vive en **`supabase/schema.sql`**, un solo archivo: tablas, restricciones, índices, triggers, funciones, RLS, RPCs y el bucket de documentos. Se aplica a mano por el SQL Editor (no hay CLI de Supabase enlazada, a propósito: local y producción son el mismo proyecto). Las 21 migraciones numeradas que había antes se aplastaron el 26-08-2026 y siguen en el historial de git.
+El esquema entero vive en **`supabase/schema.sql`**, un solo archivo: tablas, restricciones, índices, triggers, funciones, RLS y RPCs. **Ya no hay Storage**: el bucket de documentos se borró el 27-08-2026 (ver "Documentos" más abajo). Se aplica a mano por el SQL Editor (no hay CLI de Supabase enlazada, a propósito: local y producción son el mismo proyecto). Las 21 migraciones numeradas que había antes se aplastaron el 26-08-2026 y siguen en el historial de git.
 
 Regla de RLS: un usuario solo accede a datos de familias donde figura en `family_members`, vía `my_family_ids()` (`security definer`, `search_path` fijo).
 

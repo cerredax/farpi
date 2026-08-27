@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
@@ -46,6 +46,31 @@ export function DocsView() {
           <Plus size={20} />
         </button>
       </div>
+
+      {/* La vuelta de conectar Drive. Es lo único que enseña esta pantalla sobre
+          el proveedor, y solo justo después de haber ido a conectarlo: si sale
+          bien hay que decirlo —volver a una pantalla idéntica no confirma nada— y
+          si sale mal, más. */}
+      {s.avisoDrive && (
+        <div
+          role="status"
+          className={`flex items-start gap-3 rounded-2xl border px-4 py-3 ${s.avisoDrive === 'ok' ? 'border-line bg-primary-tint' : 'border-danger-line bg-danger-soft'}`}
+        >
+          <p className="min-w-0 flex-1 text-xs font-semibold leading-relaxed text-ink">
+            {s.avisoDrive === 'ok'
+              ? 'Google Drive conectado. Ya puedes guardar documentos: se quedarán en tu Drive y la familia los verá aquí.'
+              : 'No se pudo conectar Google Drive. Vuelve a intentarlo desde el botón de añadir documento.'}
+          </p>
+          <button
+            type="button"
+            onClick={s.cerrarAvisoDrive}
+            aria-label="Cerrar aviso"
+            className="-m-1.5 flex-shrink-0 rounded-full p-1.5 text-muted transition-colors hover:bg-white/60 hover:text-ink"
+          >
+            <X size={16} strokeWidth={2.4} />
+          </button>
+        </div>
+      )}
 
       {s.puedeBuscar && (
         <SearchField
@@ -114,6 +139,8 @@ export function DocsView() {
         onSave={s.handleSave}
         onDelete={s.deleteDocument}
         onOpenFile={s.getDocumentUrl}
+        conexion={s.storageConnection}
+        connectUrl={s.connectStorageUrl}
       />
     </div>
   )

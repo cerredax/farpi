@@ -1,7 +1,8 @@
 import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
 import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
-import { eventCoversDay } from '@/lib/events'
+import { eventCoversDay, isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { eventColor } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
 
 /**
@@ -30,6 +31,9 @@ const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 /** Las líneas de la rejilla, solo en escritorio. Las comparten las celdas y los huecos. */
 const HUECO = 'lg:border-b lg:border-r lg:border-hairline'
+
+/** Cuántas ausencias se pintan en un hueco de fuera de mes. Mismo tope que `DayCell`. */
+const MAX_AUSENCIAS = 2
 
 interface MonthGridProps {
   currentMonth: Date
@@ -97,22 +101,42 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
              * eran. El relleno arregla justo eso: con el fondo teñido ya no
              * tienen la misma forma que los suyos.
              *
-             * Es el mismo relleno que se descartó para los fines de semana
-             * porque se leía como "estas celdas están apagadas". Aquí eso es
-             * exactamente lo que hay que decir.
+             * El gris es `--color-surface`, el mismo tono que ya usan los
+             * estados de superficie/hover de la app: no es el crema del fondo de
+             * página, que se probó primero y no se distinguía de él.
              *
              * Siguen sin ser botones y sin enseñar nada de lo que pasa ese día:
              * están para cerrar la semana, no para consultarlos. Al 1 de
              * septiembre se llega con la flecha, que es un toque igual.
+             *
+             * La franja de ausencia es la excepción: unas vacaciones o un
+             * descanso duran lo que duran, y cortarlos en la frontera del mes
+             * rompería el tramo justo donde sigue. Se pinta igual que en
+             * `DayCell`, solo que aquí no hay botón debajo que abrirla.
              */
+            const ausenciasHueco = events
+              .filter(e => eventCoversDay(e, day) && (isVacation(e) || isRestDay(e)))
+              .slice(0, MAX_AUSENCIAS)
             return (
               <span
                 key={day.toISOString()}
                 aria-hidden
-                className={`${HUECO} flex flex-col items-center bg-canvas py-1 lg:min-h-[104px] ${
+                className={`${HUECO} flex flex-col items-center bg-surface py-1 lg:min-h-[104px] ${
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >
+                {ausenciasHueco.map(event => {
+                  const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
+                  const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
+                  return (
+                    <span key={event.id} className={`franja-ausencia ${redondeo}`}>
+                      <span
+                        className={`block h-full w-full ${redondeo}`}
+                        style={{ backgroundColor: eventColor(event, members, kids) }}
+                      />
+                    </span>
+                  )
+                })}
                 <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">
                   {getDate(day)}
                 </span>

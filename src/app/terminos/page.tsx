@@ -9,7 +9,7 @@ const CONTACT = 'cerredax@gmail.com'
 
 export default function TerminosPage() {
   return (
-    <LegalShell title="Términos de servicio" updated="24 de agosto de 2026">
+    <LegalShell title="Términos de servicio" updated="27 de agosto de 2026">
       <p>
         Estos términos regulan el uso de Nido. Al crear una cuenta o usar la aplicación, aceptas lo siguiente.
       </p>
@@ -43,6 +43,20 @@ export default function TerminosPage() {
           para almacenarlo y procesarlo con el único fin de prestarte el servicio. Puedes eliminarlo o darte de
           baja cuando quieras, teniendo en cuenta que parte del contenido compartido puede seguir siendo visible
           para otros adultos de tu familia si la familia continúa activa.
+        </p>
+      </LegalSection>
+
+      <LegalSection heading="Los archivos no los guarda Nido">
+        <p>
+          De cada documento, Nido guarda su ficha (nombre, categoría, caducidad); el archivo se guarda en el{' '}
+          <strong>Google Drive de quien lo sube</strong>, en su propia cuenta. Para subir hace falta conectar
+          Drive; para mirar, no: la familia los abre desde la app como cualquier otra cosa.
+        </p>
+        <p>
+          Eso tiene dos consecuencias que conviene tener claras. Si desconectas tu Drive, tu familia deja de
+          poder abrir los documentos que subiste tú, aunque las fichas sigan ahí. Y si se borra un documento
+          cuando no podemos tocar ese Drive, la ficha desaparece de Nido pero el archivo se queda en la cuenta
+          de su dueño. Los archivos son suyos y están sujetos también a las condiciones de Google Drive.
         </p>
       </LegalSection>
 

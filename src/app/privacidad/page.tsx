@@ -9,7 +9,7 @@ const CONTACT = 'cerredax@gmail.com'
 
 export default function PrivacidadPage() {
   return (
-    <LegalShell title="Política de privacidad" updated="24 de agosto de 2026">
+    <LegalShell title="Política de privacidad" updated="27 de agosto de 2026">
       <p>
         En Nido nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
         derechos tienes. Nido es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.
@@ -62,7 +62,7 @@ export default function PrivacidadPage() {
       <LegalSection heading="Dónde se almacenan">
         <p>
           Los datos se alojan en la infraestructura de <strong>Supabase</strong> (base de datos) y la aplicación
-          se sirve desde <strong>Vercel</strong>. Los archivos de los documentos se guardan en el
+          se sirve desde <strong>Vercel</strong>. Los archivos de los documentos se guardan en el{' '}
           <strong>Google Drive</strong> de quien los sube, en su propia cuenta de Google. Los correos
           (confirmación de cuenta e invitaciones) se envían a través de un proveedor de email. Estos proveedores
           actúan como encargados del tratamiento.
@@ -85,6 +85,13 @@ export default function PrivacidadPage() {
           borran los datos asociados a ella, pero parte del contenido familiar compartido puede mantenerse si
           pertenece a una familia donde siguen otros adultos. Las suscripciones push se eliminan al desactivar los
           avisos o cuando dejan de ser válidas. También puedes solicitar la supresión escribiéndonos.
+        </p>
+        <p>
+          Los archivos de los documentos son la excepción, porque no están en nuestro disco: al borrar un
+          documento intentamos borrar también el archivo del Drive de su dueño, pero si no podemos —porque
+          desconectó su cuenta de Google, por ejemplo— la ficha desaparece de Nido y el archivo se queda en su
+          Drive. Lo mismo al eliminar la cuenta: se borra la conexión con Google, no los archivos que subiste.
+          Siguen siendo tuyos y puedes borrarlos desde tu Drive cuando quieras.
         </p>
       </LegalSection>
 
@@ -122,6 +129,19 @@ export default function PrivacidadPage() {
           resto de tu Drive. Puedes retirar ese permiso cuando quieras desde Ajustes o desde tu cuenta de
           Google; los archivos seguirán siendo tuyos y en tu Drive, pero tu familia dejará de poder abrirlos
           desde Nido. Los documentos que subas están sujetos también a las condiciones de Google Drive.
+        </p>
+        <p>
+          El uso que Nido hace de la información recibida de las APIs de Google se ajusta a la{' '}
+          <a
+            href="https://developers.google.com/terms/api-services-user-data-policy"
+            className="font-semibold text-primary-strong"
+          >
+            Google API Services User Data Policy
+          </a>
+          , incluidos sus requisitos de uso limitado (<em>Limited Use</em>). En concreto: los archivos y los
+          permisos de acceso solo se usan para que tu familia pueda ver esos documentos dentro de la app, no se
+          transfieren a nadie más, no se usan para publicidad y ninguna persona los lee salvo que tú lo pidas
+          para resolver una incidencia o lo exija la ley.
         </p>
       </LegalSection>
 

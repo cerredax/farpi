@@ -209,6 +209,45 @@ test('el mes se pasa arrastrando el dedo', async ({ page }) => {
 })
 
 /**
+ * La semana, que a 390 px no cabe entera y se recorre a lo ancho.
+ *
+ * Dos cosas que se rompen solas y no se ven en un unitario:
+ *
+ * - **El canal de las horas se queda quieto.** Es lo único que dice a qué hora
+ *   es un bloque, y depende de un `sticky` que solo funciona si la rejilla mide
+ *   lo que su contenido: es un bloque, así que por defecto mide lo que la
+ *   pantalla y el canal se iba con el desplazamiento.
+ * - **Al pasar de semana, el eje vuelve al principio.** Si no, se llegaba a la
+ *   semana siguiente mirando su domingo, sin haber visto el lunes, y el cambio
+ *   no se notaba.
+ */
+test('la semana se recorre a lo ancho sin perder las horas', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Semana', exact: true }).click()
+
+  const eje = page.locator('.overflow-x-auto').first()
+  await expect(eje).toBeVisible()
+  const canal = eje.locator('.sticky').first()
+
+  // Hasta el final de la semana: el canal sigue pegado al borde izquierdo.
+  await eje.evaluate(el => { el.scrollLeft = el.scrollWidth })
+  await expect.poll(async () => {
+    const [c, s] = await Promise.all([canal.boundingBox(), eje.boundingBox()])
+    return Math.round((c?.x ?? 0) - (s?.x ?? 0))
+  }).toBe(0)
+
+  // Y al pasar de semana se vuelve al lunes, no al domingo de la siguiente.
+  const titulo = page.getByRole('heading', { level: 2 }).first()
+  const antes = await titulo.textContent()
+  // Dos veces: la semana de al lado tiene hoy, y entonces el eje se coloca en
+  // hoy a propósito. La de después ya no, así que empieza por el lunes.
+  await page.getByRole('button', { name: /siguiente/i }).click()
+  await page.getByRole('button', { name: /siguiente/i }).click()
+  await expect(titulo).not.toHaveText(antes!)
+  await expect.poll(() => eje.evaluate(el => el.scrollLeft)).toBe(0)
+})
+
+/**
  * La ruta que mira el vigía externo. En la suite corre en modo demo, así que lo
  * comprobable aquí es el contrato: que contesta, que no la cachea nadie por el
  * camino y que en demo ni intenta hablar con un Supabase que no existe.

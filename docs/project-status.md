@@ -22,6 +22,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   (28-08-2026); los cumpleaños salen además en la franja de "todo el día" de las
   vistas Día y Semana, que no tienen bloque debajo al que mirar. En móvil se pasa
   de mes o de día **arrastrando el dedo**.
+- **La semana se recorre a lo ancho sin perder de vista la hora** (28-08-2026). A
+  390 px las siete columnas no caben, así que el eje se desplaza; el canal de las
+  horas se queda quieto a la izquierda y las columnas pasan por debajo. El mismo
+  dedo hace las dos cosas según dónde esté: mientras quede semana, recorrerla; en
+  el borde, pasar a la de al lado. Y al cambiar de semana el eje **vuelve al
+  lunes** —o se coloca en hoy, si la semana lo tiene—, en vez de dejarte en el
+  domingo de la nueva sin haber visto el principio.
 - **Apuntar algo cuesta un gesto donde ya estás mirando** (28-08-2026). En Día y
   Semana, pulsar un hueco del eje abre el formulario con **esa hora** puesta (un
   botón por franja, no uno por columna: así no hay que medir la posición del dedo

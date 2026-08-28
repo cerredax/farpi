@@ -162,9 +162,14 @@ export function CalendarView() {
 
   /**
    * El mismo movimiento que las flechas, pero con el dedo (28-08-2026). Se
-   * cuelga de la rejilla y del eje de horas, que es lo que se está pasando, y no
-   * de la pantalla entera: la lista de la agenda no tiene nada que recorrer y
-   * los bloques de ausencias y cumpleaños hablan del mes que ya está puesto.
+   * cuelga de la rejilla, que es lo que se está pasando, y no de la pantalla
+   * entera: la lista de la agenda no tiene nada que recorrer y los bloques de
+   * ausencias y cumpleaños hablan del mes que ya está puesto.
+   *
+   * El eje de horas tiene el suyo **dentro de `Timeline`**: ahí el desliz
+   * horizontal ya significa recorrer la semana, y para saber si el dedo está
+   * pasando de semana o moviéndose por ella hay que mirar dónde está su barra de
+   * desplazamiento, que solo se conoce ahí.
    */
   const desliz = useSwipe(irAnterior, irSiguiente)
 
@@ -299,7 +304,7 @@ export function CalendarView() {
             lista es la respuesta a "¿qué viene?" y esa pregunta la contesta el
             mes, que sí la lleva al lado. */}
         {conEje ? (
-          <div className="mt-4" {...desliz}>
+          <div className="mt-4">
             <Timeline
               days={diasDelEje}
               events={eventos}
@@ -309,6 +314,8 @@ export function CalendarView() {
               tasks={tareasPendientes}
               onEdit={openEdit}
               onAdd={openCreate}
+              onPrev={irAnterior}
+              onNext={irSiguiente}
             />
           </div>
         ) : (

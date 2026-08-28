@@ -10,6 +10,44 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-28
 
+### La semana ya se puede recorrer (28-08-2026)
+
+La vista Semana llegó al móvil el 26-08-2026 con un mínimo de 110 px por columna, de
+modo que a 390 px no caben las siete y el eje se desplaza a lo ancho. Faltaba lo que
+hace que eso sirva de algo, y eran dos cosas.
+
+**Las horas se iban con el desplazamiento.** El canal de la izquierda es lo único que
+dice a qué hora es un bloque, y al llegar al viernes ya no estaba. La primera idea
+—`sticky left-0` en la celda del canal— no funciona, y se midió: el bloque contenedor
+de un hijo de una rejilla es **su propia área**, esos 56 px, así que el elemento no
+puede salir de ella. Se arregló por dos sitios a la vez: el canal ocupa ahora la
+rejilla entera (`grid-column: 1 / -1`) manteniendo sus 56 px de ancho, y la rejilla
+lleva el ancho escrito (`minWidth`), porque una rejilla es un bloque y por defecto mide
+lo que la pantalla mientras sus columnas se le salen por la derecha —con 410 px de área,
+el canal se quedaba clavado a mitad de camino—. A cambio, las columnas de los días ya no
+se colocan solas y van con su fila y su columna escritas.
+
+**Y pasar de semana dejaba al final de la siguiente.** El dedo hacía dos cosas de una
+pasada: desplazaba el eje hasta el domingo y además cambiaba de semana, y como la barra
+de desplazamiento se quedaba donde estaba, aparecías en la semana nueva mirando su
+domingo. De ahí que el cambio "no se notara": lo que había delante seguía siendo el
+final de una semana.
+
+Ahora `useSwipe` admite un tercer argumento, `permite`, que se pregunta **al empezar** el
+gesto y no al acabarlo —al levantar el dedo el contenido ya está en el borde, así que
+preguntar entonces volvería a hacer las dos cosas—. El eje cede el gesto mientras quede
+semana que recorrer y solo pasa de semana desde el borde, como cualquier carrusel dentro
+de otro. Por eso el desliz se mudó de `CalendarView` a `Timeline`: la decisión necesita
+saber dónde está esa barra, y eso solo se sabe ahí. Al cambiar de tramo, el eje vuelve al
+lunes, o se coloca en hoy si la semana lo tiene.
+
+De propina, el canal estrena raya a la derecha: la que separaba el canal del lunes era la
+del propio lunes y se iba con él, así que ahora la lleva el canal y la primera columna se
+queda sin la suya para no pintar dos pegadas.
+
+Lo vigila `e2e/smoke.spec.ts`: que el canal siga pegado al borde con el eje al final, y
+que pasar de semana devuelva el desplazamiento al principio.
+
 ### Cuando Supabase no contesta, Nido lo dice (28-08-2026)
 
 Esa misma mañana una incidencia de Supabase dejó la app inservible durante horas sin

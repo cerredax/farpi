@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { format, isToday, isWeekend } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Cake } from 'lucide-react'
@@ -9,6 +9,7 @@ import { eventCoversDay, holidayName, isAbsence, isBirthday, isHoliday, isVacati
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
+import { useSwipe } from '@/hooks/useSwipe'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 
 /**
@@ -53,6 +54,26 @@ const CANAL_HORAS = 56
 
 /** Ancho mínimo de la columna de un día, para que un título se lea. */
 const ANCHO_MINIMO_COLUMNA = 110
+
+/**
+ * El canal de las horas, **quieto** mientras la semana se recorre a lo ancho.
+ *
+ * No basta con `sticky left-0` en la primera celda: el bloque contenedor de un
+ * hijo de una rejilla es **su propia área**, esos 56 px, así que el elemento no
+ * puede salir de ella y se va con el desplazamiento igual que todo lo demás. Se
+ * midió: al desplazar el eje, la celda acababa fuera de la pantalla.
+ *
+ * Por eso el canal ocupa la rejilla **entera** (`1 / -1`) y se queda en 56 px de
+ * ancho: así su área es toda la fila y `left: 0` sí tiene por dónde moverse. A
+ * cambio, las columnas de los días ya no se colocan solas —el canal les ocuparía
+ * la fila— y van con su columna y su fila escritas.
+ */
+// El borde derecho es lo que hace que se lea como un canal y no como un hueco
+// en blanco: al desplazar la semana, la raya que separaba el canal del lunes era
+// la del propio lunes y se iba con él. Por eso la primera columna del día se
+// queda sin la suya, para no pintar dos pegadas cuando el eje está al principio.
+const CANAL_FIJO = 'sticky left-0 z-20 border-r border-hairline'
+const ESTILO_CANAL = { gridColumn: '1 / -1', gridRow: 1, width: CANAL_HORAS } as const
 
 function EventBlock({ bloque, desde, kids, members, onEdit }: {
   bloque: BloqueDia
@@ -145,9 +166,17 @@ interface TimelineProps {
    * formulario es contarlo dos veces.
    */
   onAdd: (day: Date, hora?: number) => void
+  /**
+   * Retroceder y avanzar un tramo. El desliz vive **aquí dentro** y no en quien
+   * pinta el eje porque el eje se desplaza a lo ancho, y para saber si el dedo
+   * está pasando de semana o recorriéndola hay que mirar dónde está esa barra.
+   */
+  onPrev: () => void
+  onNext: () => void
 }
 
-export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, onAdd }: TimelineProps) {
+export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, onAdd, onPrev, onNext }: TimelineProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null)
   // La hora actual se lee en el cliente y se refresca cada minuto: pintada en el
   // servidor saldría con la hora del servidor y se quedaría clavada.
   const [ahora, setAhora] = useState<number | null>(null)
@@ -228,23 +257,68 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
    * mínimo no llega a aplicarse y no aparece ninguna barra.
    */
   const columnas = `${CANAL_HORAS}px repeat(${days.length}, minmax(${ANCHO_MINIMO_COLUMNA}px, 1fr))`
+  /**
+   * El ancho de la rejilla, escrito y no deducido. Una rejilla es un bloque, así
+   * que mide lo que la caja que la contiene —410 px en un móvil— y sus columnas
+   * de 110 px se le salen por la derecha en vez de estirarla. Da igual para
+   * pintar, pero el canal fijo se apoya en ese ancho para saber hasta dónde
+   * puede moverse, y con 410 se quedaba clavado a mitad de camino. Cuando sobra
+   * sitio —escritorio— manda el 100 % y las columnas vuelven a repartirse.
+   */
+  const anchoMinimo = CANAL_HORAS + days.length * ANCHO_MINIMO_COLUMNA
+
+  /**
+   * Al cambiar de tramo, el eje **vuelve al principio de la semana** —o se
+   * coloca en hoy, si la semana lo tiene—.
+   *
+   * Sin esto, la barra de desplazamiento se quedaba donde estaba: pasabas de
+   * semana y aparecías en el domingo de la nueva, sin haber visto el lunes. Era
+   * lo que hacía que el cambio no se notara, porque lo que había delante del
+   * dedo seguía siendo el final de una semana.
+   */
+  const tramo = getLocalDateString(days[0])
+  useEffect(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    const hoy = scroller.querySelector<HTMLElement>('[data-hoy="1"]')
+    if (!hoy) { scroller.scrollLeft = 0; return }
+    // Con `getBoundingClientRect` y no con `offsetLeft`: la columna es
+    // `relative`, así que su `offsetParent` no es el contenedor que se desliza.
+    scroller.scrollLeft += hoy.getBoundingClientRect().left - scroller.getBoundingClientRect().left - CANAL_HORAS
+  }, [tramo])
+
+  /**
+   * Pasar de tramo con el dedo, **cediendo el gesto al eje** mientras quede
+   * semana que recorrer: a 390 px las siete columnas no caben, así que arrastrar
+   * a lo ancho es lo que sirve para llegar al viernes. Solo cuando ya se está en
+   * el borde el mismo gesto pasa a la semana de al lado, que es como se comporta
+   * cualquier carrusel dentro de otro.
+   */
+  const desliz = useSwipe(onPrev, onNext, direccion => {
+    const scroller = scrollerRef.current
+    if (!scroller) return true
+    const margen = 4
+    return direccion < 0
+      ? scroller.scrollLeft <= margen
+      : scroller.scrollLeft >= scroller.scrollWidth - scroller.clientWidth - margen
+  })
 
   return (
     <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
       {/* Las tres rejillas —días, todo el día y el eje— comparten un solo
           contenedor que se desliza a lo ancho: si cada una tuviera el suyo, la
           cabecera se quedaría quieta mientras las horas se mueven. */}
-      <div className="overflow-x-auto">
+      <div ref={scrollerRef} className="overflow-x-auto" {...desliz}>
       {/* Cabecera de columnas: qué día es cada una. **Solo con varias**: en la
           vista de un día, la cabecera del calendario ya pone "Jueves, 27 de
           agosto" y repetirlo aquí es decirlo dos veces seguidas. */}
       {days.length > 1 && (
-      <div className="grid border-b border-hairline" style={{ gridTemplateColumns: columnas }}>
-        <span aria-hidden />
-        {days.map(day => {
+      <div className="grid border-b border-hairline" style={{ gridTemplateColumns: columnas, minWidth: anchoMinimo }}>
+        <span className={CANAL_FIJO + ' bg-white'} style={ESTILO_CANAL} aria-hidden />
+        {days.map((day, i) => {
           const hoy = isToday(day)
           return (
-            <div key={day.toISOString()} className="flex flex-col items-center gap-0.5 py-2">
+            <div key={day.toISOString()} className="flex flex-col items-center gap-0.5 py-2" style={{ gridColumn: i + 2, gridRow: 1 }}>
               <span className={`text-[10px] font-bold uppercase tracking-widest ${hoy ? 'text-accent' : 'text-muted'}`}>
                 {capitalize(format(day, days.length === 1 ? 'EEEE' : 'EEE', { locale: es }))}
               </span>
@@ -265,15 +339,22 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
           no ocurren a una hora. La franja solo aparece si hay algo, para no
           gastar una banda fija en la mayoría de los días, que no tienen nada. */}
       {hayAlgoArriba && (
-        <div className="grid border-b border-hairline bg-canvas/50" style={{ gridTemplateColumns: columnas }}>
+        <div className="grid border-b border-hairline bg-canvas/50" style={{ gridTemplateColumns: columnas, minWidth: anchoMinimo }}>
           {/* Sin `uppercase` ni `tracking`: el canal mide 56 px y "TODO EL DÍA"
               en versalitas espaciadas partía en dos líneas y se comía el alto de
               la franja. */}
-          <span className="flex items-center justify-end whitespace-nowrap pr-2 text-[9px] font-bold text-faint">
-            Todo el día
+          <span
+            className={CANAL_FIJO + ' flex items-center justify-end whitespace-nowrap bg-white pr-2 text-[9px] font-bold text-faint'}
+            style={ESTILO_CANAL}
+          >
+            {/* El fondo va en dos capas porque el de la franja es translúcido:
+                blanco en la celda, para que no se transparente la columna que
+                pasa por debajo, y encima el mismo `bg-canvas/50` de la fila. */}
+            <span className="absolute inset-0 bg-canvas/50" aria-hidden />
+            <span className="relative">Todo el día</span>
           </span>
-          {porDia.map(({ day, festivos, ausencias, cumples: cumplesDelDia, todoElDia, tasks: delDia }) => (
-            <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1">
+          {porDia.map(({ day, festivos, ausencias, cumples: cumplesDelDia, todoElDia, tasks: delDia }, i) => (
+            <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1" style={{ gridColumn: i + 2, gridRow: 1 }}>
               {/* Sin chip: la trama de la columna ya dice que es festivo. Aquí
                   queda su nombre, que es la otra mitad de la respuesta. */}
               {festivos.map(event => holidayName(event) && (
@@ -342,9 +423,13 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
             encima del eje y la última por debajo. Sin él se cortaban las dos. */}
         <div
           className="grid py-3"
-          style={{ gridTemplateColumns: columnas, ['--alto-hora' as string]: altoHora }}
+          style={{ gridTemplateColumns: columnas, minWidth: anchoMinimo, ['--alto-hora' as string]: altoHora }}
         >
-          <div className="relative" style={{ height: alto }}>
+          {/* El canal de las horas **no se va con el desliz**: sin él, recorrer
+              la semana a lo ancho dejaba los bloques sin ninguna referencia de a
+              qué hora eran. Queda pegado a la izquierda y las columnas pasan por
+              debajo. */}
+          <div className={CANAL_FIJO + ' bg-white'} style={{ ...ESTILO_CANAL, height: alto }}>
             {horas.map((hora, i) => (
               <span
                 key={hora}
@@ -356,14 +441,15 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
             ))}
           </div>
 
-          {porDia.map(({ day, bloques, festivos }) => (
+          {porDia.map(({ day, bloques, festivos }, i) => (
             <div
               key={day.toISOString()}
+              data-hoy={isToday(day) ? '1' : undefined}
               // La misma trama que en la rejilla: sábado, domingo y festivo.
-              className={`relative border-l border-hairline ${
+              className={`relative ${i > 0 ? 'border-l border-hairline' : ''} ${
                 isWeekend(day) || festivos.length > 0 ? 'dia-libre' : ''
               }`}
-              style={{ height: alto }}
+              style={{ height: alto, gridColumn: i + 2, gridRow: 1 }}
             >
               {horas.map((hora, i) => (
                 <span

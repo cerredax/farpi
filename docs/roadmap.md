@@ -255,10 +255,13 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
 
 - [ ] **Un teléfono de verdad.** Los cuatro puntos abiertos de la Fase 2. Es lo
   primero, porque es lo que puede sacar un fallo que no ve ninguna herramienta.
-- [ ] **Notificaciones push.** El código está entero y las claves VAPID **ya están
-  generadas en local**; falta confirmarlas en Vercel, redesplegar y, sobre todo,
-  **probarlas**: ese camino no se ha recorrido nunca de punta a punta. Ver
-  `docs/notificaciones.md`.
+- ✅ **Notificaciones push, probadas de punta a punta** el 28-08-2026: activar desde
+  Ajustes con una cuenta real, suscripción guardada y cron devolviendo
+  `sent: 1, fallidos: 0`. Las claves VAPID estaban ya en Vercel. Por el camino salió
+  el fallo que lo tenía parado —el service worker podía no registrarse, y
+  `serviceWorker.ready` no rechaza nunca— contado en `docs/notificaciones.md`.
+  **Queda un cabo**: el `CRON_SECRET` de Vercel no coincide con el local, así que la
+  ejecución de las 07:00 responde 401 y no envía nada (ver más abajo).
 - [ ] **Enterarse cuando la casa se cae.** El 28-08-2026 Supabase tuvo una caída de
   latencia (incidencia abierta a las 01:38 UTC, "additional latency and error rates")
   y Nido se quedó **inservible durante horas sin que nada lo dijera**: el middleware

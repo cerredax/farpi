@@ -128,13 +128,13 @@ nada ni saber que hay un Drive detrás**.
 - ✅ Aviso con nombre cuando la conexión del dueño se cae, y al quitar a un miembro
   que tiene documentos subidos.
 - ✅ Esquema aplicado en el SQL Editor y revalidado el 27-08-2026: **80/80**.
-- [ ] Google Cloud: Drive API, cliente OAuth y consentimiento **"In production"** — en
+- ✅ Google Cloud: Drive API, cliente OAuth y consentimiento **"In production"** — en
   "Testing" los refresh tokens caducan a los 7 días.
-- [ ] Las cuatro variables en Vercel y volver a desplegar.
+- ✅ Las cuatro variables en Vercel y vuelto a desplegar.
 - ✅ Bucket borrado (27-08-2026), con sus policies y las diez comprobaciones que tenía
   en el arnés de RLS. Los cuatro documentos que había dentro —dos DNI, un certificado
   de nacimiento y una tarjeta sanitaria— se descargaron y verificaron antes, junto con
-  sus fichas; quedan pendientes de volver a subir ya con Drive.
+  sus fichas, y ya están vueltos a subir con Drive.
 - [ ] QA a mano del flujo entero con dos cuentas (`docs/testing-checklist.md` §8.1).
 
 ## Fase 7 - Invitaciones reales ✅

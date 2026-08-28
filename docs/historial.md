@@ -64,6 +64,12 @@ los cumpleaños del mes entero y obligaba a elegir entre ver el mes o verlos; es
 pliega una lista que sigue ahí, contada y a un toque. Y lo que dice la rejilla no cambia:
 la raya bajo el día sigue avisando de que alguien no está.
 
+Y van en **su propia tarjeta**, no dentro de la del calendario: colgando de la rejilla se
+leían como una parte más de ella, y no lo son —el calendario dice qué días son y esto dice
+cómo es el mes—. La separación es la mínima que se nota: el hueco de `mt-2` y el borde de
+la tarjeta. Si no hay ni ausencias ni cumpleaños la tarjeta no se pinta, que si no queda
+una caja blanca vacía debajo del mes.
+
 Comprobado en el navegador, plegado y abierto, con una captura de cada estado. Tres tests
 daban por visible el contenido del bloque y ahora lo abren antes (`abrirBloque`, en
 `e2e/vistas.ts`).

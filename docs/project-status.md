@@ -231,12 +231,11 @@ Las dos que había aquí se cerraron el 06-08-2026:
 ### Funcionalidades que faltan, no riesgos
 
 1. **Notificaciones push**: probadas de punta a punta el 28-08-2026 con una cuenta
-   real (`sent: 1, fallidos: 0`), con las claves VAPID ya en Vercel. Quedan dos
-   cabos: **el `CRON_SECRET` de Vercel no coincide con el local** —el cron de las
-   07:00 responde 401 y hoy no enviaría nada— y **está pendiente restaurar el
-   arreglo del service worker** (`git revert 652ce96`), que se revirtió el mismo día
-   por una caída de Supabase que resultó no tener nada que ver. Ver
-   `docs/notificaciones.md`.
+   real (`sent: 1, fallidos: 0`), con las claves VAPID ya en Vercel. El
+   `CRON_SECRET` de Vercel, desalineado con el local, ya está igualado y
+   comprobado. Queda un cabo: **está pendiente restaurar el arreglo del service
+   worker** (`git revert 652ce96`), que se revirtió el mismo día por una caída de
+   Supabase que resultó no tener nada que ver. Ver `docs/notificaciones.md`.
 2. ~~**Backup/export de datos de la familia.**~~ **Hecho el 27-08-2026** (ver
    "Copia de seguridad" en `docs/historial.md`). Lo que sigue siendo verdad, y por lo
    que era insustituible: con

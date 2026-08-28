@@ -260,8 +260,8 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   `sent: 1, fallidos: 0`. Las claves VAPID estaban ya en Vercel. Por el camino salió
   el fallo que lo tenía parado —el service worker podía no registrarse, y
   `serviceWorker.ready` no rechaza nunca— contado en `docs/notificaciones.md`.
-  **Queda un cabo**: el `CRON_SECRET` de Vercel no coincide con el local, así que la
-  ejecución de las 07:00 responde 401 y no envía nada (ver más abajo).
+  El cabo que quedaba —el `CRON_SECRET` de Vercel desalineado con el local— ya
+  está resuelto (ver más abajo).
 - [ ] **Enterarse cuando la casa se cae.** El 28-08-2026 Supabase tuvo una caída de
   latencia (incidencia abierta a las 01:38 UTC, "additional latency and error rates")
   y Nido se quedó **inservible durante horas sin que nada lo dijera**: el middleware
@@ -272,7 +272,7 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
 
   Cuatro cosas, de más barata a menos, y las dos primeras valen por sí solas:
 
-  1. **Suscribirse al estado de Supabase** (status.supabase.com, botón *Subscribe*).
+  1. ✅ **Suscribirse al estado de Supabase** (status.supabase.com, botón *Subscribe*).
      Coste cero y habría contestado la pregunta en un minuto.
   2. ✅ **Que la app lo diga** (28-08-2026). `getUser()` tiene cinco segundos y un
      `catch` en `src/lib/supabase/middleware.ts`; si se pasa, las páginas públicas se
@@ -295,10 +295,9 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   Lo que **no** hay que hacer: montar telemetría de errores del cliente. Es una app
   familiar con datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo
   que resuelve.
-- [ ] **`CRON_SECRET` desalineado.** El de Vercel no es el mismo que el de
-  `.env.local`: llamar al cron de producción con el secreto local devuelve **401**
-  (comprobado el 28-08-2026). Mientras siga así, la ejecución de las 07:00 no envía
-  ningún recordatorio. Igualar los dos y comprobarlo con una llamada a mano.
+- ✅ **`CRON_SECRET` alineado.** El de Vercel no coincidía con el de `.env.local`
+  (comprobado el 28-08-2026, la llamada de prueba devolvía 401); igualado y
+  comprobado con una llamada a mano.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
   de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
 - ✅ **RLS revalidado** por última vez el 27-08-2026: **79/79**, con el esquema

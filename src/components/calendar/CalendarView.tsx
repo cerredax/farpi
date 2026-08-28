@@ -377,24 +377,41 @@ export function CalendarView() {
                     />
                   )}
 
-                  <Availability
-                    ausencias={ausenciasVisibles}
-                    kids={kids}
-                    members={members}
-                    onEdit={openEdit}
-                  />
-
-                  {/* Los cumpleaños, debajo de las ausencias y con su misma
-                      forma: los dos dicen cómo es el mes y ninguno de los dos es
-                      algo que hacer ese día. Van los últimos porque una ausencia
-                      cambia los planes de la casa y un cumpleaños se felicita. */}
-                  <Birthdays
-                    cumples={cumplesVisibles}
-                    kids={kids}
-                    members={members}
-                    onEdit={openEdit}
-                  />
                 </Card>
+
+                {/* Los dos vecinos del mes, en **su propia tarjeta** y no dentro
+                    de la del calendario (28-08-2026). Colgando de la rejilla se
+                    leían como una parte más de ella, y no lo son: el calendario
+                    dice qué días son y esto dice cómo es el mes. La separación
+                    es la mínima que se nota —el hueco de `mt-2` y el borde de la
+                    tarjeta—, que es justo lo que hacía falta: son vecinos, no
+                    otra pantalla.
+
+                    Si no hay ni ausencias ni cumpleaños la tarjeta no se pinta:
+                    los dos bloques devuelven `null` y quedaría una caja blanca
+                    vacía debajo del mes. */}
+                {(ausenciasVisibles.length > 0 || cumplesVisibles.length > 0) && (
+                  <Card padded={false} className="mt-2">
+                    <Availability
+                      ausencias={ausenciasVisibles}
+                      kids={kids}
+                      members={members}
+                      onEdit={openEdit}
+                    />
+
+                    {/* Los cumpleaños, debajo de las ausencias y con su misma
+                        forma: los dos dicen cómo es el mes y ninguno de los dos
+                        es algo que hacer ese día. Van los últimos porque una
+                        ausencia cambia los planes de la casa y un cumpleaños se
+                        felicita. */}
+                    <Birthdays
+                      cumples={cumplesVisibles}
+                      kids={kids}
+                      members={members}
+                      onEdit={openEdit}
+                    />
+                  </Card>
+                )}
               </div>
             </div>
 

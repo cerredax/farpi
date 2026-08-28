@@ -36,7 +36,12 @@ export function SeccionPlegable({ titulo, cuantos, children }: SeccionPlegablePr
   const [abierto, setAbierto] = useState(false)
 
   return (
-    <div className="border-t border-hairline px-3 py-1">
+    // El filete de arriba solo separa un bloque del otro: el primero de la
+    // tarjeta ya tiene el borde de la tarjeta encima, y dos rayas pegadas se
+    // veían como un doble marco. `first:` funciona aunque el otro bloque no se
+    // pinte —devuelve `null`, así que no deja nodo— y entonces el que quede es
+    // el primero.
+    <div className="border-t border-hairline first:border-t-0 px-3 py-1">
       {/* El patrón de siempre para esto: el título **es** el botón, no lleva uno
           al lado. Así quien navega por encabezados sigue encontrando el bloque y
           quien va con el dedo tiene toda la fila para abrirlo. */}

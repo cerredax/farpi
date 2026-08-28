@@ -6,10 +6,13 @@ import { Loader2, Trash2 } from 'lucide-react'
 import { signOut } from '@/lib/supabase/client'
 
 /**
- * Borrar cuenta, separada de AccountActions y movida a Legal.
+ * Borrar cuenta, al final de la pestaña Cuenta y separada de `AccountActions`.
  *
- * Va aparte y en rojo a propósito: no es una acción más de una lista de
- * ajustes normales, y tiene que costar confundirla con cerrar sesión.
+ * Estuvo un tiempo en Legal para que no se confundiera con cerrar sesión, que
+ * era la fila de justo encima. Desde que cerrar sesión vive en el menú de la
+ * cuenta (28-08-2026) no hay con qué confundirla, y buscarla en Legal no se le
+ * ocurre a nadie. Lo que se mantiene es la separación visual: tarjeta aparte, en
+ * rojo y con confirmación, porque no es una acción más de una lista de ajustes.
  */
 export function DeleteAccountCard() {
   const router = useRouter()

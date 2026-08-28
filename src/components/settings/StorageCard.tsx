@@ -7,12 +7,19 @@ import { useStore } from '@/lib/store-context'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 
 /**
- * Google Drive en Ajustes.
+ * Google Drive en Ajustes, la pestaña "Sincronización" entera.
  *
- * **Solo aparece si hay algo que enseñar**: quien nunca ha subido un documento no
- * tiene aquí ninguna tarjeta, ni un botón de conectar. Conectar se ofrece donde
- * hace falta —al ir a subir— y no en una lista de ajustes que se recorre con otro
- * objetivo. Esto es para lo de después: ver con qué cuenta quedó y poder soltarla.
+ * Hasta el 28-08-2026 solo aparecía si había algo que enseñar: quien nunca había
+ * subido un documento no veía aquí nada, porque conectar se ofrece donde hace
+ * falta —al ir a subir— y no en una lista de ajustes que se recorre con otro
+ * objetivo. Eso valía cuando a la pestaña se llegaba de paso; desde que el menú
+ * de la cuenta la nombra, quien entra se encuentra una sección vacía, que es
+ * peor que la tarjeta que se quería ahorrar. Ahora siempre dice algo: si no hay
+ * Drive conectado, qué es esto y el botón de conectarlo; si lo hay, con qué
+ * cuenta quedó y cómo soltarla.
+ *
+ * Lo que no cambia es dónde se ofrece de verdad: al subir un documento se sigue
+ * ofreciendo conectar, sin obligar a pasar por aquí.
  */
 export function StorageCard() {
   const { storageConnection, reloadStorageConnection, connectStorageUrl, disconnectStorage } = useStore()
@@ -24,10 +31,11 @@ export function StorageCard() {
     void reloadStorageConnection()
   }, [reloadStorageConnection])
 
-  // Ni mientras se pregunta ni cuando no hay nada conectado: en los dos casos, no
-  // hay nada que contar y una tarjeta vacía es ruido en una pantalla que ya es larga.
+  // Mientras se pregunta, nada: enseñar "no hay nada conectado" y cambiarlo medio
+  // segundo después es peor que esperar. En demo tampoco, que no hay proveedor.
   if (!storageConnection || storageConnection.demo) return null
-  if (!storageConnection.conectada && !storageConnection.revocada) return null
+
+  const sinConectar = !storageConnection.conectada && !storageConnection.revocada
 
   async function desconectar() {
     setOcupado(true)
@@ -39,6 +47,34 @@ export function StorageCard() {
     } finally {
       setOcupado(false)
     }
+  }
+
+  if (sinConectar) {
+    return (
+      <Card className="space-y-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-canvas text-muted">
+            <HardDrive size={18} strokeWidth={2.3} />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-ink">Google Drive</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
+              Los documentos que subas se guardan en tu propio Drive, no en Nido. La familia los
+              ve igual sin conectar nada: conectar hace falta para subir, no para mirar.
+            </p>
+          </div>
+        </div>
+
+        {connectStorageUrl && (
+          <a
+            href={connectStorageUrl}
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+          >
+            Conectar Google Drive
+          </a>
+        )}
+      </Card>
+    )
   }
 
   return (

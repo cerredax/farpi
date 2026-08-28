@@ -1427,6 +1427,12 @@ lleva las cinco secciones de Ajustes, cada una a su pestaña, y cerrar sesión a
 - **El nombre accesible del botón es "Cuenta de …" y no su texto**, que llevaba dentro el
   de la casa —"Familia de Omar, Sofía y Ana"— y hacía que un
   `getByRole('button', { name: 'Sofía' })` de la suite encontrara dos cosas.
+- **Dos secciones se recolocan al nombrarlas el menú.** "Sincronización" estaba vacía para
+  quien no tuviera Drive conectado —la tarjeta solo se pintaba si había algo que contar—, y
+  eso valía cuando se llegaba de paso, no cuando el menú la anuncia: ahora dice siempre qué
+  es y ofrece conectar. Y **borrar cuenta vuelve de Legal a Cuenta**: estaba en Legal para
+  no confundirla con cerrar sesión, que era la fila de encima, y cerrar sesión ya no vive
+  ahí. Sigue aparte, en rojo y con confirmación.
 - **Verificado en el navegador** con el build servido en el 3100 en modo demo, no con
   `npm run dev`: sigue habiendo un dev server ocupando la carpeta y Next 16 no deja
   levantar otro. `npm run build && npx next start -p 3100` con los placeholders de demo

@@ -270,13 +270,20 @@ export function SettingsView() {
             <BackupCard />
 
             {!IS_DEMO_MODE && <AccountActions />}
+
+            {/* Borrar cuenta, al final de su propia pestaña (28-08-2026). Estuvo
+                en Legal para que no se confundiera con cerrar sesión, que vivía
+                justo encima; ahora cerrar sesión está en el menú de la cuenta y
+                ya no hay con qué confundirla, así que vuelve donde se busca. La
+                separación sigue siendo visual: tarjeta aparte, en rojo y con
+                confirmación. */}
+            {!IS_DEMO_MODE && <DeleteAccountCard />}
           </Bloque>
         </div>
 
         {!IS_DEMO_MODE && (
           <div id="panel-sincronizacion" role="tabpanel" aria-labelledby="tab-sincronizacion" hidden={pestañaActiva !== 'sincronizacion'} className="space-y-7">
             <Bloque titulo="Sincronización">
-              {/* Solo se pinta si esta persona tiene (o tuvo) Drive conectado. */}
               <StorageCard />
             </Bloque>
           </div>
@@ -292,8 +299,6 @@ export function SettingsView() {
                 Términos de servicio <span className="text-faint">›</span>
               </Link>
             </div>
-
-            {!IS_DEMO_MODE && <DeleteAccountCard />}
           </Bloque>
         </div>
 

@@ -1068,6 +1068,15 @@ solo la URL, porque el menú entra por `?seccion=` sin desmontar la pantalla y c
 fuentes de verdad había que sincronizarlas a mano. Las pestañas escriben la suya con
 `replace`, para no llenar el historial de pasos atrás dentro de la misma pantalla.
 
+Nombrar las secciones obligó a arreglar dos. **Sincronización** estaba vacía para quien no
+tuviera Drive conectado: la tarjeta solo se pintaba si había algo que contar, porque
+conectar se ofrece donde hace falta —al ir a subir— y no en una lista de ajustes. Eso valía
+cuando a la pestaña se llegaba de paso; anunciada en el menú, una sección vacía es peor que
+la tarjeta que se ahorraba, así que ahora dice siempre qué es Drive y ofrece conectarlo. Y
+**borrar cuenta vuelve de Legal a Cuenta**: se había ido a Legal para que no se confundiera
+con cerrar sesión, que era la fila de justo encima, y cerrar sesión ya no vive ahí. Sigue
+siendo una tarjeta aparte, en rojo y con confirmación.
+
 El nombre de la casa no sale en la fila. Estuvo un rato bajo el de la persona y confundía
 las dos cosas —quién eres y en qué casa estás—; se dice en Ajustes → Familia, que es donde
 se cambia.

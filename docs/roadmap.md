@@ -274,12 +274,13 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
 
   1. **Suscribirse al estado de Supabase** (status.supabase.com, botón *Subscribe*).
      Coste cero y habría contestado la pregunta en un minuto.
-  2. **Que la app lo diga.** Poner límite de espera a `getUser()` en
-     `src/lib/supabase/middleware.ts` y enseñar una pantalla honesta —"Nido no está
-     disponible ahora mismo"— en vez de un logo eterno. No arregla la caída, pero la
-     hace legible: es la misma lección del botón de "Guardando…" (ver
-     `docs/notificaciones.md`), que **una espera sin final es peor que un error**.
-     La RLS no se toca: el middleware es experiencia de uso, no seguridad.
+  2. ✅ **Que la app lo diga** (28-08-2026). `getUser()` tiene cinco segundos y un
+     `catch` en `src/lib/supabase/middleware.ts`; si se pasa, las páginas públicas se
+     sirven igual, las rutas API dan un 503 con JSON y el resto enseña
+     `/no-disponible` —503 por `rewrite`, sin cambiar la URL, para que recargar
+     reintente donde estabas—. **No se manda al login**: parecería que se ha caído tu
+     sesión. La RLS no se toca: el middleware es experiencia de uso, no seguridad. El
+     relato, en `docs/historial.md`.
   3. **Una ruta `/api/salud`** que mida Supabase (auth y datos) y devuelva los tiempos.
      Sin datos de nadie dentro, que es pública por definición.
   4. **Un vigía externo gratuito** (UptimeRobot o similar) apuntando a esa ruta cada

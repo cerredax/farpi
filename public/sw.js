@@ -33,12 +33,17 @@ self.addEventListener('fetch', event => {
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/auth')) return
 
   // Navegaciones: intenta red, cachea la respuesta y cae a /offline si falla.
+  // Solo se guarda lo que salió bien: desde que existe la pantalla de "Nido no
+  // está disponible" (un 503 servido en la URL que pediste), cachear cualquier
+  // respuesta dejaría la avería pegada a /home hasta la siguiente visita buena.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(res => {
-          const copy = res.clone()
-          caches.open(CACHE).then(cache => cache.put(request, copy))
+          if (res.ok) {
+            const copy = res.clone()
+            caches.open(CACHE).then(cache => cache.put(request, copy))
+          }
           return res
         })
         .catch(() => caches.match(request).then(cached => cached || caches.match(OFFLINE_URL))),

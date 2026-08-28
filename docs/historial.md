@@ -10,6 +10,49 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-28
 
+### Cuando Supabase no contesta, Nido lo dice (28-08-2026)
+
+Esa misma mañana una incidencia de Supabase dejó la app inservible durante horas sin
+que nada lo dijera: `supabase.auth.getUser()` no volvía y con él se colgaba toda ruta
+con sesión —de 150 a 224 segundos, contra 3 ms sin ella—, así que quien entraba veía el
+logo de "Cargando Nido" para siempre. Era el punto 2 de los cuatro que quedaron
+apuntados en la Fase 9, y el único que cambia lo que ve la familia.
+
+Ahora esa llamada tiene **cinco segundos** (`LIMITE_AUTH_MS`) y un `catch`. Si se pasa o
+revienta, el proxy no adivina: distingue **"no hay nadie"** —que es una respuesta
+perfectamente normal, la de quien no ha entrado— de **"no contesta"**, que es la caída.
+De ahí que sea un `Sesion` de dos estados y no un `user | null`.
+
+Con Supabase caído, cada ruta hace lo suyo:
+
+- Las **páginas públicas** se sirven igual: `/privacidad` y `/terminos` no dependen de
+  Supabase, y son requisito para publicar en Google Play.
+- Las **rutas API** contestan **503** con un JSON, para que quien llamó lo distinga de
+  un fallo propio.
+- **Todo lo demás** enseña `/no-disponible`, un **503 por `rewrite`**: la URL no cambia,
+  así que recargar reintenta donde estabas.
+
+Lo que se decidió **no** hacer: mandar al login. Es lo que sale solo del código de
+antes —sin usuario, al login—, y es justo lo peor: parecería que se te ha caído la
+sesión y acabarías escribiendo la contraseña contra un servidor que no responde. Dejar
+pasar no abre ningún hueco, porque quien manda sobre los datos es la RLS y no este
+proxy; el middleware es experiencia de uso.
+
+De propina, el **service worker deja de cachear lo que no salió bien**. Cacheaba
+cualquier respuesta de navegación, y con la pantalla nueva eso significaba dejar la
+avería pegada a `/home` hasta la siguiente visita buena.
+
+Verificado contra el build servido, no contra `dev`, y con la caída **simulada de
+verdad** (una promesa que no vuelve nunca en lugar de `getUser`), porque el primer
+intento no probaba nada: sin cookies, `getUser()` resuelve sin tocar la red y el
+temporizador nunca ganaba la carrera. Con la caída puesta: `/home` y `/calendar` dan 503
+con la pantalla y sin redirigir, `/privacidad` y `/terminos` siguen en 200, y
+`/api/documents/providers` devuelve el 503 con su JSON. Sin la caída, todo se comporta
+como antes. La pantalla, además, revisada en captura a 390 px.
+
+Quedan los otros tres puntos de la Fase 9: suscribirse al estado de Supabase, la ruta
+`/api/salud` y un vigía externo que la mire.
+
 ### El calendario se ordena: cumpleaños aparte, flechas quietas y desliz (28-08-2026)
 
 Cuatro cosas del calendario, todas de uso y ninguna de datos.

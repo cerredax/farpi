@@ -109,7 +109,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Los sheets validan con `src/lib/validators.ts` en lugar de comprobaciones ad-hoc; `EventSheet` ya bloquea hora de fin anterior a la de inicio.
 - Métodos de repo sin uso retirados del contrato: `getTodayEvents`, `getUpcomingEvents`, `getPendingItems` (las pantallas derivan con `selectors.ts`).
 - Paleta tokenizada: de 54 colores sueltos a 18, y de 109 apariciones a 36. Los tonos casi idénticos (seis verdes claros, cinco blancos cálidos) se unificaron en tokens de `globals.css`. Lo que queda literal son datos (paleta de hijos, prioridades), marca de terceros (logo de Google) y cuatro decorativos de un solo uso.
-- PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
+- PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`. El service worker **solo cachea navegaciones que salieron bien** (28-08-2026): cacheaba cualquier respuesta, y con la pantalla de avería eso dejaba el error pegado a `/home`.
+- **Cuando Supabase no contesta, la app lo dice** (28-08-2026). `getUser()` tiene cinco
+  segundos y un `catch` en `src/lib/supabase/middleware.ts`, que distingue "no hay nadie"
+  —normal— de "no contesta". Con Supabase caído: las páginas públicas se sirven igual, las
+  rutas API dan 503 con JSON y el resto enseña `/no-disponible`, un 503 por `rewrite` que
+  no cambia la URL, así que recargar reintenta donde estabas. No se manda al login a
+  propósito. Antes, una caída dejaba el logo de "Cargando Nido" para siempre.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
 - **394 tests con el runner de Playwright**, sin dependencias nuevas. Este es el

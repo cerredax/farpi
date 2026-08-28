@@ -431,7 +431,7 @@ La navegación es lo único que cambia de sitio: `BottomNav` desaparece con `lg:
 la columna lleva las **seis** secciones (`SECCIONES`), y la barra de abajo cinco más
 "Más" (`SECCIONES_MOVIL`, que se deriva de la anterior quitando Documentos). Ajustes no
 es una sección en ninguna de las dos: en escritorio se entra por el pie de `SideNav`
-(`AccountMenu`) y en móvil por "Más" (`MoreMenu`); a 390 px no caben siete etiquetas. `AppShell` monta `SideNav` **después** de
+(`AccountFooter`) y en móvil por "Más" (`MoreMenu`); a 390 px no caben siete etiquetas. `AppShell` monta `SideNav` **después** de
 `TopBar` —con el mismo `z-50`, lo último se pinta encima y la columna tiene que tapar la
 esquina de la cabecera— y **antes** de `main`, para que el velo de un sheet la cubra al
 abrirse.
@@ -1043,19 +1043,22 @@ cede el recuento a "Personas" (donde además dice las invitaciones), la lista de
 solo sale si hay más de una, y las dos acciones normales de la cuenta pasan a ser filas
 de una tarjeta en vez de dos tarjetas de una línea.
 
-**A Ajustes se entra por la cuenta, no por un enlace suelto** (28-08-2026). Había un
-enlace "Ajustes" con su rueda en el pie de `SideNav` y al final de Inicio. Ahora es
-`AccountMenu`: una fila al pie de la barra lateral con la inicial y el nombre. Arregla dos
-cosas: la app no decía en ninguna pantalla con qué cuenta estabas —en una casa con dos
-adultos y un móvil compartido eso importa— y cerrar sesión vivía a cuatro toques, dentro
-de la pestaña Cuenta de la pantalla a la que menos se entra.
+**En escritorio, el pie de la columna dice quién eres y lleva a Ajustes y a la salida**
+(28-08-2026). Son tres filas (`AccountFooter`): el nombre con su inicial, que es un
+letrero y no abre nada; Ajustes, que va a `/settings`; y cerrar sesión, bajo una línea.
+Arregla dos cosas que tenía el enlace "Ajustes" suelto que había antes: la app no decía en
+ninguna pantalla con qué cuenta estabas —en una casa con dos adultos y un móvil compartido
+eso importa— y cerrar sesión vivía a cuatro toques, dentro de la pestaña Cuenta de la
+pantalla a la que menos se entra. Ese mismo día la fila de la cuenta llegó a ser un botón
+que abría un sheet con las secciones de Ajustes dentro; duró lo que el equivalente de
+móvil, porque en una columna con sitio de sobra el menú solo añadía un clic y un armario
+que abrir delante de las dos únicas cosas que se buscan.
 
 **En móvil se navega por un solo borde: el de abajo** (28-08-2026). Lo anterior estuvo
 también arriba a la derecha de `TopBar`, un círculo con la inicial, y duró un día: eran
 dos sitios donde tocar para salir de las cinco pantallas de siempre, y el de arriba no
 decía a dónde llevaba. Ahora la cabecera de móvil es solo el título, y la sexta pastilla
-de la barra es **"Más"** (`MoreMenu`): Documentos, las cinco secciones de Ajustes y cerrar
-sesión, con la misma forma que el menú de escritorio.
+de la barra es **"Más"** (`MoreMenu`): Documentos, Ajustes y cerrar sesión.
 
 Documentos baja ahí porque es la sección a la que menos se entra —el DNI y el libro de
 familia se miran dos veces al año— y era la única cuya etiqueta no cabía a 390 px: se
@@ -1063,17 +1066,17 @@ escribía "Docs" abajo y "Documentos" al lado. Dentro de "Más" se lee entero y 
 navegaciones lo llaman igual. Esa esquina de la cabecera se había liberado el 26-08-2026
 al quitar la rueda de Ajustes, y vuelve a estar libre.
 
-El menú **no** lleva los ajustes dentro: lleva sus **cinco secciones** —Familia, Casa,
-Cuenta, Sincronización, Legal— y cada una entra directa a su pestaña
-(`/settings?seccion=…`), más cerrar sesión al final. Es la diferencia entre un índice y un
-armario, y es lo que evita el golpe que este repositorio ya se dio dos veces escondiendo
-contenido (el catálogo de las listas, las tareas del día). Lo único que se mudó de verdad
-es cerrar sesión, que no es un ajuste de la casa sino salir de la app.
+El menú llevó un rato las **cinco secciones** de Ajustes sueltas —Familia, Casa, Cuenta,
+Sincronización, Legal—, cada una directa a su pestaña. No funcionó: mezcladas con
+Documentos y con cerrar sesión hacían un menú largo donde no se distinguía a simple vista
+"una pantalla de la app" de "una pestaña dentro de otra pantalla". Ajustes es una fila
+más, como Documentos, y elegir pestaña es cosa de las pestañas. Cerrar sesión sí se mudó
+de verdad, y va aparte: no es un ajuste de la casa, es salir de la app.
 
-La lista de secciones vive en `src/components/settings/pestanas.ts` y la comparten los dos
-menús —`AccountMenu` y `MoreMenu`— y las pestañas de `SettingsView`, que ya no guarda cuál está activa: **la dice la URL** y
-solo la URL, porque el menú entra por `?seccion=` sin desmontar la pantalla y con dos
-fuentes de verdad había que sincronizarlas a mano. Las pestañas escriben la suya con
+La lista de secciones vive en `src/components/settings/pestanas.ts` y la comparten
+`pestañaDesdeUrl` y las pestañas de `SettingsView`, que ya no guardan cuál está activa:
+**la dice la URL** y solo la URL, porque se puede entrar por `?seccion=` sin desmontar la
+pantalla y con dos fuentes de verdad había que sincronizarlas a mano. Las pestañas escriben la suya con
 `replace`, para no llenar el historial de pasos atrás dentro de la misma pantalla.
 
 Nombrar las secciones obligó a arreglar dos. **Sincronización** estaba vacía para quien no

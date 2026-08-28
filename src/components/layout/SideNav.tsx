@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SECCIONES } from './secciones'
-import { AccountMenu } from './AccountMenu'
+import { AccountFooter } from './AccountFooter'
 
 /**
  * La navegación en escritorio: una columna a la izquierda en lugar de la barra
@@ -13,10 +13,9 @@ import { AccountMenu } from './AccountMenu'
  * que la coloque— y manda `BottomNav`, que a su vez desaparece en `lg:hidden`.
  * Las dos son la misma lista de secciones; lo único que cambia es dónde se pone.
  *
- * Al pie, la cuenta (`AccountMenu`), que es por donde se entra a Ajustes desde
- * el 28-08-2026: en móvil la misma fila está al final de Inicio. Y el nombre de
- * la casa arriba, a la altura de `TopBar` (`h-14`), para que las dos cabeceras
- * estén en la misma línea.
+ * Al pie, `AccountFooter`: quién eres, Ajustes y cerrar sesión, cada cosa en su
+ * fila. Y el nombre de la casa arriba, a la altura de `TopBar` (`h-14`), para
+ * que las dos cabeceras estén en la misma línea.
  */
 export function SideNav() {
   const pathname = usePathname()
@@ -51,12 +50,11 @@ export function SideNav() {
         })}
       </ul>
 
-      {/* El pie es la cuenta, no "Ajustes" (28-08-2026). El enlace suelto no
-          decía con quién estabas dentro y dejaba cerrar sesión a cuatro toques,
-          enterrado en una pestaña de Ajustes. Ajustes sigue estando: es la
-          primera fila del menú que abre esta fila. */}
+      {/* Ajustes y cerrar sesión viven aquí abajo y no en la lista de arriba:
+          no son secciones de la casa. Pero son filas de verdad, no un menú que
+          abrir —la columna tiene sitio y esconderlas solo añadía un clic. */}
       <div className="border-t border-hairline px-3 py-3">
-        <AccountMenu />
+        <AccountFooter />
       </div>
     </nav>
   )

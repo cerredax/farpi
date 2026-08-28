@@ -3,10 +3,11 @@ import { IS_DEMO_MODE } from '@/lib/supabase/client'
 /**
  * Las secciones de Ajustes, en un sitio solo.
  *
- * Las usan las pestañas de `SettingsView` y los dos menús que entran directos a
- * cada una: `AccountMenu` (el pie de la barra lateral, en escritorio) y
- * `MoreMenu` ("Más", en la barra de abajo). Si se añade una sección hay que
- * tocar esta lista y el panel correspondiente, no cuatro sitios.
+ * Las usan las pestañas de `SettingsView` y `pestañaDesdeUrl`, que traduce el
+ * `?seccion=` de la URL. La navegación ya no entra a cada una por separado: en
+ * escritorio (`AccountFooter`) y en móvil (`MoreMenu`), Ajustes es una fila que
+ * lleva a `/settings`. Si se añade una sección hay que tocar esta lista y el
+ * panel correspondiente, no cuatro sitios.
  */
 export type PestañaKey = 'familia' | 'casa' | 'cuenta' | 'sincronizacion' | 'legal'
 

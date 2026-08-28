@@ -259,6 +259,37 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   generadas en local**; falta confirmarlas en Vercel, redesplegar y, sobre todo,
   **probarlas**: ese camino no se ha recorrido nunca de punta a punta. Ver
   `docs/notificaciones.md`.
+- [ ] **Enterarse cuando la casa se cae.** El 28-08-2026 Supabase tuvo una caída de
+  latencia (incidencia abierta a las 01:38 UTC, "additional latency and error rates")
+  y Nido se quedó **inservible durante horas sin que nada lo dijera**: el middleware
+  tardaba entre 150 y 224 segundos en cada ruta con sesión —contra 3 ms sin ella—
+  porque `supabase.auth.getUser()` no volvía. Quien entraba veía el logo de "Cargando
+  Nido" para siempre. Nadie se enteró hasta que una persona se quejó, y averiguar la
+  causa costó una mañana entera y un despliegue revertido para nada.
+
+  Cuatro cosas, de más barata a menos, y las dos primeras valen por sí solas:
+
+  1. **Suscribirse al estado de Supabase** (status.supabase.com, botón *Subscribe*).
+     Coste cero y habría contestado la pregunta en un minuto.
+  2. **Que la app lo diga.** Poner límite de espera a `getUser()` en
+     `src/lib/supabase/middleware.ts` y enseñar una pantalla honesta —"Nido no está
+     disponible ahora mismo"— en vez de un logo eterno. No arregla la caída, pero la
+     hace legible: es la misma lección del botón de "Guardando…" (ver
+     `docs/notificaciones.md`), que **una espera sin final es peor que un error**.
+     La RLS no se toca: el middleware es experiencia de uso, no seguridad.
+  3. **Una ruta `/api/salud`** que mida Supabase (auth y datos) y devuelva los tiempos.
+     Sin datos de nadie dentro, que es pública por definición.
+  4. **Un vigía externo gratuito** (UptimeRobot o similar) apuntando a esa ruta cada
+     pocos minutos, con aviso por correo. Tiene que ser externo: si el que vigila se
+     cae con la app, no vigila nada.
+
+  Lo que **no** hay que hacer: montar telemetría de errores del cliente. Es una app
+  familiar con datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo
+  que resuelve.
+- [ ] **`CRON_SECRET` desalineado.** El de Vercel no es el mismo que el de
+  `.env.local`: llamar al cron de producción con el secreto local devuelve **401**
+  (comprobado el 28-08-2026). Mientras siga así, la ejecución de las 07:00 no envía
+  ningún recordatorio. Igualar los dos y comprobarlo con una llamada a mano.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
   de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
 - ✅ **RLS revalidado** por última vez el 27-08-2026: **79/79**, con el esquema

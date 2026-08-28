@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { abrirBloque } from './vistas'
 
 // Escritorio, desde `lg` (1024 px). El resto de la suite corre en un Pixel 7,
 // así que sin esto nada vigilaría el layout ancho: la barra lateral podría
@@ -194,7 +195,10 @@ test.describe('escritorio a 1440 px', () => {
     // Y no se tiñen: el 11 y el 12 de agosto de 2026 son martes y miércoles.
     await expect(page.locator('.dia-libre').filter({ has: celda })).toHaveCount(0)
 
-    // Y el nombre sale una sola vez, en "Vacaciones y descansos".
+    // Y el nombre sale una sola vez, en "Vacaciones y descansos", que nace
+    // plegado: hasta que no se abre, del bloque solo se ve el título.
+    await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(0)
+    await abrirBloque(page, 'Vacaciones y descansos')
     await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
   })
 

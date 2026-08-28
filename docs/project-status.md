@@ -19,7 +19,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   comparte línea con el buscador (28-08-2026: eran dos bandas apiladas encima de la
   lista para dos controles que caben en una). Debajo del mes van los dos bloques que
   dicen cómo es el mes y no qué hacer: "Vacaciones y descansos" y **"Cumpleaños"**
-  (28-08-2026); los cumpleaños salen además en la franja de "todo el día" de las
+  (28-08-2026), los dos **plegados** por defecto y con cuántos hay en el título;
+  los cumpleaños salen además en la franja de "todo el día" de las
   vistas Día y Semana, que no tienen bloque debajo al que mirar. En móvil se pasa
   de mes o de día **arrastrando el dedo**.
 - **Elegir un día del mes enseña qué hay ese día** (28-08-2026). En móvil, debajo

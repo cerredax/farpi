@@ -4,6 +4,7 @@ import { Cake } from 'lucide-react'
 import { extractDate } from '@/lib/date-utils'
 import { eventColor, fondoDePersona } from '@/lib/assignees'
 import { edadEnPalabras } from '@/lib/birthdays'
+import { SeccionPlegable } from './SeccionPlegable'
 import type { Event, Child, FamilyMember } from '@/types'
 
 /**
@@ -21,6 +22,11 @@ import type { Event, Child, FamilyMember } from '@/types'
  * las filas de cada día: lo que **es** el día se dice una vez y aparte, y la
  * lista se queda para lo que hay que hacer. Por eso este bloque vive pegado a
  * "Vacaciones y descansos", con la misma forma: son los dos vecinos del mes.
+ *
+ * Desde el 28-08-2026 el bloque nace **plegado** (`SeccionPlegable`), y eso no
+ * es volver al interruptor de antes: aquel escondía los cumpleaños del mes
+ * entero y había que elegir; esto solo pliega una lista que sigue ahí, contada
+ * en su título y a un toque.
  *
  * Solo los **apuntados**. El cumpleaños de quien es de la casa se deduce de su
  * fecha de nacimiento y se dice en Inicio, que es donde hace falta; no está
@@ -50,10 +56,7 @@ export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
   if (cumples.length === 0) return null
 
   return (
-    <div className="border-t border-hairline px-3 py-2">
-      <h2 className="px-1 pb-1 text-xs font-bold uppercase tracking-widest text-muted">
-        Cumpleaños
-      </h2>
+    <SeccionPlegable titulo="Cumpleaños" cuantos={cumples.length}>
       <ul>
         {cumples.map(cumple => {
           const fecha = parseISO(extractDate(cumple.start_at))
@@ -92,6 +95,6 @@ export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
           )
         })}
       </ul>
-    </div>
+    </SeccionPlegable>
   )
 }

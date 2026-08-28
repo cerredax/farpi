@@ -1,6 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
-import { elegirVista } from './vistas'
+import { abrirBloque, elegirVista } from './vistas'
 
 // Recorre las pantallas en modo demo y verifica que cargan sin errores de
 // consola ni excepciones no capturadas.
@@ -224,10 +224,12 @@ test('unas vacaciones ocupan todos los días del rango', async ({ page }) => {
   await verEnMes(page)
   await expect(page.locator('[aria-pressed][aria-label*="de vacaciones"]')).toHaveCount(7)
 
-  // Y en el bloque, una vez y con nombre: siete días no son siete filas.
+  // Y en el bloque, una vez y con nombre: siete días no son siete filas. El
+  // bloque nace plegado, así que primero hay que abrirlo.
+  await expect(page.getByText('Vacaciones y descansos')).toBeVisible()
+  await abrirBloque(page, 'Vacaciones y descansos')
   const bloque = page.getByRole('button', { name: /Familia de vacaciones/ })
   await expect(bloque).toHaveCount(1)
-  await expect(page.getByText('Vacaciones y descansos')).toBeVisible()
 })
 
 // El rango invertido se rechaza antes de guardar.
@@ -622,6 +624,7 @@ test('un descanso marca todos los días de su rango', async ({ page }) => {
   await expect(page.locator('[aria-pressed][aria-label*="descansando"]')).toHaveCount(2)
 
   // Y una vez en el bloque, con nombre y fechas: dos días no son dos filas.
+  await abrirBloque(page, 'Vacaciones y descansos')
   await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
 })
 

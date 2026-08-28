@@ -16,3 +16,15 @@ export async function elegirVista(page: Page, vista: 'Agenda' | 'Día' | 'Semana
   await page.locator('main button[aria-haspopup="menu"]').click()
   await page.getByRole('menuitemradio', { name: vista, exact: true }).click()
 }
+
+/**
+ * Abre uno de los dos bloques de debajo del mes ("Vacaciones y descansos" o
+ * "Cumpleaños"), que desde el 28-08-2026 nacen plegados. El título es el botón,
+ * y lleva detrás cuántos hay, así que se busca por el principio del nombre.
+ */
+export async function abrirBloque(page: Page, titulo: 'Vacaciones y descansos' | 'Cumpleaños') {
+  await page
+    .getByRole('button', { name: new RegExp(`^${titulo}`), expanded: false })
+    .first()
+    .click()
+}

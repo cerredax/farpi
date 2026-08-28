@@ -5,6 +5,7 @@ import { extractDate, getLocalDateString } from '@/lib/date-utils'
 import { fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { isVacation } from '@/lib/events'
 import { FAMILY_COLOR } from '@/lib/constants'
+import { SeccionPlegable } from './SeccionPlegable'
 import type { Event, Child, FamilyMember } from '@/types'
 
 /**
@@ -67,10 +68,7 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
   if (ausencias.length === 0) return null
 
   return (
-    <div className="border-t border-hairline px-3 py-2">
-      <h2 className="px-1 pb-1 text-xs font-bold uppercase tracking-widest text-muted">
-        Vacaciones y descansos
-      </h2>
+    <SeccionPlegable titulo="Vacaciones y descansos" cuantos={ausencias.length}>
       <ul>
         {ausencias.map(a => {
           const asignado = resolveAssignee(a, members, kids)
@@ -109,6 +107,6 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
           )
         })}
       </ul>
-    </div>
+    </SeccionPlegable>
   )
 }

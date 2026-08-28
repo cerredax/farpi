@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { elegirVista } from './vistas'
+import { abrirBloque, elegirVista } from './vistas'
 
 // Smoke mínimo en modo demo: login demo → /home con datos mock.
 
@@ -124,7 +124,9 @@ test('un cumpleaños de fuera se apunta y sube a la tarjeta de hoy', async ({ pa
 
   // Un cumpleaños no es un plan, así que no baja a la lista: sale en su propio
   // bloque debajo del mes, al lado de "Vacaciones y descansos".
-  await expect(page.getByRole('heading', { name: 'Cumpleaños' })).toBeVisible()
+  // El bloque nace plegado: el título dice que hay uno y se abre quien quiera.
+  await expect(page.getByRole('heading', { name: /Cumpleaños/ })).toBeVisible()
+  await abrirBloque(page, 'Cumpleaños')
   const enElBloque = page.getByRole('button', { name: /Editar el cumpleaños de Abuela Carmen/ })
   await expect(enElBloque).toBeVisible()
   await expect(enElBloque).toContainText('hoy')

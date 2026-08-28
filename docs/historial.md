@@ -10,6 +10,28 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-28
 
+### Los dos bloques del mes nacen plegados (28-08-2026)
+
+"Vacaciones y descansos" y "Cumpleaños" cuentan **cómo es el mes**, no lo que hay que
+hacer hoy, y desplegados empujaban la agenda fuera de la pantalla: en agosto, con unas
+vacaciones y un par de cumpleaños apuntados, entre la rejilla y la primera fila de la
+lista había media pantalla de móvil que casi nunca se estaba leyendo.
+
+Ahora cada uno se anuncia en una línea —el título es el botón, con cuántos hay al lado— y
+se abre quien quiera verlos (`SeccionPlegable`). Siguen siendo **dos y no uno**, que era
+la otra opción sobre la mesa: juntarlos bajo un mismo título obligaba a abrir los
+cumpleaños para saber si alguien está fuera, y plegados ocupan una línea cada uno, que es
+justo lo que se quería ahorrar.
+
+Tampoco es el interruptor "Ver cumpleaños" que se descartó el 28-08-2026: aquel escondía
+los cumpleaños del mes entero y obligaba a elegir entre ver el mes o verlos; esto solo
+pliega una lista que sigue ahí, contada y a un toque. Y lo que dice la rejilla no cambia:
+la raya bajo el día sigue avisando de que alguien no está.
+
+Comprobado en el navegador, plegado y abierto, con una captura de cada estado. Tres tests
+daban por visible el contenido del bloque y ahora lo abren antes (`abrirBloque`, en
+`e2e/vistas.ts`).
+
 ### Elegir un día contesta, y el selector deja de ocupar una banda (28-08-2026)
 
 Dos cosas del calendario en móvil, pensadas antes de tocar nada.

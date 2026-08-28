@@ -45,7 +45,7 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
     <HomeSection
       label="Cumpleaños"
       footer={soloApuntados
-        ? <SectionLink href="/calendar">Ver el calendario</SectionLink>
+        ? <SectionLink href="/calendar">Ver calendario</SectionLink>
         : <SectionLink href="/settings">Ver la familia</SectionLink>}
     >
       <ul className="divide-y divide-hairline">

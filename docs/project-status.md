@@ -64,10 +64,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
   y cerrar una familia entera (un admin, y nunca la última que le queda).
-- Cuenta: el círculo con tu inicial arriba a la derecha en móvil y una fila al pie de la
-  barra lateral en escritorio (`AccountMenu.tsx`, 28-08-2026). Su menú lleva las cinco
-  secciones de Ajustes —cada una a su pestaña, `/settings?seccion=…`— y cerrar sesión.
-  Cambiar contraseña (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes.
+- Cuenta y Ajustes, por sitios distintos según el tamaño (28-08-2026). En escritorio, la
+  fila al pie de la barra lateral con tu inicial y tu nombre (`AccountMenu.tsx`); en móvil,
+  **"Más"**, la sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva además
+  Documentos —que por eso ya no es una pastilla— y deja la cabecera sin ningún icono. Los
+  dos menús llevan las cinco secciones de Ajustes, cada una a su pestaña
+  (`/settings?seccion=…`), y cerrar sesión aparte. Cambiar contraseña
+  (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes.
 - Páginas legales públicas `/privacidad` y `/terminos`.
 - Modo demo con persistencia en `localStorage`.
 

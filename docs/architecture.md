@@ -427,10 +427,11 @@ La app se diseña para el teléfono y crece hacia el escritorio en `lg` (1024 px
 revés. El corte está solo ahí, y lo que hay por debajo no se toca al añadir escritorio.
 
 La navegación es lo único que cambia de sitio: `BottomNav` desaparece con `lg:hidden` y
-`SideNav` (`hidden lg:flex`, 224 px a la izquierda) toma su lugar, con las mismas seis
-secciones. Ajustes no es una de ellas: se entra por el menú de la cuenta (`AccountMenu`),
-que en escritorio es el pie de `SideNav` y en móvil el círculo de la esquina de `TopBar`;
-en la barra de abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después** de
+`SideNav` (`hidden lg:flex`, 224 px a la izquierda) toma su lugar. No enseñan lo mismo:
+la columna lleva las **seis** secciones (`SECCIONES`), y la barra de abajo cinco más
+"Más" (`SECCIONES_MOVIL`, que se deriva de la anterior quitando Documentos). Ajustes no
+es una sección en ninguna de las dos: en escritorio se entra por el pie de `SideNav`
+(`AccountMenu`) y en móvil por "Más" (`MoreMenu`); a 390 px no caben siete etiquetas. `AppShell` monta `SideNav` **después** de
 `TopBar` —con el mismo `z-50`, lo último se pinta encima y la columna tiene que tapar la
 esquina de la cabecera— y **antes** de `main`, para que el velo de un sheet la cubra al
 abrirse.
@@ -1044,16 +1045,23 @@ de una tarjeta en vez de dos tarjetas de una línea.
 
 **A Ajustes se entra por la cuenta, no por un enlace suelto** (28-08-2026). Había un
 enlace "Ajustes" con su rueda en el pie de `SideNav` y al final de Inicio. Ahora es
-`AccountMenu`: en escritorio, una fila al pie de la barra lateral con la inicial y el
-nombre; en móvil, el círculo con la inicial **arriba a la derecha de `TopBar`**, que es
-donde se busca la cuenta en cualquier app y está en las siete pantallas, no solo en
-Inicio. Arregla dos cosas: la app no decía en ninguna pantalla con qué cuenta estabas —en
-una casa con dos adultos y un móvil compartido eso importa— y cerrar sesión vivía a cuatro
-toques, dentro de la pestaña Cuenta de la pantalla a la que menos se entra.
+`AccountMenu`: una fila al pie de la barra lateral con la inicial y el nombre. Arregla dos
+cosas: la app no decía en ninguna pantalla con qué cuenta estabas —en una casa con dos
+adultos y un móvil compartido eso importa— y cerrar sesión vivía a cuatro toques, dentro
+de la pestaña Cuenta de la pantalla a la que menos se entra.
 
-Esa esquina se había liberado el 26-08-2026 justo por lo contrario: era demasiado buena
-para una rueda que se toca dos veces al año. Lo que vuelve no es la rueda; es la cuenta, y
-Ajustes va dentro.
+**En móvil se navega por un solo borde: el de abajo** (28-08-2026). Lo anterior estuvo
+también arriba a la derecha de `TopBar`, un círculo con la inicial, y duró un día: eran
+dos sitios donde tocar para salir de las cinco pantallas de siempre, y el de arriba no
+decía a dónde llevaba. Ahora la cabecera de móvil es solo el título, y la sexta pastilla
+de la barra es **"Más"** (`MoreMenu`): Documentos, las cinco secciones de Ajustes y cerrar
+sesión, con la misma forma que el menú de escritorio.
+
+Documentos baja ahí porque es la sección a la que menos se entra —el DNI y el libro de
+familia se miran dos veces al año— y era la única cuya etiqueta no cabía a 390 px: se
+escribía "Docs" abajo y "Documentos" al lado. Dentro de "Más" se lee entero y las dos
+navegaciones lo llaman igual. Esa esquina de la cabecera se había liberado el 26-08-2026
+al quitar la rueda de Ajustes, y vuelve a estar libre.
 
 El menú **no** lleva los ajustes dentro: lleva sus **cinco secciones** —Familia, Casa,
 Cuenta, Sincronización, Legal— y cada una entra directa a su pestaña
@@ -1062,8 +1070,8 @@ armario, y es lo que evita el golpe que este repositorio ya se dio dos veces esc
 contenido (el catálogo de las listas, las tareas del día). Lo único que se mudó de verdad
 es cerrar sesión, que no es un ajuste de la casa sino salir de la app.
 
-La lista de secciones vive en `src/components/settings/pestanas.ts` y la comparten el menú
-y las pestañas de `SettingsView`, que ya no guarda cuál está activa: **la dice la URL** y
+La lista de secciones vive en `src/components/settings/pestanas.ts` y la comparten los dos
+menús —`AccountMenu` y `MoreMenu`— y las pestañas de `SettingsView`, que ya no guarda cuál está activa: **la dice la URL** y
 solo la URL, porque el menú entra por `?seccion=` sin desmontar la pantalla y con dos
 fuentes de verdad había que sincronizarlas a mano. Las pestañas escriben la suya con
 `replace`, para no llenar el historial de pasos atrás dentro de la misma pantalla.

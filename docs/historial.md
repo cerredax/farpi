@@ -10,6 +10,42 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-28
 
+### En móvil se navega por un solo borde: "Más" en la barra de abajo (28-08-2026)
+
+El círculo de la cuenta que había subido esa misma mañana a la esquina de `TopBar` duró un
+día. Con él, en móvil había **dos** sitios donde tocar para salir de las cinco pantallas
+de siempre —la barra de abajo y esa esquina—, y el de arriba no decía a dónde llevaba: un
+círculo con una inicial no anuncia que dentro estén Ajustes y cerrar sesión.
+
+Ahora la cabecera de móvil es solo el título, y la sexta pastilla de la barra es **"Más"**
+(`MoreMenu`): Documentos, las cinco secciones de Ajustes —cada una a su pestaña, leídas de
+`PESTAÑAS_VISIBLES` y no copiadas a mano— y, en tarjeta aparte, cerrar sesión. Misma forma
+que el menú de escritorio, que no se toca.
+
+**Documentos deja la barra** y baja al menú. Es la sección a la que menos se entra —el DNI
+y el libro de familia se miran dos veces al año— y era además la única cuya etiqueta no
+cabía a 390 px: se escribía "Docs" abajo y "Documentos" al lado, con un campo `abreviado`
+en `secciones.ts` para justificarlo. Ese campo se ha ido: dentro de "Más" se lee entero y
+las dos navegaciones lo llaman igual. La lista de móvil se **deriva** de la de escritorio
+(`SECCIONES_MOVIL`), no se escribe aparte, que es como divergieron la primera vez.
+
+Detalles que costaron algo:
+
+- El sheet se pinta en el `body` por portal. `BottomNav` es `fixed z-50` y crea contexto
+  de apilamiento: dentro de ella, el `z-[60]` del sheet no gana a la propia barra y la
+  última fila del menú quedaba tapada. Es el mismo motivo por el que el menú de la cuenta
+  salía en portal desde `TopBar`.
+- La pastilla la pinta `BottomNav` y el comportamiento lo pone `MoreMenu` (`children`):
+  la sexta no puede *parecerse* a las cinco de al lado, tiene que ser igual, y así sus
+  clases no viven en dos archivos.
+- "Más" no se marca activa en `/docs` ni en `/settings`: no es una pantalla, es por dónde
+  se llega, y marcarla haría creer que hay una sección llamada así.
+- `AccountMenu` pierde la variante `icono` y su portal, que solo usaba la cabecera. En
+  escritorio se queda exactamente igual.
+
+Comprobado en el navegador: barra de seis con la cabecera limpia, y el menú abierto por
+encima de la barra.
+
 ### Los dos bloques del mes nacen plegados (28-08-2026)
 
 "Vacaciones y descansos" y "Cumpleaños" cuentan **cómo es el mes**, no lo que hay que

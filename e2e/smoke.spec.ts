@@ -14,7 +14,20 @@ test('home carga con datos demo y la navegación inferior', async ({ page }) => 
   // La navegación inferior está presente con sus secciones.
   await expect(page.getByRole('link', { name: 'Inicio' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Comidas' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Docs' })).toBeVisible()
+
+  // Documentos ya no es una pastilla de la barra (28-08-2026): está en "Más",
+  // la sexta, junto a las secciones de Ajustes. Es además el único camino a
+  // Ajustes en móvil desde que la cabecera no lleva icono de cuenta, así que se
+  // comprueba entero.
+  await expect(page.getByRole('link', { name: 'Docs' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Más' }).click()
+  const mas = page.getByRole('dialog', { name: 'Más' })
+  for (const fila of ['Documentos', 'Familia', 'Casa', 'Cuenta', 'Legal']) {
+    await expect(mas.getByRole('link', { name: fila })).toBeVisible()
+  }
+  await mas.getByRole('link', { name: 'Documentos' }).click()
+  await expect(page).toHaveURL(/\/docs/)
+  await page.goBack()
 
   // El saludo vive en la cabecera y depende de la hora, así que vale cualquiera
   // de los tres. Se pinta ya en el navegador: en el HTML servido no está.

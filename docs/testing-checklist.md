@@ -23,12 +23,16 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 > desborda a lo ancho o si aparece un control por debajo de 24×24 px. Lo que
 > queda aquí es lo que hay que mirar con el móvil en la mano.
 
-- [ ] La barra de abajo muestra las seis secciones: Inicio, Calendario, Listas, Tareas,
-      Comidas y Docs. Documentos sale abreviado a «Docs» **solo aquí**: a 390 px no cabe
-      entero. En la barra lateral de escritorio se lee «Documentos».
-- [ ] La ruta activa se resalta correctamente.
-- [ ] Ajustes **no** está en la barra de abajo ni en la rueda de la cabecera: vive al
-      final de Inicio, después de todo lo demás (26-08-2026).
+- [ ] La barra de abajo muestra seis pastillas: Inicio, Calendario, Listas, Tareas,
+      Comidas y «Más». Documentos ya no es una de ellas (28-08-2026): está dentro de
+      «Más», con su nombre entero. En la barra lateral de escritorio sí sale, con las
+      otras cinco.
+- [ ] La ruta activa se resalta correctamente. «Más» no se marca activa en /docs ni en
+      /settings: no es una pantalla, es por dónde se llega.
+- [ ] «Más» abre Documentos, las cinco secciones de Ajustes (cuatro en demo, sin
+      Sincronización) y, en su propia tarjeta, cerrar sesión.
+- [ ] La cabecera de móvil no lleva ningún icono a la derecha: ni rueda de Ajustes
+      (26-08-2026) ni círculo de cuenta (28-08-2026). Solo el título.
 - [ ] La barra de abajo no tapa contenido.
 
 ## 3. Inicio

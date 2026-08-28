@@ -7,7 +7,6 @@ import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
 import { getGreeting } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
-import { AccountMenu } from './AccountMenu'
 
 const titles: Record<string, string> = {
   '/calendar': 'Calendario',
@@ -42,7 +41,7 @@ export function TopBar() {
     // `lg:pl-56` deja libre el ancho de `SideNav`, que se pinta encima de esta
     // esquina. La columna estrecha de móvil (`max-w-lg`) se suelta en escritorio.
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-line lg:pl-56">
-      <div className="flex items-center justify-between h-14 max-w-lg mx-auto px-4 lg:max-w-none lg:px-8">
+      <div className="flex items-center h-14 max-w-lg mx-auto px-4 lg:max-w-none lg:px-8">
         {isHome ? (
           <div className="flex flex-col min-w-0">
             <h1 className="text-primary-strong font-extrabold tracking-tight text-lg leading-tight truncate">
@@ -55,15 +54,6 @@ export function TopBar() {
         ) : (
           <h1 className="font-extrabold tracking-tight text-primary-strong text-lg">{title ?? 'Nido'}</h1>
         )}
-        {/* Aquí hubo una rueda de Ajustes hasta el 26-08-2026, y se quitó porque
-            esta esquina no es sitio para algo que se toca dos veces al año. Lo
-            que vuelve el 28-08-2026 no es esa rueda: es tu cuenta, que es lo que
-            todo el mundo busca en esta esquina, está en las siete pantallas y de
-            paso dice con quién estás dentro. Ajustes es lo primero de su menú.
-            Solo en móvil: en escritorio la lleva el pie de `SideNav`. */}
-        <div className="lg:hidden">
-          <AccountMenu variant="icono" />
-        </div>
       </div>
     </header>
   )

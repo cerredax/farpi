@@ -12,7 +12,11 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 ### Pantallas / producto
 
-- Inicio / Hoy, con "Esta semana" y lo que va atrasado arrastrado al día de hoy.
+- Inicio / Hoy, con "Esta semana" y lo que va atrasado arrastrado al día de hoy. La
+  tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera y ya no,
+  para no decir la hora dos veces en la misma pantalla— y dentro lleva cumpleaños,
+  planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a "¿qué toca
+  hoy?" en un sitio, en vez del menú suelto al final de la columna.
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
   vista de semana salen también las tareas que vencen, y se pueden marcar allí. La
   agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor que

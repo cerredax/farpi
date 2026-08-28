@@ -28,8 +28,9 @@ test('home carga con datos demo y la navegación inferior', async ({ page }) => 
   await expect(page).toHaveURL(/\/docs/)
   await page.goBack()
 
-  // El saludo vive en la cabecera y depende de la hora, así que vale cualquiera
-  // de los tres. Se pinta ya en el navegador: en el HTML servido no está.
+  // El saludo abre la tarjeta del día y depende de la hora, así que vale
+  // cualquiera de los tres. Se pinta ya en el navegador: en el HTML servido no
+  // está, porque /home se prerenderiza.
   await expect(page.getByText(/Buenos días|Buenas tardes|Buenas noches/).first()).toBeVisible()
 })
 

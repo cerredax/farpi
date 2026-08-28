@@ -4,13 +4,16 @@ import { format, isToday, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
+import { useIsClient } from '@/hooks/useIsClient'
+import { getGreeting } from '@/lib/date-utils'
+import { capitalize } from '@/lib/text'
 import { selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
 import { cumplesDeLaCasa } from '@/lib/birthdays'
 import { TodayEvents } from './TodayEvents'
 import { TodayBirthdays } from './TodayBirthdays'
 import { UpcomingBirthdays } from './UpcomingBirthdays'
 import { TodayTasks } from './TodayTasks'
-import { TodayMeals } from './TodayMeals'
+import { TodayMealsRow } from './TodayMealsRow'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
@@ -94,6 +97,16 @@ export function HomeView() {
       ? 'Hoy pinta tranquilo. La casa respira un poco.'
       : 'Hoy no hay nada señalado. Lo demás puede esperar.'
 
+  // Saludo y fecha abren la tarjeta del día en lugar del rótulo en mayúsculas
+  // que había ("Lo que hay que hacer hoy"): dicen lo mismo y son cercanos.
+  // Estuvieron en la cabecera hasta hoy y de ahí se van, porque enseñarlos en
+  // los dos sitios era decir dos veces la misma hora.
+  //
+  // Solo en el navegador, con la misma guarda que usaba `TopBar`: /home se
+  // prerenderiza, así que el HTML servido llevaría el día del build y la hora
+  // del build. Hasta que hidrata se deja el hueco, para que nada salte.
+  const ahora = useIsClient() ? new Date() : null
+
   return (
     // En escritorio Inicio deja de ser una columna larga: la tarjeta de hoy
     // ocupa el ancho —es el titular de la pantalla— y debajo las cuatro
@@ -101,29 +114,36 @@ export function HomeView() {
     // entre de una vez sin bajar. La rejilla va en este mismo div y cada hijo
     // dice si ocupa una o dos, así que por debajo de `lg` el DOM no cambia.
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
-      {/* El saludo y la fecha viven en la cabecera: aquí ocupaban media pantalla
-          de móvil para decir algo que no se toca. */}
       <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
         <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
         <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
         <div className="relative space-y-3">
-          <p className="field-label">Lo que hay que hacer hoy</p>
+          <div className="min-h-[3.25rem]">
+            {ahora && (
+              <>
+                <p className="text-2xl font-bold text-ink leading-tight">{getGreeting(ahora)}</p>
+                <p className="text-sm font-semibold text-muted">
+                  {capitalize(format(ahora, "EEEE, d 'de' MMMM", { locale: es }))}
+                </p>
+              </>
+            )}
+          </div>
 
           {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
               entera para repetir nombres que ya salen en cada plan. */}
           <TodayBirthdays cumples={cumplesHoy} />
           <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
           <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
+          <TodayMealsRow meals={todayMeals} />
         </div>
       </div>
 
       {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
-          tareas. Lo que viene y el menú cierran. */}
+          tareas. Lo que viene cierra. */}
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
       <UpcomingEvents events={upcoming} kids={kids} members={members} />
       <UpcomingBirthdays cumples={cumplesProximos} />
-      <TodayMeals meals={todayMeals} />
 
       <OffDayConfirmSheet
         open={!!confirmTask}

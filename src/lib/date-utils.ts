@@ -2,7 +2,7 @@
  * Devuelve la fecha local en formato yyyy-MM-dd.
  * Evita el desfase de toISOString() que convierte a UTC antes de formatear.
  */
-/** Saludo según la hora. Vive aquí porque lo pinta la cabecera, no la pantalla. */
+/** Saludo según la hora. Lo pinta la tarjeta del día en Inicio. */
 export function getGreeting(date: Date): string {
   const hour = date.getHours()
   if (hour < 12) return 'Buenos días'

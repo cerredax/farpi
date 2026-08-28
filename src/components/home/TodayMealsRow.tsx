@@ -1,6 +1,4 @@
 import { memo } from 'react'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import type { MealPlan, MealSlot } from '@/types'
 
@@ -11,35 +9,37 @@ const SLOT_LABELS: Record<MealSlot, { label: string; emoji: string }> = {
   snack:     { label: 'Merienda', emoji: '🍎' },
 }
 
-interface TodayMealsProps {
+interface TodayMealsRowProps {
   meals: MealPlan[]
 }
 
-export const TodayMeals = memo(function TodayMeals({ meals }: TodayMealsProps) {
+/**
+ * El menú de hoy, dentro de la tarjeta del día: responde a la misma pregunta
+ * que planes y tareas —"¿qué toca hoy?"— así que vive con ellos en vez de en
+ * una tarjeta aparte al final de la pantalla.
+ */
+export const TodayMealsRow = memo(function TodayMealsRow({ meals }: TodayMealsRowProps) {
+  if (meals.length === 0) return null
+
   return (
-    <HomeSection
-      label="El menú de hoy"
-      isEmpty={meals.length === 0}
-      emptyState={<EmptyState compact emoji="🍽" title="Menú libre, improvisar también cuenta" />}
-      footer={<SectionLink href="/meals">Ver menú semanal</SectionLink>}
-    >
+    <div className="rounded-3xl bg-white/80 border border-white shadow-sm overflow-hidden">
       <ul className="divide-y divide-hairline">
-        {meals.map((meal) => {
+        {meals.map(meal => {
           const { label, emoji } = SLOT_LABELS[meal.slot]
           return (
             <li key={meal.id} className="flex items-center gap-3 px-4 py-3">
-              <span className="text-xl w-8 text-center">{emoji}</span>
+              <span className="text-xl w-8 text-center flex-shrink-0">{emoji}</span>
               <div className="flex-1 min-w-0">
                 <span className="text-xs font-bold text-muted uppercase tracking-wide">{label}</span>
                 <p className="font-semibold text-ink text-sm leading-snug">{meal.name}</p>
-                {meal.notes && (
-                  <p className="text-xs text-muted mt-0.5">{meal.notes}</p>
-                )}
               </div>
             </li>
           )
         })}
       </ul>
-    </HomeSection>
+      <div className="border-t border-hairline px-4 py-2.5">
+        <SectionLink href="/meals">Ver menú semanal</SectionLink>
+      </div>
+    </div>
   )
 })

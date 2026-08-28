@@ -246,6 +246,32 @@ test.describe('escritorio a 1440 px', () => {
     await expect(page.locator('.dia-libre').filter({ has: celda })).toHaveCount(1)
   })
 
+  // Elegir un día en la rejilla tiene que contestar **también en escritorio**.
+  // El panel del día nació con `lg:hidden` el 28-08-2026 dando por hecho que
+  // aquí no hacía falta —la celda escribe títulos y la agenda está al lado—, y
+  // era falso: la agenda arranca en hoy y solo pinta días con algo, así que
+  // elegir el 19 mirando el 28 pintaba el número de verde y no pasaba nada más.
+  test('elegir un día enseña qué hay ese día, también en escritorio', async ({ page }) => {
+    await page.goto('/calendar')
+    await page.waitForTimeout(900)
+    await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+    await page.locator('#event-title').fill('Revisión del coche')
+    await page.locator('#event-date').fill('2026-08-18')
+    await page.locator('#event-start').fill('10:30')
+    await page.locator(GUARDAR_EVENTO).click()
+    await page.waitForTimeout(700)
+
+    const panel = page.getByRole('region', { name: /Qué hay el 18 de agosto/ })
+    await expect(panel).toBeVisible()
+    await expect(panel).toContainText('Revisión del coche')
+
+    // Y un día vacío también contesta, que es la mitad que faltaba: sin esto,
+    // elegir un día sin nada se lee igual que un fallo.
+    await page.locator('[aria-pressed][aria-label*="19 de agosto"]').click()
+    const vacio = page.getByRole('region', { name: /Qué hay el 19 de agosto/ })
+    await expect(vacio).toContainText('Nada apuntado')
+  })
+
   test('la sección donde estás se marca en la barra lateral', async ({ page }) => {
     await page.goto('/meals')
     await page.waitForTimeout(800)

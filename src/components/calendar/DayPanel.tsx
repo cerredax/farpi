@@ -13,7 +13,7 @@ import { DayTasks } from './DayTasks'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 
 /**
- * Qué pasa el día que acabas de tocar en la rejilla del mes. **Solo móvil.**
+ * Qué pasa el día que acabas de tocar en la rejilla del mes.
  *
  * De dónde sale (28-08-2026): elegir un día en el móvil no hacía nada. La idea
  * era que la agenda de abajo se deslizara hasta él, pero la lista **arranca
@@ -26,8 +26,15 @@ import type { Child, Event, FamilyMember, Task } from '@/types'
  * pantalla a buscarlo. Es lo que la celda del mes ya prometía por escrito
  * ("tocar el día enseña su detalle debajo") y no cumplía.
  *
- * No lo necesita el escritorio: allí la celda escribe títulos y la agenda vive
- * en la columna de al lado, las dos a la vista a la vez.
+ * **También en escritorio** (28-08-2026). Nació con `lg:hidden` dando por hecho
+ * que allí no hacía falta —la celda escribe títulos y la agenda está en la
+ * columna de al lado—, y es falso por la misma razón que en móvil: la agenda
+ * arranca en hoy y solo pinta días con algo, así que elegir el 18 mirando el 28
+ * pintaba el número de verde y no pasaba nada más. Ni la celda ayuda cuando el
+ * día está vacío, que es justo cuando hace falta que la app conteste algo.
+ *
+ * Lo que sí es solo de escritorio es el salto de la agenda hasta el día (ver
+ * `focusDay` en `CalendarView`): allí la lista está al lado y a la vista.
  *
  * Tampoco sale **con hoy elegido**, que es como abre la pantalla: la agenda de
  * debajo empieza justo ahí y sería decir lo mismo dos veces seguidas.
@@ -74,7 +81,7 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
   const etiqueta = 'etiqueta-persona px-1.5 py-0.5 text-[11px]'
 
   return (
-    <section aria-label={`Qué hay el ${format(day, "d 'de' MMMM", { locale: es })}`} className="border-t border-hairline px-3 py-3 lg:hidden">
+    <section aria-label={`Qué hay el ${format(day, "d 'de' MMMM", { locale: es })}`} className="border-t border-hairline px-3 py-3">
       <h3 className={`mb-2 px-1 text-xs font-bold uppercase tracking-widest ${isToday(day) ? 'text-accent' : 'text-muted'}`}>
         {capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))}
       </h3>

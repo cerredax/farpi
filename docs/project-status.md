@@ -23,13 +23,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   los cumpleaños salen además en la franja de "todo el día" de las
   vistas Día y Semana, que no tienen bloque debajo al que mirar. En móvil se pasa
   de mes o de día **arrastrando el dedo**.
-- **Elegir un día del mes enseña qué hay ese día** (28-08-2026). En móvil, debajo
+- **Elegir un día del mes enseña qué hay ese día** (28-08-2026), en los dos tamaños. Debajo
   de la rejilla: los planes con su hora, las tareas que vencen y las etiquetas de
   festivo, ausencia y cumpleaños; y si no hay nada, lo dice y ofrece apuntarlo
   ahí. Antes no contestaba nada —la agenda de abajo arranca en hoy y solo pinta
   días con algo, así que un día pasado o vacío no tenía a dónde llevarte—. Con
-  hoy elegido no sale: la agenda de debajo ya empieza justo ahí. En escritorio no
-  hace falta: la celda escribe títulos y la agenda está en la columna de al lado.
+  hoy elegido no sale: la agenda ya empieza justo ahí. En escritorio, además, la
+  agenda de la columna de al lado se desliza hasta el día elegido.
 - **El selector de vista, en la fila del título** (28-08-2026). En móvil es un
   botón que dice cuál está puesta y despliega las cuatro; se fue la banda de
   pastillas, que ocupaba ~48 px de pantalla todo el rato. Con el selector en esa

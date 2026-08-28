@@ -10,6 +10,22 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-28
 
+### El panel del día también en escritorio (28-08-2026)
+
+`DayPanel` nació con `lg:hidden` unas horas antes, dando por hecho que en escritorio no
+hacía falta: allí la celda escribe títulos y la agenda vive en la columna de al lado. Era
+falso por exactamente la misma razón por la que se escribió el panel para móvil: la agenda
+**arranca en hoy** y solo pinta días con algo, así que elegir el 18 mirando el 28 pintaba
+el número de verde y no pasaba nada más. Comprobado a 1440 px antes de tocar nada.
+
+Y la celda no tapa el hueco: cuando el día está vacío no hay título que escribir, que es
+justo cuando hace falta que la app conteste algo ("Nada apuntado", con el botón de apuntar
+ahí).
+
+Lo que sigue siendo solo de escritorio es el salto de la agenda hasta el día (`focusDay`):
+allí la lista está al lado y a la vista. `e2e/escritorio.spec.ts` cubre ahora los dos
+casos, día con plan y día vacío.
+
 ### En móvil se navega por un solo borde: "Más" en la barra de abajo (28-08-2026)
 
 El círculo de la cuenta que había subido esa misma mañana a la esquina de `TopBar` duró un

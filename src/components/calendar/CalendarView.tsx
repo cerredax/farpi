@@ -357,12 +357,13 @@ export function CalendarView() {
                     />
                   </div>
 
-                  {/* Qué hay el día elegido, pegado a la rejilla y solo en
-                      móvil. Va **antes** de los dos bloques de debajo porque
-                      habla del día que acabas de tocar, y ellos del mes entero:
-                      lo más cercano a lo que se ha hecho, primero. Con hoy
-                      elegido no sale, que es lo que ya cuenta la agenda de
-                      abajo. */}
+                  {/* Qué hay el día elegido, pegado a la rejilla, en los dos
+                      tamaños (28-08-2026: en escritorio también, que llevaba un
+                      `lg:hidden` y allí elegir un día tampoco contestaba nada).
+                      Va **antes** de los bloques de debajo porque habla del día
+                      que acabas de tocar y ellos del mes entero: lo más cercano
+                      a lo que se ha hecho, primero. Con hoy elegido no sale, que
+                      es lo que ya cuenta la agenda. */}
                   {!isSameDay(selectedDay, today) && (
                     <DayPanel
                       day={selectedDay}

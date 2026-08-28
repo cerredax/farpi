@@ -255,11 +255,10 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
 
 - [ ] **Un teléfono de verdad.** Los cuatro puntos abiertos de la Fase 2. Es lo
   primero, porque es lo que puede sacar un fallo que no ve ninguna herramienta.
-- ✅ **Notificaciones push, funcionando** desde el 28-08-2026. El camino se recorrió
-  entero por primera vez: activar desde Ajustes con una cuenta real, suscripción
-  guardada y cron devolviendo `sent: 1, fallidos: 0`. Por el camino apareció el fallo
-  que lo tenía parado —el service worker no llegaba a registrarse y el botón se
-  quedaba en "Guardando…" para siempre—, contado en `docs/notificaciones.md`.
+- [ ] **Notificaciones push.** El código está entero y las claves VAPID **ya están
+  generadas en local**; falta confirmarlas en Vercel, redesplegar y, sobre todo,
+  **probarlas**: ese camino no se ha recorrido nunca de punta a punta. Ver
+  `docs/notificaciones.md`.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
   de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
 - ✅ **RLS revalidado** por última vez el 27-08-2026: **79/79**, con el esquema

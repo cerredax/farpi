@@ -1462,9 +1462,11 @@ Las dos que había aquí se cerraron el 06-08-2026:
 
 ### Funcionalidades que faltan, no riesgos
 
-3. ~~**Notificaciones push**~~: **funcionando desde el 28-08-2026**. Claves VAPID y
-   `CRON_SECRET` puestas en Vercel, y el camino recorrido entero por primera vez con
-   una cuenta real: `sent: 1, fallidos: 0`. Ver `docs/notificaciones.md`.
+3. **Notificaciones push**: el código está completo y `CRON_SECRET` ya está puesta.
+   Las claves VAPID se generan con `node scripts/gen-vapid.cjs`; falta ponerlas en
+   Vercel y **volver a desplegar** (las `NEXT_PUBLIC_*` se hornean en el build). Sin
+   ellas el botón de activarlas no aparece y el cron responde
+   `skipped: 'VAPID no configurado'`. Ver `docs/notificaciones.md`.
 4. ~~**Backup/export de datos de la familia.**~~ **Hecho el 27-08-2026** (ver
    "Copia de seguridad" más abajo). Lo que sigue siendo verdad, y por lo que era
    insustituible: con

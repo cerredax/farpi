@@ -54,37 +54,6 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return output
 }
 
-/** Cuánto se espera a que el service worker quede activo antes de rendirse. */
-const ESPERA_SW_MS = 10_000
-
-/**
- * El service worker, listo y con límite de paciencia.
- *
- * `navigator.serviceWorker.ready` tiene una trampa: si no hay ningún worker
- * activado en el scope, la promesa se queda **pendiente para siempre**. No
- * rechaza, así que no hay `catch` que valga y el botón de Ajustes se quedaba en
- * "Guardando…" hasta recargar, sin decir qué pasaba. Aquí se corrige por los dos
- * lados: se asegura el registro —`register()` es idempotente, si ya existe
- * devuelve el mismo y no reinstala nada— y la espera lleva reloj.
- */
-async function registroListo(): Promise<ServiceWorkerRegistration> {
-  await navigator.serviceWorker.register('/sw.js')
-
-  let reloj: ReturnType<typeof setTimeout>
-  const seAcabaElTiempo = new Promise<never>((_, reject) => {
-    reloj = setTimeout(
-      () => reject(new Error('No se pudo preparar el aviso en este dispositivo. Recarga la página y vuelve a intentarlo.')),
-      ESPERA_SW_MS,
-    )
-  })
-
-  try {
-    return await Promise.race([navigator.serviceWorker.ready, seAcabaElTiempo])
-  } finally {
-    clearTimeout(reloj!)
-  }
-}
-
 /** Pide permiso, se suscribe a push y guarda la suscripción en el backend. */
 export async function enablePush(): Promise<void> {
   if (!pushSupported()) throw new Error('Tu navegador no admite notificaciones.')
@@ -93,7 +62,7 @@ export async function enablePush(): Promise<void> {
   const permission = await Notification.requestPermission()
   if (permission !== 'granted') throw new Error('Permiso de notificaciones denegado.')
 
-  const registration = await registroListo()
+  const registration = await navigator.serviceWorker.ready
   const existing = await registration.pushManager.getSubscription()
   const subscription =
     existing ??
@@ -114,8 +83,7 @@ export async function enablePush(): Promise<void> {
 /** Cancela la suscripción local y la borra del backend. */
 export async function disablePush(): Promise<void> {
   if (!pushSupported()) return
-  // Mismo motivo que al activar: desactivar también se colgaba sin decir nada.
-  const registration = await registroListo()
+  const registration = await navigator.serviceWorker.ready
   const subscription = await registration.pushManager.getSubscription()
   if (!subscription) return
   await fetch('/api/push', {

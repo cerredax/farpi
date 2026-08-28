@@ -12,15 +12,10 @@ Estado y pasos para activar los recordatorios por notificación push.
 
 La UI solo ofrece activar cuando hay **backend real** y **clave VAPID pública**; si no, muestra "Estarán disponibles próximamente".
 
-## Estado: funcionando desde el 28-08-2026
+## Qué falta para que funcione
 
-No falta nada. El camino se recorrió entero por primera vez ese día: claves VAPID
-en Vercel, activar los avisos desde Ajustes con una cuenta real y el cron
-devolviendo `{ ok: true, sent: 1, fallidos: 0 }`. Lo que sigue queda como
-referencia de configuración, no como pendientes.
-
-Costó encontrar por qué no arrancaba, y el motivo no estaba en nada de esto: ver
-**"El botón que se quedaba en Guardando…"** al final.
+Solo los pasos 1 y 2: **generar las claves VAPID y ponerlas en Vercel**. Todo lo
+demás (la migración, el emisor y el cron) ya está hecho y funcionando.
 
 ### 1. Generar claves VAPID (una vez)
 ```bash
@@ -48,19 +43,15 @@ Con `NEXT_PUBLIC_VAPID_PUBLIC_KEY` presente, la tarjeta de Ajustes ya deja **act
 `push_subscriptions` y su RLS por usuario verificadas en la validación del
 2026-08-03.
 
-### 3 bis. Probarlo en local
+### 3 bis. Probarlo en local antes de tocar producción
 
-Así se recorrió por primera vez, y sigue siendo la forma de comprobarlo sin
-esperar a las 07:00. **Ojo con `npm run dev`: en desarrollo el service worker no se
-registra a propósito** (`ServiceWorkerRegister.tsx` corta si `NODE_ENV !==
-'production'`), así que ahí el botón de activar no puede funcionar. Para probar el
-flujo entero hace falta el build servido:
+**Este camino no se ha ejecutado nunca.** Sin claves VAPID el emisor sale por el
+`skipped` en la primera línea, así que conviene verlo funcionar en local antes de
+poner nada en Vercel. Con las tres variables (más `CRON_SECRET`) en `.env.local`:
 
 ```bash
-npm run build && npm run start
+npm run dev
 ```
-
-Con las tres variables (más `CRON_SECRET`) en `.env.local`:
 
 1. Ajustes → **Activar notificaciones**. Eso guarda una suscripción real en
    `push_subscriptions` de la base de producción, porque `.env.local` apunta ahí. Es
@@ -93,37 +84,6 @@ Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
 - `CRON_SECRET` — Vercel añade `Authorization: Bearer <CRON_SECRET>` a las llamadas del cron; el endpoint lo verifica.
 
 > Nota: el plan **Hobby de Vercel** permite crons **una vez al día**, justo lo que usamos. El cron corre a las 07:00 UTC y el endpoint calcula "hoy" con `NIDO_TIME_ZONE` (`Europe/Madrid` por defecto), incluyendo correctamente eventos de todo el día.
-
-## El botón que se quedaba en "Guardando…"
-
-Lo que tuvo paradas las notificaciones no fue ninguna clave ni ningún despliegue:
-en producción, darle a **Activar recordatorios** dejaba el botón girando para
-siempre. Sin mensaje de error, y al salir y volver a entrar seguía desactivado.
-
-La causa son dos cosas que se juntan, y las dos están arregladas:
-
-1. **`navigator.serviceWorker.ready` no rechaza nunca.** Si no hay ningún worker
-   activado en el scope, esa promesa se queda **pendiente para siempre**: no
-   resuelve y no falla. Un `try/catch` alrededor no sirve de nada, porque no hay
-   nada que capturar. Por eso el botón se quedaba colgado en vez de dar un error.
-2. **El service worker podía no registrarse.** `ServiceWorkerRegister.tsx`
-   registraba dentro de un `window.addEventListener('load', …)`, y si el evento
-   `load` ya había ocurrido cuando React monta el efecto, ese listener no se
-   dispara jamás. Es una carrera contra la hidratación: unas visitas registraban y
-   otras no, que es justo por qué el fallo parecía aleatorio y no salía en local.
-
-De ahí dos reglas para lo que venga:
-
-- **No esperar a `serviceWorker.ready` a pelo.** En `src/lib/push.ts` está
-  `registroListo()`, que asegura el registro (`register()` es idempotente) y pone
-  reloj a la espera. Activar y desactivar pasan las dos por ahí.
-- **Registrar comprobando `document.readyState === 'complete'`**, no solo
-  escuchando `load`. Un evento que ya pasó no vuelve.
-
-Y una lección de interfaz que vale más allá de las notificaciones: **un botón en
-estado de carga tiene que poder rendirse**. Mientras la espera no tuvo límite, el
-fallo se veía como una app rota sin explicación; con límite, se ve como un error
-que dice qué hacer.
 
 ## Notas
 - iOS soporta Web Push solo si la PWA está **instalada** en la pantalla de inicio (iOS 16.4+).

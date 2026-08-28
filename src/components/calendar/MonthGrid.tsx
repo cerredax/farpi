@@ -114,14 +114,24 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
              * rompería el tramo justo donde sigue. Se pinta igual que en
              * `DayCell`, solo que aquí no hay botón debajo que abrirla.
              */
-            const ausenciasHueco = events
-              .filter(e => eventCoversDay(e, day) && (isVacation(e) || isRestDay(e)))
+            const delHueco = events.filter(e => eventCoversDay(e, day))
+            // Vacaciones primero y descansos después, **el mismo orden que
+            // `DayCell`**: con dos ausencias el mismo día, ordenarlas distinto
+            // aquí pintaría la de arriba abajo al cruzar la frontera del mes y
+            // el tramo se partiría en dos alturas.
+            const ausenciasHueco = [...delHueco.filter(isVacation), ...delHueco.filter(isRestDay)]
               .slice(0, MAX_AUSENCIAS)
             return (
               <span
                 key={day.toISOString()}
                 aria-hidden
-                className={`${HUECO} flex flex-col items-center bg-surface py-1 lg:min-h-[104px] ${
+                // Sin relleno arriba, y el número con el suyo debajo: es la forma
+                // exacta de `DayCell` —contenedor, franjas pegadas al borde y
+                // luego el día— y es lo que hace que la raya de un tramo entre en
+                // el mes vecino **a la misma altura**. Con `py-1` en el
+                // contenedor, las franjas del hueco caían cuatro píxeles más
+                // abajo que las de al lado y el tramo se veía escalonado.
+                className={`${HUECO} flex w-full flex-col bg-surface lg:min-h-[104px] ${
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >
@@ -137,8 +147,10 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                     </span>
                   )
                 })}
-                <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">
-                  {getDate(day)}
+                <span className="flex w-full flex-col items-center py-1">
+                  <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">
+                    {getDate(day)}
+                  </span>
                 </span>
               </span>
             )

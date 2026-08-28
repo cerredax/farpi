@@ -99,7 +99,8 @@ const GUARDAR_EVENTO = 'button[type="submit"][form="event-form"]'
  * la cuenta— porque lo que puede romperse aquí es la costura: que el tipo de
  * evento fuerce la serie anual sin preguntar, que el cumpleaños suba al bloque
  * de la tarjeta de hoy y que **no** salga además como un plan más, que era la
- * forma en que se veía dos veces.
+ * forma en que se veía dos veces. Desde el 28-08-2026 su sitio en el calendario
+ * es el bloque de debajo del mes, y ni la rejilla ni la agenda lo enseñan.
  */
 test('un cumpleaños de fuera se apunta y sube a la tarjeta de hoy', async ({ page }) => {
   const hoy = new Date()
@@ -120,10 +121,17 @@ test('un cumpleaños de fuera se apunta y sube a la tarjeta de hoy', async ({ pa
   await page.locator('#event-date').fill(iso)
   await page.locator(GUARDAR_EVENTO).click()
 
-  // En la agenda se lee como lo apuntado que es, y de nadie en concreto.
+  // Un cumpleaños no es un plan, así que no baja a la lista: sale en su propio
+  // bloque debajo del mes, al lado de "Vacaciones y descansos".
+  await expect(page.getByRole('heading', { name: 'Cumpleaños' })).toBeVisible()
+  const enElBloque = page.getByRole('button', { name: /Editar el cumpleaños de Abuela Carmen/ })
+  await expect(enElBloque).toBeVisible()
+  await expect(enElBloque).toContainText('hoy')
+
+  // Y en la agenda no está: la lista contesta qué hay que hacer, y felicitar a
+  // la abuela no ocupa una hora del jueves.
   await page.getByRole('button', { name: 'Agenda', exact: true }).click()
-  const enAgenda = page.getByText('Abuela Carmen').locator('visible=true').first()
-  await expect(enAgenda).toBeVisible()
+  await expect(page.getByText('Abuela Carmen').locator('visible=true')).toHaveCount(0)
 
   // Y en Inicio va arriba, con la edad que cumple, no en la lista de planes.
   await page.goto('/home')
@@ -146,4 +154,56 @@ test('un cumpleaños sin año de nacimiento se felicita sin edad', async ({ page
 
   await page.goto('/home')
   await expect(page.getByText('Hoy es el cumple de Nico del cole')).toBeVisible()
+})
+
+/**
+ * Pasar de mes con el dedo.
+ *
+ * Se prueba en el navegador porque lo que puede romperse es justo lo que no se
+ * ve en un unitario: que el gesto llegue a React desde dentro de la rejilla y
+ * que un desliz vertical —el de leer la pantalla— no cambie de mes por el
+ * camino.
+ *
+ * Los eventos táctiles se fabrican a mano: Playwright sabe tocar, pero no
+ * arrastrar un dedo, y `touchstart`/`touchend` con la posición inicial y final
+ * es exactamente lo que mira `useSwipe`.
+ */
+async function desliza(page: import('@playwright/test').Page, dx: number, dy: number) {
+  await page.evaluate(({ dx, dy }) => {
+    // Cualquier cosa de dentro de la rejilla vale: el gesto sube por burbujeo
+    // hasta el contenedor que lo escucha.
+    const dentro = document.querySelector('.grid.grid-cols-7')
+    if (!dentro) throw new Error('no se encontró la rejilla del mes')
+    const caja = dentro.getBoundingClientRect()
+    const x = caja.left + caja.width / 2
+    const y = caja.top + caja.height / 2
+    const dedo = (cx: number, cy: number) =>
+      new Touch({ identifier: 1, target: dentro, clientX: cx, clientY: cy })
+
+    dentro.dispatchEvent(new TouchEvent('touchstart', {
+      bubbles: true, touches: [dedo(x, y)], targetTouches: [dedo(x, y)], changedTouches: [dedo(x, y)],
+    }))
+    dentro.dispatchEvent(new TouchEvent('touchend', {
+      bubbles: true, touches: [], targetTouches: [], changedTouches: [dedo(x + dx, y + dy)],
+    }))
+  }, { dx, dy })
+}
+
+test('el mes se pasa arrastrando el dedo', async ({ page }) => {
+  await page.goto('/calendar')
+  const titulo = page.getByRole('heading', { level: 2 }).first()
+  const agosto = await titulo.textContent()
+
+  // Llevarse el mes hacia la izquierda trae el siguiente, como pasar una hoja.
+  await desliza(page, -120, 0)
+  await expect(titulo).not.toHaveText(agosto!)
+
+  // Y hacia la derecha, el anterior: se vuelve a donde se estaba.
+  await desliza(page, 120, 0)
+  await expect(titulo).toHaveText(agosto!)
+
+  // Bajar por la pantalla no es pasar de mes. Es el gesto que comparten los dos
+  // y el que hay que dejar en paz.
+  await desliza(page, 0, -150)
+  await expect(titulo).toHaveText(agosto!)
 })

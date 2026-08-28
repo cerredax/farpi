@@ -23,6 +23,22 @@ export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
 export const FAMILY_COLOR = '#E9C46A'
 
 /**
+ * Color de un cumpleaños de fuera de casa (`kind = 'cumple'`).
+ *
+ * Tiene el suyo porque **no es de nadie**: la abuela o el amigo del cole no
+ * están en la familia, así que ni les toca un color de persona —eso significa
+ * "esto lo lleva tal" en toda la app— ni el amarillo de `FAMILY_COLOR`, que
+ * diría que es algo de la casa entera cuando es de alguien de fuera. Sin este
+ * color salían en amarillo, indistinguibles de la cena de los abuelos.
+ *
+ * El lila no está en `PERSON_COLORS` ni lo puede elegir nadie, así que un
+ * cumpleaños nunca se confunde con una persona. El más cercano de la paleta es
+ * Ciruela, mucho más oscuro. Como el de la familia, viaja en `style` y no en
+ * clases.
+ */
+export const CUMPLE_COLOR = '#A88BC4'
+
+/**
  * Colores de las personas de la familia, en dos grupos por **claridad**: ocho de
  * adulto en L* 30-45 y seis de niño en L* 71-88. El nombre no es decorativo: es
  * la etiqueta accesible de cada botón del selector, que antes leía el

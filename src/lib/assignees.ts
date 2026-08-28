@@ -1,5 +1,5 @@
-import { FAMILY_COLOR, PERSON_COLORS } from './constants'
-import type { Child, FamilyMember } from '@/types'
+import { CUMPLE_COLOR, FAMILY_COLOR, PERSON_COLORS } from './constants'
+import type { Child, EventKind, FamilyMember } from '@/types'
 
 /** Color de un miembro por su sitio en la familia, cuando no ha elegido ninguno. */
 export function defaultMemberColor(index: number): string {
@@ -127,10 +127,16 @@ export function resolveAssignee(
  * Inicio se quedó sin él y los eventos de la familia salían sin marca.
  */
 export function eventColor(
-  evento: { color: string | null; child_id: string | null; member_id: string | null },
+  evento: { kind?: EventKind; color: string | null; child_id: string | null; member_id: string | null },
   members: FamilyMember[],
   kids: Child[],
 ): string {
+  // Un cumpleaños de fuera manda sobre todo lo demás: no es de nadie de la casa
+  // y por eso no puede llevar el color de una persona ni el de la familia. Va
+  // aquí y no en cada pantalla por lo mismo que el amarillo de la familia: la
+  // rejilla, la agenda y el eje de horas lo pintan cada uno por su lado, y
+  // cuando esta regla estaba repetida a Inicio se le olvidó una.
+  if (evento.kind === 'cumple') return CUMPLE_COLOR
   if (evento.color) return evento.color
   return resolveAssignee(evento, members, kids)?.color ?? FAMILY_COLOR
 }

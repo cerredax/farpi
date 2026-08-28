@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-27.
+Última revisión: 2026-08-28.
 
 ## Resumen
 
@@ -16,7 +16,9 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
   vista de semana salen también las tareas que vencen, y se pueden marcar allí. La
   agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor sobre
-  la lista.
+  la lista. Debajo del mes van los dos bloques que dicen cómo es el mes y no qué
+  hacer: "Vacaciones y descansos" y **"Cumpleaños"** (28-08-2026). En móvil se pasa
+  de mes o de día **arrastrando el dedo**.
 - Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó.
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
@@ -97,12 +99,14 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **353 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **390 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 277 unitarios de lógica pura en `e2e/unit/` (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 85 de navegador: `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 304 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 28-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 86 de navegador —85 más el desliz del mes, del 28-08-2026; la suite entera no se
+    ha podido correr ese día porque había un dev server ocupando la carpeta—:
+    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -1244,8 +1248,10 @@ Dónde sale:
   `cumplesDeLaCasa` junta los dos orígenes y las pantallas no saben de dónde viene cada
   uno. Sin año de nacimiento la frase se queda en «Hoy es el cumple de Nico del cole».
 - **En el calendario**, porque es donde se apunta y donde hay que poder corregirlo o
-  borrarlo. Esto deja una asimetría a la vista —el de la abuela se ve en el mes y el de la
-  hija no— que está asumida y explicada en `docs/architecture.md`.
+  borrarlo. Desde el 28-08-2026, **solo en su bloque** de debajo del mes: ni en la
+  rejilla ni en la agenda. Esto deja una asimetría a la vista —el de la abuela se ve en
+  el calendario y el de la hija no— que está asumida y explicada en
+  `docs/architecture.md`.
 - **En el aviso de las siete**, en la misma frase que los de casa. Ojo: el cron cuenta los
   eventos del día y un cumpleaños **no** cuenta como evento, o diría "tenéis 1 evento" el
   día del cumpleaños de la abuela.
@@ -1357,6 +1363,35 @@ Lo demás quedó hecho así:
 5. **QA a mano del flujo entero** (`docs/testing-checklist.md` §8.1), contra
    `npm run build && npm run start` y con dos cuentas de la misma familia. Playwright
    no puede cubrir esto: la suite corre en modo demo forzado y sin credenciales.
+
+### El calendario se ordena: cumpleaños aparte, flechas quietas y desliz (28-08-2026)
+
+Cuatro cosas del calendario, todas de uso y ninguna de datos.
+
+- **Los cumpleaños salen de la rejilla y de la agenda** y pasan a un bloque propio,
+  `Birthdays`, pegado a "Vacaciones y descansos". Se apuntan una vez y se repiten veinte
+  años, así que como fila del día eran ruido fijo. Con ellos se va el interruptor "Ver
+  cumpleaños" del día anterior —obligaba a elegir entre ver el mes o verlos— y el grupo
+  "Cumpleaños" del eje por persona de la agenda, que ya no tiene a quién repartir. La
+  etiqueta del bloque es el nombre sobre el lila de `CUMPLE_COLOR`, que es lo que faltaba:
+  ni una persona ni "Familia". Lo elige `selectVisibleBirthdays`, con cuatro unitarios.
+- **Las flechas de la cabecera dejan de bailar.** El grupo del título ocupa el ancho libre
+  y el título se estira dentro, así que las dos flechas caen siempre en el mismo píxel se
+  mire el día, la semana o el mes. Antes el grupo se encogía al texto, y el texto cambia en
+  cada paso.
+- **Se pasa de mes o de día arrastrando el dedo** (`src/hooks/useSwipe.ts`). Se mide al
+  levantar el dedo para no tocar el desplazamiento vertical, y solo cuenta un gesto
+  claramente horizontal. Cuelga de la rejilla y del eje de horas, no de la tarjeta entera.
+- **La franja de una ausencia entra en el mes vecino a la misma altura.** Los huecos de
+  fuera de mes llevaban `py-1` en el contenedor y las celdas no, así que la raya de un
+  tramo que cruzaba la frontera se veía escalonada. De paso ordenan las ausencias como
+  `DayCell` —vacaciones y luego descansos—, que con dos el mismo día también las
+  descolocaba.
+
+**Sin verificar en el navegador.** Ese día había un dev server ocupando la carpeta y Next
+16 no deja levantar un segundo, así que la suite de navegador y las capturas se quedaron
+sin correr. Lo que sí está en verde: `npx tsc --noEmit`, `npm run lint` y los 304
+unitarios.
 
 ### Las comprobaciones que quedaban: ninguna
 

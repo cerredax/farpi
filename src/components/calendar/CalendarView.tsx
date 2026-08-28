@@ -18,13 +18,16 @@ import { es } from 'date-fns/locale'
 import { capitalize } from '@/lib/text'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
-import { selectEventMatches, selectPendingTasks, selectVisibleAbsences } from '@/lib/selectors'
+import { selectEventMatches, selectPendingTasks, selectVisibleAbsences, selectVisibleBirthdays } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
+import { isBirthday } from '@/lib/events'
 import { CalendarHeader, type VistaCalendario } from './CalendarHeader'
 import { Timeline } from './Timeline'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useSwipe } from '@/hooks/useSwipe'
 import { MonthGrid } from './MonthGrid'
 import { Availability } from './Availability'
+import { Birthdays } from './Birthdays'
 import { AgendaList } from './AgendaList'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
@@ -75,6 +78,16 @@ export function CalendarView() {
    */
   const [vistaEscritorio, setVistaEscritorio] = useState<VistaCalendario>('mes')
   const [vistaMovil, setVistaMovil] = useState<VistaCalendario>('mes')
+
+  /**
+   * Lo que el calendario pinta, que no es todo lo que hay guardado: **los
+   * cumpleaños no** (28-08-2026). Tienen su propio bloque debajo del mes, junto
+   * a "Vacaciones y descansos", y el porqué está en `Birthdays.tsx`. Se filtra
+   * **una vez y aquí** para que la rejilla, la lista, el eje de horas y el
+   * buscador no puedan discrepar: ver un cumpleaños en la agenda que no está en
+   * el mes de arriba sería peor que no verlo en ninguno de los dos.
+   */
+  const eventos = allEvents.filter(e => !isBirthday(e))
 
   /**
    * Aquí vuelve el `useMediaQuery`, que se había ido el 25-08-2026 cuando quién
@@ -141,6 +154,14 @@ export function CalendarView() {
   function irSiguiente() { mover(1) }
 
   /**
+   * El mismo movimiento que las flechas, pero con el dedo (28-08-2026). Se
+   * cuelga de la rejilla y del eje de horas, que es lo que se está pasando, y no
+   * de la pantalla entera: la lista de la agenda no tiene nada que recorrer y
+   * los bloques de ausencias y cumpleaños hablan del mes que ya está puesto.
+   */
+  const desliz = useSwipe(irAnterior, irSiguiente)
+
+  /**
    * Lleva la vista entera a un día: lo elige, coloca el mes y arrastra con él
    * el tramo de la tira. Ese último paso importa desde que la tira y la agenda
    * comparten tramo: sin él, apuntar unas vacaciones para el día 10 dejaba el
@@ -164,7 +185,11 @@ export function CalendarView() {
 
   async function handleCreateYearlySeries(draft: EventDraft, endYear: number) {
     const created = await createYearlySeries(draft, endYear)
-    if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
+    if (created.length === 0) return
+    // Se va al mes del primero, que es donde lo va a buscar quien acaba de
+    // apuntarlo: un cumpleaños no sale en la lista, sale en su bloque, y el
+    // bloque habla del mes que se está mirando.
+    enfocarDia(parseISO(created[0].start_at))
   }
 
   // "Vacaciones y descansos" vive con el mes y habla de él. Desde que la agenda
@@ -176,6 +201,15 @@ export function CalendarView() {
   // descanso del 3 de septiembre mirando agosto, sin ningún día pintado que lo
   // respaldara.
   const ausenciasVisibles = selectVisibleAbsences(
+    eventos,
+    getLocalDateString(startOfMonth(currentMonth)),
+    getLocalDateString(endOfMonth(currentMonth)),
+  )
+
+  // Los cumpleaños del mes que se mira, para el bloque de debajo de la rejilla.
+  // Mismo tramo que las ausencias y por la misma razón: el bloque acompaña al
+  // mes y no puede hablar de un día que no está pintado encima.
+  const cumplesVisibles = selectVisibleBirthdays(
     allEvents,
     getLocalDateString(startOfMonth(currentMonth)),
     getLocalDateString(endOfMonth(currentMonth)),
@@ -196,7 +230,7 @@ export function CalendarView() {
 
   // La agenda solo necesita el tramo que va a listar. El mes recibe todos los
   // eventos y se queda con los de cada día, que ya sabe hacerlo.
-  const agendaEvents = allEvents.filter(event =>
+  const agendaEvents = eventos.filter(event =>
     isWithinInterval(parseISO(event.start_at), {
       start: desdeAgenda,
       end: addDays(desdeAgenda, 45),
@@ -209,8 +243,8 @@ export function CalendarView() {
 
   // Con cuatro eventos no hay nada que buscar. El buscador mira todo el
   // calendario, no el tramo pintado: lo que se busca suele estar fuera.
-  const buscador = allEvents.length >= MINIMO_PARA_BUSCAR
-    ? { valor: busqueda, onChange: setBusqueda, coincidencias: selectEventMatches(allEvents, busqueda) }
+  const buscador = eventos.length >= MINIMO_PARA_BUSCAR
+    ? { valor: busqueda, onChange: setBusqueda, coincidencias: selectEventMatches(eventos, busqueda) }
     : undefined
 
   /**
@@ -258,10 +292,10 @@ export function CalendarView() {
             lista es la respuesta a "¿qué viene?" y esa pregunta la contesta el
             mes, que sí la lleva al lado. */}
         {conEje ? (
-          <div className="mt-4">
+          <div className="mt-4" {...desliz}>
             <Timeline
               days={diasDelEje}
-              events={allEvents}
+              events={eventos}
               kids={kids}
               members={members}
               tasks={tareasPendientes}
@@ -280,19 +314,36 @@ export function CalendarView() {
             <div className={vista === 'mes' ? '' : 'hidden lg:block'}>
               <div className="mx-4 lg:mx-0">
                 <Card padded={false}>
-                  <MonthGrid
-                    currentMonth={currentMonth}
-                    selectedDay={selectedDay}
-                    events={allEvents}
-                    tasks={tareasPendientes}
-                    kids={kids}
-                    members={members}
-                    onSelectDay={selectDay}
-                    onOpenEvent={openEdit}
-                  />
+                  {/* El desliz va en la rejilla y no en la tarjeta entera: bajo
+                      ella están las ausencias y los cumpleaños del mes, y
+                      arrastrar el dedo por una lista para leerla no puede
+                      cambiar el mes debajo. */}
+                  <div {...desliz}>
+                    <MonthGrid
+                      currentMonth={currentMonth}
+                      selectedDay={selectedDay}
+                      events={eventos}
+                      tasks={tareasPendientes}
+                      kids={kids}
+                      members={members}
+                      onSelectDay={selectDay}
+                      onOpenEvent={openEdit}
+                    />
+                  </div>
 
                   <Availability
                     ausencias={ausenciasVisibles}
+                    kids={kids}
+                    members={members}
+                    onEdit={openEdit}
+                  />
+
+                  {/* Los cumpleaños, debajo de las ausencias y con su misma
+                      forma: los dos dicen cómo es el mes y ninguno de los dos es
+                      algo que hacer ese día. Van los últimos porque una ausencia
+                      cambia los planes de la casa y un cumpleaños se felicita. */}
+                  <Birthdays
+                    cumples={cumplesVisibles}
                     kids={kids}
                     members={members}
                     onEdit={openEdit}

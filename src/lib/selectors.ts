@@ -1,5 +1,5 @@
 import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
-import { eventCoversDay, isAbsence, isDigestPlan } from './events'
+import { eventCoversDay, isAbsence, isBirthday, isDigestPlan } from './events'
 import { DIAS_AVISO_CADUCIDAD, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
 import type { Document, Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
@@ -253,6 +253,29 @@ export function selectVisibleAbsences(events: Event[], desde: string, hasta: str
       const inicio = extractDate(v.start_at)
       const fin = v.end_at ? extractDate(v.end_at) : inicio
       return inicio <= hasta && fin >= desde
+    })
+    .sort((a, b) => extractDate(a.start_at).localeCompare(extractDate(b.start_at)))
+}
+
+/**
+ * Los cumpleaños apuntados que caen en el tramo que se está mirando, por fecha.
+ *
+ * Alimentan el bloque "Cumpleaños" del calendario, que es **el único sitio del
+ * calendario donde salen** (28-08-2026). Un cumpleaños se apunta una vez y se
+ * repite veinte años, así que una casa con cuatro abuelos y tres amigos del cole
+ * metía siete filas fijas en la rejilla y en la agenda que no son nada que
+ * hacer. En un bloque aparte se ven todos de un vistazo y no le quitan sitio a
+ * lo que sí hay que hacer ese día.
+ *
+ * Un cumpleaños dura un día, así que aquí no hay solape que mirar como en
+ * `selectVisibleAbsences`: o cae dentro o no.
+ */
+export function selectVisibleBirthdays(events: Event[], desde: string, hasta: string): Event[] {
+  return events
+    .filter(isBirthday)
+    .filter(e => {
+      const fecha = extractDate(e.start_at)
+      return fecha >= desde && fecha <= hasta
     })
     .sort((a, b) => extractDate(a.start_at).localeCompare(extractDate(b.start_at)))
 }

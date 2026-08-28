@@ -11,6 +11,7 @@ import {
   selectSortedLists,
   selectTodayTasks,
   selectVisibleAbsences,
+  selectVisibleBirthdays,
   selectSortedMeals,
   selectSuggestions,
   selectTaskGroups,
@@ -581,5 +582,40 @@ test.describe('selectFamilySummary', () => {
   test('enumera con comas y una "y" al final, saltándose lo que está a cero', () => {
     expect(selectFamilySummary({ personas: 2, eventos: 12, tareas: 0, listas: 3, comidas: 0, documentos: 4 }))
       .toBe('2 personas, 12 eventos, 3 listas y 4 documentos')
+  })
+})
+
+test.describe('selectVisibleBirthdays', () => {
+  const cumple = (title: string, fecha: string) =>
+    event({ title, kind: 'cumple', all_day: true, start_at: `${fecha}T00:00:00`, end_at: `${fecha}T00:00:00` })
+
+  test('solo los cumpleaños, no los demás eventos', () => {
+    const r = selectVisibleBirthdays(
+      [cumple('abuela', '2026-08-12'), event({ title: 'dentista', start_at: '2026-08-05T10:00:00' })],
+      '2026-08-01', '2026-08-31',
+    )
+    expect(r.map(c => c.title)).toEqual(['abuela'])
+  })
+
+  test('fuera del mes no salen', () => {
+    const r = selectVisibleBirthdays([cumple('abuela', '2026-09-12')], '2026-08-01', '2026-08-31')
+    expect(r).toHaveLength(0)
+  })
+
+  // Un cumpleaños dura un día: los extremos del tramo son suyos igual.
+  test('los extremos del tramo cuentan', () => {
+    const r = selectVisibleBirthdays(
+      [cumple('primero', '2026-08-01'), cumple('ultimo', '2026-08-31')],
+      '2026-08-01', '2026-08-31',
+    )
+    expect(r).toHaveLength(2)
+  })
+
+  test('ordenados por fecha', () => {
+    const r = selectVisibleBirthdays(
+      [cumple('luego', '2026-08-20'), cumple('antes', '2026-08-02')],
+      '2026-08-01', '2026-08-31',
+    )
+    expect(r.map(c => c.title)).toEqual(['antes', 'luego'])
   })
 })

@@ -614,6 +614,45 @@ unitarios:
   se la queda la primera aparición**. Dos elementos con el mismo `id` dejarían el salto a
   merced de cuál encuentre el navegador primero.
 
+**Los cumpleaños tienen su propio bloque, y no salen ni en la rejilla ni en la agenda**
+(28-08-2026). Un cumpleaños se apunta una vez y se repite veinte años, así que una casa
+con cuatro abuelos y tres amigos del cole metía siete filas fijas al mes que no son nada
+que hacer, entre la revisión del coche y la cena de los abuelos. Ahora `CalendarView`
+los aparta **una sola vez** —`allEvents.filter(e => !isBirthday(e))`— y los pinta
+`Birthdays`, debajo del mes y pegado a "Vacaciones y descansos".
+
+Es el mismo razonamiento que sacó los festivos de la agenda y las ausencias de las filas
+de cada día: **lo que _es_ el día se dice una vez y aparte**, y la lista se queda para lo
+que hay que hacer. Por eso los dos bloques son vecinos y tienen la misma forma.
+
+Por el camino se probó y se descartó un **interruptor "Ver cumpleaños"**, apagado por
+defecto, que llegó a estar escrito el 27-08-2026: obligaba a elegir entre ver el mes o
+ver los cumpleaños —la misma elección falsa de las pestañas Agenda/Mes— y encendido
+devolvía el problema entero. Con él se fue el reparto por grupo "Cumpleaños" del eje por
+persona de la agenda: si un cumpleaños no llega a la lista, no hay a quién repartírselo.
+
+La etiqueta del bloque es **el nombre sobre el lila de `CUMPLE_COLOR`**, ni un color de
+persona ni el amarillo de la familia. Antes decía "Familia", y eso metía a la abuela en
+la familia por la puerta de atrás justo después de haber decidido no darla de alta.
+
+**Las flechas no se mueven de sitio** (28-08-2026). El grupo del título ocupa el ancho
+libre —topado a `lg:max-w-sm` en escritorio— y el título se estira dentro, así que la
+flecha de anterior y la de siguiente caen siempre en el mismo píxel. Antes el grupo se
+encogía a lo que midiera el texto, y el texto cambia en cada paso: "Lunes, 1 de
+septiembre" y luego "Martes, 2 de septiembre", o el mes contra la semana, que no miden
+igual. La flecha se desplazaba a cada toque y había que volver a buscarla para dar el
+paso siguiente.
+
+**Y se pasa de mes con el dedo** (28-08-2026, `src/hooks/useSwipe.ts`). Es el gesto que
+ya tiene cualquier calendario del móvil, y sin él las flechas eran la única forma de
+moverse. Lo que hay que cuidar es **no robarle el gesto al desplazamiento vertical**: se
+mide al levantar el dedo —así no hace falta `preventDefault` en `touchmove`, que es lo
+que congela el desplazamiento— y solo cuenta si el recorrido pasa de 50 px y es más del
+doble de horizontal que de vertical. Cuelga de la rejilla y del eje de horas, que es lo
+que se está pasando, y **no de la tarjeta entera**: debajo están las ausencias y los
+cumpleaños del mes, y arrastrar el dedo por una lista para leerla no puede cambiar el mes
+que tiene encima.
+
 **En escritorio hay tres vistas: Día, Semana y Mes** (26-08-2026), el trio de Google
 Calendar, con su selector en la cabecera. En móvil el selector también está, con una
 cuarta —Agenda, la lista continua— y va debajo del título y a todo el ancho, porque
@@ -975,7 +1014,8 @@ donde ya vive todo lo que tiene fecha. Reglas, y por qué:
 La asimetría que esto deja, asumida a propósito: **el cumpleaños de fuera se ve en el
 calendario y el de casa no.** Es explicable —en el calendario está lo que se apunta, y el
 de casa no está apuntado en ninguna parte— y la alternativa era peor: si el apuntado
-tampoco se viera ahí, no habría dónde corregirlo ni borrarlo. Por eso el pie del bloque de
+tampoco se viera ahí, no habría dónde corregirlo ni borrarlo. Desde el 28-08-2026 se ve
+**solo en su bloque**, debajo del mes, y no en la rejilla ni en la agenda. Por eso el pie del bloque de
 Inicio lleva al calendario cuando todo lo que enseña son cumpleaños apuntados, y a Ajustes
 cuando hay alguno de la casa.
 

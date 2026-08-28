@@ -78,9 +78,22 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
           derecha, el selector y el `+`. El plegable del mes se fue al entrar la
           vista Mes en móvil (26-08-2026): eran dos maneras de pedir lo mismo. */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-0.5">
+        {/**
+          * **Las flechas no se mueven de sitio** (28-08-2026). El grupo ocupa el
+          * ancho libre y el título se estira dentro, así que la izquierda y la
+          * derecha caen siempre en el mismo píxel. Antes el grupo se encogía a
+          * lo que midiera el texto, y como el texto cambia en cada paso —"Lunes,
+          * 1 de septiembre" y luego "Martes, 2 de septiembre", o el mes y la
+          * semana, que no miden igual— la flecha de siguiente se desplazaba a
+          * cada toque: había que volver a buscarla para dar el paso siguiente.
+          *
+          * En escritorio el grupo se topa a 24 rem para no dejar la flecha en
+          * mitad de una pantalla de 1440 px. Ahí caben todos los títulos que
+          * escribe `CalendarView`, así que el ancho es fijo también.
+          */}
+        <div className="flex min-w-0 flex-1 items-center gap-0.5 lg:max-w-sm">
           {anterior}
-          <h2 className="min-w-0 truncate px-1 text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
+          <h2 className="min-w-0 flex-1 truncate px-1 text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
           {siguiente}
         </div>
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { assigneeKeyOf, buildAssignees, eventColor, memberColor, resolveAssignee, splitPeople, textColorOn } from '@/lib/assignees'
-import { FAMILY_COLOR, PERSON_COLORS } from '@/lib/constants'
+import { CUMPLE_COLOR, FAMILY_COLOR, PERSON_COLORS } from '@/lib/constants'
 import type { Child, FamilyMember } from '@/types'
 
 // `color: null` a propósito: es lo que hace que el color salga de la posición
@@ -190,6 +190,20 @@ test('el color de un evento sale de quien lo lleve, y si no hay nadie es el de l
 
   // Si la persona ya no está, vuelve a ser de la familia en vez de quedarse sin color.
   expect(eventColor({ ...base, member_id: 'borrado' }, miembros, hijos)).toBe(FAMILY_COLOR)
+})
+
+// Un cumpleaños de fuera no es de nadie de la casa: ni de una persona ni de la
+// familia. Sin esto salía en el amarillo de "esto es de todos", que es decir que
+// la abuela es de la familia justo después de decidir no darla de alta.
+test('un cumpleaños lleva su propio color, no el de la familia', () => {
+  const base = { color: null, child_id: null, member_id: null }
+  expect(eventColor({ ...base, kind: 'cumple' as const }, miembros, hijos)).toBe(CUMPLE_COLOR)
+  // Y manda sobre lo demás: un cumpleaños no se pinta del color de nadie ni
+  // aunque traiga uno guardado de antes.
+  expect(eventColor({ ...base, kind: 'cumple' as const, color: '#ABCDEF', child_id: 'c1' }, miembros, hijos)).toBe(CUMPLE_COLOR)
+  // El color de un cumpleaños no puede ser el de una persona ni el de la casa.
+  expect(PERSON_COLORS.map(c => c.value)).not.toContain(CUMPLE_COLOR)
+  expect(CUMPLE_COLOR).not.toBe(FAMILY_COLOR)
 })
 
 test('la clave del draft casa con la de su opción', () => {

@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
+import { elegirVista } from './vistas'
 
 // Recorre las pantallas en modo demo y verifica que cargan sin errores de
 // consola ni excepciones no capturadas.
@@ -29,7 +30,7 @@ async function abrirTareasDelDia(raiz: Page | Locator) {
  * porque alguno llega aquí después de haber pasado por otra pestaña.
  */
 async function verEnMes(page: Page) {
-  await page.getByRole('button', { name: 'Mes', exact: true }).click()
+  await elegirVista(page, 'Mes')
   await page.waitForTimeout(300)
 }
 

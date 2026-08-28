@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { elegirVista } from './vistas'
 
 // QA de móvil, automatizada. La Fase 2 del roadmap pedía revisar la app a
 // 390×844 —el ancho de un iPhone normal, más estrecho que el Pixel 7 con el que
@@ -72,7 +73,7 @@ test('el mes del calendario cabe y se puede tocar a 390 px', async ({ page }) =>
   await page.waitForTimeout(900)
   // El mes es la vista de partida, pero se pide igualmente: el test mide celdas de
   // día y no debe depender de cuál sea el valor por defecto hoy.
-  await page.getByRole('button', { name: 'Mes', exact: true }).click()
+  await elegirVista(page, 'Mes')
   await page.waitForTimeout(400)
 
   const medidas = await page.evaluate(minimo => {

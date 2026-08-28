@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { elegirVista } from './vistas'
 
 // Smoke mínimo en modo demo: login demo → /home con datos mock.
 
@@ -67,7 +68,7 @@ test('una familia creada se puede eliminar y la app vuelve a la anterior', async
 // etiqueta de quién es desaparezca de las filas cuando el rótulo ya lo dice.
 test('la agenda se puede agrupar por persona', async ({ page }) => {
   await page.goto('/calendar')
-  await page.getByRole('button', { name: 'Agenda', exact: true }).click()
+  await elegirVista(page, 'Agenda')
 
   const porPersona = page.getByRole('button', { name: 'Por persona' })
   await expect(porPersona).toHaveAttribute('aria-pressed', 'false')
@@ -130,7 +131,7 @@ test('un cumpleaños de fuera se apunta y sube a la tarjeta de hoy', async ({ pa
 
   // Y en la agenda no está: la lista contesta qué hay que hacer, y felicitar a
   // la abuela no ocupa una hora del jueves.
-  await page.getByRole('button', { name: 'Agenda', exact: true }).click()
+  await elegirVista(page, 'Agenda')
   await expect(page.getByText('Abuela Carmen').locator('visible=true')).toHaveCount(0)
 
   // Y en Inicio va arriba, con la edad que cumple, no en la lista de planes.
@@ -209,6 +210,60 @@ test('el mes se pasa arrastrando el dedo', async ({ page }) => {
 })
 
 /**
+ * Elegir un día en la rejilla del mes tiene que **contestar algo**.
+ *
+ * Antes no contestaba: la idea era que la agenda de abajo se deslizara hasta el
+ * día, pero esa lista arranca en hoy y solo pinta días con algo, así que un día
+ * pasado —o uno futuro vacío— dejaba el número marcado y nada más. Se prueban
+ * los dos casos que fallaban: el día de atrás y el día sin nada.
+ */
+test('elegir un día del mes enseña qué hay ese día', async ({ page }) => {
+  await page.goto('/calendar')
+
+  // Un día cualquiera que no sea hoy. El 3 siempre está en la rejilla y, en el
+  // demo, no tiene nada apuntado.
+  await page.locator('button[aria-label*="3 de"]').first().click()
+  const panel = page.getByRole('region', { name: /Qué hay el/ })
+  await expect(panel).toBeVisible()
+  await expect(panel.getByText('Nada apuntado.')).toBeVisible()
+
+  // Y desde ahí se apunta algo en ese día, sin pasar por el `+` de arriba.
+  await panel.getByRole('button', { name: /^Apuntar algo el/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Apuntar en el calendario' })).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  // Con hoy elegido no sale: la agenda de debajo ya empieza justo ahí.
+  await page.getByRole('button', { name: /hoy|,/ }).first().waitFor({ state: 'attached' })
+  const hoy = new Date()
+  await page.locator(`button[aria-label*="${hoy.getDate()} de"]`).first().click()
+  await expect(panel).toBeHidden()
+})
+
+/**
+ * El selector de vista en móvil es **un botón que despliega las cuatro**, no una
+ * banda de pastillas: se comía 48 px de pantalla todo el rato. Lo que se prueba
+ * es que abre, que cambia de vista y que se cierra sin elegir nada.
+ */
+test('el selector de vista despliega y cambia de vista', async ({ page }) => {
+  await page.goto('/calendar')
+  const selector = page.locator('main button[aria-haspopup="menu"]')
+  await expect(selector).toHaveText(/Mes/)
+
+  await selector.click()
+  await expect(page.getByRole('menu')).toBeVisible()
+  await page.getByRole('menuitemradio', { name: 'Agenda', exact: true }).click()
+  await expect(page.getByRole('menu')).toBeHidden()
+  await expect(selector).toHaveText(/Agenda/)
+
+  // Escape lo cierra sin cambiar nada.
+  await selector.click()
+  await expect(page.getByRole('menu')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('menu')).toBeHidden()
+  await expect(selector).toHaveText(/Agenda/)
+})
+
+/**
  * La semana, que a 390 px no cabe entera y se recorre a lo ancho.
  *
  * Dos cosas que se rompen solas y no se ven en un unitario:
@@ -223,7 +278,7 @@ test('el mes se pasa arrastrando el dedo', async ({ page }) => {
  */
 test('la semana se recorre a lo ancho sin perder las horas', async ({ page }) => {
   await page.goto('/calendar')
-  await page.getByRole('button', { name: 'Semana', exact: true }).click()
+  await elegirVista(page, 'Semana')
 
   const eje = page.locator('.overflow-x-auto').first()
   await expect(eje).toBeVisible()

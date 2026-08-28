@@ -89,10 +89,14 @@ export function AccountMenu({ variant = 'fila' }: { variant?: 'fila' | 'icono' }
             : 'flex w-full min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-canvas'
         }
       >
-        {/* El círculo con la inicial, el mismo en los dos sitios. */}
+        {/* El círculo con la inicial, el mismo en los dos sitios. En la
+            cabecera de móvil lleva además un anillo blanco: sin él, el color
+            de la persona flota solo contra el verde del título y descuadra;
+            el anillo lo ancla como una ficha más del encabezado, igual que
+            las tarjetas de la app enmarcan sus colores en blanco. */}
         <span
           className={`flex flex-shrink-0 items-center justify-center rounded-full font-extrabold ${
-            variant === 'icono' ? 'h-9 w-9 text-sm' : 'h-8 w-8 text-xs'
+            variant === 'icono' ? 'h-8 w-8 text-xs ring-2 ring-white shadow-sm' : 'h-8 w-8 text-xs'
           } ${color ? '' : 'bg-surface text-muted'}`}
           style={color ? { backgroundColor: color, color: textColorOn(color) } : undefined}
         >

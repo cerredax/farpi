@@ -1,27 +1,24 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 /**
- * La cabecera del calendario: dónde estás, cómo moverte y cómo añadir.
+ * La cabecera del calendario: dónde estás, cómo moverte, qué enseñar y cómo
+ * añadir. **Una sola fila** desde el 28-08-2026, en móvil y en escritorio.
  *
  * Es una sola cabecera para las dos columnas de escritorio, no una por columna.
  * Antes vivía dentro de la tarjeta del mes, y el `+` estaba repetido en la
  * agenda: dos botones con el mismo nombre a dos alturas distintas.
  *
- * **El mes se pliega** (25-08-2026). En móvil el rótulo es un botón: lo tocas y
- * la rejilla del mes se despliega sobre la lista; lo vuelves a tocar y se
- * guarda. Es el gesto de Google Calendar, y sustituye al selector Agenda/Mes,
- * que obligaba a elegir entre ver el mes o ver lo que hay.
+ * De izquierda a derecha: la flecha de atrás, el título, la de adelante, el
+ * selector de vista y el `+`. Lo que cambia entre móvil y escritorio es solo el
+ * selector —un desplegable allí, tres pastillas aquí—, y el porqué está en
+ * `SelectorDeVista`.
  *
- * Salió de abrir la app y no ver ningún calendario en la pantalla del
- * calendario: la vista Programación es una lista sin rejilla, y sobre el papel
- * estaba bien, pero al entrar faltaba algo que mirar.
- *
- * En escritorio no se pliega nada —la rejilla vive a la izquierda y siempre está
- * a la vista—, así que allí el rótulo es un título y no un botón. Son dos
- * marcados con la misma etiqueta, uno `lg:hidden` y otro `hidden lg:flex`,
- * porque Tailwind puede esconder un elemento pero no convertirlo en otro.
+ * Lo que hubo y ya no: **el rótulo como botón para plegar el mes** (25-08-2026),
+ * que se fue al entrar la vista Mes en móvil el 26-08-2026 porque eran dos
+ * maneras de pedir lo mismo.
  */
 
 /**
@@ -35,6 +32,88 @@ export type VistaCalendario = 'agenda' | 'dia' | 'semana' | 'mes'
 
 const NOMBRES: Record<VistaCalendario, string> = {
   agenda: 'Agenda', dia: 'Día', semana: 'Semana', mes: 'Mes',
+}
+
+/**
+ * El selector de vista en móvil: **un botón que dice cuál está puesta** y
+ * despliega las cuatro (28-08-2026).
+ *
+ * Antes era una banda de cuatro pastillas a todo el ancho, debajo del título.
+ * Se leía bien, pero se comía ~48 px de una pantalla de 390, todo el rato, para
+ * un control que se toca una vez cada mucho.
+ *
+ * Se descartó ponerlas en la fila del título **con iconos**: los cuatro son "un
+ * calendario con algo dentro" y no se distinguen, y además no caben —las cuatro
+ * pastillas dejarían al título unos 110 px, la mitad de lo que necesita "31 de
+ * ago – 6 de septiembre"—, así que las flechas volverían a bailar a cada paso,
+ * que es justo lo que se arregló esa misma semana.
+ *
+ * Un solo botón sí cabe y no hay nada que adivinar. Es lo que hace Google
+ * Calendar en el móvil. En escritorio no cambia nada: allí las tres pastillas
+ * caben de sobra en la fila y verlas todas a la vez no cuesta nada.
+ */
+function SelectorDeVista({ vista, vistas, onVista }: {
+  vista: VistaCalendario
+  vistas: VistaCalendario[]
+  onVista: (vista: VistaCalendario) => void
+}) {
+  const [abierto, setAbierto] = useState(false)
+  const caja = useRef<HTMLDivElement>(null)
+
+  // Cerrar al tocar fuera y con Escape. `pointerdown` y no `click`: si se
+  // esperara al clic, tocar otro botón de la cabecera lo activaría con el menú
+  // todavía abierto encima.
+  useEffect(() => {
+    if (!abierto) return
+    const fuera = (e: PointerEvent) => {
+      if (!caja.current?.contains(e.target as Node)) setAbierto(false)
+    }
+    const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false) }
+    document.addEventListener('pointerdown', fuera)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', fuera)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [abierto])
+
+  return (
+    <div ref={caja} className="relative flex-shrink-0 lg:hidden">
+      <button
+        type="button"
+        onClick={() => setAbierto(a => !a)}
+        aria-haspopup="menu"
+        aria-expanded={abierto}
+        className="flex h-10 items-center gap-1 rounded-2xl bg-surface px-3 text-sm font-bold text-ink transition-colors active:bg-line"
+      >
+        {NOMBRES[vista]}
+        <ChevronDown size={16} strokeWidth={2.5} className={`text-muted transition-transform ${abierto ? 'rotate-180' : ''}`} aria-hidden />
+      </button>
+
+      {abierto && (
+        <div
+          role="menu"
+          aria-label="Qué enseña el calendario"
+          className="absolute right-0 top-full z-30 mt-1 min-w-36 overflow-hidden rounded-2xl border border-surface bg-white py-1 shadow-lg"
+        >
+          {vistas.map(valor => (
+            <button
+              key={valor}
+              type="button"
+              role="menuitemradio"
+              aria-checked={vista === valor}
+              onClick={() => { onVista(valor); setAbierto(false) }}
+              className={`flex w-full items-center px-4 py-2.5 text-left text-sm font-bold transition-colors active:bg-surface ${
+                vista === valor ? 'text-primary-strong' : 'text-ink'
+              }`}
+            >
+              {NOMBRES[valor]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 interface CalendarHeaderProps {
@@ -115,33 +194,16 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
           ))}
         </div>
 
+        <SelectorDeVista vista={vista} vistas={vistas} onVista={onVista} />
+
         <button
           type="button"
           onClick={onAdd}
           aria-label="Apuntar algo"
-          className="ml-auto flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95 lg:ml-2"
+          className="ml-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95 lg:ml-2"
         >
           <Plus size={20} strokeWidth={2.5} />
         </button>
-      </div>
-
-      {/* El selector, debajo en móvil y en la misma fila en escritorio. Debajo
-          porque en móvil son cuatro pestañas y no caben al lado del título; y a
-          todo el ancho, que es donde el pulgar acierta. */}
-      <div className="mt-2 flex gap-1 rounded-2xl bg-surface p-1 lg:mt-0 lg:hidden">
-        {vistas.map(valor => (
-          <button
-            key={valor}
-            type="button"
-            onClick={() => onVista(valor)}
-            aria-pressed={vista === valor}
-            className={`flex-1 rounded-xl py-2 text-sm font-bold transition-colors ${
-              vista === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
-            }`}
-          >
-            {NOMBRES[valor]}
-          </button>
-        ))}
       </div>
     </div>
   )

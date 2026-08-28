@@ -98,7 +98,16 @@ function sortEvents(events: Event[]): Event[] {
  * nombre ya está en el rótulo de arriba y repetirlo en cada fila es decir tres
  * veces "Marta" para tres citas de Marta. El título recupera ese ancho.
  */
-function EventRow({ event, kids, members, onEdit, mostrarPersona = true }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void; mostrarPersona?: boolean }) {
+/**
+ * Una fila de la lista: la hora, el título y de quién es.
+ *
+ * Se exporta desde el 28-08-2026 para el panel del día de la vista Mes en móvil
+ * (`DayPanel`), que enseña lo mismo y no tenía por qué pintarlo de otra manera:
+ * dos filas distintas para el mismo evento a dos dedos de distancia es
+ * exactamente el tipo de incoherencia que la agenda y la celda del mes ya
+ * arreglaron el 26-08-2026.
+ */
+export function EventRow({ event, kids, members, onEdit, mostrarPersona = true }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void; mostrarPersona?: boolean }) {
   const asignado = resolveAssignee(event, members, kids)
   // Un festivo no es de nadie: ni lleva el amarillo de "Familia" —que lo
   // confundiría con algo de toda la casa— ni dice un nombre. Dice lo que es.

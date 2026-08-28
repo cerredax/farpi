@@ -10,6 +10,59 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-28
 
+### Elegir un día contesta, y el selector deja de ocupar una banda (28-08-2026)
+
+Dos cosas del calendario en móvil, pensadas antes de tocar nada.
+
+**Elegir un día no hacía nada.** Se comprobó en el navegador tocando el 18 de agosto
+mirando el 28: el número se ponía verde y ahí se acababa todo. La idea era que la agenda
+de abajo se deslizara hasta él, pero esa lista **arranca siempre en hoy** y solo pinta
+días con algo, así que un día pasado no tenía fila a la que ir y uno futuro vacío tampoco.
+Y cuando sí la había, el salto ocurría por debajo del pliegue, donde no se ve. La
+documentación de `DayCell` prometía por escrito que "tocar el día enseña su detalle
+debajo", y no era verdad.
+
+Ahora hay un `DayPanel` pegado a la rejilla: los planes con su hora, las tareas que vencen
+y, antes que todo eso, las etiquetas que dicen **cómo es el día** —festivo, quién falta,
+de quién es el cumpleaños—, en el mismo orden que ya tienen la celda del mes y la franja
+de "todo el día" del eje. Si no hay nada, lo dice y ofrece apuntarlo ahí, que es la
+respuesta que faltaba: un día vacío se leía igual que un fallo. Reutiliza el `EventRow` de
+la agenda —que por eso se exporta— para que el mismo evento no se pinte de dos maneras a
+dos dedos de distancia.
+
+Con hoy elegido no sale, que es como abre la pantalla: la agenda de debajo empieza justo
+ahí. Y el salto de la lista hasta el día elegido pasa a ser **de escritorio**: en móvil,
+mover la página entera hasta una fila de la agenda se llevaba de delante justo el panel
+que se acababa de abrir.
+
+Se descartaron las otras dos salidas. El **tooltip** ya se probó y se retiró en su día
+—"era la única vía de leer el día y no existe con el dedo"—, y esta es una app
+mobile-first. Y **saltar a la vista Día** al tocar chocaba con dos decisiones que costaron
+vueltas: que elegir un día no cambie de vista a tus espaldas, y el doble clic en la celda
+que abre el alta, que se quedaba sin gesto. Google tampoco lo hace: en Mes enseña el día
+debajo.
+
+**El selector de vista se comía una banda.** Cuatro pastillas a todo el ancho, ~48 px de
+una pantalla de 390, todo el rato, para un control que se toca una vez cada mucho. La idea
+de partida era subirlas a la fila del título **con iconos**, y no salía por dos sitios: los
+cuatro iconos serían "un calendario con algo dentro" y no se distinguen, y además no caben
+—dejarían al título unos 110 px, la mitad de lo que necesita "31 de ago – 6 de
+septiembre"—, así que las flechas volverían a bailar a cada paso, que es lo que se arregló
+esa misma semana.
+
+Lo que sí cabe es **un solo botón** que dice la vista puesta y despliega las cuatro, como
+hace Google Calendar en el móvil. Se cierra al tocar fuera —con `pointerdown` y no `click`,
+o el toque activaría el botón de debajo con el menú todavía encima— y con Escape. En
+escritorio no cambia nada: allí las tres pastillas caben de sobra.
+
+De rebote, el título va **abreviado en móvil** ("31 ago – 6 sep", "Jue, 27 ago"): con el
+selector en esa fila, escrito largo se cortaba en "31 de ago – 6 de …", que no dice dónde
+estás. En escritorio sobra el sitio y sigue largo.
+
+Los tests de móvil que cambiaban de vista pulsaban la pastilla; ahora pasan por
+`e2e/vistas.ts`, que abre el menú primero. Y `smoke.spec.ts` estrena dos: que elegir un día
+enseña algo y deja apuntar ahí, y que el selector abre, cambia y se cierra con Escape.
+
 ### La semana ya se puede recorrer (28-08-2026)
 
 La vista Semana llegó al móvil el 26-08-2026 con un mínimo de 110 px por columna, de

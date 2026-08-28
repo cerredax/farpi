@@ -7,6 +7,7 @@ import {
   addMonths,
   endOfMonth,
   format,
+  isSameDay,
   isSameMonth,
   isWithinInterval,
   parseISO,
@@ -29,6 +30,7 @@ import { MonthGrid } from './MonthGrid'
 import { Availability } from './Availability'
 import { Birthdays } from './Birthdays'
 import { AgendaList } from './AgendaList'
+import { DayPanel } from './DayPanel'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
 import type { Event, EventDraft } from '@/types'
@@ -268,15 +270,23 @@ export function CalendarView() {
    *
    * La semana se escribe como un tramo —"17 – 23 de agosto"— y el mes solo se
    * repite si el tramo lo cruza, que es cuando hace falta para situarse.
+   *
+   * **En móvil va abreviado** (28-08-2026), desde que el selector de vista subió
+   * a esta misma fila: al título le quedan unos 150 px, y "31 de ago – 6 de
+   * septiembre" se cortaba en "31 de ago – 6 de …", que no dice dónde estás. Con
+   * "31 ago – 6 sep" y "Jue, 27 ago" entra entero. En escritorio sobra el sitio,
+   * así que allí sigue escrito largo.
    */
   const [titulo, unidad] = (() => {
     if (!conEje) return [capitalize(format(currentMonth, 'MMMM yyyy', { locale: es })), 'Mes']
-    if (vista === 'dia') return [capitalize(format(selectedDay, "EEEE, d 'de' MMMM", { locale: es })), 'Día']
+    if (vista === 'dia') {
+      return [capitalize(format(selectedDay, esEscritorio ? "EEEE, d 'de' MMMM" : 'EEE, d MMM', { locale: es })), 'Día']
+    }
 
     const [primero, ultimo] = [diasDelEje[0], diasDelEje[diasDelEje.length - 1]]
     const mismoMes = isSameMonth(primero, ultimo)
-    const desde = format(primero, mismoMes ? 'd' : "d 'de' MMM", { locale: es })
-    const hasta = format(ultimo, "d 'de' MMMM", { locale: es })
+    const desde = format(primero, mismoMes ? 'd' : (esEscritorio ? "d 'de' MMM" : 'd MMM'), { locale: es })
+    const hasta = format(ultimo, esEscritorio ? "d 'de' MMMM" : 'd MMM', { locale: es })
     return [capitalize(`${desde} – ${hasta}`), 'Semana']
   })()
 
@@ -347,6 +357,26 @@ export function CalendarView() {
                     />
                   </div>
 
+                  {/* Qué hay el día elegido, pegado a la rejilla y solo en
+                      móvil. Va **antes** de los dos bloques de debajo porque
+                      habla del día que acabas de tocar, y ellos del mes entero:
+                      lo más cercano a lo que se ha hecho, primero. Con hoy
+                      elegido no sale, que es lo que ya cuenta la agenda de
+                      abajo. */}
+                  {!isSameDay(selectedDay, today) && (
+                    <DayPanel
+                      day={selectedDay}
+                      events={eventos}
+                      cumples={allEvents.filter(isBirthday)}
+                      tasks={tareasPendientes}
+                      kids={kids}
+                      members={members}
+                      onEdit={openEdit}
+                      onAdd={openCreate}
+                      onToggleTask={toggleTask}
+                    />
+                  )}
+
                   <Availability
                     ausencias={ausenciasVisibles}
                     kids={kids}
@@ -371,7 +401,13 @@ export function CalendarView() {
             <div>
               <AgendaList
                 desde={desdeAgenda}
-                focusDay={selectedDay}
+                /* El salto de la lista hasta el día elegido es **de escritorio**
+                   (28-08-2026). En móvil ahora el detalle sale pegado a la
+                   rejilla, así que además mover la página entera hasta una fila
+                   de la agenda era llevarse de delante justo lo que se acababa
+                   de abrir. En escritorio la agenda está en la columna de al
+                   lado, a la vista, y el salto sigue siendo lo que se espera. */
+                focusDay={esEscritorio ? selectedDay : undefined}
                 events={agendaEvents}
                 kids={kids}
                 members={members}

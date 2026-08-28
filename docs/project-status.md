@@ -116,14 +116,20 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   rutas API dan 503 con JSON y el resto enseña `/no-disponible`, un 503 por `rewrite` que
   no cambia la URL, así que recargar reintenta donde estabas. No se manda al login a
   propósito. Antes, una caída dejaba el logo de "Cargando Nido" para siempre.
+- **`/api/salud`** (28-08-2026), para que un vigía externo se entere antes que la
+  familia. Mide las dos mitades de Supabase por separado —`/auth/v1/health` y una
+  consulta anónima que la RLS deja siempre en cero filas— y contesta **200 si las dos
+  van, 503 si alguna falla**, con los milisegundos de cada una y sin un dato de nadie
+  dentro. Va **fuera del `matcher` del proxy** a propósito: lo que vigila a Supabase no
+  puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **394 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **395 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
   - 306 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 28-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 88 de navegador. La cifra sale de la pasada completa del 28-08-2026 (394 en total,
+  - 89 de navegador. La cifra sale de la pasada completa del 28-08-2026 (395 en total,
     306 unitarios): ese día no se pudo correr con el dev server, porque había otro
     ocupando la carpeta, y se corrió contra el build servido con `next start` en :3100
     en modo demo, que es lo que hay que hacer cuando `npm run dev` está ocupado:

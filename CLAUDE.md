@@ -187,6 +187,7 @@ entrar en las pantallas con sesión sin credenciales.
 - `/api/account/delete` — borrado de cuenta; bloquea si dejaría una familia compartida sin admin.
 - `/api/push` — alta/baja de suscripciones Web Push.
 - `/api/cron/reminders` — cron diario (`vercel.json`, 07:00 UTC): keep-alive de Supabase + envío de recordatorios.
+- `/api/salud` — si Supabase responde, y cuánto tarda. 200 o 503, para un vigía externo. **Fuera del `matcher` de `src/proxy.ts`**: lo que vigila a Supabase no puede pasar por la pieza que puede estar colgada.
 - `/api/documents/*` — los documentos en Google Drive: abrir sesión de subida, guardar la ficha, servir el archivo por proxy, borrar y gestionar la conexión con el proveedor.
 
 Las tres primeras las llama la UI, así que **cortan al principio si `IS_DEMO_MODE`**: sin

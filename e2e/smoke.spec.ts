@@ -207,3 +207,20 @@ test('el mes se pasa arrastrando el dedo', async ({ page }) => {
   await desliza(page, 0, -150)
   await expect(titulo).toHaveText(agosto!)
 })
+
+/**
+ * La ruta que mira el vigía externo. En la suite corre en modo demo, así que lo
+ * comprobable aquí es el contrato: que contesta, que no la cachea nadie por el
+ * camino y que en demo ni intenta hablar con un Supabase que no existe.
+ *
+ * Que devuelva 503 cuando Supabase está caído no se puede probar desde aquí
+ * —haría falta un Supabase caído—; eso se comprobó a mano contra el build
+ * servido y está contado en `docs/historial.md`.
+ */
+test('la ruta de salud contesta y no se cachea', async ({ request }) => {
+  const res = await request.get('/api/salud')
+
+  expect(res.status()).toBe(200)
+  expect(res.headers()['cache-control']).toContain('no-store')
+  expect(await res.json()).toEqual({ estado: 'demo' })
+})

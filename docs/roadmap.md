@@ -281,11 +281,16 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
      reintente donde estabas—. **No se manda al login**: parecería que se ha caído tu
      sesión. La RLS no se toca: el middleware es experiencia de uso, no seguridad. El
      relato, en `docs/historial.md`.
-  3. **Una ruta `/api/salud`** que mida Supabase (auth y datos) y devuelva los tiempos.
-     Sin datos de nadie dentro, que es pública por definición.
+  3. ✅ **Ruta `/api/salud`** (28-08-2026). Mide las dos mitades de Supabase por
+     separado —`/auth/v1/health` y una consulta anónima que la RLS deja en cero
+     filas— y devuelve **200 si las dos van, 503 si alguna falla**, con los
+     milisegundos de cada una. No lleva dentro un dato de nadie, que es lo que la
+     hace publicable. **Queda fuera del `matcher` del proxy** a propósito: lo que
+     vigila a Supabase no puede atravesar la pieza que puede estar colgada.
   4. **Un vigía externo gratuito** (UptimeRobot o similar) apuntando a esa ruta cada
      pocos minutos, con aviso por correo. Tiene que ser externo: si el que vigila se
-     cae con la app, no vigila nada.
+     cae con la app, no vigila nada. **Es lo único que falta**: la ruta ya está y
+     contesta lo que esos servicios entienden.
 
   Lo que **no** hay que hacer: montar telemetría de errores del cliente. Es una app
   familiar con datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo

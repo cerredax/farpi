@@ -53,6 +53,38 @@ como antes. La pantalla, además, revisada en captura a 390 px.
 Quedan los otros tres puntos de la Fase 9: suscribirse al estado de Supabase, la ruta
 `/api/salud` y un vigía externo que la mire.
 
+### Una ruta que dice si Nido puede funcionar (28-08-2026)
+
+El punto 3 de la Fase 9, y el que permite el 4. `/api/salud` contesta **200 si Supabase
+va y 503 si no**, que es lo único que entienden los vigías externos, con los
+milisegundos de cada mitad.
+
+**Dos mitades, medidas por separado, porque no se caen juntas**: esa misma mañana fue
+la de sesión la que dejó de contestar mientras los datos respondían. Una llamada a
+`/auth/v1/health` de GoTrue aísla el servicio de sesión sin tocar la base; la otra va a
+PostgREST y recorre Postgres y la RLS hasta el final.
+
+**Es publicable porque no lleva nada dentro.** La consulta de datos va con la clave
+anónima, así que la RLS la deja siempre en cero filas —comprobado a mano: `[]` y
+`Content-Range: */0`—. Se mide el viaje, no lo que se trae. Del error solo sale el
+nombre (`HTTP 404`, `TimeoutError`): un mensaje de red puede llevar dentro el host y el
+trayecto.
+
+**Fuera del `matcher` del proxy**, que es la decisión que importa: lo que vigila a
+Supabase no puede atravesar la pieza que puede estar colgada. Pasando por el proxy
+esperaría los cinco segundos de la sesión antes de empezar a medir, y mediría tarde
+justo el día que hace falta. Es la misma clase de excepción que ya tenían `sw.js` y
+`manifest.json`, por un motivo distinto.
+
+Comprobada contra el build servido y contra el Supabase real: `{"estado":"ok",...}` con
+auth en 440 ms y datos en 656 ms, cabecera `no-store`, y sin sesión no redirige al login
+—mientras `/home` sigue dando su 307—. El camino de fallo se forzó apuntando la medida
+de datos a una tabla que no existe: **503** con `{"estado":"caido","auth":{"ok":true},
+"datos":{"ok":false,"detalle":"HTTP 404"}}`, que es exactamente lo que se quiere leer un
+día malo. En la suite queda un test del contrato en modo demo (395 en total).
+
+Falta lo último de la Fase 9: dar la ruta de alta en un vigía externo.
+
 ### El calendario se ordena: cumpleaños aparte, flechas quietas y desliz (28-08-2026)
 
 Cuatro cosas del calendario, todas de uso y ninguna de datos.

@@ -17,6 +17,17 @@ export function ServiceWorkerRegister() {
       })
     }
 
+    // Esperar a `load` es para no competir con la carga inicial, pero si el
+    // evento **ya pasó** el listener no se dispara nunca y el service worker se
+    // queda sin registrar esa visita entera. Es una carrera contra la
+    // hidratación, así que unas veces sale y otras no. Y sin worker activo,
+    // `serviceWorker.ready` (el que usa `enablePush`) no resuelve ni rechaza
+    // jamás: dejaba el botón de recordatorios en "Guardando…" para siempre.
+    if (document.readyState === 'complete') {
+      register()
+      return
+    }
+
     window.addEventListener('load', register)
     return () => window.removeEventListener('load', register)
   }, [])

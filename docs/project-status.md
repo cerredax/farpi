@@ -34,10 +34,10 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
   y cerrar una familia entera (un admin, y nunca la última que le queda).
-- Cuenta: la fila de quien mira —inicial, nombre y casa— al pie de `SideNav` y al final
-  de Inicio (`AccountMenu.tsx`, 28-08-2026); abre Ajustes, cierra sesión y cambia de
-  familia si hay más de una. Cambiar contraseña (`AccountActions.tsx`) y borrar cuenta
-  siguen dentro de Ajustes.
+- Cuenta: el círculo con tu inicial arriba a la derecha en móvil y una fila al pie de la
+  barra lateral en escritorio (`AccountMenu.tsx`, 28-08-2026). Su menú lleva las cinco
+  secciones de Ajustes —cada una a su pestaña, `/settings?seccion=…`— y cerrar sesión.
+  Cambiar contraseña (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes.
 - Páginas legales públicas `/privacidad` y `/terminos`.
 - Modo demo con persistencia en `localStorage`.
 
@@ -1398,23 +1398,35 @@ unitarios.
 
 ### La cuenta tiene cara, y Ajustes se entra por ella (28-08-2026)
 
-El pie de `SideNav` y la última fila de Inicio eran un enlace "Ajustes" con su rueda.
-Ahora son la fila de quien mira —su inicial en su color, su nombre y el de la casa— y al
-pulsarla se abre un sheet con **Ajustes**, **cerrar sesión** y, si hay más de una familia,
-a cuál cambiar. Es el mismo componente (`AccountMenu`) en los dos tamaños.
+Había un enlace "Ajustes" con su rueda en el pie de `SideNav` y al final de Inicio. Ahora
+es `AccountMenu`: en escritorio, una fila al pie de la barra lateral con la inicial y el
+nombre; en móvil, el círculo con la inicial arriba a la derecha de la cabecera. Su menú
+lleva las cinco secciones de Ajustes, cada una a su pestaña, y cerrar sesión al final.
 
 - **Qué arregla.** La app no decía en ninguna pantalla con qué cuenta estabas, y cerrar
   sesión estaba a cuatro toques dentro de la pestaña Cuenta de la pantalla a la que menos
-  se entra. Cambiar de familia, lo único de Ajustes que se hace a menudo, también sube.
-- **Lo que no se hizo.** La idea de partida era meter los ajustes dentro del desplegable.
-  No: en Nido Ajustes es la casa, no la cuenta —cinco pestañas que no caben en un menú— y
-  esconder contenido ya salió mal aquí dos veces. El menú es una puerta, no un armario.
+  se entra. En móvil, además, Ajustes solo se alcanzaba desde Inicio: ahora está en las
+  siete pantallas.
+- **La esquina vuelve a ocuparse, y a propósito.** Se liberó el 26-08-2026 por ser
+  demasiado buena para algo que se toca dos veces al año. Lo que vuelve no es la rueda: es
+  la cuenta, que es lo que se busca ahí en cualquier app, y Ajustes va dentro.
+- **Lo que no se hizo.** Meter los ajustes dentro del desplegable. En Nido, Ajustes es la
+  casa y no la cuenta —cinco pestañas que no caben en un menú— y esconder contenido ya
+  salió mal aquí dos veces. El menú es un índice, no un armario.
+- **La pestaña activa la dice la URL** (`?seccion=casa`), no un `useState`: el menú entra
+  sin desmontar la pantalla, y con dos fuentes de verdad había que sincronizarlas en un
+  efecto. La lista de secciones se comparte en `settings/pestanas.ts`.
 - **Quién eres.** `currentMember` en el store, contra `members.getCurrentUserId()` del
   contrato de repos (mock: `u1`; Supabase: `auth.getUser()`, y `null` si falla, que no
   rompe ninguna pantalla). Es para reconocer tu fila, no para decidir permisos.
-- **El nombre accesible de la fila es "Cuenta de …" y no su texto.** Llevaba dentro el de
-  la casa, que en la familia de prueba es "Familia de Omar, Sofía y Ana", y un
-  `getByRole('button', { name: 'Sofía' })` de la suite pasaba a encontrar dos cosas.
+- **El sheet de la cabecera va en un portal.** `TopBar` es `fixed z-50` y crea contexto de
+  apilamiento: dentro de él, el `z-[60]` del sheet no competía con la barra de abajo, que
+  le tapaba la última sección. Va al `body` envuelto en un `lg:hidden`, porque al salir
+  del botón sale también de su `lg:hidden` y en escritorio aparecían dos menús. Las dos
+  cosas se vieron en pantalla, no en la suite: en verde estaba.
+- **El nombre accesible del botón es "Cuenta de …" y no su texto**, que llevaba dentro el
+  de la casa —"Familia de Omar, Sofía y Ana"— y hacía que un
+  `getByRole('button', { name: 'Sofía' })` de la suite encontrara dos cosas.
 - **Verificado en el navegador** con el build servido en el 3100 en modo demo, no con
   `npm run dev`: sigue habiendo un dev server ocupando la carpeta y Next 16 no deja
   levantar otro. `npm run build && npx next start -p 3100` con los placeholders de demo

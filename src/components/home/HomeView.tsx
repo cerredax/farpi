@@ -15,7 +15,6 @@ import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import { AccountMenu } from '@/components/layout/AccountMenu'
 import type { Task } from '@/types'
 
 function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
@@ -125,12 +124,6 @@ export function HomeView() {
       <UpcomingEvents events={upcoming} kids={kids} members={members} />
       <UpcomingBirthdays cumples={cumplesProximos} />
       <TodayMeals meals={todayMeals} />
-
-      {/* La cuenta, al final del recorrido y solo en móvil. Antes era un enlace
-          a Ajustes (26-08-2026); desde el 28-08-2026 es la misma fila de cuenta
-          que lleva `SideNav` en su pie, con Ajustes dentro. En escritorio no se
-          pinta: allí la lleva la barra lateral y aquí sería decirlo dos veces. */}
-      <AccountMenu className="border border-surface bg-white shadow-sm lg:hidden" />
 
       <OffDayConfirmSheet
         open={!!confirmTask}

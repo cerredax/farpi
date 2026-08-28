@@ -48,12 +48,7 @@ test('una familia creada se puede eliminar y la app vuelve a la anterior', async
 
   // Al crearla se queda activa: sale en la tarjeta de arriba y, ya con dos, en
   // la lista para cambiar de familia.
-  //
-  // Solo las visibles: el nombre de la casa está también en el pie de `SideNav`
-  // y en el menú de cuenta que abre, y los dos siguen en el DOM aunque aquí no
-  // se pinten —la barra lateral es `hidden` por debajo de `lg` y el sheet está
-  // cerrado—. Contando el DOM entero salían cuatro.
-  await expect(page.getByText('Familia de prueba').filter({ visible: true })).toHaveCount(2)
+  await expect(page.getByText('Familia de prueba')).toHaveCount(2)
 
   await page.getByRole('button', { name: 'Editar familia' }).click()
   const dialog = page.getByRole('dialog', { name: 'Editar familia' })
@@ -63,11 +58,7 @@ test('una familia creada se puede eliminar y la app vuelve a la anterior', async
   await dialog.getByRole('button', { name: 'Confirmar: se borra todo' }).click()
 
   await expect(page.getByText('Familia de prueba')).toHaveCount(0)
-  // La de la tarjeta de arriba, no la del pie de la barra lateral, que también
-  // dice el nombre de la casa aunque en móvil no se pinte.
-  await expect(
-    page.getByText('Familia de Omar, Sofía y Ana').filter({ visible: true }),
-  ).toBeVisible()
+  await expect(page.getByText('Familia de Omar, Sofía y Ana')).toBeVisible()
 })
 
 // El segundo eje de la agenda. Se prueba en el navegador y no en unitarios

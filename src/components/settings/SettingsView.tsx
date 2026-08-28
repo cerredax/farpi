@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store-context'
 import { memberColor, splitPeople } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
 import { selectFamilySummary } from '@/lib/selectors'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
+import { ROUTES } from '@/lib/constants'
+import { PESTAÑAS_VISIBLES, pestañaDesdeUrl, type PestañaKey } from './pestanas'
 import { FamilyCard } from './FamilyCard'
 import { MealSlotsCard } from './MealSlotsCard'
 import { NotificationsCard } from './NotificationsCard'
@@ -42,19 +45,10 @@ import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/type
  * legal), así que cambiar de pestaña es una decisión de navegación, no un
  * contenido que se pierde de vista sin querer.
  *
- * La pestaña por defecto es siempre "Familia", sin recordar la última
- * visitada: es la más predecible, y es la que más se usa.
+ * Con qué pestaña se entra lo dice la URL (`?seccion=casa`), porque el menú de
+ * la cuenta lleva directo a cada una. Sin `seccion` se abre "Familia": es la más
+ * predecible y la que más se usa. La última visitada no se recuerda.
  */
-
-type PestañaKey = 'familia' | 'casa' | 'cuenta' | 'sincronizacion' | 'legal'
-
-const TODAS_LAS_PESTAÑAS: { key: PestañaKey; label: string }[] = [
-  { key: 'familia', label: 'Familia' },
-  { key: 'casa', label: 'Casa' },
-  { key: 'cuenta', label: 'Cuenta' },
-  { key: 'sincronizacion', label: 'Sincronización' },
-  { key: 'legal', label: 'Legal' },
-]
 
 /** Un bloque de Ajustes: el nivel de "¿a qué he entrado?". */
 function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
@@ -77,6 +71,8 @@ function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode
 }
 
 export function SettingsView() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const {
     family, families, activeFamilyId, switchFamily, createFamily, deleteFamily,
     members, invites, kids, mealSlots, documents, allEvents, tasks, lists, meals,
@@ -146,15 +142,14 @@ export function SettingsView() {
     resetDemoData()
   }
 
-  // Sincronización no tiene nada que enseñar en modo demo (no hay proveedor al
-  // que conectarse): en vez de una pestaña vacía, no se ofrece. "Cuenta" sí se
-  // mantiene, porque la copia de seguridad vive ahí y tiene que poder probarse
-  // en la suite, que corre siempre en modo demo forzado.
-  const pestañas = IS_DEMO_MODE
-    ? TODAS_LAS_PESTAÑAS.filter(p => p.key !== 'sincronizacion')
-    : TODAS_LAS_PESTAÑAS
-
-  const [pestañaActiva, setPestañaActiva] = useState<PestañaKey>('familia')
+  // Qué pestaña se ve lo dice la URL y solo la URL. Sin estado propio: el menú
+  // de la cuenta entra por `/settings?seccion=casa` sin desmontar la pantalla, y
+  // con dos fuentes de verdad había que sincronizarlas en un efecto. Las
+  // pestañas escriben la suya con `replace` para no llenar el historial de pasos
+  // atrás dentro de la misma pantalla.
+  const pestañaActiva = pestañaDesdeUrl(searchParams.get('seccion'))
+  const irAPestaña = (key: PestañaKey) =>
+    router.replace(`${ROUTES.settings}?seccion=${key}`, { scroll: false })
 
   return (
     <>
@@ -166,7 +161,7 @@ export function SettingsView() {
           aria-label="Secciones de ajustes"
           className="mb-6 flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0"
         >
-          {pestañas.map(p => (
+          {PESTAÑAS_VISIBLES.map(p => (
             <button
               key={p.key}
               type="button"
@@ -174,7 +169,7 @@ export function SettingsView() {
               id={`tab-${p.key}`}
               aria-selected={pestañaActiva === p.key}
               aria-controls={`panel-${p.key}`}
-              onClick={() => setPestañaActiva(p.key)}
+              onClick={() => irAPestaña(p.key)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
                 pestañaActiva === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
               }`}

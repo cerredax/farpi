@@ -86,12 +86,17 @@ test.describe('escritorio a 1440 px', () => {
       await expect(lateral.getByRole('link', { name: nombre })).toBeVisible()
     }
 
-    // Ajustes ya no es un enlace del pie (28-08-2026): el pie es la cuenta, y
-    // Ajustes es la primera fila del menú que abre. Se comprueba entero porque
-    // es el único camino a Ajustes que queda en escritorio.
+    // Ajustes ya no es un enlace del pie (28-08-2026): el pie es la cuenta, y su
+    // menú lleva las cinco secciones de Ajustes, cada una a su pestaña. Se
+    // comprueba entero porque es el único camino a Ajustes en escritorio.
     await lateral.getByRole('button', { name: 'Cuenta de Omar' }).click()
     const menu = page.getByRole('dialog')
-    await expect(menu.getByRole('link', { name: 'Ajustes' })).toBeVisible()
+    for (const seccion of ['Familia', 'Casa', 'Cuenta', 'Legal']) {
+      await expect(menu.getByRole('link', { name: seccion })).toBeVisible()
+    }
+    await menu.getByRole('link', { name: 'Casa' }).click()
+    await expect(page).toHaveURL(/seccion=casa/)
+    await expect(page.getByRole('tab', { name: 'Casa' })).toHaveAttribute('aria-selected', 'true')
   })
 
   // En escritorio la celda del mes escribe los títulos de lo que hay ese día, y

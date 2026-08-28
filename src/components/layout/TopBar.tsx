@@ -7,6 +7,7 @@ import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
 import { getGreeting } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
+import { AccountMenu } from './AccountMenu'
 
 const titles: Record<string, string> = {
   '/calendar': 'Calendario',
@@ -54,11 +55,15 @@ export function TopBar() {
         ) : (
           <h1 className="font-extrabold tracking-tight text-primary-strong text-lg">{title ?? 'Nido'}</h1>
         )}
-        {/* La rueda de Ajustes ya no vive aquí (26-08-2026). Arriba a la derecha
-            es el sitio de lo que se usa a diario, y Ajustes se toca dos veces al
-            año: ocupaba la esquina más alcanzable del pulgar para nada. Ahora es
-            una fila al final de Inicio, donde acaba el recorrido de la pantalla.
-            En escritorio nunca hizo falta, que `SideNav` la lleva desde siempre. */}
+        {/* Aquí hubo una rueda de Ajustes hasta el 26-08-2026, y se quitó porque
+            esta esquina no es sitio para algo que se toca dos veces al año. Lo
+            que vuelve el 28-08-2026 no es esa rueda: es tu cuenta, que es lo que
+            todo el mundo busca en esta esquina, está en las siete pantallas y de
+            paso dice con quién estás dentro. Ajustes es lo primero de su menú.
+            Solo en móvil: en escritorio la lleva el pie de `SideNav`. */}
+        <div className="lg:hidden">
+          <AccountMenu variant="icono" />
+        </div>
       </div>
     </header>
   )

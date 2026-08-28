@@ -429,8 +429,8 @@ revés. El corte está solo ahí, y lo que hay por debajo no se toca al añadir 
 La navegación es lo único que cambia de sitio: `BottomNav` desaparece con `lg:hidden` y
 `SideNav` (`hidden lg:flex`, 224 px a la izquierda) toma su lugar, con las mismas seis
 secciones. Ajustes no es una de ellas: se entra por el menú de la cuenta (`AccountMenu`),
-que en escritorio es el pie de `SideNav` y en móvil la última fila de Inicio; en la barra
-de abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después** de
+que en escritorio es el pie de `SideNav` y en móvil el círculo de la esquina de `TopBar`;
+en la barra de abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después** de
 `TopBar` —con el mismo `z-50`, lo último se pinta encima y la columna tiene que tapar la
 esquina de la cabecera— y **antes** de `main`, para que el velo de un sheet la cubra al
 abrirse.
@@ -1042,20 +1042,42 @@ cede el recuento a "Personas" (donde además dice las invitaciones), la lista de
 solo sale si hay más de una, y las dos acciones normales de la cuenta pasan a ser filas
 de una tarjeta en vez de dos tarjetas de una línea.
 
-**A Ajustes se entra por la cuenta, no por un enlace suelto** (28-08-2026). El pie de
-`SideNav` y la última fila de Inicio eran un enlace "Ajustes" con su rueda. Ahora son la
-misma fila con la inicial, el nombre de quien mira y el de la casa (`AccountMenu`), y al
-pulsarla se abre un sheet con **Ajustes**, **cerrar sesión** y, si hay más de una familia,
-a cuál cambiar. Arregla dos cosas: la app no decía en ninguna pantalla con qué cuenta
-estabas —en una casa con dos adultos y un móvil compartido eso importa— y cerrar sesión
-vivía a cuatro toques, dentro de la pestaña Cuenta de la pantalla a la que menos se entra.
+**A Ajustes se entra por la cuenta, no por un enlace suelto** (28-08-2026). Había un
+enlace "Ajustes" con su rueda en el pie de `SideNav` y al final de Inicio. Ahora es
+`AccountMenu`: en escritorio, una fila al pie de la barra lateral con la inicial y el
+nombre; en móvil, el círculo con la inicial **arriba a la derecha de `TopBar`**, que es
+donde se busca la cuenta en cualquier app y está en las siete pantallas, no solo en
+Inicio. Arregla dos cosas: la app no decía en ninguna pantalla con qué cuenta estabas —en
+una casa con dos adultos y un móvil compartido eso importa— y cerrar sesión vivía a cuatro
+toques, dentro de la pestaña Cuenta de la pantalla a la que menos se entra.
 
-Lo que **no** se hizo es meter los ajustes dentro del menú, que era la idea de partida.
-En Nido, Ajustes no es "mi cuenta": es la casa —familia, personas, comidas,
-notificaciones, Drive, legal—, cinco pestañas que no caben en un desplegable, y esconder
-contenido ya salió mal aquí dos veces (el catálogo de las listas, las tareas del día). El
-menú es una puerta, no un armario: el contenido sigue en `/settings`. Lo único que se
-mudó de verdad es cerrar sesión, que no es un ajuste de la casa sino salir de la app.
+Esa esquina se había liberado el 26-08-2026 justo por lo contrario: era demasiado buena
+para una rueda que se toca dos veces al año. Lo que vuelve no es la rueda; es la cuenta, y
+Ajustes va dentro.
+
+El menú **no** lleva los ajustes dentro: lleva sus **cinco secciones** —Familia, Casa,
+Cuenta, Sincronización, Legal— y cada una entra directa a su pestaña
+(`/settings?seccion=…`), más cerrar sesión al final. Es la diferencia entre un índice y un
+armario, y es lo que evita el golpe que este repositorio ya se dio dos veces escondiendo
+contenido (el catálogo de las listas, las tareas del día). Lo único que se mudó de verdad
+es cerrar sesión, que no es un ajuste de la casa sino salir de la app.
+
+La lista de secciones vive en `src/components/settings/pestanas.ts` y la comparten el menú
+y las pestañas de `SettingsView`, que ya no guarda cuál está activa: **la dice la URL** y
+solo la URL, porque el menú entra por `?seccion=` sin desmontar la pantalla y con dos
+fuentes de verdad había que sincronizarlas a mano. Las pestañas escriben la suya con
+`replace`, para no llenar el historial de pasos atrás dentro de la misma pantalla.
+
+El nombre de la casa no sale en la fila. Estuvo un rato bajo el de la persona y confundía
+las dos cosas —quién eres y en qué casa estás—; se dice en Ajustes → Familia, que es donde
+se cambia.
+
+Un detalle de apilamiento que costó una vuelta: en móvil el menú cuelga de `TopBar`, que es
+`fixed z-50` y **crea contexto de apilamiento**, así que el `z-[60]` del sheet no competía
+con el `z-50` de la barra de abajo y esta le tapaba la última sección. El sheet de la
+cabecera se pinta con `createPortal` en el `body` —donde vuelve a estar a la altura de los
+sheets del resto de la app, que cuelgan de `main`— envuelto en un `lg:hidden`, porque
+sacarlo del botón lo saca también de su `lg:hidden` y en escritorio habría dos menús.
 
 Quién eres se sabe por `currentMember` del store, que compara los miembros con
 `members.getCurrentUserId()` del contrato de repos (en demo, siempre `u1`). Es para

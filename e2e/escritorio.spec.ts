@@ -82,10 +82,16 @@ test.describe('escritorio a 1440 px', () => {
     await expect(lateral).toBeVisible()
     await expect(page.locator(BARRA_ABAJO)).toBeHidden()
 
-    // Las seis secciones más Ajustes, que en móvil vive en la rueda de arriba.
-    for (const nombre of ['Inicio', 'Calendario', 'Listas', 'Tareas', 'Comidas', 'Documentos', 'Ajustes']) {
+    for (const nombre of ['Inicio', 'Calendario', 'Listas', 'Tareas', 'Comidas', 'Documentos']) {
       await expect(lateral.getByRole('link', { name: nombre })).toBeVisible()
     }
+
+    // Ajustes ya no es un enlace del pie (28-08-2026): el pie es la cuenta, y
+    // Ajustes es la primera fila del menú que abre. Se comprueba entero porque
+    // es el único camino a Ajustes que queda en escritorio.
+    await lateral.getByRole('button', { name: 'Cuenta de Omar' }).click()
+    const menu = page.getByRole('dialog')
+    await expect(menu.getByRole('link', { name: 'Ajustes' })).toBeVisible()
   })
 
   // En escritorio la celda del mes escribe los títulos de lo que hay ese día, y

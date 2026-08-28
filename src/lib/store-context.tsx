@@ -58,6 +58,12 @@ interface StoreValue {
   deleteFamily: () => Promise<void>
   family: Family
   members: FamilyMember[]
+  /**
+   * Tu propia fila entre los miembros, para el menú de cuenta: es lo que le da
+   * nombre y color. `null` mientras carga, si no hay sesión o si quien mira
+   * todavía no figura en esta familia.
+   */
+  currentMember: FamilyMember | null
   invites: FamilyInvite[]
   kids: Child[]
   allEvents: Event[]
@@ -162,6 +168,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
   const [documents, setDocuments] = useState<Document[]>(EMPTY_SLICES.documents)
   const [storageConnection, setStorageConnection] = useState<StorageConnection | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     setIsLoading(true)
@@ -179,6 +186,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         nextListItems,
         nextMeals,
         nextDocuments,
+        nextUserId,
       ] = await Promise.all([
         repos.family.getFamily(familyId),
         repos.family.getFamilies(),
@@ -191,6 +199,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         repos.listItems.getListItems(familyId),
         repos.meals.getMeals(familyId),
         repos.documents.getDocuments(familyId),
+        repos.members.getCurrentUserId(),
       ])
 
       if (!nextFamily) throw new Error('No se ha encontrado la familia activa')
@@ -211,6 +220,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       setListItems(nextListItems)
       setMeals(nextMeals)
       setDocuments(nextDocuments)
+      setCurrentUserId(nextUserId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando los datos')
     } finally {
@@ -248,6 +258,10 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const todayMeals = useMemo(
     () => filterMealsBySlots(selectTodayMeals(meals), mealSlots),
     [meals, mealSlots],
+  )
+  const currentMember = useMemo(
+    () => (currentUserId ? members.find(m => m.user_id === currentUserId) ?? null : null),
+    [members, currentUserId],
   )
   const pendingTasks = useMemo(() => selectPendingTasks(tasks), [tasks])
   const pendingItems = useMemo(() => selectPendingItems(allListItems, lists), [allListItems, lists])
@@ -338,6 +352,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       switchFamily,
       family,
       members,
+      currentMember,
       invites,
       kids,
       allEvents,
@@ -469,6 +484,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     switchFamily,
     family,
     members,
+    currentMember,
     invites,
     kids,
     allEvents,

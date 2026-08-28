@@ -25,6 +25,13 @@ export interface FamilyRepo {
 
 export interface MembersRepo {
   getMembers(familyId: string): Promise<FamilyMember[]>
+  /**
+   * Quién está mirando la app. Se usa para reconocer su propia fila entre los
+   * miembros de la familia (la del menú de cuenta), no para decidir permisos:
+   * eso lo hace la RLS. Devuelve `null` si no se puede saber, y entonces la UI
+   * se queda sin nombre pero no se rompe.
+   */
+  getCurrentUserId(): Promise<string | null>
   updateMemberProfile(id: string, name: string, color: string | null): Promise<void>
   updateMemberRole(id: string, role: 'admin' | 'member'): Promise<void>
   removeMember(id: string): Promise<void>

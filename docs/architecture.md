@@ -428,8 +428,9 @@ revés. El corte está solo ahí, y lo que hay por debajo no se toca al añadir 
 
 La navegación es lo único que cambia de sitio: `BottomNav` desaparece con `lg:hidden` y
 `SideNav` (`hidden lg:flex`, 224 px a la izquierda) toma su lugar, con las mismas seis
-secciones más Ajustes, que en móvil vive en la rueda de `TopBar` porque en la barra de
-abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después** de
+secciones. Ajustes no es una de ellas: se entra por el menú de la cuenta (`AccountMenu`),
+que en escritorio es el pie de `SideNav` y en móvil la última fila de Inicio; en la barra
+de abajo no caben siete etiquetas a 390 px. `AppShell` monta `SideNav` **después** de
 `TopBar` —con el mismo `z-50`, lo último se pinta encima y la columna tiene que tapar la
 esquina de la cabecera— y **antes** de `main`, para que el velo de un sheet la cubra al
 abrirse.
@@ -1040,6 +1041,25 @@ se viene a buscar. El largo se recortó quitando redundancia: la tarjeta de la f
 cede el recuento a "Personas" (donde además dice las invitaciones), la lista de familias
 solo sale si hay más de una, y las dos acciones normales de la cuenta pasan a ser filas
 de una tarjeta en vez de dos tarjetas de una línea.
+
+**A Ajustes se entra por la cuenta, no por un enlace suelto** (28-08-2026). El pie de
+`SideNav` y la última fila de Inicio eran un enlace "Ajustes" con su rueda. Ahora son la
+misma fila con la inicial, el nombre de quien mira y el de la casa (`AccountMenu`), y al
+pulsarla se abre un sheet con **Ajustes**, **cerrar sesión** y, si hay más de una familia,
+a cuál cambiar. Arregla dos cosas: la app no decía en ninguna pantalla con qué cuenta
+estabas —en una casa con dos adultos y un móvil compartido eso importa— y cerrar sesión
+vivía a cuatro toques, dentro de la pestaña Cuenta de la pantalla a la que menos se entra.
+
+Lo que **no** se hizo es meter los ajustes dentro del menú, que era la idea de partida.
+En Nido, Ajustes no es "mi cuenta": es la casa —familia, personas, comidas,
+notificaciones, Drive, legal—, cinco pestañas que no caben en un desplegable, y esconder
+contenido ya salió mal aquí dos veces (el catálogo de las listas, las tareas del día). El
+menú es una puerta, no un armario: el contenido sigue en `/settings`. Lo único que se
+mudó de verdad es cerrar sesión, que no es un ajuste de la casa sino salir de la app.
+
+Quién eres se sabe por `currentMember` del store, que compara los miembros con
+`members.getCurrentUserId()` del contrato de repos (en demo, siempre `u1`). Es para
+reconocer tu fila, no para decidir permisos: eso lo sigue haciendo la RLS.
 
 ## Tono de la interfaz
 

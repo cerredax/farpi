@@ -1,6 +1,6 @@
 import { createClient } from '../supabase/client'
 import { normalizeMealSlots } from '../meal-slots'
-import { assertNoError, fail } from './shared'
+import { assertNoError, currentUserId, fail } from './shared'
 import type { Family, FamilyInvite, FamilyMember, MealSlot } from '@/types'
 import type { FamilyRepo, InvitesRepo, MembersRepo } from '../repos/types'
 
@@ -87,6 +87,16 @@ export const membersRepo: MembersRepo = {
       .order('created_at')
     assertNoError(error)
     return data ?? []
+  },
+
+  // No falla si no hay sesión: quien llama solo quiere saber cuál de los
+  // miembros eres, y no saberlo no rompe ninguna pantalla.
+  async getCurrentUserId(): Promise<string | null> {
+    try {
+      return await currentUserId()
+    } catch {
+      return null
+    }
   },
 
   async updateMemberProfile(id: string, name: string, color: string | null): Promise<void> {

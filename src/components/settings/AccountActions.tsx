@@ -1,15 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { KeyRound, LogOut, Loader2 } from 'lucide-react'
-import { createClient, signOut } from '@/lib/supabase/client'
+import { KeyRound, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 const PASSWORD_MIN = 8
 
 export function AccountActions() {
-  const router = useRouter()
-
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [password, setPassword] = useState('')
   const [pwBusy, setPwBusy] = useState(false)
@@ -36,18 +33,13 @@ export function AccountActions() {
     setPwDone(true)
   }
 
-  async function handleLogout() {
-    await signOut()
-    router.replace('/auth/login')
-  }
-
   return (
-    // Las dos acciones normales en una sola tarjeta, como filas: eran dos
-    // tarjetas de una línea cada una, con un botón enmarcado dentro de un
-    // marco. Aquí se leen como lo que son, dos cosas que se pueden hacer con
-    // la cuenta, y ocupan la mitad.
-    // Borrar cuenta ya no vive aquí: está en DeleteAccountCard, dentro de la
-    // pestaña Legal, para que una acción tan grave no se confunda con estas.
+    // Lo que queda de la cuenta aquí: cambiar la contraseña.
+    // Borrar cuenta se fue a DeleteAccountCard, en la pestaña Legal, para que
+    // una acción tan grave no se confunda con esta. Y cerrar sesión se fue al
+    // menú de la cuenta (28-08-2026): salir de la app no es un ajuste de la
+    // casa, y estaba a cuatro toques dentro de la pantalla a la que menos se
+    // entra.
     <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
       {showPasswordForm ? (
         <form onSubmit={handleChangePassword} className="space-y-3 p-4">
@@ -80,10 +72,6 @@ export function AccountActions() {
       {pwDone && !showPasswordForm && (
         <p className="px-4 pb-3 text-xs font-medium text-primary-strong">Contraseña actualizada.</p>
       )}
-      <button onClick={handleLogout} className="flex w-full items-center gap-3 border-t border-hairline px-4 py-3.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas">
-        <LogOut size={16} strokeWidth={2} className="flex-shrink-0 text-muted" />
-        Cerrar sesión
-      </button>
     </div>
   )
 }

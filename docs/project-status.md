@@ -34,7 +34,10 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
   y cerrar una familia entera (un admin, y nunca la última que le queda).
-- Cuenta: cambiar contraseña y borrar cuenta (`AccountActions.tsx`).
+- Cuenta: la fila de quien mira —inicial, nombre y casa— al pie de `SideNav` y al final
+  de Inicio (`AccountMenu.tsx`, 28-08-2026); abre Ajustes, cierra sesión y cambia de
+  familia si hay más de una. Cambiar contraseña (`AccountActions.tsx`) y borrar cuenta
+  siguen dentro de Ajustes.
 - Páginas legales públicas `/privacidad` y `/terminos`.
 - Modo demo con persistencia en `localStorage`.
 
@@ -1392,6 +1395,30 @@ Cuatro cosas del calendario, todas de uso y ninguna de datos.
 16 no deja levantar un segundo, así que la suite de navegador y las capturas se quedaron
 sin correr. Lo que sí está en verde: `npx tsc --noEmit`, `npm run lint` y los 304
 unitarios.
+
+### La cuenta tiene cara, y Ajustes se entra por ella (28-08-2026)
+
+El pie de `SideNav` y la última fila de Inicio eran un enlace "Ajustes" con su rueda.
+Ahora son la fila de quien mira —su inicial en su color, su nombre y el de la casa— y al
+pulsarla se abre un sheet con **Ajustes**, **cerrar sesión** y, si hay más de una familia,
+a cuál cambiar. Es el mismo componente (`AccountMenu`) en los dos tamaños.
+
+- **Qué arregla.** La app no decía en ninguna pantalla con qué cuenta estabas, y cerrar
+  sesión estaba a cuatro toques dentro de la pestaña Cuenta de la pantalla a la que menos
+  se entra. Cambiar de familia, lo único de Ajustes que se hace a menudo, también sube.
+- **Lo que no se hizo.** La idea de partida era meter los ajustes dentro del desplegable.
+  No: en Nido Ajustes es la casa, no la cuenta —cinco pestañas que no caben en un menú— y
+  esconder contenido ya salió mal aquí dos veces. El menú es una puerta, no un armario.
+- **Quién eres.** `currentMember` en el store, contra `members.getCurrentUserId()` del
+  contrato de repos (mock: `u1`; Supabase: `auth.getUser()`, y `null` si falla, que no
+  rompe ninguna pantalla). Es para reconocer tu fila, no para decidir permisos.
+- **El nombre accesible de la fila es "Cuenta de …" y no su texto.** Llevaba dentro el de
+  la casa, que en la familia de prueba es "Familia de Omar, Sofía y Ana", y un
+  `getByRole('button', { name: 'Sofía' })` de la suite pasaba a encontrar dos cosas.
+- **Verificado en el navegador** con el build servido en el 3100 en modo demo, no con
+  `npm run dev`: sigue habiendo un dev server ocupando la carpeta y Next 16 no deja
+  levantar otro. `npm run build && npx next start -p 3100` con los placeholders de demo
+  esquiva el problema, y ahí corren la suite y las capturas.
 
 ### Las comprobaciones que quedaban: ninguna
 

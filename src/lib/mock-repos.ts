@@ -23,6 +23,9 @@ export const mockRepos: Repos = {
 
   members: {
     getMembers:       (familyId) => Promise.resolve(store.getMembers(familyId)),
+    // En demo no hay sesión: quien mira es siempre el admin de la familia
+    // sembrada, el mismo `user_id` con el que nacen las familias del mock.
+    getCurrentUserId: () => Promise.resolve('u1'),
     updateMemberProfile: (id, name, color) => Promise.resolve(store.updateMemberProfile(id, name, color)),
     updateMemberRole: (id, role) => {
       // TODO: route through RPC update_family_member_role when on Supabase

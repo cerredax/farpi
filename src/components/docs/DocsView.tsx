@@ -1,12 +1,12 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
 import { DOC_CATEGORIES } from '@/lib/constants'
 import { resolveAssignee } from '@/lib/assignees'
-import { SearchField } from '@/components/ui/SearchField'
+import { ViewHeader } from '@/components/ui/ViewHeader'
 
 const ALL_FILTERS = [
   { key: null as string | null, label: 'Todos' },
@@ -18,34 +18,17 @@ export function DocsView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
-      {/* Header. En escritorio el buscador se sube a esta fila: dejarlo debajo y
-          a todo el ancho era lo que hacía que la pantalla pareciese el móvil
-          estirado. El título manda a la izquierda y la acción cierra a la derecha. */}
-      <div className="flex items-center justify-between lg:gap-6">
-        <div className="lg:flex-shrink-0">
-          <p className="text-xs text-muted">
-            {s.documents.length} documento{s.documents.length !== 1 ? 's' : ''} guardados
-          </p>
-        </div>
-
-        {s.puedeBuscar && (
-          <SearchField
-            className="hidden lg:block lg:ml-auto lg:w-full lg:max-w-sm"
-            value={s.busqueda}
-            onChange={s.setBusqueda}
-            placeholder={`Buscar en ${s.documents.length} documentos…`}
-            ariaLabel="Buscar documentos"
-          />
-        )}
-
-        <button
-          onClick={s.openCreate}
-          aria-label="Añadir documento"
-          className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors flex-shrink-0"
-        >
-          <Plus size={20} />
-        </button>
-      </div>
+      <ViewHeader
+        resumen={`${s.documents.length} documento${s.documents.length !== 1 ? 's' : ''} guardados`}
+        buscador={s.puedeBuscar ? {
+          value: s.busqueda,
+          onChange: s.setBusqueda,
+          placeholder: `Buscar en ${s.documents.length} documentos…`,
+          ariaLabel: 'Buscar documentos',
+        } : null}
+        onAdd={s.openCreate}
+        addLabel="Añadir documento"
+      />
 
       {/* La vuelta de conectar Drive. Es lo único que enseña esta pantalla sobre
           el proveedor, y solo justo después de haber ido a conectarlo: si sale
@@ -70,16 +53,6 @@ export function DocsView() {
             <X size={16} strokeWidth={2.4} />
           </button>
         </div>
-      )}
-
-      {s.puedeBuscar && (
-        <SearchField
-          className="lg:hidden"
-          value={s.busqueda}
-          onChange={s.setBusqueda}
-          placeholder={`Buscar en ${s.documents.length} documentos…`}
-          ariaLabel="Buscar documentos"
-        />
       )}
 
       {/* Filtros */}

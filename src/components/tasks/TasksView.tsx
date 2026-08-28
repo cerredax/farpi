@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { isToday, parseISO } from 'date-fns'
 import { useStore } from '@/lib/store-context'
 import { selectTaskGroups, selectTaskMatches } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import { SearchField } from '@/components/ui/SearchField'
+import { ViewHeader } from '@/components/ui/ViewHeader'
 import { OffDayConfirmDialog } from './OffDayConfirmDialog'
 import { TaskItem } from './TaskItem'
 import { TaskSheet } from './TaskSheet'
@@ -49,17 +49,27 @@ export function TasksView() {
           columnas. La rejilla se pone en la propia `section` y la cabecera ocupa
           las dos, así no hace falta envolver la lista en un div nuevo: por
           debajo de `lg` el DOM es exactamente el de antes. */}
-      <div className="max-w-lg mx-auto px-4 py-4 pb-28 lg:max-w-5xl lg:px-6 lg:py-6 lg:pb-10">
-        {puedeBuscar && (
-          <div className="mb-4 lg:max-w-md">
-            <SearchField
-              value={busqueda}
-              onChange={setBusqueda}
-              placeholder={`Buscar en ${tasks.length} tareas…`}
-              ariaLabel="Buscar tareas"
-            />
-          </div>
-        )}
+      <div className="max-w-lg mx-auto px-4 py-4 lg:max-w-5xl lg:px-6 lg:py-6">
+        {/* La misma cabecera que Listas, Comidas y Documentos. El `+` estuvo
+            flotando abajo a la derecha y era la única pantalla que lo ponía en
+            otro sitio: se alcanzaba mejor con el pulgar, sí, pero a cambio
+            había dos sitios distintos que aprenderse para lo mismo según en qué
+            pantalla estuvieras. Con él se fue el `pb-28` que le hacía hueco
+            para que no tapara la última tarea; el de la barra de abajo ya lo
+            pone `AppShell`. */}
+        <div className="mb-4">
+          <ViewHeader
+            resumen={`${tasks.length} tarea${tasks.length !== 1 ? 's' : ''} de la familia`}
+            buscador={puedeBuscar ? {
+              value: busqueda,
+              onChange: setBusqueda,
+              placeholder: `Buscar en ${tasks.length} tareas…`,
+              ariaLabel: 'Buscar tareas',
+            } : null}
+            onAdd={openCreate}
+            addLabel="Nueva tarea"
+          />
+        </div>
 
         <section className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
           <div className="flex items-center justify-between px-1 mb-3 lg:col-span-2 lg:mb-0">
@@ -92,10 +102,6 @@ export function TasksView() {
           </section>
         )}
       </div>
-
-      <button onClick={openCreate} aria-label="Nueva tarea" className="fixed bottom-24 right-5 z-30 lg:bottom-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover active:scale-95 transition-all">
-        <Plus size={26} strokeWidth={2.5} />
-      </button>
 
       <TaskSheet
         key={sheetKey}

@@ -1,7 +1,6 @@
 'use client'
 
-import { Plus } from 'lucide-react'
-import { SearchField } from '@/components/ui/SearchField'
+import { ViewHeader } from '@/components/ui/ViewHeader'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { ItemMatchCard } from './ItemMatchCard'
 import { ListCard } from './ListCard'
@@ -75,27 +74,17 @@ export function ListsView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-4 lg:max-w-5xl lg:px-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted">{s.lists.length} lista{s.lists.length !== 1 ? 's' : ''} de la familia</p>
-        </div>
-        <button
-          onClick={s.openCreateList}
-          aria-label="Nueva lista"
-          className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
-        >
-          <Plus size={20} />
-        </button>
-      </div>
-
-      {puedeBuscar && (
-        <SearchField
-          value={s.busqueda}
-          onChange={s.setBusqueda}
-          placeholder={`Buscar en ${s.allListItems.length} ítems de todas las listas…`}
-          ariaLabel="Buscar ítems en todas las listas"
-        />
-      )}
+      <ViewHeader
+        resumen={`${s.lists.length} lista${s.lists.length !== 1 ? 's' : ''} de la familia`}
+        buscador={puedeBuscar ? {
+          value: s.busqueda,
+          onChange: s.setBusqueda,
+          placeholder: `Buscar en ${s.allListItems.length} ítems de todas las listas…`,
+          ariaLabel: 'Buscar ítems en todas las listas',
+        } : null}
+        onAdd={s.openCreateList}
+        addLabel="Nueva lista"
+      />
 
       {buscando ? (
         s.coincidencias.length === 0 ? (

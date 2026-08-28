@@ -450,6 +450,21 @@ Cada vista aprovecha el ancho como le conviene, no todas con la misma plantilla:
 
 Home y Ajustes siguen siendo la columna de móvil centrada.
 
+**Las cuatro pantallas de lista abren igual** (`ViewHeader`, 28-08-2026): bajo el título
+verde de `TopBar`, una fila con el resumen de lo que hay, el buscador y el `+` de alta.
+Listas, Tareas, Comidas y Documentos la tenían escrita por separado y ya había
+divergido: Tareas ponía el `+` flotando abajo a la derecha, Listas y Comidas lo ponían
+arriba con el buscador debajo, y Documentos lo subía a la fila solo en escritorio. Eran
+cuatro sitios distintos donde buscar lo mismo según en qué pantalla estuvieras.
+
+En móvil, cuando hay buscador el resumen se calla: a 390 px no caben las tres cosas, y el
+propio buscador ya dice cuántas hay ("Buscar en 19 ítems…"). En escritorio caben, así que
+el resumen manda a la izquierda y el buscador se queda con tope de ancho (`lg:max-w-sm`),
+que estirado a todo el contenedor era lo que hacía que la pantalla pareciese el móvil
+ensanchado. Comidas no tiene buscador —el menú de la semana cabe entero— y enseña siempre
+el resumen. El escritorio de Comidas es otra barra (navegación de semana y "Añadir"), y no
+usa esta.
+
 El truco que se repite en las tres últimas: la rejilla se pone en el contenedor que ya
 existía y la cabecera de la sección ocupa la fila con `lg:col-span-2`. Así no hace falta
 envolver la lista en un div nuevo y por debajo de `lg` el DOM es idéntico. Lo que sí hay

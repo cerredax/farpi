@@ -11,6 +11,7 @@ import { WeekList } from './WeekList'
 import { useMealsState } from './useMealsState'
 import { Card } from '@/components/ui/Card'
 import { capitalize } from '@/lib/text'
+import { ViewHeader } from '@/components/ui/ViewHeader'
 
 export function MealsView() {
   const s = useMealsState()
@@ -47,18 +48,10 @@ export function MealsView() {
     <>
       {/* ── Mobile layout ───────────────────────────────────────────── */}
       <div className="md:hidden max-w-lg mx-auto px-4 py-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted">Menú de la familia</p>
-          </div>
-          <button
-            onClick={() => s.openCreate()}
-            aria-label="Añadir comida"
-            className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors"
-          >
-            <Plus size={20} />
-          </button>
-        </div>
+        {/* Sin buscador: el menú es de esta semana y cabe entero en la
+            pantalla, así que no hay nada que buscar. La fila es la misma que la
+            de Listas, Tareas y Documentos. */}
+        <ViewHeader resumen="Menú de la familia" onAdd={() => s.openCreate()} addLabel="Añadir comida" />
 
         <div className="flex gap-2 bg-surface p-1 rounded-2xl">
           {(['today', 'week'] as const).map(tab => (

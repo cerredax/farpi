@@ -19,6 +19,7 @@ interface Params {
   mode: EventSheetMode
   initial?: Event | null
   defaultDate?: Date
+  defaultTime?: string
   onClose: () => void
   onCreate: (draft: EventDraft) => void
   onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string) => void
@@ -39,7 +40,12 @@ interface Params {
  * verano devuelve el día anterior. De ahí que las fechas se lean siempre con
  * `extractDate` y nunca cortando, que es lo que avisa `date-utils.ts`.
  */
-export function initDraft(mode: EventSheetMode, initial: Event | null | undefined, defaultDate: Date | undefined): EventDraft {
+export function initDraft(
+  mode: EventSheetMode,
+  initial: Event | null | undefined,
+  defaultDate: Date | undefined,
+  defaultTime?: string,
+): EventDraft {
   if (mode === 'edit' && initial) {
     return {
       title: initial.title,
@@ -55,10 +61,17 @@ export function initDraft(mode: EventSheetMode, initial: Event | null | undefine
       birth_year: initial.birth_year ? String(initial.birth_year) : '',
     }
   }
+  /**
+   * `defaultTime` es la franja que se ha pulsado en el eje de horas (vista Día o
+   * Semana): el hueco vacío ya dice a qué hora, así que el formulario abre con
+   * ella puesta en vez de pedirla otra vez. Desde el resto de sitios —el `+` de
+   * la cabecera, la agenda, la rejilla del mes— no llega ninguna y la hora sigue
+   * vacía, que ahí nadie ha señalado ninguna.
+   */
   return {
     title: '', description: '',
     date: format(defaultDate ?? new Date(), 'yyyy-MM-dd'),
-    all_day: false, start_time: '', end_time: '', child_id: null, member_id: null,
+    all_day: false, start_time: defaultTime ?? '', end_time: '', child_id: null, member_id: null,
     kind: 'evento', end_date: '', birth_year: '',
   }
 }
@@ -72,12 +85,12 @@ export function initDraft(mode: EventSheetMode, initial: Event | null | undefine
  * pasaba de 480 líneas y no se sabía qué estado servía a qué formulario.
  */
 export function useEventSheet({
-  open, mode, initial, defaultDate,
+  open, mode, initial, defaultDate, defaultTime,
   onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
 }: Params) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<EventDraft>({
     open,
-    initialDraft: () => initDraft(mode, initial, defaultDate),
+    initialDraft: () => initDraft(mode, initial, defaultDate, defaultTime),
     validate: validateEventDraft,
     autoFocus: mode === 'create',
   })

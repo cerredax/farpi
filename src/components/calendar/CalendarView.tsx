@@ -56,6 +56,12 @@ export function CalendarView() {
   const [selectedDay, setSelectedDay]   = useState(today)
   const [sheetOpen, setSheetOpen]       = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  /**
+   * La hora con la que abre el formulario, cuando se ha llegado pulsando una
+   * franja del eje (vista Día o Semana). Desde el `+` de la cabecera, la agenda
+   * o la rejilla del mes no hay franja que leer y se queda vacía.
+   */
+  const [horaInicial, setHoraInicial] = useState<string | undefined>(undefined)
   const [busqueda, setBusqueda] = useState('')
 
   /**
@@ -116,8 +122,9 @@ export function CalendarView() {
   // había un `useMediaQuery` porque el tramo del que hablaba "Vacaciones y
   // descansos" dependía de ello, y eso sí era lógica.
 
-  function openCreate(day = selectedDay) {
+  function openCreate(day = selectedDay, hora?: number) {
     setSelectedDay(day)
+    setHoraInicial(hora === undefined ? undefined : `${String(hora).padStart(2, '0')}:00`)
     setEditingEvent(null)
     setSheetOpen(true)
   }
@@ -270,7 +277,7 @@ export function CalendarView() {
 
   const sheetKey = editingEvent
     ? `edit-${editingEvent.id}`
-    : `create-${format(selectedDay, 'yyyyMMdd')}`
+    : `create-${format(selectedDay, 'yyyyMMdd')}-${horaInicial ?? ''}`
 
   return (
     <>
@@ -296,6 +303,7 @@ export function CalendarView() {
             <Timeline
               days={diasDelEje}
               events={eventos}
+              cumples={allEvents.filter(isBirthday)}
               kids={kids}
               members={members}
               tasks={tareasPendientes}
@@ -327,6 +335,7 @@ export function CalendarView() {
                       kids={kids}
                       members={members}
                       onSelectDay={selectDay}
+                      onCreateDay={openCreate}
                       onOpenEvent={openEdit}
                     />
                   </div>
@@ -376,6 +385,7 @@ export function CalendarView() {
         mode={editingEvent ? 'edit' : 'create'}
         initial={editingEvent}
         defaultDate={selectedDay}
+        defaultTime={horaInicial}
         kids={kids}
         members={members}
         onClose={() => setSheetOpen(false)}

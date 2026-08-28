@@ -55,6 +55,15 @@ interface DayCellProps {
   members: FamilyMember[]
   onSelect: (day: Date) => void
   /**
+   * Apuntar algo ese día, con **doble clic** en la celda (28-08-2026). El clic
+   * simple sigue siendo elegir el día: son dos gestos distintos para dos cosas
+   * distintas, y es lo que hace cualquier calendario de escritorio.
+   *
+   * No sustituye a nada ni deja a nadie fuera: con el teclado se elige el día y
+   * se apunta con el `+` de la cabecera, que es el camino que ya había.
+   */
+  onCreate?: (day: Date) => void
+  /**
    * Abrir un evento desde la celda. Solo lo usa escritorio, que es donde la
    * celda escribe títulos: en móvil no hay nada escrito que pulsar.
    */
@@ -107,6 +116,7 @@ export function DayCell({
   kids,
   members,
   onSelect,
+  onCreate,
   onOpenEvent,
 }: DayCellProps) {
   const vacaciones = events.filter(isVacation)
@@ -170,7 +180,13 @@ export function DayCell({
      * tiene el botón y el área que se toca es la misma de siempre.
      */
     <div
-      className={`flex w-full flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline ${
+      // El doble clic va en el contenedor y no en el botón del día: en
+      // escritorio la celda mide 104 px y el botón solo ocupa la parte de
+      // arriba, así que en la mitad de abajo —donde hay sitio de sobra— el gesto
+      // no habría hecho nada. `touch-manipulation` apaga el zoom por doble toque
+      // del navegador, que si no se come el gesto en el móvil.
+      onDoubleClick={() => onCreate?.(day)}
+      className={`flex w-full touch-manipulation flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline ${
         /**
          * **Los días en los que no se trabaja llevan trama diagonal**: sábado,
          * domingo y festivo, los tres igual (26-08-2026). Es un solo concepto y
@@ -261,6 +277,10 @@ export function DayCell({
             key={event.id}
             type="button"
             onClick={() => onOpenEvent?.(event)}
+            // El doble clic de la celda apunta algo nuevo, y sobre un título eso
+            // no es lo que se pide: dos clics aquí son abrir ese evento, así que
+            // el gesto se queda en el título y no llega al contenedor.
+            onDoubleClick={e => e.stopPropagation()}
             /**
              * **El color va al fondo del título, no en un punto aparte**
              * (26-08-2026). El punto de 6 px era una segunda cosa que mirar para

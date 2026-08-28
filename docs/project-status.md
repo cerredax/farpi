@@ -15,10 +15,20 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Inicio / Hoy, con "Esta semana" y lo que va atrasado arrastrado al día de hoy.
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
   vista de semana salen también las tareas que vencen, y se pueden marcar allí. La
-  agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor sobre
-  la lista. Debajo del mes van los dos bloques que dicen cómo es el mes y no qué
-  hacer: "Vacaciones y descansos" y **"Cumpleaños"** (28-08-2026). En móvil se pasa
+  agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor que
+  comparte línea con el buscador (28-08-2026: eran dos bandas apiladas encima de la
+  lista para dos controles que caben en una). Debajo del mes van los dos bloques que
+  dicen cómo es el mes y no qué hacer: "Vacaciones y descansos" y **"Cumpleaños"**
+  (28-08-2026); los cumpleaños salen además en la franja de "todo el día" de las
+  vistas Día y Semana, que no tienen bloque debajo al que mirar. En móvil se pasa
   de mes o de día **arrastrando el dedo**.
+- **Apuntar algo cuesta un gesto donde ya estás mirando** (28-08-2026). En Día y
+  Semana, pulsar un hueco del eje abre el formulario con **esa hora** puesta (un
+  botón por franja, no uno por columna: así no hay que medir la posición del dedo
+  contra la caja). En la rejilla del mes y en la fecha de cada fila de la agenda,
+  **doble clic** abre el alta de ese día; el clic simple sigue haciendo lo que hacía
+  —elegir el día, o nada en la agenda—, así que no se pierde nada ni cambia lo que
+  anuncia un lector de pantalla.
 - Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó.
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
@@ -102,13 +112,15 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **390 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **394 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 304 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 28-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 86 de navegador —85 más el desliz del mes, del 28-08-2026; la suite entera no se
-    ha podido correr ese día porque había un dev server ocupando la carpeta—:
+  - 306 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 28-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 88 de navegador. La cifra sale de la pasada completa del 28-08-2026 (394 en total,
+    306 unitarios): ese día no se pudo correr con el dev server, porque había otro
+    ocupando la carpeta, y se corrió contra el build servido con `next start` en :3100
+    en modo demo, que es lo que hay que hacer cuando `npm run dev` está ocupado:
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 

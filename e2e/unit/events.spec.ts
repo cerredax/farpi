@@ -193,6 +193,25 @@ test.describe('initDraft: la fecha de un evento guardado', () => {
   })
 })
 
+// Pulsar un hueco del eje de horas abre el formulario con esa hora puesta: el
+// hueco ya dice cuál es y volver a pedirla era el paso que sobraba de crear algo
+// desde la vista Día o Semana. Desde el resto de sitios —el `+` de la cabecera,
+// la agenda, la rejilla del mes— no hay franja que leer y la hora sigue vacía.
+test.describe('initDraft: la hora de la franja pulsada', () => {
+  test('la franja pulsada llega al formulario como hora de inicio', () => {
+    const draft = initDraft('create', null, new Date(2026, 7, 28), '17:00')
+    expect(draft.date).toBe('2026-08-28')
+    expect(draft.start_time).toBe('17:00')
+    expect(draft.all_day).toBe(false)
+    // La de fin se deja en blanco: la franja dice cuándo empieza, no cuánto dura.
+    expect(draft.end_time).toBe('')
+  })
+
+  test('sin franja pulsada la hora se queda vacía', () => {
+    expect(initDraft('create', null, new Date(2026, 7, 28)).start_time).toBe('')
+  })
+})
+
 // `isPlan` es la regla única de "esto es un plan del día". Estuvo escrita de
 // cuatro maneras por la app y dos de ellas solo apartaban las vacaciones, así
 // que el descanso y el festivo se colaban en Inicio y en el aviso de las siete.

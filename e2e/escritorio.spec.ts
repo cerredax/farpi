@@ -167,7 +167,7 @@ test.describe('escritorio a 1440 px', () => {
     // Mes: vuelve la rejilla y con ella la agenda de al lado, que el eje no lleva.
     await page.getByRole('button', { name: 'Mes', exact: true }).click()
     await page.waitForTimeout(500)
-    await expect(page.getByPlaceholder('Buscar en todo el calendario…')).toBeVisible()
+    await expect(page.getByPlaceholder('Buscar…')).toBeVisible()
   })
 
   // Una ausencia se marca con una franja pegada al borde de arriba de la celda,

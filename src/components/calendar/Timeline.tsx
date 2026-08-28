@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { format, isToday, isWeekend } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { Cake } from 'lucide-react'
 import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
-import { eventCoversDay, holidayName, isAbsence, isHoliday, isVacation } from '@/lib/events'
+import { eventCoversDay, holidayName, isAbsence, isBirthday, isHoliday, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
@@ -124,15 +125,29 @@ interface TimelineProps {
   /** Los días que se pintan, en orden. Uno en la vista Día, siete en Semana. */
   days: Date[]
   events: Event[]
+  /**
+   * Los cumpleaños, que llegan **aparte** porque `events` no los trae: el
+   * calendario los aparta de la rejilla y de la agenda a propósito (el porqué
+   * está en `Birthdays.tsx`). Aquí sí se pintan, en la franja de lo que no tiene
+   * hora: en Día y Semana no hay bloque de cumpleaños debajo al que mirar, así
+   * que sin esto un 12 de septiembre no decía por ninguna parte que la abuela
+   * cumple años.
+   */
+  cumples: Event[]
   kids: Child[]
   members: FamilyMember[]
   /** Pendientes con fecha: van arriba, con lo de todo el día. */
   tasks: Task[]
   onEdit: (event: Event) => void
-  onAdd: (day: Date) => void
+  /**
+   * Apuntar algo. La hora es la de la franja que se ha pulsado: con el eje
+   * delante, el hueco vacío ya dice a qué hora, y volver a escribirla en el
+   * formulario es contarlo dos veces.
+   */
+  onAdd: (day: Date, hora?: number) => void
 }
 
-export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: TimelineProps) {
+export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, onAdd }: TimelineProps) {
   // La hora actual se lee en el cliente y se refresca cada minuto: pintada en el
   // servidor saldría con la hora del servidor y se quedaría clavada.
   const [ahora, setAhora] = useState<number | null>(null)
@@ -167,6 +182,8 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
       // día no hay trabajo ni colegio. Y por eso se pinta en gris.
       festivos: events.filter(e => isHoliday(e) && eventCoversDay(e, diaStr)),
       ausencias: events.filter(e => isAbsence(e) && eventCoversDay(e, diaStr)),
+      // Un cumpleaños es un día suelto, así que basta con el día de su fecha.
+      cumples: cumples.filter(e => isBirthday(e) && eventCoversDay(e, diaStr)),
       todoElDia,
       bloques: repartirSolapados(conHora, diaStr),
       // Lo atrasado se arrastra a hoy, igual que en la lista.
@@ -199,7 +216,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
   const enHoras = (n: number) => `calc(var(--alto-hora) * ${n.toFixed(4)})`
   const alto = enHoras(horas.length)
 
-  const hayAlgoArriba = porDia.some(d => d.festivos.length > 0 || d.ausencias.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
+  const hayAlgoArriba = porDia.some(d => d.festivos.length > 0 || d.ausencias.length > 0 || d.cumples.length > 0 || d.todoElDia.length > 0 || d.tasks.length > 0)
   /**
    * Las columnas, con **ancho mínimo**. A 390 px, siete columnas salen a 43 px y
    * un bloque no tiene sitio ni para cuatro letras —"Ped…"—, que es por lo que
@@ -255,7 +272,7 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
           <span className="flex items-center justify-end whitespace-nowrap pr-2 text-[9px] font-bold text-faint">
             Todo el día
           </span>
-          {porDia.map(({ day, festivos, ausencias, todoElDia, tasks: delDia }) => (
+          {porDia.map(({ day, festivos, ausencias, cumples: cumplesDelDia, todoElDia, tasks: delDia }) => (
             <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1">
               {/* Sin chip: la trama de la columna ya dice que es festivo. Aquí
                   queda su nombre, que es la otra mitad de la respuesta. */}
@@ -279,6 +296,21 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
                   </span>
                 )
               })}
+              {/* Los cumpleaños, después de las ausencias y antes de los planes:
+                  como el festivo y la ausencia, dicen **cómo es el día** y no
+                  algo que hacer a una hora, y ese es el orden que ya tienen bajo
+                  la rejilla del mes. Sin botón, igual que los otros dos: se
+                  editan desde su bloque en la vista Mes, que es la fuente. */}
+              {cumplesDelDia.map(event => (
+                <span
+                  key={event.id}
+                  className="etiqueta-persona flex items-center gap-1 px-1 py-0.5 text-[10px]"
+                  style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
+                >
+                  <Cake size={10} strokeWidth={2.2} className="flex-shrink-0" aria-hidden />
+                  <span className="truncate">{event.title}</span>
+                </span>
+              ))}
               {todoElDia.map(event => (
                 <button
                   key={event.id}
@@ -343,14 +375,24 @@ export function Timeline({ days, events, kids, members, tasks, onEdit, onAdd }: 
               ))}
 
               {/* El hueco vacío también sirve: pulsar una franja libre abre el
-                  formulario en ese día, que es lo que se espera de un calendario.
-                  Va debajo de los bloques (`z-10` en ellos) para no taparlos. */}
-              <button
-                type="button"
-                onClick={() => onAdd(day)}
-                aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })}`}
-                className="absolute inset-0 h-full w-full"
-              />
+                  formulario en ese día **y a esa hora**, que es lo que se espera
+                  de un calendario. Va debajo de los bloques (`z-10` en ellos)
+                  para no taparlos.
+                  Un botón por hora y no uno por columna: así se sabe qué franja
+                  se ha pulsado sin medir la posición del dedo contra la caja, que
+                  es la clase de cuenta que se rompe en cuanto el eje se desliza.
+                  Cada franja mide `--alto-hora`, con suelo de 28 px, así que
+                  ninguno baja del mínimo de 24 px que pide `e2e/movil.spec.ts`. */}
+              {horas.map((hora, i) => (
+                <button
+                  key={`apuntar-${hora}`}
+                  type="button"
+                  onClick={() => onAdd(day, hora)}
+                  aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })} a las ${String(hora).padStart(2, '0')}:00`}
+                  className="absolute inset-x-0"
+                  style={{ top: enHoras(i), height: enHoras(1) }}
+                />
+              ))}
 
               {isToday(day) && ahora !== null && ahora >= desde * 60 && ahora <= hasta * 60 && (
                 <AhoraLine minutos={ahora} desde={desde} />

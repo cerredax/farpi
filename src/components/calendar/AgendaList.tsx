@@ -150,7 +150,7 @@ const ROTULO = 'px-1 text-xs font-bold uppercase tracking-widest text-muted'
  * por persona la pinta cada persona con lo suyo. La fila no cambia entre uno y
  * otro; lo único que cambia es el rótulo que tiene encima.
  */
-function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onToggleTask, mostrarPersona = true, ancla = true }: {
+function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onAdd, onToggleTask, mostrarPersona = true, ancla = true }: {
   day: Date
   events: Event[]
   tasks: Task[]
@@ -158,6 +158,8 @@ function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onToggleTa
   members: FamilyMember[]
   hoyStr: string
   onEdit: (event: Event) => void
+  /** Apuntar algo ese día, con doble clic en la fecha. */
+  onAdd?: (day: Date) => void
   onToggleTask?: (id: string) => void
   mostrarPersona?: boolean
   /**
@@ -176,11 +178,19 @@ function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onToggleTa
 
   return (
     <li id={ancla ? idDeDia(day) : undefined} className="flex items-start gap-2 px-2 py-2">
-      {/* La fecha ya no es un botón. En una lista continua no
-          lleva a ninguna parte, y anunciarse como "Ver 6 de
-          septiembre" prometía un salto que ya no ocurre. Para
-          añadir está el `+` de la derecha. */}
-      <span className={`flex w-11 flex-shrink-0 flex-col items-center py-1 ${hoy ? 'text-accent' : 'text-ink'}`}>
+      {/* La fecha **sigue sin ser un botón**: en una lista continua no lleva a
+          ninguna parte, y anunciarse como "Ver 6 de septiembre" prometía un
+          salto que ya no ocurre. Lo que sí hace desde el 28-08-2026 es apuntar
+          algo ese día con **doble clic**, el mismo gesto que la celda del mes.
+          Sigue sin ser un botón a propósito: un clic no hace nada, así que no
+          hay nada que anunciar ni ninguna promesa que romper —quien va con
+          teclado o lector de pantalla apunta con el `+` de la cabecera, como
+          hasta ahora—. `touch-manipulation` apaga el zoom por doble toque del
+          navegador, que si no se come el gesto en el móvil. */}
+      <span
+        onDoubleClick={() => onAdd?.(day)}
+        className={`flex w-11 flex-shrink-0 touch-manipulation flex-col items-center py-1 ${hoy ? 'text-accent' : 'text-ink'}`}
+      >
         {/* La fecha entera, solo para quien escucha. El chip
             dice "13 JUE", que con la vista basta y a oídas no:
             se leyó "trece jueves" cuando la fecha dejó de ser un
@@ -334,41 +344,58 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
 
   return (
     <div className="flex-1 space-y-4 px-4 pt-4 lg:px-0 lg:pt-0">
-      {buscador && (
-        <SearchField
-          value={buscador.valor}
-          onChange={buscador.onChange}
-          placeholder="Buscar en todo el calendario…"
-          ariaLabel="Buscar en el calendario"
-        />
-      )}
+      {/* **El buscador y el eje, en la misma línea** (28-08-2026). Eran dos
+          bandas apiladas encima de la lista, cada una a todo el ancho y con su
+          aire, para dos controles que caben de sobra en una: en el móvil se
+          comían la primera fila de la agenda antes de empezar a leer.
 
-      {/* El interruptor del eje. Va aquí y no en la cabecera del calendario
-          porque es de la lista y solo de la lista: la rejilla del mes y el eje
-          de horas se agrupan por días y no tienen otra forma de agruparse.
-          Buscando no se pinta —una búsqueda ya trae lo suyo ordenado por fecha—
-          ni con la lista vacía, donde no hay nada que repartir.
+          El buscador se lleva el espacio que quede y las pastillas van a la
+          derecha, con su tamaño. Cuando falta uno de los dos —con pocos eventos
+          no hay buscador, y buscando no se pinta el eje— el que queda se coloca
+          igual: las pastillas se van a la derecha con `ml-auto`. */}
+      {(buscador || (mereceEje && !buscando && !todoVacio)) && (
+        <div className="flex items-center gap-2">
+          {buscador && (
+            <SearchField
+              value={buscador.valor}
+              onChange={buscador.onChange}
+              // Corto a propósito: compartiendo la línea con las pastillas del
+              // eje, el campo se queda en unos 250 px y "Buscar en todo el
+              // calendario…" se cortaba a media palabra —"Buscar en todo el
+              // ca"—. Que la búsqueda mira **todo** el calendario, pasado
+              // incluido, lo dice el rótulo de los resultados.
+              placeholder="Buscar…"
+              ariaLabel="Buscar en el calendario"
+              className="min-w-0 flex-1"
+            />
+          )}
 
-          Dos pastillas y no un botón que dice lo contrario de lo que se ve:
-          "Agrupar por persona" en pantalla mientras la lista va por días se lee
-          como el estado, no como la acción. Aquí lo blanco es lo que hay. */}
-      {mereceEje && !buscando && !todoVacio && (
-        <div className="flex justify-end">
-          <div className="flex gap-1 rounded-2xl bg-surface p-1">
-            {([['dia', 'Por día'], ['persona', 'Por persona']] as const).map(([valor, texto]) => (
-              <button
-                key={valor}
-                type="button"
-                onClick={() => setEje(valor)}
-                aria-pressed={eje === valor}
-                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
-                  eje === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
-                }`}
-              >
-                {texto}
-              </button>
-            ))}
-          </div>
+          {/* El interruptor del eje. Va aquí y no en la cabecera del calendario
+              porque es de la lista y solo de la lista: la rejilla del mes y el eje
+              de horas se agrupan por días y no tienen otra forma de agruparse.
+              Buscando no se pinta —una búsqueda ya trae lo suyo ordenado por fecha—
+              ni con la lista vacía, donde no hay nada que repartir.
+
+              Dos pastillas y no un botón que dice lo contrario de lo que se ve:
+              "Agrupar por persona" en pantalla mientras la lista va por días se lee
+              como el estado, no como la acción. Aquí lo blanco es lo que hay. */}
+          {mereceEje && !buscando && !todoVacio && (
+            <div className="ml-auto flex flex-shrink-0 gap-1 rounded-2xl bg-surface p-1">
+              {([['dia', 'Por día'], ['persona', 'Por persona']] as const).map(([valor, texto]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  onClick={() => setEje(valor)}
+                  aria-pressed={eje === valor}
+                  className={`rounded-xl px-2.5 py-1.5 text-xs font-bold transition-colors ${
+                    eje === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
+                  }`}
+                >
+                  {texto}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -449,6 +476,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                       members={members}
                       hoyStr={hoyStr}
                       onEdit={onEdit}
+                      onAdd={onAdd}
                       onToggleTask={onToggleTask}
                       mostrarPersona={false}
                       ancla={anclaDe.get(getLocalDateString(dia.day)) === grupo.persona.key}
@@ -489,6 +517,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                       members={members}
                       hoyStr={hoyStr}
                       onEdit={onEdit}
+                      onAdd={onAdd}
                       onToggleTask={onToggleTask}
                     />
                   ))}

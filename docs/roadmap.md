@@ -235,6 +235,19 @@ Objetivo: preparar uso diario.
   repite solo todos los años y sube a los mismos bloques de Inicio que los de casa. El año
   de nacimiento es opcional: solo cambia si se dice la edad. Se descartó una pestaña
   propia.
+- ✅ **Apuntar algo, donde ya estás mirando** (28-08-2026). Cuatro retoques del
+  calendario, todos de usabilidad y ninguno de datos:
+  - En **Día y Semana**, pulsar un hueco del eje abre el formulario con **esa hora**
+    puesta. Es un botón por franja y no uno por columna: así se sabe qué hora se
+    pulsó sin medir la posición del dedo contra la caja.
+  - En la **rejilla del mes** y en la **fecha de cada fila de la agenda**, el **doble
+    clic** abre el alta de ese día. El clic simple sigue haciendo lo de siempre.
+  - Los **cumpleaños** salen también en la franja de "todo el día" de Día y Semana:
+    ahí no hay bloque debajo al que mirar, así que un cumpleaños no se veía por
+    ninguna parte.
+  - En la agenda, el **buscador y el interruptor del eje comparten línea**. Eran dos
+    bandas a todo el ancho para dos controles que caben en una, y en el móvil se
+    comían la primera fila de la lista.
 
 ## Fase 9 - Uso diario
 

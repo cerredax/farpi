@@ -16,6 +16,8 @@ interface EventSheetProps {
   mode: EventSheetMode
   initial?: Event | null
   defaultDate?: Date
+  /** La hora de la franja pulsada en el eje, si se ha llegado desde ahí. */
+  defaultTime?: string
   kids: Child[]
   members: FamilyMember[]
   onClose: () => void
@@ -33,13 +35,13 @@ interface EventSheetProps {
  * `useEventSheet`; aquí queda lo que se ve.
  */
 export function EventSheet({
-  open, mode, initial, defaultDate, kids, members,
+  open, mode, initial, defaultDate, defaultTime, kids, members,
   onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete, onDeleteSeries,
 }: EventSheetProps) {
   // El ref sale del objeto: dentro, cualquier `s.loQueSea` se lee como acceder
   // a un ref durante el render y el linter lo para, con razón.
   const { firstFieldRef, ...s } = useEventSheet({
-    open, mode, initial, defaultDate,
+    open, mode, initial, defaultDate, defaultTime,
     onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
   })
 

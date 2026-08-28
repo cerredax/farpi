@@ -16,7 +16,10 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 
 ## Lee primero
 
-- `docs/project-status.md` — estado real y pendientes (fuente de verdad).
+- `docs/project-status.md` — estado real y pendientes (fuente de verdad). Cuenta
+  **cómo está** el proyecto, no cómo se llegó: lo ya cerrado vive en
+  `docs/historial.md` desde el 28-08-2026, cuando el historial se había comido al
+  estado (1030 de 1488 líneas) y dejaba de leerse justo lo que había que leer.
 - `docs/architecture.md` — decisiones técnicas (RLS, RPCs, repositorios) y también las
   **decisiones de producto** y el **tono de la interfaz**.
 - `docs/roadmap.md` — orden de trabajo.
@@ -229,4 +232,7 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
 - Autor: Omar García <cerredax@gmail.com>. Y cierra con el trailer
   `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`, como el resto del historial.
 - Al cerrar un trabajo relevante, actualiza `docs/project-status.md` y marca lo que
-  toque en `docs/roadmap.md`. Son la fuente de verdad y se desactualizan solas.
+  toque en `docs/roadmap.md`. Son la fuente de verdad y se desactualizan solas. El
+  **relato** del cierre va a `docs/historial.md`, bajo su fecha; en `project-status.md`
+  solo lo que siga siendo verdad hoy. Escribir el relato en el estado es exactamente
+  lo que lo infló hasta hacerlo ilegible.

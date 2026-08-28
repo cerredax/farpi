@@ -3,34 +3,35 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { FolderOpen, LogOut } from 'lucide-react'
+import { FolderOpen, Settings, LogOut } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { useIsClient } from '@/hooks/useIsClient'
 import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { ROUTES } from '@/lib/constants'
-import { PESTAÑAS_VISIBLES } from '@/components/settings/pestanas'
 
 /**
  * "Más": la última pastilla de la barra de abajo, y todo lo que no cabe en ella.
  *
- * Lleva Documentos, las cinco secciones de Ajustes y cerrar sesión. Es lo que
- * ocupaba el círculo de la cuenta en la esquina de `TopBar` hasta el 28-08-2026,
- * y viene de una cuenta sencilla: en móvil había **dos** sitios donde tocar para
- * salir de las cinco pantallas de siempre —la barra de abajo y un icono arriba a
- * la derecha—, y el de arriba no decía a dónde llevaba. Ahora se navega por un
- * solo borde de la pantalla, el de abajo, que es el que alcanza el pulgar.
+ * Lleva Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
+ * cuenta en la esquina de `TopBar` hasta el 28-08-2026, y viene de una cuenta
+ * sencilla: en móvil había **dos** sitios donde tocar para salir de las cinco
+ * pantallas de siempre —la barra de abajo y un icono arriba a la derecha—, y el
+ * de arriba no decía a dónde llevaba. Ahora se navega por un solo borde de la
+ * pantalla, el de abajo, que es el que alcanza el pulgar.
  *
  * Documentos baja aquí porque es la sección a la que menos se entra —el DNI y el
  * libro de familia se miran dos veces al año— y su sitio en la barra es el que
  * necesitaba "Más". En escritorio no cambia nada: `SideNav` tiene columna de
  * sobra y sigue enseñando Documentos con las otras cinco, y la cuenta al pie.
  *
- * El menú **no** lleva los ajustes dentro: lleva sus cinco secciones, y cada una
- * entra directa a su pestaña (`/settings?seccion=…`). Es la diferencia entre un
- * índice y un armario, y es lo que evita el golpe que este repositorio ya se dio
- * dos veces escondiendo contenido (el catálogo de las listas, las tareas del
- * día). Se recorre `PESTAÑAS_VISIBLES` y no una copia a mano: en modo demo
- * Sincronización no existe y aquí tampoco tiene que salir.
+ * Ajustes entró aquí el mismo 28-08-2026 con sus cinco secciones sueltas
+ * (Familia, Casa, Cuenta, Sincronización, Legal), una por fila, para que cada
+ * una entrara directa a su pestaña. Duró también un día: cinco filas de Ajustes
+ * mezcladas con Documentos y Cerrar sesión hacían el menú largo y confuso —no
+ * se distinguía "una pantalla de la app" de "una pestaña dentro de otra
+ * pantalla" a simple vista. Ahora Ajustes es una fila más, como Documentos, y
+ * lleva a `/settings`, que abre en Familia (`pestañaDesdeUrl`). Elegir la
+ * pestaña ya es cosa de las pestañas de `SettingsView`, no de este menú.
  *
  * Cerrar sesión va en su propia tarjeta, separado del resto: no es otro sitio al
  * que ir, es salir.
@@ -51,8 +52,8 @@ export function MoreMenu({ className, children }: { className?: string; children
   }
 
   const enlaces = [
-    { href: ROUTES.docs, label: 'Documentos' },
-    ...PESTAÑAS_VISIBLES.map(p => ({ href: `${ROUTES.settings}?seccion=${p.key}`, label: p.label })),
+    { href: ROUTES.docs, label: 'Documentos', icon: FolderOpen },
+    { href: ROUTES.settings, label: 'Ajustes', icon: Settings },
   ]
 
   const sheet = (
@@ -61,7 +62,7 @@ export function MoreMenu({ className, children }: { className?: string; children
         <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
           {/* Enlaces de verdad y no botones: llevan a otra pantalla, así que se
               pueden abrir en otra pestaña y el navegador dice a dónde van. */}
-          {enlaces.map(({ href, label }, i) => (
+          {enlaces.map(({ href, label, icon: Icon }, i) => (
             <Link
               key={href}
               href={href}
@@ -71,13 +72,7 @@ export function MoreMenu({ className, children }: { className?: string; children
               }`}
             >
               <span className="flex min-w-0 items-center gap-3">
-                {/* Solo Documentos lleva icono: es una pantalla de la app, como
-                    las cinco de la barra, y las otras cinco filas son las
-                    pestañas de una sola. El icono es el mismo que tiene en la
-                    barra lateral, para que se reconozca. */}
-                {href === ROUTES.docs && (
-                  <FolderOpen size={16} strokeWidth={2} className="flex-shrink-0 text-muted" aria-hidden />
-                )}
+                <Icon size={16} strokeWidth={2} className="flex-shrink-0 text-muted" aria-hidden />
                 <span className="min-w-0 truncate">{label}</span>
               </span>
               <span aria-hidden className="text-faint">›</span>

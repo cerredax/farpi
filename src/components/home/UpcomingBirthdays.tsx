@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { memo } from 'react'
+import { PartyPopper } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { fondoDePersona } from '@/lib/assignees'
@@ -44,6 +45,8 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
   return (
     <HomeSection
       label="Cumpleaños"
+      icon={PartyPopper}
+      accentColor="#D96C6C"
       footer={soloApuntados
         ? <SectionLink href="/calendar">Ver calendario</SectionLink>
         : <SectionLink href="/settings">Ver la familia</SectionLink>}

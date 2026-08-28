@@ -75,6 +75,9 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   ya no es una pastilla—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
   Ajustes abre en Familia; elegir pestaña es cosa de las pestañas. Cambiar contraseña
   (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes.
+- Listas, Tareas, Comidas y Documentos abren con la misma fila (`ViewHeader.tsx`,
+  28-08-2026): resumen, buscador y el `+` de alta, bajo el título de la cabecera. El `+`
+  de Tareas estaba flotando abajo a la derecha y era el único fuera de sitio.
 - Páginas legales públicas `/privacidad` y `/terminos`.
 - Modo demo con persistencia en `localStorage`.
 
@@ -234,12 +237,12 @@ Las dos que había aquí se cerraron el 06-08-2026:
 
 ### Funcionalidades que faltan, no riesgos
 
-1. **Notificaciones push**: probadas de punta a punta el 28-08-2026 con una cuenta
-   real (`sent: 1, fallidos: 0`), con las claves VAPID ya en Vercel. El
-   `CRON_SECRET` de Vercel, desalineado con el local, ya está igualado y
-   comprobado. Queda un cabo: **está pendiente restaurar el arreglo del service
-   worker** (`git revert 652ce96`), que se revirtió el mismo día por una caída de
-   Supabase que resultó no tener nada que ver. Ver `docs/notificaciones.md`.
+1. ~~**Notificaciones push.**~~ **Hecho.** Probadas de punta a punta el 28-08-2026
+   con una cuenta real (`sent: 1, fallidos: 0`), con las claves VAPID ya en Vercel.
+   El `CRON_SECRET` de Vercel, desalineado con el local, ya está igualado y
+   comprobado. El arreglo del service worker (revertido por error en `652ce96`,
+   creyendo que había roto el arranque) volvió en `ced89ed` el mismo día: la causa
+   real fue una caída de Supabase, no el código. Ver `docs/notificaciones.md`.
 2. ~~**Backup/export de datos de la familia.**~~ **Hecho el 27-08-2026** (ver
    "Copia de seguridad" en `docs/historial.md`). Lo que sigue siendo verdad, y por lo
    que era insustituible: con

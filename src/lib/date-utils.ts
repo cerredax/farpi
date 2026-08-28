@@ -2,11 +2,22 @@
  * Devuelve la fecha local en formato yyyy-MM-dd.
  * Evita el desfase de toISOString() que convierte a UTC antes de formatear.
  */
+export type DayPeriod = 'mañana' | 'tarde' | 'noche'
+
+/** Tramo del día por la hora. Decide el saludo y el cielo de la ilustración
+ *  de la tarjeta de Inicio, así que las dos comparten los mismos límites. */
+export function getDayPeriod(date: Date): DayPeriod {
+  const hour = date.getHours()
+  if (hour < 12) return 'mañana'
+  if (hour < 20) return 'tarde'
+  return 'noche'
+}
+
 /** Saludo según la hora. Lo pinta la tarjeta del día en Inicio. */
 export function getGreeting(date: Date): string {
-  const hour = date.getHours()
-  if (hour < 12) return 'Buenos días'
-  if (hour < 20) return 'Buenas tardes'
+  const period = getDayPeriod(date)
+  if (period === 'mañana') return 'Buenos días'
+  if (period === 'tarde') return 'Buenas tardes'
   return 'Buenas noches'
 }
 

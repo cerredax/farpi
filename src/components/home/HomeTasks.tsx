@@ -1,6 +1,7 @@
 'use client'
 
 import { memo, useMemo } from 'react'
+import { ListChecks } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { CircleCheck } from '@/components/ui/CircleCheck'
@@ -26,6 +27,8 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
   return (
     <HomeSection
       label="Lo demás por hacer"
+      icon={ListChecks}
+      accentColor="#8BA888"
       footer={
         <SectionLink href="/tasks">Ver todas las tareas</SectionLink>
       }

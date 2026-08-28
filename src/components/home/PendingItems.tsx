@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, ShoppingBasket } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
@@ -30,8 +30,10 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
   return (
     <HomeSection
       label="Listas de casa"
+      icon={ShoppingBasket}
+      accentColor="#D8A48F"
       isEmpty={items.length === 0}
-      emptyState={<EmptyState compact emoji="✓" title="No falta nada" />}
+      emptyState={<EmptyState compact emoji="🧺" title="La cesta está vacía, de momento" />}
       footer={
         <SectionLink href="/lists">Ver todas las listas</SectionLink>
       }

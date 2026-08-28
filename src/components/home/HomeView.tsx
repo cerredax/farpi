@@ -17,6 +17,7 @@ import { TodayMealsRow } from './TodayMealsRow'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
+import { DayIllustration } from './DayIllustration'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import type { Task } from '@/types'
 
@@ -115,8 +116,7 @@ export function HomeView() {
     // dice si ocupa una o dos, así que por debajo de `lg` el DOM no cambia.
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
       <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
-        <div className="absolute -right-10 -top-12 h-32 w-32 rounded-full bg-accent/25" />
-        <div className="absolute -bottom-14 left-10 h-28 w-28 rounded-full bg-primary/20" />
+        {ahora && <DayIllustration date={ahora} />}
         <div className="relative space-y-3">
           <div className="min-h-[3.25rem]">
             {ahora && (

@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { CalendarDays } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import type { Event, Child, FamilyMember } from '@/types'
@@ -29,7 +30,12 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
   if (events.length === 0) return null
 
   return (
-    <HomeSection label="Esta semana" footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}>
+    <HomeSection
+      label="Esta semana"
+      icon={CalendarDays}
+      accentColor="#E9C46A"
+      footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
+    >
       <ul className="divide-y divide-hairline">
         {events.map(event => {
           const fecha = new Date(event.start_at)

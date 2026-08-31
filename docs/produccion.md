@@ -43,14 +43,15 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       5. **Google Cloud → Credenciales → cliente OAuth → Authorized redirect URIs**:
          `https://www.farpi.app/api/documents/providers/google/callback`, **idéntica** a la
          del punto 2. Google compara la cadena entera; una barra de más y contesta
-         `redirect_uri_mismatch`.
+         `redirect_uri_mismatch`. **Ya está añadida** (31-08-2026), junto a la del dominio
+         viejo, así que en el corte no hay que tocar Google: solo retirar la vieja al
+         final.
 
-      **En qué orden, para no tener caída**: primero el dominio en Vercel (1) y las
-      entradas nuevas en Supabase y Google (4 y 5) **sin quitar las viejas** —los dos
-      sitios admiten varias—; después las variables (2 y 3), que es lo que hace el cambio
-      efectivo; y solo cuando todo responda, retirar las entradas del dominio antiguo.
-      Cambiar las variables antes de tener registrada la redirect URI en Google deja la
-      conexión con Drive rota hasta que se arregle.
+      **En qué orden, para no tener caída**: primero el dominio en Vercel (1) y la entrada
+      nueva en Supabase (4) **sin quitar las viejas** —Supabase y Google admiten varias—;
+      después las variables (2 y 3), que es lo que hace el cambio efectivo; y solo cuando
+      todo responda, retirar las entradas del dominio antiguo. Con (5) ya hecho, el único
+      orden que importa es no cambiar las variables antes de tener el dominio sirviendo.
 
       **Cómo comprobar que quedó bien**, en este orden: entrar por magic link (prueba 3 y
       4), abrir un documento ya subido (prueba que el token de Drive sigue vivo) y
@@ -59,9 +60,21 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
 - [ ] **Plantillas de correo del panel de Supabase**: las de `supabase/email-templates/`
       ya dicen Farpi, pero se aplican **a mano**. Hasta que se peguen, los correos que
       salen siguen diciendo Nido.
-- [ ] **Pantalla de consentimiento de Google**: hoy dice «Nido quiere acceder a tu
-      Drive». Está *In production*; cambiarle el nombre puede disparar una revisión, así
-      que conviene mirarlo antes de tocar. Mientras tanto no se cae nada.
+- [x] **Pantalla de consentimiento de Google**: el nombre de la app pasa a «Farpi»
+      (31-08-2026) y se aplicó directamente, sin cola de verificación de marca. En la misma
+      pasada se **añadió** —no sustituyó— la redirect URI de `www.farpi.app` al cliente
+      OAuth, que es la diferencia entre no notar nada y romper la conexión con Drive:
+      Google compara la cadena entera y la app sigue mandando la del dominio viejo hasta
+      que se cambie la variable en Vercel.
+
+      Queda un resto para cuando el dominio esté vivo, y solo entonces: en *Branding*,
+      **App Domain** (homepage, privacidad y términos → `https://www.farpi.app/…`) y
+      **Authorized Domains** (`farpi.app`). Ojo, Google suele exigir que el dominio esté
+      verificado en Search Console para admitirlo como *Authorized Domain*.
+
+      Dos cosas que **no** hay que hacer nunca aquí, porque sí tumbarían las conexiones:
+      borrar y recrear el cliente OAuth —se caen todos los permisos concedidos— y devolver
+      la app a *Testing*, donde los refresh tokens caducan a los siete días.
 - [ ] **Play Store**: el *package name* es irreversible. Todavía no se ha publicado, que
       es justo por lo que este era el momento de cambiar el nombre.
 

@@ -7,11 +7,14 @@ import { RANGE_KINDS } from '@/lib/events'
 
 export const runtime = 'nodejs'
 
-// `NIDO_TIME_ZONE` es como se llamaba antes del 31-08-2026 y se sigue leyendo: la
-// variable vive en el panel de Vercel, no en el repositorio, así que renombrarla aquí
-// y ya está habría hecho que el cron se cayera al valor por defecto sin decir nada.
-// Se puede quitar en cuanto Vercel tenga la nueva.
-const REMINDER_TIME_ZONE = process.env.FARPI_TIME_ZONE ?? process.env.NIDO_TIME_ZONE ?? 'Europe/Madrid'
+// Nunca se ha definido en ninguna parte —ni en `.env.local` ni en Vercel—, así que el
+// cron siempre ha calculado "hoy" con el valor de aquí. Está para poder cambiarla sin
+// tocar código el día que haga falta, no porque haga falta hoy.
+//
+// Se llamó `NIDO_TIME_ZONE` hasta el 31-08-2026. No se lee la vieja: comprobado que no
+// existe en ningún entorno, y un respaldo que no respalda nada es una línea que el
+// próximo que pase tiene que entender para nada.
+const REMINDER_TIME_ZONE = process.env.FARPI_TIME_ZONE ?? 'Europe/Madrid'
 
 interface ZonedDateParts {
   year: number

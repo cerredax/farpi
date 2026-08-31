@@ -39,7 +39,7 @@ activar avisos sigue sin aparecer.
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` — la pública (la usa el cliente para suscribirse).
 - `VAPID_PRIVATE_KEY` — la privada (solo servidor, para enviar).
 - `VAPID_SUBJECT` — un `mailto:tuemail` o URL.
-- `FARPI_TIME_ZONE` — zona horaria para calcular "hoy" en recordatorios. Por defecto: `Europe/Madrid`.
+- `FARPI_TIME_ZONE` — **opcional, y nunca se ha definido**. Zona horaria para calcular "hoy" en los recordatorios; sin ella vale `Europe/Madrid`, que es lo que se ha usado siempre. Se llamó `NIDO_TIME_ZONE` hasta el 31-08-2026.
 
 Con `NEXT_PUBLIC_VAPID_PUBLIC_KEY` presente, la tarjeta de Ajustes ya deja **activar** y guarda la suscripción en `push_subscriptions`.
 

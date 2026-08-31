@@ -103,20 +103,17 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
         {days.map(day => {
           if (!isSameMonth(day, currentMonth)) {
             /**
-             * **Los días de las puntas se pintan, pero rellenos** (26-08-2026).
-             * Cuando un mes empieza en martes, el lunes de esa fila es el 31 del
-             * mes anterior, y dejarlo en blanco corta la semana por la mitad: la
-             * fila deja de leerse como una semana.
+             * **Los días de las puntas se pintan, sobre el mismo fondo que el
+             * resto** (26-08-2026). Cuando un mes empieza en martes, el lunes de
+             * esa fila es el 31 del mes anterior, y dejarlo en blanco corta la
+             * semana por la mitad: la fila deja de leerse como una semana.
              *
-             * Estuvieron en blanco desde el 24-08-2026, y con motivo: antes se
-             * pintaban **igual que los días del mes**, solo con el número en
-             * gris, y así se leían como días sueltos que no decían de qué mes
-             * eran. El relleno arregla justo eso: con el fondo teñido ya no
-             * tienen la misma forma que los suyos.
-             *
-             * El gris es `--color-surface`, el mismo tono que ya usan los
-             * estados de superficie/hover de la app: no es el crema del fondo de
-             * página, que se probó primero y no se distinguía de él.
+             * Estuvieron en blanco desde el 24-08-2026, y rellenos de
+             * `--color-surface` desde el 26-08-2026 para que no se confundieran
+             * con los días del mes. El relleno se quitó el 31-08-2026: con las
+             * líneas de la rejilla ya dibujadas, el bloque gris se veía como un
+             * parche pegado a la esquina del calendario. El número en gris
+             * (`text-faint`) basta para decir que ese día no es de este mes.
              *
              * Siguen sin ser botones y sin enseñar nada de lo que pasa ese día:
              * están para cerrar la semana, no para consultarlos. Al 1 de
@@ -144,7 +141,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                 // el mes vecino **a la misma altura**. Con `py-1` en el
                 // contenedor, las franjas del hueco caían cuatro píxeles más
                 // abajo que las de al lado y el tramo se veía escalonado.
-                className={`${HUECO} flex w-full flex-col bg-surface min-h-[52px] lg:min-h-[104px] ${
+                className={`${HUECO} flex w-full flex-col min-h-[52px] lg:min-h-[104px] ${
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >

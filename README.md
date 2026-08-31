@@ -1,6 +1,6 @@
 # Farpi
 
-Farpi es una app familiar privada para ver de un vistazo el calendario, las listas, las comidas y los documentos importantes de casa.
+Farpi es una app familiar privada para ver de un vistazo el calendario, las listas, las tareas, las comidas, las notas y los documentos importantes de casa.
 
 La pantalla principal debe responder con claridad a una pregunta:
 
@@ -16,7 +16,8 @@ Una app familiar, mobile-first y privada para organizar el día a día sin conve
 - React.
 - TypeScript.
 - Tailwind CSS v4 (sin `tailwind.config`; los tokens viven en `src/app/globals.css`).
-- Supabase para Auth, PostgreSQL, Storage y RLS.
+- Supabase para Auth, PostgreSQL y RLS.
+- Google Drive para los archivos de los documentos, en el disco de quien los sube.
 - Playwright como único runner de tests, para los unitarios y para los de navegador.
 
 ## Ejecutar en local
@@ -33,8 +34,8 @@ http://localhost:3000
 ```
 
 Sin credenciales de Supabase en `.env.local`, la app arranca en **modo demo** con datos
-mock en `localStorage`. Con ellas habla con Supabase de verdad: auth, datos, Storage y
-RLS. La decisión se toma en un solo sitio, `src/lib/supabase/env.ts`, y la plantilla de
+mock en `localStorage`. Con ellas habla con Supabase de verdad: auth, datos y RLS. La
+decisión se toma en un solo sitio, `src/lib/supabase/env.ts`, y la plantilla de
 variables está en `.env.example`.
 
 ## Scripts
@@ -44,12 +45,13 @@ npm run dev         # servidor de desarrollo, puerto 3000
 npm run build       # build de producción
 npm run start       # servir el build
 npm run lint        # eslint
-npm run test:unit   # tests de lógica pura, sin servidor (~0,8 s)
+npm run test:unit   # ~315 tests de lógica pura, sin servidor (~2 s)
 npm run test:e2e    # la suite entera: unitarios + navegador, en modo demo
 
 node scripts/validate-rls.mjs    # valida RLS, RPCs y triggers contra el Supabase real
 node scripts/gen-vapid.cjs       # genera el par de claves para las notificaciones push
 node scripts/gen-icons.cjs       # regenera los iconos de la PWA
+python scripts/gen-email-templates.py   # plantillas de correo de Supabase
 ```
 
 ## Documentación interna
@@ -60,7 +62,7 @@ node scripts/gen-icons.cjs       # regenera los iconos de la PWA
 - [Roadmap](./docs/roadmap.md): orden recomendado de trabajo por fases.
 - [Puesta en producción](./docs/produccion.md): checklist de despliegue en Vercel + Supabase.
 - [Checklist de pruebas](./docs/testing-checklist.md): QA manual, y qué está ya automatizado.
-- [Validación Supabase](./docs/supabase-validation.md): pruebas de migraciones, RLS, RPCs y Storage.
+- [Validación Supabase](./docs/supabase-validation.md): resultado de la última pasada de RLS, RPCs e integridad contra la base real.
 - [Notificaciones](./docs/notificaciones.md): cómo activar los recordatorios por push.
 - [Reglas de trabajo](./CLAUDE.md): producto, límites, comandos, arquitectura y convenciones. Vale para cualquier agente (Claude, Codex u otro); [`AGENTS.md`](./AGENTS.md) solo apunta aquí.
 
@@ -72,6 +74,7 @@ src/components             Componentes UI y pantallas
 src/hooks                  Estado de pantalla y andamiaje de los sheets
 src/lib/store              Store mock del modo demo, un módulo por dominio
 src/lib/supabase-repos     Repos reales, un módulo por dominio
+src/lib/document-storage   Los archivos, en el Google Drive de quien los sube (solo servidor)
 src/lib/store-context.tsx  Contexto global actual
 src/lib/constants.ts       Constantes compartidas
 src/lib/date-utils.ts      Helpers de fecha local
@@ -81,7 +84,7 @@ src/lib/repos              Contrato que cumplen las dos implementaciones
 src/proxy.ts               Middleware de Next 16, refresca la sesión
 e2e                        Tests de navegador; e2e/unit, los de lógica pura
 scripts                    Validación de RLS, claves VAPID e iconos de la PWA
-supabase/schema.sql        Esquema, RLS, RPCs, integridad, invitaciones y Storage
+supabase/schema.sql        Esquema, RLS, RPCs, integridad e invitaciones
 docs                       Documentación de proyecto, QA y roadmap
 ```
 

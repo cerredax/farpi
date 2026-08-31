@@ -16,10 +16,11 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       ficha—, y Drive identifica carpetas y archivos por id, no por nombre. Al renombrar,
       el id no cambia, el `folder_ref` cacheado en `storage_connections` sigue valiendo y
       los documentos se siguen abriendo.
-- [ ] **Repositorio de GitHub** (`cerredax/nido` → `cerredax/farpi`). GitHub deja
-      redirección automática, así que nada se rompe, pero conviene apuntar el remoto al
-      nombre nuevo: `git remote set-url origin https://github.com/cerredax/farpi.git`.
-      Comprobar después que Vercel sigue viendo el repositorio (Settings → Git).
+- [x] **Repositorio de GitHub**: renombrado a `cerredax/farpi` (31-08-2026), y el remoto
+      local apuntado al nombre nuevo. GitHub deja redirección permanente desde el viejo, y
+      **por eso mismo** había que actualizar el remoto: si no, todo sigue funcionando y te
+      quedas años apuntando a un nombre que ya no existe sin enterarte. Queda comprobar
+      que Vercel sigue viendo el repositorio (Settings → Git) en el próximo despliegue.
 - [ ] **Dominio**: `farpi.app` registrado el 31-08-2026. El host que se usa es
       **`www.farpi.app`**, con el ápice redirigido a él.
 
@@ -167,8 +168,7 @@ En **Google Cloud Console → APIs y servicios**:
 
 ## 3. Desplegar
 
-El proyecto está vinculado a Vercel y a GitHub (`cerredax/nido`, pendiente de renombrar
-a `cerredax/farpi` — §0).
+El proyecto está vinculado a Vercel y a GitHub (`cerredax/farpi`).
 
 - **Auto-deploy**: `git push origin main` → Vercel construye y despliega producción.
 - **Manual**: `vercel --prod` (requiere Vercel CLI: `npm i -g vercel`).

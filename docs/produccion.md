@@ -20,20 +20,41 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       redirección automática, así que nada se rompe, pero conviene apuntar el remoto al
       nombre nuevo: `git remote set-url origin https://github.com/cerredax/farpi.git`.
       Comprobar después que Vercel sigue viendo el repositorio (Settings → Git).
-- [ ] **Dominio**: hoy `nido-xi.vercel.app`; el destino es **`farpi.app`**, pendiente de
-      comprar. Es lo que más ata de todo esto, porque el dominio aparece en **cuatro
-      sitios que tienen que decir lo mismo**:
-      1. `NEXT_PUBLIC_SITE_URL` en las variables de Vercel — el `redirectTo` del magic link.
-      2. Supabase → Authentication → URL Configuration → **Site URL**.
-      3. Supabase → **Redirect URLs**: añadir `https://farpi.app/auth/callback` (dejar
-         también el de `localhost:3000` para desarrollo).
-      4. `GOOGLE_REDIRECT_URI` y la *Authorized redirect URI* de Google Cloud, que tienen
-         que ser exactamente `https://farpi.app/api/documents/providers/google/callback`.
+- [ ] **Dominio**: `farpi.app` registrado el 31-08-2026. El host que se usa es
+      **`www.farpi.app`**, con el ápice redirigido a él.
 
-      Si se cambian a medias: con (1) y (2) mal, los magic links llevan al dominio viejo;
-      con (4) mal, conectar Drive falla con `redirect_uri_mismatch`. Lo suave es añadir el
-      dominio nuevo **antes** de quitar el viejo, dejar los dos aceptados un rato y
-      retirar el antiguo cuando todo responda.
+      **Un solo host, y estricto.** La cookie de estado del OAuth de Drive se pone
+      *host-only* (`start/route.ts` no le da atributo `domain`), así que una cookie de
+      `www.farpi.app` **no viaja a `farpi.app`**. Si el flujo empieza en un host y vuelve
+      al otro, la conexión con Drive falla con «estado no válido» y no hay nada en los
+      logs que lo explique. Por eso todo —variables, Supabase y Google— tiene que decir
+      `www`, y el ápice solo redirige.
+
+      Los cinco sitios que tienen que decir lo mismo:
+
+      1. **Vercel → Domains**: añadir `farpi.app` y `www.farpi.app`, y marcar
+         **`www.farpi.app` como principal**. Vercel redirige el ápice con un 308.
+      2. **Vercel → Environment Variables**: `NEXT_PUBLIC_SITE_URL=https://www.farpi.app`
+         y `GOOGLE_REDIRECT_URI=https://www.farpi.app/api/documents/providers/google/callback`.
+      3. **Supabase → Authentication → URL Configuration → Site URL**: `https://www.farpi.app`.
+      4. **Supabase → Redirect URLs**: añadir `https://www.farpi.app/auth/callback`
+         (mantener el de `http://localhost:3000/auth/callback` para desarrollo).
+      5. **Google Cloud → Credenciales → cliente OAuth → Authorized redirect URIs**:
+         `https://www.farpi.app/api/documents/providers/google/callback`, **idéntica** a la
+         del punto 2. Google compara la cadena entera; una barra de más y contesta
+         `redirect_uri_mismatch`.
+
+      **En qué orden, para no tener caída**: primero el dominio en Vercel (1) y las
+      entradas nuevas en Supabase y Google (4 y 5) **sin quitar las viejas** —los dos
+      sitios admiten varias—; después las variables (2 y 3), que es lo que hace el cambio
+      efectivo; y solo cuando todo responda, retirar las entradas del dominio antiguo.
+      Cambiar las variables antes de tener registrada la redirect URI en Google deja la
+      conexión con Drive rota hasta que se arregle.
+
+      **Cómo comprobar que quedó bien**, en este orden: entrar por magic link (prueba 3 y
+      4), abrir un documento ya subido (prueba que el token de Drive sigue vivo) y
+      **desconectar y volver a conectar Drive** (única prueba real de 2 y 5).
+
 - [ ] **Plantillas de correo del panel de Supabase**: las de `supabase/email-templates/`
       ya dicen Farpi, pero se aplican **a mano**. Hasta que se peguen, los correos que
       salen siguen diciendo Nido.
@@ -62,8 +83,8 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
 El backend está **validado** (§4): **89/89** comprobaciones de RLS, RPCs e integridad
-(31-08-2026). La app está desplegada y operativa en https://nido-xi.vercel.app, que
-sigue siendo la URL de producción hasta que se compre `farpi.app` (§0).
+(31-08-2026). La app está desplegada y operativa en https://nido-xi.vercel.app, que sigue
+sirviendo hasta que se apunte **`www.farpi.app`**, ya registrado (§0).
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 
@@ -87,7 +108,7 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 - [ ] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — **obligatorias para los documentos**. Sin ellas, las rutas de `/api/documents/*` responden 503 y no se puede subir ni abrir ningún papel. La `REDIRECT_URI` tiene que ser exactamente `https://<dominio>/api/documents/providers/google/callback`.
 - [ ] `DOCS_TOKEN_KEY` — clave de 32 bytes con la que se cifran los tokens de Drive antes de guardarlos (`openssl rand -hex 32`). **Si se pierde o se rota, todas las conexiones guardadas dejan de descifrarse** y cada persona tiene que volver a conectar su Drive.
 
-> La lista completa, incluidas las de notificaciones push (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), `CRON_SECRET` y `NIDO_TIME_ZONE`, está en **`.env.example`** en la raíz del repositorio. Ese fichero es la plantilla de referencia: no lo lee ningún código, pero es el inventario de lo que la app necesita.
+> La lista completa, incluidas las de notificaciones push (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), `CRON_SECRET` y `FARPI_TIME_ZONE`, está en **`.env.example`** en la raíz del repositorio. Ese fichero es la plantilla de referencia: no lo lee ningún código, pero es el inventario de lo que la app necesita.
 
 > **Cuidado al pegarlas.** En la puesta en marcha se colaron dos veces valores recortados (un espacio delante y la última letra perdida), y el síntoma fue un "Failed to fetch" opaco en el navegador. Para comprobar qué valores hay realmente horneados en producción, basta con buscar la URL en el JS servido: `curl -s https://<dominio>/auth/login` y seguir los chunks de `/_next/static`.
 

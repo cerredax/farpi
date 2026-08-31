@@ -39,7 +39,7 @@ activar avisos sigue sin aparecer.
 - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` — la pública (la usa el cliente para suscribirse).
 - `VAPID_PRIVATE_KEY` — la privada (solo servidor, para enviar).
 - `VAPID_SUBJECT` — un `mailto:tuemail` o URL.
-- `NIDO_TIME_ZONE` — zona horaria para calcular "hoy" en recordatorios. Por defecto: `Europe/Madrid`.
+- `FARPI_TIME_ZONE` — zona horaria para calcular "hoy" en recordatorios. Por defecto: `Europe/Madrid`.
 
 Con `NEXT_PUBLIC_VAPID_PUBLIC_KEY` presente, la tarjeta de Ajustes ya deja **activar** y guarda la suscripción en `push_subscriptions`.
 
@@ -92,7 +92,7 @@ Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `
 Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
 - `CRON_SECRET` — Vercel añade `Authorization: Bearer <CRON_SECRET>` a las llamadas del cron; el endpoint lo verifica.
 
-> Nota: el plan **Hobby de Vercel** permite crons **una vez al día**, justo lo que usamos. El cron corre a las 07:00 UTC y el endpoint calcula "hoy" con `NIDO_TIME_ZONE` (`Europe/Madrid` por defecto), incluyendo correctamente eventos de todo el día.
+> Nota: el plan **Hobby de Vercel** permite crons **una vez al día**, justo lo que usamos. El cron corre a las 07:00 UTC y el endpoint calcula "hoy" con `FARPI_TIME_ZONE` (`Europe/Madrid` por defecto), incluyendo correctamente eventos de todo el día.
 
 ## El botón que se quedaba en "Guardando…"
 

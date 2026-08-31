@@ -117,7 +117,7 @@ Aquí había **diez comprobaciones** del bucket privado `documents`: que existí
 público, que un miembro subía, firmaba, descargaba y borraba, y que un ajeno no podía
 firmar, descargar, listar ni borrar aunque conociera la ruta exacta. Todas pasaron en la
 pasada del 27-08-2026, y después el bucket se borró: los archivos viven en el Google Drive
-de quien los sube y los sirve Nido.
+de quien los sube y los sirve Farpi.
 
 Se retiran porque no quedaba nada que comprobar, no porque dejaran de importar. Lo que
 cubre ahora ese terreno son las dos secciones siguientes, y el aislamiento que probaban
@@ -129,7 +129,7 @@ cubre ahora ese terreno son las dos secciones siguientes, y el aislamiento que p
 La tabla `storage_connections` guarda los permisos de Google Drive de cada persona, con
 los tokens cifrados. Tiene RLS activada y **ninguna policy**, a propósito: solo entra el
 service role desde una ruta API. Es la comprobación que no puede fallar de todo el
-documento — dentro hay refresh tokens, y la CSP de Nido lleva `'unsafe-inline'` en los
+documento — dentro hay refresh tokens, y la CSP de Farpi lleva `'unsafe-inline'` en los
 scripts, así que no para un XSS en línea.
 
 - [x] El service role **sí** puede sembrar una conexión (201). Por ahí entran las rutas API.

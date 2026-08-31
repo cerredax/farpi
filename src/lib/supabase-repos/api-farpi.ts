@@ -36,7 +36,7 @@ export async function pedirApi<T>(
    * lugar de decir lo único que hace falta saber.
    */
   if (res.redirected && new URL(res.url).pathname.startsWith('/auth/')) {
-    throw new Error('La sesión ha caducado. Vuelve a entrar en Nido e inténtalo otra vez.')
+    throw new Error('La sesión ha caducado. Vuelve a entrar en Farpi e inténtalo otra vez.')
   }
 
   const datos = await res.json().catch(() => null)

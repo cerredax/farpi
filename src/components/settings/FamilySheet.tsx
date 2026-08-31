@@ -99,7 +99,7 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
             justo lo que no se entendía. */}
         {!puedeEliminar && (
           <p className="text-[10px] leading-relaxed text-faint">
-            Esta es tu única familia, así que no se puede eliminar: Nido siempre trabaja dentro de
+            Esta es tu única familia, así que no se puede eliminar: Farpi siempre trabaja dentro de
             una. Crea otra antes, o borra tu cuenta para dejarlo todo.
           </p>
         )}

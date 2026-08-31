@@ -2,7 +2,7 @@
 
 ## Objetivo técnico
 
-Mantener Nido simple: una app web privada, mobile-first, con Supabase como backend base y sin introducir backend complejo.
+Mantener Farpi simple: una app web privada, mobile-first, con Supabase como backend base y sin introducir backend complejo.
 
 ## Capas actuales
 
@@ -27,7 +27,7 @@ Archivos principales:
 
 Persistencia:
 
-- Clave: `nido_store_v1`
+- Clave: `farpi_store_v1`
 - Ubicación: `localStorage`
 - Versión interna: `SCHEMA_VER = 8`, en `src/lib/store/persist.ts` (la 8 entró con `families.meal_slots`)
 
@@ -180,7 +180,7 @@ quedaba para siempre en la lista de Ajustes. Con dos reglas:
 
 - **Solo un admin de esa familia.** Ser admin de otra no sirve, igual que en el resto
   de RPCs de miembros.
-- **Nunca la última que te queda.** Nido siempre trabaja *dentro* de una familia
+- **Nunca la última que te queda.** Farpi siempre trabaja *dentro* de una familia
   —`AppShell` resuelve una activa antes de pintar nada—, así que quedarse sin ninguna
   no es un estado del que la app sepa volver. Para dejarlo todo está borrar la cuenta,
   que sí se lleva las familias donde estabas solo. Cuando no se puede, el sheet lo dice:
@@ -306,7 +306,7 @@ UI / Pantallas
 
 ## Documentos en Google Drive
 
-Desde el 27-08-2026 los archivos de los documentos **no los guarda Nido**: viven en
+Desde el 27-08-2026 los archivos de los documentos **no los guarda Farpi**: viven en
 el Google Drive de quien los sube. La familia no se entera —los ve igual, en la
 misma pantalla— y nadie más de la casa tiene que conectar nada.
 
@@ -334,7 +334,7 @@ use de verdad (`getProvider(doc.storage_provider)`) en vez de quedar de adorno.
 ### Modelo de acceso: proxy para leer, directo para subir
 
 - **Leer**: nadie habla con Drive salvo el servidor. Cuando otro miembro abre un
-  documento, Nido usa el token guardado del **dueño**, se trae el archivo y lo sirve
+  documento, Farpi usa el token guardado del **dueño**, se trae el archivo y lo sirve
   él por `/api/documents/[id]/file`, aplicando el control de acceso de siempre.
 - **Subir**: el navegador manda los bytes **directamente a Google**, a una dirección
   de un solo uso que abre el servidor (`/api/documents/upload-session`). No es una
@@ -346,7 +346,7 @@ use de verdad (`getProvider(doc.storage_provider)`) en vez de quedar de adorno.
 ### El permiso prestado
 
 - Scope **`drive.file`** y ninguno más: solo los archivos que crea esta app. Es un
-  scope **no sensible**, así que Nido no pasa por la verificación de Google ni por la
+  scope **no sensible**, así que Farpi no pasa por la verificación de Google ni por la
   auditoría CASA. Cambiarlo por `drive` o `drive.readonly` mete el proyecto en un
   proceso de semanas.
 - Los tokens viven en `storage_connections`, **cifrados** (AES-256-GCM, `DOCS_TOKEN_KEY`
@@ -887,7 +887,7 @@ día, su nombre accesible dice lo que hay en palabras ("lunes, 24 de agosto, 2 p
   ni colegio. Va en la rejilla, en la cabecera de columnas y en la vista Semana.
   - **Se probó rellenar la celda en crema y se descartó el mismo día.** Una masa de color
     se lee como "esto está apagado", y en una casa el fin de semana es cuando más pasa.
-    Además en Nido **el color significa persona**, y un fondo que no es de nadie va contra
+    Además en Farpi **el color significa persona**, y un fondo que no es de nadie va contra
     esa regla —la trama no es un color, es una textura, y por eso no choca—.
   - **Y se probó una línea vertical** donde acaba la semana laboral, que sobre el papel
     era lo más fino. A tamaño real no se distinguía de las otras líneas de la rejilla:
@@ -1222,9 +1222,9 @@ de una herramienta de trabajo. Al escribir textos nuevos:
   el 2026-08-24 se revirtieron las dos por decisión de producto. Si se vuelve a intentar,
   esto es lo que se aprendió:
   - **Los nombres de token no se tocan, solo los valores.** Así se hizo las dos veces:
-    `--nido-sage` acabó siendo una terracota y `--nido-terracota` un turquesa. Suena
+    `--farpi-sage` acabó siendo una terracota y `--farpi-terracota` un turquesa. Suena
     raro y aun así es lo correcto: renombrarlos arrastra el bloque `@theme inline` y las
-    utilidades `*-nido-*` que salen de él.
+    utilidades `*-farpi-*` que salen de él.
   - **El acento de marca tiene dos papeles**: relleno con blanco encima
     (`bg-primary text-white`, 12 sitios) y texto sobre el crema (`text-primary`, 57 usos
     y mucho de 9-12 px). Un acento cálido y bonito rara vez cumple 4,5:1 en los dos, así

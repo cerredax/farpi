@@ -97,7 +97,7 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
             value={draft.body}
             onChange={e => patch({ body: e.target.value })}
             rows={6}
-            placeholder={'Red: NIDO_2G\nClave: …'}
+            placeholder={'Red: FARPI_2G\nClave: …'}
             className="field-input resize-none"
           />
           {/* Dicho aquí y no en la letra pequeña de `/privacidad`: quien va a
@@ -105,7 +105,7 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
               política. Es texto plano en la base, protegido por la RLS y por
               nada más. */}
           <p className="text-[10px] leading-relaxed text-faint">
-            Solo lo ve tu familia. Nido no es un gestor de contraseñas: no guardes
+            Solo lo ve tu familia. Farpi no es un gestor de contraseñas: no guardes
             aquí las claves del banco o del correo.
           </p>
         </Field>

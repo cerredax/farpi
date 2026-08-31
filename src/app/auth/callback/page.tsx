@@ -104,7 +104,7 @@ function CallbackHandler() {
           </>
         ) : (
           <>
-            <p className="text-lg font-extrabold text-ink">Entrando en Nido</p>
+            <p className="text-lg font-extrabold text-ink">Entrando en Farpi</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">Validando el enlace…</p>
           </>
         )}

@@ -4,7 +4,7 @@
 
 ## Resumen
 
-Nido está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Nido: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
+Farpi está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Farpi: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
 La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Lo que queda no es código de producto: dos comprobaciones baratas y funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
@@ -59,7 +59,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   eventos pasados, no solo los del tramo pintado.
 - Comidas (día/semana, copiar día). Las cuatro franjas se activan y desactivan por familia desde Ajustes; apagar una no borra lo apuntado en ella.
 - Documentos: subir, abrir, editar, borrar y aviso de caducidad en la tarjeta. Los
-  archivos están en el Google Drive de quien los sube y los sirve Nido con el token
+  archivos están en el Google Drive de quien los sube y los sirve Farpi con el token
   del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
   detrás.
 - **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
@@ -120,7 +120,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
 - Tabla de invitaciones con policies idempotentes y `with check`.
 - ~~Bucket privado `documents`~~: **borrado el 27-08-2026**, con sus cuatro policies y
-  las diez comprobaciones que tenía en el arnés de RLS. Nido ya no guarda archivos. La
+  las diez comprobaciones que tenía en el arnés de RLS. Farpi ya no guarda archivos. La
   sección 5 de `supabase/schema.sql` se queda vacía y con nombre, para que el hueco se
   lea como una decisión y no como un descuido.
 - Tabla `storage_connections` (27-08-2026): los permisos de Google Drive de cada persona,
@@ -154,7 +154,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   —normal— de "no contesta". Con Supabase caído: las páginas públicas se sirven igual, las
   rutas API dan 503 con JSON y el resto enseña `/no-disponible`, un 503 por `rewrite` que
   no cambia la URL, así que recargar reintenta donde estabas. No se manda al login a
-  propósito. Antes, una caída dejaba el logo de "Cargando Nido" para siempre.
+  propósito. Antes, una caída dejaba el logo de "Cargando Farpi" para siempre.
 - **`/api/salud`** (28-08-2026), para que un vigía externo se entere antes que la
   familia. Mide las dos mitades de Supabase por separado —`/auth/v1/health` y una
   consulta anónima que la RLS deja siempre en cero filas— y contesta **200 si las dos

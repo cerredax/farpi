@@ -22,7 +22,7 @@ export function recortaGuiones(value: string): string {
  * el resto por guiones y cae en 'documento' si no queda nada—.
  *
  * Se usa en las dos puntas del viaje de un documento: al subirlo a Drive y al
- * servirlo desde Nido, donde va en la cabecera `Content-Disposition`, que no
+ * servirlo desde Farpi, donde va en la cabecera `Content-Disposition`, que no
  * admite acentos ni comillas sin codificar.
  */
 export function safeFileName(name: string): string {

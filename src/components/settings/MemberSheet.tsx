@@ -187,7 +187,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
 
             {/* Quitar a alguien de la familia tiene una consecuencia que no se ve
                 desde aquí: los documentos que subió están en **su** Google Drive,
-                y Nido los sirve con un permiso que le pide prestado. Si sale, ese
+                y Farpi los sirve con un permiso que le pide prestado. Si sale, ese
                 permiso deja de valer y los papeles dejan de abrirse aunque su
                 ficha siga en la lista. Se avisa antes y no después, porque después
                 no tiene arreglo desde la app. */}
@@ -197,7 +197,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
                   {documentosSubidos === 1
                     ? 'Hay 1 documento guardado en el Google Drive de esta persona.'
                     : `Hay ${documentosSubidos} documentos guardados en el Google Drive de esta persona.`}{' '}
-                  Si la quitas de la familia, dejarán de poder abrirse en Nido.
+                  Si la quitas de la familia, dejarán de poder abrirse en Farpi.
                 </p>
               </div>
             )}

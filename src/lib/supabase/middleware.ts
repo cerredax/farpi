@@ -8,7 +8,7 @@ import { IS_DEMO_MODE, SUPABASE_URL, SUPABASE_ANON_KEY } from './env'
  *
  * El 28-08-2026 una incidencia suya dejó `getUser()` sin volver y con él toda
  * ruta con sesión: el proxy tardaba entre 150 y 224 segundos, contra 3 ms sin
- * sesión, y quien entraba veía el logo de "Cargando Nido" para siempre. Nadie
+ * sesión, y quien entraba veía el logo de "Cargando Farpi" para siempre. Nadie
  * se enteró hasta que una persona se quejó. Una espera sin final es peor que un
  * error.
  *
@@ -36,12 +36,12 @@ async function leerSesion(supabase: SupabaseClient): Promise<Sesion> {
     if (resultado === 'agotado') {
       // Va al log del servidor, que es donde se mira cuando algo se cae: en los
       // Runtime Logs de Vercel estaba el dato que resolvió aquella mañana.
-      console.error(`[nido] Supabase no contestó en ${LIMITE_AUTH_MS} ms`)
+      console.error(`[farpi] Supabase no contestó en ${LIMITE_AUTH_MS} ms`)
       return { estado: 'caido' }
     }
     return { estado: 'ok', user: resultado.data.user }
   } catch (err) {
-    console.error('[nido] Supabase falló al comprobar la sesión', err)
+    console.error('[farpi] Supabase falló al comprobar la sesión', err)
     return { estado: 'caido' }
   } finally {
     clearTimeout(temporizador)

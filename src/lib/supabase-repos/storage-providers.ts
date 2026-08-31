@@ -1,4 +1,4 @@
-import { pedirApi } from './api-nido'
+import { pedirApi } from './api-farpi'
 import type { StorageProvidersRepo } from '../repos/types'
 import type { StorageConnection } from '@/types'
 
@@ -8,7 +8,7 @@ import type { StorageConnection } from '@/types'
  * Todo pasa por rutas API y ninguna consulta toca la tabla: `storage_connections`
  * tiene RLS activada **sin ninguna policy**, así que desde el navegador no se ve
  * ni la fila propia. Es a propósito — lo que hay dentro son tokens, y la CSP de
- * Nido lleva `'unsafe-inline'` en los scripts, así que no para un XSS en línea.
+ * Farpi lleva `'unsafe-inline'` en los scripts, así que no para un XSS en línea.
  * Lo que sale de aquí es si hay conexión y con qué correo.
  */
 export const storageProvidersRepo: StorageProvidersRepo = {

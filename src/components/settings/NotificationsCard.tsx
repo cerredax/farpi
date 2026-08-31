@@ -59,7 +59,7 @@ export function NotificationsCard() {
       {!supported ? (
         pendienteInstalar ? (
           <p className="text-xs text-muted">
-            Para recibir avisos en el iPhone, añade Nido a la pantalla de inicio:
+            Para recibir avisos en el iPhone, añade Farpi a la pantalla de inicio:
             toca <span className="font-semibold text-ink">Compartir</span> y luego{' '}
             <span className="font-semibold text-ink">Añadir a pantalla de inicio</span>.
             Abre la app desde ahí y vuelve a estos ajustes.

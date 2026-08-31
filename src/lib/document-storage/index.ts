@@ -20,7 +20,7 @@ const PROVEEDORES: Record<StorageProviderId, DocumentStorageProvider> = {
 export function getProvider(id: string): DocumentStorageProvider {
   const proveedor = PROVEEDORES[id as StorageProviderId]
   if (!proveedor) {
-    throw new ErrorAlmacen('desconocido', `Este documento está guardado en "${id}", que esta versión de Nido no sabe leer`)
+    throw new ErrorAlmacen('desconocido', `Este documento está guardado en "${id}", que esta versión de Farpi no sabe leer`)
   }
   return proveedor
 }

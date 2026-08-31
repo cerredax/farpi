@@ -43,7 +43,7 @@ export async function GET() {
  * Desconectar.
  *
  * **No borra ningún archivo del Drive de nadie**: son suyos y están en su disco.
- * Lo que se pierde es la posibilidad de que Nido los sirva al resto de la
+ * Lo que se pierde es la posibilidad de que Farpi los sirva al resto de la
  * familia, y esos documentos pasan a mostrar el aviso de "hay que volver a
  * conectar" hasta que se conecte otra vez. Las fichas se quedan donde están.
  */
@@ -55,7 +55,7 @@ export async function DELETE() {
 
   try {
     const conexion = await leerConexion(user.id)
-    // También del lado de Google: desconectar en Nido y que el permiso siga vivo
+    // También del lado de Google: desconectar en Farpi y que el permiso siga vivo
     // en la cuenta de Google sería mentir a medias.
     if (conexion) await revocarEnGoogle(conexion.refreshToken)
     await borrarConexion(user.id)

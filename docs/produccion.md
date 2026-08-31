@@ -1,8 +1,34 @@
 # Puesta en producción
 
-Estado y pasos para llevar Nido a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
+Estado y pasos para llevar Farpi a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-08-27.
+> Última actualización: 2026-08-31.
+
+## 0. Lo que todavía se llama Nido
+
+La app pasó a llamarse **Farpi** el 31-08-2026. El código y los papeles ya lo dicen;
+esto no, porque no es código y cada línea tiene su propio riesgo:
+
+- [ ] **Dominio** `nido-xi.vercel.app`. Es el que más ata: de él cuelgan
+      `NEXT_PUBLIC_SITE_URL`, el *Site URL* y los *Redirect URLs* de Supabase, y
+      `GOOGLE_REDIRECT_URI`. Se cambian **los cuatro a la vez** o dejan de funcionar los
+      magic links y la conexión con Drive.
+- [ ] **Proyecto de Vercel** (`nido`) y **repositorio de GitHub** (`cerredax/nido`).
+      Renombrar el repositorio deja redirección automática, así que es de lo más barato.
+- [ ] **Pantalla de consentimiento de Google**: hoy dice «Nido quiere acceder a tu
+      Drive». Está *In production*; cambiarle el nombre puede disparar una revisión, así
+      que conviene mirarlo antes de tocar. Mientras tanto no se cae nada.
+- [ ] **Plantillas de correo del panel de Supabase**: las de
+      `supabase/email-templates/` ya dicen Farpi, pero se aplican **a mano**. Hasta que
+      se peguen, los correos que salen siguen diciendo Nido.
+- [ ] **Carpeta de Google Drive**: la app crea «Farpi», pero la que ya existe en el
+      Drive de cada quien haya subido un documento se llama «Nido». Renombrarla a mano
+      mantiene los papeles juntos; si no, quien reconecte tendrá dos carpetas.
+- [ ] **Play Store**: el *package name* es irreversible. Todavía no se ha publicado, que
+      es justo por lo que este era el momento de cambiar el nombre.
+
+La etiqueta `appProperties.nido_family` de los archivos ya subidos **no se toca**: va
+dentro de cada archivo en el Drive de su dueño. `listar` pregunta por las dos.
 
 ---
 
@@ -28,7 +54,7 @@ Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap:
 
 ### 2.1 Variables de entorno en Vercel
 
-En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca *Production* y *Preview*):
+En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca *Production* y *Preview*):
 
 - [x] `NEXT_PUBLIC_SUPABASE_URL` — URL del proyecto Supabase.
 - [x] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — clave pública (formato nuevo `sb_publishable_…`).
@@ -58,7 +84,7 @@ En **Vercel → proyecto `nido` → Settings → Environment Variables** (marca 
       el 27-08-2026 y **validadas** ese mismo día: **80/80**, con once comprobaciones
       propias (§4). `storage_connections` no se puede leer por PostgREST con ninguna
       sesión de usuario, ni siquiera la de su dueño.
-- [x] ~~Bucket `documents`~~ **borrado el 27-08-2026**, con sus policies. Nido ya no
+- [x] ~~Bucket `documents`~~ **borrado el 27-08-2026**, con sus policies. Farpi ya no
       guarda archivos: viven en el Google Drive de quien los sube.
 - [x] RLS activo en todas las tablas privadas. `storage_connections` la lleva activada
       y **sin ninguna policy**, que es lo que la deja solo para el service role.

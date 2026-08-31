@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { LegalShell, LegalSection } from '@/components/legal/LegalShell'
 
 export const metadata: Metadata = {
-  title: 'Términos de servicio — Nido',
+  title: 'Términos de servicio — Farpi',
 }
 
 const CONTACT = 'cerredax@gmail.com'
@@ -11,12 +11,12 @@ export default function TerminosPage() {
   return (
     <LegalShell title="Términos de servicio" updated="27 de agosto de 2026">
       <p>
-        Estos términos regulan el uso de Nido. Al crear una cuenta o usar la aplicación, aceptas lo siguiente.
+        Estos términos regulan el uso de Farpi. Al crear una cuenta o usar la aplicación, aceptas lo siguiente.
       </p>
 
-      <LegalSection heading="Qué es Nido">
+      <LegalSection heading="Qué es Farpi">
         <p>
-          Nido es una aplicación privada para organizar el día a día de una familia (calendario, tareas, listas,
+          Farpi es una aplicación privada para organizar el día a día de una familia (calendario, tareas, listas,
           comidas y documentos). Está pensada para uso personal y familiar.
         </p>
       </LegalSection>
@@ -24,14 +24,14 @@ export default function TerminosPage() {
       <LegalSection heading="Tu cuenta">
         <p>
           Eres responsable de mantener la confidencialidad de tus credenciales y de la actividad de tu cuenta.
-          Debes facilitar información veraz al registrarte. Nido está pensado para que lo usen adultos; los datos
+          Debes facilitar información veraz al registrarte. Farpi está pensado para que lo usen adultos; los datos
           de menores se gestionan por los adultos de su familia.
         </p>
       </LegalSection>
 
       <LegalSection heading="Uso aceptable">
         <p>
-          Te comprometes a no usar Nido para fines ilícitos, a no subir contenido que infrinja derechos de
+          Te comprometes a no usar Farpi para fines ilícitos, a no subir contenido que infrinja derechos de
           terceros, a no introducir datos personales de terceros sin autorización suficiente y a no intentar dañar
           o acceder indebidamente al servicio o a los datos de otras familias.
         </p>
@@ -46,16 +46,16 @@ export default function TerminosPage() {
         </p>
       </LegalSection>
 
-      <LegalSection heading="Los archivos no los guarda Nido">
+      <LegalSection heading="Los archivos no los guarda Farpi">
         <p>
-          De cada documento, Nido guarda su ficha (nombre, categoría, caducidad); el archivo se guarda en el{' '}
+          De cada documento, Farpi guarda su ficha (nombre, categoría, caducidad); el archivo se guarda en el{' '}
           <strong>Google Drive de quien lo sube</strong>, en su propia cuenta. Para subir hace falta conectar
           Drive; para mirar, no: la familia los abre desde la app como cualquier otra cosa.
         </p>
         <p>
           Eso tiene dos consecuencias que conviene tener claras. Si desconectas tu Drive, tu familia deja de
           poder abrir los documentos que subiste tú, aunque las fichas sigan ahí. Y si se borra un documento
-          cuando no podemos tocar ese Drive, la ficha desaparece de Nido pero el archivo se queda en la cuenta
+          cuando no podemos tocar ese Drive, la ficha desaparece de Farpi pero el archivo se queda en la cuenta
           de su dueño. Los archivos son suyos y están sujetos también a las condiciones de Google Drive.
         </p>
       </LegalSection>
@@ -63,7 +63,7 @@ export default function TerminosPage() {
       <LegalSection heading="Menores y documentos familiares">
         <p>
           Si añades información de hijos, adultos sin cuenta u otros familiares, confirmas que tienes autorización
-          suficiente para hacerlo y para compartirla con los adultos de la familia dentro de Nido. No subas
+          suficiente para hacerlo y para compartirla con los adultos de la familia dentro de Farpi. No subas
           documentos o datos delicados de personas ajenas a tu familia sin permiso.
         </p>
       </LegalSection>
@@ -86,28 +86,28 @@ export default function TerminosPage() {
 
       <LegalSection heading="Precio">
         <p>
-          Nido es gratuito. Si en el futuro se ofrecen funciones de pago, se informará claramente antes de
+          Farpi es gratuito. Si en el futuro se ofrecen funciones de pago, se informará claramente antes de
           contratarlas.
         </p>
       </LegalSection>
 
       <LegalSection heading="Limitación de responsabilidad">
         <p>
-          En la medida permitida por la ley, Nido no será responsable de daños indirectos o de la pérdida de datos.
+          En la medida permitida por la ley, Farpi no será responsable de daños indirectos o de la pérdida de datos.
           Te recomendamos conservar copias de la información importante.
         </p>
       </LegalSection>
 
       <LegalSection heading="Baja">
         <p>
-          Puedes dejar de usar Nido y eliminar tu cuenta en cualquier momento. También podemos suspender cuentas
+          Puedes dejar de usar Farpi y eliminar tu cuenta en cualquier momento. También podemos suspender cuentas
           que incumplan estos términos.
         </p>
       </LegalSection>
 
       <LegalSection heading="Ley aplicable">
         <p>
-          Nido lo gestiona Omar García Carballo, como proyecto personal y familiar. Estos términos se
+          Farpi lo gestiona Omar García Carballo, como proyecto personal y familiar. Estos términos se
           rigen por la legislación española. Para cualquier cuestión, escribe a{' '}
           <a href={`mailto:${CONTACT}`} className="font-semibold text-primary-strong">{CONTACT}</a>.
         </p>

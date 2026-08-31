@@ -12,7 +12,7 @@ import { MAX_DOC_SIZE, VALID_MIME_TYPES } from '@/lib/constants'
 import type { DocMimeType } from '@/types'
 
 /**
- * Abrir una subida: Nido pide hueco en el Drive de quien sube y le devuelve la
+ * Abrir una subida: Farpi pide hueco en el Drive de quien sube y le devuelve la
  * dirección a la que mandar los bytes.
  *
  * **El archivo no pasa por aquí, y es a propósito.** Una función de Vercel corta

@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import { IS_DEMO_MODE, SUPABASE_URL } from "./src/lib/supabase/env";
 
 /**
- * Cabeceras de seguridad. No había ninguna, y Nido guarda documentos de la
+ * Cabeceras de seguridad. No había ninguna, y Farpi guarda documentos de la
  * familia: DNI, informes médicos, el libro de familia.
  */
 
@@ -12,7 +12,7 @@ import { IS_DEMO_MODE, SUPABASE_URL } from "./src/lib/supabase/env";
  * Los documentos se guardan en el Google Drive de quien los sube, y **la subida
  * va del navegador a Google directamente**, sin pasar por el servidor: una
  * función de Vercel corta el cuerpo de la petición muy por debajo de los 20 MB
- * que admite un documento. Leerlos sí pasa por Nido —ahí el token es prestado— y
+ * que admite un documento. Leerlos sí pasa por Farpi —ahí el token es prestado— y
  * por eso no hace falta abrir nada más.
  *
  * Es el host de la API, no un comodín `*.google.com`: lo que se autoriza es
@@ -93,7 +93,7 @@ function buildCsp(): string {
 
 const SECURITY_HEADERS = [
   { key: 'Content-Security-Policy', value: buildCsp() },
-  // Nadie mete Nido en un iframe: sin esto, una web ajena puede superponerse a
+  // Nadie mete Farpi en un iframe: sin esto, una web ajena puede superponerse a
   // los botones y conseguir que un toque borre algo (clickjacking). Se queda
   // junto a `frame-ancestors` porque los navegadores viejos solo entienden esta.
   { key: 'X-Frame-Options', value: 'DENY' },

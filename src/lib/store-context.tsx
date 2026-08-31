@@ -523,7 +523,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   ])
 
   if (isLoading && !value) {
-    return <ShellState title="Cargando Nido" description="Preparando los datos de la familia..." />
+    return <ShellState title="Cargando Farpi" description="Preparando los datos de la familia..." />
   }
 
   if (!value) {

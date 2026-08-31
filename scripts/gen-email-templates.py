@@ -20,7 +20,7 @@ def esqueleto(preview, titulo, cuerpo, accion, nota):
                 <td width="56" height="56" align="center" valign="middle" bgcolor="#3D5C3A" style="width:56px;height:56px;border-radius:16px;font-family:{FUENTE};font-size:26px;font-weight:bold;color:#FFFFFF;line-height:56px;">N</td>
               </tr>
             </table>
-            <div style="font-family:{FUENTE};font-size:20px;font-weight:bold;color:#252525;padding-top:12px;letter-spacing:-0.2px;">Nido</div>
+            <div style="font-family:{FUENTE};font-size:20px;font-weight:bold;color:#252525;padding-top:12px;letter-spacing:-0.2px;">Farpi</div>
             <div style="font-family:{FUENTE};font-size:11px;font-weight:bold;color:#77716A;padding-top:4px;letter-spacing:2px;text-transform:uppercase;">Familia en calma</div>
           </td>
         </tr>
@@ -48,7 +48,7 @@ def esqueleto(preview, titulo, cuerpo, accion, nota):
         </tr>
         <tr>
           <td align="center" style="font-family:{FUENTE};font-size:12px;line-height:20px;color:#A39B93;padding:28px 16px 8px 16px;">
-            Nido es un espacio privado para tu familia.<br>Solo vosotros veis vuestros datos.
+            Farpi es un espacio privado para tu familia.<br>Solo vosotros veis vuestros datos.
           </td>
         </tr>
       </table>
@@ -94,46 +94,46 @@ def codigo():
 
 PLANTILLAS = {
     'confirmacion.html': dict(
-        preview='Confirma tu correo y entra en Nido, el espacio privado de tu familia.',
+        preview='Confirma tu correo y entra en Farpi, el espacio privado de tu familia.',
         titulo='Confirma tu correo',
         cuerpo='Ya casi está. Pulsa el botón para confirmar esta dirección y terminar de crear tu cuenta.',
         accion=boton('Confirmar mi correo'),
         nota='El enlace caduca en unas horas y solo puede usarse una vez. Si tú no has creado ninguna cuenta, puedes ignorar este mensaje sin hacer nada.',
     ),
     'invitacion.html': dict(
-        preview='Te han invitado a la familia en Nido.',
-        titulo='Te han invitado a Nido',
+        preview='Te han invitado a la familia en Farpi.',
+        titulo='Te han invitado a Farpi',
         cuerpo='Alguien de tu familia quiere compartir contigo su calendario, sus listas, las comidas y los documentos de casa. Pulsa el botón para entrar y unirte.',
         accion=boton('Unirme a la familia'),
         nota='El enlace caduca y solo puede usarse una vez. Si no esperabas esta invitación, puedes ignorar este mensaje sin hacer nada.',
     ),
     'magic-link.html': dict(
-        preview='Tu enlace para entrar en Nido.',
+        preview='Tu enlace para entrar en Farpi.',
         titulo='Tu enlace para entrar',
-        cuerpo='Pulsa el botón y entrarás en Nido sin necesidad de escribir la contraseña.',
-        accion=boton('Entrar en Nido'),
+        cuerpo='Pulsa el botón y entrarás en Farpi sin necesidad de escribir la contraseña.',
+        accion=boton('Entrar en Farpi'),
         nota='El enlace caduca en unos minutos y solo puede usarse una vez. Si no has pedido entrar, puedes ignorar este mensaje sin hacer nada.',
     ),
     'cambio-email.html': dict(
-        preview='Confirma tu nueva dirección de correo en Nido.',
+        preview='Confirma tu nueva dirección de correo en Farpi.',
         titulo='Confirma tu nueva dirección',
         cuerpo='Has pedido cambiar el correo de tu cuenta de <strong style="color:#252525;">{{ .Email }}</strong> a <strong style="color:#252525;">{{ .NewEmail }}</strong>. Confírmalo para que el cambio surta efecto.',
         accion=boton('Confirmar el cambio'),
         nota='Hasta que confirmes, tu cuenta seguirá usando la dirección anterior. Si no has pedido este cambio, ignora este mensaje y avisa al resto de la familia.',
     ),
     'recuperar-password.html': dict(
-        preview='Restablece la contraseña de tu cuenta de Nido.',
+        preview='Restablece la contraseña de tu cuenta de Farpi.',
         titulo='Restablece tu contraseña',
         cuerpo='Pulsa el botón para elegir una contraseña nueva. Si entraste por invitación y aún no tienes ninguna, este es también el sitio para ponerte la primera.',
         accion=boton('Elegir contraseña nueva'),
         nota='El enlace caduca en una hora y solo puede usarse una vez. Si no has pedido cambiarla, ignora este mensaje: tu contraseña actual seguirá funcionando.',
     ),
     'reautenticacion.html': dict(
-        preview='Tu código de confirmación de Nido.',
+        preview='Tu código de confirmación de Farpi.',
         titulo='Confirma que eres tú',
         cuerpo='Para completar la operación, escribe este código en la aplicación:',
         accion=codigo(),
-        nota='El código caduca en unos minutos. Si no estabas haciendo nada en Nido, ignora este mensaje y cambia tu contraseña por precaución.',
+        nota='El código caduca en unos minutos. Si no estabas haciendo nada en Farpi, ignora este mensaje y cambia tu contraseña por precaución.',
     ),
 }
 

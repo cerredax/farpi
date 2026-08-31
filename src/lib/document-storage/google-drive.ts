@@ -18,16 +18,27 @@ import { causaDeErrorGoogle } from './oauth'
  *
  * Con el scope `drive.file` este código **solo ve los archivos que ha creado él
  * mismo**. Eso tiene una consecuencia que conviene tener presente al leer los
- * `q=` de abajo: buscar "la carpeta Nido" no puede devolver la carpeta Nido de
+ * `q=` de abajo: buscar "la carpeta Farpi" no puede devolver la carpeta Farpi de
  * otra cosa, porque el resto del Drive de esa persona no existe para nosotros.
  */
 
 const API = 'https://www.googleapis.com/drive/v3'
 const API_SUBIDA = 'https://www.googleapis.com/upload/drive/v3'
 const MIME_CARPETA = 'application/vnd.google-apps.folder'
-const NOMBRE_CARPETA = 'Nido'
+const NOMBRE_CARPETA = 'Farpi'
 /** La etiqueta con la que se reconocen nuestros archivos dentro de un Drive. */
-const CLAVE_FAMILIA = 'nido_family'
+const CLAVE_FAMILIA = 'farpi_family'
+/**
+ * Y como se etiquetaron los que se subieron cuando la app era Nido (31-08-2026).
+ *
+ * Esta es la única marca del rebranding que **no se puede reescribir**: va dentro
+ * de cada archivo, en el Drive de su dueño, y cambiarla exigiría recorrer uno a
+ * uno los papeles de todas las familias. Así que se queda, y `listar` pregunta
+ * por las dos. Abrir un documento nunca dependió de ella —eso va por el id del
+ * archivo—, pero `listar` sí, y con una sola clave dejaría de ver todo lo de
+ * antes del cambio de nombre.
+ */
+const CLAVE_FAMILIA_NIDO = 'nido_family'
 
 async function pedir(ctx: ContextoAlmacen, url: string, init: RequestInit = {}): Promise<Response> {
   const res = await fetch(url, {
@@ -45,11 +56,11 @@ async function pedir(ctx: ContextoAlmacen, url: string, init: RequestInit = {}):
 }
 
 /**
- * La carpeta "Nido" dentro del Drive de esa persona, creándola si hace falta.
+ * La carpeta "Farpi" dentro del Drive de esa persona, creándola si hace falta.
  *
  * Sin carpeta los archivos caen sueltos en la raíz del Drive, mezclados con lo
  * suyo, y a nadie le gusta que una app le llene el disco de papeles. Si la borra
- * a mano, la siguiente subida la vuelve a crear: no es un dato que Nido necesite
+ * a mano, la siguiente subida la vuelve a crear: no es un dato que Farpi necesite
  * conservar, es una comodidad para el dueño.
  */
 async function asegurarCarpeta(ctx: ContextoAlmacen): Promise<string> {
@@ -66,7 +77,7 @@ async function asegurarCarpeta(ctx: ContextoAlmacen): Promise<string> {
     body: JSON.stringify({ name: NOMBRE_CARPETA, mimeType: MIME_CARPETA }),
   })
   const id = (await creada.json())?.id
-  if (!id) throw new ErrorAlmacen('desconocido', 'No se pudo crear la carpeta Nido en Google Drive')
+  if (!id) throw new ErrorAlmacen('desconocido', 'No se pudo crear la carpeta Farpi en Google Drive')
   return id
 }
 
@@ -142,7 +153,9 @@ export const googleDrive: DocumentStorageProvider = {
   },
 
   async listar(ctx: ContextoAlmacen): Promise<ArchivoGuardado[]> {
-    const q = `appProperties has { key='${CLAVE_FAMILIA}' and value='${ctx.familyId}' } and trashed = false`
+    const deFarpi = `appProperties has { key='${CLAVE_FAMILIA}' and value='${ctx.familyId}' }`
+    const deNido  = `appProperties has { key='${CLAVE_FAMILIA_NIDO}' and value='${ctx.familyId}' }`
+    const q = `(${deFarpi} or ${deNido}) and trashed = false`
     const res = await pedir(
       ctx,
       `${API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType)&pageSize=1000&spaces=drive`,

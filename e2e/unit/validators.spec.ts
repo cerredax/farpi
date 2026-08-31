@@ -169,7 +169,7 @@ test.describe('listas', () => {
 })
 
 // El `?next=` de la URL lo escribe quien manda el enlace del correo, no la app.
-// Sin filtrarlo, un enlace legítimo de Nido acababa en otra web justo después
+// Sin filtrarlo, un enlace legítimo de Farpi acababa en otra web justo después
 // de iniciar sesión, que es el momento en el que uno se cree lo que ve.
 test.describe('safeNextPath', () => {
   test('deja pasar una ruta de la propia app', () => {

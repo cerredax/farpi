@@ -43,7 +43,7 @@ export function InstallPWA() {
       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-hover"
     >
       <Download size={16} strokeWidth={2.4} />
-      Instalar Nido en el dispositivo
+      Instalar Farpi en el dispositivo
     </button>
   )
 }

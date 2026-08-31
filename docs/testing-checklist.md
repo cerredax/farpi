@@ -230,7 +230,7 @@ verdad, que es que el otro vea el documento sin conectar nada.
       parar: el scope está mal.
 - [ ] Al volver, `/docs` dice que se conectó y el sheet ya deja elegir archivo.
 - [ ] Subir un PDF pequeño: aparece en la lista y en el Drive del que sube, dentro
-      de una carpeta llamada **Nido**.
+      de una carpeta llamada **Farpi**.
 - [ ] **Subir uno grande, de 10-15 MB.** Es la comprobación que justifica que la
       subida vaya directa del navegador a Google: por el servidor no cabría.
 - [ ] Abrirlo desde **la otra cuenta** de la familia, que no tiene Drive conectado:
@@ -259,7 +259,7 @@ verdad, que es que el otro vea el documento sin conectar nada.
 - [ ] Una nota sin contenido vale; una sin título, no (el botón se queda apagado).
 - [ ] El buscador encuentra por título y por cuerpo, sin tildes y sin mayúsculas.
 - [ ] Marcar «Arriba del todo» la sube; desmarcarla la devuelve a su sitio por fecha.
-- [ ] El sheet avisa de que Nido no es un gestor de contraseñas, bajo el contenido.
+- [ ] El sheet avisa de que Farpi no es un gestor de contraseñas, bajo el contenido.
 - [ ] Una nota muy larga se corta a seis líneas en la tarjeta y se lee entera al abrirla.
 - [ ] En escritorio las tarjetas van en rejilla (dos desde `lg`, tres desde `xl`) y una
       nota corta no se estira hasta el alto de la más larga de su fila.
@@ -321,7 +321,7 @@ cada uno hace a su manera:
       familia y la fecha de hoy.
 - [ ] El recuento que sale bajo el botón cuadra con lo que hay en la app.
 - [ ] El archivo lleva `notes` entre las tablas, y el recuento nombra las notas.
-- [ ] **En el iPhone, con Nido instalado como PWA.** Es el caso que más falla: las
+- [ ] **En el iPhone, con Farpi instalado como PWA.** Es el caso que más falla: las
       descargas de blob dentro de una app instalada no se comportan como en Safari.
 - [ ] Abrir el archivo y comprobar que **no** aparece `refresh_token`,
       `access_token` ni `storage_connections`.
@@ -394,7 +394,7 @@ cada uno hace a su manera:
       últimos exigen día completo y fecha final.
 - [ ] `list_items.quantity` solo acepta de 1 a 99.
 - [x] ~~Bucket `documents`~~: **borrado el 27-08-2026**. No hay Storage que comprobar;
-      los archivos viven en el Google Drive de quien los sube y los sirve Nido por
+      los archivos viven en el Google Drive de quien los sube y los sirve Farpi por
       `/api/documents/[id]/file`. Lo que lo cubre ahora son las dos comprobaciones de
       aquí abajo.
 - [ ] **`storage_connections`: nadie la lee por PostgREST, ni su propia fila.** Es la

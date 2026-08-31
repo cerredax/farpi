@@ -27,7 +27,7 @@ export function SideNav() {
       className="hidden lg:z-50 lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:flex-col lg:border-r lg:border-line lg:bg-white"
     >
       <div className="flex h-14 flex-shrink-0 items-center px-5">
-        <span className="text-lg font-extrabold tracking-tight text-primary">Nido</span>
+        <span className="text-lg font-extrabold tracking-tight text-primary">Farpi</span>
       </div>
 
       <ul className="flex-1 space-y-1 px-3 py-2">

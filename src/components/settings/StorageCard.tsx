@@ -59,7 +59,7 @@ export function StorageCard() {
           <div className="min-w-0">
             <p className="text-sm font-black text-ink">Google Drive</p>
             <p className="mt-1 text-xs leading-relaxed text-muted">
-              Los documentos que subas se guardan en tu propio Drive, no en Nido. La familia los
+              Los documentos que subas se guardan en tu propio Drive, no en Farpi. La familia los
               ve igual sin conectar nada: conectar hace falta para subir, no para mirar.
             </p>
           </div>
@@ -115,9 +115,9 @@ export function StorageCard() {
             {confirming ? 'Confirmar: los demás dejarán de ver tus documentos' : 'Desconectar Google Drive'}
           </button>
           {/* Desconectar no borra nada de nadie, y hay que decirlo: lo que se
-              pierde no es el archivo, es que Nido pueda enseñárselo a la familia. */}
+              pierde no es el archivo, es que Farpi pueda enseñárselo a la familia. */}
           <p className="text-[10px] leading-relaxed text-faint">
-            No se borra ningún archivo de tu Drive. Los documentos que subiste dejarán de poder abrirse en Nido
+            No se borra ningún archivo de tu Drive. Los documentos que subiste dejarán de poder abrirse en Farpi
             hasta que vuelvas a conectarlo.
           </p>
         </>

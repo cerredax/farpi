@@ -487,12 +487,12 @@ test('la copia de seguridad se descarga y lleva los datos de la familia', async 
   const archivo = await descarga
 
   // El nombre lleva la familia y la fecha local.
-  expect(archivo.suggestedFilename()).toMatch(/^nido-.+-\d{4}-\d{2}-\d{2}\.json$/)
+  expect(archivo.suggestedFilename()).toMatch(/^farpi-.+-\d{4}-\d{2}-\d{2}\.json$/)
 
   const ruta = await archivo.path()
   const contenido = JSON.parse(readFileSync(ruta, 'utf8'))
 
-  expect(contenido.nido_export).toBe(1)
+  expect(contenido.farpi_export).toBe(1)
   expect(contenido.familia.nombre).toBeTruthy()
   // Los datos demo tienen documentos, eventos y personas: si alguno viene vacío,
   // es que el store no llegó a la exportación.

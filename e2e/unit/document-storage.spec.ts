@@ -61,7 +61,7 @@ test.describe('caducidad del token de acceso', () => {
 test.describe('url de consentimiento', () => {
   const url = new URL(construirUrlConsentimiento({
     clientId: 'cliente-123',
-    redirectUri: 'https://nido.example/api/documents/providers/google/callback',
+    redirectUri: 'https://farpi.example/api/documents/providers/google/callback',
     state: 'estado-aleatorio',
   }))
 

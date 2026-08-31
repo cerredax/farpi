@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --nido-cream:     #FAF7F2;
-  --nido-white:     #FFFFFF;
-  --nido-charcoal:  #252525;
-  --nido-gray:      #77716A;
-  --nido-sage:      #8BA888;
-  --nido-terracota: #D8A48F;
-  --nido-sand:      #E9C46A;
-  --nido-red:       #D96C6C;
+  --farpi-cream:     #FAF7F2;
+  --farpi-white:     #FFFFFF;
+  --farpi-charcoal:  #252525;
+  --farpi-gray:      #77716A;
+  --farpi-sage:      #8BA888;
+  --farpi-terracota: #D8A48F;
+  --farpi-sand:      #E9C46A;
+  --farpi-red:       #D96C6C;
 }
 
 @theme inline {
-  --color-background: var(--nido-cream);
-  --color-foreground: var(--nido-charcoal);
+  --color-background: var(--farpi-cream);
+  --color-foreground: var(--farpi-charcoal);
   --font-sans: var(--font-nunito), system-ui, sans-serif;
 
-  --color-nido-cream:     var(--nido-cream);
-  --color-nido-white:     var(--nido-white);
-  --color-nido-charcoal:  var(--nido-charcoal);
-  --color-nido-gray:      var(--nido-gray);
-  --color-nido-sage:      var(--nido-sage);
-  --color-nido-terracota: var(--nido-terracota);
-  --color-nido-sand:      var(--nido-sand);
-  --color-nido-red:       var(--nido-red);
+  --color-farpi-cream:     var(--farpi-cream);
+  --color-farpi-white:     var(--farpi-white);
+  --color-farpi-charcoal:  var(--farpi-charcoal);
+  --color-farpi-gray:      var(--farpi-gray);
+  --color-farpi-sage:      var(--farpi-sage);
+  --color-farpi-terracota: var(--farpi-terracota);
+  --color-farpi-sand:      var(--farpi-sand);
+  --color-farpi-red:       var(--farpi-red);
 }
 
 /* ── Tokens semánticos de la paleta ─────────────────────────────
@@ -162,14 +162,14 @@
 
 html {
   font-family: var(--font-nunito), system-ui, sans-serif;
-  background-color: var(--nido-cream);
-  color: var(--nido-charcoal);
+  background-color: var(--farpi-cream);
+  color: var(--farpi-charcoal);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background-color: var(--nido-cream);
-  color: var(--nido-charcoal);
+  background-color: var(--farpi-cream);
+  color: var(--farpi-charcoal);
   min-height: 100dvh;
 }
 

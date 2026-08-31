@@ -115,7 +115,7 @@ export interface DocumentsRepo {
   /**
    * A dónde ir para ver el archivo. Ya no es una URL firmada del proveedor sino
    * una ruta de la propia app (`/api/documents/{id}/file`): los archivos viven en
-   * el Drive de quien los sube y los sirve Nido, no Google. Comprueba antes que
+   * el Drive de quien los sube y los sirve Farpi, no Google. Comprueba antes que
    * el archivo siga estando, para poder fallar con un mensaje y no con una
    * pestaña en blanco.
    */

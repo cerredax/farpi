@@ -51,7 +51,7 @@ test.describe('contenido de la copia', () => {
 
   test('la familia va identificada y con su versión de formato', () => {
     const e = construirExportacion(datos())
-    expect(e.nido_export).toBe(VERSION_EXPORT)
+    expect(e.farpi_export).toBe(VERSION_EXPORT)
     expect(e.familia).toEqual({ id: 'f1', nombre: 'García Farpón' })
     expect(e.datos.families).toEqual([FAMILIA])
   })
@@ -83,7 +83,7 @@ test.describe('nombre del archivo', () => {
   const ahora = new Date(2026, 7, 27, 10, 0)
 
   test('lleva el nombre de la familia sin tildes ni espacios, y la fecha', () => {
-    expect(nombreDeArchivo('García Farpón', ahora)).toBe('nido-garcia-farpon-2026-08-27.json')
+    expect(nombreDeArchivo('García Farpón', ahora)).toBe('farpi-garcia-farpon-2026-08-27.json')
   })
 
   // La regla de la casa: fecha local, no `toISOString`. A las 00:30 de un martes,
@@ -93,8 +93,8 @@ test.describe('nombre del archivo', () => {
   })
 
   test('una familia sin nombre no deja el archivo sin nombre', () => {
-    expect(nombreDeArchivo('', ahora)).toBe('nido-familia-2026-08-27.json')
-    expect(nombreDeArchivo('¿?', ahora)).toBe('nido-documento-2026-08-27.json')
+    expect(nombreDeArchivo('', ahora)).toBe('farpi-familia-2026-08-27.json')
+    expect(nombreDeArchivo('¿?', ahora)).toBe('farpi-documento-2026-08-27.json')
   })
 })
 

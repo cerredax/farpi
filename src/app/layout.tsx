@@ -10,7 +10,7 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: 'Nido',
+  title: 'Farpi',
   description: 'Tu espacio familiar privado',
   manifest: '/manifest.json',
   icons: {

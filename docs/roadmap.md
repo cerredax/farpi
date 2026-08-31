@@ -1,6 +1,6 @@
 # Roadmap
 
-Este roadmap prioriza estabilidad y simplicidad. No busca convertir Nido en SaaS.
+Este roadmap prioriza estabilidad y simplicidad. No busca convertir Farpi en SaaS.
 
 ## Fase 1 - Cierre pre-Supabase ✅
 
@@ -111,7 +111,7 @@ Objetivo: conectar Supabase Storage.
 
 ## Fase 6b - Los archivos, al Drive de quien los sube (27-08-2026)
 
-Objetivo: que Nido deje de guardar archivos. La ficha se queda en la base; el papel
+Objetivo: que Farpi deje de guardar archivos. La ficha se queda en la base; el papel
 vive en el Google Drive de quien lo sube, y la familia lo ve igual **sin conectar
 nada ni saber que hay un Drive detrás**.
 
@@ -119,7 +119,7 @@ nada ni saber que hay un Drive detrás**.
   Google Drive como primera y única implementación. Dropbox ("App folder") y OneDrive
   (Microsoft Graph) caben sin rediseñar: una clase y un valor más en el `check`.
 - ✅ Scope `drive.file` y nada más — no sensible, sin verificación ni CASA.
-- ✅ Modelo proxy para leer: el archivo lo sirve Nido con el token del dueño, con la
+- ✅ Modelo proxy para leer: el archivo lo sirve Farpi con el token del dueño, con la
   RLS de siempre por delante. El proveedor es el disco, no decide permisos.
 - ✅ Subida directa del navegador a Drive por sesión reanudable: por el servidor no
   caben 20 MB.
@@ -273,10 +273,10 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   está resuelto (ver más abajo).
 - [ ] **Enterarse cuando la casa se cae.** El 28-08-2026 Supabase tuvo una caída de
   latencia (incidencia abierta a las 01:38 UTC, "additional latency and error rates")
-  y Nido se quedó **inservible durante horas sin que nada lo dijera**: el middleware
+  y Farpi se quedó **inservible durante horas sin que nada lo dijera**: el middleware
   tardaba entre 150 y 224 segundos en cada ruta con sesión —contra 3 ms sin ella—
   porque `supabase.auth.getUser()` no volvía. Quien entraba veía el logo de "Cargando
-  Nido" para siempre. Nadie se enteró hasta que una persona se quejó, y averiguar la
+  Farpi" para siempre. Nadie se enteró hasta que una persona se quejó, y averiguar la
   causa costó una mañana entera y un despliegue revertido para nada.
 
   Cuatro cosas, de más barata a menos, y las dos primeras valen por sí solas:

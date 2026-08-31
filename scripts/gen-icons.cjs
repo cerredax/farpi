@@ -1,4 +1,4 @@
-// Genera los iconos de Nido.
+// Genera los iconos de Farpi.
 // Uso: node scripts/gen-icons.cjs
 const sharp = require('sharp')
 const path = require('path')

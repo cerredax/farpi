@@ -90,11 +90,11 @@ const REPRESENTACION = { Prefer: 'return=representation' }
 
 async function main() {
   const sufijo = randomUUID().slice(0, 8)
-  const emailA = `rls-a-${sufijo}@nido-test.invalid`
-  const emailB = `rls-b-${sufijo}@nido-test.invalid`
+  const emailA = `rls-a-${sufijo}@farpi-test.invalid`
+  const emailB = `rls-b-${sufijo}@farpi-test.invalid`
   // C nunca entra en ninguna familia: es el "ajeno" permanente. B deja de serlo
   // en la sección 7, cuando acepta la invitación a la familia A.
-  const emailC = `rls-c-${sufijo}@nido-test.invalid`
+  const emailC = `rls-c-${sufijo}@farpi-test.invalid`
   const password = `Prueba-${randomUUID().slice(0, 10)}`
 
   console.log('== preparando usuarios y familias de prueba')
@@ -379,7 +379,7 @@ async function main() {
       access_token: 'v1.cifrado-de-prueba',
       refresh_token: 'v1.cifrado-de-prueba',
       expires_at: '2030-01-01T00:00:00Z',
-      account_email: 'prueba@nido-test.invalid',
+      account_email: 'prueba@farpi-test.invalid',
     },
     cabeceras: REPRESENTACION,
   })

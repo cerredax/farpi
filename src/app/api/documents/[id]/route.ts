@@ -14,7 +14,7 @@ import { contextoDeAlmacen, FALTA_CONFIG_DRIVE, respuestaSinConfigDrive } from '
  * La ficha se borra primero y el archivo después, y si el archivo no se puede
  * borrar —el dueño desconectó su Drive, o ya lo había borrado a mano— el borrado
  * se da por bueno igual. Es deliberado: lo que la familia ha pedido es que ese
- * papel deje de estar en Nido, y eso ya está hecho. Dejar la ficha porque no se
+ * papel deje de estar en Farpi, y eso ya está hecho. Dejar la ficha porque no se
  * pudo tocar un disco ajeno sería castigar a quien borra por algo que no
  * controla; lo que queda es un archivo suelto en el Drive de su dueño, que es
  * suyo y puede borrar cuando quiera.

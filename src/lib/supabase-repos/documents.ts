@@ -1,6 +1,6 @@
 import { createClient } from '../supabase/client'
 import { assertNoError, fail } from './shared'
-import { pedirApi } from './api-nido'
+import { pedirApi } from './api-farpi'
 import type { Document, DocumentDraft } from '@/types'
 import type { DocumentsRepo } from '../repos/types'
 
@@ -12,8 +12,8 @@ import type { DocumentsRepo } from '../repos/types'
  *
  * - **Leer y editar la ficha** siguen yendo directos a Supabase con la RLS de
  *   siempre. No hay archivo de por medio, así que no hay nada que cambiar.
- * - **Subir** son tres pasos: Nido abre hueco en el Drive de quien sube, el
- *   navegador manda los bytes **directamente a Google** y después Nido guarda la
+ * - **Subir** son tres pasos: Farpi abre hueco en el Drive de quien sube, el
+ *   navegador manda los bytes **directamente a Google** y después Farpi guarda la
  *   ficha. El archivo no pasa por el servidor porque una función de Vercel corta
  *   el cuerpo de la petición muy por debajo de los 20 MB que admite un documento.
  * - **Abrir y borrar** pasan por una ruta de la app, porque necesitan el token
@@ -87,7 +87,7 @@ export const documentsRepo: DocumentsRepo = {
   },
 
   /**
-   * El archivo lo sirve Nido, no Google: la URL es de la propia app.
+   * El archivo lo sirve Farpi, no Google: la URL es de la propia app.
    *
    * Antes de devolverla se comprueba que el archivo siga estando, y no es un
    * lujo: el sheet abre la pestaña **antes** del await para que no la mate el

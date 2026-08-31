@@ -50,7 +50,7 @@ async function medir(url: string): Promise<Medida> {
 }
 
 /**
- * Dice si Nido puede funcionar, y cuánto tarda en saberlo. Pensada para que la
+ * Dice si Farpi puede funcionar, y cuánto tarda en saberlo. Pensada para que la
  * mire un vigía externo cada pocos minutos: **200 si todo va, 503 si no**, que
  * es lo único que entienden esos servicios.
  *

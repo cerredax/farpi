@@ -6,11 +6,11 @@ import { contextoDeAlmacen, FALTA_CONFIG_DRIVE, respuestaSinConfigDrive } from '
 import { safeFileName } from '@/lib/text'
 
 /**
- * El documento, servido por Nido.
+ * El documento, servido por Farpi.
  *
  * Este es el modelo de acceso entero en una ruta: el archivo vive en el Drive de
  * quien lo subió, pero **nadie habla con Drive salvo el servidor**. Cuando otro
- * miembro de la familia quiere verlo, Nido usa el token guardado del dueño, se
+ * miembro de la familia quiere verlo, Farpi usa el token guardado del dueño, se
  * trae el archivo y lo sirve él, aplicando el control de acceso que ya existía
  * —`family_id` y RLS—. El proveedor es el disco; quién puede leer no lo decide él.
  *

@@ -63,11 +63,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (isResolvingFamily) {
-    return <ShellMessage title="Cargando Nido" description="Buscando tu familia..." />
+    return <ShellMessage title="Cargando Farpi" description="Buscando tu familia..." />
   }
 
   if (resolveError) {
-    return <ShellMessage title="No se pudo cargar Nido" description={resolveError} />
+    return <ShellMessage title="No se pudo cargar Farpi" description={resolveError} />
   }
 
   return (

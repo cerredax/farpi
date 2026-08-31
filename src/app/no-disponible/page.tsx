@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Nido no está disponible',
+  title: 'Farpi no está disponible',
 }
 
 /**
@@ -15,7 +15,7 @@ export default function NoDisponiblePage() {
     <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 text-center">
       <div className="max-w-sm">
         <p className="mb-3 text-4xl">⚠️</p>
-        <p className="text-lg font-extrabold text-ink">Nido no está disponible</p>
+        <p className="text-lg font-extrabold text-ink">Farpi no está disponible</p>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           El servicio donde se guardan vuestros datos no responde ahora mismo. No se
           ha perdido nada: en cuanto vuelva, todo estará donde lo dejasteis.

@@ -63,7 +63,7 @@ export async function POST() {
 
   // Los archivos de los documentos **no se tocan**.
   //
-  // Antes vivían en un bucket de Supabase que era de Nido, así que borrar la
+  // Antes vivían en un bucket de Supabase que era de Farpi, así que borrar la
   // cuenta tenía que llevárselos. Desde que están en el Google Drive de quien los
   // subió son suyos y están en su disco: entrar a borrar ahí sería usar un
   // permiso que se dio para guardar papeles de la familia para vaciarle el Drive,

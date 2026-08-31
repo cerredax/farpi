@@ -7,7 +7,7 @@ La documentación está en español; escribe código, comentarios y docs en espa
 
 ## Producto
 
-Nido es una app familiar privada, mobile-first y de alcance pequeño. Debe responder
+Farpi es una app familiar privada, mobile-first y de alcance pequeño. Debe responder
 rápido a una pregunta:
 
 > ¿Qué tenemos que saber hoy en casa?
@@ -107,7 +107,7 @@ Pantallas (src/components/**)
     -> contrato Repos (src/lib/repos/types.ts)
        ├─ supabaseRepos (src/lib/supabase-repos/*)   ← IS_DEMO_MODE = false
        └─ mockRepos     (src/lib/mock-repos.ts)      ← IS_DEMO_MODE = true
-            -> src/lib/store/* (módulos del mock) -> localStorage (`nido_store_v1`)
+            -> src/lib/store/* (módulos del mock) -> localStorage (`farpi_store_v1`)
 ```
 
 - `IS_DEMO_MODE` se calcula **en un solo sitio**: `src/lib/supabase/env.ts` (URL/anon key ausentes o placeholder). Lo comparten cliente, servidor, proxy y rutas API — no reimplementar esa detección en otra capa.
@@ -134,11 +134,11 @@ las navegaciones con fallback a `/offline`, stale-while-revalidate en los estát
 
 Si cambias `PRECACHE` —la lista o el **contenido** de lo que precachea, iconos
 incluidos—, sube `CACHE` en `public/sw.js` o los móviles que ya tienen la app instalada
-se quedan con la caché vieja. Va por `nido-v2` desde el 24-08-2026, que subió al cambiar
+se quedan con la caché vieja. Va por `farpi-v2` desde el 24-08-2026, que subió al cambiar
 los PNG del icono. Es la misma clase de regla
 que el `SCHEMA_VER` del mock.
 
-### Documentos: los archivos no los guarda Nido
+### Documentos: los archivos no los guarda Farpi
 
 Desde el 27-08-2026 el archivo de cada documento vive en el **Google Drive de quien lo
 sube**; en la base solo queda la ficha. La familia los ve igual y **nadie más tiene que
@@ -149,7 +149,7 @@ Es una segunda frontera, distinta de la de `repos/types.ts` y **solo de servidor
 como única implementación. Reglas que no se negocian:
 
 - **El proveedor es el disco y no decide permisos.** Quien manda sigue siendo la RLS.
-- **Leer va por proxy** (`/api/documents/[id]/file`): Nido usa el token del **dueño** y
+- **Leer va por proxy** (`/api/documents/[id]/file`): Farpi usa el token del **dueño** y
   sirve el archivo. En esas rutas se comprueba **primero** con el cliente del usuario que
   puede ver la ficha, y **solo después** se toca el cliente de servicio. Al revés son una
   puerta a los documentos de cualquier familia.
@@ -166,7 +166,7 @@ Detalle completo en `docs/architecture.md`, sección "Documentos en Google Drive
 
 ### Cabeceras de seguridad
 
-`next.config.ts` pone cinco en todas las rutas, porque Nido guarda DNI, informes médicos
+`next.config.ts` pone cinco en todas las rutas, porque Farpi guarda DNI, informes médicos
 y el libro de familia: `Content-Security-Policy`, `X-Frame-Options: DENY`, `nosniff`,
 `Referrer-Policy` y `Permissions-Policy`.
 
@@ -198,7 +198,7 @@ que hacer lo mismo.
 Y un detalle que se paga caro: **sin sesión, el proxy contesta 307 a `/auth/login` antes de
 que la ruta llegue a devolver su 401**, y `fetch` sigue el redirect, así que lo que ve quien
 llamó es un 200 con el HTML del login. Un `res.ok` no basta para dar por buena la respuesta;
-hay que mirar `res.redirected`. Está resuelto en `src/lib/supabase-repos/api-nido.ts`, que es
+hay que mirar `res.redirected`. Está resuelto en `src/lib/supabase-repos/api-farpi.ts`, que es
 por donde pasan todas las llamadas de la UI a rutas propias.
 
 ### Base de datos

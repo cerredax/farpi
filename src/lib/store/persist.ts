@@ -1,10 +1,33 @@
 import { db } from './db'
 
-const STORAGE_KEY = 'nido_store_v1'
+const STORAGE_KEY = 'farpi_store_v1'
+/**
+ * Cómo se llamaba la clave cuando la app era Nido (31-08-2026). Se lee una vez y
+ * se borra: sin esto, el rebranding vaciaba el modo demo de todo el que lo
+ * tuviera abierto, y el modo demo es el fallback sin credenciales.
+ *
+ * Es de usar y tirar. Se puede quitar cuando nadie quede con la clave vieja —de
+ * la familia, dos navegadores— y se lleve consigo `migrarClaveVieja`.
+ */
+const STORAGE_KEY_NIDO = 'nido_store_v1'
+
+/** Trae lo que hubiera bajo la clave vieja y la retira. Silenciosa a propósito. */
+function migrarClaveVieja(): void {
+  try {
+    if (localStorage.getItem(STORAGE_KEY)) {
+      localStorage.removeItem(STORAGE_KEY_NIDO)
+      return
+    }
+    const viejo = localStorage.getItem(STORAGE_KEY_NIDO)
+    if (viejo) localStorage.setItem(STORAGE_KEY, viejo)
+    localStorage.removeItem(STORAGE_KEY_NIDO)
+  } catch { /* ignore */ }
+}
 const SCHEMA_VER  = 12 // v12: notes (lo que hay que tener apuntado y no es fecha, tarea ni papel)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return
+  migrarClaveVieja()
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return

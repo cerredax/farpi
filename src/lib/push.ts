@@ -23,7 +23,7 @@ export function currentPermission(): NotificationPermission | 'unsupported' {
 }
 
 /**
- * Un iPhone que todavía no tiene Nido en la pantalla de inicio.
+ * Un iPhone que todavía no tiene Farpi en la pantalla de inicio.
  *
  * iOS solo da push a las apps instaladas (16.4+), así que en una pestaña normal
  * de Safari `PushManager` no existe y `pushSupported()` dice que no. Sin

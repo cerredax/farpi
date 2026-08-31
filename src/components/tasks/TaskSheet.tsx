@@ -109,7 +109,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
         <AssigneePicker value={draft} onChange={patch} members={members} kids={kids} />
 
         {/* Chips de texto, no círculos de color. La prioridad es un grado, no
-            una identidad: el color en Nido dice "de quién es" y ya lo gasta la
+            una identidad: el color en Farpi dice "de quién es" y ya lo gasta la
             fila de arriba. Con círculos eran dos filas idénticas seguidas y el
             punto de "Media" era el amarillo exacto de "toda la familia". Mismo
             control que Repetición, que está justo debajo. */}

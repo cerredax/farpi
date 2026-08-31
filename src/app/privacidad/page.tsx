@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { LegalShell, LegalSection } from '@/components/legal/LegalShell'
 
 export const metadata: Metadata = {
-  title: 'Política de privacidad — Nido',
+  title: 'Política de privacidad — Farpi',
 }
 
 const CONTACT = 'cerredax@gmail.com'
@@ -11,8 +11,8 @@ export default function PrivacidadPage() {
   return (
     <LegalShell title="Política de privacidad" updated="27 de agosto de 2026">
       <p>
-        En Nido nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
-        derechos tienes. Nido es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.
+        En Farpi nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
+        derechos tienes. Farpi es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.
       </p>
 
       <LegalSection heading="Responsable del tratamiento">
@@ -28,13 +28,13 @@ export default function PrivacidadPage() {
           Datos de tu cuenta (correo electrónico y nombre para mostrar) y el contenido que creas en la app:
           familias y miembros, hijos, eventos, tareas, listas, comidas, notas y los documentos que subes. De cada
           documento guardamos su ficha (nombre, categoría, fecha de caducidad); <strong>el archivo en sí se
-          guarda en el Google Drive de la persona que lo sube</strong>, en una carpeta llamada «Nido». Solo tu
+          guarda en el Google Drive de la persona que lo sube</strong>, en una carpeta llamada «Farpi». Solo tu
           familia puede verlo, y siempre a través de la app.
         </p>
         <p>
           Las <strong>notas</strong> son texto libre que escribe la familia y se guardan tal cual en nuestra base
           de datos, accesibles solo para tu familia. Están pensadas para lo que hay que tener a mano en casa
-          —teléfonos, la clave del wifi, dónde está cada cosa—. <strong>Nido no es un gestor de contraseñas</strong>:
+          —teléfonos, la clave del wifi, dónde está cada cosa—. <strong>Farpi no es un gestor de contraseñas</strong>:
           no guardes ahí claves de banca, del correo o de servicios importantes.
         </p>
       </LegalSection>
@@ -42,7 +42,7 @@ export default function PrivacidadPage() {
       <LegalSection heading="Quién puede acceder a tus datos">
         <p>
           La información de una familia se comparte con los adultos que forman parte de esa familia dentro de
-          Nido. Esto incluye eventos, tareas, listas, comidas, notas, documentos y datos de hijos o adultos sin cuenta
+          Farpi. Esto incluye eventos, tareas, listas, comidas, notas, documentos y datos de hijos o adultos sin cuenta
           que se hayan añadido para organizar el día a día. Una persona de otra familia no puede acceder a esos
           datos.
         </p>
@@ -58,7 +58,7 @@ export default function PrivacidadPage() {
 
       <LegalSection heading="Base legal">
         <p>
-          El tratamiento necesario para usar Nido se basa en la ejecución del servicio que solicitas. Las
+          El tratamiento necesario para usar Farpi se basa en la ejecución del servicio que solicitas. Las
           notificaciones push se basan en tu consentimiento, que puedes retirar cuando quieras desactivándolas
           desde Ajustes o desde tu navegador. Cuando introduces información de menores u otros familiares, eres
           responsable de contar con autorización suficiente para gestionarla en la app.
@@ -87,7 +87,7 @@ export default function PrivacidadPage() {
 
       <LegalSection heading="Conservación">
         <p>
-          Conservamos los datos mientras tu cuenta o tu familia sigan activas en Nido. Si eliminas tu cuenta, se
+          Conservamos los datos mientras tu cuenta o tu familia sigan activas en Farpi. Si eliminas tu cuenta, se
           borran los datos asociados a ella, pero parte del contenido familiar compartido puede mantenerse si
           pertenece a una familia donde siguen otros adultos. Las suscripciones push se eliminan al desactivar los
           avisos o cuando dejan de ser válidas. También puedes solicitar la supresión escribiéndonos.
@@ -95,7 +95,7 @@ export default function PrivacidadPage() {
         <p>
           Los archivos de los documentos son la excepción, porque no están en nuestro disco: al borrar un
           documento intentamos borrar también el archivo del Drive de su dueño, pero si no podemos —porque
-          desconectó su cuenta de Google, por ejemplo— la ficha desaparece de Nido y el archivo se queda en su
+          desconectó su cuenta de Google, por ejemplo— la ficha desaparece de Farpi y el archivo se queda en su
           Drive. Lo mismo al eliminar la cuenta: se borra la conexión con Google, no los archivos que subiste.
           Siguen siendo tuyos y puedes borrarlos desde tu Drive cuando quieras.
         </p>
@@ -117,27 +117,27 @@ export default function PrivacidadPage() {
       <LegalSection heading="Datos de menores">
         <p>
           La información sobre hijos (nombre, fecha de nacimiento, documentos, eventos o tareas) la introducen y
-          gestionan los adultos de la familia, que son responsables de ese contenido. Nido no está dirigido a
+          gestionan los adultos de la familia, que son responsables de ese contenido. Farpi no está dirigido a
           menores para crear cuentas propias: está pensado para que los adultos organicen información familiar.
         </p>
       </LegalSection>
 
       <LegalSection heading="Documentos y datos delicados">
         <p>
-          Nido permite subir documentos familiares. Algunos pueden contener información especialmente delicada,
+          Farpi permite subir documentos familiares. Algunos pueden contener información especialmente delicada,
           por ejemplo datos de salud, colegio o identificación. Sube solo documentos que tengas derecho a guardar
-          y compartir con tu familia dentro de la app. No uses Nido para almacenar información de terceros sin su
+          y compartir con tu familia dentro de la app. No uses Farpi para almacenar información de terceros sin su
           autorización.
         </p>
         <p>
-          Para subir documentos hace falta conectar tu Google Drive. Nido pide el permiso mínimo
+          Para subir documentos hace falta conectar tu Google Drive. Farpi pide el permiso mínimo
           (<code>drive.file</code>): solo puede ver y gestionar los archivos que la propia app crea, nunca el
           resto de tu Drive. Puedes retirar ese permiso cuando quieras desde Ajustes o desde tu cuenta de
           Google; los archivos seguirán siendo tuyos y en tu Drive, pero tu familia dejará de poder abrirlos
-          desde Nido. Los documentos que subas están sujetos también a las condiciones de Google Drive.
+          desde Farpi. Los documentos que subas están sujetos también a las condiciones de Google Drive.
         </p>
         <p>
-          El uso que Nido hace de la información recibida de las APIs de Google se ajusta a la{' '}
+          El uso que Farpi hace de la información recibida de las APIs de Google se ajusta a la{' '}
           <a
             href="https://developers.google.com/terms/api-services-user-data-policy"
             className="font-semibold text-primary-strong"

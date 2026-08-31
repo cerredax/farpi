@@ -45,13 +45,13 @@ export interface DocumentStorageProvider {
    */
   describir(ctx: ContextoAlmacen, ref: string): Promise<ArchivoGuardado>
 
-  /** El contenido, para servirlo desde Nido. */
+  /** El contenido, para servirlo desde Farpi. */
   obtener(ctx: ContextoAlmacen, ref: string): Promise<ContenidoArchivo>
 
   borrar(ctx: ContextoAlmacen, ref: string): Promise<void>
 
   /**
-   * Lo que este proveedor guarda de Nido.
+   * Lo que este proveedor guarda de Farpi.
    *
    * Todavía no la llama nadie. Está en el contrato porque es la operación con la
    * que se reconcilian huérfanos —archivos que subieron pero cuya ficha no llegó
@@ -71,7 +71,7 @@ export interface ContextoAlmacen {
   accessToken: string
   /** Solo para etiquetar el archivo en el proveedor. No comprueba permisos. */
   familyId: string
-  /** La carpeta de Nido en ese disco, si ya se conoce. */
+  /** La carpeta de Farpi en ese disco, si ya se conoce. */
   carpetaRef: string | null
   /**
    * El origen desde el que subirá el navegador. Google solo devuelve una sesión
@@ -101,7 +101,7 @@ export interface ArchivoGuardado {
 }
 
 /**
- * Los bytes, para servirlos desde Nido.
+ * Los bytes, para servirlos desde Farpi.
  *
  * **No lleva tamaño, y no es un olvido.** El que devuelve el proveedor puede ser el
  * del cuerpo comprimido, y reenviarlo como `Content-Length` de una respuesta ya
@@ -114,7 +114,7 @@ export interface ContenidoArchivo {
 }
 
 /**
- * Por qué falló, en el vocabulario de Nido y no en el de Google.
+ * Por qué falló, en el vocabulario de Farpi y no en el de Google.
  *
  * Existe para que las rutas API puedan traducir un fallo a un mensaje que se
  * pueda leer y a un estado HTTP, sin que ninguna de ellas tenga que saber qué

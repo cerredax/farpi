@@ -24,7 +24,7 @@ export function TopBar() {
   // salvia claro se queda en 2,44 sobre el crema. El oscuro da 4,48 y sigue
   // siendo el mismo verde.
   //
-  // En Inicio la cabecera dice "Nido" y ya no el saludo con la fecha debajo:
+  // En Inicio la cabecera dice "Farpi" y ya no el saludo con la fecha debajo:
   // eso vive ahora en la tarjeta del día, donde se lee grande y cerca de lo que
   // hay que hacer. Tenerlo en los dos sitios era repetir la misma hora dos
   // veces en la misma pantalla.
@@ -34,7 +34,7 @@ export function TopBar() {
     // esquina. La columna estrecha de móvil (`max-w-lg`) se suelta en escritorio.
     <header className="fixed top-0 left-0 right-0 z-50 bg-canvas border-b border-line lg:pl-56">
       <div className="flex items-center h-14 max-w-lg mx-auto px-4 lg:max-w-none lg:px-8">
-        <h1 className="font-extrabold tracking-tight text-primary-strong text-lg">{title ?? 'Nido'}</h1>
+        <h1 className="font-extrabold tracking-tight text-primary-strong text-lg">{title ?? 'Farpi'}</h1>
       </div>
     </header>
   )

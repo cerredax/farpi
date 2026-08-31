@@ -1,10 +1,15 @@
-// Service worker de Nido — caché offline básica.
+// Service worker de Farpi — caché offline básica.
 // Estrategias:
 //  - Navegaciones: network-first con fallback a /offline.
 //  - Estáticos (_next/static, iconos): stale-while-revalidate.
 //  - API, /auth y peticiones cross-origin (Supabase): siempre red.
 
-const CACHE = 'nido-v2'
+// La numeración arranca de cero con el nombre nuevo (31-08-2026). Da igual el
+// número: lo único que importa es que la cadena cambie, y `farpi-v1` no es
+// `nido-v2`, así que el `activate` de abajo barre la caché vieja de todos los
+// móviles que ya tenían la app instalada. Tenía que subir igualmente: el
+// manifiesto está en `PRECACHE` y ahora dice otro nombre.
+const CACHE = 'farpi-v1'
 const OFFLINE_URL = '/offline'
 const PRECACHE = ['/offline', '/manifest.json', '/icon-192.png', '/icon-512.png']
 
@@ -33,7 +38,7 @@ self.addEventListener('fetch', event => {
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/auth')) return
 
   // Navegaciones: intenta red, cachea la respuesta y cae a /offline si falla.
-  // Solo se guarda lo que salió bien: desde que existe la pantalla de "Nido no
+  // Solo se guarda lo que salió bien: desde que existe la pantalla de "Farpi no
   // está disponible" (un 503 servido en la URL que pediste), cachear cualquier
   // respuesta dejaría la avería pegada a /home hasta la siguiente visita buena.
   if (request.mode === 'navigate') {
@@ -84,7 +89,7 @@ self.addEventListener('push', event => {
   } catch {
     payload = { body: event.data ? event.data.text() : '' }
   }
-  const title = payload.title || 'Nido'
+  const title = payload.title || 'Farpi'
   const options = {
     body: payload.body || '',
     icon: '/icon-192.png',

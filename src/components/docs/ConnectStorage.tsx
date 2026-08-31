@@ -37,7 +37,7 @@ export function ConnectStorage({ conexion, connectUrl }: ConnectStorageProps) {
           // los permisos de la cuenta de Google— pero sí tiene una consecuencia
           // que hay que decir, porque afecta a los demás y no se ve.
           ? 'Los documentos que subiste siguen en tu Drive, pero la familia no puede abrirlos hasta que vuelvas a dar permiso.'
-          : 'Los documentos que subas se guardarán en tu Drive. El resto de la familia los verá en Nido como siempre, sin conectar nada.'}
+          : 'Los documentos que subas se guardarán en tu Drive. El resto de la familia los verá en Farpi como siempre, sin conectar nada.'}
       </p>
       <a
         href={connectUrl}

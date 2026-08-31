@@ -1,6 +1,6 @@
-# Nido
+# Farpi
 
-Nido es una app familiar privada para ver de un vistazo el calendario, las listas, las comidas y los documentos importantes de casa.
+Farpi es una app familiar privada para ver de un vistazo el calendario, las listas, las comidas y los documentos importantes de casa.
 
 La pantalla principal debe responder con claridad a una pregunta:
 

@@ -8,12 +8,12 @@ Authentication → **Emails** → pestaña *Templates* → elige la plantilla �
 
 | Plantilla de Supabase | Fichero | Asunto |
 |---|---|---|
-| Confirm signup | `confirmacion.html` | `Confirma tu correo para entrar en Nido` |
-| Invite user | `invitacion.html` | `Te han invitado a Nido` |
-| Magic Link | `magic-link.html` | `Tu enlace para entrar en Nido` |
+| Confirm signup | `confirmacion.html` | `Confirma tu correo para entrar en Farpi` |
+| Invite user | `invitacion.html` | `Te han invitado a Farpi` |
+| Magic Link | `magic-link.html` | `Tu enlace para entrar en Farpi` |
 | Change Email Address | `cambio-email.html` | `Confirma tu nueva dirección de correo` |
-| Reset Password | `recuperar-password.html` | `Restablece tu contraseña de Nido` |
-| Reauthentication | `reautenticacion.html` | `Tu código de Nido: {{ .Token }}` |
+| Reset Password | `recuperar-password.html` | `Restablece tu contraseña de Farpi` |
+| Reauthentication | `reautenticacion.html` | `Tu código de Farpi: {{ .Token }}` |
 
 En el asunto también se pueden usar variables, y en el de reautenticación compensa: se lee el código sin abrir el mensaje.
 

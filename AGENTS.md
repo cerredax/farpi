@@ -1,6 +1,6 @@
 # Instrucciones para agentes
 
-Nido es una app familiar privada, mobile-first y de alcance pequeño.
+Farpi es una app familiar privada, mobile-first y de alcance pequeño.
 
 **Las reglas de trabajo están en [`CLAUDE.md`](./CLAUDE.md). Léelo antes de tocar
 nada.** Da igual el agente que seas: producto, reglas, comandos, arquitectura y

@@ -6,7 +6,7 @@ import { Heart, ShieldCheck } from 'lucide-react'
  *
  * Tenía cuatro tarjetas de ventajas (Agenda, Pendientes, Comidas, Documentos) y
  * tres insignias de "Gratis / Privado / Sin anuncios". Se fueron: quien abre
- * Nido es de una familia que ya la usa, no alguien a quien haya que convencer.
+ * Farpi es de una familia que ya la usa, no alguien a quien haya que convencer.
  * Lo que se queda es lo que informa —el aviso de que solo la familia ve sus
  * datos— y no lo que vende.
  *
@@ -29,7 +29,7 @@ export function LoginHero() {
         className="h-10 w-10 rounded-2xl shadow-sm"
       />
       <div>
-        <p className="text-lg font-black leading-none tracking-tight">Nido</p>
+        <p className="text-lg font-black leading-none tracking-tight">Farpi</p>
         <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Familia en calma</p>
       </div>
     </header>
@@ -44,7 +44,7 @@ export function LoginHero() {
           Todo lo importante de tu familia, en un solo lugar.
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-          Nido reúne comidas, tareas, citas y documentos para que la semana sea más clara y la casa se sienta un poco más ligera.
+          Farpi reúne comidas, tareas, citas y documentos para que la semana sea más clara y la casa se sienta un poco más ligera.
         </p>
       </div>
     </div>

@@ -16,7 +16,7 @@ export const REVOKE_URL = 'https://oauth2.googleapis.com/revoke'
 /**
  * El único permiso que se pide: los archivos que crea esta app y ninguno más.
  *
- * `drive.file` es un scope **no sensible**, así que Nido no pasa por la
+ * `drive.file` es un scope **no sensible**, así que Farpi no pasa por la
  * verificación de Google ni por la auditoría CASA. Cambiarlo por `drive` o
  * `drive.readonly` —para "ver también lo que ya tenías"— mete el proyecto en un
  * proceso de semanas. No se toca.
@@ -29,7 +29,7 @@ export const SCOPE_DRIVE = 'https://www.googleapis.com/auth/drive.file'
  * la que sale y la que vuelve— y un nombre copiado a mano que baile rompe la
  * conexión sin decir por qué.
  */
-export const COOKIE_STATE = 'nido_drive_state'
+export const COOKIE_STATE = 'farpi_drive_state'
 
 /** Margen antes de caducar. Un minuto sobra para una petición y evita el borde. */
 const MARGEN_REFRESCO_MS = 60_000
@@ -60,7 +60,7 @@ interface OpcionesConsentimiento {
 }
 
 /**
- * La pantalla de "Nido quiere acceder a tu Drive".
+ * La pantalla de "Farpi quiere acceder a tu Drive".
  *
  * Dos parámetros no son decorativos y quitarlos rompe el sistema en silencio:
  * `access_type=offline` es lo que hace que Google devuelva un refresh token, y
@@ -83,7 +83,7 @@ export function construirUrlConsentimiento({ clientId, redirectUri, state }: Opc
 }
 
 /**
- * Qué significa un fallo de la API de Google en el vocabulario de Nido.
+ * Qué significa un fallo de la API de Google en el vocabulario de Farpi.
  *
  * `invalid_grant` es el importante: es lo que contesta Google cuando el refresh
  * token ya no vale —revocado a mano desde la cuenta, caducado por estar la app

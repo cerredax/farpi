@@ -129,7 +129,7 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             <div className="mb-6">
               <p className="text-2xl font-black tracking-tight text-ink">
-                {isSignup ? 'Crea tu cuenta' : 'Entra a Nido'}
+                {isSignup ? 'Crea tu cuenta' : 'Entra a Farpi'}
               </p>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">
                 {isSignup
@@ -309,7 +309,7 @@ export default function LoginPage() {
             )}
 
             <p className="mt-5 text-center text-[11px] font-medium text-muted-soft">
-              Nido es gratuito y privado para tu familia.
+              Farpi es gratuito y privado para tu familia.
             </p>
           </div>
         </aside>

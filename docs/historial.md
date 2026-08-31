@@ -8,7 +8,41 @@ estado (1030 de 1488 líneas) y dejaba de leerse justo lo que había que leer.
 El porqué de cada decisión de producto está en `docs/architecture.md`; aquí
 queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
+> **La app se llamó Nido hasta el 31-08-2026.** Este documento **no se reescribe**:
+> cuenta lo que pasó, y lo que pasó pasó con ese nombre. Si lees «Nido» más abajo,
+> es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
+> presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
+
 ## Cerrado el 2026-08-31
+
+### De Nido a Farpi (31-08-2026)
+
+Cambio de nombre, y solo de nombre: ni una pantalla, ni un flujo, ni el icono. Lo que
+tenía miga no era el texto —quince cadenas— sino las cinco cosas que llevaban «nido»
+dentro sin que se vean.
+
+La primera trampa fue el propio reemplazo: **«contenido» contiene «nido»**, y hay 30 y
+pico en el repositorio entre comentarios, `ContenidoArchivo` y la etiqueta del campo de
+las notas. Todo fue con límites de palabra y con una lista explícita para las claves en
+`snake_case`.
+
+Las claves de `localStorage` (`nido_store_v1`, `nido_active_family`) se renombran **con
+migración**: se lee la vieja una vez, se copia y se retira. Sin eso, desplegar el cambio
+de nombre vaciaba el modo demo de todo el que lo tuviera abierto, y el modo demo es el
+fallback sin credenciales.
+
+`CACHE` en `public/sw.js` pasa a `farpi-v1` y la numeración arranca de cero. Tenía que
+cambiar de todas formas: el manifiesto está en `PRECACHE` y ahora dice otro nombre.
+
+Y la que no tiene arreglo: cada archivo subido a Google Drive lleva dentro la etiqueta
+`appProperties.nido_family`, en el disco de su dueño. No se puede reescribir sin recorrer
+uno a uno los papeles de todas las familias, así que `listar` pregunta por las dos claves.
+Abrir un documento nunca dependió de ella —eso va por el id del archivo—, pero `listar` sí.
+
+Fuera del repositorio queda lo que no es código y sigue diciendo Nido: el dominio
+`nido-xi.vercel.app`, el proyecto de Vercel, el repositorio de GitHub, la pantalla de
+consentimiento de Google y las plantillas de correo del panel de Supabase. Está en
+`docs/produccion.md`.
 
 ### Notas, la sección para lo que hay que tener apuntado (31-08-2026)
 

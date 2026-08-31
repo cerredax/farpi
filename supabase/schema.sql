@@ -1,5 +1,5 @@
 -- ============================================================================
--- Nido — esquema completo de la base de datos
+-- Farpi — esquema completo de la base de datos
 -- ============================================================================
 --
 -- Este archivo describe la base **tal como está**, no cómo llegó hasta aquí.
@@ -284,7 +284,7 @@ create table if not exists public.storage_connections (
   access_token  text not null,
   refresh_token text not null,
   expires_at    timestamptz not null,
-  -- La carpeta "Nido" dentro de ese Drive, cacheada para no buscarla en cada
+  -- La carpeta "Farpi" dentro de ese Drive, cacheada para no buscarla en cada
   -- subida. Si se borra a mano, se vuelve a crear sola.
   folder_ref    text,
   -- Se marca, no se borra: la interfaz necesita distinguir "nunca conectó" de
@@ -725,7 +725,7 @@ create policy "Usuario gestiona sus push"
 drop policy if exists "Usuario gestiona sus conexiones" on public.storage_connections;
 
 -- ============================================================================
--- 5. Storage: nada. Los archivos no los guarda Nido
+-- 5. Storage: nada. Los archivos no los guarda Farpi
 -- ============================================================================
 --
 -- Aquí vivía el bucket privado `documents` con sus cuatro policies. Se borró el

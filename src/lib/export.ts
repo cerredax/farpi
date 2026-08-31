@@ -44,7 +44,7 @@ export interface DatosParaExportar {
 }
 
 export interface Exportacion {
-  nido_export: number
+  farpi_export: number
   exportado_el: string
   familia: { id: string; nombre: string }
   aviso: string
@@ -79,7 +79,7 @@ export interface Exportacion {
  */
 export function construirExportacion(datos: DatosParaExportar, ahora: Date = new Date()): Exportacion {
   return {
-    nido_export: VERSION_EXPORT,
+    farpi_export: VERSION_EXPORT,
     exportado_el: ahora.toISOString(),
     familia: { id: datos.family.id, nombre: datos.family.name },
     aviso: 'Los archivos de los documentos no están en este archivo: viven en el Google Drive de quien los subió. Aquí está su ficha, con la referencia para volver a encontrarlos.',
@@ -100,7 +100,7 @@ export function construirExportacion(datos: DatosParaExportar, ahora: Date = new
 }
 
 /**
- * `nido-garcia-farpon-2026-08-27.json`.
+ * `farpi-garcia-farpon-2026-08-27.json`.
  *
  * La fecha sale de `getLocalDateString` y no de `toISOString`, que es la regla de
  * la casa para las fechas familiares: a las 00:30 de un martes, la de UTC sería
@@ -108,7 +108,7 @@ export function construirExportacion(datos: DatosParaExportar, ahora: Date = new
  */
 export function nombreDeArchivo(nombreFamilia: string, ahora: Date = new Date()): string {
   const nombre = safeFileName(nombreFamilia || 'familia')
-  return `nido-${nombre}-${getLocalDateString(ahora)}.json`
+  return `farpi-${nombre}-${getLocalDateString(ahora)}.json`
 }
 
 /**

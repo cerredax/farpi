@@ -35,10 +35,10 @@ export function LegalShell({
       <div className="mx-auto max-w-2xl px-5 py-8">
         {/* Estas dos páginas se ven sin sesión (van en `PUBLIC_ROUTES`), así que
             quien llegue desde la ficha de Play Store acabará en el login, no en
-            la home. El enlace dice "Volver a Nido" y no "Volver al inicio"
+            la home. El enlace dice "Volver a Farpi" y no "Volver al inicio"
             porque es verdad en los dos casos. */}
         <Link href="/home" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink">
-          <ArrowLeft size={16} strokeWidth={2.3} /> Volver a Nido
+          <ArrowLeft size={16} strokeWidth={2.3} /> Volver a Farpi
         </Link>
         <h1 className="mt-4 text-2xl font-extrabold text-ink">{title}</h1>
         <p className="mt-1 text-xs text-muted">Última actualización: {updated}</p>

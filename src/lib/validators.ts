@@ -122,7 +122,7 @@ export function validateNoteDraft(draft: NoteDraft): string | null {
  * A dónde se puede mandar a alguien después de validar un enlace de correo.
  *
  * El `?next=` de la URL lo escribe quien manda el enlace, no la app, así que un
- * `next=https://otra-cosa.example` convertiría un correo legítimo de Nido en un
+ * `next=https://otra-cosa.example` convertiría un correo legítimo de Farpi en un
  * salto a una web ajena justo después de iniciar sesión — que es el momento en
  * el que uno se cree lo que ve. Solo se aceptan rutas de la propia app: una
  * barra y nada de `//`, que es la forma corta de decir "otro dominio".

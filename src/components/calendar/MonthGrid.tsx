@@ -29,8 +29,8 @@ import { getLocalDateString } from '@/lib/date-utils'
 
 const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-/** Las líneas de la rejilla, solo en escritorio. Las comparten las celdas y los huecos. */
-const HUECO = 'lg:border-b lg:border-r lg:border-hairline'
+/** Las líneas de la rejilla. Las comparten las celdas y los huecos. */
+const HUECO = 'border-b border-r border-line'
 
 /** Cuántas ausencias se pintan en un hueco de fuera de mes. Mismo tope que `DayCell`. */
 const MAX_AUSENCIAS = 2
@@ -63,14 +63,25 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
 
   return (
     /**
-     * **La rejilla se dibuja como una rejilla** en escritorio (26-08-2026). No
-     * tenía ni una línea: eran números flotando en un fondo blanco, y una
-     * pantalla grande con pocos eventos se leía como un vacío en vez de como un
-     * calendario. En móvil no se pintan: a 50 px de celda las líneas son más
-     * ruido que estructura, y ahí la rejilla se lee bien por proximidad.
+     * **La rejilla se dibuja como una rejilla**, en los dos tamaños. En
+     * escritorio desde el 26-08-2026, cuando no tenía ni una línea y una pantalla
+     * grande con pocos eventos se leía como un vacío en vez de como un
+     * calendario. En móvil se dejaron fuera entonces, apostando a que la
+     * proximidad bastaba para leer las columnas; no bastaba: con las celdas casi
+     * pegadas, un número y sus puntos se confundían con los del día de al lado y
+     * costaba seguir una semana en horizontal (31-08-2026).
+     *
+     * Van en `--color-line`, el borde normal de la app, y no en el `hairline` con
+     * el que nacieron: a 52 px de celda el hairline sobre blanco casi no existe,
+     * y una línea que no se ve no separa nada. El mismo tono en las dos tallas,
+     * que es lo que hace que la pantalla sea la misma pantalla.
+     *
+     * Sin relleno alrededor: las líneas tienen que morir en el borde de la
+     * `Card`, o la última columna y la última fila quedan flotando a dos píxeles
+     * del marco y se ve el remiendo.
      */
-    <div className="px-2 pb-1 lg:px-0 lg:pb-0">
-      <div className="mb-1 grid grid-cols-7 lg:mb-0 lg:border-b lg:border-hairline">
+    <div>
+      <div className="grid grid-cols-7 border-b border-line">
         {DAY_LABELS.map((label, i) => (
           <div
             key={label}
@@ -133,7 +144,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                 // el mes vecino **a la misma altura**. Con `py-1` en el
                 // contenedor, las franjas del hueco caían cuatro píxeles más
                 // abajo que las de al lado y el tramo se veía escalonado.
-                className={`${HUECO} flex w-full flex-col bg-surface lg:min-h-[104px] ${
+                className={`${HUECO} flex w-full flex-col bg-surface min-h-[52px] lg:min-h-[104px] ${
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >

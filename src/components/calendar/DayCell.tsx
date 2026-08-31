@@ -186,7 +186,7 @@ export function DayCell({
       // no habría hecho nada. `touch-manipulation` apaga el zoom por doble toque
       // del navegador, que si no se come el gesto en el móvil.
       onDoubleClick={() => onCreate?.(day)}
-      className={`flex w-full touch-manipulation flex-col lg:min-h-[104px] lg:border-b lg:border-r lg:border-hairline ${
+      className={`flex w-full touch-manipulation flex-col min-h-[52px] border-b border-r border-line lg:min-h-[104px] ${
         /**
          * **Los días en los que no se trabaja llevan trama diagonal**: sábado,
          * domingo y festivo, los tres igual (26-08-2026). Es un solo concepto y

@@ -773,6 +773,21 @@ para entender a quién afecta algo. En gris y no en el amarillo de la familia po
 color no tiene contraste como texto; para eso existe `sand-strong`, y aquí basta con que
 la palabra esté.
 
+**La rejilla del mes se dibuja como una rejilla, también en móvil** (31-08-2026). Las
+líneas entraron el 26-08-2026 solo en escritorio, donde una pantalla grande con pocos
+eventos se leía como un vacío; en móvil se dejaron fuera apostando a que a 52 px de celda
+la proximidad bastaba para leer las columnas. No bastaba: con las celdas casi pegadas, un
+número y sus puntos se confundían con los del día de al lado y seguir una semana en
+horizontal costaba.
+
+Van en `--color-line`, el borde normal de la app, y no en el `hairline` con el que
+nacieron: a ese tamaño el hairline sobre blanco casi no existe, y una línea que no se ve
+no separa nada. El mismo tono en las dos tallas, que es lo que hace que sea la misma
+pantalla. Con las líneas se fue el relleno que la rejilla tenía alrededor en móvil
+(`px-2 pb-1`): tienen que morir en el borde de la `Card`, o la última columna y la última
+fila quedan flotando a dos píxeles del marco y se ve el remiendo. Y la celda gana un alto
+mínimo de 52 px en móvil, para que un día sin nada no encoja su fila.
+
 **La rejilla del mes es de un solo mes, y las puntas se rellenan** (26-08-2026). Se
 dibuja por semanas completas —si no, las columnas dejarían de ser días de la semana— y
 los días de los meses vecinos **sí se pintan**, con su número en gris claro y **el fondo

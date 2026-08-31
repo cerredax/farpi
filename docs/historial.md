@@ -8,6 +8,18 @@ estado (1030 de 1488 líneas) y dejaba de leerse justo lo que había que leer.
 El porqué de cada decisión de producto está en `docs/architecture.md`; aquí
 queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
+## Cerrado el 2026-08-31
+
+### La rejilla del mes se ve como una rejilla en el móvil (31-08-2026)
+
+Las líneas de la cuadrícula existían solo desde `lg:`. En móvil los días eran números
+flotando en blanco, casi pegados: seguir una semana en horizontal costaba y un número con
+sus puntos se confundía con los del día de al lado. Se extienden a las dos tallas, se
+suben de `hairline` a `--color-line` —a 52 px de celda el hairline no existía—, se quita
+el relleno que separaba la rejilla del borde de la `Card` para que las líneas mueran en el
+marco, y la celda de móvil gana un alto mínimo de 52 px. Comprobado con capturas a 390 px
+y a 1440 px, no solo con la suite.
+
 ## Cerrado el 2026-08-28
 
 ### El panel del día también en escritorio (28-08-2026)

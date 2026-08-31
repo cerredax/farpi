@@ -258,6 +258,30 @@ Objetivo: preparar uso diario.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que no es un gestor de contraseñas.
 - [x] Aplicado en el SQL Editor del proyecto real y validado: `node scripts/validate-rls.mjs` da **89/89** (31-08-2026).
 
+## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
+
+Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles
+ajenos, y el detalle de cada uno —con su riesgo y su orden— vive en `docs/produccion.md`
+§0, que es donde hay que mirar antes de tocar nada.
+
+- [x] Código, documentación, claves internas y tests.
+- [x] Proyecto de Vercel, proyecto de Supabase, carpeta de Google Drive (renombrada, no
+      borrada) y repositorio de GitHub (`cerredax/farpi`).
+- [x] Pantalla de consentimiento de Google, con la redirect URI de `www.farpi.app`
+      **añadida** por adelantado al cliente OAuth.
+- [ ] **Apuntar `www.farpi.app`.** Dominio ya registrado. Es lo que más ata: Vercel,
+      dos valores de Supabase y una variable de entorno tienen que decir lo mismo, y
+      todo con `www` porque la cookie del OAuth de Drive es *host-only*. Google ya está
+      preparado, así que en el corte solo hay que retirar lo viejo al final.
+- [ ] **Pegar las plantillas de correo en el panel de Supabase.** Las de
+      `supabase/email-templates/` ya dicen Farpi, pero se aplican a mano: hasta que se
+      peguen, las invitaciones y los magic links siguen firmando como Nido. Es lo más
+      visible de lo que queda y no depende del dominio, así que se puede hacer ya.
+- [ ] **Branding de Google**: App Domain y Authorized Domains. Solo cuando el dominio
+      esté vivo, y puede pedir verificarlo en Search Console.
+- [ ] Comprobar que Vercel sigue viendo el repositorio tras el renombrado
+      (Settings → Git), en el próximo despliegue.
+
 ## Fase 9 - Uso diario
 
 Objetivo: que la app funcione sola, sin nadie mirándola.

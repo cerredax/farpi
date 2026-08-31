@@ -4,31 +4,48 @@ Estado y pasos para llevar Farpi a producción en Vercel + Supabase. Marca las c
 
 > Última actualización: 2026-08-31.
 
-## 0. Lo que todavía se llama Nido
+## 0. El cambio de nombre a Farpi
 
-La app pasó a llamarse **Farpi** el 31-08-2026. El código y los papeles ya lo dicen;
-esto no, porque no es código y cada línea tiene su propio riesgo:
+La app pasó a llamarse **Farpi** el 31-08-2026. El código y los papeles ya lo dicen. Lo
+que no es código va por su cuenta, y cada línea tiene su propio riesgo:
 
-- [ ] **Dominio** `nido-xi.vercel.app`. Es el que más ata: de él cuelgan
-      `NEXT_PUBLIC_SITE_URL`, el *Site URL* y los *Redirect URLs* de Supabase, y
-      `GOOGLE_REDIRECT_URI`. Se cambian **los cuatro a la vez** o dejan de funcionar los
-      magic links y la conexión con Drive.
-- [ ] **Proyecto de Vercel** (`nido`) y **repositorio de GitHub** (`cerredax/nido`).
-      Renombrar el repositorio deja redirección automática, así que es de lo más barato.
+- [x] **Proyecto de Vercel** y **proyecto de Supabase**: renombrados (31-08-2026).
+- [x] **Carpeta de Google Drive**: renombrada a «Farpi» a mano (31-08-2026). Se renombró,
+      **no se borró**, que es la diferencia entre no pasar nada y perderlo todo: los
+      documentos de Farpi *son* los archivos de esa carpeta —en la base solo está la
+      ficha—, y Drive identifica carpetas y archivos por id, no por nombre. Al renombrar,
+      el id no cambia, el `folder_ref` cacheado en `storage_connections` sigue valiendo y
+      los documentos se siguen abriendo.
+- [ ] **Repositorio de GitHub** (`cerredax/nido` → `cerredax/farpi`). GitHub deja
+      redirección automática, así que nada se rompe, pero conviene apuntar el remoto al
+      nombre nuevo: `git remote set-url origin https://github.com/cerredax/farpi.git`.
+      Comprobar después que Vercel sigue viendo el repositorio (Settings → Git).
+- [ ] **Dominio**: hoy `nido-xi.vercel.app`; el destino es **`farpi.app`**, pendiente de
+      comprar. Es lo que más ata de todo esto, porque el dominio aparece en **cuatro
+      sitios que tienen que decir lo mismo**:
+      1. `NEXT_PUBLIC_SITE_URL` en las variables de Vercel — el `redirectTo` del magic link.
+      2. Supabase → Authentication → URL Configuration → **Site URL**.
+      3. Supabase → **Redirect URLs**: añadir `https://farpi.app/auth/callback` (dejar
+         también el de `localhost:3000` para desarrollo).
+      4. `GOOGLE_REDIRECT_URI` y la *Authorized redirect URI* de Google Cloud, que tienen
+         que ser exactamente `https://farpi.app/api/documents/providers/google/callback`.
+
+      Si se cambian a medias: con (1) y (2) mal, los magic links llevan al dominio viejo;
+      con (4) mal, conectar Drive falla con `redirect_uri_mismatch`. Lo suave es añadir el
+      dominio nuevo **antes** de quitar el viejo, dejar los dos aceptados un rato y
+      retirar el antiguo cuando todo responda.
+- [ ] **Plantillas de correo del panel de Supabase**: las de `supabase/email-templates/`
+      ya dicen Farpi, pero se aplican **a mano**. Hasta que se peguen, los correos que
+      salen siguen diciendo Nido.
 - [ ] **Pantalla de consentimiento de Google**: hoy dice «Nido quiere acceder a tu
       Drive». Está *In production*; cambiarle el nombre puede disparar una revisión, así
       que conviene mirarlo antes de tocar. Mientras tanto no se cae nada.
-- [ ] **Plantillas de correo del panel de Supabase**: las de
-      `supabase/email-templates/` ya dicen Farpi, pero se aplican **a mano**. Hasta que
-      se peguen, los correos que salen siguen diciendo Nido.
-- [ ] **Carpeta de Google Drive**: la app crea «Farpi», pero la que ya existe en el
-      Drive de cada quien haya subido un documento se llama «Nido». Renombrarla a mano
-      mantiene los papeles juntos; si no, quien reconecte tendrá dos carpetas.
 - [ ] **Play Store**: el *package name* es irreversible. Todavía no se ha publicado, que
       es justo por lo que este era el momento de cambiar el nombre.
 
 La etiqueta `appProperties.nido_family` de los archivos ya subidos **no se toca**: va
-dentro de cada archivo en el Drive de su dueño. `listar` pregunta por las dos.
+dentro de cada archivo, en el Drive de su dueño, y reescribirla exigiría recorrer uno a
+uno los papeles de todas las familias. `listar` pregunta por las dos.
 
 ---
 
@@ -44,7 +61,9 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-El backend está **validado** (§4): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. La app está desplegada y operativa en https://nido-xi.vercel.app.
+El backend está **validado** (§4): **89/89** comprobaciones de RLS, RPCs e integridad
+(31-08-2026). La app está desplegada y operativa en https://nido-xi.vercel.app, que
+sigue siendo la URL de producción hasta que se compre `farpi.app` (§0).
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 
@@ -127,7 +146,8 @@ En **Google Cloud Console → APIs y servicios**:
 
 ## 3. Desplegar
 
-El proyecto está vinculado a Vercel y a GitHub (`cerredax/nido`).
+El proyecto está vinculado a Vercel y a GitHub (`cerredax/nido`, pendiente de renombrar
+a `cerredax/farpi` — §0).
 
 - **Auto-deploy**: `git push origin main` → Vercel construye y despliega producción.
 - **Manual**: `vercel --prod` (requiere Vercel CLI: `npm i -g vercel`).

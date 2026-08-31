@@ -39,10 +39,17 @@ Y la que no tiene arreglo: cada archivo subido a Google Drive lleva dentro la et
 uno a uno los papeles de todas las familias, así que `listar` pregunta por las dos claves.
 Abrir un documento nunca dependió de ella —eso va por el id del archivo—, pero `listar` sí.
 
-Fuera del repositorio queda lo que no es código y sigue diciendo Nido: el dominio
-`nido-xi.vercel.app`, el proyecto de Vercel, el repositorio de GitHub, la pantalla de
-consentimiento de Google y las plantillas de correo del panel de Supabase. Está en
-`docs/produccion.md`.
+Fuera del repositorio, el mismo día se renombraron el proyecto de Vercel, el de Supabase
+y la carpeta de Google Drive. La carpeta se **renombró**, que no es lo mismo que borrarla:
+los documentos de Farpi son los archivos que hay dentro —en la base solo está la ficha— y
+Drive identifica por id y no por nombre, así que renombrar no mueve nada. Borrarla se
+habría llevado los papeles a la papelera y habría dejado las fichas apuntando al vacío.
+
+Queda pendiente lo que no se puede hacer en una tarde: el dominio, que será `farpi.app`
+cuando se compre y que hay que cambiar en cuatro sitios a la vez; el repositorio de
+GitHub; la pantalla de consentimiento de Google, y las plantillas de correo, que se pegan
+a mano en el panel de Supabase. La lista, con el riesgo de cada línea, está en
+`docs/produccion.md` §0.
 
 ### Notas, la sección para lo que hay que tener apuntado (31-08-2026)
 

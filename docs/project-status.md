@@ -109,8 +109,8 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 ### Backend / migraciones
 
 - **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
-  con la base como está, aplicado en el proyecto real y validado el 26-08-2026 con
-  **80/80** (última pasada, 27-08-2026). Las 21 migraciones numeradas que lo precedieron se aplastaron ese mismo día
+  con la base como está, aplicado en el proyecto real y validado. Última pasada:
+  **89/89** (31-08-2026, con `notes`). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
   veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
@@ -217,8 +217,11 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del 27-08-2026, con `node scripts/validate-rls.mjs`
-contra la base real y ya con `delete_family` aplicada: **79/79**. Son las 70 del esquema
+Sin pendientes. La última pasada es del **31-08-2026**, con `node scripts/validate-rls.mjs`
+contra la base real y ya con la tabla `notes` aplicada: **89/89**. Las tres últimas son
+suyas —A la crea, B no la ve, B no puede escribir una en la familia de A—, que es todo lo
+que hay que comprobar en una tabla cuya única defensa es la policy por `family_id`, y
+que importa porque es donde la familia escribe la clave del wifi. Antes fueron las 70 del esquema
 con los documentos en Drive más las nueve de **cerrar una familia** (§13): que no la
 cierra ni un miembro no admin, ni un ajeno, ni un `delete` saltándose la RPC, que nadie
 se queda sin familia, y que la cascada se lleva lo que colgaba. Las once que trajo el

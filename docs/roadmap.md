@@ -256,7 +256,7 @@ Objetivo: preparar uso diario.
 - [x] Pantalla `/notes`: buscador, rejilla de tarjetas, sheet de alta y edición.
 - [x] En "Más" delante de Documentos, y en `SideNav` en escritorio.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que no es un gestor de contraseñas.
-- [ ] **Aplicar el `alter` en el SQL Editor del proyecto real** y pasar `node scripts/validate-rls.mjs`.
+- [x] Aplicado en el SQL Editor del proyecto real y validado: `node scripts/validate-rls.mjs` da **89/89** (31-08-2026).
 
 ## Fase 9 - Uso diario
 

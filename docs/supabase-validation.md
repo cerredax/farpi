@@ -1,15 +1,15 @@
 # Validación Supabase
 
-> **Pendiente (31-08-2026).** La tabla `notes` está en `supabase/schema.sql` pero
-> **todavía no aplicada** en el proyecto real, así que esta validación no la cubre.
-> El arnés ya trae sus tres comprobaciones (A la crea, B no la ve, B no puede escribir
-> en la familia de A): al aplicar el `alter` hay que volver a pasar
-> `node scripts/validate-rls.mjs` y actualizar este documento. Debería dar **89/89**.
+Última ejecución: 2026-08-31, ya con las notas. **89/89 comprobaciones correctas.**
 
-Última ejecución: 2026-08-27, ya con los cumpleaños apuntados. **86/86 comprobaciones
-correctas.**
+Son las 86 anteriores más las **tres de `notes`**, la tabla que estrena la sección de
+notas: que A la crea en su familia, que B no ve las de A y que B no puede escribir una
+en la familia de A. Tres y no más porque la tabla no tiene nada que enredar —ni claves
+ajenas a hijos o miembros, ni RPC, ni columnas con `check`—: todo lo que la protege es
+la policy por `family_id`, y eso es exactamente lo que se comprueba. Importa más que en
+otras tablas porque es donde la familia escribe la clave del wifi.
 
-Son las 79 anteriores más las **siete de la §9 bis, cumpleaños de fuera de casa**: que el
+Las 86 eran las 79 más las **siete de la §9 bis, cumpleaños de fuera de casa**: que el
 quinto valor de `kind` (`cumple`) entra, con y sin `birth_year`; que la base rechaza un
 cumpleaños con día final o con hora —es de día completo y de un solo día, al revés que un
 festivo—; que un año de nacimiento colgado de algo que no es un cumpleaños no pasa; que un

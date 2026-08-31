@@ -28,7 +28,8 @@ De paso, la lista de secciones deja de filtrar Documentos a mano: con dos seccio
 dentro de "Más", la barra de abajo y el menú decían lo mismo desde dos archivos. Ahora lo
 dice `enMas` en `secciones.ts`.
 
-Comprobado con capturas a 390 px y a 1440 px, además de la suite.
+Comprobado con capturas a 390 px y a 1440 px, además de la suite. La tabla se aplicó el
+mismo día en el proyecto real y `scripts/validate-rls.mjs` volvió a pasar entera: 89/89.
 
 ### La rejilla del mes se ve como una rejilla en el móvil (31-08-2026)
 

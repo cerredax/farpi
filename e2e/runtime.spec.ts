@@ -60,6 +60,7 @@ const ROUTES = [
   '/tasks',
   '/lists',
   '/meals',
+  '/notes',
   '/docs',
   '/settings',
   '/auth/login',
@@ -89,6 +90,7 @@ for (const route of ROUTES) {
 const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
+  { route: '/notes', button: 'Nueva nota', dialog: 'Nueva nota' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
   { route: '/calendar', button: 'Apuntar algo', dialog: 'Apuntar en el calendario' },
   { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
@@ -411,6 +413,54 @@ test('las tareas se buscan por texto', async ({ page }) => {
 
   await expect(page.getByText('Dar vitamina D a Ana')).toBeVisible()
   await expect(page.getByText('Comprar pañales talla 1')).toHaveCount(0)
+})
+
+// Las notas: el ciclo entero en la pantalla más simple de la app. Se prueba aquí
+// y no solo en unitarios porque lo que puede romperse es la vuelta al store —una
+// nota nueva tiene que aparecer sin recargar— y el orden, que es lo único que
+// esta pantalla decide.
+test('una nota nueva aparece en el índice, se edita y se borra', async ({ page }) => {
+  await page.goto('/notes')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Nueva nota' }).click()
+  const alta = page.getByRole('dialog', { name: 'Nueva nota' })
+  await alta.getByLabel('Título').fill('Alarma de casa')
+  await alta.getByLabel(/Contenido/).fill('Código: 4321' + String.fromCharCode(10) + 'Se apaga desde el panel de la entrada')
+  await alta.getByRole('button', { name: 'Crear nota' }).click()
+
+  await expect(page.getByText('Alarma de casa')).toBeVisible()
+  // El cuerpo se lee desde la tarjeta, sin abrir nada: es la diferencia con un
+  // documento, que hay que abrir para verlo. Se busca dentro del botón de la
+  // tarjeta porque el sheet cerrado sigue en el árbol con su textarea escrito.
+  await expect(page.getByRole('button', { name: /Alarma de casa/ })).toContainText('Código: 4321')
+
+  await page.getByRole('button', { name: /Alarma de casa/ }).click()
+  const edicion = page.getByRole('dialog', { name: 'Editar nota' })
+  await edicion.getByLabel('Título').fill('Alarma de casa y garaje')
+  await edicion.getByRole('button', { name: 'Guardar' }).click()
+  await expect(page.getByText('Alarma de casa y garaje')).toBeVisible()
+
+  await page.getByRole('button', { name: /Alarma de casa y garaje/ }).click()
+  const borrado = page.getByRole('dialog', { name: 'Editar nota' })
+  await borrado.getByRole('button', { name: 'Eliminar nota' }).click()
+  await borrado.getByRole('button', { name: 'Confirmar eliminación' }).click()
+  await expect(page.getByText('Alarma de casa y garaje')).toHaveCount(0)
+})
+
+// Lo que justifica que exista `pinned`: la clave del wifi se consulta todo el año
+// y no se toca nunca, así que sin fijar quedaría la última. En los datos demo va
+// fijada y "Contador de la luz" no.
+test('las notas fijadas salen las primeras', async ({ page }) => {
+  await page.goto('/notes')
+  await page.waitForTimeout(700)
+
+  const titulos = await page.locator('main button p.font-bold').allInnerTexts()
+  // Las dos fijadas ocupan los dos primeros sitios. Entre ellas manda la fecha
+  // —'Teléfonos útiles' se tocó después—, así que no se fija cuál va primera:
+  // lo que prueba el test es que ninguna sin fijar se les cuela delante.
+  expect(titulos.slice(0, 2).sort()).toEqual(['Teléfonos útiles', 'Wifi de casa'])
+  expect(titulos.indexOf('Contador de la luz')).toBeGreaterThan(1)
 })
 
 // Un papel caducado no avisa por su cuenta: el DNI vale hasta que un día no

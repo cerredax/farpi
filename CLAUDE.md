@@ -116,7 +116,7 @@ Pantallas (src/components/**)
 
 ### Next.js 16
 
-- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, docs, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo y sin sesión: `/privacidad` y `/terminos` (públicas, y requisito para publicar en Google Play) y `/offline` (fallback del service worker).
+- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, notes, docs, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo y sin sesión: `/privacidad` y `/terminos` (públicas, y requisito para publicar en Google Play) y `/offline` (fallback del service worker).
 - El middleware es **`src/proxy.ts`** (renombrado en Next 16, exporta `proxy()`), que delega en `src/lib/supabase/middleware.ts` para refrescar la sesión.
 - **Las rutas públicas son una lista blanca a mano**: `PUBLIC_ROUTES` en `src/lib/supabase/middleware.ts`. Si añades una página que se ve sin sesión y no la metes ahí, redirige al login. Lo mismo por el otro lado: el `matcher` de `src/proxy.ts` deja fuera `sw.js` y `manifest.json` a propósito — si pasan por el control de sesión responden con redirect y el navegador se niega a registrar el service worker.
 - Ante dudas de API o convención, consultar la documentación local en `node_modules/next/dist/docs/` antes de asumir comportamiento antiguo.

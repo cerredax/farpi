@@ -21,7 +21,7 @@ test('home carga con datos demo y la navegación inferior', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Docs' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Más' }).click()
   const mas = page.getByRole('dialog', { name: 'Más' })
-  for (const fila of ['Documentos', 'Ajustes']) {
+  for (const fila of ['Notas', 'Documentos', 'Ajustes']) {
     await expect(mas.getByRole('link', { name: fila })).toBeVisible()
   }
   await mas.getByRole('link', { name: 'Documentos' }).click()

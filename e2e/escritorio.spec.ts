@@ -83,7 +83,7 @@ test.describe('escritorio a 1440 px', () => {
     await expect(lateral).toBeVisible()
     await expect(page.locator(BARRA_ABAJO)).toBeHidden()
 
-    for (const nombre of ['Inicio', 'Calendario', 'Listas', 'Tareas', 'Comidas', 'Documentos']) {
+    for (const nombre of ['Inicio', 'Calendario', 'Listas', 'Tareas', 'Comidas', 'Notas', 'Documentos']) {
       await expect(lateral.getByRole('link', { name: nombre })).toBeVisible()
     }
 

@@ -10,6 +10,26 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-31
 
+### Notas, la sección para lo que hay que tener apuntado (31-08-2026)
+
+Faltaba un sitio para lo que no es una fecha, una tarea ni un papel: el teléfono del
+pediatra, la clave del wifi, dónde está el contador. Se hizo entera —tabla `notes` con su
+policy, contrato de repos, mock, pantalla, sheet y navegación— con la forma más pequeña
+que sirve: título, texto libre, emoji y fijar. Sin categorías y sin tipos de nota; el
+porqué está en `architecture.md`.
+
+Antes de escribir nada se puso encima de la mesa lo de las contraseñas, que es lo único
+que tenía decisión de verdad. Se descartó cifrarlas —hay que resolver cómo se comparte la
+clave, qué pasa desde otro móvil y qué pasa si se olvida— y también el campo oculto que
+se propuso como intermedio. Van en texto plano, y lo que se hace es decirlo: el sheet lo
+avisa bajo el campo y `/privacidad` lo repite.
+
+De paso, la lista de secciones deja de filtrar Documentos a mano: con dos secciones
+dentro de "Más", la barra de abajo y el menú decían lo mismo desde dos archivos. Ahora lo
+dice `enMas` en `secciones.ts`.
+
+Comprobado con capturas a 390 px y a 1440 px, además de la suite.
+
 ### La rejilla del mes se ve como una rejilla en el móvil (31-08-2026)
 
 Las líneas de la cuadrícula existían solo desde `lg:`. En móvil los días eran números

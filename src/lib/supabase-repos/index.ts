@@ -4,6 +4,7 @@ import { familyRepo, invitesRepo, membersRepo } from './family'
 import { childrenRepo } from './kids'
 import { listItemsRepo, listsRepo } from './lists'
 import { mealsRepo } from './meals'
+import { notesRepo } from './notes'
 import { storageProvidersRepo } from './storage-providers'
 import { tasksRepo } from './tasks'
 import type { Repos } from '../repos/types'
@@ -23,6 +24,7 @@ export const supabaseRepos: Repos = {
   lists: listsRepo,
   listItems: listItemsRepo,
   meals: mealsRepo,
+  notes: notesRepo,
   documents: documentsRepo,
   storageProviders: storageProvidersRepo,
 }

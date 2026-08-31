@@ -249,6 +249,15 @@ Objetivo: preparar uso diario.
     bandas a todo el ancho para dos controles que caben en una, y en el móvil se
     comían la primera fila de la lista.
 
+## Fase 8b - Notas ✅ (31-08-2026)
+
+- [x] Tabla `notes` con RLS por familia, índice y trigger de `updated_at`.
+- [x] Contrato `NotesRepo` y las dos implementaciones (mock con `SCHEMA_VER` 12 y Supabase).
+- [x] Pantalla `/notes`: buscador, rejilla de tarjetas, sheet de alta y edición.
+- [x] En "Más" delante de Documentos, y en `SideNav` en escritorio.
+- [x] En la copia de seguridad y en `/privacidad`, con el aviso de que no es un gestor de contraseñas.
+- [ ] **Aplicar el `alter` en el SQL Editor del proyecto real** y pasar `node scripts/validate-rls.mjs`.
+
 ## Fase 9 - Uso diario
 
 Objetivo: que la app funcione sola, sin nadie mirándola.

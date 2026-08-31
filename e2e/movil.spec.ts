@@ -13,7 +13,7 @@ import { elegirVista } from './vistas'
 //
 // Lo que sigue necesitando un teléfono de verdad está en docs/testing-checklist.md.
 
-const RUTAS = ['/home', '/calendar', '/tasks', '/lists', '/meals', '/docs', '/settings']
+const RUTAS = ['/home', '/calendar', '/tasks', '/lists', '/meals', '/notes', '/docs', '/settings']
 
 const MINIMO_TOQUE = 24
 

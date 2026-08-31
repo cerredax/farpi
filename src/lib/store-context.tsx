@@ -25,6 +25,8 @@ import type {
   MealDraft,
   MealPlan,
   MealSlot,
+  Note,
+  NoteDraft,
   PendingItem,
   StorageConnection,
   Task,
@@ -71,6 +73,7 @@ interface StoreValue {
   lists: List[]
   allListItems: ListItem[]
   meals: MealPlan[]
+  notes: Note[]
   documents: Document[]
   /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
   mealSlots: MealSlot[]
@@ -110,6 +113,9 @@ interface StoreValue {
   copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => Promise<void>
   updateMeal: (id: string, draft: MealDraft) => Promise<void>
   deleteMeal: (id: string) => Promise<void>
+  createNote: (draft: NoteDraft) => Promise<void>
+  updateNote: (id: string, draft: NoteDraft) => Promise<void>
+  deleteNote: (id: string) => Promise<void>
   createDocument: (draft: DocumentDraft) => Promise<void>
   updateDocument: (id: string, draft: DocumentDraft) => Promise<void>
   deleteDocument: (id: string) => Promise<void>
@@ -146,6 +152,7 @@ const EMPTY_SLICES = {
   lists: [] as List[],
   allListItems: [] as ListItem[],
   meals: [] as MealPlan[],
+  notes: [] as Note[],
   documents: [] as Document[],
 }
 
@@ -166,6 +173,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [lists, setLists] = useState<List[]>(EMPTY_SLICES.lists)
   const [allListItems, setListItems] = useState<ListItem[]>(EMPTY_SLICES.allListItems)
   const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
+  const [notes, setNotes] = useState<Note[]>(EMPTY_SLICES.notes)
   const [documents, setDocuments] = useState<Document[]>(EMPTY_SLICES.documents)
   const [storageConnection, setStorageConnection] = useState<StorageConnection | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -185,6 +193,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         nextLists,
         nextListItems,
         nextMeals,
+        nextNotes,
         nextDocuments,
         nextUserId,
       ] = await Promise.all([
@@ -198,6 +207,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         repos.lists.getLists(familyId),
         repos.listItems.getListItems(familyId),
         repos.meals.getMeals(familyId),
+        repos.notes.getNotes(familyId),
         repos.documents.getDocuments(familyId),
         repos.members.getCurrentUserId(),
       ])
@@ -219,6 +229,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       setLists(nextLists)
       setListItems(nextListItems)
       setMeals(nextMeals)
+      setNotes(nextNotes)
       setDocuments(nextDocuments)
       setCurrentUserId(nextUserId)
     } catch (err) {
@@ -360,6 +371,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       lists,
       allListItems,
       meals,
+      notes,
       documents,
       mealSlots,
       todayMeals,
@@ -462,6 +474,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         runMutation(() => repos.meals.copyMealDay(familyId, sourceDate, targetDate, repeatUntil)),
       updateMeal: (id: string, draft: MealDraft) => runMutation(() => repos.meals.updateMeal(id, draft)),
       deleteMeal: (id: string) => runMutation(() => repos.meals.deleteMeal(id)),
+      createNote: (draft: NoteDraft) => runMutation(() => repos.notes.createNote(familyId, draft)),
+      updateNote: (id: string, draft: NoteDraft) => runMutation(() => repos.notes.updateNote(id, draft)),
+      deleteNote: (id: string) => runMutation(() => repos.notes.deleteNote(id)),
       createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
       updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),
@@ -492,6 +507,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     lists,
     allListItems,
     meals,
+    notes,
     documents,
     mealSlots,
     todayMeals,

@@ -117,6 +117,28 @@ export type PendingItem = ListItem & { list_name: string; list_emoji: string | n
 /** Ítem encontrado buscando en todas las listas: lleva de dónde sale. */
 export type ItemMatch = ListItem & { list_name: string; list_emoji: string | null }
 
+/**
+ * Algo que hay que tener apuntado y no es una fecha, una tarea ni un papel: el
+ * teléfono del pediatra, la clave del wifi, la talla de las botas del colegio.
+ *
+ * A propósito no tiene categorías, ni campos, ni tipo. Una casa tiene veinte
+ * notas y para veinte manda el buscador; en cuanto una nota tuviera que elegir
+ * entre ser "teléfono" o "contraseña", habría que mantener tres formularios y
+ * decidir en cuál cae "el código de la alarma", que es las dos cosas.
+ */
+export interface Note {
+  id: string
+  family_id: string
+  title: string
+  body: string | null
+  emoji: string | null
+  /** Fijada arriba del todo. Lo que se consulta siempre y no se toca nunca. */
+  pinned: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 
 export interface MealPlan {
@@ -236,6 +258,13 @@ export interface MealDraft {
 export interface ListDraft {
   name: string
   emoji: string
+}
+
+export interface NoteDraft {
+  title: string
+  body: string
+  emoji: string
+  pinned: boolean
 }
 
 export interface ListItemDraft {

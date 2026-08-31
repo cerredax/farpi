@@ -3,16 +3,17 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { FolderOpen, Settings, LogOut } from 'lucide-react'
+import { Settings, LogOut } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { useIsClient } from '@/hooks/useIsClient'
 import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { ROUTES } from '@/lib/constants'
+import { SECCIONES_EN_MAS } from './secciones'
 
 /**
  * "Más": la última pastilla de la barra de abajo, y todo lo que no cabe en ella.
  *
- * Lleva Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
+ * Lleva Notas, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
  * cuenta en la esquina de `TopBar` hasta el 28-08-2026, y viene de una cuenta
  * sencilla: en móvil había **dos** sitios donde tocar para salir de las cinco
  * pantallas de siempre —la barra de abajo y un icono arriba a la derecha—, y el
@@ -21,8 +22,10 @@ import { ROUTES } from '@/lib/constants'
  *
  * Documentos baja aquí porque es la sección a la que menos se entra —el DNI y el
  * libro de familia se miran dos veces al año— y su sitio en la barra es el que
- * necesitaba "Más". En escritorio no cambia nada: `SideNav` tiene columna de
- * sobra y sigue enseñando Documentos con las otras cinco, y la cuenta al pie.
+ * necesitaba "Más". Notas llega el 31-08-2026 y se pone delante, por lo mismo y
+ * por orden: la clave del wifi se consulta cuando viene alguien. En escritorio no
+ * cambia nada: `SideNav` tiene columna de sobra y las enseña con las otras cinco,
+ * y la cuenta al pie.
  *
  * Ajustes entró aquí el mismo 28-08-2026 con sus cinco secciones sueltas
  * (Familia, Casa, Cuenta, Sincronización, Legal), una por fila, para que cada
@@ -51,10 +54,10 @@ export function MoreMenu({ className, children }: { className?: string; children
     window.location.href = '/auth/login'
   }
 
-  const enlaces = [
-    { href: ROUTES.docs, label: 'Documentos', icon: FolderOpen },
-    { href: ROUTES.settings, label: 'Ajustes', icon: Settings },
-  ]
+  // Las secciones salen de `SECCIONES_EN_MAS` y no de una lista propia: eran los
+  // dos sitios donde apuntar lo mismo, y con Documentos solo ya habían divergido
+  // una vez. Ajustes sí se escribe aquí, porque no es una sección de la casa.
+  const enlaces = [...SECCIONES_EN_MAS, { href: ROUTES.settings, label: 'Ajustes', icon: Settings }]
 
   const sheet = (
     <BottomSheet open={open} title="Más" onClose={() => setOpen(false)}>

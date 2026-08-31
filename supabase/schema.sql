@@ -185,6 +185,31 @@ create table if not exists public.list_items (
   constraint list_items_quantity_valida check (quantity between 1 and 99)
 );
 
+-- Lo que hay que tener apuntado y no es una fecha, una tarea ni un papel: el
+-- teléfono del pediatra, la clave del wifi, la talla de las botas del colegio.
+-- Nace el 31-08-2026 con la forma más sencilla que sirve: un título, un texto
+-- libre y un emoji para reconocerla. Sin categorías y sin campos: una casa tiene
+-- veinte notas, no doscientas, y para veinte manda el buscador.
+--
+-- `pinned` es lo único que ordena por encima del tiempo. La clave del wifi se
+-- consulta todo el año y no se toca nunca, así que ordenar solo por
+-- `updated_at` la hundiría bajo cualquier nota escrita ayer.
+--
+-- Ojo con lo que se guarda aquí: es texto plano en la base, protegido por la
+-- RLS y por nada más. Sirve para la clave del wifi de casa; no es un gestor de
+-- contraseñas y la pantalla lo dice.
+create table if not exists public.notes (
+  id          uuid primary key default uuid_generate_v4(),
+  family_id   uuid not null references public.families(id) on delete cascade,
+  title       text not null,
+  body        text,
+  emoji       text,
+  pinned      boolean not null default false,
+  created_by  uuid references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
 -- Qué se come. Una comida por familia, día y franja: el `unique` es lo que deja
 -- que la pantalla escriba sin preguntar antes si ya había algo.
 create table if not exists public.meal_plans (
@@ -331,6 +356,8 @@ create index if not exists events_recurrence_group_idx on public.events(recurren
   where recurrence_group_id is not null;
 
 create index if not exists list_items_list_idx      on public.list_items(list_id, sort_order);
+-- Las fijadas primero y luego lo tocado hace menos, que es el orden en que se leen.
+create index if not exists notes_family_idx         on public.notes(family_id, pinned desc, updated_at desc);
 create index if not exists meal_plans_family_date_idx on public.meal_plans(family_id, date);
 
 create index if not exists documents_family_idx   on public.documents(family_id, created_at desc);
@@ -371,6 +398,7 @@ $$;
 drop trigger if exists set_families_updated_at   on public.families;
 drop trigger if exists set_events_updated_at     on public.events;
 drop trigger if exists set_lists_updated_at      on public.lists;
+drop trigger if exists set_notes_updated_at      on public.notes;
 drop trigger if exists set_meal_plans_updated_at on public.meal_plans;
 drop trigger if exists set_documents_updated_at  on public.documents;
 drop trigger if exists set_tasks_updated_at      on public.tasks;
@@ -379,6 +407,7 @@ drop trigger if exists set_storage_connections_updated_at on public.storage_conn
 create trigger set_families_updated_at   before update on public.families   for each row execute function public.set_updated_at();
 create trigger set_events_updated_at     before update on public.events     for each row execute function public.set_updated_at();
 create trigger set_lists_updated_at      before update on public.lists      for each row execute function public.set_updated_at();
+create trigger set_notes_updated_at      before update on public.notes      for each row execute function public.set_updated_at();
 create trigger set_meal_plans_updated_at before update on public.meal_plans for each row execute function public.set_updated_at();
 create trigger set_documents_updated_at  before update on public.documents  for each row execute function public.set_updated_at();
 create trigger set_tasks_updated_at      before update on public.tasks      for each row execute function public.set_updated_at();
@@ -534,6 +563,7 @@ alter table public.children           enable row level security;
 alter table public.events             enable row level security;
 alter table public.lists              enable row level security;
 alter table public.list_items         enable row level security;
+alter table public.notes              enable row level security;
 alter table public.meal_plans         enable row level security;
 alter table public.documents          enable row level security;
 alter table public.tasks              enable row level security;
@@ -607,6 +637,11 @@ create policy "Miembros CRUD listas de su familia"
 drop policy if exists "Miembros CRUD items de su familia" on public.list_items;
 create policy "Miembros CRUD items de su familia"
   on public.list_items for all
+  using (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros CRUD notas de su familia" on public.notes;
+create policy "Miembros CRUD notas de su familia"
+  on public.notes for all
   using (family_id in (select public.my_family_ids()));
 
 drop policy if exists "Miembros CRUD comidas de su familia" on public.meal_plans;

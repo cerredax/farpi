@@ -1,6 +1,6 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
 import { isRangeKind } from './events'
-import type { ChildDraft, EventDraft, TaskDraft, MealDraft, ListDraft, ListItemDraft } from '@/types'
+import type { ChildDraft, EventDraft, TaskDraft, MealDraft, ListDraft, ListItemDraft, NoteDraft } from '@/types'
 
 // ─── Email ────────────────────────────────────────────────────────────────────
 
@@ -101,6 +101,18 @@ export function validateListDraft(draft: ListDraft): string | null {
 
 export function validateListItemDraft(draft: ListItemDraft): string | null {
   if (!draft.text.trim()) return 'El texto es obligatorio.'
+  return null
+}
+
+// ─── Notas ────────────────────────────────────────────────────────────────────
+
+/**
+ * El título es lo único obligatorio: es lo que se lee en el índice y lo que se
+ * busca. Una nota sin cuerpo es legítima —"Wifi: casa-garcia / 1234" cabe entera
+ * en el título—, pero una sin título sería una tarjeta en blanco.
+ */
+export function validateNoteDraft(draft: NoteDraft): string | null {
+  if (!draft.title.trim()) return 'El título de la nota no puede estar vacío.'
   return null
 }
 

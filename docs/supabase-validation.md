@@ -1,5 +1,11 @@
 # Validación Supabase
 
+> **Pendiente (31-08-2026).** La tabla `notes` está en `supabase/schema.sql` pero
+> **todavía no aplicada** en el proyecto real, así que esta validación no la cubre.
+> El arnés ya trae sus tres comprobaciones (A la crea, B no la ve, B no puede escribir
+> en la familia de A): al aplicar el `alter` hay que volver a pasar
+> `node scripts/validate-rls.mjs` y actualizar este documento. Debería dar **89/89**.
+
 Última ejecución: 2026-08-27, ya con los cumpleaños apuntados. **86/86 comprobaciones
 correctas.**
 

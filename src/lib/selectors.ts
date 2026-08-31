@@ -2,7 +2,7 @@ import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from 
 import { eventCoversDay, isAbsence, isBirthday, isDigestPlan } from './events'
 import { DIAS_AVISO_CADUCIDAD, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
-import type { Document, Event, MealPlan, MealSlot, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
+import type { Document, Event, MealPlan, MealSlot, Note, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
 const TASK_PRIORITY_WEIGHT = Object.fromEntries(
   TASK_PRIORITIES.map((priority, index) => [priority.value, index])
@@ -368,6 +368,35 @@ export function selectDocumentMatches(documents: Document[], query: string): Doc
   if (!consulta) return documents
   return documents.filter(d =>
     normalizaParaBuscar(`${d.name} ${d.description ?? ''}`).includes(consulta)
+  )
+}
+
+/**
+ * Las notas en el orden en que se leen: las fijadas primero y, dentro de cada
+ * grupo, lo tocado hace menos.
+ *
+ * Ordenar solo por fecha no vale y por eso existe `pinned`: la clave del wifi se
+ * consulta todo el año y no se edita nunca, así que cualquier nota escrita ayer
+ * la hundiría. Es el mismo orden que ya tiene el índice de la tabla, para que la
+ * pantalla y la base no discrepen.
+ */
+export function selectSortedNotes(notes: Note[]): Note[] {
+  return [...notes].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+    return b.updated_at.localeCompare(a.updated_at)
+  })
+}
+
+/**
+ * Busca texto libre en las notas: título y cuerpo. Aquí la búsqueda pesa más que
+ * en ningún otro sitio —una nota no tiene fecha ni persona por la que filtrar, y
+ * es lo único que la encuentra cuando pasan seis meses.
+ */
+export function selectNoteMatches(notes: Note[], query: string): Note[] {
+  const consulta = normalizaParaBuscar(query.trim())
+  if (!consulta) return notes
+  return notes.filter(n =>
+    normalizaParaBuscar(`${n.title} ${n.body ?? ''}`).includes(consulta)
   )
 }
 

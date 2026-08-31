@@ -55,13 +55,20 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   anuncia un lector de pantalla.
 - Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó.
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
-- Búsqueda en listas, tareas, documentos y calendario. La del calendario encuentra
+- Búsqueda en listas, tareas, notas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
 - Comidas (día/semana, copiar día). Las cuatro franjas se activan y desactivan por familia desde Ajustes; apagar una no borra lo apuntado en ella.
 - Documentos: subir, abrir, editar, borrar y aviso de caducidad en la tarjeta. Los
   archivos están en el Google Drive de quien los sube y los sirve Nido con el token
   del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
   detrás.
+- **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
+  tarea ni un papel —el teléfono del pediatra, la clave del wifi, dónde está el contador—.
+  Título, texto libre, un emoji y la posibilidad de fijar una arriba. Sin categorías, sin
+  campos y sin tipos de nota: con veinte notas manda el buscador. Se lee entera desde la
+  tarjeta, sin abrir nada. Vive en "Más", delante de Documentos, y **no sale en Inicio**:
+  la clave del wifi no es de hoy, es de siempre. Ojo con lo que se guarda ahí: es texto
+  plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
 - Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
   Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
   catorce días van en su bloque; el aviso de las siete felicita el mismo día.
@@ -71,11 +78,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Cuenta y Ajustes, por sitios distintos según el tamaño (28-08-2026). En escritorio, el
   pie de la barra lateral (`AccountFooter.tsx`): tu inicial y tu nombre como letrero, y
   debajo Ajustes y cerrar sesión, cada uno en su fila y a un clic. En móvil, **"Más"**, la
-  sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva Documentos —que por eso
-  ya no es una pastilla—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
+  sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva Notas y Documentos —que
+  por eso no son pastillas—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
+  Qué secciones caen ahí lo dice la bandera `enMas` de `secciones.ts`, que leen las dos
+  barras: era un filtro escrito a mano y con dos secciones ya podía contradecirse.
   Ajustes abre en Familia; elegir pestaña es cosa de las pestañas. Cambiar contraseña
   (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes.
-- Listas, Tareas, Comidas y Documentos abren con la misma fila (`ViewHeader.tsx`,
+- Listas, Tareas, Comidas, Notas y Documentos abren con la misma fila (`ViewHeader.tsx`,
   28-08-2026): resumen, buscador y el `+` de alta, bajo el título de la cabecera. El `+`
   de Tareas estaba flotando abajo a la derecha y era el único fuera de sitio.
 - Páginas legales públicas `/privacidad` y `/terminos`.

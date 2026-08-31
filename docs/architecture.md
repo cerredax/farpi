@@ -1133,6 +1133,51 @@ Quién eres se sabe por `currentMember` del store, que compara los miembros con
 `members.getCurrentUserId()` del contrato de repos (en demo, siempre `u1`). Es para
 reconocer tu fila, no para decidir permisos: eso lo sigue haciendo la RLS.
 
+### Notas: texto libre y nada más (31-08-2026)
+
+Lo que hay que tener apuntado en una casa y no es una fecha, una tarea ni un papel: el
+teléfono del pediatra, la clave del wifi, la talla de las botas, dónde está el contador
+de la luz. Es la sección más pequeña de la app y se queda así.
+
+**Una nota es un título, un texto libre y un emoji.** Sin categorías, sin campos y sin
+tipos de nota. Se consideró la variante con tipos —"teléfono" con botón de llamar,
+"contraseña" con botón de copiar— y se descartó por dos cosas: obliga a elegir tipo antes
+de escribir, y no hay respuesta para el código de la alarma, que es teléfono y contraseña
+a la vez. Lo que hace falta apuntar en una casa —"el contador está en el rellano, la llave
+pequeña del llavero azul"— no cabe en un campo. También se descartaron carpetas: una
+familia tiene veinte notas, y para veinte manda el buscador.
+
+**La nota se lee desde el índice**, con sus saltos de línea, hasta seis líneas. Es la
+diferencia con `DocCard`, a la que se parece: un documento es un archivo que hay que
+abrir, una nota **es** su contenido, y obligar a tocar para ver el teléfono del pediatra
+convierte en dos gestos lo que tiene que ser cero.
+
+**Fijar es lo único que ordena por encima del tiempo.** Ordenar solo por `updated_at` no
+vale: la clave del wifi se consulta todo el año y no se edita nunca, así que cualquier
+nota escrita ayer la hundiría. Se marca en el sheet y no en la tarjeta, porque un botón no
+puede llevar botones dentro —la misma piedra con la que tropezó `DayCell` al empezar a
+escribir títulos— y partir la tarjeta en dos zonas pulsables por un gesto que se hace una
+vez no sale a cuenta.
+
+**No sale en Inicio.** Inicio contesta "¿qué tenemos que saber hoy?" y la clave del wifi no
+es de hoy: es de siempre, que es justo lo contrario.
+
+**Va en "Más", delante de Documentos**, y no en la barra de abajo. Las cinco pastillas son
+las cinco pantallas de todos los días, y una nota se consulta cuando viene alguien o
+cuando se estropea algo. Con dos secciones ahí, el filtro de la barra dejó de escribirse a
+mano: `secciones.ts` marca cuáles con `enMas` y lo leen las dos barras.
+
+**Lo que se escribe se guarda en texto plano**, protegido por la RLS y por nada más. Es
+una decisión consciente y tiene su letra pequeña: la CSP lleva `'unsafe-inline'` en los
+scripts (ver "Superficie de seguridad"), así que un XSS en línea llegaría a la sesión y
+con ella a las notas, y quien tenga el panel de Supabase o la clave de servicio las lee.
+Se valoró cifrarlas con una clave derivada de una frase familiar y se descartó: hay que
+resolver cómo la comparten cinco personas, qué pasa al entrar desde otro móvil y qué pasa
+cuando alguien la olvida —se pierde todo—, y eso es un proyecto, no una sección. Lo que sí
+se hace es decirlo donde se lee: el sheet lo avisa bajo el campo de contenido y
+`/privacidad` lo repite. Sirve para la clave del wifi de casa; no es un gestor de
+contraseñas.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

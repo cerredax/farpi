@@ -94,6 +94,13 @@ export const mockRepos: Repos = {
       Promise.resolve(void store.copyMealDay(familyId, sourceDate, targetDate, repeatUntil)),
   },
 
+  notes: {
+    getNotes:   (familyId) => Promise.resolve(store.getNotes(familyId)),
+    createNote: (familyId, draft) => Promise.resolve(store.createNote(familyId, draft)),
+    updateNote: (id, draft) => Promise.resolve(store.updateNote(id, draft)),
+    deleteNote: (id) => Promise.resolve(store.deleteNote(id)),
+  },
+
   documents: {
     getDocuments:    (familyId) => Promise.resolve(store.getDocuments(familyId)),
     createDocument:  (familyId, draft) => Promise.resolve(store.createDocument(familyId, draft)),

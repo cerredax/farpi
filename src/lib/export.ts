@@ -1,6 +1,6 @@
 import type {
   Child, Document, Event, Family, FamilyInvite, FamilyMember,
-  List, ListItem, MealPlan, Task,
+  List, ListItem, MealPlan, Note, Task,
 } from '@/types'
 import { getLocalDateString } from './date-utils'
 import { safeFileName } from './text'
@@ -39,6 +39,7 @@ export interface DatosParaExportar {
   lists: List[]
   listItems: ListItem[]
   meals: MealPlan[]
+  notes: Note[]
   documents: Document[]
 }
 
@@ -57,6 +58,7 @@ export interface Exportacion {
     lists: List[]
     list_items: ListItem[]
     meal_plans: MealPlan[]
+    notes: Note[]
     documents: Document[]
   }
 }
@@ -91,6 +93,7 @@ export function construirExportacion(datos: DatosParaExportar, ahora: Date = new
       lists: datos.lists,
       list_items: datos.listItems,
       meal_plans: datos.meals,
+      notes: datos.notes,
       documents: datos.documents,
     },
   }
@@ -123,6 +126,7 @@ export function resumenDeExportacion(datos: DatosParaExportar): string {
   cuenta(datos.tasks.length, 'tarea', 'tareas')
   cuenta(datos.listItems.length, 'artículo', 'artículos')
   cuenta(datos.meals.length, 'comida', 'comidas')
+  cuenta(datos.notes.length, 'nota', 'notas')
   cuenta(datos.documents.length, 'documento', 'documentos')
   return partes.join(' · ')
 }

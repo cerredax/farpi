@@ -1,7 +1,7 @@
 import { ALL_MEAL_SLOTS } from '../meal-slots'
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, List, ListItem, Document,
+  MealPlan, List, ListItem, Document, Note,
 } from '@/types'
 
 interface DB {
@@ -14,6 +14,7 @@ interface DB {
   lists:     List[]
   listItems: ListItem[]
   mealPlans: MealPlan[]
+  notes:     Note[]
   documents: Document[]
 }
 
@@ -102,6 +103,13 @@ export const db: DB = {
     { id: 'mp09', family_id: 'f1', date: '2026-06-19', slot: 'dinner',    name: 'Sándwiches calientes',         notes: 'Noche tranquila',               created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'mp10', family_id: 'f1', date: '2026-06-20', slot: 'lunch',     name: 'Merluza con arroz',            notes: null,                            created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'mp11', family_id: 'f1', date: '2026-06-20', slot: 'dinner',    name: 'Gazpacho y empanada',          notes: 'Compra hecha',                  created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+  ],
+
+  notes: [
+    { id: 'n1', family_id: 'f1', title: 'Wifi de casa', body: 'Red: NIDO_2G\nClave: casa-de-ana-2026', emoji: '📶', pinned: true,  created_by: 'u1', created_at: '2026-06-02T10:00:00', updated_at: '2026-06-02T10:00:00' },
+    { id: 'n2', family_id: 'f1', title: 'Teléfonos útiles', body: 'Pediatra Ana: 985 12 34 56\nCentro de salud: 985 65 43 21\nFarmacia de guardia: 985 11 22 33', emoji: '☎️', pinned: true, created_by: 'u2', created_at: '2026-06-04T09:00:00', updated_at: '2026-06-16T19:00:00' },
+    { id: 'n3', family_id: 'f1', title: 'Tallas de Ana', body: 'Ropa: 0-3 meses. Pañal: talla 1. Pie: aún sin calzado.', emoji: '👕', pinned: false, created_by: 'u2', created_at: '2026-06-10T18:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'n4', family_id: 'f1', title: 'Contador de la luz', body: 'Está en el rellano, a la izquierda. La llave pequeña del llavero azul.', emoji: '💡', pinned: false, created_by: 'u1', created_at: '2026-06-12T20:00:00', updated_at: '2026-06-12T20:00:00' },
   ],
 
   documents: [

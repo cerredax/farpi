@@ -19,14 +19,14 @@ import { construirExportacion, nombreDeArchivo, resumenDeExportacion } from '@/l
  * `docs/project-status.md`, que es donde sirve de algo si un día no hay app.
  */
 export function BackupCard() {
-  const { family, members, invites, kids, allEvents, tasks, lists, allListItems, meals, documents } = useStore()
+  const { family, members, invites, kids, allEvents, tasks, lists, allListItems, meals, notes, documents } = useStore()
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState(false)
 
   const datos = {
     family, members, invites, kids,
     events: allEvents, tasks, lists,
-    listItems: allListItems, meals, documents,
+    listItems: allListItems, meals, notes, documents,
   }
 
   function descargar() {

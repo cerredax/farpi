@@ -19,18 +19,18 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 ## 2. Navegación
 
 > Lo de esta lista que se puede comprobar sin teléfono ya está automatizado:
-> `e2e/movil.spec.ts` corre las siete pantallas a 390×844 y falla si algo
+> `e2e/movil.spec.ts` corre las ocho pantallas a 390×844 y falla si algo
 > desborda a lo ancho o si aparece un control por debajo de 24×24 px. Lo que
 > queda aquí es lo que hay que mirar con el móvil en la mano.
 
 - [ ] La barra de abajo muestra seis pastillas: Inicio, Calendario, Listas, Tareas,
-      Comidas y «Más». Documentos ya no es una de ellas (28-08-2026): está dentro de
-      «Más», con su nombre entero. En la barra lateral de escritorio sí sale, con las
-      otras cinco.
+      Comidas y «Más». Documentos ya no es una de ellas (28-08-2026) y Notas nunca lo
+      fue (31-08-2026): están dentro de «Más», con su nombre entero. En la barra lateral
+      de escritorio salen las siete.
 - [ ] La ruta activa se resalta correctamente. «Más» no se marca activa en /docs ni en
       /settings: no es una pantalla, es por dónde se llega.
-- [ ] «Más» abre Documentos, las cinco secciones de Ajustes (cuatro en demo, sin
-      Sincronización) y, en su propia tarjeta, cerrar sesión.
+- [ ] «Más» abre Notas y Documentos —en ese orden—, Ajustes y, en su propia tarjeta,
+      cerrar sesión.
 - [ ] La cabecera de móvil no lleva ningún icono a la derecha: ni rueda de Ajustes
       (26-08-2026) ni círculo de cuenta (28-08-2026). Solo el título.
 - [ ] La barra de abajo no tapa contenido.
@@ -251,6 +251,19 @@ verdad, que es que el otro vea el documento sin conectar nada.
 - [ ] Con `npm run start`, recorrer las rutas escuchando `securitypolicyviolation`:
       la subida a `www.googleapis.com` no debe disparar ninguna.
 
+## 8b. Notas
+
+- [ ] Se muestran las cuatro notas mock, y las dos fijadas (Wifi y Teléfonos) van arriba.
+- [ ] El cuerpo se lee **desde la tarjeta**, con sus saltos de línea, sin abrir nada.
+- [ ] Se puede crear, editar y borrar una nota, y aparece sin recargar.
+- [ ] Una nota sin contenido vale; una sin título, no (el botón se queda apagado).
+- [ ] El buscador encuentra por título y por cuerpo, sin tildes y sin mayúsculas.
+- [ ] Marcar «Arriba del todo» la sube; desmarcarla la devuelve a su sitio por fecha.
+- [ ] El sheet avisa de que Nido no es un gestor de contraseñas, bajo el contenido.
+- [ ] Una nota muy larga se corta a seis líneas en la tarjeta y se lee entera al abrirla.
+- [ ] En escritorio las tarjetas van en rejilla (dos desde `lg`, tres desde `xl`) y una
+      nota corta no se estira hasta el alto de la más larga de su fila.
+
 ## 9. Ajustes - familias
 
 - [ ] Se puede editar nombre de familia.
@@ -307,6 +320,7 @@ cada uno hace a su manera:
 - [ ] En Ajustes → Tu familia, el botón descarga un `.json` con el nombre de la
       familia y la fecha de hoy.
 - [ ] El recuento que sale bajo el botón cuadra con lo que hay en la app.
+- [ ] El archivo lleva `notes` entre las tablas, y el recuento nombra las notas.
 - [ ] **En el iPhone, con Nido instalado como PWA.** Es el caso que más falla: las
       descargas de blob dentro de una app instalada no se comportan como en Safari.
 - [ ] Abrir el archivo y comprobar que **no** aparece `refresh_token`,

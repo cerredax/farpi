@@ -1,8 +1,8 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, MealSlot, List, ListItem, Document,
+  MealPlan, MealSlot, List, ListItem, Document, Note,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
-  ListDraft, ListItemDraft, DocumentDraft, StorageConnection,
+  ListDraft, ListItemDraft, DocumentDraft, NoteDraft, StorageConnection,
 } from '@/types'
 
 // ─── Contratos de repositorios ─────────────────────────────────────────────────
@@ -92,6 +92,13 @@ export interface ListItemsRepo {
   setListItemQuantity(id: string, quantity: number): Promise<void>
 }
 
+export interface NotesRepo {
+  getNotes(familyId: string): Promise<Note[]>
+  createNote(familyId: string, draft: NoteDraft): Promise<Note>
+  updateNote(id: string, draft: NoteDraft): Promise<void>
+  deleteNote(id: string): Promise<void>
+}
+
 export interface MealsRepo {
   getMeals(familyId: string): Promise<MealPlan[]>
   createMeal(familyId: string, draft: MealDraft): Promise<MealPlan>
@@ -145,6 +152,7 @@ export interface Repos {
   lists: ListsRepo
   listItems: ListItemsRepo
   meals: MealsRepo
+  notes: NotesRepo
   documents: DocumentsRepo
   storageProviders: StorageProvidersRepo
 }

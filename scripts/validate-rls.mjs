@@ -139,8 +139,9 @@ async function main() {
   const listaA = await sembrar('lists', { family_id: famA, name: 'Lista A' })
   await sembrar('list_items', { family_id: famA, list_id: listaA, text: 'Item A', sort_order: 0 })
   await sembrar('meal_plans', { family_id: famA, date: '2026-08-10', slot: 'lunch', name: 'Comida A' })
+  await sembrar('notes', { family_id: famA, title: 'Nota A', body: 'Clave del wifi de A' })
 
-  for (const tabla of ['children', 'events', 'tasks', 'lists', 'list_items', 'meal_plans']) {
+  for (const tabla of ['children', 'events', 'tasks', 'lists', 'list_items', 'meal_plans', 'notes']) {
     comprobar(`B NO ve ${tabla} de la familia de A`,
       filas(await api(`/rest/v1/${tabla}?family_id=eq.${famA}&select=id`, { token: tokB })) === 0)
   }
@@ -148,6 +149,8 @@ async function main() {
   console.log('\n== 3. B intenta escribir en la familia de A')
   comprobar('B NO puede crear tareas en la familia de A',
     (await api('/rest/v1/tasks', { metodo: 'POST', token: tokB, datos: { family_id: famA, title: 'Intrusa', priority: 'high' } })).estado >= 400)
+  comprobar('B NO puede crear notas en la familia de A',
+    (await api('/rest/v1/notes', { metodo: 'POST', token: tokB, datos: { family_id: famA, title: 'Intrusa' } })).estado >= 400)
   comprobar('B NO puede auto-añadirse como miembro de A',
     (await api('/rest/v1/family_members', { metodo: 'POST', token: tokB, datos: { family_id: famA, user_id: uidB, display_name: 'Intruso', role: 'admin' } })).estado >= 400)
   comprobar('B NO puede borrar tareas de A',

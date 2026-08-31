@@ -234,6 +234,7 @@ export const ROUTES = {
   tasks:    '/tasks',
   lists:    '/lists',
   meals:    '/meals',
+  notes:    '/notes',
   docs:     '/docs',
   settings: '/settings',
 } as const

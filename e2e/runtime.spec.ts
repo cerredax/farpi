@@ -394,27 +394,27 @@ test('una tarea se puede asignar a alguien y se ve de quién es', async ({ page 
 
   await page.getByRole('button', { name: 'Nueva tarea' }).click()
   const sheet = page.getByRole('dialog', { name: 'Nueva tarea' })
-  await page.locator('#task-title').fill('Llamar al seguro')
+  await page.locator('#task-title').fill('Regar las plantas')
   await sheet.getByRole('button', { name: 'Sofía' }).click()
   await page.getByRole('button', { name: 'Crear tarea' }).click()
   await page.waitForTimeout(400)
 
   // La tarea aparece con el nombre de quien la lleva.
-  const fila = page.locator('div').filter({ hasText: /^Llamar al seguro/ }).first()
+  const fila = page.locator('div').filter({ hasText: /^Regar las plantas/ }).first()
   await expect(fila).toContainText('Sofía')
 })
 
-// Con el tiempo la lista se hace larga y "¿apunté lo del seguro?" solo se
+// Con el tiempo la lista se hace larga y "¿apunté lo de la vitamina?" solo se
 // contesta a base de scroll.
 test('las tareas se buscan por texto', async ({ page }) => {
   await page.goto('/tasks')
   await page.waitForTimeout(700)
 
-  await expect(page.getByText('Comprar pañales talla 1')).toBeVisible()
+  await expect(page.getByText('Llamar al seguro del coche')).toBeVisible()
   await page.getByLabel('Buscar tareas').fill('vitamina')
 
-  await expect(page.getByText('Dar vitamina D a Ana')).toBeVisible()
-  await expect(page.getByText('Comprar pañales talla 1')).toHaveCount(0)
+  await expect(page.getByText('Dar la vitamina a Cris')).toBeVisible()
+  await expect(page.getByText('Llamar al seguro del coche')).toHaveCount(0)
 })
 
 // Las notas: el ciclo entero en la pantalla más simple de la app. Se prueba aquí
@@ -533,13 +533,13 @@ test('el calendario busca también en el pasado', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(800)
 
-  await page.getByLabel('Buscar en el calendario').fill('registro civil')
+  await page.getByLabel('Buscar en el calendario').fill('itv')
 
   // La cabecera dice cuántos hay y dónde ha mirado. Antes ponía "Búsqueda" en
   // una línea aparte, encima del recuento; ahora es una sola línea, que dice lo
   // mismo con más información y deja sitio a los resultados.
   await expect(page.getByText(/1 resultado en todo el calendario/)).toBeVisible()
-  await expect(page.getByText('Registro civil')).toBeVisible()
+  await expect(page.getByText('ITV del coche')).toBeVisible()
 })
 
 // Las cabeceras se configuran en next.config.ts y no se ven al usar la app: si
@@ -725,16 +725,16 @@ test('en Inicio, cada ítem dice sus unidades', async ({ page }) => {
   const cestas = page.getByRole('button', { expanded: false }).filter({ hasText: 'Casa' }).first()
   await cestas.click()
 
-  // Acotado a su sección: arriba hay una tarea que se llama "Comprar pañales
-  // talla 1" y se colaba en la búsqueda por texto.
+  // Acotado a su sección: fuera de ella hay más sitios donde sale la compra, y
+  // buscar el texto suelto engancharía el primero que aparezca.
   const seccion = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Listas de casa' }) })
 
-  const fila = seccion.getByText('Pañales talla 1', { exact: false }).first()
+  const fila = seccion.getByText('Fruta y verdura', { exact: false }).first()
   await expect(fila).toBeVisible()
   await expect(fila).toContainText('×2')
 
   // Y un ítem de uno no escribe nada: "×1" diría lo que ya dice la fila.
-  await expect(seccion.getByText('Toallitas sin perfume', { exact: false }).first()).not.toContainText('×')
+  await expect(seccion.getByText('Café y leche', { exact: false }).first()).not.toContainText('×')
 })
 
 // ─── Finanzas ────────────────────────────────────────────────────────────────

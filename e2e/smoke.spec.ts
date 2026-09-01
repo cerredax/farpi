@@ -95,7 +95,7 @@ test('una familia creada se puede eliminar y la app vuelve a la anterior', async
   await dialog.getByRole('button', { name: 'Confirmar: se borra todo' }).click()
 
   await expect(page.getByText('Familia de prueba')).toHaveCount(0)
-  await expect(page.getByText('Familia de Omar, Sofía y Ana')).toBeVisible()
+  await expect(page.getByText('Familia de Omar, Sofía y Cris')).toBeVisible()
 })
 
 // El segundo eje de la agenda. Se prueba en el navegador y no en unitarios

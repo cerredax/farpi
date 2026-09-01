@@ -152,6 +152,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   - **Las capturas, escalonadas y torcidas un pelín**, y se enderezan y levantan al pasar
     el ratón. Solo desde `lg:`, y anuladas con `motion-reduce`. Dos columnas en `lg` y
     tres en `xl`: a tres en un portátil de 1024 px los móviles no se leían.
+- **Los datos de demo son los de una casa, no los de un bebé** (01-09-2026). La hija se
+  llama **Cris** y sigue estando (su pediatra, su vitamina, su cartilla, su cumplemes),
+  pero alrededor hay lo que tiene cualquier casa: la ITV, el dentista, una cena con
+  amigos, la lavadora, la basura, el seguro del coche, la gasolina, el bricolaje. Antes
+  todo giraba alrededor del recién nacido y quien no tuviera hijos no se reconocía en
+  las capturas de la portada, que es de donde salen. Cambiar esos textos obliga a tocar
+  las comprobaciones de la suite que los buscan por su nombre y a regenerar las capturas.
 - **El texto no lleva ni un guion largo** (01-09-2026). Se usaban a puñados para meter
   incisos y son de las cosas que delatan un texto escrito por una máquina. Van con
   comas, con paréntesis o partiendo la frase. En los comentarios del código se quedan:
@@ -170,13 +177,14 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   `node scripts/gen-capturas.mjs` contra la app en modo demo con el reloj congelado en
   el 17-06-2026, la fecha de los datos de ejemplo. No son maquetas y no envejecen a
   escondidas: si la interfaz cambia, se relanza el script. Cada pantalla puede llevar un
-  paso `preparar` —la de la semana cambia de vista antes de la foto—. El script saca
-  **nueve**; la portada enseña **cuatro** (inicio, el mes, listas, finanzas), a dos
-  columnas y al doble de tamaño. Las nueve en 3×3 eran un muro: a 200 px una pantalla de
-  móvil no se distingue de otra y el pie de foto hacía todo el trabajo. Las cuatro están
-  elegidas por forma distinta —tarjetas, rejilla, lista y barras—. Las otras cinco se
-  siguen generando para la ficha de Google Play. En móvil se arrastran de lado
-  encajando de una en una.
+  paso `preparar` (la de la semana cambia de vista antes de la foto). El script saca
+  **nueve**; la portada enseña **seis** (inicio, el mes, listas, comidas, finanzas,
+  documentos) a dos columnas y 314 px cada una. Las nueve en 3×3 eran un muro: a 200 px
+  una pantalla de móvil no se distingue de otra y el pie de foto hacía todo el trabajo.
+  Lo que las hacía ilegibles era el **ancho**, no el número: a dos columnas da igual que
+  haya cuatro o seis, solo alarga la sección. Están elegidas por forma distinta para que
+  la rejilla no parezca una cosa repetida. Las otras tres se siguen generando para la
+  ficha de Google Play. En móvil se arrastran de lado encajando de una en una.
 - **Y se ven nítidas, que costó tres arreglos** (01-09-2026). Una captura de móvil se
   enseña a la mitad de tamaño, así que el texto de la app cae a unos 7 px y cualquier
   pérdida se nota:

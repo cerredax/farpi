@@ -56,11 +56,11 @@ const ENTORNO_DEMO = {
  */
 const PANTALLAS = [
   { ruta: '/home',     nombre: 'inicio',     espera: 'Buenos días' },
-  { ruta: '/calendar', nombre: 'calendario', espera: 'Abuelos vienen a merendar' },
+  { ruta: '/calendar', nombre: 'calendario', espera: 'Cena con Marta y Javi' },
   {
     ruta: '/calendar',
     nombre: 'semana',
-    espera: 'Abuelos vienen a merendar',
+    espera: 'Cena con Marta y Javi',
     // La misma ruta con otra vista: el calendario abre en el mes y la semana
     // hay que pedirla. En móvil las cuatro vistas están detrás de un botón que
     // despliega, igual que en `e2e/vistas.ts`.
@@ -70,12 +70,12 @@ const PANTALLAS = [
       await pagina.waitForTimeout(700)
     },
   },
-  { ruta: '/tasks',    nombre: 'tareas',     espera: 'Dar vitamina D a Ana' },
-  { ruta: '/lists',    nombre: 'listas',     espera: 'Compra bebé' },
+  { ruta: '/tasks',    nombre: 'tareas',     espera: 'Dar la vitamina a Cris' },
+  { ruta: '/lists',    nombre: 'listas',     espera: 'Bricolaje' },
   { ruta: '/meals',    nombre: 'comidas',    espera: 'Pollo al horno con patatas' },
   { ruta: '/finanzas', nombre: 'finanzas',   espera: 'Compra semanal' },
   { ruta: '/notes',    nombre: 'notas',      espera: 'Wifi de casa' },
-  { ruta: '/docs',     nombre: 'documentos', espera: 'DNI Omar' },
+  { ruta: '/docs',     nombre: 'documentos', espera: 'Seguro del coche' },
 ]
 
 /** Espera a que el servidor conteste, sin dar por hecho cuánto tarda en arrancar. */

@@ -93,22 +93,28 @@ const SECCIONES = [
  * datos de ejemplo salgan como el día que valían. No son maquetas: si la
  * interfaz cambia, se vuelve a lanzar el script y esto se entera.
  *
- * **Cuatro, no las nueve que hay.** Llegaron a estar las nueve en una rejilla de
- * 3×3 y era un muro: a 200 px de ancho una pantalla de móvil no se distingue de
- * otra —todas son una superficie clara con rayas— y el pie de foto acababa
- * haciendo todo el trabajo. Con cuatro caben al doble de tamaño y se leen. Están
- * elegidas por **forma distinta**, que es lo que impide que la fila parezca una
- * sola cosa repetida: tarjetas con dibujo, una rejilla, una lista y barras con
- * números. Lo que se cae de aquí sigue contado en "En qué ayuda".
+ * **Seis de las nueve que hay, y a dos columnas.** Llegaron a estar las nueve en
+ * una rejilla de 3×3 y era un muro: a 200 px de ancho una pantalla de móvil no se
+ * distingue de otra, todas son una superficie clara con rayas, y el pie de foto
+ * acababa haciendo todo el trabajo. Lo que las hacía ilegibles era el **ancho**,
+ * no el número: a dos columnas cada una mide 314 px y da igual que haya cuatro o
+ * seis, porque añadir más no las encoge, solo alarga la sección.
  *
- * El script sigue sacando las nueve a propósito: las otras cinco hacen falta
- * para la ficha de Google Play cuando toque.
+ * Las seis están elegidas por forma distinta, que es lo que impide que la rejilla
+ * parezca una cosa repetida: tarjetas con dibujo, una rejilla de mes, una lista,
+ * la parrilla de la semana, barras con números y fichas. Se quedan fuera Tareas
+ * (se parece demasiado a Listas), Semana (rejilla medio vacía) y Notas.
+ *
+ * El script sigue sacando las nueve a propósito: las otras tres hacen falta para
+ * la ficha de Google Play cuando toque.
  */
 const CAPTURAS = [
-  { archivo: 'inicio',     titulo: 'Inicio',    texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
-  { archivo: 'calendario', titulo: 'El mes',    texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
-  { archivo: 'listas',     titulo: 'Listas',    texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',  texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
+  { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
+  { archivo: 'calendario', titulo: 'El mes',      texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
+  { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
+  { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos.' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
+  { archivo: 'documentos', titulo: 'Documentos',  texto: 'El seguro, la cartilla, el libro de familia. Y qué caduca.' },
 ]
 
 const PASOS = [

@@ -66,7 +66,7 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
             type="text"
             value={draft.name}
             onChange={e => patch({ name: e.target.value })}
-            placeholder="Ej: Familia de Omar, Sofía y Ana"
+            placeholder="Ej: Familia de Omar, Sofía y Cris"
             required
             className="field-input"
           />

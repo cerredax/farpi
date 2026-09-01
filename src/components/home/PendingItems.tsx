@@ -45,7 +45,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface"
       >
         {/* Una cesta por línea. Iban en un `flex-wrap` y dos o tres compartían
-            renglón sin nada que las separase: "Casa Compra bebé Cosas de Ana" se
+            renglón sin nada que las separase: "Casa Compra Bricolaje" se
             leía como una sola cosa con un nombre larguísimo. Con nombres cortos
             el problema era peor, porque cabían más en la misma línea. */}
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">

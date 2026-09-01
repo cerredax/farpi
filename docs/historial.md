@@ -15,6 +15,45 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### La demo pasa a ser una casa, no una casa de bebé (01-09-2026)
+
+Séptima pasada, y esta toca los datos. La demo era **Ana recién nacida y poco
+más**: el pediatra, la vitamina, los pañales, la lista "Compra bebé", el
+presupuesto "Cosas de Ana", el certificado de nacimiento. Como las capturas de la
+portada salen justo de ahí, alguien sin hijos miraba la página y no se reconocía
+en nada de lo que veía.
+
+Ahora es **una casa con un bebé, no una casa de un bebé**. La niña se llama Cris
+y sigue entera: su pediatra, su vitamina, su cartilla de salud, su control de peso
+y su cumplemes. Alrededor entró lo que tiene cualquier vivienda: la ITV, el
+dentista, una cena con Marta y Javi, la revisión de la caldera, recoger un paquete
+en correos, poner una lavadora, sacar la basura, cambiar las bombillas del
+pasillo, el seguro del coche, la gasolina, el taller, una lista de bricolaje y
+otra de papeleo. Las listas dejaron de llamarse "Compra bebé" y "Cosas de Ana"
+para ser "Compra" y "Bricolaje", y el presupuesto de las cosas del bebé pasó a ser
+el del coche.
+
+Lo caro de esto no es el archivo de datos, que es uno solo: es que **la suite se
+apoya en esos textos**. Cuatro comprobaciones buscaban cadenas que ya no existen,
+y dos se cayeron por motivos que solo se ven al mirarlas de cerca:
+
+- El test que crea una tarea la llamaba "Llamar al seguro", y la demo pasó a tener
+  una tarea con ese mismo nombre: el filtro por texto enganchaba las dos. La que
+  crea el test ahora es "Regar las plantas".
+- El test de las unidades buscaba un ítem con "×2" y el que puse en su sitio
+  estaba **marcado como hecho**, así que no salía en "lo que falta". Las unidades
+  se movieron a un ítem sin marcar.
+
+De paso, dos entradas que se colaban en la primera captura y seguían siendo de
+hospital: la tarea "Subir informe de alta" es ahora "Escanear el contrato de la
+luz", y la nota "Tallas de Ana" es "Medidas de casa" (el colchón, la ventana del
+salón, el filtro de la campana).
+
+Y las capturas de la portada suben de cuatro a **seis**. El corte a cuatro mezclaba
+dos cosas: lo que las hacía ilegibles era el **ancho**, no el número. A dos columnas
+cada una mide 314 px y da igual que haya cuatro o seis, porque añadir más no las
+encoge, solo alarga la sección. Entran Comidas y Documentos.
+
 ### La carta la escribe Omar, y el texto pierde los guiones (01-09-2026)
 
 Sexta pasada. La carta se intentó dos veces desde aquí, a partir de lo que él

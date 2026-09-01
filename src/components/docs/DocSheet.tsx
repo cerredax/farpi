@@ -214,7 +214,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
             type="text"
             value={draft.name}
             onChange={e => patch({ name: e.target.value })}
-            placeholder="Ej: Cartilla vacunas Ana"
+            placeholder="Ej: Cartilla de vacunas"
             required
             className="field-input"
           />

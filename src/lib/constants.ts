@@ -74,7 +74,7 @@ export const CUMPLE_COLOR = '#A88BC4'
  *
  * Quitar un color de aquí **no toca lo guardado**: `memberColor` devuelve el que
  * la persona tenga, sea de la lista o no, y `ColorPicker` simplemente no lo marca
- * como elegido. Ya pasa hoy con el `#FBC4DC` de Ana en los datos de demo.
+ * como elegido. Ya pasa hoy con el `#FBC4DC` de Cris en los datos de demo.
  */
 export const PERSON_COLORS: { value: string; label: string }[] = [
   // Adultos

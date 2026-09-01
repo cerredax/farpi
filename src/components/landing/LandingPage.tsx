@@ -110,7 +110,7 @@ const CAPTURAS = [
   { archivo: 'calendario', titulo: 'El mes',      texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
   { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
   { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos de la tarde.' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'Lo que decidisteis gastar, lo que lleváis y quién ha puesto qué.' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'Los topes del mes, y los presupuestos que pedís fuera para compararlos.' },
   { archivo: 'documentos', titulo: 'Documentos',  texto: 'El seguro, la cartilla, el libro de familia. Y qué caduca.' },
 ]
 
@@ -148,7 +148,7 @@ const FUNCIONES = [
   {
     icon: Wallet,
     titulo: 'Finanzas',
-    texto: 'Decidís cuánto queréis gastar al mes en cada cosa y la app va diciendo cuánto lleváis, quién ha puesto qué y si os estáis pasando. Los presupuestos que os pasan de fuera se guardan al lado, para compararlos antes de decidir.',
+    texto: 'El tope que os ponéis cada mes, cuánto lleváis y quién ha puesto qué.',
   },
   {
     icon: NotebookText,

@@ -15,6 +15,43 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### Nueve capturas nítidas, y la carta contada entera (01-09-2026)
+
+Cuarta pasada. "Las capturas se ven borrosas" resultó ser **tres cosas a la vez**,
+y solo una era obvia:
+
+1. **El `sizes` mentía.** Decía 250 px fijos, pero desde que la rejilla es de dos
+   columnas en `lg` el hueco mide 291: el navegador bajaba una imagen de 256 px y
+   la **estiraba**. Medido en la página, no adivinado.
+2. **La calidad por defecto (75) empasta el texto pequeño.** Una captura de móvil
+   se enseña a la mitad de tamaño, así que el texto de la app cae a unos 7 px; ahí
+   no hay margen para perder nada.
+3. **Y el `quality={90}` no hacía nada.** Next 16 cambió el valor por defecto de
+   `images.qualities` a `[75]` y a secas: un `quality` que no esté en esa lista no
+   falla ni avisa, se redondea al permitido más cercano. Se vio porque la URL que
+   servía el optimizador seguía diciendo `q=75` después de pedir 90. Está en
+   `next.config.ts` con su porqué, que es de los que se olvidan.
+
+Ahora pide el doble del hueco y baja a 90: para 204 px de hueco sirve 640. Sigue
+siendo pequeño —es un móvil entero dentro de una miniatura— pero se lee.
+
+De paso, **dos capturas más hasta nueve**, que cuadran el 3×3: Documentos, que
+faltaba, y la vista de Semana del calendario. Para esa segunda, las pantallas del
+script admiten un paso `preparar`: se abre la ruta, se cambia de vista y entonces
+se hace la foto. La misma ruta puede dar dos capturas distintas.
+
+Y la carta se contó entera. Antes decía "al principio se iba a llamar de otra
+forma", que era verdad pero no contaba nada: ahora dice que se llamaba **Nido**,
+porque era lo que se quería que fuese —algo cálido, el sitio donde está lo de
+casa—, y que hubo que cambiarlo por un problema legal. La frase destacada también
+estaba mal: Farpi **no es** el apellido de la hija, viene de él —unas letras
+suyas, una especie de acrónimo—. Se añadió que la app irá creciendo con la niña
+según hagan falta cosas en casa, y que quien eche algo en falta puede pedirlo. Y
+se maquetó del todo como una carta: encabezado, "Hola:", la despedida y la firma.
+
+"Cómo funciona", "Preguntas" y "¿Echas algo en falta?" pasaron también a bloque
+con borde, para que se lean como secciones y no como texto suelto entre bloques.
+
 ### La portada deja de ser plana (01-09-2026)
 
 Tercera pasada del día, y esta de puro diseño: la página estaba sosa. El

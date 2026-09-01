@@ -57,11 +57,25 @@ const ENTORNO_DEMO = {
 const PANTALLAS = [
   { ruta: '/home',     nombre: 'inicio',     espera: 'Buenos días' },
   { ruta: '/calendar', nombre: 'calendario', espera: 'Abuelos vienen a merendar' },
+  {
+    ruta: '/calendar',
+    nombre: 'semana',
+    espera: 'Abuelos vienen a merendar',
+    // La misma ruta con otra vista: el calendario abre en el mes y la semana
+    // hay que pedirla. En móvil las cuatro vistas están detrás de un botón que
+    // despliega, igual que en `e2e/vistas.ts`.
+    async preparar(pagina) {
+      await pagina.locator('main button[aria-haspopup="menu"]').click()
+      await pagina.getByRole('menuitemradio', { name: 'Semana', exact: true }).click()
+      await pagina.waitForTimeout(700)
+    },
+  },
   { ruta: '/tasks',    nombre: 'tareas',     espera: 'Dar vitamina D a Ana' },
   { ruta: '/lists',    nombre: 'listas',     espera: 'Compra bebé' },
   { ruta: '/meals',    nombre: 'comidas',    espera: 'Pollo al horno con patatas' },
   { ruta: '/finanzas', nombre: 'finanzas',   espera: 'Compra semanal' },
   { ruta: '/notes',    nombre: 'notas',      espera: 'Wifi de casa' },
+  { ruta: '/docs',     nombre: 'documentos', espera: 'DNI Omar' },
 ]
 
 /** Espera a que el servidor conteste, sin dar por hecho cuánto tarda en arrancar. */
@@ -199,10 +213,12 @@ try {
 
   const pagina = await contexto.newPage()
 
-  for (const { ruta, nombre, espera } of PANTALLAS) {
+  for (const { ruta, nombre, espera, preparar } of PANTALLAS) {
     await pagina.goto(`${BASE}${ruta}`)
     await pagina.addStyleTag({ content: MAQUILLAJE })
     await pagina.getByText(espera).filter({ visible: true }).first().waitFor({ timeout: 20_000 })
+    // Lo que haya que tocar antes de la foto: cambiar de vista, abrir algo.
+    if (preparar) await preparar(pagina)
     // El ancla dice que la pantalla ya está montada; este respiro es para que
     // terminen las transiciones de entrada y no se fotografíe nada a medio opacar.
     await pagina.waitForTimeout(600)

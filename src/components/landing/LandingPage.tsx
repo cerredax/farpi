@@ -71,13 +71,15 @@ const SECCIONES = [
  * interfaz cambia, se vuelve a lanzar el script y esto se entera.
  */
 const CAPTURAS = [
-  { archivo: 'inicio',     titulo: 'Inicio',     texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
-  { archivo: 'calendario', titulo: 'Calendario', texto: 'El mes de un vistazo y el día abierto debajo.' },
-  { archivo: 'tareas',     titulo: 'Tareas',     texto: 'Quién hace qué, y lo que se ha quedado atrás.' },
-  { archivo: 'listas',     titulo: 'Listas',     texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
-  { archivo: 'comidas',    titulo: 'Comidas',    texto: 'El menú de la semana, sin decidirlo cada día a las dos.' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',   texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
-  { archivo: 'notas',      titulo: 'Notas',      texto: 'El wifi, los teléfonos y lo que siempre se pregunta.' },
+  { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
+  { archivo: 'calendario', titulo: 'El mes',      texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
+  { archivo: 'semana',     titulo: 'La semana',   texto: 'Hora por hora, para los días que vienen cargados.' },
+  { archivo: 'tareas',     titulo: 'Tareas',      texto: 'Quién hace qué, y lo que se ha quedado atrás.' },
+  { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
+  { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos.' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
+  { archivo: 'notas',      titulo: 'Notas',       texto: 'El wifi, los teléfonos y lo que siempre se pregunta.' },
+  { archivo: 'documentos', titulo: 'Documentos',  texto: 'La cartilla, el informe, el libro de familia. Y qué caduca.' },
 ]
 
 const PASOS = [
@@ -287,7 +289,7 @@ export function LandingPage() {
           <section id="asi-se-ve" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
             <h2 className={TITULO}>Así se ve</h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
-              Estas siete pantallas son <Marca /> de verdad, con la familia de ejemplo que trae la
+              Estas nueve pantallas son <Marca /> de verdad, con la familia de ejemplo que trae la
               app: un recién nacido, sus citas y la compra de la semana.
             </p>
 
@@ -318,7 +320,14 @@ export function LandingPage() {
                       src={`/capturas/${archivo}.png`}
                       width={390}
                       height={844}
-                      sizes="(min-width: 1024px) 250px, 230px"
+                      /* El hueco real mide 204 px en `xl` y 291 en `lg`; aquí se
+                         pide el doble a propósito. Una captura de móvil se enseña
+                         al 50 %, así que el texto de la app cae a unos 7 px: con
+                         una imagen del tamaño justo se emborrona, y con el doble
+                         de puntos el navegador la reduce y se lee nítida. Antes
+                         ponía 250 px fijos y en `lg` la estaba **estirando**. */
+                      sizes="(min-width: 1280px) 420px, (min-width: 1024px) 600px, 460px"
+                      quality={90}
                       priority={i === 0}
                       alt={`Pantalla de ${titulo} en Farpi`}
                       className="h-auto w-full"
@@ -331,7 +340,7 @@ export function LandingPage() {
             </ul>
           </section>
 
-          <section id="como-funciona" className="scroll-mt-20 px-1 py-2">
+          <section id="como-funciona" className={`scroll-mt-20 border border-line bg-canvas ${BLOQUE}`}>
             <h2 className={TITULO}>Cómo funciona</h2>
             <ol className="mt-6 flex flex-col gap-6">
               {PASOS.map(({ titulo, texto }, i) => (
@@ -365,7 +374,7 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section id="preguntas" className="scroll-mt-20 px-1 py-2">
+          <section id="preguntas" className={`scroll-mt-20 border border-line bg-canvas ${BLOQUE}`}>
             <h2 className={TITULO}>Preguntas</h2>
             {/* `details` nativo: se pliega sin JavaScript, y el teclado y los
                 lectores de pantalla ya saben qué es. */}
@@ -391,12 +400,18 @@ export function LandingPage() {
 
           {/* Esto no es una sección más: es lo único personal de la página, y
               estaba maquetado igual que las preguntas frecuentes —gris, 13 px—,
-              así que pasaba de largo. Ahora se lee como lo que es, una carta:
-              fondo cálido, el cuerpo un punto más grande y con más interlínea, y
-              la frase del nombre sacada aparte, que es la que se recuerda. */}
+              así que pasaba de largo. Ahora se lee **como lo que es, una carta**:
+              su encabezado, el saludo, el cuerpo un punto más grande y con más
+              interlínea, la frase del nombre sacada aparte y la despedida
+              firmada. Fondo cálido, que es el único de la página. */}
           <section className={`border border-line bg-warm ${BLOQUE}`}>
-            <h2 className={TITULO}>Por qué existe Farpi</h2>
-            <div className="mt-5 max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-soft">
+              Una nota de quien la hizo
+            </p>
+            <h2 className={`mt-2 ${TITULO}`}>Por qué existe Farpi</h2>
+
+            <div className="mt-6 max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
+              <p className="font-semibold text-ink">Hola:</p>
               <p>
                 En junio nació mi hija. De un día para otro había el triple de cosas que recordar:
                 la revisión del pediatra, si le tocaba la vitamina, qué faltaba comprar, dónde
@@ -408,17 +423,31 @@ export function LandingPage() {
                 ellas dos. <Marca /> es la herramienta con la que llevamos la casa todos los días.
               </p>
               <p>
-                Al principio se iba a llamar de otra forma, pero por un tema legal con el nombre
-                tuve que cambiarlo.
+                Al principio se llamaba <strong className="font-bold text-ink">Nido</strong>, porque
+                era justo lo que quería que fuese: algo cálido, el sitio donde está lo de casa. Pero
+                surgió un problema legal con ese nombre y tuve que buscar otro.
               </p>
             </div>
 
-            <blockquote className="my-6 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
-              Farpi es uno de los apellidos de mi hija. Me gustó que la app llevara su nombre,
-              porque en cierto modo nació con ella.
+            <blockquote className="my-7 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
+              <Marca /> viene del apellido de mi hija, pero no es su apellido: son unas letras
+              suyas, una especie de acrónimo. Me gustó que la app llevara algo de ella, porque en
+              cierto modo nació con ella.
             </blockquote>
 
             <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
+              <p>
+                Y va a ir creciendo con ella. Según nos vayan haciendo falta cosas en casa —las de
+                un bebé primero, las del colegio después, y las que vengan— las iré añadiendo. Si a
+                ti se te ocurre alguna antes que a mí, escríbeme a{' '}
+                <a
+                  href={`mailto:${CONTACT}`}
+                  className="inline-block py-0.5 font-semibold text-primary-strong hover:underline"
+                >
+                  {CONTACT}
+                </a>{' '}
+                y la intentamos meter, sin problema.
+              </p>
               <p>
                 Y si a mí me sirve, puede servirle a otra familia. Por eso no me la he guardado:
                 aquí está, para quien le valga.
@@ -431,13 +460,14 @@ export function LandingPage() {
               </p>
             </div>
 
-            <p className="mt-7 border-t border-line pt-5 text-base font-bold tracking-tight text-ink">
-              Omar García Carballo
-              <span className="mt-0.5 block text-sm font-normal text-muted">Septiembre de 2026</span>
-            </p>
+            <div className="mt-8 border-t border-line pt-6">
+              <p className="text-[0.9375rem] text-muted">Un abrazo,</p>
+              <p className="mt-1 text-lg font-black tracking-tight text-ink">Omar García Carballo</p>
+              <p className="mt-0.5 text-sm text-muted">Septiembre de 2026</p>
+            </div>
           </section>
 
-          <section className="px-1 py-2">
+          <section className={`border border-line bg-canvas ${BLOQUE}`}>
             <h2 className={TITULO}>¿Echas algo en falta?</h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               Esto lo llevo yo solo y lo sigo mejorando poco a poco. Si se te ocurre algo que

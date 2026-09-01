@@ -107,6 +107,18 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  /**
+   * Las calidades que el optimizador acepta.
+   *
+   * **Next 16 cambió el valor por defecto a `[75]` y a secas**: un `quality={90}`
+   * en un `<Image>` no falla ni avisa, se redondea al permitido más cercano y te
+   * quedas con 75 sin enterarte. Aquí importa porque las capturas de la portada
+   * son pantallas de móvil enseñadas a la mitad de tamaño, con texto de la app
+   * cayendo a unos 7 px: a 75 se emborrona.
+   */
+  images: {
+    qualities: [75, 90],
+  },
   async headers() {
     return [{ source: '/:path*', headers: SECURITY_HEADERS }];
   },

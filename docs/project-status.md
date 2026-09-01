@@ -148,12 +148,24 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la
   Nunito. Farpi se comparte por WhatsApp entre familias, no por un buscador, y hasta
   ahora el enlace viajaba pelado.
-- **Capturas de la app de verdad** en "Así se ve": siete pantallas (inicio, calendario,
-  tareas, listas, comidas, finanzas, notas) que genera `node scripts/gen-capturas.mjs`
-  contra la app en modo demo con el reloj congelado en el 17-06-2026, la fecha de los
-  datos de ejemplo. No son maquetas y no envejecen a escondidas: si la interfaz cambia,
-  se relanza el script. En móvil se arrastran de lado encajando de una en una; en
-  escritorio son tres columnas.
+- **Capturas de la app de verdad** en "Así se ve": **nueve** pantallas (inicio, el mes,
+  la semana, tareas, listas, comidas, finanzas, notas, documentos) que genera
+  `node scripts/gen-capturas.mjs` contra la app en modo demo con el reloj congelado en
+  el 17-06-2026, la fecha de los datos de ejemplo. No son maquetas y no envejecen a
+  escondidas: si la interfaz cambia, se relanza el script. Cada pantalla puede llevar un
+  paso `preparar` —la de la semana cambia de vista antes de la foto—. En móvil se
+  arrastran de lado encajando de una en una; en escritorio, dos columnas en `lg` y tres
+  en `xl`, que cuadra el 3×3.
+- **Y se ven nítidas, que costó tres arreglos** (01-09-2026). Una captura de móvil se
+  enseña a la mitad de tamaño, así que el texto de la app cae a unos 7 px y cualquier
+  pérdida se nota:
+  - El `sizes` decía 250 px fijos, pero en `lg` el hueco mide 291: el navegador bajaba
+    una imagen de 256 px y la **estiraba**. Ahora va por tramos y pide el doble del
+    hueco, para que el navegador reduzca en vez de ampliar.
+  - `quality={90}`, porque a 75 el texto pequeño se empasta.
+  - **`images.qualities: [75, 90]` en `next.config.ts`**: Next 16 cambió el valor por
+    defecto a `[75]` y a secas —un `quality` no permitido no falla ni avisa, se redondea
+    al más cercano—. Sin esa línea el `quality={90}` no hacía nada.
 - Modo demo con persistencia en `localStorage`.
 
 ### Conexión Supabase (completada)

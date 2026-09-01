@@ -240,24 +240,28 @@ export function LandingPage() {
           acaba escribiendo en el que no ve. */}
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-x-10 px-5 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <section className="pt-8 pb-8 sm:pt-12 lg:col-start-1 lg:row-start-1">
-          {/* Una sola casa, colocada dos veces distintas: encima del titular en
-              móvil y al lado en escritorio, donde hay sitio para que sea grande.
-              El `order` la mueve sin repetir el elemento. */}
-          <div className="lg:flex lg:items-center lg:gap-6">
+          {/* La casa va **al lado del titular**, no encima: suelta en su propia
+              línea se quedaba sola en mitad de la nada. Y es una sola, colocada
+              en una rejilla de dos columnas en vez de repetida, porque lo que
+              cambia entre móvil y escritorio no es cuál se ve sino hasta dónde
+              llega: en móvil acompaña al titular y el párrafo pasa por debajo de
+              ella (`col-span-2`); en escritorio baja las dos filas y se pone al
+              lado del bloque entero, que es donde hay sitio para que sea grande. */}
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 lg:gap-x-6">
+            <h1 className="text-[1.9rem] font-black leading-[1.08] tracking-tight sm:text-4xl">
+              Qué tenemos que saber hoy en casa.
+            </h1>
+
             <DayIllustration
               period={tramo}
-              className="mb-3 -ml-2 h-24 w-24 sm:h-28 sm:w-28 lg:order-2 lg:mb-0 lg:ml-0 lg:h-44 lg:w-44 lg:flex-shrink-0"
+              className="col-start-2 row-start-1 h-20 w-20 flex-shrink-0 self-center sm:h-28 sm:w-28 lg:row-span-2 lg:h-44 lg:w-44"
             />
-            <div className="lg:order-1 lg:min-w-0 lg:flex-1">
-              <h1 className="text-[2rem] font-black leading-[1.08] tracking-tight sm:text-4xl">
-                Qué tenemos que saber hoy en casa.
-              </h1>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-                <Marca /> es un espacio privado para una familia: el calendario, las tareas, las
-                listas, las comidas, el gasto de la casa, las notas y los documentos importantes,
-                todo junto y a un vistazo.
-              </p>
-            </div>
+
+            <p className="col-span-2 mt-4 max-w-xl text-base leading-relaxed text-muted lg:col-span-1 lg:col-start-1 lg:row-start-2">
+              <Marca /> es un espacio privado para una familia: el calendario, las tareas, las
+              listas, las comidas, el gasto de la casa, las notas y los documentos importantes,
+              todo junto y a un vistazo.
+            </p>
           </div>
         </section>
 

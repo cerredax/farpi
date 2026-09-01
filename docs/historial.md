@@ -29,9 +29,12 @@ un verde repetido en seis cuadraditos iguales.
 
 Cuatro cambios, y ninguno inventa una personalidad nueva: bajan la que ya había.
 
-- **La casa de Inicio preside el titular.** `DayIllustration` pasó a recibir el
-  tramo del día en vez de la fecha, y el tamaño y la posición desde fuera, para
-  poder salir grande aquí. Se pinta en el servidor —así llega ya dibujada, sin
+- **La casa de Inicio va al lado del titular.** `DayIllustration` pasó a recibir
+  el tramo del día en vez de la fecha, y el tamaño y la posición desde fuera, para
+  poder salir grande aquí. Al principio se puso encima del titular en móvil y se
+  quedaba sola en mitad de la nada, así que acabó en una rejilla de dos columnas:
+  una sola casa que en móvil acompaña al titular —con el párrafo pasando por
+  debajo— y en escritorio baja las dos filas y se pone junto al bloque entero. Se pinta en el servidor —así llega ya dibujada, sin
   parpadeo— y de ahí `getDayPeriodFromHour`: en Vercel el servidor va en UTC, así
   que la hora se pide en la de Madrid antes de decidir si toca sol, atardecer o
   luna. Sin eso, media España vería el cielo de una hora antes.

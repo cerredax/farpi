@@ -129,8 +129,11 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   un solo fondo crema de arriba abajo, seis `border-t` idénticos, todos los títulos del
   mismo tamaño y el único color un verde repetido. Cuatro cambios, todos tirando de lo
   que la app ya tenía:
-  - **La casa de Inicio preside el titular** (`DayIllustration`), con su cielo cambiando
-    según el tramo del día. Se pinta en el servidor, y por eso `getDayPeriodFromHour`:
+  - **La casa de Inicio va al lado del titular** (`DayIllustration`), con su cielo
+    cambiando según el tramo del día. Al lado y no encima: sola en su línea se quedaba
+    en mitad de la nada. Es una sola, colocada en una rejilla de dos columnas: en móvil
+    acompaña al titular y el párrafo pasa por debajo; en escritorio baja las dos filas y
+    se pone junto al bloque entero, que es donde hay sitio para que sea grande. Se pinta en el servidor, y por eso `getDayPeriodFromHour`:
     en Vercel el servidor va en UTC, así que la hora se pide en la de Madrid.
   - **El ritmo lo marca el fondo**: unas secciones en bloque de color (`bg-surface`,
     `rounded-[2rem]`) y otras al aire, alternando. Fuera las seis rayitas.

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import {
   MAX_CENTIMOS, centsToInput, formatCents, formatCentsCorto,
   parseAmountToCents, parseAmountToCentsBruto,
-} from '@/lib/money'
+} from '@/lib/finanzas'
 import { validateBudgetDraft, validateExpenseDraft, validateQuoteDraft } from '@/lib/validators'
 
 // El dinero es la única parte de Farpi donde un error de un céntimo se nota, y

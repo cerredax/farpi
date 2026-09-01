@@ -211,7 +211,7 @@ create table if not exists public.notes (
 );
 
 -- ----------------------------------------------------------------------------
--- Dinero: presupuestos, gastos y presupuestos pedidos fuera
+-- Finanzas: presupuestos, gastos y presupuestos pedidos fuera
 -- ----------------------------------------------------------------------------
 --
 -- Tres tablas para dos preguntas distintas que en español se llaman igual.

@@ -60,7 +60,7 @@ const ROUTES = [
   '/tasks',
   '/lists',
   '/meals',
-  '/money',
+  '/finanzas',
   '/notes',
   '/docs',
   '/settings',
@@ -92,7 +92,7 @@ const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
   { route: '/notes', button: 'Nueva nota', dialog: 'Nueva nota' },
-  { route: '/money', button: 'Nuevo gasto', dialog: 'Nuevo gasto' },
+  { route: '/finanzas', button: 'Nuevo gasto', dialog: 'Nuevo gasto' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
   { route: '/calendar', button: 'Apuntar algo', dialog: 'Apuntar en el calendario' },
   { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
@@ -737,16 +737,16 @@ test('en Inicio, cada ítem dice sus unidades', async ({ page }) => {
   await expect(seccion.getByText('Toallitas sin perfume', { exact: false }).first()).not.toContainText('×')
 })
 
-// ─── Dinero ───────────────────────────────────────────────────────────────────
+// ─── Finanzas ────────────────────────────────────────────────────────────────
 //
 // Los dos flujos que sostienen la pantalla, y los dos son de cuenta: que apuntar
 // un gasto mueva el tope de su presupuesto, y que dos presupuestos pedidos para
 // el mismo trabajo salgan juntos con el barato marcado. La conversión de "24,90"
-// a céntimos vive en `e2e/unit/money.spec.ts`; aquí se comprueba que llega entera
+// a céntimos vive en `e2e/unit/finanzas.spec.ts`; aquí se comprueba que llega entera
 // hasta la pantalla.
 
 test('un gasto apuntado mueve el tope de su presupuesto', async ({ page }) => {
-  await page.goto('/money')
+  await page.goto('/finanzas')
   await page.waitForTimeout(800)
 
   // La demo está sembrada en junio de 2026, así que el mes en curso arranca
@@ -768,7 +768,7 @@ test('un gasto apuntado mueve el tope de su presupuesto', async ({ page }) => {
 })
 
 test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {
-  await page.goto('/money')
+  await page.goto('/finanzas')
   await page.waitForTimeout(800)
   await page.getByRole('tab', { name: 'Presupuestos' }).click()
 

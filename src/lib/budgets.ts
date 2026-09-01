@@ -3,7 +3,7 @@ import { normalizaParaBuscar } from './text'
 import type { Budget, Child, Expense, FamilyMember, Quote } from '@/types'
 
 /**
- * Lo que la pantalla de Dinero necesita saber y no está guardado en ninguna
+ * Lo que la pantalla de Finanzas necesita saber y no está guardado en ninguna
  * fila: cuánto llevamos gastado este mes, cuánto queda de cada tope, quién puso
  * el dinero y cuál de los tres presupuestos de la caldera es el más barato.
  *

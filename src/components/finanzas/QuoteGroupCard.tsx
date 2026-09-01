@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Check, X } from 'lucide-react'
 import { estaCaducado, type GrupoDePresupuestos } from '@/lib/budgets'
-import { formatCentsCorto } from '@/lib/money'
+import { formatCentsCorto } from '@/lib/finanzas'
 import type { Quote, QuoteStatus } from '@/types'
 
 interface QuoteGroupCardProps {

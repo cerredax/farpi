@@ -48,7 +48,7 @@ export function BottomNav() {
           )
         })}
 
-        {/* La sexta: Dinero, Notas, Documentos, Ajustes y cerrar sesión. No se
+        {/* La sexta: Finanzas, Notas, Documentos, Ajustes y cerrar sesión. No se
             marca activa en ninguna de esas rutas —no es una pantalla, es por
             dónde se llega— y marcarla haría creer que la barra tiene una sección
             llamada "Más". */}

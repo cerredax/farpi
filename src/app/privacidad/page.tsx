@@ -39,7 +39,7 @@ export default function PrivacidadPage() {
           no guardes ahí claves de banca, del correo o de servicios importantes.
         </p>
         <p>
-          En el apartado de <strong>Dinero</strong> se guardan los topes de gasto que pone la familia, los gastos
+          En el apartado de <strong>Finanzas</strong> se guardan los topes de gasto que pone la familia, los gastos
           que apunta —importe, fecha, una descripción y qué persona de la familia lo pagó— y los presupuestos que
           os pasan proveedores de fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a
           ningún banco</strong>: no pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias,

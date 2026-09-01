@@ -3,7 +3,7 @@
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { resolveAssignee } from '@/lib/assignees'
-import { formatCentsCorto } from '@/lib/money'
+import { formatCentsCorto } from '@/lib/finanzas'
 import type { Budget, Child, Expense, FamilyMember } from '@/types'
 
 interface ExpenseRowProps {

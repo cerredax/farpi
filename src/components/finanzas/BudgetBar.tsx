@@ -1,6 +1,6 @@
 'use client'
 
-import { formatCentsCorto } from '@/lib/money'
+import { formatCentsCorto } from '@/lib/finanzas'
 import type { ResumenPresupuesto } from '@/lib/budgets'
 
 interface BudgetBarProps {

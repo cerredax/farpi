@@ -226,7 +226,7 @@ export const DIAS_AVISO_CUMPLE = 14
  */
 export const ANOS_DE_CUMPLE = 20
 
-// ─── Dinero ───────────────────────────────────────────────────────────────────
+// ─── Finanzas ────────────────────────────────────────────────────────────────
 
 /**
  * En qué anda cada presupuesto pedido, con el nombre que se lee en la pantalla.
@@ -246,7 +246,7 @@ export const ROUTES = {
   tasks:    '/tasks',
   lists:    '/lists',
   meals:    '/meals',
-  money:    '/money',
+  finanzas: '/finanzas',
   notes:    '/notes',
   docs:     '/docs',
   settings: '/settings',

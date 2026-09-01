@@ -1,6 +1,6 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-01, con las tres tablas de Dinero aplicadas. **99/99
+Última ejecución: 2026-09-01, con las tres tablas de Finanzas aplicadas. **99/99
 comprobaciones correctas.**
 
 Son las 89 anteriores más las **diez de `budgets`, `expenses` y `quotes`**, aplicadas a
@@ -179,7 +179,7 @@ scripts, así que no para un XSS en línea.
 
 Los ocho devuelven 400 desde el trigger. Los tres primeros vienen de
 `007_cross_family_integrity.sql`; los dos de `tasks`, de `015_task_assignment.sql`; los
-tres de `expenses` entraron con Dinero el 01-09-2026 y son el mismo patrón repetido, que
+tres de `expenses` entraron con Finanzas el 01-09-2026 y son el mismo patrón repetido, que
 es justo lo que se quería: un gasto no puede señalar a nada que no sea de su casa.
 
 ## Resultado
@@ -197,7 +197,7 @@ el service role, y solo desde una ruta API que antes comprueba con el cliente de
 que puede ver el documento del que cuelga el token.
 
 **No queda nada pendiente.** El esquema está validado y la pasada del 01-09-2026 no dejó
-ninguna comprobación en rojo: 99/99, ya con Dinero.
+ninguna comprobación en rojo: 99/99, ya con Finanzas.
 
 ## Pendiente
 
@@ -206,14 +206,14 @@ próxima vez que se toque una migración, una policy o una RPC.
 
 ### Notas de la ejecución (01-09-2026)
 
-- **99/99.** Las tres tablas de Dinero (`budgets`, `expenses`, `quotes`) se aplicaron a
+- **99/99.** Las tres tablas de Finanzas (`budgets`, `expenses`, `quotes`) se aplicaron a
   mano en el SQL Editor ese día y el arnés gana **diez comprobaciones**, repartidas por
   las secciones que ya existían en vez de en una nueva: no hay nada estructuralmente
   distinto que probar, solo tres tablas más con la policy de siempre.
 - La que había que ver fallar es **el gasto con `budget_id` de otra familia**. Las otras
   dos claves de `expenses` —`child_id` y `member_id`— repiten un patrón ya validado en
   `events` y `tasks`, pero `budget_id` apunta a una tabla nueva y su trigger se escribió
-  con Dinero. Que estuviera escrito no probaba que saltara. Salta.
+  con Finanzas. Que estuviera escrito no probaba que saltara. Salta.
 - **No hay RPC nueva ni policy nueva.** Un presupuesto, un gasto y un presupuesto pedido
   son filas con `family_id` y nada más, así que la de siempre los cubre. Lo que sí tienen
   son `check` de importe (entre 1 céntimo y un millón de euros) y de estado, que la app

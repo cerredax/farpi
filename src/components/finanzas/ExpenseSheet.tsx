@@ -7,7 +7,7 @@ import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { useStore } from '@/lib/store-context'
-import { centsToInput } from '@/lib/money'
+import { centsToInput } from '@/lib/finanzas'
 import { validateExpenseDraft } from '@/lib/validators'
 import type { Budget, Expense, ExpenseDraft } from '@/types'
 

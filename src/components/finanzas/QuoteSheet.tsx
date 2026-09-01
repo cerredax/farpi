@@ -7,7 +7,7 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import { Suggestions } from '@/components/ui/Suggestions'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { QUOTE_STATUSES } from '@/lib/constants'
-import { centsToInput } from '@/lib/money'
+import { centsToInput } from '@/lib/finanzas'
 import { validateQuoteDraft } from '@/lib/validators'
 import type { Quote, QuoteDraft } from '@/types'
 

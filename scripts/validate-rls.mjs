@@ -154,7 +154,7 @@ async function main() {
     (await api('/rest/v1/tasks', { metodo: 'POST', token: tokB, datos: { family_id: famA, title: 'Intrusa', priority: 'high' } })).estado >= 400)
   comprobar('B NO puede crear notas en la familia de A',
     (await api('/rest/v1/notes', { metodo: 'POST', token: tokB, datos: { family_id: famA, title: 'Intrusa' } })).estado >= 400)
-  // Lo que se apunta en Dinero es lo más sensible que guarda la app después de
+  // Lo que se apunta en Finanzas es lo más sensible que guarda la app después de
   // los documentos: cuánto entra, en qué se va y quién paga qué.
   comprobar('B NO puede crear gastos en la familia de A',
     (await api('/rest/v1/expenses', { metodo: 'POST', token: tokB, datos: { family_id: famA, amount_cents: 100, date: '2026-08-10' } })).estado >= 400)

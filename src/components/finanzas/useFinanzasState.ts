@@ -9,19 +9,19 @@ import {
 import { getLocalDateString } from '@/lib/date-utils'
 import type { Budget, BudgetDraft, Expense, ExpenseDraft, Quote, QuoteDraft } from '@/types'
 
-export type PestañaDinero = 'mes' | 'presupuestos'
+export type PestañaFinanzas = 'mes' | 'presupuestos'
 
 /**
- * El estado de la pantalla de Dinero: qué pestaña se mira, qué mes y qué sheet
+ * El estado de la pantalla de Finanzas: qué pestaña se mira, qué mes y qué sheet
  * está abierto.
  *
  * El mes vive **aquí y no en la URL**, al revés que las pestañas de Ajustes.
  * Allí la URL importaba porque el menú de la cuenta entraba directo a una
- * sección; aquí nadie enlaza a "el dinero de julio", y una URL que cambia cada
+ * sección; aquí nadie enlaza a "las finanzas de julio", y una URL que cambia cada
  * vez que se toca una flecha llena el historial de pasos atrás que no llevan a
  * ninguna parte.
  */
-export function useMoneyState() {
+export function useFinanzasState() {
   const {
     budgets, expenses, quotes, members, kids,
     createBudget, updateBudget, deleteBudget,
@@ -31,7 +31,7 @@ export function useMoneyState() {
 
   const hoy = getLocalDateString(new Date())
 
-  const [pestaña, setPestaña] = useState<PestañaDinero>('mes')
+  const [pestaña, setPestaña] = useState<PestañaFinanzas>('mes')
   const [mes, setMes] = useState(() => mesDe(hoy))
 
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false)

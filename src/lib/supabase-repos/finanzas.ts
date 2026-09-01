@@ -1,5 +1,5 @@
 import { createClient } from '../supabase/client'
-import { parseAmountToCents } from '../money'
+import { parseAmountToCents } from '../finanzas'
 import { assertNoError, currentUserId } from './shared'
 import type { Budget, BudgetDraft, Expense, ExpenseDraft, Quote, QuoteDraft, QuoteStatus } from '@/types'
 import type { BudgetsRepo, ExpensesRepo, QuotesRepo } from '../repos/types'

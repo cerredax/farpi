@@ -1,6 +1,6 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
 import { isRangeKind } from './events'
-import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './money'
+import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './finanzas'
 import type {
   BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, NoteDraft, QuoteDraft,
@@ -120,7 +120,7 @@ export function validateNoteDraft(draft: NoteDraft): string | null {
   return null
 }
 
-// ─── Dinero ───────────────────────────────────────────────────────────────────
+// ─── Finanzas ────────────────────────────────────────────────────────────────
 
 /**
  * Un importe tecleado, validado una sola vez para las tres cosas que llevan

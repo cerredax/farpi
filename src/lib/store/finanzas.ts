@@ -1,4 +1,4 @@
-import { parseAmountToCents } from '../money'
+import { parseAmountToCents } from '../finanzas'
 import type { Budget, BudgetDraft, Expense, ExpenseDraft, Quote, QuoteDraft, QuoteStatus } from '@/types'
 import { db } from './db'
 

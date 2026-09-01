@@ -1178,18 +1178,26 @@ se hace es decirlo donde se lee: el sheet lo avisa bajo el campo de contenido y
 `/privacidad` lo repite. Sirve para la clave del wifi de casa; no es un gestor de
 contraseñas.
 
-### Dinero: dos cosas que en español se llaman igual (31-08-2026)
+### Finanzas: dos cosas que en español se llaman igual (31-08-2026)
 
 "Presupuesto" en una casa española son dos cosas distintas: lo que te puedes gastar al mes
 en la compra, y el papel que te pasa el fontanero. No se parecen en nada por dentro —una
 es una cuenta que corre todo el mes, la otra una decisión que se toma una vez— pero las
-dos contestan a "¿qué pasa con el dinero de casa?". Van en la misma sección, `/money`, con
+dos contestan a "¿qué pasa con el dinero de casa?". Van en la misma sección, `/finanzas`, con
 **dos pestañas**: «El mes» y «Presupuestos». Separarlas en dos entradas de la navegación
 habría dejado la app con nueve sitios a los que entrar; mezclarlas en una lista habría
 hecho ilegibles las dos.
 
-La sección se llama **Dinero** y no «Presupuestos» justo por eso: si el contenedor se
+La sección se llama **Finanzas** y no «Presupuestos» justo por eso: si el contenedor se
 llamara igual que una de las dos mitades, la otra parecería estar de prestado.
+
+Se llamó **Dinero** hasta el 01-09-2026. «Dinero» nombra la materia; «Finanzas» nombra lo
+que la familia hace con ella, que es de lo que va la pantalla: mirar el mes, poner un tope,
+comparar tres presupuestos. El cambio bajó hasta el código —`/finanzas`, `src/lib/finanzas.ts`,
+`FinanzasView`— para que no hubiera que traducir mentalmente en cada archivo. Las tablas
+(`budgets`, `expenses`, `quotes`) no se tocaron: nunca llevaron ese nombre y renombrarlas
+habría exigido migrar la base real a cambio de nada. En `docs/historial.md` sigue apareciendo
+«Dinero» donde cuenta lo que pasó entonces, que es como debe ser.
 
 **Tres tablas: `budgets`, `expenses`, `quotes`.** No se tocan entre ellas salvo
 `expenses.budget_id`, que es opcional. Comparten pantalla, no modelo.
@@ -1197,7 +1205,7 @@ llamara igual que una de las dos mitades, la otra parecería estar de prestado.
 **Todo el dinero va en céntimos, en `integer`.** Ni coma flotante —0,1 + 0,2 da
 0,30000000000000004, y un céntimo de más convierte "llevas 300,01 de 300" en un
 presupuesto incumplido— ni `numeric`, que llegaría a JavaScript como cadena. El texto que
-se teclea lo convierte `parseAmountToCents` (`src/lib/money.ts`) en **un solo sitio**, y
+se teclea lo convierte `parseAmountToCents` (`src/lib/finanzas.ts`) en **un solo sitio**, y
 lo llaman los dos lados de la frontera: si el mock y Supabase convirtieran cada uno por su
 cuenta, "12,50" acabaría valiendo distinto según el modo. El formato también se escribe a
 mano en vez de con `Intl.NumberFormat`, que mete un espacio duro cuya forma cambia con la

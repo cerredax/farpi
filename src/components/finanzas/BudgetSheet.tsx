@@ -4,7 +4,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
-import { centsToInput } from '@/lib/money'
+import { centsToInput } from '@/lib/finanzas'
 import { validateBudgetDraft } from '@/lib/validators'
 import type { Budget, BudgetDraft } from '@/types'
 

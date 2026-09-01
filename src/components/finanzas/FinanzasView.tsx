@@ -9,14 +9,14 @@ import { ExpenseRow } from './ExpenseRow'
 import { ExpenseSheet } from './ExpenseSheet'
 import { QuoteGroupCard } from './QuoteGroupCard'
 import { QuoteSheet } from './QuoteSheet'
-import { useMoneyState, type PestañaDinero } from './useMoneyState'
+import { useFinanzasState, type PestañaFinanzas } from './useFinanzasState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useStore } from '@/lib/store-context'
-import { formatCents, formatCentsCorto } from '@/lib/money'
+import { formatCents, formatCentsCorto } from '@/lib/finanzas'
 import { capitalize } from '@/lib/text'
 
 /**
- * Dinero: lo que hay que saber del gasto de la casa, en dos pestañas.
+ * Finanzas: lo que hay que saber del gasto de la casa, en dos pestañas.
  *
  * **Por qué dos y no dos pantallas.** En español "presupuesto" son dos cosas: lo
  * que te dejas al mes en la compra, y el papel que te pasa el fontanero. No se
@@ -35,9 +35,9 @@ import { capitalize } from '@/lib/text'
  * es de hoy, es del mes. Meterlo ahí convertiría la primera pantalla de la app
  * en un cuadro de mandos, que es justo lo que Farpi no quiere ser.
  */
-export function MoneyView() {
+export function FinanzasView() {
   const { budgets, members, kids } = useStore()
-  const s = useMoneyState()
+  const s = useFinanzasState()
 
   const nombreDelMes = capitalize(format(parseISO(`${s.mes}-01`), 'MMMM yyyy', { locale: es }))
 
@@ -45,11 +45,11 @@ export function MoneyView() {
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-4xl lg:px-6">
       {/* Mismo patrón de pestañas que Ajustes: se arrastran en móvil y caben
           enteras en escritorio. */}
-      <div role="tablist" aria-label="Secciones de dinero" className="flex gap-2">
+      <div role="tablist" aria-label="Secciones de finanzas" className="flex gap-2">
         {([
           { key: 'mes', label: 'El mes' },
           { key: 'presupuestos', label: 'Presupuestos' },
-        ] as { key: PestañaDinero; label: string }[]).map(p => (
+        ] as { key: PestañaFinanzas; label: string }[]).map(p => (
           <button
             key={p.key}
             type="button"

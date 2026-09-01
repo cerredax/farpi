@@ -38,7 +38,7 @@ function Fila({ href, label, icon: Icon, separada, onIr }: {
 /**
  * "Más": la última pastilla de la barra de abajo, y todo lo que no cabe en ella.
  *
- * Lleva Dinero, Notas, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
+ * Lleva Finanzas, Notas, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
  * cuenta en la esquina de `TopBar` hasta el 28-08-2026, y viene de una cuenta
  * sencilla: en móvil había **dos** sitios donde tocar para salir de las cinco
  * pantallas de siempre —la barra de abajo y un icono arriba a la derecha—, y el
@@ -47,7 +47,7 @@ function Fila({ href, label, icon: Icon, separada, onIr }: {
  *
  * Documentos baja aquí porque es la sección a la que menos se entra —el DNI y el
  * libro de familia se miran dos veces al año— y su sitio en la barra es el que
- * necesitaba "Más". Notas y Dinero llegan el 31-08-2026 y se ponen delante, por lo
+ * necesitaba "Más". Notas y Finanzas llegan el 31-08-2026 y se ponen delante, por lo
  * mismo y por orden: la clave del wifi se consulta cuando viene alguien y el gasto
  * del mes se mira una vez por semana. En escritorio no
  * cambia nada: `SideNav` tiene columna de sobra y las enseña con las otras cinco,

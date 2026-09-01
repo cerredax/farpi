@@ -9,7 +9,7 @@ import { abrirBloque } from './vistas'
 // **por debajo de `lg` no cambia nada**, que es la condición con la que se hizo:
 // de ahí el test a 1023 px, un píxel por debajo del corte.
 
-const RUTAS = ['/home', '/calendar', '/tasks', '/lists', '/meals', '/money', '/docs', '/settings']
+const RUTAS = ['/home', '/calendar', '/tasks', '/lists', '/meals', '/finanzas', '/docs', '/settings']
 
 // `SideNav` tiene nombre accesible; `BottomNav` no, así que se localiza por lo
 // que la define: la barra pegada abajo. Si algún día se le pone un aria-label,

@@ -5,7 +5,7 @@ import {
 } from '@/lib/budgets'
 import type { Budget, Child, Expense, FamilyMember, Quote } from '@/types'
 
-// Lo que la pantalla de Dinero calcula y no está guardado en ninguna fila.
+// Lo que la pantalla de Finanzas calcula y no está guardado en ninguna fila.
 
 function budget(over: Partial<Budget> = {}): Budget {
   return {

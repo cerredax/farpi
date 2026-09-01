@@ -12,7 +12,7 @@ interface Seccion {
    * puso al lado de Documentos, el 31-08-2026: con dos secciones ahí, la lista
    * de "Más" y el filtro de la barra decían lo mismo desde dos archivos y se
    * podían contradecir. Ahora lo dice la sección, y las dos barras lo leen. Con
-   * Dinero, el mismo día, ya son tres y el filtro a mano habría sido insostenible.
+   * Finanzas, el mismo día, ya son tres y el filtro a mano habría sido insostenible.
    */
   enMas?: boolean
 }
@@ -38,7 +38,7 @@ export const SECCIONES: Seccion[] = [
   { href: ROUTES.lists,    label: 'Listas',     icon: CheckSquare },
   { href: ROUTES.tasks,    label: 'Tareas',     icon: ClipboardList },
   { href: ROUTES.meals,    label: 'Comidas',    icon: UtensilsCrossed },
-  { href: ROUTES.money,    label: 'Dinero',     icon: Wallet, enMas: true },
+  { href: ROUTES.finanzas, label: 'Finanzas',   icon: Wallet, enMas: true },
   { href: ROUTES.notes,    label: 'Notas',      icon: StickyNote, enMas: true },
   { href: ROUTES.docs,     label: 'Documentos', icon: FolderOpen, enMas: true },
 ]
@@ -50,7 +50,7 @@ export const SECCIONES: Seccion[] = [
  * Documentos fue la primera en bajar ahí: es la sección a la que menos se entra
  * —el DNI y el libro de familia se miran dos veces al año— y era además la única
  * cuya etiqueta no cabía a 390 px, así que se escribía "Docs" abajo y
- * "Documentos" al lado. Notas y Dinero se le unen el 31-08-2026 por lo mismo: la
+ * "Documentos" al lado. Notas y Finanzas se le unen el 31-08-2026 por lo mismo: la
  * clave del wifi se consulta cuando viene alguien y el gasto del mes se mira una
  * vez por semana, no todos los días, y no hay un sexto hueco que darles sin
  * quitárselo a algo que sí se usa a diario.

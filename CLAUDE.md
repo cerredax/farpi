@@ -134,9 +134,9 @@ las navegaciones con fallback a `/offline`, stale-while-revalidate en los estát
 
 Si cambias `PRECACHE` —la lista o el **contenido** de lo que precachea, iconos
 incluidos—, sube `CACHE` en `public/sw.js` o los móviles que ya tienen la app instalada
-se quedan con la caché vieja. Va por `farpi-v2` desde el 24-08-2026, que subió al cambiar
-los PNG del icono. Es la misma clase de regla
-que el `SCHEMA_VER` del mock.
+se quedan con la caché vieja. Va por `farpi-v1` desde el 31-08-2026: el cambio de nombre
+reinició la numeración, porque lo que importa no es el número sino que la cadena cambie.
+Es la misma clase de regla que el `SCHEMA_VER` del mock.
 
 ### Documentos: los archivos no los guarda Farpi
 

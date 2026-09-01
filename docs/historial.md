@@ -15,6 +15,48 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### La portada empieza por lo que importa, y Dinero pasa a ser Finanzas (01-09-2026)
+
+La portada contaba bien qué es Farpi, pero enterraba lo único que se le pide: que
+quien llega pueda entrar. Los botones vivían en la barra de arriba y en un cierre
+al final, y en medio había mil píxeles de texto sin una sola llamada.
+
+Ahora el acceso es un componente, `TarjetaAcceso`, y sale dos veces: pegado al
+titular en móvil —lo primero después de leer de qué va— y **anclado en una columna
+a la derecha en escritorio**, donde acompaña todo el scroll. Es el mismo componente
+en los dos sitios a propósito: dos bloques parecidos se contradicen al primer
+cambio de texto. La tarjeta lleva además un **"Próximamente en Google Play"** sin
+insignia oficial ni enlace, porque todavía no hay ficha a la que ir y una insignia
+se pulsa.
+
+Y entró lo que llevaba desde el 01-09-2026 aparcado en "Después": **las capturas**.
+Se descartó dibujar maquetas —envejecen a escondidas— y se descartó tirar de
+capturas hechas a mano, que llevan datos de una familia real y no se regeneran.
+En su lugar, `scripts/gen-capturas.mjs`: levanta la app en modo demo, **congela el
+reloj en el 17-06-2026** —la fecha de los datos de ejemplo, cuando Ana acababa de
+nacer, para que nada salga marcado como atrasado— y fotografía siete pantallas a
+390 px. Si la interfaz cambia, se relanza y la portada se entera. Es la misma idea
+que el resto de la suite: que no haya nada que mantener a mano.
+
+El texto de "Por qué existe Farpi" estaba mal contado. Decía que la hija nació en
+julio (fue en junio) y que el autor programó esto por tener las manos ocupadas
+mientras esperaba. No fue así: se hizo por necesidad propia, para aclararse con su
+esposa y su hija cuando de un día para otro había el triple de cosas que recordar.
+Es una utilidad de casa que se comparte porque sirve, no un pasatiempo que se
+publica. Firma, ya entero: Omar García Carballo.
+
+En el mismo viaje, **Dinero pasó a llamarse Finanzas** y el cambio bajó hasta el
+código: `/finanzas`, `src/lib/finanzas.ts`, `FinanzasView`, `useFinanzasState`. Las
+tablas no se tocaron —`budgets`, `expenses` y `quotes` nunca se llamaron así, y
+renombrarlas habría exigido migrar la base real a cambio de nada—. El porqué del
+nombre está en `architecture.md`. Este documento sigue diciendo «Dinero» donde
+cuenta lo que pasó entonces, igual que sigue diciendo «Nido».
+
+De paso, una incoherencia en `project-status.md`: seguía diciendo que las tres
+tablas de Finanzas estaban sin aplicar en Supabase, cuando se aplicaron y validaron
+(99/99) ese mismo día.
+
+
 ### Repaso a los iconos de Notas y al menú de "Más" (01-09-2026)
 
 Dos retoques de un día después, mirando la app ya hecha.

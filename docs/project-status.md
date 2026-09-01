@@ -6,7 +6,7 @@
 
 Farpi está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Farpi: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
-La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado") y **un paso a mano pendiente**: las tres tablas de Dinero (31-08-2026) están en `supabase/schema.sql` pero todavía no aplicadas en el proyecto real, así que esa sección hoy solo funciona en modo demo.
+La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Las tres tablas de Finanzas (31-08-2026) se aplicaron en el proyecto real y se validaron el 01-09-2026 (99/99), así que la sección funciona también con datos reales. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
@@ -69,7 +69,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   tarjeta, sin abrir nada. Vive en "Más", delante de Documentos, y **no sale en Inicio**:
   la clave del wifi no es de hoy, es de siempre. Ojo con lo que se guarda ahí: es texto
   plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
-- **Dinero** (31-08-2026): el gasto de la casa, en `/money`, con dos pestañas porque
+- **Finanzas** (31-08-2026): el gasto de la casa, en `/finanzas`, con dos pestañas porque
   "presupuesto" en español son dos cosas. **«El mes»**: topes de gasto por categoría
   («Compra 300 €/mes»), los gastos que se van apuntando debajo —importe, fecha, qué fue,
   de qué presupuesto sale y **quién lo pagó**— y el reparto de quién ha puesto cuánto. Las
@@ -89,7 +89,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Cuenta y Ajustes, por sitios distintos según el tamaño (28-08-2026). En escritorio, el
   pie de la barra lateral (`AccountFooter.tsx`): tu inicial y tu nombre como letrero, y
   debajo Ajustes y cerrar sesión, cada uno en su fila y a un clic. En móvil, **"Más"**, la
-  sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva Dinero, Notas y Documentos —que
+  sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva Finanzas, Notas y Documentos —que
   por eso no son pastillas—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
   Qué secciones caen ahí lo dice la bandera `enMas` de `secciones.ts`, que leen las dos
   barras: era un filtro escrito a mano y con dos secciones ya podía contradecirse.
@@ -102,10 +102,24 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - **Página de inicio pública** (`/`, `LandingPage.tsx`), en una sola página con la
   barra de arriba pegada y **"Entrar" y "Crear cuenta" siempre a la vista** —el segundo
   lleva a `/auth/login?modo=registro`, que abre ya en el formulario de registro—. Por
-  orden: presentación, "Cómo funciona" en tres pasos, "En qué ayuda", "Preguntas"
-  (`details` nativos, plegados), "Por qué existe Farpi", contacto y un cierre con los
-  dos botones otra vez. Las secciones se enlazan desde la barra **solo en `lg:`**: en
+  orden: presentación, "Así se ve" con las capturas, "Cómo funciona" en tres pasos,
+  "En qué ayuda", "Preguntas" (`details` nativos, plegados), "Por qué existe Farpi",
+  contacto y un cierre. Las secciones se enlazan desde la barra **solo en `lg:`**: en
   un móvil de 390 px esa fila ya la llenan la marca y los dos botones.
+- **El acceso, en una tarjeta que no se pierde de vista** (01-09-2026): el mismo
+  componente `TarjetaAcceso` sale pegado al titular en móvil y **anclado en una columna
+  de la derecha en escritorio** (`aside`, `sticky top-20`, solo en `lg:`), donde
+  acompaña todo el scroll. Lleva los dos botones, "se abre en el navegador" y un
+  **"Próximamente en Google Play"** sin insignia oficial ni enlace, porque todavía no
+  hay ficha a la que ir. `e2e/escritorio.spec.ts` vigila las dos mitades: que a 1440 px
+  siga a la vista tras bajar 2500 px, y que a 1023 px no haya columna y la tarjeta esté
+  igualmente arriba.
+- **Capturas de la app de verdad** en "Así se ve": siete pantallas (inicio, calendario,
+  tareas, listas, comidas, finanzas, notas) que genera `node scripts/gen-capturas.mjs`
+  contra la app en modo demo con el reloj congelado en el 17-06-2026, la fecha de los
+  datos de ejemplo. No son maquetas y no envejecen a escondidas: si la interfaz cambia,
+  se relanza el script. En móvil se arrastran de lado encajando de una en una; en
+  escritorio son tres columnas.
 - Modo demo con persistencia en `localStorage`.
 
 ### Conexión Supabase (completada)
@@ -128,7 +142,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 - **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
   con la base como está, aplicado en el proyecto real y validado. Última pasada:
-  **99/99** (01-09-2026, con las tres tablas de Dinero). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
+  **99/99** (01-09-2026, con las tres tablas de Finanzas). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
   veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
@@ -188,7 +202,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   - 343 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 31-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, y los presupuestos —cuánto llevas, cuánto te has pasado, quién ha puesto qué y la agrupación de los presupuestos pedidos—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
   - 106 de navegador. La cifra sale de la pasada completa del 31-08-2026 (449 en total,
     343 unitarios):
-    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas y la columna de acceso anclada de la portada; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Correcciones de seguridad
@@ -234,7 +248,7 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 ## Validación Supabase
 
 Sin pendientes. La última pasada es del **01-09-2026**, con `node scripts/validate-rls.mjs`
-contra la base real y ya con las tres tablas de Dinero aplicadas: **99/99**. Las diez
+contra la base real y ya con las tres tablas de Finanzas aplicadas: **99/99**. Las diez
 últimas son suyas: seis de las de siempre en `budgets`, `expenses` y `quotes` —A crea, B
 no ve—, una de que B tampoco puede escribir un gasto en la familia de A, y las tres de
 los triggers de `expenses`, que rechazan un gasto cuyo presupuesto, hijo o miembro sea de
@@ -295,12 +309,7 @@ Las dos que había aquí se cerraron el 06-08-2026:
 
 ### Después
 
-4. **Capturas de la app en la página de inicio pública.** La sección "En qué ayuda"
-   describe cada parte con palabras y no enseña ninguna. Se decidió (01-09-2026) que
-   irán capturas del modo demo con datos inventados, y que se hacen **cuando el
-   diseño esté cerrado**: hechas antes, envejecen a cada retoque. De momento no hay
-   hueco reservado en la página; un recuadro vacío queda peor que no tener nada.
-5. Medir el contraste de la paleta (el resto de la revisión de accesibilidad —roles,
+4. Medir el contraste de la paleta (el resto de la revisión de accesibilidad —roles,
    labels, foco, `inert` en los sheets— está hecha, Fase 8 del roadmap).
 
 ## Historial

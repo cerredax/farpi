@@ -258,28 +258,46 @@ Objetivo: preparar uso diario.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que no es un gestor de contraseñas.
 - [x] Aplicado en el SQL Editor del proyecto real y validado: `node scripts/validate-rls.mjs` da **89/89** (31-08-2026).
 
-## Fase 8d - Dinero (31-08-2026)
+## Fase 8d - Finanzas (31-08-2026)
 
 La última idea de la lista: un apartado de presupuestos. En español eran dos, así que la
 sección lleva dos pestañas. El porqué de cada decisión está en `docs/architecture.md`,
-"Dinero: dos cosas que en español se llaman igual".
+"Finanzas: dos cosas que en español se llaman igual".
 
 - [x] Tres tablas (`budgets`, `expenses`, `quotes`) con RLS por familia, índices,
       triggers de `updated_at` y los tres de integridad entre familias de `expenses`.
-- [x] Importes en **céntimos enteros**, con una sola conversión (`src/lib/money.ts`)
+- [x] Importes en **céntimos enteros**, con una sola conversión (`src/lib/finanzas.ts`)
       compartida por el mock y Supabase.
 - [x] Contratos `BudgetsRepo`, `ExpensesRepo` y `QuotesRepo`, y las dos
       implementaciones (mock con `SCHEMA_VER` 13 y Supabase).
-- [x] Pantalla `/money`: el mes con sus topes, sus gastos y el reparto por persona; y
+- [x] Pantalla `/finanzas`: el mes con sus topes, sus gastos y el reparto por persona; y
       los presupuestos pedidos, agrupados y comparados.
 - [x] En "Más" con Notas y Documentos, y en `SideNav` en escritorio.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que Farpi no se
       conecta a ningún banco.
-- [x] 73 unitarios nuevos (`money.spec.ts`, `budgets.spec.ts`) y dos flujos de navegador.
+- [x] 73 unitarios nuevos (`finanzas.spec.ts`, `budgets.spec.ts`) y dos flujos de navegador.
 - [x] Esquema aplicado en el SQL Editor del proyecto real y revalidado el 01-09-2026:
       **99/99**, con diez comprobaciones nuevas en el arnés para las tres tablas —incluidos
       los tres triggers que impiden que un gasto señale a un presupuesto, un hijo o un
       miembro de otra familia.
+
+## Fase 8e - La portada y el nombre de Finanzas (01-09-2026)
+
+La página pública contaba bien qué es Farpi y escondía lo único que se le pide: entrar.
+Y la sección de gasto pasó a llamarse como lo que la familia hace con el dinero.
+
+- [x] `TarjetaAcceso`, un solo componente con los dos botones, pegado al titular en
+      móvil y **anclado en una columna a la derecha en escritorio** (`sticky`, solo `lg:`).
+- [x] **"Próximamente en Google Play"**, sin insignia oficial ni enlace mientras no
+      haya ficha. Cuando la haya se cambia ese bloque (ver Fase 9, TWA).
+- [x] **"Así se ve"**: siete capturas de la app de verdad, generadas por
+      `scripts/gen-capturas.mjs` con el reloj congelado en el 17-06-2026. Cierra el
+      punto que estaba en "Después" de `project-status.md`.
+- [x] "Por qué existe Farpi", contado como fue: junio, y por necesidad propia.
+- [x] Tres tests nuevos (portada en `smoke.spec.ts`, columna anclada a 1440 y a 1023 px
+      en `escritorio.spec.ts`) y un bloque de QA manual en el checklist.
+- [x] **Dinero → Finanzas** en todo: etiquetas, `/finanzas`, `src/lib/finanzas.ts`,
+      `FinanzasView`, `useFinanzasState`, tests y documentación. Las tablas no se tocan.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

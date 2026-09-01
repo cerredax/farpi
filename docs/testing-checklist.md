@@ -264,7 +264,7 @@ verdad, que es que el otro vea el documento sin conectar nada.
 - [ ] En escritorio las tarjetas van en rejilla (dos desde `lg`, tres desde `xl`) y una
       nota corta no se estira hasta el alto de la más larga de su fila.
 
-## 8c. Dinero
+## 8c. Finanzas
 
 Los datos de demo están sembrados en junio de 2026, así que el mes en curso arranca
 vacío: para ver gastos sembrados hay que ir hacia atrás con la flecha.
@@ -368,6 +368,25 @@ cada uno hace a su manera:
 - [ ] Reset pide confirmación.
 - [ ] Tras confirmar, vuelve estado inicial.
 - [ ] No quedan sheets abiertos ni estados raros.
+
+## 12b. Portada pública (`/`)
+
+> Automatizado: `e2e/smoke.spec.ts` comprueba que los botones están y que las capturas
+> cargan de verdad (una imagen rota no da error en el navegador), y
+> `e2e/escritorio.spec.ts` que la columna de acceso sigue a la vista a 1440 px tras bajar
+> y que a 1023 px no existe. Lo de aquí es lo que hay que mirar con ojos.
+
+- [ ] En móvil, "Crear cuenta" se ve sin bajar nada: en la barra de arriba y en la
+      tarjeta, justo debajo del titular.
+- [ ] En escritorio, la tarjeta de la derecha acompaña todo el scroll y no se pisa con
+      la cabecera pegajosa.
+- [ ] Las capturas de "Así se ve" se leen: en móvil se arrastran de lado y encajan de
+      una en una; en escritorio son tres columnas.
+- [ ] **Las capturas son de la interfaz de ahora.** Si se ha tocado alguna pantalla,
+      `node scripts/gen-capturas.mjs` y volver a mirar. Es el único punto de la portada
+      que se queda desactualizado solo.
+- [ ] "Próximamente en Google Play" sigue siendo verdad. El día que haya ficha, se
+      cambia por la insignia oficial y su enlace (`TarjetaAcceso`).
 
 ## 13. Responsive
 

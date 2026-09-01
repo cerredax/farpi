@@ -3,6 +3,21 @@ import { abrirBloque, elegirVista } from './vistas'
 
 // Smoke mínimo en modo demo: login demo → /home con datos mock.
 
+// La portada enseña capturas de la app de verdad, generadas por
+// `scripts/gen-capturas.mjs`. Si alguien renombra una pantalla y no vuelve a
+// lanzarlo, el archivo deja de existir y la portada se queda con huecos: el
+// navegador no avisa de una imagen rota, así que se pregunta por `naturalWidth`.
+test('la portada enseña el acceso y las capturas cargan', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page.getByRole('link', { name: 'Crear cuenta' }).first()).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toBeVisible()
+
+  const primera = page.getByRole('img', { name: /Pantalla de Inicio/ })
+  await expect(primera).toBeVisible()
+  expect(await primera.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
+})
+
 test('la pantalla de login muestra el modo demo', async ({ page }) => {
   await page.goto('/auth/login')
   await expect(page.getByText('Modo local activo')).toBeVisible()

@@ -75,6 +75,23 @@ async function columnasDeTarjetas(page: import('@playwright/test').Page) {
 test.describe('escritorio a 1440 px', () => {
   test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
 
+  // La portada no lleva SideNav ni BottomNav, pero es la pantalla que más se
+  // juega: quien llega tiene que poder entrar sin buscar. En escritorio eso se
+  // resuelve con una columna anclada a la derecha, y "anclada" solo se puede
+  // comprobar bajando la página y mirando si sigue ahí.
+  test('la portada mantiene el acceso a la vista mientras se baja', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForTimeout(800)
+
+    const acceso = page.getByRole('complementary', { name: 'Entrar en Farpi' })
+    await expect(acceso.getByRole('link', { name: 'Crear cuenta' })).toBeVisible()
+
+    await page.evaluate(() => window.scrollBy(0, 2500))
+    await page.waitForTimeout(600)
+    await expect(acceso.getByRole('link', { name: 'Crear cuenta' })).toBeInViewport()
+    await expect(acceso.getByRole('link', { name: 'Ya tengo cuenta' })).toBeInViewport()
+  })
+
   test('manda la barra lateral y desaparece la de abajo', async ({ page }) => {
     await page.goto('/meals')
     await page.waitForTimeout(800)
@@ -371,6 +388,15 @@ test.describe('escritorio a 1440 px', () => {
 // mandando la barra de abajo.
 test.describe('justo por debajo de lg, a 1023 px', () => {
   test.use({ viewport: { width: 1023, height: 900 }, isMobile: false, hasTouch: false })
+
+  test('la portada no saca la columna anclada, pero el acceso sigue arriba', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForTimeout(800)
+
+    await expect(page.getByRole('complementary', { name: 'Entrar en Farpi' })).toBeHidden()
+    // La tarjeta no desaparece: baja al cuerpo, justo debajo del titular.
+    await expect(page.getByRole('link', { name: 'Crear cuenta' }).nth(1)).toBeInViewport()
+  })
 
   test('sigue la barra de abajo y no aparece la lateral', async ({ page }) => {
     await page.goto('/meals')

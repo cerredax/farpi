@@ -14,21 +14,6 @@ import { AuthCard } from '@/components/auth/AuthCard'
 const CONTACT = 'cerredax@gmail.com'
 
 /**
- * El único enlace de cuenta que queda en la barra, y ya no lleva a otra página:
- * es un ancla al formulario, que está en esta misma.
- *
- * Se queda porque en móvil el formulario está arriba del todo y, tres mil
- * píxeles más abajo, no habría forma de volver a él sin subir a mano. En
- * escritorio no hace falta —la columna de la derecha va anclada— pero tampoco
- * estorba, y tener dos barras distintas según el ancho es peor que esto.
- */
-const ENLACE_ENTRAR =
-  'inline-flex items-center justify-center rounded-xl border border-line bg-canvas px-4 py-2.5 ' +
-  'text-sm font-semibold text-ink select-none touch-manipulation ' +
-  'transition-[background-color,transform] duration-150 hover:bg-surface active:bg-line ' +
-  'active:scale-[0.97] active:duration-0'
-
-/**
  * El nombre de la app, dentro de un párrafo. Los textos van en gris (`muted`),
  * así que basta el peso y la tinta fuerte para que se reconozca: cambiarle la
  * tipografía desajustaría la línea base y se leería como un fallo de
@@ -168,8 +153,15 @@ export function LandingPage() {
             <span className="text-base font-black tracking-tight">Farpi</span>
           </Link>
 
-          {/* Las secciones solo en escritorio: en un móvil de 390 px la fila ya
-              la llenan la marca y el enlace de entrar. */}
+          {/* En la barra **no hay ningún enlace de cuenta**, ni un botón que
+              lleve al login ni un ancla que baje al formulario. Se pidió así, y
+              lo que queda es coherente: aquí ya no se navega a ninguna parte
+              para entrar, se entra. El formulario es lo segundo de la página en
+              móvil y va anclado a la derecha en escritorio.
+
+              Las secciones, solo en escritorio: en un móvil de 390 px caben,
+              pero apretarían la fila para llevar a sitios que están a un
+              desplazamiento de distancia. */}
           <nav className="ml-4 hidden gap-5 lg:flex">
             {SECCIONES.map(({ id, titulo }) => (
               <a
@@ -181,10 +173,6 @@ export function LandingPage() {
               </a>
             ))}
           </nav>
-
-          <a href="#entrar" className={`ml-auto ${ENLACE_ENTRAR}`}>
-            Entrar
-          </a>
         </div>
       </header>
 

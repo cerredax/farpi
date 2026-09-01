@@ -1200,10 +1200,12 @@ pantalla acaba escribiendo en el que no ve. Por eso las tres piezas de la portad
 en vez de por orden natural: el acceso se escribe en medio, porque tiene que ser el
 segundo en móvil, pero pertenece a la columna de al lado.
 
-De la barra de arriba queda un enlace «Entrar» que **no lleva a ninguna parte**: es un
-ancla a `#entrar`. En escritorio no hace falta —la columna va anclada— pero en móvil el
-formulario está arriba del todo, y sin él, tres mil píxeles más abajo, no habría forma
-de volver sin subir a mano.
+En la barra de arriba **no queda ningún enlace de cuenta**. Se probó a dejar un «Entrar»
+que fuera un ancla a `#entrar`, para poder volver al formulario desde el final de la
+página en móvil, y se quitó: seguía leyéndose como el botón de login de siempre, que es
+justo lo que la portada ya no quiere ser. El precio es que en móvil, muy abajo, hay que
+subir para volver al formulario; el `id` sigue ahí por si algún día se enlaza de otra
+forma.
 
 Efecto lateral que conviene saber: la portada dejó de ser una página inerte y carga el
 cliente de Supabase. Y en **modo demo** enseña el aviso de «Modo local activo» en vez

@@ -16,11 +16,10 @@ test('la portada enseña el acceso y las capturas cargan', async ({ page }) => {
   // prueba de que la portada monta `AuthCard` y no una copia suya.
   await expect(page.locator('#entrar').getByText('Modo local activo')).toBeVisible()
 
-  // Y el único enlace de cuenta que queda en la barra, que ya no lleva a otra
-  // página: sube al formulario. Es la única forma de volver a él en móvil.
-  const entrar = page.getByRole('link', { name: 'Entrar', exact: true })
-  await expect(entrar).toBeVisible()
-  await expect(entrar).toHaveAttribute('href', '#entrar')
+  // Y en la barra no queda **ningún** enlace de cuenta: ni al login ni al
+  // formulario de aquí abajo. Aquí ya no se navega para entrar, se entra.
+  await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Crear cuenta' })).toHaveCount(0)
 
   const primera = page.getByRole('img', { name: /Pantalla de Inicio/ })
   await expect(primera).toBeVisible()

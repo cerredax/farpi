@@ -381,7 +381,8 @@ cada uno hace a su manera:
 - [ ] La pestaña "Crear cuenta" crece a cuatro campos sin romper la columna.
 - [ ] En móvil el formulario se ve sin bajar nada, justo debajo del titular, y el
       teclado no tapa el botón de Entrar.
-- [ ] El enlace "Entrar" de la barra sube al formulario desde donde estés.
+- [ ] La barra de arriba **no tiene ningún botón de cuenta**: solo la marca y, en
+      escritorio, las secciones.
 - [ ] En escritorio, la tarjeta de la derecha acompaña todo el scroll y no se pisa con
       la cabecera pegajosa.
 - [ ] Las capturas de "Así se ve" se leen: en móvil se arrastran de lado y encajan de

@@ -118,10 +118,10 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   en la rejilla: el acceso se escribe en medio —tiene que ser el segundo en móvil— pero
   pertenece a la columna de al lado. Debajo, un **"Próximamente en Google Play"** sin
   insignia oficial ni enlace, porque todavía no hay ficha a la que ir.
-- **La barra de arriba ya no tiene botones de cuenta**: solo la marca, las secciones
-  (`lg:`) y un enlace "Entrar" que es un **ancla** a `#entrar`. No lleva a otra página;
-  existe porque en móvil el formulario está arriba del todo y sin él no habría forma de
-  volver a él sin subir a mano. El cierre de la página con los botones también se fue.
+- **La barra de arriba no tiene ningún enlace de cuenta**: solo la marca y las
+  secciones (`lg:`). Ni botón al login ni ancla al formulario; el cierre de la página
+  con los dos botones también se fue. Aquí ya no se navega a ninguna parte para entrar,
+  se entra: el formulario es lo segundo que hay en móvil y va anclado en escritorio.
   `e2e/escritorio.spec.ts` vigila las dos mitades: que a 1440 px la tarjeta siga a la
   vista tras bajar 2500 px y mida menos de una columna, y que a 1023 px ocupe el ancho
   del texto y siga por encima de "Así se ve".

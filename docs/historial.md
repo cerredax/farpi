@@ -31,10 +31,12 @@ invitaciones, la confirmación de cuenta y los enlaces de recuperar contraseña�
 pero ya solo aporta la maqueta.
 
 Fuera los botones de cuenta de la barra de arriba y el cierre de la página con
-los dos botones otra vez, que era lo que se pedía. De la barra queda un enlace
-"Entrar" que **no lleva a ninguna parte**: es un ancla a `#entrar`. Se queda
-porque en móvil el formulario está arriba del todo y, tres mil píxeles más
-abajo, no habría forma de volver a él sin subir a mano.
+los dos botones otra vez, que era lo que se pedía. Quedó primero un enlace
+"Entrar" en la barra que no llevaba a ninguna parte —un ancla a `#entrar`, para
+poder volver al formulario desde el final de la página en móvil— y se quitó el
+mismo día: por muy ancla que fuera, seguía leyéndose como el botón de login de
+siempre, que es justo lo que la portada ya no quiere ser. La barra se queda con
+la marca y las secciones.
 
 El detalle que obligó a rehacer la rejilla: el acceso **se pinta una sola vez**.
 Antes eran dos tarjetas de botones, una para móvil y otra para escritorio, y

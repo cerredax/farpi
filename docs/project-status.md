@@ -152,13 +152,21 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   - **Las capturas, escalonadas y torcidas un pelín**, y se enderezan y levantan al pasar
     el ratón. Solo desde `lg:`, y anuladas con `motion-reduce`. Dos columnas en `lg` y
     tres en `xl`: a tres en un portátil de 1024 px los móviles no se leían.
-- **Los datos de demo son los de una casa, no los de un bebé** (01-09-2026). La hija se
-  llama **Cris** y sigue estando (su pediatra, su vitamina, su cartilla, su cumplemes),
+- **Los datos de demo son los de una casa, no los de un bebé** (01-09-2026). Los adultos
+  son **Carlos y María** y la hija se llama **Cris**; sigue estando (su pediatra, su vitamina, su cartilla, su cumplemes),
   pero alrededor hay lo que tiene cualquier casa: la ITV, el dentista, una cena con
   amigos, la lavadora, la basura, el seguro del coche, la gasolina, el bricolaje. Antes
   todo giraba alrededor del recién nacido y quien no tuviera hijos no se reconocía en
   las capturas de la portada, que es de donde salen. Cambiar esos textos obliga a tocar
   las comprobaciones de la suite que los buscan por su nombre y a regenerar las capturas.
+  Dos reglas que salieron de ahí: **las listas son de cosas y no de tareas** (una lista
+  con "sacar la basura" dentro es una lista de tareas mal puesta), y **lo que crea un
+  test no puede llamarse como algo de la demo**, porque el filtro por texto engancha los
+  dos y Playwright para por ambigüedad.
+- **Hay un cumpleaños en la demo** desde el 01-09-2026 (la abuela Marisa, el 22 de
+  junio): el bloque de cumpleaños de Inicio no tenía datos y no se pintaba nunca, así
+  que esa parte de la app no se veía ni usando el modo demo. Queda a 1.800 px del alto
+  de la pantalla, así que en la captura de la portada, que es de 844 px, no entra.
 - **El texto no lleva ni un guion largo** (01-09-2026). Se usaban a puñados para meter
   incisos y son de las cosas que delatan un texto escrito por una máquina. Van con
   comas, con paréntesis o partiendo la frase. En los comentarios del código se quedan:

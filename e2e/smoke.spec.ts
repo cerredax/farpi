@@ -95,7 +95,7 @@ test('una familia creada se puede eliminar y la app vuelve a la anterior', async
   await dialog.getByRole('button', { name: 'Confirmar: se borra todo' }).click()
 
   await expect(page.getByText('Familia de prueba')).toHaveCount(0)
-  await expect(page.getByText('Familia de Omar, Sofía y Cris')).toBeVisible()
+  await expect(page.getByText('Familia de Carlos, María y Cris')).toBeVisible()
 })
 
 // El segundo eje de la agenda. Se prueba en el navegador y no en unitarios
@@ -112,7 +112,7 @@ test('la agenda se puede agrupar por persona', async ({ page }) => {
   await expect(porPersona).toHaveAttribute('aria-pressed', 'true')
 
   // Cada persona con algo es una sección con su nombre. La familia de demo
-  // tiene tareas repartidas, así que "Familia" y "Omar" tienen grupo propio.
+  // tiene tareas repartidas, así que "Familia" y "Carlos" tienen grupo propio.
   await expect(page.getByRole('region', { name: 'Agenda por persona' })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Familia' })).toBeVisible()
 
@@ -121,8 +121,8 @@ test('la agenda se puede agrupar por persona', async ({ page }) => {
   // no en el de la familia, donde lo de todos nunca llevó etiqueta y la cuenta
   // daría uno aunque las filas siguieran diciendo el nombre. Contarlas, además,
   // porque buscar el texto tampoco valdría: el rótulo va en mayúsculas por CSS
-  // y una comparación con "Omar" pasaría sin mirar las filas.
-  await expect(page.getByRole('region', { name: 'Omar' }).locator('.etiqueta-persona')).toHaveCount(1)
+  // y una comparación con "Carlos" pasaría sin mirar las filas.
+  await expect(page.getByRole('region', { name: 'Carlos' }).locator('.etiqueta-persona')).toHaveCount(1)
 })
 
 // El botón de guardar del sheet del calendario, por lo que es y no por lo que

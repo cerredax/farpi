@@ -7,6 +7,7 @@ import { createClient, IS_DEMO_MODE } from '@/lib/supabase/client'
 import { isAuthProviderEnabled } from '@/lib/supabase/auth-providers'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
+import { Garantias } from '@/components/ui/Garantias'
 
 export type AuthMode = 'signin' | 'signup'
 
@@ -320,9 +321,9 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
         </div>
       )}
 
-      <p className="mt-5 text-center text-[11px] font-medium text-muted-soft">
-        Farpi es gratuito y privado para tu familia.
-      </p>
+      {/* Debajo del formulario, que es donde se duda: quien está a punto de
+          escribir su correo quiere saber quién lo va a ver y si esto cuesta. */}
+      <Garantias className="mt-5 justify-center" />
 
       <style jsx>{`
         .form-input {

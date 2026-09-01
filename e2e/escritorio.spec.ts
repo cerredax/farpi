@@ -113,7 +113,7 @@ test.describe('escritorio a 1440 px', () => {
     // El pie: el nombre de quien mira y Ajustes, que es el único camino a
     // Ajustes en escritorio. Es una fila y no un menú que abrir, así que se
     // comprueba que lleva directa a la pantalla, que abre en Familia.
-    await expect(lateral.getByText('Omar')).toBeVisible()
+    await expect(lateral.getByText('Carlos')).toBeVisible()
     await lateral.getByRole('link', { name: 'Ajustes' }).click()
     await expect(page).toHaveURL(/\/settings/)
     await expect(page.getByRole('tab', { name: 'Familia' })).toHaveAttribute('aria-selected', 'true')
@@ -202,7 +202,7 @@ test.describe('escritorio a 1440 px', () => {
     await page.locator('#event-kind').selectOption('descanso')
     await page.locator('#event-date').fill('2026-08-11')
     await page.locator('#event-end-date').fill('2026-08-12')
-    await page.getByRole('button', { name: 'Sofía' }).click()
+    await page.getByRole('button', { name: 'María' }).click()
     await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
@@ -216,9 +216,9 @@ test.describe('escritorio a 1440 px', () => {
 
     // Y el nombre sale una sola vez, en "Vacaciones y descansos", que nace
     // plegado: hasta que no se abre, del bloque solo se ve el título.
-    await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /María descansa/ })).toHaveCount(0)
     await abrirBloque(page, 'Vacaciones y descansos')
-    await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
+    await expect(page.getByRole('button', { name: /María descansa/ })).toHaveCount(1)
   })
 
   // Un festivo se apunta como los otros tres tipos y se pinta en la celda con su

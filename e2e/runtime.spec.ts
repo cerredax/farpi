@@ -187,17 +187,19 @@ test('un evento se puede asignar a un adulto y se ve quién es', async ({ page }
 
   const dialogo = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
   await expect(dialogo.getByRole('button', { name: 'Familia', exact: true })).toBeVisible()
-  await expect(dialogo.getByRole('button', { name: 'Omar', exact: true })).toBeVisible()
+  await expect(dialogo.getByRole('button', { name: 'Carlos', exact: true })).toBeVisible()
 
-  await page.locator('#event-title').fill('Dentista')
-  await dialogo.getByRole('button', { name: 'Sofía', exact: true }).click()
+  // Un título que no exista ya en la demo: desde que hay un "Dentista" apuntado
+  // el 10 de junio, buscar por ese nombre engancharía los dos.
+  await page.locator('#event-title').fill('Fisioterapeuta')
+  await dialogo.getByRole('button', { name: 'María', exact: true }).click()
   await page.getByRole('button', { name: 'Apuntar', exact: true }).click()
 
   // En la agenda, el evento aparece con el nombre de la persona asignada.
   // (En la celda del día también, pero ahí es un tooltip que solo se ve al pasar
   // el ratón, así que no sirve para comprobarlo.)
-  await expect(page.getByRole('button', { name: /Dentista/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /Dentista.*Sofía/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Fisioterapeuta/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Fisioterapeuta.*María/ })).toBeVisible()
 })
 
 // Vacaciones: un evento de varios días. Cubre que el formulario cambia de forma
@@ -395,13 +397,13 @@ test('una tarea se puede asignar a alguien y se ve de quién es', async ({ page 
   await page.getByRole('button', { name: 'Nueva tarea' }).click()
   const sheet = page.getByRole('dialog', { name: 'Nueva tarea' })
   await page.locator('#task-title').fill('Regar las plantas')
-  await sheet.getByRole('button', { name: 'Sofía' }).click()
+  await sheet.getByRole('button', { name: 'María' }).click()
   await page.getByRole('button', { name: 'Crear tarea' }).click()
   await page.waitForTimeout(400)
 
   // La tarea aparece con el nombre de quien la lleva.
   const fila = page.locator('div').filter({ hasText: /^Regar las plantas/ }).first()
-  await expect(fila).toContainText('Sofía')
+  await expect(fila).toContainText('María')
 })
 
 // Con el tiempo la lista se hace larga y "¿apunté lo de la vitamina?" solo se
@@ -466,7 +468,7 @@ test('las notas fijadas salen las primeras', async ({ page }) => {
 })
 
 // Un papel caducado no avisa por su cuenta: el DNI vale hasta que un día no
-// vale. En la demo, el DNI de Omar caduca el 20 de agosto de 2026.
+// vale. En la demo, el DNI de Carlos caduca el 20 de agosto de 2026.
 test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
   await page.goto('/docs')
   await page.waitForTimeout(700)
@@ -668,7 +670,7 @@ test('un descanso marca todos los días de su rango', async ({ page }) => {
 
   await page.locator('#event-date').fill('2026-08-11')
   await page.locator('#event-end-date').fill('2026-08-12')
-  await page.getByRole('button', { name: 'Sofía' }).click()
+  await page.getByRole('button', { name: 'María' }).click()
   await page.locator('button[type="submit"][form="event-form"]').click()
   await page.waitForTimeout(600)
 
@@ -677,7 +679,7 @@ test('un descanso marca todos los días de su rango', async ({ page }) => {
 
   // Y una vez en el bloque, con nombre y fechas: dos días no son dos filas.
   await abrirBloque(page, 'Vacaciones y descansos')
-  await expect(page.getByRole('button', { name: /Sofía descansa/ })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /María descansa/ })).toHaveCount(1)
 })
 
 // Las unidades de un ítem se suben y se bajan **desde la propia fila**, sin abrir

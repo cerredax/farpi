@@ -5,12 +5,12 @@ import {
   FileText,
   ListChecks,
   NotebookText,
-  ShieldCheck,
   Smartphone,
   UtensilsCrossed,
   Wallet,
 } from 'lucide-react'
 import { AuthCard } from '@/components/auth/AuthCard'
+import { Garantias } from '@/components/ui/Garantias'
 import { DayIllustration } from '@/components/home/DayIllustration'
 import { getDayPeriodFromHour } from '@/lib/date-utils'
 
@@ -50,13 +50,10 @@ const INCLINACION = ['lg:-rotate-[1.1deg]', 'lg:rotate-[0.9deg]', 'lg:rotate-[0.
  * hay en la página fuera de los botones. Va en las siete por igual —dentro y
  * fuera de bloque—, que es lo que las hace parecer hermanas.
  */
-function TituloSeccion({ id, encima, children }: { id?: string; encima?: string; children: React.ReactNode }) {
+function TituloSeccion({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
       <span aria-hidden className="mb-3 block h-1 w-9 rounded-full bg-primary" />
-      {encima && (
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-soft">{encima}</p>
-      )}
       <h2 id={id} className={TITULO}>{children}</h2>
     </div>
   )
@@ -112,8 +109,8 @@ const CAPTURAS = [
   { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
   { archivo: 'calendario', titulo: 'El mes',      texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
   { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
-  { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos.' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
+  { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos de la tarde.' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'Lo que decidisteis gastar, lo que lleváis y quién ha puesto qué.' },
   { archivo: 'documentos', titulo: 'Documentos',  texto: 'El seguro, la cartilla, el libro de familia. Y qué caduca.' },
 ]
 
@@ -146,12 +143,12 @@ const FUNCIONES = [
   {
     icon: UtensilsCrossed,
     titulo: 'Comidas',
-    texto: 'El menú de la semana, para no decidirlo cada día a las dos.',
+    texto: 'El menú de la semana, para no decidirlo cada día a las dos de la tarde.',
   },
   {
     icon: Wallet,
     titulo: 'Finanzas',
-    texto: 'El gasto del mes por categorías, quién ha puesto cuánto y los presupuestos que os pasan de fuera.',
+    texto: 'Decidís cuánto queréis gastar al mes en cada cosa y la app va diciendo cuánto lleváis, quién ha puesto qué y si os estáis pasando. Los presupuestos que os pasan de fuera se guardan al lado, para compararlos antes de decidir.',
   },
   {
     icon: NotebookText,
@@ -301,22 +298,7 @@ export function LandingPage() {
                 todo junto y a un vistazo.
               </p>
 
-              {/* Quien llega de fuera tiene una pregunta antes que ninguna otra
-                  —quién ve mis cosas— y estaba contestada en las Preguntas, a
-                  tres mil píxeles de aquí. Tres palabras arriba valen más que un
-                  párrafo abajo. Los puntos son `span` aparte y no parte del
-                  texto: así el lector de pantalla lee tres cosas y no una frase
-                  con puntos en medio. */}
-              <ul className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-ink">
-                <li className="inline-flex items-center gap-1.5">
-                  <ShieldCheck size={15} strokeWidth={2.4} className="text-primary-strong" />
-                  Privado para tu familia
-                </li>
-                <li aria-hidden className="text-muted-soft">·</li>
-                <li>Gratis</li>
-                <li aria-hidden className="text-muted-soft">·</li>
-                <li>Sin anuncios</li>
-              </ul>
+              <Garantias className="mt-5" />
             </div>
           </div>
         </section>
@@ -343,7 +325,7 @@ export function LandingPage() {
           <section id="asi-se-ve" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
             <TituloSeccion>Así se ve</TituloSeccion>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
-              No son maquetas: son cuatro pantallas de <Marca /> tal cual se ven, con la familia de
+              No son maquetas: son seis pantallas de <Marca /> tal cual se ven, con la familia de
               ejemplo que trae la app.
             </p>
 
@@ -469,7 +451,7 @@ export function LandingPage() {
               que hace que esto no parezca escrito por una máquina es justo lo que
               un corrector querría arreglar. */}
           <section className={`border border-line bg-warm ${BLOQUE}`}>
-            <TituloSeccion encima="Una nota de quien la hizo">Por qué existe Farpi</TituloSeccion>
+            <TituloSeccion>Por qué existe Farpi</TituloSeccion>
 
             <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
               <p>

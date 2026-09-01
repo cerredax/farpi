@@ -72,7 +72,17 @@ const PANTALLAS = [
   },
   { ruta: '/tasks',    nombre: 'tareas',     espera: 'Dar la vitamina a Cris' },
   { ruta: '/lists',    nombre: 'listas',     espera: 'Bricolaje' },
-  { ruta: '/meals',    nombre: 'comidas',    espera: 'Pollo al horno con patatas' },
+  {
+    ruta: '/meals',
+    nombre: 'comidas',
+    espera: 'Pollo al horno con patatas',
+    // En la semana, no en el día: la parrilla de siete columnas es lo que hace
+    // que esta captura no parezca otra lista más en la rejilla de la portada.
+    async preparar(pagina) {
+      await pagina.getByRole('button', { name: 'Esta semana' }).click()
+      await pagina.waitForTimeout(700)
+    },
+  },
   { ruta: '/finanzas', nombre: 'finanzas',   espera: 'Compra semanal' },
   { ruta: '/notes',    nombre: 'notas',      espera: 'Wifi de casa' },
   { ruta: '/docs',     nombre: 'documentos', espera: 'Seguro del coche' },

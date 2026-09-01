@@ -10,8 +10,34 @@ import {
   Wallet,
 } from 'lucide-react'
 import { AuthCard } from '@/components/auth/AuthCard'
+import { DayIllustration } from '@/components/home/DayIllustration'
+import { getDayPeriodFromHour } from '@/lib/date-utils'
 
 const CONTACT = 'cerredax@gmail.com'
+
+/**
+ * Las secciones no se separan con una rayita, se separan con el fondo.
+ *
+ * Había seis `border-t` idénticos de arriba abajo sobre el mismo crema, y el
+ * resultado era una página donde todo pesaba igual y nada llamaba. Ahora unas
+ * secciones van en bloque de color y otras al aire, alternando: el ritmo lo
+ * marca el fondo y no una línea de un píxel.
+ */
+const BLOQUE = 'rounded-[2rem] px-6 py-9 sm:px-8 sm:py-10'
+
+/** El titular de una sección. Antes medía lo mismo que un texto en negrita. */
+const TITULO = 'text-xl font-black tracking-tight sm:text-2xl'
+
+/**
+ * Las capturas, escalonadas y torcidas un pelín, como fotos dejadas encima de
+ * la mesa. Solo en escritorio: en la tira de móvil, que se arrastra y encaja de
+ * una en una, torcerlas se lee como un fallo de maquetación.
+ *
+ * Los nombres de clase van enteros y no armados con plantillas porque Tailwind
+ * los busca leyendo el archivo: un `lg:${variable}` no existiría en el CSS.
+ */
+const ESCALON = ['lg:mt-0', 'lg:mt-10', 'lg:mt-5']
+const INCLINACION = ['lg:-rotate-[1.2deg]', 'lg:rotate-[0.9deg]', 'lg:-rotate-[0.5deg]']
 
 /**
  * El nombre de la app, dentro de un párrafo. Los textos van en gris (`muted`),
@@ -136,6 +162,26 @@ const PREGUNTAS = [
 ]
 
 export function LandingPage() {
+  /**
+   * La casa del titular enseña el cielo que toca —sol, atardecer o luna—, así
+   * que la portada no se ve igual a las nueve de la mañana que a las once de la
+   * noche. Es la misma ilustración que preside Inicio, y esa es la gracia: quien
+   * entra ya ha visto la app.
+   *
+   * Se pinta **en el servidor**, que en Vercel va en UTC, así que la hora se
+   * pide en la de Madrid: si no, media España vería el cielo de una hora antes.
+   * Y se resuelve aquí y no en el navegador para que no haya un parpadeo entre
+   * lo que llega pintado y lo que decide el reloj de quien mira.
+   */
+  const horaMadrid = Number(
+    new Intl.DateTimeFormat('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      hourCycle: 'h23',
+    }).format(new Date())
+  )
+  const tramo = getDayPeriodFromHour(horaMadrid)
+
   return (
     <div className="min-h-dvh bg-canvas text-ink">
       <header className="sticky top-0 z-30 border-b border-line bg-canvas/90 backdrop-blur">
@@ -193,15 +239,26 @@ export function LandingPage() {
           electrónico» con el mismo `id` y quien navega con lector de pantalla
           acaba escribiendo en el que no ve. */}
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-x-10 px-5 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className="pt-10 pb-8 sm:pt-14 lg:col-start-1 lg:row-start-1">
-          <h1 className="text-3xl font-black leading-[1.1] tracking-tight sm:text-4xl">
-            Qué tenemos que saber hoy en casa.
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-            <Marca /> es un espacio privado para una familia: el calendario, las tareas, las listas,
-            las comidas, el gasto de la casa, las notas y los documentos importantes, todo junto
-            y a un vistazo.
-          </p>
+        <section className="pt-8 pb-8 sm:pt-12 lg:col-start-1 lg:row-start-1">
+          {/* Una sola casa, colocada dos veces distintas: encima del titular en
+              móvil y al lado en escritorio, donde hay sitio para que sea grande.
+              El `order` la mueve sin repetir el elemento. */}
+          <div className="lg:flex lg:items-center lg:gap-6">
+            <DayIllustration
+              period={tramo}
+              className="mb-3 -ml-2 h-24 w-24 sm:h-28 sm:w-28 lg:order-2 lg:mb-0 lg:ml-0 lg:h-44 lg:w-44 lg:flex-shrink-0"
+            />
+            <div className="lg:order-1 lg:min-w-0 lg:flex-1">
+              <h1 className="text-[2rem] font-black leading-[1.08] tracking-tight sm:text-4xl">
+                Qué tenemos que saber hoy en casa.
+              </h1>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
+                <Marca /> es un espacio privado para una familia: el calendario, las tareas, las
+                listas, las comidas, el gasto de la casa, las notas y los documentos importantes,
+                todo junto y a un vistazo.
+              </p>
+            </div>
+          </div>
         </section>
 
         <div
@@ -222,26 +279,37 @@ export function LandingPage() {
           </div>
         </div>
 
-        <div className="lg:col-start-1 lg:row-start-2">
-          <section id="asi-se-ve" className="scroll-mt-20 border-t border-line py-10">
-            <h2 className="text-lg font-bold">Así se ve</h2>
+        <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-2">
+          <section id="asi-se-ve" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
+            <h2 className={TITULO}>Así se ve</h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               Estas siete pantallas son <Marca /> de verdad, con la familia de ejemplo que trae la
               app: un recién nacido, sus citas y la compra de la semana.
             </p>
 
             {/* En móvil se arrastran de lado con el dedo, encajando de una en una;
-                en escritorio se abren en tres columnas y no hay nada que arrastrar.
-                Tres y no dos: una pantalla de móvil entera mide más de dos veces lo
-                que mide de ancho, y a dos columnas la sección se convertía en una
-                cuesta de dos mil píxeles.
+                en escritorio se abren en rejilla y no hay nada que arrastrar. Dos
+                columnas a partir de `lg` y tres desde `xl`: a tres en un portátil
+                de 1024 px los móviles se quedaban en 170 px y no se leía nada de
+                lo que enseñan, que es justo para lo que están.
 
                 El `-mx-5` deja que la tira toque los bordes de la pantalla, para
                 que se vea que hay más a la derecha. */}
-            <ul className="-mx-5 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-x-5 lg:gap-y-8 lg:overflow-visible lg:px-0">
+            <ul className="-mx-6 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-5 lg:gap-y-6 xl:grid-cols-3 lg:overflow-visible lg:px-0">
               {CAPTURAS.map(({ archivo, titulo, texto }, i) => (
-                <li key={archivo} className="w-[230px] flex-shrink-0 snap-start lg:w-auto">
-                  <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+                <li
+                  key={archivo}
+                  className={`group w-[230px] flex-shrink-0 snap-start lg:w-auto ${ESCALON[i % 3]}`}
+                >
+                  {/* Al pasar por encima se endereza y se levanta. Quien tenga
+                      pedido menos movimiento en su sistema no ve ni lo uno ni
+                      lo otro: se queda la foto quieta y derecha. */}
+                  <div
+                    className={`overflow-hidden rounded-2xl border border-line bg-canvas shadow-sm
+                      transition-transform duration-300 ease-out
+                      lg:group-hover:-translate-y-2 lg:group-hover:rotate-0 lg:group-hover:shadow-lg
+                      motion-reduce:transform-none motion-reduce:transition-none ${INCLINACION[i % 3]}`}
+                  >
                     <Image
                       src={`/capturas/${archivo}.png`}
                       width={390}
@@ -259,12 +327,12 @@ export function LandingPage() {
             </ul>
           </section>
 
-          <section id="como-funciona" className="scroll-mt-20 border-t border-line py-10">
-            <h2 className="text-lg font-bold">Cómo funciona</h2>
+          <section id="como-funciona" className="scroll-mt-20 px-1 py-2">
+            <h2 className={TITULO}>Cómo funciona</h2>
             <ol className="mt-6 flex flex-col gap-6">
               {PASOS.map(({ titulo, texto }, i) => (
                 <li key={titulo} className="flex items-start gap-4">
-                  <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-tint text-sm font-black text-primary-strong">
+                  <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint text-lg font-black text-primary-strong">
                     {i + 1}
                   </span>
                   <div>
@@ -276,8 +344,8 @@ export function LandingPage() {
             </ol>
           </section>
 
-          <section id="en-que-ayuda" className="scroll-mt-20 border-t border-line py-10">
-            <h2 className="text-lg font-bold">En qué ayuda</h2>
+          <section id="en-que-ayuda" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
+            <h2 className={TITULO}>En qué ayuda</h2>
             <div className="mt-6 flex flex-col gap-6">
               {FUNCIONES.map(({ icon: Icon, titulo, texto }) => (
                 <div key={titulo} className="flex items-start gap-4">
@@ -293,8 +361,8 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section id="preguntas" className="scroll-mt-20 border-t border-line py-10">
-            <h2 className="text-lg font-bold">Preguntas</h2>
+          <section id="preguntas" className="scroll-mt-20 px-1 py-2">
+            <h2 className={TITULO}>Preguntas</h2>
             {/* `details` nativo: se pliega sin JavaScript, y el teclado y los
                 lectores de pantalla ya saben qué es. */}
             <div className="mt-4 divide-y divide-hairline border-y border-hairline">
@@ -317,9 +385,14 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section className="border-t border-line py-10">
-            <h2 className="text-lg font-bold">Por qué existe Farpi</h2>
-            <div className="mt-4 max-w-xl space-y-4 text-sm leading-relaxed text-muted">
+          {/* Esto no es una sección más: es lo único personal de la página, y
+              estaba maquetado igual que las preguntas frecuentes —gris, 13 px—,
+              así que pasaba de largo. Ahora se lee como lo que es, una carta:
+              fondo cálido, el cuerpo un punto más grande y con más interlínea, y
+              la frase del nombre sacada aparte, que es la que se recuerda. */}
+          <section className={`border border-line bg-warm ${BLOQUE}`}>
+            <h2 className={TITULO}>Por qué existe Farpi</h2>
+            <div className="mt-5 max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
               <p>
                 En junio nació mi hija. De un día para otro había el triple de cosas que recordar:
                 la revisión del pediatra, si le tocaba la vitamina, qué faltaba comprar, dónde
@@ -332,9 +405,16 @@ export function LandingPage() {
               </p>
               <p>
                 Al principio se iba a llamar de otra forma, pero por un tema legal con el nombre
-                tuve que cambiarlo. Al final se quedó en <Marca />, uno de los apellidos de mi hija.
-                Me gustó que llevara su nombre, porque en cierto modo nació con ella.
+                tuve que cambiarlo.
               </p>
+            </div>
+
+            <blockquote className="my-6 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
+              Farpi es uno de los apellidos de mi hija. Me gustó que la app llevara su nombre,
+              porque en cierto modo nació con ella.
+            </blockquote>
+
+            <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
               <p>
                 Y si a mí me sirve, puede servirle a otra familia. Por eso no me la he guardado:
                 aquí está, para quien le valga.
@@ -346,14 +426,15 @@ export function LandingPage() {
                 disfrútala.
               </p>
             </div>
-            <p className="mt-6 text-sm font-semibold text-ink">
-              — Omar García Carballo
-              <span className="block font-normal text-muted">Septiembre de 2026</span>
+
+            <p className="mt-7 border-t border-line pt-5 text-base font-bold tracking-tight text-ink">
+              Omar García Carballo
+              <span className="mt-0.5 block text-sm font-normal text-muted">Septiembre de 2026</span>
             </p>
           </section>
 
-          <section className="border-t border-line py-10">
-            <h2 className="text-lg font-bold">¿Echas algo en falta?</h2>
+          <section className="px-1 py-2">
+            <h2 className={TITULO}>¿Echas algo en falta?</h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               Esto lo llevo yo solo y lo sigo mejorando poco a poco. Si se te ocurre algo que
               debería tener, o algo que no acaba de funcionar, escríbeme a{' '}
@@ -368,7 +449,7 @@ export function LandingPage() {
             </p>
           </section>
 
-          <footer className="flex flex-wrap gap-x-5 border-t border-line pt-6 text-xs font-medium text-muted-soft">
+          <footer className="flex flex-wrap gap-x-5 border-t border-line px-1 pt-6 text-xs font-medium text-muted-soft">
             <Link href="/privacidad" className="py-2 hover:text-muted">Privacidad</Link>
             <Link href="/terminos" className="py-2 hover:text-muted">Términos</Link>
           </footer>

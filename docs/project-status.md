@@ -125,6 +125,21 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   `e2e/escritorio.spec.ts` vigila las dos mitades: que a 1440 px la tarjeta siga a la
   vista tras bajar 2500 px y mida menos de una columna, y que a 1023 px ocupe el ancho
   del texto y siga por encima de "Así se ve".
+- **La portada tiene la cara de la app, no una plantilla** (01-09-2026). Estaba plana:
+  un solo fondo crema de arriba abajo, seis `border-t` idénticos, todos los títulos del
+  mismo tamaño y el único color un verde repetido. Cuatro cambios, todos tirando de lo
+  que la app ya tenía:
+  - **La casa de Inicio preside el titular** (`DayIllustration`), con su cielo cambiando
+    según el tramo del día. Se pinta en el servidor, y por eso `getDayPeriodFromHour`:
+    en Vercel el servidor va en UTC, así que la hora se pide en la de Madrid.
+  - **El ritmo lo marca el fondo**: unas secciones en bloque de color (`bg-surface`,
+    `rounded-[2rem]`) y otras al aire, alternando. Fuera las seis rayitas.
+  - **"Por qué existe Farpi" se lee como una carta**: fondo cálido, cuerpo más grande y
+    la frase del nombre de la hija sacada aparte en un `blockquote`. Era lo más personal
+    de la página y estaba maquetado igual que las preguntas frecuentes.
+  - **Las capturas, escalonadas y torcidas un pelín**, y se enderezan y levantan al pasar
+    el ratón. Solo desde `lg:`, y anuladas con `motion-reduce`. Dos columnas en `lg` y
+    tres en `xl`: a tres en un portátil de 1024 px los móviles no se leían.
 - **El enlace se ve al compartirlo** (01-09-2026): `openGraph` y `twitter` en
   `src/app/layout.tsx`, con `metadataBase` sacado de `SITE_URL`, y `public/og.png`
   (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la

@@ -4,13 +4,25 @@
  */
 export type DayPeriod = 'mañana' | 'tarde' | 'noche'
 
-/** Tramo del día por la hora. Decide el saludo y el cielo de la ilustración
- *  de la tarjeta de Inicio, así que las dos comparten los mismos límites. */
-export function getDayPeriod(date: Date): DayPeriod {
-  const hour = date.getHours()
+/**
+ * Tramo del día por la hora suelta, sin fecha alrededor.
+ *
+ * Existe aparte porque la portada pública pinta la misma ilustración **desde el
+ * servidor**, y ahí no vale `date.getHours()`: en Vercel el servidor va en UTC y
+ * en España son una o dos horas más. La portada calcula la hora de Madrid y
+ * pregunta por ella, en vez de repetir estos límites en otro archivo y que un
+ * día dejen de coincidir con el saludo.
+ */
+export function getDayPeriodFromHour(hour: number): DayPeriod {
   if (hour < 12) return 'mañana'
   if (hour < 20) return 'tarde'
   return 'noche'
+}
+
+/** Tramo del día por la hora. Decide el saludo y el cielo de la ilustración
+ *  de la tarjeta de Inicio, así que las dos comparten los mismos límites. */
+export function getDayPeriod(date: Date): DayPeriod {
+  return getDayPeriodFromHour(date.getHours())
 }
 
 /** Saludo según la hora. Lo pinta la tarjeta del día en Inicio. */

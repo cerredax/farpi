@@ -15,6 +15,42 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### La portada deja de ser plana (01-09-2026)
+
+Tercera pasada del día, y esta de puro diseño: la página estaba sosa. El
+diagnóstico, mirándola: **la app es más cálida que su propia portada**. Dentro de
+Farpi hay una casita con chimenea y una ventana en forma de corazón cuyo cielo
+cambia con la hora, catorce colores de persona con nombre, emoji en las comidas.
+En la portada no se veía nada de eso salvo de refilón, dentro de las capturas.
+
+Y encima todo pesaba lo mismo: un único fondo crema de arriba abajo, seis
+`border-t` idénticos separando secciones, todos los `h2` a 18 px y el único color
+un verde repetido en seis cuadraditos iguales.
+
+Cuatro cambios, y ninguno inventa una personalidad nueva: bajan la que ya había.
+
+- **La casa de Inicio preside el titular.** `DayIllustration` pasó a recibir el
+  tramo del día en vez de la fecha, y el tamaño y la posición desde fuera, para
+  poder salir grande aquí. Se pinta en el servidor —así llega ya dibujada, sin
+  parpadeo— y de ahí `getDayPeriodFromHour`: en Vercel el servidor va en UTC, así
+  que la hora se pide en la de Madrid antes de decidir si toca sol, atardecer o
+  luna. Sin eso, media España vería el cielo de una hora antes.
+- **El ritmo lo marca el fondo, no una línea de un píxel.** Unas secciones van en
+  bloque de color y otras al aire, alternando.
+- **"Por qué existe Farpi" se lee como una carta.** Era lo único personal de la
+  página y estaba maquetado exactamente igual que las preguntas frecuentes: gris,
+  13 px. Ahora fondo cálido, cuerpo más grande y con más interlínea, y la frase
+  del nombre de la hija sacada aparte, que es la que se recuerda.
+- **Las capturas, escalonadas y torcidas un pelín**, como fotos dejadas encima de
+  la mesa; al pasar el ratón se enderezan y se levantan. Solo desde `lg:` —en la
+  tira de móvil, que encaja de una en una, torcerlas se lee como un fallo de
+  maquetación— y anuladas con `motion-reduce`.
+
+Se descartó una quinta idea que estaba sobre la mesa: dar a los seis iconos de
+"En qué ayuda" un color distinto cada uno de la paleta de personas. Habría sido
+color por decorar, y esa paleta significa algo dentro de la app —de quién es cada
+cosa—; usarla para adornar la vacía.
+
 ### El formulario de entrar, en la propia portada (01-09-2026)
 
 Segunda pasada del mismo día. La tarjeta de acceso resolvía dónde mirar, pero

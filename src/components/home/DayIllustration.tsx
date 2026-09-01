@@ -1,8 +1,13 @@
-import { getDayPeriod } from '@/lib/date-utils'
+import type { DayPeriod } from '@/lib/date-utils'
 
 interface DayIllustrationProps {
-  date: Date
+  period: DayPeriod
+  /** Dónde y de qué tamaño. Por defecto, el rincón de la tarjeta de Inicio. */
+  className?: string
 }
+
+/** El rincón de la tarjeta de hoy, que es para lo que nació. */
+const EN_LA_TARJETA = 'pointer-events-none absolute -right-1 -top-1.5 h-20 w-20 lg:h-24 lg:w-24'
 
 /**
  * La casa de la tarjeta de hoy: chimenea, ventana con forma de corazón sobre
@@ -10,12 +15,15 @@ interface DayIllustrationProps {
  * el mismo tramo del día que decide el saludo (`getDayPeriod`). De noche la
  * ventana se enciende en vez de llevar el color de acento. Ocupa el hueco de
  * las dos manchas de color que había antes, así que no añade alto.
+ *
+ * Recibe el **tramo** y no la fecha desde el 01-09-2026, cuando la portada
+ * pública se la llevó a su titular en grande: allí se pinta en el servidor, que
+ * va en UTC, así que el tramo se calcula antes con la hora de Madrid. Y por eso
+ * mismo el tamaño y la posición vienen de fuera.
  */
-export function DayIllustration({ date }: DayIllustrationProps) {
-  const period = getDayPeriod(date)
-
+export function DayIllustration({ period, className = EN_LA_TARJETA }: DayIllustrationProps) {
   return (
-    <svg className="pointer-events-none absolute -right-1 -top-1.5 h-20 w-20 lg:h-24 lg:w-24" viewBox="0 0 96 96" aria-hidden>
+    <svg className={className} viewBox="0 0 96 96" aria-hidden>
       {period === 'mañana' && (
         <g stroke="var(--color-sand)" strokeWidth="2.5" strokeLinecap="round" opacity="0.9">
           <circle cx="70" cy="26" r="10" fill="var(--color-sand)" stroke="none" />

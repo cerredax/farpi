@@ -3,6 +3,8 @@ import {
   buildLocalDateTime,
   extractDate,
   extractTime,
+  getDayPeriod,
+  getDayPeriodFromHour,
   getLocalDateString,
   isSameLocalDay,
   parseLocalDate,
@@ -112,4 +114,25 @@ test.describe('extractTime / extractDate', () => {
   test('una fecha suelta se devuelve tal cual', () => {
     expect(extractDate('2026-08-03')).toBe('2026-08-03')
   })
+})
+
+// ─── Tramo del día ────────────────────────────────────────────────────────────
+//
+// Lo comparten el saludo de Inicio, el cielo de la ilustración y —desde el
+// 01-09-2026— la portada pública, que la pinta en el servidor y por eso
+// pregunta por la hora suelta y no por una fecha.
+
+test('el tramo del día parte en las 12 y en las 20', () => {
+  expect(getDayPeriodFromHour(0)).toBe('mañana')
+  expect(getDayPeriodFromHour(11)).toBe('mañana')
+  expect(getDayPeriodFromHour(12)).toBe('tarde')
+  expect(getDayPeriodFromHour(19)).toBe('tarde')
+  expect(getDayPeriodFromHour(20)).toBe('noche')
+  expect(getDayPeriodFromHour(23)).toBe('noche')
+})
+
+test('el tramo de una fecha es el de su hora local', () => {
+  expect(getDayPeriod(new Date(2026, 5, 17, 9, 40))).toBe('mañana')
+  expect(getDayPeriod(new Date(2026, 5, 17, 15, 0))).toBe('tarde')
+  expect(getDayPeriod(new Date(2026, 5, 17, 22, 30))).toBe('noche')
 })

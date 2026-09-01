@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
-import { getGreeting } from '@/lib/date-utils'
+import { getDayPeriod, getGreeting } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
 import { selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
 import { cumplesDeLaCasa } from '@/lib/birthdays'
@@ -116,7 +116,7 @@ export function HomeView() {
     // dice si ocupa una o dos, así que por debajo de `lg` el DOM no cambia.
     <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
       <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
-        {ahora && <DayIllustration date={ahora} />}
+        {ahora && <DayIllustration period={getDayPeriod(ahora)} />}
         <div className="relative space-y-3">
           <div className="min-h-[3.25rem]">
             {ahora && (

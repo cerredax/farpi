@@ -15,6 +15,46 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### Repaso de diseñador: menos cuadros, menos capturas y una carta que suene a persona (01-09-2026)
+
+Quinta pasada, y la primera en la que la crítica va contra lo que se había
+hecho horas antes. Tres cosas, y dos eran errores propios del mismo día:
+
+- **Todo era un cuadro.** Al meter "Cómo funciona", "Preguntas" y "¿Echas algo
+  en falta?" en bloque, las seis secciones acabaron encajonadas y el ritmo murió
+  otra vez, por el camino contrario: cuando todo es un cuadro, ningún cuadro
+  significa nada. Ahora van en bloque solo las tres que enseñan algo —capturas,
+  secciones de la app y carta— y el resto respira. Para que las de fuera sigan
+  leyéndose como secciones, **cada título lleva una rayita de color encima**
+  (`TituloSeccion`), que dice "aquí empieza algo" sin encerrar nada.
+- **Nueve capturas eran un muro.** A 204 px de ancho una pantalla de móvil no se
+  distingue de otra: todas son una superficie clara con rayas, y el pie de foto
+  acababa haciendo el trabajo entero —si el texto hace el trabajo, la imagen es
+  decoración—. Se bajó a **cuatro, al doble de tamaño** (314 px), elegidas por
+  forma distinta para que la fila no parezca una cosa repetida: tarjetas con
+  dibujo, una rejilla, una lista y barras con números. El script sigue sacando
+  las nueve: las otras cinco harán falta para la ficha de Google Play.
+- **Faltaba responder al miedo arriba.** Quien llega de fuera pregunta "¿quién ve
+  mis cosas?" antes que ninguna otra cosa, y estaba contestado en las Preguntas,
+  a tres mil píxeles. Ahora hay tres palabras bajo el titular: privado para tu
+  familia, gratis, sin anuncios.
+
+Y **la carta se reescribió entera**, porque olía a IA y era verdad. El diagnóstico,
+por partes: todos los párrafos con la misma forma; las cosas siempre en listas de
+tres o cuatro; ni un solo dato que solo pudiera saber él —"la revisión del
+pediatra" es una categoría, no un recuerdo—; y cada párrafo acabando en su
+golpecito, que no pasa por accidente jamás.
+
+La nueva es más corta, va a trompicones a propósito —frases que se cortan, un
+párrafo de una línea, cosas que se admiten sin resolver ("no sé cómo lo hace todo
+el mundo", "no te prometo hacerlo todo, pero lo miro")— y no explica lo que
+siente. Queda avisado en el propio archivo: si alguien la vuelve a "mejorar",
+volverá a sonar a máquina.
+
+Lo que **no** se pudo arreglar desde aquí: sigue sin un detalle irrepetible —la
+hora de la cita, lo que dijo su mujer al verla— porque eso no se inventa. Con una
+sola de esas frases suyas, la carta se sostendría sola.
+
 ### Nueve capturas nítidas, y la carta contada entera (01-09-2026)
 
 Cuarta pasada. "Las capturas se ven borrosas" resultó ser **tres cosas a la vez**,

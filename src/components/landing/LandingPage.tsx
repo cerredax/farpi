@@ -5,6 +5,7 @@ import {
   FileText,
   ListChecks,
   NotebookText,
+  ShieldCheck,
   Smartphone,
   UtensilsCrossed,
   Wallet,
@@ -16,12 +17,14 @@ import { getDayPeriodFromHour } from '@/lib/date-utils'
 const CONTACT = 'cerredax@gmail.com'
 
 /**
- * Las secciones no se separan con una rayita, se separan con el fondo.
+ * Las secciones no se separan con una rayita: se separan con el fondo, y **solo
+ * algunas lo llevan**.
  *
- * Había seis `border-t` idénticos de arriba abajo sobre el mismo crema, y el
- * resultado era una página donde todo pesaba igual y nada llamaba. Ahora unas
- * secciones van en bloque de color y otras al aire, alternando: el ritmo lo
- * marca el fondo y no una línea de un píxel.
+ * Primero fueron seis `border-t` idénticos sobre el mismo crema y la página
+ * pesaba lo mismo de arriba abajo. Al meterlas todas en bloque el problema
+ * volvió por el otro lado: cuando todo es un cuadro, ningún cuadro significa
+ * nada. Van en bloque las tres que enseñan algo —las capturas, las secciones de
+ * la app y la carta— y el resto respira. El aire es la mitad del ritmo.
  */
 const BLOQUE = 'rounded-[2rem] px-6 py-9 sm:px-8 sm:py-10'
 
@@ -36,8 +39,28 @@ const TITULO = 'text-xl font-black tracking-tight sm:text-2xl'
  * Los nombres de clase van enteros y no armados con plantillas porque Tailwind
  * los busca leyendo el archivo: un `lg:${variable}` no existiría en el CSS.
  */
-const ESCALON = ['lg:mt-0', 'lg:mt-10', 'lg:mt-5']
-const INCLINACION = ['lg:-rotate-[1.2deg]', 'lg:rotate-[0.9deg]', 'lg:-rotate-[0.5deg]']
+const ESCALON = ['lg:mt-0', 'lg:mt-10', 'lg:mt-6', 'lg:mt-0']
+const INCLINACION = ['lg:-rotate-[1.1deg]', 'lg:rotate-[0.9deg]', 'lg:rotate-[0.6deg]', 'lg:-rotate-[0.8deg]']
+
+/**
+ * El título de una sección con su rayita de color encima.
+ *
+ * La rayita hace el trabajo que antes hacía meterlo todo en una caja: dice
+ * "aquí empieza algo" sin encerrarlo, y de paso mete el único color de marca que
+ * hay en la página fuera de los botones. Va en las siete por igual —dentro y
+ * fuera de bloque—, que es lo que las hace parecer hermanas.
+ */
+function TituloSeccion({ id, encima, children }: { id?: string; encima?: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      <span aria-hidden className="mb-3 block h-1 w-9 rounded-full bg-primary" />
+      {encima && (
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-soft">{encima}</p>
+      )}
+      <h2 id={id} className={TITULO}>{children}</h2>
+    </div>
+  )
+}
 
 /**
  * El nombre de la app, dentro de un párrafo. Los textos van en gris (`muted`),
@@ -69,17 +92,23 @@ const SECCIONES = [
  * verdad en modo demo, con el reloj congelado en el 17-06-2026 para que los
  * datos de ejemplo salgan como el día que valían. No son maquetas: si la
  * interfaz cambia, se vuelve a lanzar el script y esto se entera.
+ *
+ * **Cuatro, no las nueve que hay.** Llegaron a estar las nueve en una rejilla de
+ * 3×3 y era un muro: a 200 px de ancho una pantalla de móvil no se distingue de
+ * otra —todas son una superficie clara con rayas— y el pie de foto acababa
+ * haciendo todo el trabajo. Con cuatro caben al doble de tamaño y se leen. Están
+ * elegidas por **forma distinta**, que es lo que impide que la fila parezca una
+ * sola cosa repetida: tarjetas con dibujo, una rejilla, una lista y barras con
+ * números. Lo que se cae de aquí sigue contado en "En qué ayuda".
+ *
+ * El script sigue sacando las nueve a propósito: las otras cinco hacen falta
+ * para la ficha de Google Play cuando toque.
  */
 const CAPTURAS = [
-  { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
-  { archivo: 'calendario', titulo: 'El mes',      texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
-  { archivo: 'semana',     titulo: 'La semana',   texto: 'Hora por hora, para los días que vienen cargados.' },
-  { archivo: 'tareas',     titulo: 'Tareas',      texto: 'Quién hace qué, y lo que se ha quedado atrás.' },
-  { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
-  { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos.' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
-  { archivo: 'notas',      titulo: 'Notas',       texto: 'El wifi, los teléfonos y lo que siempre se pregunta.' },
-  { archivo: 'documentos', titulo: 'Documentos',  texto: 'La cartilla, el informe, el libro de familia. Y qué caduca.' },
+  { archivo: 'inicio',     titulo: 'Inicio',    texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
+  { archivo: 'calendario', titulo: 'El mes',    texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
+  { archivo: 'listas',     titulo: 'Listas',    texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',  texto: 'El gasto del mes, los topes y quién ha puesto cuánto.' },
 ]
 
 const PASOS = [
@@ -259,11 +288,30 @@ export function LandingPage() {
               className="col-start-2 row-start-1 h-20 w-20 flex-shrink-0 self-center sm:h-28 sm:w-28 lg:row-span-2 lg:h-44 lg:w-44"
             />
 
-            <p className="col-span-2 mt-4 max-w-xl text-base leading-relaxed text-muted lg:col-span-1 lg:col-start-1 lg:row-start-2">
-              <Marca /> es un espacio privado para una familia: el calendario, las tareas, las
-              listas, las comidas, el gasto de la casa, las notas y los documentos importantes,
-              todo junto y a un vistazo.
-            </p>
+            <div className="col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
+                <Marca /> es un espacio privado para una familia: el calendario, las tareas, las
+                listas, las comidas, el gasto de la casa, las notas y los documentos importantes,
+                todo junto y a un vistazo.
+              </p>
+
+              {/* Quien llega de fuera tiene una pregunta antes que ninguna otra
+                  —quién ve mis cosas— y estaba contestada en las Preguntas, a
+                  tres mil píxeles de aquí. Tres palabras arriba valen más que un
+                  párrafo abajo. Los puntos son `span` aparte y no parte del
+                  texto: así el lector de pantalla lee tres cosas y no una frase
+                  con puntos en medio. */}
+              <ul className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-ink">
+                <li className="inline-flex items-center gap-1.5">
+                  <ShieldCheck size={15} strokeWidth={2.4} className="text-primary-strong" />
+                  Privado para tu familia
+                </li>
+                <li aria-hidden className="text-muted-soft">·</li>
+                <li>Gratis</li>
+                <li aria-hidden className="text-muted-soft">·</li>
+                <li>Sin anuncios</li>
+              </ul>
+            </div>
           </div>
         </section>
 
@@ -287,10 +335,10 @@ export function LandingPage() {
 
         <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-2">
           <section id="asi-se-ve" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
-            <h2 className={TITULO}>Así se ve</h2>
+            <TituloSeccion>Así se ve</TituloSeccion>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
-              Estas nueve pantallas son <Marca /> de verdad, con la familia de ejemplo que trae la
-              app: un recién nacido, sus citas y la compra de la semana.
+              No son maquetas: son cuatro pantallas de <Marca /> tal cual se ven, con la familia de
+              ejemplo que trae la app —un recién nacido, sus citas y la compra de la semana—.
             </p>
 
             {/* En móvil se arrastran de lado con el dedo, encajando de una en una;
@@ -301,7 +349,7 @@ export function LandingPage() {
 
                 El `-mx-5` deja que la tira toque los bordes de la pantalla, para
                 que se vea que hay más a la derecha. */}
-            <ul className="-mx-6 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-5 lg:gap-y-6 xl:grid-cols-3 lg:overflow-visible lg:px-0">
+            <ul className="-mx-6 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-6 lg:gap-y-8 lg:overflow-visible lg:px-0">
               {CAPTURAS.map(({ archivo, titulo, texto }, i) => (
                 <li
                   key={archivo}
@@ -320,13 +368,14 @@ export function LandingPage() {
                       src={`/capturas/${archivo}.png`}
                       width={390}
                       height={844}
-                      /* El hueco real mide 204 px en `xl` y 291 en `lg`; aquí se
-                         pide el doble a propósito. Una captura de móvil se enseña
-                         al 50 %, así que el texto de la app cae a unos 7 px: con
-                         una imagen del tamaño justo se emborrona, y con el doble
-                         de puntos el navegador la reduce y se lee nítida. Antes
-                         ponía 250 px fijos y en `lg` la estaba **estirando**. */
-                      sizes="(min-width: 1280px) 420px, (min-width: 1024px) 600px, 460px"
+                      /* Se pide **el doble del hueco** a propósito. Una captura de
+                         móvil se enseña reducida, así que el texto de la app cae a
+                         unos 9 px: con una imagen del tamaño justo se emborrona, y
+                         con el doble de puntos el navegador la reduce y se lee. Y
+                         ojo, el número tiene que seguir al hueco: cuando la rejilla
+                         pasó a dos columnas y esto se quedó como estaba, el
+                         navegador estuvo **estirando** una imagen pequeña. */
+                      sizes="(min-width: 1024px) 620px, 520px"
                       quality={90}
                       priority={i === 0}
                       alt={`Pantalla de ${titulo} en Farpi`}
@@ -340,9 +389,9 @@ export function LandingPage() {
             </ul>
           </section>
 
-          <section id="como-funciona" className={`scroll-mt-20 border border-line bg-canvas ${BLOQUE}`}>
-            <h2 className={TITULO}>Cómo funciona</h2>
-            <ol className="mt-6 flex flex-col gap-6">
+          <section id="como-funciona" className="scroll-mt-20 px-1 py-4">
+            <TituloSeccion>Cómo funciona</TituloSeccion>
+            <ol className="flex flex-col gap-6">
               {PASOS.map(({ titulo, texto }, i) => (
                 <li key={titulo} className="flex items-start gap-4">
                   <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint text-lg font-black text-primary-strong">
@@ -358,8 +407,8 @@ export function LandingPage() {
           </section>
 
           <section id="en-que-ayuda" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
-            <h2 className={TITULO}>En qué ayuda</h2>
-            <div className="mt-6 flex flex-col gap-6">
+            <TituloSeccion>En qué ayuda</TituloSeccion>
+            <div className="flex flex-col gap-6">
               {FUNCIONES.map(({ icon: Icon, titulo, texto }) => (
                 <div key={titulo} className="flex items-start gap-4">
                   <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-tint text-primary-strong">
@@ -374,11 +423,11 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section id="preguntas" className={`scroll-mt-20 border border-line bg-canvas ${BLOQUE}`}>
-            <h2 className={TITULO}>Preguntas</h2>
+          <section id="preguntas" className="scroll-mt-20 px-1 py-4">
+            <TituloSeccion>Preguntas</TituloSeccion>
             {/* `details` nativo: se pliega sin JavaScript, y el teclado y los
                 lectores de pantalla ya saben qué es. */}
-            <div className="mt-4 divide-y divide-hairline border-y border-hairline">
+            <div className="divide-y divide-hairline border-y border-hairline">
               {PREGUNTAS.map(({ pregunta, respuesta }) => (
                 <details key={pregunta} className="group">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-sm font-bold marker:content-none">
@@ -398,77 +447,75 @@ export function LandingPage() {
             </div>
           </section>
 
-          {/* Esto no es una sección más: es lo único personal de la página, y
-              estaba maquetado igual que las preguntas frecuentes —gris, 13 px—,
-              así que pasaba de largo. Ahora se lee **como lo que es, una carta**:
-              su encabezado, el saludo, el cuerpo un punto más grande y con más
-              interlínea, la frase del nombre sacada aparte y la despedida
-              firmada. Fondo cálido, que es el único de la página. */}
-          <section className={`border border-line bg-warm ${BLOQUE}`}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-soft">
-              Una nota de quien la hizo
-            </p>
-            <h2 className={`mt-2 ${TITULO}`}>Por qué existe Farpi</h2>
+          {/* La carta, y con la carta el único sitio de la página donde no
+              hablo yo de la app sino Omar de su casa.
 
-            <div className="mt-6 max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
-              <p className="font-semibold text-ink">Hola:</p>
+              La primera versión estaba escrita "bien" y por eso sonaba a
+              folleto: todos los párrafos con la misma forma, las cosas en listas
+              de tres y cada frase acabando en su golpecito. Esta está a
+              propósito más suelta —frases que se cortan, un párrafo de una
+              línea, cosas que se admiten sin resolver— porque así es como
+              escribe una persona cansada contando algo suyo. Si alguien la
+              vuelve a "mejorar", volverá a sonar a máquina. */}
+          <section className={`border border-line bg-warm ${BLOQUE}`}>
+            <TituloSeccion encima="Una nota de quien la hizo">Por qué existe Farpi</TituloSeccion>
+
+            <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
+              <p>Hola.</p>
+              <p>Mi hija nació en junio.</p>
               <p>
-                En junio nació mi hija. De un día para otro había el triple de cosas que recordar:
-                la revisión del pediatra, si le tocaba la vitamina, qué faltaba comprar, dónde
-                habíamos guardado el informe del hospital. Mi esposa y yo nos lo íbamos contando a
-                trozos, por mensajes y de memoria, y se nos caían cosas.
+                No sé cómo lo hace todo el mundo, pero a nosotros se nos empezó a olvidar todo. La
+                cita del pediatra. Si le tocaba la vitamina o ya se la habíamos dado. Yo creía que
+                lo llevaba en la cabeza y resulta que no.
               </p>
               <p>
-                Así que me hice esto. No para entretenerme: lo necesitaba yo, para aclararme con
-                ellas dos. <Marca /> es la herramienta con la que llevamos la casa todos los días.
+                Mi mujer y yo nos lo íbamos diciendo por mensajes, entre una cosa y otra, y al final
+                ninguno de los dos sabía del todo qué estaba hecho.
               </p>
               <p>
-                Al principio se llamaba <strong className="font-bold text-ink">Nido</strong>, porque
-                era justo lo que quería que fuese: algo cálido, el sitio donde está lo de casa. Pero
-                surgió un problema legal con ese nombre y tuve que buscar otro.
+                Así que me puse a hacer esto. No porque me sobrara el tiempo, que era justo lo que no
+                había. Empezó siendo bastante menos de lo que es ahora.
+              </p>
+              <p>
+                Iba a llamarse <strong className="font-bold text-ink">Nido</strong>. Me gustaba, era
+                lo que quería que fuese. Pero había un problema legal con ese nombre y tocó buscar
+                otro.
               </p>
             </div>
 
             <blockquote className="my-7 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
-              <Marca /> viene del apellido de mi hija, pero no es su apellido: son unas letras
-              suyas, una especie de acrónimo. Me gustó que la app llevara algo de ella, porque en
-              cierto modo nació con ella.
+              <Marca /> sale del apellido de mi hija. No es su apellido, son unas letras suyas. Nació
+              más o menos a la vez que ella.
             </blockquote>
 
             <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
               <p>
-                Y va a ir creciendo con ella. Según nos vayan haciendo falta cosas en casa —las de
-                un bebé primero, las del colegio después, y las que vengan— las iré añadiendo. Si a
-                ti se te ocurre alguna antes que a mí, escríbeme a{' '}
+                Le voy añadiendo cosas según nos van haciendo falta en casa. Ahora son las de un
+                bebé. Dentro de unos años supongo que serán otras y ya iremos viendo. Si a ti se te
+                ocurre alguna antes que a mí, dímelo:{' '}
                 <a
                   href={`mailto:${CONTACT}`}
                   className="inline-block py-0.5 font-semibold text-primary-strong hover:underline"
                 >
                   {CONTACT}
-                </a>{' '}
-                y la intentamos meter, sin problema.
+                </a>
+                . No te prometo hacerlo todo, pero lo miro.
               </p>
               <p>
-                Y si a mí me sirve, puede servirle a otra familia. Por eso no me la he guardado:
-                aquí está, para quien le valga.
+                La he dejado abierta porque no tiene sentido guardármela. Si a tu casa le sirve, me
+                alegro.
               </p>
-              <p>
-                <Marca /> es gratuita: por ahora, y siempre que pueda mantenerse gratuitamente. Si
-                algún día la usa mucha gente y sostener los servidores se me va de las manos,
-                tendré que buscar la forma; eso ya lo iré viendo si llega el caso. De momento,
-                disfrútala.
-              </p>
+              <p>Es gratis, y mientras la pueda pagar yo va a seguir siéndolo.</p>
             </div>
 
             <div className="mt-8 border-t border-line pt-6">
-              <p className="text-[0.9375rem] text-muted">Un abrazo,</p>
-              <p className="mt-1 text-lg font-black tracking-tight text-ink">Omar García Carballo</p>
+              <p className="text-lg font-black tracking-tight text-ink">Omar García Carballo</p>
               <p className="mt-0.5 text-sm text-muted">Septiembre de 2026</p>
             </div>
           </section>
 
-          <section className={`border border-line bg-canvas ${BLOQUE}`}>
-            <h2 className={TITULO}>¿Echas algo en falta?</h2>
+          <section className="px-1 py-4">
+            <TituloSeccion>¿Echas algo en falta?</TituloSeccion>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               Esto lo llevo yo solo y lo sigo mejorando poco a poco. Si se te ocurre algo que
               debería tener, o algo que no acaba de funcionar, escríbeme a{' '}

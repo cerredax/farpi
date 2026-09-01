@@ -135,8 +135,16 @@ La app está en producción, en uso diario por la familia y probada en un móvil
     acompaña al titular y el párrafo pasa por debajo; en escritorio baja las dos filas y
     se pone junto al bloque entero, que es donde hay sitio para que sea grande. Se pinta en el servidor, y por eso `getDayPeriodFromHour`:
     en Vercel el servidor va en UTC, así que la hora se pide en la de Madrid.
-  - **El ritmo lo marca el fondo**: unas secciones en bloque de color (`bg-surface`,
-    `rounded-[2rem]`) y otras al aire, alternando. Fuera las seis rayitas.
+  - **El ritmo lo marca el fondo**: van en bloque de color las **tres** que enseñan algo
+    —las capturas, las secciones de la app y la carta— y el resto respira. Hubo un
+    momento en que estaban todas en bloque y el problema volvió por el otro lado: cuando
+    todo es un cuadro, ningún cuadro significa nada.
+  - **Cada título lleva una rayita de color encima** (`TituloSeccion`). Hace el trabajo
+    que hacía la caja —decir "aquí empieza algo"— sin encerrar la sección, y es el único
+    color de marca de la página fuera de los botones.
+  - **Bajo el titular, tres palabras**: privado para tu familia, gratis, sin anuncios.
+    Quien llega de fuera pregunta eso antes que nada y estaba contestado en las
+    Preguntas, a tres mil píxeles.
   - **"Por qué existe Farpi" se lee como una carta**: fondo cálido, cuerpo más grande y
     la frase del nombre de la hija sacada aparte en un `blockquote`. Era lo más personal
     de la página y estaba maquetado igual que las preguntas frecuentes.
@@ -148,14 +156,17 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la
   Nunito. Farpi se comparte por WhatsApp entre familias, no por un buscador, y hasta
   ahora el enlace viajaba pelado.
-- **Capturas de la app de verdad** en "Así se ve": **nueve** pantallas (inicio, el mes,
-  la semana, tareas, listas, comidas, finanzas, notas, documentos) que genera
+- **Capturas de la app de verdad** en "Así se ve", que genera
   `node scripts/gen-capturas.mjs` contra la app en modo demo con el reloj congelado en
   el 17-06-2026, la fecha de los datos de ejemplo. No son maquetas y no envejecen a
   escondidas: si la interfaz cambia, se relanza el script. Cada pantalla puede llevar un
-  paso `preparar` —la de la semana cambia de vista antes de la foto—. En móvil se
-  arrastran de lado encajando de una en una; en escritorio, dos columnas en `lg` y tres
-  en `xl`, que cuadra el 3×3.
+  paso `preparar` —la de la semana cambia de vista antes de la foto—. El script saca
+  **nueve**; la portada enseña **cuatro** (inicio, el mes, listas, finanzas), a dos
+  columnas y al doble de tamaño. Las nueve en 3×3 eran un muro: a 200 px una pantalla de
+  móvil no se distingue de otra y el pie de foto hacía todo el trabajo. Las cuatro están
+  elegidas por forma distinta —tarjetas, rejilla, lista y barras—. Las otras cinco se
+  siguen generando para la ficha de Google Play. En móvil se arrastran de lado
+  encajando de una en una.
 - **Y se ven nítidas, que costó tres arreglos** (01-09-2026). Una captura de móvil se
   enseña a la mitad de tamaño, así que el texto de la app cae a unos 7 px y cualquier
   pérdida se nota:

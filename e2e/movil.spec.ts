@@ -13,7 +13,9 @@ import { elegirVista } from './vistas'
 //
 // Lo que sigue necesitando un teléfono de verdad está en docs/testing-checklist.md.
 
-const RUTAS = ['/home', '/calendar', '/tasks', '/lists', '/meals', '/money', '/notes', '/docs', '/settings']
+// La barra de la página de inicio pública lleva la marca y los dos botones de
+// cuenta en una sola fila, que es justo lo que se sale a 390 px si crece.
+const RUTAS = ['/', '/home', '/calendar', '/tasks', '/lists', '/meals', '/money', '/notes', '/docs', '/settings']
 
 const MINIMO_TOQUE = 24
 

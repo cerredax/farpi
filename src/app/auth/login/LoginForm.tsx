@@ -9,7 +9,7 @@ import { LoginHero } from './LoginHero'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 
-type AuthMode = 'signin' | 'signup'
+export type AuthMode = 'signin' | 'signup'
 
 const PASSWORD_MIN_LENGTH = 8
 
@@ -22,10 +22,10 @@ function authErrorMessage(message: string) {
   return message
 }
 
-export default function LoginPage() {
+export function LoginForm({ modoInicial }: { modoInicial: AuthMode }) {
   const router = useRouter()
 
-  const [authMode, setAuthMode] = useState<AuthMode>('signin')
+  const [authMode, setAuthMode] = useState<AuthMode>(modoInicial)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -133,7 +133,7 @@ export default function LoginPage() {
               </p>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">
                 {isSignup
-                  ? 'Gratis, privado y pensado para el día a día de una familia.'
+                  ? 'Privado y pensado para el día a día de una familia.'
                   : 'Accede a tu espacio familiar privado.'}
               </p>
             </div>
@@ -309,7 +309,8 @@ export default function LoginPage() {
             )}
 
             <p className="mt-5 text-center text-[11px] font-medium text-muted-soft">
-              Farpi es gratuito y privado para tu familia.
+              Farpi es gratuito —por ahora y mientras pueda mantenerse así— y privado
+              para tu familia.
             </p>
           </div>
         </aside>

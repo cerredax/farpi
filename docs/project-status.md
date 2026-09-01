@@ -99,6 +99,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   28-08-2026): resumen, buscador y el `+` de alta, bajo el título de la cabecera. El `+`
   de Tareas estaba flotando abajo a la derecha y era el único fuera de sitio.
 - Páginas legales públicas `/privacidad` y `/terminos`.
+- **Página de inicio pública** (`/`, `LandingPage.tsx`), en una sola página con la
+  barra de arriba pegada y **"Entrar" y "Crear cuenta" siempre a la vista** —el segundo
+  lleva a `/auth/login?modo=registro`, que abre ya en el formulario de registro—. Por
+  orden: presentación, "Cómo funciona" en tres pasos, "En qué ayuda", "Preguntas"
+  (`details` nativos, plegados), "Por qué existe Farpi", contacto y un cierre con los
+  dos botones otra vez. Las secciones se enlazan desde la barra **solo en `lg:`**: en
+  un móvil de 390 px esa fila ya la llenan la marca y los dos botones.
 - Modo demo con persistencia en `localStorage`.
 
 ### Conexión Supabase (completada)
@@ -288,7 +295,12 @@ Las dos que había aquí se cerraron el 06-08-2026:
 
 ### Después
 
-4. Medir el contraste de la paleta (el resto de la revisión de accesibilidad —roles,
+4. **Capturas de la app en la página de inicio pública.** La sección "En qué ayuda"
+   describe cada parte con palabras y no enseña ninguna. Se decidió (01-09-2026) que
+   irán capturas del modo demo con datos inventados, y que se hacen **cuando el
+   diseño esté cerrado**: hechas antes, envejecen a cada retoque. De momento no hay
+   hueco reservado en la página; un recuadro vacío queda peor que no tener nada.
+5. Medir el contraste de la paleta (el resto de la revisión de accesibilidad —roles,
    labels, foco, `inert` en los sheets— está hecha, Fase 8 del roadmap).
 
 ## Historial

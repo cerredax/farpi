@@ -10,9 +10,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:   'bg-primary-strong text-white hover:bg-primary-deep active:bg-primary-deepest shadow-sm',
-  secondary: 'bg-canvas text-ink border border-line hover:bg-surface',
-  ghost:     'text-muted hover:text-ink hover:bg-surface',
-  danger:    'bg-danger text-white hover:bg-danger-hover',
+  secondary: 'bg-canvas text-ink border border-line hover:bg-surface active:bg-line',
+  ghost:     'text-muted hover:text-ink hover:bg-surface active:bg-line active:text-ink',
+  danger:    'bg-danger text-white hover:bg-danger-hover active:bg-danger-strong',
 }
 
 const sizeClasses = {
@@ -32,7 +32,9 @@ export function Button({
   return (
     <button
       className={`
-        font-semibold transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+        font-semibold select-none touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed
+        transition-[background-color,color,transform] duration-150
+        active:scale-[0.97] active:duration-0
         ${variantClasses[variant]}
         ${sizeClasses[size]}
         ${fullWidth ? 'w-full' : ''}

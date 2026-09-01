@@ -376,8 +376,12 @@ cada uno hace a su manera:
 > `e2e/escritorio.spec.ts` que la columna de acceso sigue a la vista a 1440 px tras bajar
 > y que a 1023 px no existe. Lo de aquí es lo que hay que mirar con ojos.
 
-- [ ] En móvil, "Crear cuenta" se ve sin bajar nada: en la barra de arriba y en la
-      tarjeta, justo debajo del titular.
+- [ ] **Entrar funciona desde la portada**, sin pasar por `/auth/login`: con correo y
+      contraseña, y con Google. Es el mismo `AuthCard`, pero conviene probarlo aquí.
+- [ ] La pestaña "Crear cuenta" crece a cuatro campos sin romper la columna.
+- [ ] En móvil el formulario se ve sin bajar nada, justo debajo del titular, y el
+      teclado no tapa el botón de Entrar.
+- [ ] El enlace "Entrar" de la barra sube al formulario desde donde estés.
 - [ ] En escritorio, la tarjeta de la derecha acompaña todo el scroll y no se pisa con
       la cabecera pegajosa.
 - [ ] Las capturas de "Así se ve" se leen: en móvil se arrastran de lado y encajan de
@@ -386,7 +390,11 @@ cada uno hace a su manera:
       `node scripts/gen-capturas.mjs` y volver a mirar. Es el único punto de la portada
       que se queda desactualizado solo.
 - [ ] "Próximamente en Google Play" sigue siendo verdad. El día que haya ficha, se
-      cambia por la insignia oficial y su enlace (`TarjetaAcceso`).
+      cambia por la insignia oficial y su enlace (bloque al pie de `#entrar`).
+- [ ] **Cómo se ve el enlace al compartirlo.** Mandarse `https://www.farpi.app` por
+      WhatsApp o Telegram y comprobar que sale la imagen grande con el titular. Si se
+      toca el titular o `og.png`, hay que volver a mirarlo: esas plataformas cachean la
+      previsualización durante días.
 
 ## 13. Responsive
 

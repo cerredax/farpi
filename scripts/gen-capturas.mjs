@@ -19,10 +19,15 @@
  *   Compilar un build de producción solo para esto costaría un minuto largo y no
  *   cambia ni un píxel de lo que se fotografía.
  *
+ * Y con la primera captura ya hecha compone además **la imagen de compartir**
+ * (`public/og.png`, 1200×630): la que sale cuando alguien manda farpi.app por
+ * WhatsApp. Va aquí y no en un script aparte porque necesita esa captura: dos
+ * comandos que hay que lanzar en orden acaban lanzándose en el orden que no es.
+ *
  *   node scripts/gen-capturas.mjs
  */
 import { spawn } from 'node:child_process'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from '@playwright/test'
@@ -71,6 +76,80 @@ async function esperarServidor(intentos = 60) {
     await new Promise(r => setTimeout(r, 1000))
   }
   throw new Error(`El servidor no respondió en ${BASE} tras ${intentos} s`)
+}
+
+/**
+ * La imagen que se ve cuando alguien manda el enlace de Farpi por WhatsApp,
+ * Telegram o cualquier sitio que lea las etiquetas `og:`. Sin ella el enlace
+ * viaja pelado, y esta app se comparte por ahí y no por un buscador.
+ *
+ * Se compone en el propio navegador —una página suelta con `setContent`, la
+ * captura de Inicio incrustada en base64 y la Nunito de siempre— y se
+ * fotografía a 1200×630, que es lo que esperan todos. Los colores van en
+ * literal porque aquí no llega `globals.css`: si cambia la paleta, hay que
+ * cambiarlos también.
+ */
+async function componerOg(navegador) {
+  const captura = await readFile(path.join(SALIDA, 'inicio.png'))
+  const icono = await readFile(path.join(RAIZ, 'public', 'icon-192.png'))
+
+  // Contexto propio: el de las capturas es un móvil a 3x, y esto no es ni lo
+  // uno ni lo otro. **1200×630 clavados y sin retina**, que es la medida que
+  // esperan WhatsApp, Telegram y los demás; a 3x pesaba el triple para una
+  // miniatura que ninguno enseña por encima de 400 px de ancho.
+  const contexto = await navegador.newContext({
+    viewport: { width: 1200, height: 630 },
+    deviceScaleFactor: 1,
+    locale: 'es-ES',
+  })
+
+  const pagina = await contexto.newPage()
+  await pagina.setContent(`
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box }
+      body {
+        width: 1200px; height: 630px; display: flex; align-items: center; gap: 60px;
+        padding: 0 72px; overflow: hidden;
+        background: #FAF7F2; color: #252525;
+        font-family: Nunito, system-ui, sans-serif;
+      }
+      .marca { display: flex; align-items: center; gap: 14px; margin-bottom: 32px }
+      .marca img { width: 52px; height: 52px; border-radius: 15px }
+      .marca span { font-size: 30px; font-weight: 900; letter-spacing: -0.02em }
+      h1 { font-size: 60px; font-weight: 900; line-height: 1.05; letter-spacing: -0.03em }
+      p { margin-top: 22px; font-size: 25px; line-height: 1.45; color: #77716A }
+      .pie { margin-top: 32px; font-size: 21px; font-weight: 700; color: #5C7A59 }
+      /* El móvil asoma por abajo y se sale del alto a propósito: enseñar la
+         pantalla entera a esta escala la dejaría ilegible, y lo que tiene que
+         reconocerse de un vistazo es que esto es una app de móvil. */
+      .movil {
+        flex-shrink: 0; width: 330px; margin-top: 170px;
+        border-radius: 40px; border: 1px solid #EDE9E3; background: #F0EDE8;
+        overflow: hidden; box-shadow: 0 30px 70px rgba(37,37,37,0.16);
+      }
+      .movil img { width: 100%; display: block }
+    </style>
+    <div>
+      <div class="marca">
+        <img src="data:image/png;base64,${icono.toString('base64')}" alt="">
+        <span>Farpi</span>
+      </div>
+      <h1>Qué tenemos que saber hoy en casa.</h1>
+      <p>El espacio privado de tu familia: agenda,<br>tareas, comidas y papeles importantes.</p>
+      <div class="pie">www.farpi.app</div>
+    </div>
+    <div class="movil"><img src="data:image/png;base64,${captura.toString('base64')}" alt=""></div>
+  `)
+
+  // A que la Nunito esté cargada de verdad: sin esperarla, una de cada tres
+  // veces la imagen sale con la tipografía de reserva.
+  await pagina.evaluate(() => document.fonts.ready)
+  await pagina.waitForTimeout(500)
+  await pagina.screenshot({ path: path.join(RAIZ, 'public', 'og.png') })
+  await contexto.close()
+  process.stdout.write('  compartir → public/og.png\n')
 }
 
 /**
@@ -132,8 +211,10 @@ try {
     process.stdout.write(`  ${ruta} → public/capturas/${nombre}.png\n`)
   }
 
+  await componerOg(navegador)
+
   await navegador.close()
-  process.stdout.write(`\n${PANTALLAS.length} capturas en public/capturas/.\n`)
+  process.stdout.write(`\n${PANTALLAS.length} capturas en public/capturas/, y la imagen de compartir.\n`)
 } finally {
   matarArbol(servidor)
 }

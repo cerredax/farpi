@@ -85,7 +85,7 @@ npm run test:e2e       # suite completa: 454 (343 unitarios + 111 de navegador; 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
 node scripts/gen-icons.cjs         # PNG de la PWA desde el SVG (necesita sharp)
-node scripts/gen-capturas.mjs      # las capturas de la portada, contra la app en modo demo
+node scripts/gen-capturas.mjs      # capturas de la portada + og.png, contra la app en modo demo
 python scripts/gen-email-templates.py   # plantillas de correo de Supabase, a mano cuando cambie el diseño
 
 npx playwright test e2e/smoke.spec.ts            # un solo archivo

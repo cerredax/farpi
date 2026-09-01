@@ -9,17 +9,24 @@ import {
   UtensilsCrossed,
   Wallet,
 } from 'lucide-react'
+import { AuthCard } from '@/components/auth/AuthCard'
 
 const CONTACT = 'cerredax@gmail.com'
 
-// Las mismas pintas que `ui/Button`, pero en un enlace: aquí no se envía nada,
-// se navega. Duplicar el componente para eso no compensa.
-const BOTON_BASE =
-  'inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold ' +
-  'select-none touch-manipulation transition-[background-color,color,transform] duration-150 ' +
+/**
+ * El único enlace de cuenta que queda en la barra, y ya no lleva a otra página:
+ * es un ancla al formulario, que está en esta misma.
+ *
+ * Se queda porque en móvil el formulario está arriba del todo y, tres mil
+ * píxeles más abajo, no habría forma de volver a él sin subir a mano. En
+ * escritorio no hace falta —la columna de la derecha va anclada— pero tampoco
+ * estorba, y tener dos barras distintas según el ancho es peor que esto.
+ */
+const ENLACE_ENTRAR =
+  'inline-flex items-center justify-center rounded-xl border border-line bg-canvas px-4 py-2.5 ' +
+  'text-sm font-semibold text-ink select-none touch-manipulation ' +
+  'transition-[background-color,transform] duration-150 hover:bg-surface active:bg-line ' +
   'active:scale-[0.97] active:duration-0'
-const BOTON_PRIMARIO = `${BOTON_BASE} bg-primary-strong text-white shadow-sm hover:bg-primary-deep active:bg-primary-deepest`
-const BOTON_SECUNDARIO = `${BOTON_BASE} border border-line bg-canvas text-ink hover:bg-surface active:bg-line`
 
 /**
  * El nombre de la app, dentro de un párrafo. Los textos van en gris (`muted`),
@@ -143,45 +150,6 @@ const PREGUNTAS = [
   },
 ]
 
-/**
- * Entrar y crear cuenta, que es a lo que se viene. Sale **dos veces** en la
- * misma página: pegada al texto en móvil y anclada en la columna de la derecha
- * en escritorio, donde acompaña todo el scroll. Es el mismo componente y no dos
- * bloques parecidos, porque si un día cambia el texto de un botón tiene que
- * cambiar en los dos sitios o la portada empieza a contradecirse.
- */
-function TarjetaAcceso({ className = '' }: { className?: string }) {
-  return (
-    <div className={`rounded-2xl border border-line bg-surface p-5 shadow-sm ${className}`}>
-      <p className="text-base font-black tracking-tight">Empieza por tu casa</p>
-      <p className="mt-1.5 text-sm leading-relaxed text-muted">
-        Crea la familia, invita a los tuyos y mirad todos lo mismo. Es gratis.
-      </p>
-
-      <div className="mt-4 flex flex-col gap-2">
-        <Link href="/auth/login?modo=registro" className={`${BOTON_PRIMARIO} w-full py-3 text-base`}>
-          Crear cuenta
-        </Link>
-        <Link href="/auth/login" className={`${BOTON_SECUNDARIO} w-full py-3`}>
-          Ya tengo cuenta
-        </Link>
-      </div>
-
-      <p className="mt-3 text-xs leading-relaxed text-muted-soft">
-        Se abre en el navegador. No hay que instalar nada.
-      </p>
-
-      {/* Sin la insignia oficial de Google Play: enseñarla llevaría a pulsarla, y
-          todavía no hay ficha a la que ir. Cuando la haya, este bloque se cambia
-          por la insignia y su enlace. */}
-      <div className="mt-4 flex items-center gap-2.5 border-t border-hairline pt-4">
-        <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted-soft" />
-        <p className="text-xs font-semibold text-muted-soft">Próximamente en Google Play</p>
-      </div>
-    </div>
-  )
-}
-
 export function LandingPage() {
   return (
     <div className="min-h-dvh bg-canvas text-ink">
@@ -201,7 +169,7 @@ export function LandingPage() {
           </Link>
 
           {/* Las secciones solo en escritorio: en un móvil de 390 px la fila ya
-              la llenan la marca y los dos botones, que son lo que no puede faltar. */}
+              la llenan la marca y el enlace de entrar. */}
           <nav className="ml-4 hidden gap-5 lg:flex">
             {SECCIONES.map(({ id, titulo }) => (
               <a
@@ -214,36 +182,59 @@ export function LandingPage() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-2">
-            <Link href="/auth/login" className={BOTON_SECUNDARIO}>
-              Entrar
-            </Link>
-            <Link href="/auth/login?modo=registro" className={BOTON_PRIMARIO}>
-              Crear cuenta
-            </Link>
-          </div>
+          <a href="#entrar" className={`ml-auto ${ENLACE_ENTRAR}`}>
+            Entrar
+          </a>
         </div>
       </header>
 
-      {/* En escritorio la página se parte en dos: el texto a la izquierda y el
-          acceso anclado a la derecha, que es lo único que no debe perderse de
-          vista mientras se lee. Por debajo de `lg` no hay columna: la tarjeta cae
-          dentro del texto, justo después del titular. */}
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-10 px-5 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <main>
-          <section className="pt-10 pb-10 sm:pt-14">
-            <h1 className="text-3xl font-black leading-[1.1] tracking-tight sm:text-4xl">
-              Qué tenemos que saber hoy en casa.
-            </h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-              <Marca /> es un espacio privado para una familia: el calendario, las tareas, las listas,
-              las comidas, el gasto de la casa, las notas y los documentos importantes, todo junto
-              y a un vistazo.
-            </p>
+      {/* Tres piezas en una rejilla: el titular, el acceso y el resto de la
+          página. En escritorio el acceso se va a una segunda columna que ocupa
+          las dos filas, y así puede quedarse anclado mientras se lee todo lo
+          demás. Por debajo de `lg` no hay columnas y caen en el orden en que
+          están escritas, que es justo el que hace falta: de qué va esto, cómo
+          entrar, y lo demás para quien quiera seguir leyendo.
 
-            <TarjetaAcceso className="mt-7 lg:hidden" />
-          </section>
+          Van colocadas a mano (`col-start` / `row-start`) y no por orden
+          natural porque el acceso se escribe en medio —tiene que ser el segundo
+          en móvil— pero pertenece a la columna de al lado.
 
+          Y se pinta **una sola vez**. Repetirlo arriba y abajo, como hacía la
+          tarjeta de botones que hubo aquí, duplicaría los `id` de los campos del
+          formulario, que es lo que ata cada etiqueta con el suyo: dos «Correo
+          electrónico» con el mismo `id` y quien navega con lector de pantalla
+          acaba escribiendo en el que no ve. */}
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-x-10 px-5 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <section className="pt-10 pb-8 sm:pt-14 lg:col-start-1 lg:row-start-1">
+          <h1 className="text-3xl font-black leading-[1.1] tracking-tight sm:text-4xl">
+            Qué tenemos que saber hoy en casa.
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
+            <Marca /> es un espacio privado para una familia: el calendario, las tareas, las listas,
+            las comidas, el gasto de la casa, las notas y los documentos importantes, todo junto
+            y a un vistazo.
+          </p>
+        </section>
+
+        <div
+          id="entrar"
+          className="scroll-mt-20 pb-10 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:pt-14"
+        >
+          {/* `top-20` deja por debajo la cabecera pegajosa, que mide 4 rem. */}
+          <div className="lg:sticky lg:top-20">
+            <AuthCard modoInicial="signin" />
+
+            {/* Sin la insignia oficial de Google Play: enseñarla llevaría a
+                pulsarla, y todavía no hay ficha a la que ir. Cuando la haya,
+                este bloque se cambia por la insignia y su enlace. */}
+            <div className="mt-5 flex items-center justify-center gap-2.5 border-t border-hairline pt-5">
+              <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted-soft" />
+              <p className="text-xs font-semibold text-muted-soft">Próximamente en Google Play</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-start-1 lg:row-start-2">
           <section id="asi-se-ve" className="scroll-mt-20 border-t border-line py-10">
             <h2 className="text-lg font-bold">Así se ve</h2>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
@@ -256,6 +247,7 @@ export function LandingPage() {
                 Tres y no dos: una pantalla de móvil entera mide más de dos veces lo
                 que mide de ancho, y a dos columnas la sección se convertía en una
                 cuesta de dos mil píxeles.
+
                 El `-mx-5` deja que la tira toque los bordes de la pantalla, para
                 que se vea que hay más a la derecha. */}
             <ul className="-mx-5 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-x-5 lg:gap-y-8 lg:overflow-visible lg:px-0">
@@ -388,27 +380,12 @@ export function LandingPage() {
             </p>
           </section>
 
-          {/* El cierre, para quien ha bajado hasta el final leyendo. En escritorio
-              sobra —la tarjeta de la derecha lleva ahí todo el rato— pero tampoco
-              estorba, y quitarla dejaría la página terminando en el correo. */}
-          <section className="border-t border-line py-10">
-            <TarjetaAcceso />
-          </section>
-
           <footer className="flex flex-wrap gap-x-5 border-t border-line pt-6 text-xs font-medium text-muted-soft">
             <Link href="/privacidad" className="py-2 hover:text-muted">Privacidad</Link>
             <Link href="/terminos" className="py-2 hover:text-muted">Términos</Link>
           </footer>
-        </main>
-
-        {/* `top-20` deja por debajo la cabecera pegajosa, que mide 4 rem. El
-            `aria-label` no es decorado: es lo que hace que la columna se pueda
-            nombrar —y comprobar en `e2e/escritorio.spec.ts`— sin agarrarse a una
-            clase de Tailwind que cambia al primer retoque. */}
-        <aside aria-label="Entrar en Farpi" className="hidden lg:block">
-          <TarjetaAcceso className="sticky top-20 mt-14" />
-        </aside>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

@@ -9,13 +9,50 @@ const nunito = Nunito({
   variable: '--font-nunito',
 })
 
+/**
+ * El sitio, para las etiquetas que necesitan una URL absoluta. Sale de
+ * `SITE_URL`, la misma variable con la que se arman las invitaciones, y cae al
+ * dominio real si falta: aquí una URL equivocada no rompe nada, solo hace que
+ * la imagen de compartir no se vea.
+ */
+const SITIO = (process.env.SITE_URL ?? 'https://www.farpi.app').replace(/\/$/, '')
+
+const DESCRIPCION =
+  'El espacio privado de tu familia: agenda, tareas, listas, comidas, gastos y los papeles importantes, en un solo sitio.'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITIO),
   title: 'Farpi',
-  description: 'Tu espacio familiar privado',
+  description: DESCRIPCION,
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-icon.png',
+  },
+  /**
+   * Cómo se ve el enlace cuando alguien lo manda por WhatsApp, que es como se
+   * va a compartir esto: entre familias, no por un buscador. Sin estas
+   * etiquetas viaja pelado —solo el dominio— y parece cualquier cosa.
+   *
+   * `og.png` la genera `scripts/gen-capturas.mjs` con las capturas. Se declara
+   * su tamaño real porque WhatsApp y Telegram deciden si enseñan la
+   * previsualización grande o una miniatura antes de descargarla, mirando
+   * justo eso.
+   */
+  openGraph: {
+    type: 'website',
+    siteName: 'Farpi',
+    locale: 'es_ES',
+    url: SITIO,
+    title: 'Farpi — qué tenemos que saber hoy en casa',
+    description: DESCRIPCION,
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Farpi, la pantalla de inicio con el día de una familia' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Farpi — qué tenemos que saber hoy en casa',
+    description: DESCRIPCION,
+    images: ['/og.png'],
   },
 }
 

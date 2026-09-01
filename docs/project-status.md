@@ -106,14 +106,30 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   "En qué ayuda", "Preguntas" (`details` nativos, plegados), "Por qué existe Farpi",
   contacto y un cierre. Las secciones se enlazan desde la barra **solo en `lg:`**: en
   un móvil de 390 px esa fila ya la llenan la marca y los dos botones.
-- **El acceso, en una tarjeta que no se pierde de vista** (01-09-2026): el mismo
-  componente `TarjetaAcceso` sale pegado al titular en móvil y **anclado en una columna
-  de la derecha en escritorio** (`aside`, `sticky top-20`, solo en `lg:`), donde
-  acompaña todo el scroll. Lleva los dos botones, "se abre en el navegador" y un
-  **"Próximamente en Google Play"** sin insignia oficial ni enlace, porque todavía no
-  hay ficha a la que ir. `e2e/escritorio.spec.ts` vigila las dos mitades: que a 1440 px
-  siga a la vista tras bajar 2500 px, y que a 1023 px no haya columna y la tarjeta esté
-  igualmente arriba.
+- **Se entra desde la propia portada** (01-09-2026): no hay botones que lleven al
+  login, está **el formulario de verdad**. `AuthCard` (`src/components/auth/`) tiene las
+  dos pestañas, Google si el proveedor está activo, los campos y recuperar contraseña,
+  y lo montan los dos sitios: `/auth/login` y la portada. No hay copia: un segundo
+  formulario de autenticación diverge en cuanto alguien toca un mensaje de error.
+- **Va pegado al titular en móvil y anclado en una columna a la derecha en escritorio**
+  (`sticky top-20`, solo en `lg:`), y **se pinta una sola vez**: repetirlo arriba y
+  abajo duplicaría los `id` de los campos, que es lo que ata cada etiqueta con el suyo.
+  Por eso las tres piezas de la página (titular, acceso, resto) están colocadas a mano
+  en la rejilla: el acceso se escribe en medio —tiene que ser el segundo en móvil— pero
+  pertenece a la columna de al lado. Debajo, un **"Próximamente en Google Play"** sin
+  insignia oficial ni enlace, porque todavía no hay ficha a la que ir.
+- **La barra de arriba ya no tiene botones de cuenta**: solo la marca, las secciones
+  (`lg:`) y un enlace "Entrar" que es un **ancla** a `#entrar`. No lleva a otra página;
+  existe porque en móvil el formulario está arriba del todo y sin él no habría forma de
+  volver a él sin subir a mano. El cierre de la página con los botones también se fue.
+  `e2e/escritorio.spec.ts` vigila las dos mitades: que a 1440 px la tarjeta siga a la
+  vista tras bajar 2500 px y mida menos de una columna, y que a 1023 px ocupe el ancho
+  del texto y siga por encima de "Así se ve".
+- **El enlace se ve al compartirlo** (01-09-2026): `openGraph` y `twitter` en
+  `src/app/layout.tsx`, con `metadataBase` sacado de `SITE_URL`, y `public/og.png`
+  (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la
+  Nunito. Farpi se comparte por WhatsApp entre familias, no por un buscador, y hasta
+  ahora el enlace viajaba pelado.
 - **Capturas de la app de verdad** en "Así se ve": siete pantallas (inicio, calendario,
   tareas, listas, comidas, finanzas, notas) que genera `node scripts/gen-capturas.mjs`
   contra la app en modo demo con el reloj congelado en el 17-06-2026, la fecha de los

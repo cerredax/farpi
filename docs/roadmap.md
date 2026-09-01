@@ -286,8 +286,13 @@ sección lleva dos pestañas. El porqué de cada decisión está en `docs/archit
 La página pública contaba bien qué es Farpi y escondía lo único que se le pide: entrar.
 Y la sección de gasto pasó a llamarse como lo que la familia hace con el dinero.
 
-- [x] `TarjetaAcceso`, un solo componente con los dos botones, pegado al titular en
-      móvil y **anclado en una columna a la derecha en escritorio** (`sticky`, solo `lg:`).
+- [x] El acceso, pegado al titular en móvil y **anclado en una columna a la derecha en
+      escritorio** (`sticky`, solo `lg:`).
+- [x] **El formulario de verdad en la portada**, no un botón que lleve a él: `AuthCard`
+      sale de `LoginForm` y lo comparten `/auth/login` y la portada. Fuera los botones
+      de cuenta de la barra de arriba —queda un ancla— y el cierre de la página.
+- [x] **`openGraph` y `twitter`** con `public/og.png` (1200×630), para que el enlace se
+      vea al mandarlo por WhatsApp.
 - [x] **"Próximamente en Google Play"**, sin insignia oficial ni enlace mientras no
       haya ficha. Cuando la haya se cambia ese bloque (ver Fase 9, TWA).
 - [x] **"Así se ve"**: siete capturas de la app de verdad, generadas por

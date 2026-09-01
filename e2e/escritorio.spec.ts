@@ -83,13 +83,19 @@ test.describe('escritorio a 1440 px', () => {
     await page.goto('/')
     await page.waitForTimeout(800)
 
-    const acceso = page.getByRole('complementary', { name: 'Entrar en Farpi' })
-    await expect(acceso.getByRole('link', { name: 'Crear cuenta' })).toBeVisible()
+    // La tarjeta es el hijo del ancla `#entrar`, que es quien lleva el `sticky`.
+    // Se busca así y no por su contenido porque ese contenido cambia con el
+    // modo: el formulario con credenciales, el aviso de modo local sin ellas.
+    const tarjeta = page.locator('#entrar > div').first()
+    await expect(tarjeta).toBeInViewport()
 
     await page.evaluate(() => window.scrollBy(0, 2500))
     await page.waitForTimeout(600)
-    await expect(acceso.getByRole('link', { name: 'Crear cuenta' })).toBeInViewport()
-    await expect(acceso.getByRole('link', { name: 'Ya tengo cuenta' })).toBeInViewport()
+    await expect(tarjeta, 'el acceso se ha ido con el scroll: se ha perdido el anclaje').toBeInViewport()
+
+    // Ancha de columna, no de página: es la segunda columna de la rejilla.
+    const ancho = (await tarjeta.boundingBox())!.width
+    expect(ancho).toBeLessThan(420)
   })
 
   test('manda la barra lateral y desaparece la de abajo', async ({ page }) => {
@@ -393,9 +399,16 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
     await page.goto('/')
     await page.waitForTimeout(800)
 
-    await expect(page.getByRole('complementary', { name: 'Entrar en Farpi' })).toBeHidden()
-    // La tarjeta no desaparece: baja al cuerpo, justo debajo del titular.
-    await expect(page.getByRole('link', { name: 'Crear cuenta' }).nth(1)).toBeInViewport()
+    // Sin columna: la tarjeta ocupa el ancho del texto, no 22 rem a un lado.
+    const tarjeta = page.locator('#entrar > div').first()
+    const ancho = (await tarjeta.boundingBox())!.width
+    expect(ancho, 'la columna de escritorio se ha colado por debajo de lg').toBeGreaterThan(500)
+
+    // Y sigue siendo lo segundo de la página, justo debajo del titular: por
+    // encima de "Así se ve", que es la primera sección del cuerpo.
+    const acceso = (await tarjeta.boundingBox())!.y
+    const primeraSeccion = (await page.locator('#asi-se-ve').boundingBox())!.y
+    expect(acceso).toBeLessThan(primeraSeccion)
   })
 
   test('sigue la barra de abajo y no aparece la lateral', async ({ page }) => {

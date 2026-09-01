@@ -1178,6 +1178,37 @@ se hace es decirlo donde se lee: el sheet lo avisa bajo el campo de contenido y
 `/privacidad` lo repite. Sirve para la clave del wifi de casa; no es un gestor de
 contraseñas.
 
+### La portada entra sin salir de la portada (01-09-2026)
+
+La página pública **no tiene botones que lleven al login**: tiene el formulario. Quien
+llega puede entrar sin cambiar de página, que es donde se pierde la gente.
+
+Eso obligó a que hubiera **un solo formulario de autenticación** en todo el proyecto:
+`src/components/auth/AuthCard.tsx`, que montan `/auth/login` y `LandingPage`. Copiarlo
+era la opción rápida y la peor: dos formularios divergen en cuanto alguien toca un
+mensaje de error, y a partir de ahí uno de los dos miente. `/auth/login` sigue
+existiendo aunque la portada ya no lo enlace —es donde aterrizan las invitaciones, la
+confirmación de cuenta y los enlaces de recuperar contraseña— pero ya solo aporta su
+maqueta.
+
+**Y se pinta una sola vez en la página.** No es una preferencia: la tarjeta anterior,
+que solo tenía botones, salía dos veces —una para móvil, otra para escritorio— y con un
+formulario dentro eso duplica los `id` de los campos, que es lo que ata cada `label` con
+el suyo. Dos «Correo electrónico» con el mismo `id` y quien navega con lector de
+pantalla acaba escribiendo en el que no ve. Por eso las tres piezas de la portada
+—titular, acceso y resto— van colocadas a mano en la rejilla (`col-start` / `row-start`)
+en vez de por orden natural: el acceso se escribe en medio, porque tiene que ser el
+segundo en móvil, pero pertenece a la columna de al lado.
+
+De la barra de arriba queda un enlace «Entrar» que **no lleva a ninguna parte**: es un
+ancla a `#entrar`. En escritorio no hace falta —la columna va anclada— pero en móvil el
+formulario está arriba del todo, y sin él, tres mil píxeles más abajo, no habría forma
+de volver sin subir a mano.
+
+Efecto lateral que conviene saber: la portada dejó de ser una página inerte y carga el
+cliente de Supabase. Y en **modo demo** enseña el aviso de «Modo local activo» en vez
+del formulario, que es lo mismo que hace `/auth/login` y lo que ve la suite e2e.
+
 ### Finanzas: dos cosas que en español se llaman igual (31-08-2026)
 
 "Presupuesto" en una casa española son dos cosas distintas: lo que te puedes gastar al mes

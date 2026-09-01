@@ -10,8 +10,17 @@ import { abrirBloque, elegirVista } from './vistas'
 test('la portada enseña el acceso y las capturas cargan', async ({ page }) => {
   await page.goto('/')
 
-  await expect(page.getByRole('link', { name: 'Crear cuenta' }).first()).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toBeVisible()
+  // El formulario de verdad está en la propia portada desde el 01-09-2026, así
+  // que aquí se ve lo mismo que en `/auth/login`: en modo demo, el aviso de que
+  // no hay Supabase detrás. Que salga **este** cartel y no un botón es la
+  // prueba de que la portada monta `AuthCard` y no una copia suya.
+  await expect(page.locator('#entrar').getByText('Modo local activo')).toBeVisible()
+
+  // Y el único enlace de cuenta que queda en la barra, que ya no lleva a otra
+  // página: sube al formulario. Es la única forma de volver a él en móvil.
+  const entrar = page.getByRole('link', { name: 'Entrar', exact: true })
+  await expect(entrar).toBeVisible()
+  await expect(entrar).toHaveAttribute('href', '#entrar')
 
   const primera = page.getByRole('img', { name: /Pantalla de Inicio/ })
   await expect(primera).toBeVisible()

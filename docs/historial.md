@@ -15,6 +15,45 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### El formulario de entrar, en la propia portada (01-09-2026)
+
+Segunda pasada del mismo día. La tarjeta de acceso resolvía dónde mirar, pero
+seguía pidiendo un clic de más: llevaba a `/auth/login`, otra página, otra
+carga, y por el camino se pierde gente. Ahora **el formulario está en la
+portada**, en la columna anclada de la derecha.
+
+Para eso hubo que sacar la lógica de autenticación de `LoginForm`, que además
+montaba la maqueta de la pantalla de login, a `components/auth/AuthCard.tsx`.
+Copiarlo habría sido peor que moverlo: dos formularios de autenticación
+divergen en cuanto alguien toca un mensaje de error, y entonces uno de los dos
+miente. `/auth/login` se queda como estaba por fuera —es donde aterrizan las
+invitaciones, la confirmación de cuenta y los enlaces de recuperar contraseña—
+pero ya solo aporta la maqueta.
+
+Fuera los botones de cuenta de la barra de arriba y el cierre de la página con
+los dos botones otra vez, que era lo que se pedía. De la barra queda un enlace
+"Entrar" que **no lleva a ninguna parte**: es un ancla a `#entrar`. Se queda
+porque en móvil el formulario está arriba del todo y, tres mil píxeles más
+abajo, no habría forma de volver a él sin subir a mano.
+
+El detalle que obligó a rehacer la rejilla: el acceso **se pinta una sola vez**.
+Antes eran dos tarjetas de botones, una para móvil y otra para escritorio, y
+eso con un formulario dentro duplicaría los `id` de los campos —`email`,
+`password`— que es justo lo que ata cada etiqueta con el suyo. Así que las tres
+piezas (titular, acceso, resto) van colocadas a mano en la rejilla con
+`col-start` y `row-start`: el acceso se escribe en medio, porque tiene que ser
+el segundo en móvil, pero pertenece a la columna de al lado.
+
+Y una mejora que no estaba pedida pero que se notaba en cuanto se miraba:
+**el enlace no se veía al compartirlo**. `metadata` solo tenía título y
+descripción, así que mandar farpi.app por WhatsApp enseñaba un enlace pelado —y
+esta app se comparte por ahí, entre familias, no por un buscador. Ahora hay
+`openGraph` y `twitter` con `public/og.png`, que compone el mismo
+`gen-capturas.mjs` con la captura de Inicio ya hecha: por eso va en ese script y
+no en otro, porque dos comandos que hay que lanzar en orden acaban lanzándose en
+el orden que no es. 1200×630 clavados y sin retina, 85 KB, que es lo que esas
+plataformas esperan.
+
 ### La portada empieza por lo que importa, y Dinero pasa a ser Finanzas (01-09-2026)
 
 La portada contaba bien qué es Farpi, pero enterraba lo único que se le pide: que

@@ -1,7 +1,7 @@
 import { ALL_MEAL_SLOTS } from '../meal-slots'
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, List, ListItem, Document, Note, Budget, Expense, Quote,
+  MealPlan, List, ListItem, Document, Note, Budget, Expense, FixedEntry, Quote,
 } from '@/types'
 
 interface DB {
@@ -15,6 +15,7 @@ interface DB {
   listItems: ListItem[]
   mealPlans: MealPlan[]
   notes:     Note[]
+  fixedEntries: FixedEntry[]
   budgets:   Budget[]
   expenses:  Expense[]
   quotes:    Quote[]
@@ -117,6 +118,19 @@ export const db: DB = {
   ],
 
   // El dinero de la casa. Los importes van en céntimos, como en la base.
+  //
+  // El mes tipo de una familia normal: dos nóminas y cuatro recibos. Está
+  // sembrado porque la cuenta del mes —«para el mes 1.150 €»— no se entiende con
+  // la pantalla vacía, y porque es lo primero que se ve al entrar en Finanzas.
+  fixedEntries: [
+    { id: 'fx1', family_id: 'f1', kind: 'ingreso' as const, name: 'Nómina de Carlos', emoji: '💼', amount_cents: 165000, child_id: null, member_id: 'm1',  sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx2', family_id: 'f1', kind: 'ingreso' as const, name: 'Nómina de María',  emoji: '💼', amount_cents: 148000, child_id: null, member_id: 'm2',  sort_order: 1, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx3', family_id: 'f1', kind: 'gasto'   as const, name: 'Alquiler',         emoji: '🏠', amount_cents: 78000,  child_id: null, member_id: null, sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx4', family_id: 'f1', kind: 'gasto'   as const, name: 'Luz y gas',        emoji: '💡', amount_cents: 7400,   child_id: null, member_id: null, sort_order: 1, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx5', family_id: 'f1', kind: 'gasto'   as const, name: 'Internet y móvil', emoji: '📱', amount_cents: 4990,   child_id: null, member_id: null, sort_order: 2, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx6', family_id: 'f1', kind: 'gasto'   as const, name: 'Seguro del coche', emoji: '🚗', amount_cents: 3200,   child_id: null, member_id: null, sort_order: 3, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+  ],
+
   budgets: [
     { id: 'b1', family_id: 'f1', name: 'Compra',     emoji: '🛒', monthly_limit_cents: 40000, sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
     { id: 'b2', family_id: 'f1', name: 'Coche',       emoji: '🚗', monthly_limit_cents: 15000, sort_order: 1, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
@@ -124,15 +138,18 @@ export const db: DB = {
   ],
 
   expenses: [
-    { id: 'g1', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm1', amount_cents: 6240, date: '2026-06-16', description: 'Compra semanal',            created_by: 'u1', created_at: '2026-06-16T19:30:00', updated_at: '2026-06-16T19:30:00' },
-    { id: 'g2', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm2', amount_cents: 1815, date: '2026-06-14', description: 'Fruta y verdura',           created_by: 'u2', created_at: '2026-06-14T11:00:00', updated_at: '2026-06-14T11:00:00' },
-    { id: 'g3', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: 'm1', amount_cents: 3450, date: '2026-06-15', description: 'Gasolina',       created_by: 'u1', created_at: '2026-06-15T18:00:00', updated_at: '2026-06-15T18:00:00' },
-    { id: 'g4', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: null, amount_cents: 2990, date: '2026-06-12', description: 'Taller: cambio de aceite',          created_by: 'u2', created_at: '2026-06-12T17:00:00', updated_at: '2026-06-12T17:00:00' },
-    { id: 'g5', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm2', amount_cents: 8900, date: '2026-06-10', description: 'Estantería para el salón',   created_by: 'u2', created_at: '2026-06-10T12:00:00', updated_at: '2026-06-10T12:00:00' },
-    { id: 'g6', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm1', amount_cents: 4520, date: '2026-06-17', description: 'Bombillas y pilas',         created_by: 'u1', created_at: '2026-06-17T09:00:00', updated_at: '2026-06-17T09:00:00' },
+    { id: 'g1', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 6240, date: '2026-06-16', description: 'Compra semanal',            created_by: 'u1', created_at: '2026-06-16T19:30:00', updated_at: '2026-06-16T19:30:00' },
+    { id: 'g2', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1815, date: '2026-06-14', description: 'Fruta y verdura',           created_by: 'u2', created_at: '2026-06-14T11:00:00', updated_at: '2026-06-14T11:00:00' },
+    { id: 'g3', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 3450, date: '2026-06-15', description: 'Gasolina',       created_by: 'u1', created_at: '2026-06-15T18:00:00', updated_at: '2026-06-15T18:00:00' },
+    { id: 'g4', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: null, kind: 'gasto' as const, amount_cents: 2990, date: '2026-06-12', description: 'Taller: cambio de aceite',          created_by: 'u2', created_at: '2026-06-12T17:00:00', updated_at: '2026-06-12T17:00:00' },
+    { id: 'g5', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 8900, date: '2026-06-10', description: 'Estantería para el salón',   created_by: 'u2', created_at: '2026-06-10T12:00:00', updated_at: '2026-06-10T12:00:00' },
+    { id: 'g6', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 4520, date: '2026-06-17', description: 'Bombillas y pilas',         created_by: 'u1', created_at: '2026-06-17T09:00:00', updated_at: '2026-06-17T09:00:00' },
     // Sin presupuesto: la farmacia no la presupuestó nadie y sale igual, bajo
     // "Sin presupuesto". Es el caso que hay que poder ver en demo.
-    { id: 'g7', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm2', amount_cents: 1230, date: '2026-06-16', description: 'Farmacia',      created_by: 'u2', created_at: '2026-06-16T20:00:00', updated_at: '2026-06-16T20:00:00' },
+    { id: 'g7', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1230, date: '2026-06-16', description: 'Farmacia',      created_by: 'u2', created_at: '2026-06-16T20:00:00', updated_at: '2026-06-16T20:00:00' },
+    // Un ingreso apuntado, que no es la nómina: lo que entra de vez en cuando y
+    // por eso no es un fijo. Nunca cuelga de un tope.
+    { id: 'g8', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm1', kind: 'ingreso' as const, amount_cents: 12000, date: '2026-06-13', description: 'Devolución de la compra online', created_by: 'u1', created_at: '2026-06-13T10:00:00', updated_at: '2026-06-13T10:00:00' },
   ],
 
   // Tres para lo mismo (la caldera) y uno ya aceptado: es justo la forma que

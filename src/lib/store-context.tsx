@@ -19,6 +19,8 @@ import type {
   EventDraft,
   Expense,
   ExpenseDraft,
+  FixedEntry,
+  FixedEntryDraft,
   Family,
   FamilyInvite,
   FamilyMember,
@@ -81,6 +83,7 @@ interface StoreValue {
   allListItems: ListItem[]
   meals: MealPlan[]
   notes: Note[]
+  fixedEntries: FixedEntry[]
   budgets: Budget[]
   expenses: Expense[]
   quotes: Quote[]
@@ -126,6 +129,9 @@ interface StoreValue {
   createNote: (draft: NoteDraft) => Promise<void>
   updateNote: (id: string, draft: NoteDraft) => Promise<void>
   deleteNote: (id: string) => Promise<void>
+  createFixedEntry: (draft: FixedEntryDraft) => Promise<void>
+  updateFixedEntry: (id: string, draft: FixedEntryDraft) => Promise<void>
+  deleteFixedEntry: (id: string) => Promise<void>
   createBudget: (draft: BudgetDraft) => Promise<void>
   updateBudget: (id: string, draft: BudgetDraft) => Promise<void>
   /** Borra el tope. Sus gastos se quedan, sin presupuesto. */
@@ -174,6 +180,7 @@ const EMPTY_SLICES = {
   allListItems: [] as ListItem[],
   meals: [] as MealPlan[],
   notes: [] as Note[],
+  fixedEntries: [] as FixedEntry[],
   budgets: [] as Budget[],
   expenses: [] as Expense[],
   quotes: [] as Quote[],
@@ -198,6 +205,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [allListItems, setListItems] = useState<ListItem[]>(EMPTY_SLICES.allListItems)
   const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
   const [notes, setNotes] = useState<Note[]>(EMPTY_SLICES.notes)
+  const [fixedEntries, setFixedEntries] = useState<FixedEntry[]>(EMPTY_SLICES.fixedEntries)
   const [budgets, setBudgets] = useState<Budget[]>(EMPTY_SLICES.budgets)
   const [expenses, setExpenses] = useState<Expense[]>(EMPTY_SLICES.expenses)
   const [quotes, setQuotes] = useState<Quote[]>(EMPTY_SLICES.quotes)
@@ -221,6 +229,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         nextListItems,
         nextMeals,
         nextNotes,
+        nextFixedEntries,
         nextBudgets,
         nextExpenses,
         nextQuotes,
@@ -238,6 +247,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         repos.listItems.getListItems(familyId),
         repos.meals.getMeals(familyId),
         repos.notes.getNotes(familyId),
+        repos.fixedEntries.getFixedEntries(familyId),
         repos.budgets.getBudgets(familyId),
         repos.expenses.getExpenses(familyId),
         repos.quotes.getQuotes(familyId),
@@ -263,6 +273,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       setListItems(nextListItems)
       setMeals(nextMeals)
       setNotes(nextNotes)
+      setFixedEntries(nextFixedEntries)
       setBudgets(nextBudgets)
       setExpenses(nextExpenses)
       setQuotes(nextQuotes)
@@ -408,6 +419,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       allListItems,
       meals,
       notes,
+      fixedEntries,
       budgets,
       expenses,
       quotes,
@@ -516,6 +528,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createNote: (draft: NoteDraft) => runMutation(() => repos.notes.createNote(familyId, draft)),
       updateNote: (id: string, draft: NoteDraft) => runMutation(() => repos.notes.updateNote(id, draft)),
       deleteNote: (id: string) => runMutation(() => repos.notes.deleteNote(id)),
+      createFixedEntry: (draft: FixedEntryDraft) => runMutation(() => repos.fixedEntries.createFixedEntry(familyId, draft)),
+      updateFixedEntry: (id: string, draft: FixedEntryDraft) => runMutation(() => repos.fixedEntries.updateFixedEntry(id, draft)),
+      deleteFixedEntry: (id: string) => runMutation(() => repos.fixedEntries.deleteFixedEntry(id)),
       createBudget: (draft: BudgetDraft) => runMutation(() => repos.budgets.createBudget(familyId, draft)),
       updateBudget: (id: string, draft: BudgetDraft) => runMutation(() => repos.budgets.updateBudget(id, draft)),
       deleteBudget: (id: string) => runMutation(() => repos.budgets.deleteBudget(id)),
@@ -557,6 +572,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     allListItems,
     meals,
     notes,
+    fixedEntries,
     budgets,
     expenses,
     quotes,

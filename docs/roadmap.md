@@ -261,8 +261,9 @@ Objetivo: preparar uso diario.
 ## Fase 8d - Finanzas (31-08-2026)
 
 La última idea de la lista: un apartado de presupuestos. En español eran dos, así que la
-sección lleva dos pestañas. El porqué de cada decisión está en `docs/architecture.md`,
-"Finanzas: dos cosas que en español se llaman igual".
+sección llevaba dos pestañas. El 01-09-2026 se rehízo entera (ver Fase 8f). El porqué de
+cada decisión, la de entonces y la de ahora, está en `docs/architecture.md`, "Finanzas:
+cuatro piezas y una sola palabra «presupuesto»".
 
 - [x] Tres tablas (`budgets`, `expenses`, `quotes`) con RLS por familia, índices,
       triggers de `updated_at` y los tres de integridad entre familias de `expenses`.
@@ -303,6 +304,38 @@ Y la sección de gasto pasó a llamarse como lo que la familia hace con el diner
       en `escritorio.spec.ts`) y un bloque de QA manual en el checklist.
 - [x] **Dinero → Finanzas** en todo: etiquetas, `/finanzas`, `src/lib/finanzas.ts`,
       `FinanzasView`, `useFinanzasState`, tests y documentación. Las tablas no se tocan.
+
+## Fase 8f - Finanzas: los fijos y el vocabulario (01-09-2026)
+
+Finanzas tenía dos problemas de fondo: «presupuesto» seguía significando dos cosas dentro
+de la propia sección, y **no existían los ingresos**, así que no podía contestar la única
+pregunta que se hace en una casa a mitad de mes. El porqué entero está en
+`docs/architecture.md`, "Finanzas: cuatro piezas y una sola palabra «presupuesto»".
+
+- [x] Tabla nueva `fixed_entries` —el mes tipo: nóminas, alquiler, luz, suscripciones—
+      con RLS por familia, índices, trigger de `updated_at` y los dos de integridad entre
+      familias. **No genera movimientos**: es un dato que vale hasta que se cambie.
+- [x] Columna `kind` en `expenses` (`default 'gasto'`, así que lo ya apuntado sigue
+      valiendo) y el `check` `expenses_ingreso_sin_tope`, que impide en la base que un
+      ingreso descuente de un tope.
+- [x] Contrato `FixedEntriesRepo` y las dos implementaciones (mock con `SCHEMA_VER` 14 y
+      Supabase), las dos forzando el `budget_id` a null en los ingresos.
+- [x] `cuentaDelMes` en `src/lib/budgets.ts`: ingresos fijos, gastos fijos, «para el mes»,
+      lo apuntado y **cuánto queda**. Los topes y el reparto pasan a mirar solo los gastos.
+- [x] Tercera pestaña **«Fijos»** (`FijosPanel`, `FixedEntrySheet`) y la tarjeta
+      `CuentaDelMes` arriba de «El mes», con su caso aparte para cuando no hay ningún fijo.
+- [x] **Vocabulario**: los `budgets` pasan a llamarse «topes» y los `expenses`
+      «movimientos»; «presupuesto» queda para los `quotes` y nada más. Las tablas no se
+      renombran, por lo mismo que en Dinero → Finanzas.
+- [x] En la copia de seguridad (quince tablas) y en la semilla de la demo, con un mes tipo
+      de una familia normal.
+- [x] Catorce unitarios nuevos en `budgets.spec.ts` y `finanzas.spec.ts`, y dos flujos de
+      navegador (la cuenta del mes con un ingreso que no toca los topes; un gasto fijo que
+      baja lo que queda).
+- [x] Esquema aplicado en el SQL Editor del proyecto real y revalidado el 01-09-2026:
+      **106/106**, con siete comprobaciones nuevas en el arnés —los tres de RLS sobre
+      `fixed_entries`, los dos triggers de asignación entre familias y los dos `check` que
+      impiden un tipo inventado y un ingreso colgado de un tope.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

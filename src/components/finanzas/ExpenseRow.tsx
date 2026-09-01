@@ -15,8 +15,13 @@ interface ExpenseRowProps {
 }
 
 /**
- * Un gasto en la lista del mes: qué fue, de qué presupuesto sale, quién lo pagó
- * y cuánto.
+ * Un movimiento en la lista del mes: qué fue, de qué tope sale, quién lo pagó y
+ * cuánto.
+ *
+ * **Un ingreso lleva su signo delante y el verde de la marca.** Los dos, no solo
+ * el color: el color acompaña pero nunca lleva el mensaje solo, que es la regla
+ * de siempre y aquí importa doble porque un ingreso y un gasto de 120 € serían la
+ * misma fila para quien no distingue el verde. El «+» es lo que lo dice.
  *
  * Quien pagó va como un punto de su color con el nombre al lado, y no solo como
  * punto: el color dice **de quién** —eso sí es lo suyo en Farpi— pero no puede
@@ -27,6 +32,7 @@ interface ExpenseRowProps {
 export function ExpenseRow({ expense, budgets, members, kids, onEdit }: ExpenseRowProps) {
   const budget = budgets.find(b => b.id === expense.budget_id)
   const quienPago = resolveAssignee(expense, members, kids)
+  const esIngreso = expense.kind === 'ingreso'
 
   return (
     <button
@@ -35,7 +41,7 @@ export function ExpenseRow({ expense, budgets, members, kids, onEdit }: ExpenseR
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-ink">
-          {expense.description ?? (budget ? budget.name : 'Gasto')}
+          {expense.description ?? (budget ? budget.name : esIngreso ? 'Ingreso' : 'Gasto')}
         </p>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
           <span>{format(parseISO(expense.date), 'd MMM', { locale: es })}</span>
@@ -57,7 +63,9 @@ export function ExpenseRow({ expense, budgets, members, kids, onEdit }: ExpenseR
         </p>
       </div>
 
-      <span className="flex-shrink-0 text-sm font-bold text-ink">{formatCentsCorto(expense.amount_cents)}</span>
+      <span className={`flex-shrink-0 text-sm font-bold tabular-nums ${esIngreso ? 'text-primary-strong' : 'text-ink'}`}>
+        {esIngreso ? '+' : ''}{formatCentsCorto(expense.amount_cents)}
+      </span>
     </button>
   )
 }

@@ -3,13 +3,17 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
-  agruparPresupuestos, gastosDelMes, gastosSinPresupuesto, mesDe, mesVecino,
-  repartoDelMes, resumenPresupuestos, sumaDe, titulosDePresupuestos,
+  agruparPresupuestos, cuentaDelMes, fijosDe, gastosSinTope, mesDe,
+  mesVecino, movimientosDelMes, repartoDelMes, resumenTopes,
+  titulosDePresupuestos,
 } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
-import type { Budget, BudgetDraft, Expense, ExpenseDraft, Quote, QuoteDraft } from '@/types'
+import type {
+  Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
+  MovementKind, Quote, QuoteDraft,
+} from '@/types'
 
-export type PestañaFinanzas = 'mes' | 'presupuestos'
+export type PestañaFinanzas = 'mes' | 'fijos' | 'presupuestos'
 
 /**
  * El estado de la pantalla de Finanzas: qué pestaña se mira, qué mes y qué sheet
@@ -23,7 +27,8 @@ export type PestañaFinanzas = 'mes' | 'presupuestos'
  */
 export function useFinanzasState() {
   const {
-    budgets, expenses, quotes, members, kids,
+    fixedEntries, budgets, expenses, quotes, members, kids,
+    createFixedEntry, updateFixedEntry, deleteFixedEntry,
     createBudget, updateBudget, deleteBudget,
     createExpense, updateExpense, deleteExpense,
     createQuote, updateQuote, deleteQuote, setQuoteStatus,
@@ -34,6 +39,9 @@ export function useFinanzasState() {
   const [pestaña, setPestaña] = useState<PestañaFinanzas>('mes')
   const [mes, setMes] = useState(() => mesDe(hoy))
 
+  const [fixedSheetOpen, setFixedSheetOpen] = useState(false)
+  const [editingFixed, setEditingFixed] = useState<FixedEntry | null>(null)
+  const [kindNuevoFijo, setKindNuevoFijo] = useState<MovementKind>('ingreso')
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [budgetSheetOpen, setBudgetSheetOpen] = useState(false)
@@ -41,10 +49,12 @@ export function useFinanzasState() {
   const [quoteSheetOpen, setQuoteSheetOpen] = useState(false)
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
 
-  const resumen = useMemo(() => resumenPresupuestos(budgets, expenses, mes), [budgets, expenses, mes])
-  const delMes = useMemo(() => gastosDelMes(expenses, mes), [expenses, mes])
-  const sinPresupuesto = useMemo(() => gastosSinPresupuesto(expenses, mes), [expenses, mes])
-  const total = useMemo(() => sumaDe(delMes), [delMes])
+  const resumen = useMemo(() => resumenTopes(budgets, expenses, mes), [budgets, expenses, mes])
+  const delMes = useMemo(() => movimientosDelMes(expenses, mes), [expenses, mes])
+  const sinTope = useMemo(() => gastosSinTope(expenses, mes), [expenses, mes])
+  const cuenta = useMemo(() => cuentaDelMes(fixedEntries, expenses, mes), [fixedEntries, expenses, mes])
+  const ingresosFijos = useMemo(() => fijosDe(fixedEntries, 'ingreso'), [fixedEntries])
+  const gastosFijos = useMemo(() => fijosDe(fixedEntries, 'gasto'), [fixedEntries])
   const reparto = useMemo(() => repartoDelMes(expenses, mes, members, kids), [expenses, mes, members, kids])
   const grupos = useMemo(() => agruparPresupuestos(quotes), [quotes])
   const titulos = useMemo(() => titulosDePresupuestos(quotes), [quotes])
@@ -53,13 +63,14 @@ export function useFinanzasState() {
   // app: sin esto, editar un gasto justo después de otro deja los valores del
   // primero escritos en los campos.
   //
-  // Cada clave lleva delante de qué sheet es, y no es adorno: **los tres cuelgan
-  // del mismo padre**, así que el `create` pelado que usan las demás pantallas
-  // —donde solo hay un sheet— daba dos hermanos con la misma clave y React lo
-  // cantaba por consola. Lo pilló `runtime.spec.ts`, que tumba la suite ante
-  // cualquier `console.error`.
+  // Cada clave lleva delante de qué sheet es, y no es adorno: **los cuatro
+  // cuelgan del mismo padre**, así que el `create` pelado que usan las demás
+  // pantallas —donde solo hay un sheet— daba dos hermanos con la misma clave y
+  // React lo cantaba por consola. Lo pilló `runtime.spec.ts`, que tumba la suite
+  // ante cualquier `console.error`.
+  const fixedKey = editingFixed ? `fijo-${editingFixed.id}` : `fijo-nuevo-${kindNuevoFijo}`
   const expenseKey = editingExpense ? `gasto-${editingExpense.id}` : `gasto-nuevo-${mes}`
-  const budgetKey = editingBudget ? `presupuesto-${editingBudget.id}` : 'presupuesto-nuevo'
+  const budgetKey = editingBudget ? `tope-${editingBudget.id}` : 'tope-nuevo'
   const quoteKey = editingQuote ? `pedido-${editingQuote.id}` : 'pedido-nuevo'
 
   return {
@@ -72,17 +83,29 @@ export function useFinanzasState() {
 
     pestaña, setPestaña,
 
-    budgets, resumen, delMes, sinPresupuesto, total, reparto, grupos, titulos,
+    budgets, members, kids,
+    resumen, delMes, sinTope, cuenta, reparto, grupos, titulos,
+    ingresosFijos, gastosFijos,
 
+    fixedSheetOpen, setFixedSheetOpen, editingFixed, kindNuevoFijo, fixedKey,
     expenseSheetOpen, setExpenseSheetOpen, editingExpense, expenseKey,
     budgetSheetOpen, setBudgetSheetOpen, editingBudget, budgetKey,
     quoteSheetOpen, setQuoteSheetOpen, editingQuote, quoteKey,
 
+    abrirFijoNuevo(kind: MovementKind) {
+      setEditingFixed(null)
+      setKindNuevoFijo(kind)
+      setFixedSheetOpen(true)
+    },
+    abrirFijo(fijo: FixedEntry) {
+      setEditingFixed(fijo)
+      setFixedSheetOpen(true)
+    },
     abrirGasto(expense: Expense | null) {
       setEditingExpense(expense)
       setExpenseSheetOpen(true)
     },
-    abrirPresupuesto(budget: Budget | null) {
+    abrirTope(budget: Budget | null) {
       setEditingBudget(budget)
       setBudgetSheetOpen(true)
     },
@@ -91,11 +114,15 @@ export function useFinanzasState() {
       setQuoteSheetOpen(true)
     },
 
+    guardarFijo(draft: FixedEntryDraft) {
+      if (editingFixed) updateFixedEntry(editingFixed.id, draft)
+      else createFixedEntry(draft)
+    },
     guardarGasto(draft: ExpenseDraft) {
       if (editingExpense) updateExpense(editingExpense.id, draft)
       else createExpense(draft)
     },
-    guardarPresupuesto(draft: BudgetDraft) {
+    guardarTope(draft: BudgetDraft) {
       if (editingBudget) updateBudget(editingBudget.id, draft)
       else createBudget(draft)
     },
@@ -104,6 +131,6 @@ export function useFinanzasState() {
       else createQuote(draft)
     },
 
-    deleteExpense, deleteBudget, deleteQuote, setQuoteStatus,
+    deleteFixedEntry, deleteExpense, deleteBudget, deleteQuote, setQuoteStatus,
   }
 }

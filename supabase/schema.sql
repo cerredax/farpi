@@ -211,18 +211,62 @@ create table if not exists public.notes (
 );
 
 -- ----------------------------------------------------------------------------
--- Finanzas: presupuestos, gastos y presupuestos pedidos fuera
+-- Finanzas: fijos, topes, movimientos y presupuestos pedidos fuera
 -- ----------------------------------------------------------------------------
 --
--- Tres tablas para dos preguntas distintas que en español se llaman igual.
--- `budgets` + `expenses` contestan «¿vamos bien este mes?»; `quotes` contesta
--- «¿cuál de los tres presupuestos de la caldera aceptamos?». Comparten pantalla
--- y nada más: ni claves ajenas entre ellas ni columnas comunes.
+-- Cuatro tablas para cuatro preguntas distintas, y cada una es una pestaña o un
+-- bloque de la pantalla:
+--
+--   `fixed_entries` → ¿con cuánto contamos y qué está ya comprometido?
+--   `budgets`       → ¿me estoy pasando en lo que sí controlo?
+--   `expenses`      → ¿qué ha pasado este mes?
+--   `quotes`        → ¿cuánto va a costar esto que aún no hemos hecho?
+--
+-- No se tocan entre ellas salvo `expenses.budget_id`, que es opcional. Comparten
+-- pantalla, no modelo.
 --
 -- **Todo el dinero va en céntimos, en `integer`.** Ni `float`, que redondea
 -- mal, ni `numeric`, que llegaría a JavaScript como cadena y habría que
 -- convertirlo en cada lectura. Un `integer` aguanta 21 millones de euros en
 -- céntimos, muy por encima del tope de un millón que ponen los `check`.
+
+-- El mes tipo: lo que entra y lo que sale todos los meses sin que nadie lo
+-- apunte. Las dos nóminas, el alquiler, la luz, la suscripción.
+--
+-- **No es una plantilla que genere filas cada mes.** Es un dato que vale hasta
+-- que se cambie, exactamente igual que el tope de un `budget`: generar los
+-- movimientos de septiembre obligaría a abrir septiembre, que es el trabajo
+-- administrativo que esta app existe para no pedir. La consecuencia hay que
+-- saberla: subir el alquiler de 800 a 850 en marzo hace que enero también diga
+-- 850. Se aceptó a cambio de no tener una tabla de vigencias por fila y mes.
+--
+-- `kind` es lo que separa las dos mitades de la pantalla, y por eso está aquí y
+-- no en dos tablas: un ingreso fijo y un gasto fijo tienen exactamente las
+-- mismas columnas y se leen en el mismo sitio, uno encima del otro.
+--
+-- `child_id` y `member_id` son de quién es: quién cobra la nómina, quién paga el
+-- recibo. El mismo par excluyente de siempre, con sus mismos triggers. Los dos a
+-- null significa «de la casa», que es lo normal en un recibo domiciliado.
+--
+-- Sin `budget_id`: un fijo es exacto y un tope es para lo que varía. Colgar el
+-- alquiler de un tope haría que el tope se llenara solo sin haber apuntado nada.
+create table if not exists public.fixed_entries (
+  id           uuid primary key default uuid_generate_v4(),
+  family_id    uuid not null references public.families(id) on delete cascade,
+  kind         text not null,
+  name         text not null,
+  emoji        text,
+  amount_cents integer not null,
+  child_id     uuid references public.children(id) on delete set null,
+  member_id    uuid references public.family_members(id) on delete set null,
+  sort_order   integer not null default 0,
+  created_by   uuid references auth.users(id) on delete set null,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  constraint fixed_entries_importe_valido check (amount_cents between 1 and 100000000),
+  constraint fixed_entries_tipo_valido check (kind in ('ingreso', 'gasto')),
+  constraint fixed_entries_una_sola_asignacion check (child_id is null or member_id is null)
+);
 
 -- Cuánto se quiere gastar al mes en algo. El tope es **fijo y no por mes**: una
 -- fila por categoría, no una por categoría y mes. Poner el tope de septiembre
@@ -248,7 +292,19 @@ create table if not exists public.budgets (
   constraint budgets_limite_valido check (monthly_limit_cents between 1 and 100000000)
 );
 
--- Un gasto de la casa. Lo que hace que el tope de arriba signifique algo.
+-- Un movimiento de la casa: un gasto o un ingreso, con su fecha. Lo que hace que
+-- el tope de arriba signifique algo, y lo que se apunta a mano.
+--
+-- La tabla se sigue llamando `expenses` porque así se llamaba cuando solo había
+-- gastos y renombrarla obligaría a migrar la base real a cambio de una palabra.
+-- Lo que la parte en dos es `kind`, y el importe **sigue siendo positivo
+-- siempre**: un ingreso guardado como gasto negativo haría que «llevamos 180 de
+-- 300» dependiera del signo de cada fila, y una casa no lleva partida doble.
+--
+-- Un ingreso **no puede colgar de un tope**. Un tope mide lo que se gasta; si un
+-- ingreso descontara de él, una devolución de 40 € «liberaría» 40 € de la compra
+-- sin que nadie haya dejado de comprar. Lo impide el `check` de abajo, no la
+-- pantalla.
 --
 -- `budget_id` es opcional y se queda a null si se borra el presupuesto: el gasto
 -- pasó de verdad y no se borra porque su categoría desaparezca. La pantalla los
@@ -266,18 +322,22 @@ create table if not exists public.expenses (
   budget_id    uuid references public.budgets(id) on delete set null,
   child_id     uuid references public.children(id) on delete set null,
   member_id    uuid references public.family_members(id) on delete set null,
+  -- `default 'gasto'` para que las filas que ya existían sigan valiendo: cuando
+  -- se añadió la columna, todo lo apuntado era gasto.
+  kind         text not null default 'gasto',
   amount_cents integer not null,
   date         date not null,
   description  text,
   created_by   uuid references auth.users(id) on delete set null,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
-  -- Un gasto de cero euros no es un gasto. Los negativos tampoco entran: una
-  -- devolución contada como gasto negativo haría que «llevamos 180 de 300» dejara
-  -- de poder leerse de un vistazo, y una casa no lleva contabilidad de partida
-  -- doble.
+  -- Un movimiento de cero euros no es un movimiento. Los negativos tampoco
+  -- entran: una devolución se apunta como ingreso, con `kind`, no como un gasto
+  -- de signo cambiado.
   constraint expenses_importe_valido check (amount_cents between 1 and 100000000),
-  constraint expenses_una_sola_asignacion check (child_id is null or member_id is null)
+  constraint expenses_una_sola_asignacion check (child_id is null or member_id is null),
+  constraint expenses_tipo_valido check (kind in ('gasto', 'ingreso')),
+  constraint expenses_ingreso_sin_tope check (kind = 'gasto' or budget_id is null)
 );
 
 -- Lo que te pasa el fontanero, el dentista o la academia. Es la otra mitad de la
@@ -460,8 +520,14 @@ create index if not exists list_items_list_idx      on public.list_items(list_id
 create index if not exists notes_family_idx         on public.notes(family_id, pinned desc, updated_at desc);
 create index if not exists meal_plans_family_date_idx on public.meal_plans(family_id, date);
 
+-- Los fijos se leen enteros y siempre juntos: son ocho o diez filas por familia
+-- y la pantalla los pinta todos, así que basta con pedirlos ya ordenados.
+create index if not exists fixed_entries_family_idx  on public.fixed_entries(family_id, kind, sort_order);
+create index if not exists idx_fixed_entries_member  on public.fixed_entries(member_id);
+create index if not exists idx_fixed_entries_child   on public.fixed_entries(child_id);
+
 -- El gasto se lee siempre por mes y de lo más reciente a lo más viejo, que es
--- justo este orden. Los presupuestos, por su orden de la pantalla.
+-- justo este orden. Los topes, por su orden de la pantalla.
 create index if not exists budgets_family_idx        on public.budgets(family_id, sort_order);
 create index if not exists expenses_family_date_idx  on public.expenses(family_id, date desc);
 create index if not exists idx_expenses_budget       on public.expenses(budget_id);
@@ -510,6 +576,7 @@ drop trigger if exists set_families_updated_at   on public.families;
 drop trigger if exists set_events_updated_at     on public.events;
 drop trigger if exists set_lists_updated_at      on public.lists;
 drop trigger if exists set_notes_updated_at      on public.notes;
+drop trigger if exists set_fixed_entries_updated_at on public.fixed_entries;
 drop trigger if exists set_budgets_updated_at    on public.budgets;
 drop trigger if exists set_expenses_updated_at   on public.expenses;
 drop trigger if exists set_quotes_updated_at     on public.quotes;
@@ -522,6 +589,7 @@ create trigger set_families_updated_at   before update on public.families   for 
 create trigger set_events_updated_at     before update on public.events     for each row execute function public.set_updated_at();
 create trigger set_lists_updated_at      before update on public.lists      for each row execute function public.set_updated_at();
 create trigger set_notes_updated_at      before update on public.notes      for each row execute function public.set_updated_at();
+create trigger set_fixed_entries_updated_at before update on public.fixed_entries for each row execute function public.set_updated_at();
 create trigger set_budgets_updated_at    before update on public.budgets    for each row execute function public.set_updated_at();
 create trigger set_expenses_updated_at   before update on public.expenses   for each row execute function public.set_updated_at();
 create trigger set_quotes_updated_at     before update on public.quotes     for each row execute function public.set_updated_at();
@@ -678,6 +746,34 @@ begin
 end;
 $$;
 
+create or replace function public.check_fixed_entry_child_family()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.child_id is not null then
+    if not exists (
+      select 1 from public.children where id = new.child_id and family_id = new.family_id
+    ) then
+      raise exception 'fixed_entries: child_id no pertenece a la misma family_id';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.check_fixed_entry_member_family()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.member_id is not null then
+    if not exists (
+      select 1 from public.family_members where id = new.member_id and family_id = new.family_id
+    ) then
+      raise exception 'fixed_entries: member_id no pertenece a la misma family_id';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
 drop trigger if exists trg_list_item_family      on public.list_items;
 drop trigger if exists trg_event_child_family    on public.events;
 drop trigger if exists trg_event_member_family   on public.events;
@@ -685,6 +781,8 @@ drop trigger if exists trg_document_child_family on public.documents;
 drop trigger if exists trg_document_member_family on public.documents;
 drop trigger if exists trg_task_child_family     on public.tasks;
 drop trigger if exists trg_task_member_family    on public.tasks;
+drop trigger if exists trg_fixed_entry_child_family  on public.fixed_entries;
+drop trigger if exists trg_fixed_entry_member_family on public.fixed_entries;
 drop trigger if exists trg_expense_budget_family on public.expenses;
 drop trigger if exists trg_expense_child_family  on public.expenses;
 drop trigger if exists trg_expense_member_family on public.expenses;
@@ -696,6 +794,8 @@ create trigger trg_document_child_family  before insert or update on public.docu
 create trigger trg_document_member_family before insert or update on public.documents  for each row execute function public.check_document_member_family();
 create trigger trg_task_child_family      before insert or update on public.tasks      for each row execute function public.check_task_child_family();
 create trigger trg_task_member_family     before insert or update on public.tasks      for each row execute function public.check_task_member_family();
+create trigger trg_fixed_entry_child_family  before insert or update on public.fixed_entries for each row execute function public.check_fixed_entry_child_family();
+create trigger trg_fixed_entry_member_family before insert or update on public.fixed_entries for each row execute function public.check_fixed_entry_member_family();
 create trigger trg_expense_budget_family  before insert or update on public.expenses  for each row execute function public.check_expense_budget_family();
 create trigger trg_expense_child_family   before insert or update on public.expenses  for each row execute function public.check_expense_child_family();
 create trigger trg_expense_member_family  before insert or update on public.expenses  for each row execute function public.check_expense_member_family();
@@ -729,6 +829,7 @@ alter table public.events             enable row level security;
 alter table public.lists              enable row level security;
 alter table public.list_items         enable row level security;
 alter table public.notes              enable row level security;
+alter table public.fixed_entries      enable row level security;
 alter table public.budgets            enable row level security;
 alter table public.expenses           enable row level security;
 alter table public.quotes             enable row level security;
@@ -810,6 +911,11 @@ create policy "Miembros CRUD items de su familia"
 drop policy if exists "Miembros CRUD notas de su familia" on public.notes;
 create policy "Miembros CRUD notas de su familia"
   on public.notes for all
+  using (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros CRUD fijos de su familia" on public.fixed_entries;
+create policy "Miembros CRUD fijos de su familia"
+  on public.fixed_entries for all
   using (family_id in (select public.my_family_ids()));
 
 drop policy if exists "Miembros CRUD presupuestos de su familia" on public.budgets;

@@ -1211,18 +1211,45 @@ Efecto lateral que conviene saber: la portada dejó de ser una página inerte y 
 cliente de Supabase. Y en **modo demo** enseña el aviso de «Modo local activo» en vez
 del formulario, que es lo mismo que hace `/auth/login` y lo que ve la suite e2e.
 
-### Finanzas: dos cosas que en español se llaman igual (31-08-2026)
+### Finanzas: cuatro piezas y una sola palabra «presupuesto» (01-09-2026)
 
-"Presupuesto" en una casa española son dos cosas distintas: lo que te puedes gastar al mes
-en la compra, y el papel que te pasa el fontanero. No se parecen en nada por dentro —una
-es una cuenta que corre todo el mes, la otra una decisión que se toma una vez— pero las
-dos contestan a "¿qué pasa con el dinero de casa?". Van en la misma sección, `/finanzas`, con
-**dos pestañas**: «El mes» y «Presupuestos». Separarlas en dos entradas de la navegación
-habría dejado la app con nueve sitios a los que entrar; mezclarlas en una lista habría
-hecho ilegibles las dos.
+La sección nació el 31-08-2026 con **dos pestañas** —«El mes» y «Presupuestos»— porque
+"presupuesto" en una casa española son dos cosas distintas: lo que te puedes gastar al mes
+en la compra, y el papel que te pasa el fontanero. Iban juntas en `/finanzas` porque las dos
+contestan a "¿qué pasa con el dinero de casa?", y separarlas en la navegación habría dejado
+la app con nueve sitios a los que entrar.
+
+El 01-09-2026 se rehízo, porque tenía dos problemas de fondo:
+
+1. **La palabra seguía significando dos cosas dentro de la app.** Los topes por categoría
+   se llamaban «presupuestos» en la pestaña «El mes», y los papeles del fontanero también,
+   en la otra pestaña. Un nombre que hay que desambiguar por contexto en la misma pantalla
+   no es un nombre.
+2. **No existían los ingresos.** Sin ellos, la sección contestaba "llevas 180 de 300 en la
+   compra", que es una curiosidad de una categoría, y no "quedan 758 € este mes", que es la
+   pregunta que se hace de verdad en una casa a mitad de mes.
+
+Ahora son **cuatro piezas y tres pestañas**, y cada pieza contesta una pregunta distinta:
+
+| Tabla | En pantalla | Dónde | Contesta |
+|---|---|---|---|
+| `fixed_entries` | **Fijos** | pestaña «Fijos» | ¿con cuánto contamos y qué está comprometido? |
+| `budgets` | **Topes** | pestaña «El mes» | ¿me estoy pasando en lo que sí controlo? |
+| `expenses` | **Movimientos** | pestaña «El mes» | ¿qué ha pasado este mes? |
+| `quotes` | **Presupuestos** | pestaña «Presupuestos» | ¿cuánto va a costar esto que aún no hemos hecho? |
+
+Con eso «presupuesto» pasa a significar **una sola cosa** en toda la app: lo que cuesta algo
+que todavía no has hecho —los tres de la caldera, la reforma del baño—, que es además lo
+genérico y de proyecto que la palabra pide. Y una entrada del día a día vuelve a llamarse
+por su nombre: un gasto o un ingreso.
+
+**Las tablas no se renombraron.** `budgets` sigue llamándose `budgets` aunque en pantalla
+sea «Topes», y `expenses` sigue siendo `expenses` aunque sean «movimientos». Es el mismo
+criterio que con Dinero → Finanzas: renombrar obliga a migrar la base real a cambio de una
+palabra, y la base real está en producción con datos de una familia.
 
 La sección se llama **Finanzas** y no «Presupuestos» justo por eso: si el contenedor se
-llamara igual que una de las dos mitades, la otra parecería estar de prestado.
+llamara igual que una de sus piezas, las otras parecerían estar de prestado.
 
 Se llamó **Dinero** hasta el 01-09-2026. «Dinero» nombra la materia; «Finanzas» nombra lo
 que la familia hace con ella, que es de lo que va la pantalla: mirar el mes, poner un tope,
@@ -1232,8 +1259,8 @@ comparar tres presupuestos. El cambio bajó hasta el código —`/finanzas`, `sr
 habría exigido migrar la base real a cambio de nada. En `docs/historial.md` sigue apareciendo
 «Dinero» donde cuenta lo que pasó entonces, que es como debe ser.
 
-**Tres tablas: `budgets`, `expenses`, `quotes`.** No se tocan entre ellas salvo
-`expenses.budget_id`, que es opcional. Comparten pantalla, no modelo.
+**Cuatro tablas: `fixed_entries`, `budgets`, `expenses`, `quotes`.** No se tocan entre
+ellas salvo `expenses.budget_id`, que es opcional. Comparten pantalla, no modelo.
 
 **Todo el dinero va en céntimos, en `integer`.** Ni coma flotante —0,1 + 0,2 da
 0,30000000000000004, y un céntimo de más convierte "llevas 300,01 de 300" en un
@@ -1244,13 +1271,65 @@ cuenta, "12,50" acabaría valiendo distinto según el modo. El formato también 
 mano en vez de con `Intl.NumberFormat`, que mete un espacio duro cuya forma cambia con la
 versión de ICU: el mismo importe tiene que leerse igual en un test y en un móvil.
 
-**El tope de un presupuesto no es por mes.** Una fila por categoría, no una por categoría y
+**Los fijos son un dato, no una plantilla que genere movimientos.** El mes tipo —dos
+nóminas, alquiler, luz, suscripciones— se guarda como filas que **valen todos los meses**,
+igual que el tope de un `budget`. Se valoraron las otras dos formas y se descartaron: que
+cada fijo apareciera como pendiente y hubiera que marcarlo pagado, y que el día 1 se
+crearan solos los movimientos del mes. Las dos son más fieles a la realidad —la luz varía—
+y las dos piden abrir el mes y tachar seis cosas cada treinta días, que es exactamente el
+trabajo administrativo que esta app existe para no pedir. Si un mes la luz sale distinta,
+se cambia el fijo o se apunta la diferencia como movimiento.
+
+**Un fijo no tiene historia, y hay que saberlo.** Subir el alquiler de 800 a 850 en marzo
+hace que enero también diga 850: no hay vigencias por concepto y mes. Es la contrapartida
+asumida de no tener una tabla de tramos y un formulario que pregunte "¿desde cuándo?", y es
+la misma clase de decisión que "el tope no es por mes". A cambio, mirar atrás cuenta lo que
+se gastó de verdad —los movimientos sí llevan fecha— sobre un mes tipo que es el de hoy.
+
+**Los fijos viven en Finanzas, no en Ajustes.** Se tocan dos veces al año, así que parecían
+configuración; no lo son. En Farpi, Ajustes guarda **cómo se comporta la app** —miembros,
+franjas de comida, notificaciones, sincronización—, y una nómina de 1.650 € es un **dato de
+la familia**, más parecido a un hijo o a una lista que a "activar push". Y la cuenta del mes
+necesita leerlos al lado de los movimientos: con los fijos en otra sección, el resumen
+enseñaría un número cuyo origen está en otra pantalla.
+
+**Un fijo no cuelga de un tope.** Son para cosas distintas: un fijo es exacto y un tope es
+para lo que varía. Colgar el alquiler de un tope lo llenaría solo, sin que nadie haya
+apuntado nada, y la barra dejaría de medir lo único que sabe medir. Por eso `fixed_entries`
+no tiene `budget_id`, y por eso «lo que varía» es lo que dice el formulario de un tope.
+
+**Un movimiento es un gasto o un ingreso, y el importe es siempre positivo.** Lo que los
+separa es la columna `kind`, no el signo. Un ingreso guardado como gasto negativo haría que
+cada suma dependiera del signo de cada fila y que "llevas 180 de 300" dejara de poder leerse
+de un vistazo; una casa no lleva partida doble. En pantalla, el ingreso lleva un `+` delante
+**y** el verde de la marca: el color acompaña pero nunca lleva el mensaje solo, que es la
+regla de siempre y aquí importa doble porque un ingreso y un gasto de 120 € serían la misma
+fila para quien no distingue el verde.
+
+**Un ingreso no puede colgar de un tope, y lo impide la base.** Lo garantiza el `check`
+`expenses_ingreso_sin_tope`, no la pantalla: si un ingreso descontara de un tope, una
+devolución de 40 € "liberaría" 40 € de la compra sin que nadie haya dejado de comprar. El
+formulario ni pregunta —el campo desaparece al elegir «Un ingreso», en vez de quedarse
+apagado obligando a preguntarse por qué— y las dos implementaciones del repo fuerzan el
+`null` en vez de confiar en que el formulario lo haya hecho.
+
+**El reparto de quién pagó sigue siendo solo de gastos.** Con los ingresos dentro, la línea
+diría "Carlos 1.710 €" mezclando la nómina con la compra, y dejaría de significar lo único
+que significa: quién ha ido poniendo el dinero del día a día. Lo que entra se lee en Fijos,
+que es donde tiene sentido ver "yo 1.650 / tú 1.480".
+
+**Sin ningún fijo, la tarjeta del mes enseña otra cosa.** "Queda" sería el gasto del mes en
+negativo, que no significa nada y asusta a quien acaba de entrar. En ese caso el número
+grande sigue siendo lo gastado —como antes de que existieran los fijos— y debajo se ofrece
+ponerlos, que es además la única pista de que la cuenta existe.
+
+**El tope no es por mes.** Una fila por categoría, no una por categoría y
 mes. Se valoró lo segundo —permitiría "en diciembre gastamos más"— y se descartó: obliga a
 "abrir septiembre" cada treinta días, que es el trabajo administrativo que esta app existe
 para no pedir. Cambiar el tope vale desde ya y no toca lo apuntado.
 
-**Un presupuesto no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
-(ver "Asignación de eventos, tareas y documentos"), y un presupuesto no es de nadie:
+**Un tope no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
+(ver "Asignación de eventos, tareas y documentos"), y un tope no es de nadie:
 dárselo lo haría indistinguible de una persona en la misma pantalla donde sí hay personas.
 Lo que sí lleva color es quién pagó cada gasto, que es exactamente el significado de
 siempre.
@@ -1265,10 +1344,10 @@ para. Nada de "Sofía te debe 40 €": en cuanto una app de casa lleva la cuenta
 debe a quién deja de ser una app de casa y pasa a ser un árbitro. Con el reparto delante
 ya se sabe a quién le toca la próxima compra grande.
 
-**Borrar un presupuesto no borra sus gastos.** Se quedan, con `budget_id` a null, bajo
-«Sin presupuesto». Lo hace la clave ajena (`on delete set null`) y el mock lo imita a mano.
+**Borrar un tope no borra sus movimientos.** Se quedan, con `budget_id` a null, bajo
+«Sin tope». Lo hace la clave ajena (`on delete set null`) y el mock lo imita a mano.
 Perder el histórico de agosto por reorganizar las categorías en septiembre sería el peor
-modo posible de fallar, y "sin presupuesto" es además un estado legítimo: la mitad de los
+modo posible de fallar, y "sin tope" es además un estado legítimo: la mitad de los
 gastos de una casa no caen en ninguna categoría, y obligar a elegir una hace que se
 apunten mal o que no se apunten.
 

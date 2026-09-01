@@ -1,7 +1,18 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-01, con las tres tablas de Finanzas aplicadas. **99/99
-comprobaciones correctas.**
+Última ejecución: 2026-09-01 (tarde), con `fixed_entries` y `expenses.kind` ya aplicados.
+**106/106 comprobaciones correctas.**
+
+Son las 99 anteriores más las **siete de los fijos y el tipo de movimiento**. Tres son las
+de siempre sobre una tabla nueva —que A crea un fijo en su familia, que B no lo ve y que B
+no puede escribirlo—, y pesan más que en otras tablas porque `fixed_entries` guarda lo que
+más dice de una casa: cuánto cobra cada uno. Dos son los **triggers de integridad entre
+familias**: un fijo se asigna con el mismo par `child_id`/`member_id` de siempre, así que
+tiene el mismo modo de asignarse mal, y se rechaza. Y las dos últimas son los `check` que
+sostienen el vocabulario en la base y no en la pantalla: un movimiento con un `kind` que no
+existe, y **un ingreso colgado de un tope** —que es el que había que ver fallar de verdad,
+porque si pasara, una devolución de 40 € liberaría 40 € de la compra sin que nadie haya
+dejado de comprar—.
 
 Son las 89 anteriores más las **diez de `budgets`, `expenses` y `quotes`**, aplicadas a
 mano en el SQL Editor ese día. Seis son las de siempre —que A crea en su familia y que B

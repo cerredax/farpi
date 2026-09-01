@@ -21,7 +21,7 @@ import { construirExportacion, nombreDeArchivo, resumenDeExportacion } from '@/l
 export function BackupCard() {
   const {
     family, members, invites, kids, allEvents, tasks, lists, allListItems,
-    meals, notes, budgets, expenses, quotes, documents,
+    meals, notes, fixedEntries, budgets, expenses, quotes, documents,
   } = useStore()
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState(false)
@@ -30,7 +30,7 @@ export function BackupCard() {
     family, members, invites, kids,
     events: allEvents, tasks, lists,
     listItems: allListItems, meals, notes,
-    budgets, expenses, quotes, documents,
+    fixedEntries, budgets, expenses, quotes, documents,
   }
 
   function descargar() {

@@ -101,6 +101,13 @@ export const mockRepos: Repos = {
     deleteNote: (id) => Promise.resolve(store.deleteNote(id)),
   },
 
+  fixedEntries: {
+    getFixedEntries:   (familyId) => Promise.resolve(store.getFixedEntries(familyId)),
+    createFixedEntry:  (familyId, draft) => Promise.resolve(store.createFixedEntry(familyId, draft)),
+    updateFixedEntry:  (id, draft) => Promise.resolve(store.updateFixedEntry(id, draft)),
+    deleteFixedEntry:  (id) => Promise.resolve(store.deleteFixedEntry(id)),
+  },
+
   budgets: {
     getBudgets:   (familyId) => Promise.resolve(store.getBudgets(familyId)),
     createBudget: (familyId, draft) => Promise.resolve(store.createBudget(familyId, draft)),

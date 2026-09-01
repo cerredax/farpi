@@ -140,6 +140,45 @@ export interface Note {
 }
 
 /**
+ * Gasto o ingreso. Lo que parte en dos tanto los fijos como los movimientos.
+ *
+ * Es un campo y no un signo en el importe: los importes son **siempre
+ * positivos**, aquí y en la base. Un ingreso guardado como gasto negativo haría
+ * que cada suma dependiera del signo de cada fila, y «llevas 180 de 300» dejaría
+ * de poder leerse de un vistazo.
+ */
+export type MovementKind = 'gasto' | 'ingreso'
+
+/**
+ * El mes tipo: lo que entra y lo que sale todos los meses sin apuntar nada. Las
+ * dos nóminas, el alquiler, la luz, la suscripción.
+ *
+ * **No genera movimientos.** Es una cifra que vale hasta que se cambie, igual
+ * que el tope de un `Budget`. Con la contrapartida que hay que saber: cambiar el
+ * alquiler cambia también lo que dicen los meses pasados, porque no hay
+ * vigencias por fila y mes.
+ *
+ * `child_id` y `member_id` son de quién es —quién cobra la nómina, quién paga el
+ * recibo—, con la misma forma excluyente de siempre. Los dos a null es «de la
+ * casa», que en un recibo domiciliado es lo normal.
+ */
+export interface FixedEntry {
+  id: string
+  family_id: string
+  kind: MovementKind
+  name: string
+  emoji: string | null
+  /** En céntimos, siempre positivo. El signo lo pone `kind`. */
+  amount_cents: number
+  child_id: string | null
+  member_id: string | null
+  sort_order: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
  * Un tope de gasto al mes para algo: la compra, el colegio, el ocio.
  *
  * El tope **no es por mes**: es una cifra que vale hasta que se cambie. Una fila
@@ -164,15 +203,22 @@ export interface Budget {
 }
 
 /**
- * Un gasto de la casa. Lo que hace que el tope de un `Budget` signifique algo.
+ * Un movimiento de la casa: un gasto o un ingreso, con su fecha. Lo que hace que
+ * el tope de un `Budget` signifique algo.
  *
- * `budget_id` puede ser null: o no se le puso presupuesto, o se borró el que
- * tenía. El gasto pasó igual, así que no se va con su categoría; la pantalla lo
- * junta bajo "Sin presupuesto".
+ * Se sigue llamando `Expense` porque así se llama la tabla, que no se renombró:
+ * hacerlo obligaba a migrar la base real a cambio de una palabra. En pantalla
+ * son «movimientos».
  *
- * `child_id` y `member_id` son **quién lo pagó**, con la misma forma excluyente
- * que en eventos, tareas y documentos. Los dos a null significa "de la casa", no
- * "no se sabe": es el caso normal de la cuenta común.
+ * `budget_id` puede ser null: o no se le puso tope, o se borró el que tenía. El
+ * gasto pasó igual, así que no se va con su categoría; la pantalla lo junta bajo
+ * "Sin tope". **Un ingreso lo tiene siempre a null**, y eso lo garantiza un
+ * `check` de la base: si un ingreso descontara de un tope, una devolución de 40 €
+ * liberaría 40 € de la compra sin que nadie haya dejado de comprar.
+ *
+ * `child_id` y `member_id` son **quién lo pagó o quién lo trajo**, con la misma
+ * forma excluyente que en eventos, tareas y documentos. Los dos a null significa
+ * "de la casa", no "no se sabe": es el caso normal de la cuenta común.
  */
 export interface Expense {
   id: string
@@ -182,6 +228,8 @@ export interface Expense {
   child_id: string | null
   /** Lo pagó un adulto con cuenta. */
   member_id: string | null
+  kind: MovementKind
+  /** En céntimos, siempre positivo. El signo lo pone `kind`. */
   amount_cents: number
   date: string
   description: string | null
@@ -362,11 +410,25 @@ export interface BudgetDraft {
 }
 
 export interface ExpenseDraft {
+  kind: MovementKind
   amount: string
   date: string
   description: string
-  /** Vacío = sin presupuesto. */
+  /**
+   * Vacío = sin tope. En un ingreso es **siempre** null: el formulario ni
+   * pregunta, y la base lo rechazaría si llegara con valor.
+   */
   budget_id: string | null
+  child_id: string | null
+  member_id: string | null
+}
+
+export interface FixedEntryDraft {
+  kind: MovementKind
+  name: string
+  emoji: string
+  /** Lo que se teclea. A céntimos lo pasa `parseAmountToCents` al guardar. */
+  amount: string
   child_id: string | null
   member_id: string | null
 }

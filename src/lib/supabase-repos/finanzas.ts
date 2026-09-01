@@ -1,11 +1,15 @@
 import { createClient } from '../supabase/client'
 import { parseAmountToCents } from '../finanzas'
 import { assertNoError, currentUserId } from './shared'
-import type { Budget, BudgetDraft, Expense, ExpenseDraft, Quote, QuoteDraft, QuoteStatus } from '@/types'
-import type { BudgetsRepo, ExpensesRepo, QuotesRepo } from '../repos/types'
+import type {
+  Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
+  Quote, QuoteDraft, QuoteStatus,
+} from '@/types'
+import type { BudgetsRepo, ExpensesRepo, FixedEntriesRepo, QuotesRepo } from '../repos/types'
 
 /**
- * El dinero de la casa contra Supabase: topes, gastos y presupuestos pedidos.
+ * El dinero de la casa contra Supabase: fijos, topes, movimientos y presupuestos
+ * pedidos.
  *
  * Lo único que hay que mirar dos veces es la conversión del importe: el
  * formulario da texto ("12,50") y la base quiere céntimos enteros. Se hace con
@@ -20,6 +24,72 @@ import type { BudgetsRepo, ExpensesRepo, QuotesRepo } from '../repos/types'
  */
 function centimos(texto: string): number {
   return parseAmountToCents(texto) ?? 0
+}
+
+export const fixedEntriesRepo: FixedEntriesRepo = {
+  async getFixedEntries(familyId: string): Promise<FixedEntry[]> {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('fixed_entries')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('sort_order', { ascending: true })
+    assertNoError(error)
+    return data ?? []
+  },
+
+  async createFixedEntry(familyId: string, draft: FixedEntryDraft): Promise<FixedEntry> {
+    const supabase = createClient()
+    const userId = await currentUserId()
+    // El sitio en la lista se cuenta **dentro de su tipo**: ingresos y gastos se
+    // pintan en dos bloques, y un contador común dejaría saltos en los dos.
+    const { count, error: errorCuenta } = await supabase
+      .from('fixed_entries')
+      .select('id', { count: 'exact', head: true })
+      .eq('family_id', familyId)
+      .eq('kind', draft.kind)
+    assertNoError(errorCuenta)
+
+    const { data, error } = await supabase
+      .from('fixed_entries')
+      .insert({
+        family_id: familyId,
+        kind: draft.kind,
+        name: draft.name.trim(),
+        emoji: draft.emoji || null,
+        amount_cents: centimos(draft.amount),
+        child_id: draft.child_id,
+        member_id: draft.member_id,
+        sort_order: count ?? 0,
+        created_by: userId,
+      })
+      .select('*')
+      .single()
+    assertNoError(error)
+    return data
+  },
+
+  async updateFixedEntry(id: string, draft: FixedEntryDraft): Promise<void> {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('fixed_entries')
+      .update({
+        kind: draft.kind,
+        name: draft.name.trim(),
+        emoji: draft.emoji || null,
+        amount_cents: centimos(draft.amount),
+        child_id: draft.child_id,
+        member_id: draft.member_id,
+      })
+      .eq('id', id)
+    assertNoError(error)
+  },
+
+  async deleteFixedEntry(id: string): Promise<void> {
+    const supabase = createClient()
+    const { error } = await supabase.from('fixed_entries').delete().eq('id', id)
+    assertNoError(error)
+  },
 }
 
 export const budgetsRepo: BudgetsRepo = {
@@ -39,7 +109,7 @@ export const budgetsRepo: BudgetsRepo = {
     const userId = await currentUserId()
     // El sitio en la lista se calcula con lo que ya hay. Una carrera entre dos
     // móviles dejaría dos con el mismo número, y no pasa nada: el orden desempata
-    // por nombre (`resumenPresupuestos`).
+    // por nombre (`resumenTopes`).
     const { count, error: errorCuenta } = await supabase
       .from('budgets')
       .select('id', { count: 'exact', head: true })
@@ -75,7 +145,7 @@ export const budgetsRepo: BudgetsRepo = {
     assertNoError(error)
   },
 
-  // Los gastos que colgaban de él se quedan, sin presupuesto: lo hace el
+  // Los movimientos que colgaban de él se quedan, sin tope: lo hace el
   // `on delete set null` de la clave ajena, no hace falta tocarlos aquí.
   async deleteBudget(id: string): Promise<void> {
     const supabase = createClient()
@@ -103,9 +173,13 @@ export const expensesRepo: ExpensesRepo = {
       .from('expenses')
       .insert({
         family_id: familyId,
-        budget_id: draft.budget_id,
+        // Un ingreso nunca cuelga de un tope. Lo fuerza también el `check`
+        // `expenses_ingreso_sin_tope`, pero enviarlo bien de aquí evita un 400
+        // que la pantalla tendría que traducir a algo que nadie entendería.
+        budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
         child_id: draft.child_id,
         member_id: draft.member_id,
+        kind: draft.kind,
         amount_cents: centimos(draft.amount),
         date: draft.date,
         description: draft.description.trim() || null,
@@ -122,9 +196,10 @@ export const expensesRepo: ExpensesRepo = {
     const { error } = await supabase
       .from('expenses')
       .update({
-        budget_id: draft.budget_id,
+        budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
         child_id: draft.child_id,
         member_id: draft.member_id,
+        kind: draft.kind,
         amount_cents: centimos(draft.amount),
         date: draft.date,
         description: draft.description.trim() || null,

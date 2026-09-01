@@ -1,6 +1,6 @@
 import type {
   Budget, Child, Document, Event, Expense, Family, FamilyInvite, FamilyMember,
-  List, ListItem, MealPlan, Note, Quote, Task,
+  FixedEntry, List, ListItem, MealPlan, Note, Quote, Task,
 } from '@/types'
 import { getLocalDateString } from './date-utils'
 import { safeFileName } from './text'
@@ -40,6 +40,7 @@ export interface DatosParaExportar {
   listItems: ListItem[]
   meals: MealPlan[]
   notes: Note[]
+  fixedEntries: FixedEntry[]
   budgets: Budget[]
   expenses: Expense[]
   quotes: Quote[]
@@ -62,6 +63,7 @@ export interface Exportacion {
     list_items: ListItem[]
     meal_plans: MealPlan[]
     notes: Note[]
+    fixed_entries: FixedEntry[]
     budgets: Budget[]
     expenses: Expense[]
     quotes: Quote[]
@@ -100,6 +102,7 @@ export function construirExportacion(datos: DatosParaExportar, ahora: Date = new
       list_items: datos.listItems,
       meal_plans: datos.meals,
       notes: datos.notes,
+      fixed_entries: datos.fixedEntries,
       budgets: datos.budgets,
       expenses: datos.expenses,
       quotes: datos.quotes,
@@ -136,7 +139,7 @@ export function resumenDeExportacion(datos: DatosParaExportar): string {
   cuenta(datos.listItems.length, 'artículo', 'artículos')
   cuenta(datos.meals.length, 'comida', 'comidas')
   cuenta(datos.notes.length, 'nota', 'notas')
-  cuenta(datos.expenses.length, 'gasto', 'gastos')
+  cuenta(datos.expenses.length, 'movimiento', 'movimientos')
   cuenta(datos.documents.length, 'documento', 'documentos')
   return partes.join(' · ')
 }

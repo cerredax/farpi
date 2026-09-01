@@ -2,8 +2,8 @@ import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
 import { isRangeKind } from './events'
 import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './finanzas'
 import type {
-  BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, TaskDraft, MealDraft,
-  ListDraft, ListItemDraft, NoteDraft, QuoteDraft,
+  BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, FixedEntryDraft, TaskDraft,
+  MealDraft, ListDraft, ListItemDraft, NoteDraft, QuoteDraft,
 } from '@/types'
 
 // ─── Email ────────────────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ export function validateNoteDraft(draft: NoteDraft): string | null {
 // ─── Finanzas ────────────────────────────────────────────────────────────────
 
 /**
- * Un importe tecleado, validado una sola vez para las tres cosas que llevan
+ * Un importe tecleado, validado una sola vez para las cuatro cosas que llevan
  * dinero. El mensaje distingue los dos fallos posibles porque no se arreglan
  * igual: uno es no entender lo escrito, y el otro es entenderlo perfectamente y
  * que sea absurdo.
@@ -139,14 +139,26 @@ function validateImporte(texto: string, queEs: string): string | null {
   return null
 }
 
+/**
+ * Un fijo necesita nombre e importe. No pide fecha ni persona: no ocurre ningún
+ * día concreto —vale todos los meses— y el recibo domiciliado de la casa no es
+ * de nadie, que es el caso normal.
+ */
+export function validateFixedEntryDraft(draft: FixedEntryDraft): string | null {
+  if (!draft.name.trim()) {
+    return draft.kind === 'ingreso' ? 'Di de qué es el ingreso.' : 'Di de qué es el gasto.'
+  }
+  return validateImporte(draft.amount, 'cuánto es al mes')
+}
+
 export function validateBudgetDraft(draft: BudgetDraft): string | null {
-  if (!draft.name.trim()) return 'El presupuesto necesita un nombre.'
+  if (!draft.name.trim()) return 'El tope necesita un nombre.'
   return validateImporte(draft.monthly_limit, 'cuánto se puede gastar al mes')
 }
 
 /**
- * Un gasto necesita importe y fecha, y nada más. La descripción es opcional a
- * propósito: la mitad de los gastos de una casa son "la compra" y obligar a
+ * Un movimiento necesita importe y fecha, y nada más. La descripción es opcional
+ * a propósito: la mitad de los gastos de una casa son "la compra" y obligar a
  * escribirlo cada vez es la clase de fricción que hace que se deje de apuntar,
  * que es el único modo en que esta pantalla falla de verdad.
  */

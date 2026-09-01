@@ -39,18 +39,20 @@ export default function PrivacidadPage() {
           no guardes ahí claves de banca, del correo o de servicios importantes.
         </p>
         <p>
-          En el apartado de <strong>Finanzas</strong> se guardan los topes de gasto que pone la familia, los gastos
-          que apunta —importe, fecha, una descripción y qué persona de la familia lo pagó— y los presupuestos que
-          os pasan proveedores de fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a
-          ningún banco</strong>: no pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias,
-          y todo lo de este apartado lo escribe la familia a mano.
+          En el apartado de <strong>Finanzas</strong> se guardan los ingresos y gastos fijos del mes que apunta la
+          familia —incluidos, si los ponéis, los <strong>importes de las nóminas</strong> y de quién es cada una—,
+          los topes de gasto, los movimientos que se van apuntando —importe, fecha, una descripción, de qué tope
+          sale y qué persona de la familia lo pagó o lo trajo— y los presupuestos que os pasan proveedores de
+          fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a ningún banco</strong>: no
+          pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias, y todo lo de este apartado
+          lo escribe la familia a mano. Como en el resto de la app, lo ven los adultos de esa familia y nadie más.
         </p>
       </LegalSection>
 
       <LegalSection heading="Quién puede acceder a tus datos">
         <p>
           La información de una familia se comparte con los adultos que forman parte de esa familia dentro de
-          Farpi. Esto incluye eventos, tareas, listas, comidas, notas, presupuestos y gastos, documentos y datos de
+          Farpi. Esto incluye eventos, tareas, listas, comidas, notas, ingresos y gastos, documentos y datos de
           hijos o adultos sin cuenta
           que se hayan añadido para organizar el día a día. Una persona de otra familia no puede acceder a esos
           datos.

@@ -1,10 +1,10 @@
 'use client'
 
 import { formatCentsCorto } from '@/lib/finanzas'
-import type { ResumenPresupuesto } from '@/lib/budgets'
+import type { ResumenTope } from '@/lib/budgets'
 
 interface BudgetBarProps {
-  resumen: ResumenPresupuesto
+  resumen: ResumenTope
   onEdit: () => void
 }
 

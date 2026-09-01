@@ -3,7 +3,9 @@ import {
   MAX_CENTIMOS, centsToInput, formatCents, formatCentsCorto,
   parseAmountToCents, parseAmountToCentsBruto,
 } from '@/lib/finanzas'
-import { validateBudgetDraft, validateExpenseDraft, validateQuoteDraft } from '@/lib/validators'
+import {
+  validateBudgetDraft, validateExpenseDraft, validateFixedEntryDraft, validateQuoteDraft,
+} from '@/lib/validators'
 
 // El dinero es la única parte de Farpi donde un error de un céntimo se nota, y
 // donde lo que se teclea no se parece a lo que se guarda. Aquí se prueban las dos
@@ -83,17 +85,17 @@ test.describe('formato', () => {
 test.describe('validadores', () => {
   test('un gasto necesita importe y fecha, y nada más', () => {
     expect(validateExpenseDraft({
-      amount: '24,90', date: '2026-08-31', description: '',
+      kind: 'gasto', amount: '24,90', date: '2026-08-31', description: '',
       budget_id: null, child_id: null, member_id: null,
     })).toBeNull()
 
     expect(validateExpenseDraft({
-      amount: '', date: '2026-08-31', description: '',
+      kind: 'gasto', amount: '', date: '2026-08-31', description: '',
       budget_id: null, child_id: null, member_id: null,
     })).toMatch(/cuánto/)
 
     expect(validateExpenseDraft({
-      amount: '24,90', date: '', description: '',
+      kind: 'gasto', amount: '24,90', date: '', description: '',
       budget_id: null, child_id: null, member_id: null,
     })).toMatch(/fecha/)
   })
@@ -108,5 +110,14 @@ test.describe('validadores', () => {
     expect(validateQuoteDraft(base)).toBeNull()
     expect(validateQuoteDraft({ ...base, title: '  ' })).toMatch(/para qué/)
     expect(validateQuoteDraft({ ...base, provider: '' })).toMatch(/quién/)
+  })
+
+  test('un fijo necesita nombre e importe, y el mensaje habla de su tipo', () => {
+    const base = { kind: 'gasto' as const, name: 'Alquiler', emoji: '🏠', amount: '780', child_id: null, member_id: null }
+    expect(validateFixedEntryDraft(base)).toBeNull()
+    expect(validateFixedEntryDraft({ ...base, name: '  ' })).toBe('Di de qué es el gasto.')
+    expect(validateFixedEntryDraft({ ...base, kind: 'ingreso', name: '' })).toBe('Di de qué es el ingreso.')
+    expect(validateFixedEntryDraft({ ...base, amount: '' })).toMatch(/cuánto/)
+    expect(validateFixedEntryDraft({ ...base, amount: 'mucho' })).toMatch(/no parece correcto/)
   })
 })

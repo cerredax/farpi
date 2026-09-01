@@ -1,11 +1,11 @@
 import { resolveAssignee } from './assignees'
 import { normalizaParaBuscar } from './text'
-import type { Budget, Child, Expense, FamilyMember, Quote } from '@/types'
+import type { Budget, Child, Expense, FamilyMember, FixedEntry, Quote } from '@/types'
 
 /**
  * Lo que la pantalla de Finanzas necesita saber y no está guardado en ninguna
- * fila: cuánto llevamos gastado este mes, cuánto queda de cada tope, quién puso
- * el dinero y cuál de los tres presupuestos de la caldera es el más barato.
+ * fila: cuánto queda del mes, cuánto llevamos de cada tope, quién puso el dinero
+ * y cuál de los tres presupuestos de la caldera es el más barato.
  *
  * Todo son funciones puras sobre lo que el store ya tiene en memoria. No hay
  * vistas en la base ni sumas guardadas: una casa tiene decenas de gastos al mes,
@@ -33,20 +33,96 @@ export function mesVecino(mes: string, salto: 1 | -1): string {
   return `${String(Math.floor(total / 12)).padStart(4, '0')}-${String((total % 12) + 1).padStart(2, '0')}`
 }
 
-/** Los gastos de un mes, de lo más reciente a lo más antiguo. */
-export function gastosDelMes(expenses: Expense[], mes: string): Expense[] {
+/**
+ * Los movimientos de un mes —gastos e ingresos—, de lo más reciente a lo más
+ * antiguo. Van mezclados a propósito: la pregunta que contesta la lista es "¿qué
+ * ha pasado este mes?", y partirla en dos obligaría a leer dos veces para saber
+ * en qué día se quedó uno.
+ */
+export function movimientosDelMes(expenses: Expense[], mes: string): Expense[] {
   return expenses
     .filter(e => mesDe(e.date) === mes)
     .sort((a, b) => (a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date)))
 }
 
+/** Solo lo que sale. Lo que miran los topes y el reparto. */
+export function soloGastos(movimientos: Expense[]): Expense[] {
+  return movimientos.filter(m => m.kind === 'gasto')
+}
+
+/** Solo lo que entra sin ser fijo: una devolución, un trabajo suelto. */
+export function soloIngresos(movimientos: Expense[]): Expense[] {
+  return movimientos.filter(m => m.kind === 'ingreso')
+}
+
+/** Suma de importes. Todos son positivos: el signo lo pone quien los agrupa. */
 export function sumaDe(expenses: Expense[]): number {
   return expenses.reduce((total, e) => total + e.amount_cents, 0)
 }
 
-// ─── Cómo va cada presupuesto ─────────────────────────────────────────────────
+// ─── Los fijos y la cuenta del mes ────────────────────────────────────────────
 
-export interface ResumenPresupuesto {
+/** Los fijos de un tipo, en el orden en el que se pintan. */
+export function fijosDe(fixed: FixedEntry[], kind: FixedEntry['kind']): FixedEntry[] {
+  return fixed
+    .filter(f => f.kind === kind)
+    .sort((a, b) => (a.sort_order === b.sort_order ? a.name.localeCompare(b.name, 'es') : a.sort_order - b.sort_order))
+}
+
+export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): number {
+  return fixed.filter(f => f.kind === kind).reduce((total, f) => total + f.amount_cents, 0)
+}
+
+export interface CuentaDelMes {
+  ingresosFijos: number
+  gastosFijos: number
+  /** Con lo que se cuenta antes de gastar nada: los fijos, restados. */
+  paraElMes: number
+  /** Lo apuntado a mano este mes, cada cosa por su lado. */
+  gastosApuntados: number
+  ingresosApuntados: number
+  /** Lo que queda. **Negativo si el mes se ha ido de las manos.** */
+  queda: number
+  /**
+   * Si la familia ha puesto algún fijo. Sin ninguno, `queda` sería el gasto del
+   * mes en negativo, que no significa nada, y la pantalla enseña otra cosa.
+   */
+  hayFijos: boolean
+}
+
+/**
+ * La cuenta del mes: con cuánto se contaba, qué se ha ido y qué queda.
+ *
+ * Es el número que esta pantalla existe para dar, y el que no se podía dar antes
+ * de que hubiera ingresos: "llevas 180 de 300 en la compra" es una curiosidad;
+ * "quedan 758 €" es lo que se pregunta en una casa.
+ *
+ * Los fijos **no dependen del mes que se mire**: son una cifra que vale hasta
+ * que se cambie. Mirar mayo con el alquiler de hoy es la contrapartida asumida
+ * de no llevar una fila por concepto y mes.
+ */
+export function cuentaDelMes(fixed: FixedEntry[], expenses: Expense[], mes: string): CuentaDelMes {
+  const ingresosFijos = sumaDeFijos(fixed, 'ingreso')
+  const gastosFijos = sumaDeFijos(fixed, 'gasto')
+  const delMes = movimientosDelMes(expenses, mes)
+  const gastosApuntados = sumaDe(soloGastos(delMes))
+  const ingresosApuntados = sumaDe(soloIngresos(delMes))
+  const paraElMes = ingresosFijos - gastosFijos
+
+  return {
+    ingresosFijos,
+    gastosFijos,
+    paraElMes,
+    gastosApuntados,
+    ingresosApuntados,
+    queda: paraElMes + ingresosApuntados - gastosApuntados,
+    hayFijos: fixed.length > 0,
+  }
+}
+
+// ─── Cómo va cada tope ────────────────────────────────────────────────────────
+
+export interface ResumenTope {
   budget: Budget
   gastado: number
   /** Lo que queda. **Negativo si se ha pasado**, que es el caso que importa. */
@@ -59,17 +135,20 @@ export interface ResumenPresupuesto {
 /**
  * Cómo va cada tope este mes.
  *
- * Devuelve **todos** los presupuestos, también los que no tienen ni un gasto: un
- * presupuesto en el que no has gastado nada es justo lo que quieres ver a
- * primeros de mes, y esconderlo hasta el primer gasto haría que la pantalla
- * cambiara de forma sola.
+ * Devuelve **todos** los topes, también los que no tienen ni un gasto: un tope en
+ * el que no has gastado nada es justo lo que quieres ver a primeros de mes, y
+ * esconderlo hasta el primer gasto haría que la pantalla cambiara de forma sola.
+ *
+ * Solo mira los **gastos**: un ingreso no cuelga de ningún tope, y si contara,
+ * una devolución de 40 € liberaría 40 € de la compra sin que nadie haya dejado
+ * de comprar.
  */
-export function resumenPresupuestos(
+export function resumenTopes(
   budgets: Budget[],
   expenses: Expense[],
   mes: string,
-): ResumenPresupuesto[] {
-  const delMes = expenses.filter(e => mesDe(e.date) === mes)
+): ResumenTope[] {
+  const delMes = expenses.filter(e => e.kind === 'gasto' && mesDe(e.date) === mes)
   return [...budgets]
     .sort((a, b) => (a.sort_order === b.sort_order ? a.name.localeCompare(b.name, 'es') : a.sort_order - b.sort_order))
     .map(budget => {
@@ -85,9 +164,13 @@ export function resumenPresupuestos(
     })
 }
 
-/** Los gastos del mes que no cuelgan de ningún presupuesto. */
-export function gastosSinPresupuesto(expenses: Expense[], mes: string): Expense[] {
-  return gastosDelMes(expenses, mes).filter(e => !e.budget_id)
+/**
+ * Los gastos del mes que no cuelgan de ningún tope. Los ingresos no cuentan:
+ * nunca tienen tope y decir que hay "3 movimientos sin tope" cuando dos son
+ * nóminas sería una alarma inventada.
+ */
+export function gastosSinTope(expenses: Expense[], mes: string): Expense[] {
+  return soloGastos(movimientosDelMes(expenses, mes)).filter(e => !e.budget_id)
 }
 
 // ─── Quién puso el dinero ─────────────────────────────────────────────────────
@@ -109,6 +192,11 @@ export interface Aportacion {
  *
  * Lo pagado con la cuenta común —los dos ids a null— sale como "De casa", que es
  * el caso normal y no un hueco.
+ *
+ * **Solo cuenta lo que sale.** Si los ingresos entraran aquí, la línea diría
+ * "Carlos 1.710 €" mezclando la nómina con la compra, y dejaría de significar lo
+ * único que significa: quién ha ido poniendo el dinero del día a día. Lo que
+ * entra se lee en los fijos, que es donde tiene sentido verlo.
  */
 export function repartoDelMes(
   expenses: Expense[],
@@ -118,7 +206,7 @@ export function repartoDelMes(
 ): Aportacion[] {
   const acumulado = new Map<string, Aportacion>()
 
-  for (const gasto of gastosDelMes(expenses, mes)) {
+  for (const gasto of soloGastos(movimientosDelMes(expenses, mes))) {
     const persona = resolveAssignee(gasto, members, kids)
     const key = persona?.key ?? 'casa'
     const previo = acumulado.get(key)

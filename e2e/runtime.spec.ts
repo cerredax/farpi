@@ -92,7 +92,7 @@ const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
   { route: '/notes', button: 'Nueva nota', dialog: 'Nueva nota' },
-  { route: '/finanzas', button: 'Nuevo gasto', dialog: 'Nuevo gasto' },
+  { route: '/finanzas', button: 'Nuevo movimiento', dialog: 'Nuevo movimiento' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
   { route: '/calendar', button: 'Apuntar algo', dialog: 'Apuntar en el calendario' },
   { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
@@ -741,22 +741,22 @@ test('en Inicio, cada ítem dice sus unidades', async ({ page }) => {
 
 // ─── Finanzas ────────────────────────────────────────────────────────────────
 //
-// Los dos flujos que sostienen la pantalla, y los dos son de cuenta: que apuntar
-// un gasto mueva el tope de su presupuesto, y que dos presupuestos pedidos para
-// el mismo trabajo salgan juntos con el barato marcado. La conversión de "24,90"
-// a céntimos vive en `e2e/unit/finanzas.spec.ts`; aquí se comprueba que llega entera
-// hasta la pantalla.
+// Los flujos que sostienen la pantalla, y todos son de cuenta: que apuntar un
+// gasto mueva su tope, que un ingreso no lo mueva pero sí la cuenta del mes, y
+// que dos presupuestos pedidos para el mismo trabajo salgan juntos con el barato
+// marcado. La conversión de "24,90" a céntimos vive en `e2e/unit/finanzas.spec.ts`;
+// aquí se comprueba que llega entera hasta la pantalla.
 
-test('un gasto apuntado mueve el tope de su presupuesto', async ({ page }) => {
+test('un gasto apuntado mueve el tope del que sale', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
 
   // La demo está sembrada en junio de 2026, así que el mes en curso arranca
-  // vacío: el presupuesto de la compra empieza a cero y su tope entero libre.
+  // vacío: el tope de la compra empieza a cero y entero libre.
   const compra = page.getByRole('button').filter({ hasText: 'Compra' }).first()
   await expect(compra).toContainText('Quedan 400 €')
 
-  await page.getByRole('button', { name: 'Nuevo gasto' }).click()
+  await page.getByRole('button', { name: 'Nuevo movimiento' }).click()
   await page.locator('#expense-amount').fill('24,90')
   await page.locator('#expense-description').fill('Compra semanal')
   await page.getByRole('button', { name: 'Compra', exact: true }).click()
@@ -767,6 +767,57 @@ test('un gasto apuntado mueve el tope de su presupuesto', async ({ page }) => {
   await expect(page.getByText('Compra semanal')).toBeVisible()
   await expect(compra).toContainText('24,90 €')
   await expect(compra).toContainText('Quedan 375,10 €')
+})
+
+// La cuenta del mes es el número que esta pantalla existe para dar, y sale de
+// tres sitios a la vez: los fijos sembrados, lo que se gasta y lo que entra.
+test('los fijos dan la cuenta del mes, y un ingreso no toca los topes', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  // Sembrados: 1.650 + 1.480 de nóminas, 780 + 74 + 49,90 + 32 de recibos.
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await expect(resumen).toContainText('3.130 €')
+  await expect(resumen).toContainText('−935,90 €')
+  await expect(resumen).toContainText('2.194,10 €')
+
+  const compra = page.getByRole('button').filter({ hasText: 'Compra' }).first()
+  await expect(compra).toContainText('Quedan 400 €')
+
+  // Un ingreso no pregunta por tope —el campo no está— y no mueve ninguno,
+  // pero sí sube lo que queda del mes.
+  await page.getByRole('button', { name: 'Nuevo movimiento' }).click()
+  await page.getByRole('button', { name: 'Un ingreso' }).click()
+  await expect(page.getByText('De qué tope sale')).toHaveCount(0)
+  await page.locator('#expense-amount').fill('120')
+  await page.locator('#expense-description').fill('Clases particulares')
+  await page.getByRole('button', { name: 'Apuntar ingreso' }).click()
+  await page.waitForTimeout(500)
+
+  await expect(compra).toContainText('Quedan 400 €')
+  await expect(resumen).toContainText('2.314,10 €')
+})
+
+test('un gasto fijo nuevo baja lo que queda para el mes', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Fijos' }).click()
+
+  const sale = page.getByRole('region', { name: 'Sale al mes' })
+  await expect(sale).toContainText('−935,90 €')
+
+  await sale.getByRole('button', { name: 'Nuevo gasto' }).click()
+  await page.locator('#fixed-entry-name').fill('Gimnasio')
+  await page.locator('#fixed-entry-amount').fill('39,90')
+  await page.getByRole('button', { name: 'Añadir gasto fijo' }).click()
+  await page.waitForTimeout(500)
+
+  await expect(sale).toContainText('Gimnasio')
+  await expect(sale).toContainText('−975,80 €')
+
+  // Y la cuenta de «El mes» se entera sin tocar nada más.
+  await page.getByRole('tab', { name: 'El mes' }).click()
+  await expect(page.getByRole('region', { name: 'Resumen del mes' })).toContainText('2.154,20 €')
 })
 
 test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {

@@ -25,6 +25,7 @@ interface ExpenseSheetProps {
 function initDraft(initial: Expense | null | undefined, fechaPorDefecto: string): ExpenseDraft {
   if (initial) {
     return {
+      kind: initial.kind,
       amount: centsToInput(initial.amount_cents),
       date: initial.date,
       description: initial.description ?? '',
@@ -33,12 +34,21 @@ function initDraft(initial: Expense | null | undefined, fechaPorDefecto: string)
       member_id: initial.member_id,
     }
   }
-  return { amount: '', date: fechaPorDefecto, description: '', budget_id: null, child_id: null, member_id: null }
+  // Nace como gasto: es lo que se apunta noventa y nueve veces de cada cien. Lo
+  // que entra de verdad todos los meses son los fijos, no esto.
+  return { kind: 'gasto', amount: '', date: fechaPorDefecto, description: '', budget_id: null, child_id: null, member_id: null }
 }
 
 /**
- * Apuntar un gasto. Es el formulario que más se usa de esta pantalla y por eso
- * es el más corto que puede ser: importe, fecha y a qué presupuesto va.
+ * Apuntar un movimiento: un gasto, o un ingreso que no es de todos los meses
+ * —una devolución, un trabajo suelto, el regalo de la abuela—. Es el formulario
+ * que más se usa de esta pantalla y por eso es el más corto que puede ser.
+ *
+ * **El tope solo se pregunta en los gastos.** En un ingreso el campo no está,
+ * porque no hay nada que elegir: un tope mide lo que se gasta y una devolución de
+ * 40 € no puede liberar 40 € de la compra. Se esconde en vez de deshabilitarse
+ * —un campo apagado obliga a preguntarse por qué— y al cambiar a ingreso el tope
+ * ya elegido se suelta, que es lo que van a guardar el mock y Supabase.
  *
  * El importe es el primer campo y el que recibe el foco. Va como `inputMode`
  * decimal y no como `type="number"`: el numérico del navegador trae flechas de
@@ -60,6 +70,8 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
+  const esIngreso = draft.kind === 'ingreso'
+
   const handleSubmit = submitHandler(valid => {
     onSave(valid)
     onClose()
@@ -68,21 +80,41 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
   return (
     <BottomSheet
       open={open}
-      title={initial ? 'Editar gasto' : 'Nuevo gasto'}
+      title={initial ? 'Editar movimiento' : 'Nuevo movimiento'}
       onClose={onClose}
       footer={
         <SheetFooter
           form="expense-form"
-          submitLabel={initial ? 'Guardar' : 'Apuntar gasto'}
+          submitLabel={initial ? 'Guardar' : esIngreso ? 'Apuntar ingreso' : 'Apuntar gasto'}
           disabled={!draft.amount.trim()}
           error={formError}
           onDelete={initial
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar gasto', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar movimiento', confirmLabel: 'Confirmar eliminación' }
             : undefined}
         />
       }
     >
       <form id="expense-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
+        <Field label="Qué es" spacing="group">
+          <div className="flex gap-2">
+            <SelectChip
+              selected={!esIngreso}
+              onClick={() => patch({ kind: 'gasto' })}
+            >
+              Un gasto
+            </SelectChip>
+            {/* Al pasar a ingreso se suelta el tope: si se quedara puesto, el
+                `check` de la base rechazaría la fila y el mock guardaría algo
+                distinto de lo que enseñó el formulario. */}
+            <SelectChip
+              selected={esIngreso}
+              onClick={() => patch({ kind: 'ingreso', budget_id: null })}
+            >
+              Un ingreso
+            </SelectChip>
+          </div>
+        </Field>
+
         <Field label="Cuánto" htmlFor="expense-amount">
           <input
             id="expense-amount"
@@ -114,31 +146,33 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
             type="text"
             value={draft.description}
             onChange={e => patch({ description: e.target.value })}
-            placeholder="Ej: Compra semanal"
+            placeholder={esIngreso ? 'Ej: Devolución de la compra' : 'Ej: Compra semanal'}
             className="field-input"
           />
         </Field>
 
-        {/* Sin presupuesto es una opción de verdad y va la primera: la mitad de
-            los gastos de una casa no caen en ninguna categoría, y obligar a
-            elegir una haría que se apuntaran mal o no se apuntaran. */}
-        <Field label="De qué presupuesto sale" spacing="group">
-          <div className="flex flex-wrap gap-2">
-            <SelectChip selected={draft.budget_id === null} onClick={() => patch({ budget_id: null })}>
-              Sin presupuesto
-            </SelectChip>
-            {budgets.map(budget => (
-              <SelectChip
-                key={budget.id}
-                selected={draft.budget_id === budget.id}
-                onClick={() => patch({ budget_id: budget.id })}
-              >
-                {budget.emoji && <span aria-hidden>{budget.emoji}</span>}
-                {budget.name}
+        {/* Sin tope es una opción de verdad y va la primera: la mitad de los
+            gastos de una casa no caen en ninguna categoría, y obligar a elegir
+            una haría que se apuntaran mal o no se apuntaran. */}
+        {!esIngreso && (
+          <Field label="De qué tope sale" spacing="group">
+            <div className="flex flex-wrap gap-2">
+              <SelectChip selected={draft.budget_id === null} onClick={() => patch({ budget_id: null })}>
+                Sin tope
               </SelectChip>
-            ))}
-          </div>
-        </Field>
+              {budgets.map(budget => (
+                <SelectChip
+                  key={budget.id}
+                  selected={draft.budget_id === budget.id}
+                  onClick={() => patch({ budget_id: budget.id })}
+                >
+                  {budget.emoji && <span aria-hidden>{budget.emoji}</span>}
+                  {budget.name}
+                </SelectChip>
+              ))}
+            </div>
+          </Field>
+        )}
 
         <div className="space-y-2">
           <AssigneePicker
@@ -148,9 +182,9 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
             kids={kids}
           />
           <p className="text-[10px] leading-relaxed text-faint">
-            Quién puso el dinero. Con «Familia» queda como gasto de la cuenta
-            común. Farpi no lleva cuentas de quién debe qué a quién: solo enseña
-            el reparto.
+            {esIngreso
+              ? 'Quién lo ha traído. Con «Familia» queda como algo que entra a la cuenta común. Los ingresos no cuentan en el reparto de abajo, que es solo de gastos.'
+              : 'Quién puso el dinero. Con «Familia» queda como gasto de la cuenta común. Farpi no lleva cuentas de quién debe qué a quién: solo enseña el reparto.'}
           </p>
         </div>
       </form>

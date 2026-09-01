@@ -26,18 +26,18 @@ function datos(extra: Partial<DatosParaExportar> = {}): DatosParaExportar {
     family: FAMILIA,
     members: [], invites: [], kids: [], events: [],
     tasks: [], lists: [], listItems: [], meals: [], notes: [],
-    budgets: [], expenses: [], quotes: [], documents: [],
+    fixedEntries: [], budgets: [], expenses: [], quotes: [], documents: [],
     ...extra,
   }
 }
 
 test.describe('contenido de la copia', () => {
-  test('lleva las catorce tablas de la familia, aunque estén vacías', () => {
+  test('lleva las quince tablas de la familia, aunque estén vacías', () => {
     const e = construirExportacion(datos())
     expect(Object.keys(e.datos).sort()).toEqual([
       'budgets', 'children', 'documents', 'events', 'expenses', 'families',
-      'family_invites', 'family_members', 'list_items', 'lists', 'meal_plans',
-      'notes', 'quotes', 'tasks',
+      'family_invites', 'family_members', 'fixed_entries', 'list_items', 'lists',
+      'meal_plans', 'notes', 'quotes', 'tasks',
     ])
   })
 

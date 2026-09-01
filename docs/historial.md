@@ -15,6 +15,81 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### Finanzas: los fijos, los ingresos y una palabra que dejó de significar dos cosas (01-09-2026)
+
+Finanzas llevaba un día en pie y ya se veía lo que le faltaba, que no era una
+pantalla: era la mitad de la pregunta. La sección contestaba "llevas 180 de 300 en
+la compra", que es una curiosidad de una categoría, y no "quedan 758 € este mes",
+que es lo que se pregunta en una casa a mitad de mes. **No existían los ingresos.**
+
+Y encima la palabra se pisaba a sí misma. En «El mes», los topes por categoría se
+llamaban «presupuestos»; en la otra pestaña, los papeles del fontanero también. Un
+nombre que hay que desambiguar por contexto dentro de la misma pantalla no es un
+nombre. La sección se había construido asumiendo que las dos acepciones cabían
+juntas si estaban en pestañas distintas, y no cabían.
+
+**Lo que se hizo.** Cuatro piezas, tres pestañas y cada palabra con un solo
+significado: los **fijos** son el mes tipo, los **topes** son para lo que varía,
+los **movimientos** son lo que se apunta —gasto o ingreso—, y **presupuesto** pasa
+a querer decir una única cosa, lo que cuesta algo que aún no has hecho.
+
+**La decisión que lo ordena todo: los fijos no generan nada.** Se valoraron las
+otras dos formas y se descartaron las dos. Que cada fijo apareciera como pendiente
+y hubiera que marcarlo pagado es más fiel —la luz varía— y pide abrir el mes y
+tachar seis cosas cada treinta días. Que el día 1 se crearan solos los movimientos
+del mes es lo más potente, y es también lo que convierte una app de casa en una de
+contabilidad. Un fijo es un dato que vale hasta que se cambie, exactamente igual
+que el tope de un `budget`, y por la misma razón: el trabajo administrativo que
+esta app existe para no pedir.
+
+Tiene una contrapartida que se aceptó a sabiendas y está escrita en tres sitios
+—el tipo, la tabla y el propio formulario—: **subir el alquiler en marzo cambia
+también lo que dice enero.** No hay vigencias por concepto y mes. A cambio no hay
+una tabla de tramos ni un formulario que pregunte "¿desde cuándo?", y los
+movimientos, que sí llevan fecha, siguen contando el pasado como fue.
+
+**Dónde viven los fijos.** Parecían configuración —se tocan dos veces al año— y no
+lo son. Ajustes guarda cómo se comporta la app; una nómina de 1.650 € es un dato de
+la familia, más parecido a un hijo que a "activar push". Y la cuenta del mes los
+necesita al lado: escondidos en Ajustes, el resumen enseñaría un número cuyo origen
+está en otra sección de la app.
+
+**Lo que se decidió no hacer.** Fusionar fijos y topes en una tabla con un
+interruptor: son cosas distintas —un fijo se da por hecho sin apuntar nada, un tope
+solo significa algo si apuntas— y un `budget_id` en un fijo llenaría el tope solo,
+sin que nadie haya comprado nada. Guardar los ingresos como importes negativos: el
+importe sigue siendo siempre positivo y lo que separa las dos cosas es `kind`,
+porque con signos cada suma pasa a depender de la fila y "llevas 180 de 300" deja
+de poder leerse de un vistazo. Y meter los ingresos en el reparto de quién pagó:
+diría "Carlos 1.710 €" mezclando la nómina con la compra, y dejaría de significar
+lo único que significa.
+
+**Dos guardas que están en la base y no en la pantalla.** El `check`
+`expenses_ingreso_sin_tope` impide que un ingreso cuelgue de un tope: si lo hiciera,
+una devolución de 40 € "liberaría" 40 € de la compra sin que nadie haya dejado de
+comprar. Y el `check` de `kind`, que solo admite dos valores. El formulario ni
+pregunta —el campo del tope desaparece al elegir «Un ingreso», en vez de quedarse
+apagado obligando a preguntarse por qué—, y las dos implementaciones del repo
+fuerzan el `null` en vez de fiarse del formulario.
+
+**Un caso que casi se cuela.** Sin ningún fijo puesto, "queda" sale igual al gasto
+del mes en negativo: entrar por primera vez y leer "−412 €" no significa nada y
+asusta. La tarjeta lo mira (`hayFijos`) y en ese caso enseña lo gastado, como antes
+de que existieran los fijos, con un pie que ofrece ponerlos —que es además la única
+pista de que la cuenta existe.
+
+Las tablas no se renombraron: `budgets` sigue siendo `budgets` y `expenses` sigue
+siendo `expenses`, aunque en pantalla sean «topes» y «movimientos». Mismo criterio
+que con Dinero → Finanzas: la base está en producción con datos de una familia y no
+se migra por una palabra.
+
+El esquema se aplicó en el proyecto real ese mismo día y se revalidó:
+**106/106**, con siete comprobaciones nuevas en el arnés. La que importaba es la
+última, la del ingreso colgado de un tope: es el `check` que sostiene el
+vocabulario en la base y no en la pantalla, y por tanto el que había que ver
+fallar de verdad.
+
+
 ### La demo pasa a ser una casa, no una casa de bebé (01-09-2026)
 
 Séptima pasada, y esta toca los datos. La demo era **Ana recién nacida y poco

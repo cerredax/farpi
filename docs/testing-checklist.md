@@ -266,14 +266,35 @@ verdad, que es que el otro vea el documento sin conectar nada.
 
 ## 8c. Finanzas
 
-Los datos de demo están sembrados en junio de 2026, así que el mes en curso arranca
-vacío: para ver gastos sembrados hay que ir hacia atrás con la flecha.
+Los datos de demo están sembrados en junio de 2026, así que el mes en curso arranca sin
+movimientos: para ver los sembrados hay que ir hacia atrás con la flecha. **Los fijos sí
+se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
+
+**Fijos**
+
+- [ ] Se ven dos bloques —«Entra al mes» y «Sale al mes»— con las dos nóminas y los
+      cuatro recibos de demo, cada uno con su total, y abajo «Para el mes».
+- [ ] Añadir un gasto fijo baja «Para el mes» y, al volver a «El mes», baja también
+      «queda», sin recargar.
+- [ ] Cambiar de «Entra» a «Sale» dentro del sheet cambia los iconos que se ofrecen y el
+      texto del botón, y el fijo salta de bloque al guardarlo.
+- [ ] Un fijo con persona pinta su punto de color y su nombre; sin persona no pinta nada.
+- [ ] El sheet **no pide fecha ni mes**, y avisa de que cambiar el importe cambia también
+      lo que dicen los meses pasados.
+- [ ] Ir a un mes de hace medio año: los fijos y «Para el mes» dicen exactamente lo mismo
+      que en el mes actual.
+- [ ] Borrar todos los fijos deja «El mes» enseñando lo gastado (no «queda»), con el pie
+      que invita a ponerlos; volver a poner uno devuelve la cuenta completa.
 
 **El mes**
 
-- [ ] Se ven los tres presupuestos de demo (Compra, Cosas de Ana, Casa) con su tope,
-      también los que no tienen ni un gasto ese mes.
-- [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su presupuesto, y el total de
+- [ ] Arriba se lee la cuenta entera: ingresos fijos, gastos fijos, «Para el mes», lo
+      apuntado y **cuánto queda**. Los números cuadran con los de la pestaña Fijos.
+- [ ] Gastar más de lo que hay deja «queda» en rojo y con la etiqueta «de más este mes»,
+      y el importe se enseña **en positivo** (no «−120 € de más»).
+- [ ] Se ven los topes de demo (Compra, Coche, Casa) con su límite, también los que no
+      tienen ni un gasto ese mes.
+- [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su tope, y la cuenta de
       arriba, sin recargar.
 - [ ] El importe entiende `24,90`, `24.90`, `1.234,56` y `24,90 €`, y se guarda exacto:
       la fila y el tope dicen el mismo número.
@@ -281,15 +302,26 @@ vacío: para ver gastos sembrados hay que ir hacia atrás con la flecha.
       distingue «no se entiende» de «como mucho un millón».
 - [ ] Pasarse del tope lo dice **con palabras** («Te has pasado por 40 €»), no solo con
       el rojo, y la barra no se sale de la tarjeta.
-- [ ] Un gasto sin presupuesto se puede apuntar, no cuenta para ningún tope y la nota
-      de debajo de la lista lo dice.
+- [ ] Un gasto sin tope se puede apuntar, no cuenta para ninguno y la nota de debajo de
+      la lista lo dice.
 - [ ] Elegir quién lo pagó pinta su punto de color y su nombre en la fila, y suma en el
       reparto de arriba. Sin elegir a nadie sale como «De casa».
-- [ ] Borrar un presupuesto **no borra sus gastos**: siguen en la lista, sin categoría.
+- [ ] Borrar un tope **no borra sus movimientos**: siguen en la lista, sin categoría.
       El sheet lo avisa antes.
 - [ ] Las flechas cambian de mes, el mes vacío lo dice, y «Volver a este mes» aparece
       solo cuando no estás en el actual.
-- [ ] Un gasto nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
+- [ ] Un movimiento nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
+
+**Ingresos apuntados**
+
+- [ ] Elegir «Un ingreso» en el sheet **hace desaparecer** el campo del tope (no lo deja
+      apagado), y el botón pasa a decir «Apuntar ingreso».
+- [ ] El ingreso sale en la lista con un `+` delante y en verde, y **no** mueve ninguna
+      barra de tope.
+- [ ] Sube «queda» y aparece como línea propia («Ingresos apuntados») en la cuenta de
+      arriba; **no** aparece en el reparto de quién pagó.
+- [ ] Editar un gasto que tenía tope y pasarlo a ingreso lo suelta del tope: al volver a
+      abrirlo sigue como ingreso y sin tope, y la barra de aquel tope ha bajado.
 
 **Presupuestos pedidos**
 

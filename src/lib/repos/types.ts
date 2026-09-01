@@ -1,10 +1,10 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, MealSlot, List, ListItem, Document, Note,
-  Budget, Expense, Quote,
+  Budget, Expense, FixedEntry, Quote,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, DocumentDraft, NoteDraft, StorageConnection,
-  BudgetDraft, ExpenseDraft, QuoteDraft,
+  BudgetDraft, ExpenseDraft, FixedEntryDraft, QuoteDraft,
 } from '@/types'
 
 // ─── Contratos de repositorios ─────────────────────────────────────────────────
@@ -102,8 +102,19 @@ export interface NotesRepo {
 }
 
 /**
- * Los topes de gasto al mes. Borrar uno **no borra sus gastos**: se quedan sin
- * presupuesto (`budget_id` a null, que es lo que hace la clave ajena en la base),
+ * El mes tipo: ingresos y gastos que se repiten sin apuntarlos. No hay nada que
+ * generar ni ninguna fecha que pasar: se leen enteros y la pantalla los suma.
+ */
+export interface FixedEntriesRepo {
+  getFixedEntries(familyId: string): Promise<FixedEntry[]>
+  createFixedEntry(familyId: string, draft: FixedEntryDraft): Promise<FixedEntry>
+  updateFixedEntry(id: string, draft: FixedEntryDraft): Promise<void>
+  deleteFixedEntry(id: string): Promise<void>
+}
+
+/**
+ * Los topes de gasto al mes. Borrar uno **no borra sus movimientos**: se quedan
+ * sin tope (`budget_id` a null, que es lo que hace la clave ajena en la base),
  * porque el dinero se gastó igual. El mock tiene que hacer lo mismo.
  */
 export interface BudgetsRepo {
@@ -113,6 +124,11 @@ export interface BudgetsRepo {
   deleteBudget(id: string): Promise<void>
 }
 
+/**
+ * Los movimientos: gastos e ingresos con fecha. Un ingreso llega **siempre** con
+ * `budget_id` a null —un tope mide gasto—, y las dos implementaciones tienen que
+ * forzarlo, no confiar en que el formulario lo haya hecho.
+ */
 export interface ExpensesRepo {
   getExpenses(familyId: string): Promise<Expense[]>
   createExpense(familyId: string, draft: ExpenseDraft): Promise<Expense>
@@ -187,6 +203,7 @@ export interface Repos {
   listItems: ListItemsRepo
   meals: MealsRepo
   notes: NotesRepo
+  fixedEntries: FixedEntriesRepo
   budgets: BudgetsRepo
   expenses: ExpensesRepo
   quotes: QuotesRepo

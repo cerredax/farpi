@@ -10,10 +10,35 @@ import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { ROUTES } from '@/lib/constants'
 import { SECCIONES_EN_MAS } from './secciones'
 
+/** Una fila del menú: icono, etiqueta y el chevrón que dice que lleva a otro sitio. */
+function Fila({ href, label, icon: Icon, separada, onIr }: {
+  href: string
+  label: string
+  icon: typeof Settings
+  separada?: boolean
+  onIr: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onIr}
+      className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas ${
+        separada ? 'border-t border-hairline' : ''
+      }`}
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        <Icon size={16} strokeWidth={2} className="flex-shrink-0 text-muted" aria-hidden />
+        <span className="min-w-0 truncate">{label}</span>
+      </span>
+      <span aria-hidden className="text-faint">›</span>
+    </Link>
+  )
+}
+
 /**
  * "Más": la última pastilla de la barra de abajo, y todo lo que no cabe en ella.
  *
- * Lleva Notas, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
+ * Lleva Dinero, Notas, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
  * cuenta en la esquina de `TopBar` hasta el 28-08-2026, y viene de una cuenta
  * sencilla: en móvil había **dos** sitios donde tocar para salir de las cinco
  * pantallas de siempre —la barra de abajo y un icono arriba a la derecha—, y el
@@ -22,8 +47,9 @@ import { SECCIONES_EN_MAS } from './secciones'
  *
  * Documentos baja aquí porque es la sección a la que menos se entra —el DNI y el
  * libro de familia se miran dos veces al año— y su sitio en la barra es el que
- * necesitaba "Más". Notas llega el 31-08-2026 y se pone delante, por lo mismo y
- * por orden: la clave del wifi se consulta cuando viene alguien. En escritorio no
+ * necesitaba "Más". Notas y Dinero llegan el 31-08-2026 y se ponen delante, por lo
+ * mismo y por orden: la clave del wifi se consulta cuando viene alguien y el gasto
+ * del mes se mira una vez por semana. En escritorio no
  * cambia nada: `SideNav` tiene columna de sobra y las enseña con las otras cinco,
  * y la cuenta al pie.
  *
@@ -32,12 +58,16 @@ import { SECCIONES_EN_MAS } from './secciones'
  * una entrara directa a su pestaña. Duró también un día: cinco filas de Ajustes
  * mezcladas con Documentos y Cerrar sesión hacían el menú largo y confuso —no
  * se distinguía "una pantalla de la app" de "una pestaña dentro de otra
- * pantalla" a simple vista. Ahora Ajustes es una fila más, como Documentos, y
- * lleva a `/settings`, que abre en Familia (`pestañaDesdeUrl`). Elegir la
- * pestaña ya es cosa de las pestañas de `SettingsView`, no de este menú.
+ * pantalla" a simple vista. Desde entonces es una sola fila que lleva a
+ * `/settings`, que abre en Familia (`pestañaDesdeUrl`); elegir pestaña ya es
+ * cosa de `SettingsView`, no de este menú.
  *
- * Cerrar sesión va en su propia tarjeta, separado del resto: no es otro sitio al
- * que ir, es salir.
+ * El menú son **tres tarjetas y no una lista**, porque las tres filas no son la
+ * misma cosa: arriba las secciones de la casa —sitios donde está lo que se busca—,
+ * luego Ajustes, que no es una sección sino cómo se configura la app, y al final
+ * Cerrar sesión, que ni siquiera es un sitio al que ir: es salir. Ajustes bajó a
+ * su propia tarjeta el 01-09-2026, cuando iba pegado a Documentos y se leía como
+ * una sección más de la familia.
  *
  * El botón lo pinta quien lo usa (`children`), que es `BottomNav`: así la
  * pastilla es exactamente igual que las cinco de al lado sin que sus clases
@@ -54,33 +84,22 @@ export function MoreMenu({ className, children }: { className?: string; children
     window.location.href = '/auth/login'
   }
 
-  // Las secciones salen de `SECCIONES_EN_MAS` y no de una lista propia: eran los
-  // dos sitios donde apuntar lo mismo, y con Documentos solo ya habían divergido
-  // una vez. Ajustes sí se escribe aquí, porque no es una sección de la casa.
-  const enlaces = [...SECCIONES_EN_MAS, { href: ROUTES.settings, label: 'Ajustes', icon: Settings }]
-
   const sheet = (
     <BottomSheet open={open} title="Más" onClose={() => setOpen(false)}>
       <div className="space-y-4 px-5 pt-1 pb-8">
         <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
           {/* Enlaces de verdad y no botones: llevan a otra pantalla, así que se
-              pueden abrir en otra pestaña y el navegador dice a dónde van. */}
-          {enlaces.map(({ href, label, icon: Icon }, i) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setOpen(false)}
-              className={`flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas ${
-                i > 0 ? 'border-t border-hairline' : ''
-              }`}
-            >
-              <span className="flex min-w-0 items-center gap-3">
-                <Icon size={16} strokeWidth={2} className="flex-shrink-0 text-muted" aria-hidden />
-                <span className="min-w-0 truncate">{label}</span>
-              </span>
-              <span aria-hidden className="text-faint">›</span>
-            </Link>
+              pueden abrir en otra pestaña y el navegador dice a dónde van. Salen
+              de `SECCIONES_EN_MAS` y no de una lista propia: eran los dos sitios
+              donde apuntar lo mismo, y con Documentos solo ya habían divergido
+              una vez. */}
+          {SECCIONES_EN_MAS.map(({ href, label, icon: Icon }, i) => (
+            <Fila key={href} href={href} label={label} icon={Icon} separada={i > 0} onIr={() => setOpen(false)} />
           ))}
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
+          <Fila href={ROUTES.settings} label="Ajustes" icon={Settings} onIr={() => setOpen(false)} />
         </div>
 
         {/* En demo no hay sesión que cerrar: la app entera funciona sin cuenta,

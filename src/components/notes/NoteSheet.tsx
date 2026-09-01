@@ -11,13 +11,20 @@ import type { Note, NoteDraft } from '@/types'
 
 // Veinticuatro iconos, tres filas de ocho, igual que en `ListSheet` y por la
 // misma razón: nombran la nota de un vistazo en un índice donde todo lo demás
-// es texto. Los de aquí son los de la casa y sus recados —el wifi, los
-// teléfonos, la llave, el coche, el banco, el colegio—, no los de la compra.
-// El 📝 va al final por ser el que viene puesto.
+// es texto. Y como allí, cada línea de aquí abajo es una fila y responde a una
+// pregunta: un dato que se consulta, algo de esta casa, algo de fuera. Se buscan
+// recorriendo una línea, no las veinticuatro casillas. El 📶 abre porque la clave
+// del wifi es la nota que más se mira; el 📝 cierra por ser el que viene puesto.
+//
+// Fuera lo que repetía a otro (🔌 era la misma luz que 💡, 🎒 el mismo colegio que
+// 🏫, 👕 la misma talla que 📏, 🔢 lo que dice mejor 🔐) o lo que tiene su propia
+// sección: 🍽️ es Comidas, 🏦 es ir al banco y eso es una tarea —el dato está en
+// 💳—, y 📅 contradecía la primera frase de la sección: una nota es justo lo que
+// **no** es una fecha.
 const EMOJIS = [
-  '📶', '☎️', '🔑', '🏠', '💡', '🔌', '🚿', '🔢',
-  '🏦', '💳', '🚗', '🅿️', '🏥', '💊', '🎒', '🏫',
-  '🐾', '✈️', '📦', '🛠️', '👕', '🍽️', '📅', '📝',
+  '📶', '🔐', '☎️', '📱', '🔑', '💳', '🧾', '📏',
+  '🏠', '💡', '🚿', '🌡️', '🛠️', '📦', '🪴', '🐾',
+  '🏥', '💊', '🏫', '🚌', '🚗', '🅿️', '✈️', '📝',
 ]
 
 interface NoteSheetProps {

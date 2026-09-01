@@ -13,6 +13,35 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-01
+
+### Repaso a los iconos de Notas y al menú de "Más" (01-09-2026)
+
+Dos retoques de un día después, mirando la app ya hecha.
+
+**Los veinticuatro iconos de una nota no tenían orden.** Se eligieron rápido, y con la
+sección en la mano se veía: la primera fila mezclaba datos (📶 ☎️ 🔑) con suministros
+(💡 🔌 🚿), la segunda banco, coche, salud y colegio a la vez, y la tercera era un cajón
+de sastre. `ListSheet` sí tenía una regla —«cada línea de aquí abajo es una fila»: súper,
+casa, ocio— y por eso se lee. Notas ahora tiene la suya: **un dato que se consulta / algo
+de esta casa / algo de fuera**, que son las tres formas en las que se busca una nota.
+
+Con el orden se fueron siete iconos: los que repetían a otro (🔌 era la misma luz que 💡,
+🎒 el mismo colegio que 🏫, 👕 la misma talla que 📏, 🔢 lo que dice mejor 🔐) y los que
+tienen su propia sección (🍽️ es Comidas; 🏦 es *ir* al banco, que es una tarea, y el dato
+está en 💳). Y uno que se contradecía con la primera frase de la sección: **📅**, cuando
+una nota es justo lo que **no** es una fecha. Entraron 🔐 claves y códigos, 📱 el móvil,
+🧾 contratos y garantías, 📏 medidas y tallas, 🌡️ la caldera, 🪴 las plantas y 🚌 horarios.
+El 📶 abre —la clave del wifi es la nota que más se mira— y el 📝 cierra, como el 📋 de
+Listas y el 💶 de Dinero.
+
+**Y Ajustes bajó a su propia tarjeta en "Más".** Iba pegado a Documentos, dentro de la
+misma tarjeta que las secciones de la casa, y se leía como una más. No lo es: las de
+arriba son sitios donde está lo que se busca, Ajustes es cómo se configura la app. Ahora
+el menú son tres tarjetas —secciones, Ajustes, cerrar sesión— y cada una dice de qué va
+sin leer la etiqueta. Se quedó fuera de la tarjeta de Cerrar sesión a propósito, por lo
+que ya decía el comentario que había: uno es un sitio al que ir y el otro es salir.
+
 ## Cerrado el 2026-08-31
 
 ### Dinero, la última idea de la lista (31-08-2026)

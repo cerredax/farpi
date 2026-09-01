@@ -173,12 +173,12 @@ const PREGUNTAS = [
   {
     pregunta: '¿Hay que instalar algo?',
     respuesta:
-      'No. Farpi se abre en el navegador y se usa entera desde ahí. En el móvil se puede añadir a la pantalla de inicio y entonces se comporta como una app más, con su icono y sin la barra del navegador. La app de Google Play llegará más adelante, y no cambiará nada de lo que ya tengáis apuntado.',
+      'No hace falta. Farpi se abre en el navegador y funciona igual en el móvil, en la tablet y en el ordenador, con la misma cuenta y con lo mismo apuntado en los tres. En el móvil puedes añadirla a la pantalla de inicio y se comporta como una app más, con su icono y sin la barra del navegador. La de Google Play llegará más adelante y no cambiará nada de lo que ya tengáis.',
   },
   {
-    pregunta: '¿Funciona sin internet?',
+    pregunta: '¿Y si me quedo sin cobertura?',
     respuesta:
-      'No. Farpi necesita conexión para saber qué hay apuntado. Si te quedas sin ella te lo dice, en vez de enseñarte datos viejos como si fueran de hoy.',
+      'Farpi necesita conexión, como el correo o la app del banco. Si te quedas sin ella, te lo dice claramente en vez de enseñarte lo de ayer como si fuera de hoy, que es peor que no enseñar nada. En cuanto vuelve, sigues donde estabas.',
   },
   {
     pregunta: '¿Me avisa de las cosas?',
@@ -188,7 +188,7 @@ const PREGUNTAS = [
   {
     pregunta: '¿Dónde acaban mis documentos?',
     respuesta:
-      'En tu propio Google Drive. Farpi solo guarda la ficha —qué es, de quién, cuándo caduca— y se la enseña a tu familia; el archivo nunca sale de tu cuenta. Los demás no tienen que conectar nada para verlo.',
+      'En tu propio Google Drive. Farpi solo guarda la ficha (qué es, de quién, cuándo caduca) y se la enseña a tu familia. El archivo nunca sale de tu cuenta, y los demás no tienen que conectar nada para verlo.',
   },
 ]
 
@@ -338,7 +338,7 @@ export function LandingPage() {
             <TituloSeccion>Así se ve</TituloSeccion>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
               No son maquetas: son cuatro pantallas de <Marca /> tal cual se ven, con la familia de
-              ejemplo que trae la app —un recién nacido, sus citas y la compra de la semana—.
+              ejemplo que trae la app.
             </p>
 
             {/* En móvil se arrastran de lado con el dedo, encajando de una en una;
@@ -447,87 +447,66 @@ export function LandingPage() {
             </div>
           </section>
 
-          {/* La carta, y con la carta el único sitio de la página donde no
-              hablo yo de la app sino Omar de su casa.
+          {/* La carta, y el único sitio de la página donde no habla la app: habla
+              Omar de su casa.
 
-              La primera versión estaba escrita "bien" y por eso sonaba a
-              folleto: todos los párrafos con la misma forma, las cosas en listas
-              de tres y cada frase acabando en su golpecito. Esta está a
-              propósito más suelta —frases que se cortan, un párrafo de una
-              línea, cosas que se admiten sin resolver— porque así es como
-              escribe una persona cansada contando algo suyo. Si alguien la
-              vuelve a "mejorar", volverá a sonar a máquina. */}
+              **Este texto lo escribió él.** Las dos versiones anteriores las
+              redacté yo a partir de lo que me contó y las dos sonaban a folleto,
+              cada una a su manera: la primera demasiado redonda —todos los
+              párrafos con la misma forma y cada uno acabando en su golpecito—, la
+              segunda demasiado cortada, a frases de tres palabras que piden
+              aplauso. La buena salió cuando la dictó él y yo me limité a la
+              ortografía, dos concordancias y partir una frase que se trababa.
+
+              Así que aquí no se "mejora la redacción". Si algún día hay que
+              cambiar algo, se le pregunta a él y se vuelve a tocar lo mínimo: lo
+              que hace que esto no parezca escrito por una máquina es justo lo que
+              un corrector querría arreglar. */}
           <section className={`border border-line bg-warm ${BLOQUE}`}>
             <TituloSeccion encima="Una nota de quien la hizo">Por qué existe Farpi</TituloSeccion>
 
             <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
-              <p>Hola.</p>
-              <p>Mi hija nació en junio.</p>
               <p>
-                No sé cómo lo hace todo el mundo, pero a nosotros se nos empezó a olvidar todo. La
-                cita del pediatra. Si le tocaba la vitamina o ya se la habíamos dado. Yo creía que
-                lo llevaba en la cabeza y resulta que no.
+                Desde que nació mi hija creo que perdí memoria. Eso, unido a la cantidad de cosas
+                pequeñas que hay que tener presentes cada día y al cambio que supone un hijo en tu
+                vida, me hizo sentir que necesitaba un poco de organización: que ya no valía lo de
+                antes.
               </p>
               <p>
-                Mi mujer y yo nos lo íbamos diciendo por mensajes, entre una cosa y otra, y al final
-                ninguno de los dos sabía del todo qué estaba hecho.
-              </p>
-              <p>
-                Así que me puse a hacer esto. No porque me sobrara el tiempo, que era justo lo que no
-                había. Empezó siendo bastante menos de lo que es ahora.
-              </p>
-              <p>
-                Iba a llamarse <strong className="font-bold text-ink">Nido</strong>. Me gustaba, era
-                lo que quería que fuese. Pero había un problema legal con ese nombre y tocó buscar
-                otro.
+                Lo que pretendía con Nido, que así iba a llamarse, era tener un sitio de familia donde
+                los dos viéramos lo mismo sin tener que preguntárnoslo. Así surgió este proyecto
+                personal. Como ves, al final no se llama Nido sino <Marca />, en honor a un juego de
+                palabras con los apellidos de mi hija.
               </p>
             </div>
 
             <blockquote className="my-7 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
-              <Marca /> sale del apellido de mi hija. No es su apellido, son unas letras suyas. Nació
-              más o menos a la vez que ella.
+              Esta aplicación está hecha para que no se nos pase nada, y también para evitar
+              discusiones de pareja por los despistes de no acordarse de las cosas.
             </blockquote>
 
             <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
               <p>
-                Le voy añadiendo cosas según nos van haciendo falta en casa. Ahora son las de un
-                bebé. Dentro de unos años supongo que serán otras y ya iremos viendo. Si a ti se te
-                ocurre alguna antes que a mí, dímelo:{' '}
+                La publico porque considero que, si a mí me es útil, puede serlo para los demás. Si
+                es de vuestro agrado, bienvenidos sois a uniros. Se trata de hacer el día un poco
+                más fácil, no tiene más.
+              </p>
+              <p>
+                Cualquier sugerencia es bienvenida:{' '}
                 <a
                   href={`mailto:${CONTACT}`}
                   className="inline-block py-0.5 font-semibold text-primary-strong hover:underline"
                 >
                   {CONTACT}
                 </a>
-                . No te prometo hacerlo todo, pero lo miro.
+                .
               </p>
-              <p>
-                La he dejado abierta porque no tiene sentido guardármela. Si a tu casa le sirve, me
-                alegro.
-              </p>
-              <p>Es gratis, y mientras la pueda pagar yo va a seguir siéndolo.</p>
             </div>
 
             <div className="mt-8 border-t border-line pt-6">
               <p className="text-lg font-black tracking-tight text-ink">Omar García Carballo</p>
               <p className="mt-0.5 text-sm text-muted">Septiembre de 2026</p>
             </div>
-          </section>
-
-          <section className="px-1 py-4">
-            <TituloSeccion>¿Echas algo en falta?</TituloSeccion>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
-              Esto lo llevo yo solo y lo sigo mejorando poco a poco. Si se te ocurre algo que
-              debería tener, o algo que no acaba de funcionar, escríbeme a{' '}
-              {/* En línea, pero con alto de dedo: el enlace suelto se quedaba en
-                  19 px y a 390 px es lo único que hay que tocar de esta sección. */}
-              <a
-                href={`mailto:${CONTACT}`}
-                className="inline-block py-1 font-semibold text-primary-strong hover:underline"
-              >
-                {CONTACT}
-              </a>.
-            </p>
           </section>
 
           <footer className="flex flex-wrap gap-x-5 border-t border-line px-1 pt-6 text-xs font-medium text-muted-soft">

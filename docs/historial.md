@@ -15,6 +15,45 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-01
 
+### La carta la escribe Omar, y el texto pierde los guiones (01-09-2026)
+
+Sexta pasada. La carta se intentó dos veces desde aquí, a partir de lo que él
+contaba, y las dos sonaron a folleto: la primera demasiado redonda —todos los
+párrafos con la misma forma—, la segunda demasiado cortada, a frases de tres
+palabras que piden aplauso ("modo redacción", la llamó él). La buena salió
+cuando **la dictó él entera** y la edición se limitó a ortografía, dos
+concordancias y partir una frase larga que se trababa.
+
+Trae dos cosas que ninguna versión anterior tenía, y no porque estuvieran mal
+escritas sino porque no se pueden inventar: que **perdió memoria desde que nació
+su hija**, y que la app está hecha también **para evitar discusiones de pareja
+por los despistes**. Esa segunda es la frase destacada, y es la única de toda la
+página que no podría haber escrito nadie más.
+
+De paso quedaron corregidos dos datos que estaban mal contados: con Nido **no
+llegó a haber ningún problema legal** —el nombre se cambió por si acaso, antes de
+que lo hubiera— y **Farpi es un juego de palabras con los apellidos** de la niña,
+no un acrónimo.
+
+Queda avisado en el propio componente: ahí no se "mejora la redacción". Lo que
+hace que no parezca escrito por una máquina es justo lo que un corrector querría
+arreglar.
+
+Y con eso, cuatro retoques más del texto:
+
+- **Fuera todos los guiones largos.** Se usaban a puñados para meter incisos y
+  son de las cosas que delatan a una máquina. Ahora van con comas, con paréntesis
+  o partiendo la frase. Cero en la página; en los comentarios del código se
+  quedan, que ahí no lee nadie de fuera.
+- **"¿Funciona sin internet?" estaba mal planteada y peor contestada**: la
+  pregunta sonaba a defecto y la respuesta empezaba por "No". Ahora es "¿Y si me
+  quedo sin cobertura?", se compara con el correo o la app del banco, y termina
+  por donde tiene que terminar: en cuanto vuelve, sigues donde estabas.
+- **Se cuenta que es web**, que no estaba dicho: el mismo Farpi en el móvil, en
+  la tablet y en el ordenador, con la misma cuenta y lo mismo apuntado.
+- **Fuera la sección "¿Echas algo en falta?"**. La carta ya pide las sugerencias
+  y ahora lleva el correo; pedir lo mismo dos veces seguidas resta.
+
 ### Repaso de diseñador: menos cuadros, menos capturas y una carta que suene a persona (01-09-2026)
 
 Quinta pasada, y la primera en la que la crítica va contra lo que se había

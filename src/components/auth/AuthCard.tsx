@@ -321,8 +321,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
       )}
 
       <p className="mt-5 text-center text-[11px] font-medium text-muted-soft">
-        Farpi es gratuito —por ahora y mientras pueda mantenerse así— y privado
-        para tu familia.
+        Farpi es gratuito y privado para tu familia.
       </p>
 
       <style jsx>{`

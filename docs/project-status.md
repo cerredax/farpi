@@ -103,9 +103,10 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   barra de arriba pegada y **"Entrar" y "Crear cuenta" siempre a la vista** —el segundo
   lleva a `/auth/login?modo=registro`, que abre ya en el formulario de registro—. Por
   orden: presentación, "Así se ve" con las capturas, "Cómo funciona" en tres pasos,
-  "En qué ayuda", "Preguntas" (`details` nativos, plegados), "Por qué existe Farpi",
-  contacto y un cierre. Las secciones se enlazan desde la barra **solo en `lg:`**: en
-  un móvil de 390 px esa fila ya la llenan la marca y los dos botones.
+  "En qué ayuda", "Preguntas" (`details` nativos, plegados) y "Por qué existe Farpi",
+  que cierra la página. Hubo una sección de contacto detrás de la carta y se quitó el
+  01-09-2026: la carta ya pide las sugerencias y da el correo, y pedir lo mismo dos
+  veces seguidas resta. Las secciones se enlazan desde la barra **solo en `lg:`**.
 - **Se entra desde la propia portada** (01-09-2026): no hay botones que lleven al
   login, está **el formulario de verdad**. `AuthCard` (`src/components/auth/`) tiene las
   dos pestañas, Google si el proveedor está activo, los campos y recuperar contraseña,
@@ -151,6 +152,15 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   - **Las capturas, escalonadas y torcidas un pelín**, y se enderezan y levantan al pasar
     el ratón. Solo desde `lg:`, y anuladas con `motion-reduce`. Dos columnas en `lg` y
     tres en `xl`: a tres en un portátil de 1024 px los móviles no se leían.
+- **El texto no lleva ni un guion largo** (01-09-2026). Se usaban a puñados para meter
+  incisos y son de las cosas que delatan un texto escrito por una máquina. Van con
+  comas, con paréntesis o partiendo la frase. En los comentarios del código se quedan:
+  ahí no lee nadie de fuera.
+- **La carta la escribió Omar**, no se redactó a partir de lo que contó. Se intentó dos
+  veces y las dos sonaron a folleto: la primera demasiado redonda, la segunda demasiado
+  cortada. La buena salió cuando la dictó él y la edición se limitó a ortografía, dos
+  concordancias y partir una frase. Queda avisado en el propio componente: ahí no se
+  "mejora la redacción".
 - **El enlace se ve al compartirlo** (01-09-2026): `openGraph` y `twitter` en
   `src/app/layout.tsx`, con `metadataBase` sacado de `SITE_URL`, y `public/og.png`
   (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la

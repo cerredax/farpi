@@ -35,7 +35,7 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
 
       1. **Vercel → Domains**: añadir `farpi.app` y `www.farpi.app`, y marcar
          **`www.farpi.app` como principal**. Vercel redirige el ápice con un 308.
-      2. **Vercel → Environment Variables**: `NEXT_PUBLIC_SITE_URL=https://www.farpi.app`
+      2. **Vercel → Environment Variables**: `SITE_URL=https://www.farpi.app`
          y `GOOGLE_REDIRECT_URI=https://www.farpi.app/api/documents/providers/google/callback`.
       3. **Supabase → Authentication → URL Configuration → Site URL**: `https://www.farpi.app`.
       4. **Supabase → Redirect URLs**: añadir `https://www.farpi.app/auth/callback`
@@ -113,7 +113,10 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 - [x] `NEXT_PUBLIC_SUPABASE_URL` — URL del proyecto Supabase.
 - [x] `NEXT_PUBLIC_SUPABASE_ANON_KEY` — clave pública (formato nuevo `sb_publishable_…`).
 - [x] `SUPABASE_SERVICE_ROLE_KEY` — clave de servicio `sb_secret_…` (solo servidor; necesaria para enviar invitaciones). **Nunca** exponer al cliente.
-- [x] `NEXT_PUBLIC_SITE_URL` — dominio de producción. Se usa para el `redirectTo` del magic link.
+- [x] `SITE_URL` — dominio de producción. Se usa para el `redirectTo` del magic link. Se llamó
+      `NEXT_PUBLIC_SITE_URL` hasta el 01-09-2026: solo se lee en servidor, el prefijo no hacía falta y
+      Vercel obliga a clasificar como públicas las variables que lo llevan. La vieja se sigue leyendo
+      como respaldo, pero la buena es esta.
 
 - [x] `CRON_SECRET` — **obligatoria para que el cron diario funcione**. Cualquier cadena larga y aleatoria. Vercel la envía sola en la cabecera `Authorization` cuando la variable se llama así. Sin ella, `/api/cron/reminders` responde 503 y no se ejecuta el keep-alive de Supabase. *(Añadida el 04-08-2026; el endpoint responde 200 con `keptAlive: true`.)*
 
@@ -226,7 +229,7 @@ Resultados en **`docs/supabase-validation.md`**: 80/80 comprobaciones correctas,
 - [x] Cerrar validación Supabase (§4).
 
 ### Recomendadas (no bloqueantes)
-- [x] Verificar `NEXT_PUBLIC_SITE_URL` = dominio final antes de invitar a nadie.
+- [x] Verificar `SITE_URL` = dominio final antes de invitar a nadie.
 - [x] `CRON_SECRET` en Vercel y cron respondiendo 200 (04-08-2026).
 - [x] Revalidar RLS tras las migraciones 015 y 016 — hecho el 06-08-2026, 51/51 (§4).
 - [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).

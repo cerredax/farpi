@@ -47,16 +47,21 @@ export async function POST(req: NextRequest) {
   /**
    * El dominio al que apunta el magic link. **No se adivina en producción.**
    *
-   * Caía a `req.nextUrl.origin`, que sale de la cabecera `Host`: si
-   * `NEXT_PUBLIC_SITE_URL` falta —un entorno nuevo, un preview— un `Host`
-   * falsificado haría que el enlace de la invitación llevara a otro dominio, y ese
-   * enlace **inicia sesión**. Ahora solo se admite el fallback en local, que es
-   * donde hace falta para poder probar; en cualquier otro sitio se corta.
+   * Caía a `req.nextUrl.origin`, que sale de la cabecera `Host`: si `SITE_URL`
+   * falta —un entorno nuevo, un preview— un `Host` falsificado haría que el enlace
+   * de la invitación llevara a otro dominio, y ese enlace **inicia sesión**. Ahora
+   * solo se admite el fallback en local, que es donde hace falta para poder probar;
+   * en cualquier otro sitio se corta.
+   *
+   * Se llamó `NEXT_PUBLIC_SITE_URL` hasta el 01-09-2026. El prefijo no hacía falta
+   * —solo se lee aquí, en servidor— y Vercel ya obliga a clasificar como públicas
+   * las variables que lo llevan. Se sigue leyendo la vieja como respaldo para no
+   * dejar sin invitaciones el rato que pasa entre desplegar y cambiar la variable.
    */
-  const configurado = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  const configurado = (process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL)?.replace(/\/$/, '')
   const esLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.nextUrl.origin)
   if (!configurado && !esLocal) {
-    console.error('[invite] Falta NEXT_PUBLIC_SITE_URL: no se envía la invitación.')
+    console.error('[invite] Falta SITE_URL: no se envía la invitación.')
     return NextResponse.json(
       { error: 'La invitación no se puede enviar: falta configurar el dominio de la app.' },
       { status: 500 },

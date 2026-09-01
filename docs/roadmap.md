@@ -276,9 +276,10 @@ sección lleva dos pestañas. El porqué de cada decisión está en `docs/archit
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que Farpi no se
       conecta a ningún banco.
 - [x] 73 unitarios nuevos (`money.spec.ts`, `budgets.spec.ts`) y dos flujos de navegador.
-- [ ] **Aplicar el esquema en el SQL Editor del proyecto real** y revalidar con
-      `node scripts/validate-rls.mjs`, añadiendo antes al arnés las comprobaciones de
-      las tres tablas. Hasta entonces la sección solo funciona en modo demo.
+- [x] Esquema aplicado en el SQL Editor del proyecto real y revalidado el 01-09-2026:
+      **99/99**, con diez comprobaciones nuevas en el arnés para las tres tablas —incluidos
+      los tres triggers que impiden que un gasto señale a un presupuesto, un hijo o un
+      miembro de otra familia.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

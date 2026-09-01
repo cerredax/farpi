@@ -140,8 +140,11 @@ async function main() {
   await sembrar('list_items', { family_id: famA, list_id: listaA, text: 'Item A', sort_order: 0 })
   await sembrar('meal_plans', { family_id: famA, date: '2026-08-10', slot: 'lunch', name: 'Comida A' })
   await sembrar('notes', { family_id: famA, title: 'Nota A', body: 'Clave del wifi de A' })
+  const presuA = await sembrar('budgets', { family_id: famA, name: 'Compra A', monthly_limit_cents: 30000 })
+  await sembrar('expenses', { family_id: famA, budget_id: presuA, amount_cents: 1250, date: '2026-08-10' })
+  await sembrar('quotes', { family_id: famA, title: 'Caldera A', provider: 'Clima A', amount_cents: 120000 })
 
-  for (const tabla of ['children', 'events', 'tasks', 'lists', 'list_items', 'meal_plans', 'notes']) {
+  for (const tabla of ['children', 'events', 'tasks', 'lists', 'list_items', 'meal_plans', 'notes', 'budgets', 'expenses', 'quotes']) {
     comprobar(`B NO ve ${tabla} de la familia de A`,
       filas(await api(`/rest/v1/${tabla}?family_id=eq.${famA}&select=id`, { token: tokB })) === 0)
   }
@@ -151,6 +154,10 @@ async function main() {
     (await api('/rest/v1/tasks', { metodo: 'POST', token: tokB, datos: { family_id: famA, title: 'Intrusa', priority: 'high' } })).estado >= 400)
   comprobar('B NO puede crear notas en la familia de A',
     (await api('/rest/v1/notes', { metodo: 'POST', token: tokB, datos: { family_id: famA, title: 'Intrusa' } })).estado >= 400)
+  // Lo que se apunta en Dinero es lo más sensible que guarda la app después de
+  // los documentos: cuánto entra, en qué se va y quién paga qué.
+  comprobar('B NO puede crear gastos en la familia de A',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokB, datos: { family_id: famA, amount_cents: 100, date: '2026-08-10' } })).estado >= 400)
   comprobar('B NO puede auto-añadirse como miembro de A',
     (await api('/rest/v1/family_members', { metodo: 'POST', token: tokB, datos: { family_id: famA, user_id: uidB, display_name: 'Intruso', role: 'admin' } })).estado >= 400)
   comprobar('B NO puede borrar tareas de A',
@@ -176,6 +183,19 @@ async function main() {
   const miembroB = (await api(`/rest/v1/family_members?family_id=eq.${famB}&select=id`, { token: tokB })).cuerpo?.[0]?.id
   comprobar('Rechaza tarea con member_id de otra familia',
     (await api('/rest/v1/tasks', { metodo: 'POST', token: tokA, datos: { family_id: famA, title: 'cross', member_id: miembroB } })).estado >= 400)
+  // Un gasto apunta a tres sitios —presupuesto, hijo y miembro— y cada uno tiene
+  // su trigger, así que se prueban los tres. Con `budget_id` no basta la RLS:
+  // el id de otra familia no se ve, pero escribirlo a ciegas sí llegaría a la
+  // tabla si nadie lo comprueba.
+  const presuB = (await api('/rest/v1/budgets', {
+    metodo: 'POST', token: tokB, datos: { family_id: famB, name: 'Compra B', monthly_limit_cents: 20000 }, cabeceras: REPRESENTACION,
+  })).cuerpo?.[0]?.id
+  comprobar('Rechaza gasto con budget_id de otra familia',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', budget_id: presuB } })).estado >= 400)
+  comprobar('Rechaza gasto con child_id de otra familia',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', child_id: hijoB } })).estado >= 400)
+  comprobar('Rechaza gasto con member_id de otra familia',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', member_id: miembroB } })).estado >= 400)
 
   console.log('\n== 5. RPCs de administración (regla del último admin)')
   comprobar('NO se puede eliminar al único admin',

@@ -1,8 +1,19 @@
 # Validación Supabase
 
-Última ejecución: 2026-08-31, ya con las notas. **89/89 comprobaciones correctas.**
+Última ejecución: 2026-09-01, con las tres tablas de Dinero aplicadas. **99/99
+comprobaciones correctas.**
 
-Son las 86 anteriores más las **tres de `notes`**, la tabla que estrena la sección de
+Son las 89 anteriores más las **diez de `budgets`, `expenses` y `quotes`**, aplicadas a
+mano en el SQL Editor ese día. Seis son las de siempre —que A crea en su familia y que B
+no ve nada de las tres tablas—, una es que B tampoco puede **escribir** un gasto en la
+familia de A, y las tres que importan son los **triggers de `expenses`**: un gasto apunta
+a un presupuesto, a un hijo y a un miembro, y los tres se rechazan si son de otra familia.
+Con `budget_id` no bastaba la RLS —el id ajeno no se ve, pero escribirlo a ciegas habría
+llegado a la tabla si nadie lo comprueba—, así que ese es el caso que había que ver
+fallar de verdad. No hay RPC ni policy nueva: las tres tablas se protegen con la de
+siempre por `family_id`.
+
+Las 89 eran las 86 más las **tres de `notes`**, la tabla que estrena la sección de
 notas: que A la crea en su familia, que B no ve las de A y que B no puede escribir una
 en la familia de A. Tres y no más porque la tabla no tiene nada que enredar —ni claves
 ajenas a hijos o miembros, ni RPC, ni columnas con `check`—: todo lo que la protege es
@@ -90,6 +101,10 @@ Tablas cubiertas, comprobando que B recibe 0 filas de la familia de A:
 - [x] `list_items`
 - [x] `meal_plans`
 - [x] `documents`
+- [x] `notes`
+- [x] `budgets`
+- [x] `expenses` — además, el POST de B en la familia de A se rechaza
+- [x] `quotes`
 
 Detalle importante: los intentos de lectura ajena **no dan error, devuelven lista vacía**, que es el comportamiento correcto de RLS. Los de escritura sí devuelven 403.
 
@@ -158,9 +173,14 @@ scripts, así que no para un XSS en línea.
 - [x] No se puede crear `document` con `child_id` de otra familia.
 - [x] No se puede crear `task` con `child_id` de otra familia.
 - [x] No se puede crear `task` con `member_id` de otra familia.
+- [x] No se puede crear `expense` con `budget_id` de otra familia.
+- [x] No se puede crear `expense` con `child_id` de otra familia.
+- [x] No se puede crear `expense` con `member_id` de otra familia.
 
-Los cinco devuelven 400 desde el trigger. Los tres primeros vienen de
-`007_cross_family_integrity.sql`; los dos de `tasks`, de `015_task_assignment.sql`.
+Los ocho devuelven 400 desde el trigger. Los tres primeros vienen de
+`007_cross_family_integrity.sql`; los dos de `tasks`, de `015_task_assignment.sql`; los
+tres de `expenses` entraron con Dinero el 01-09-2026 y son el mismo patrón repetido, que
+es justo lo que se quería: un gasto no puede señalar a nada que no sea de su casa.
 
 ## Resultado
 
@@ -176,13 +196,30 @@ por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fi
 el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
 que puede ver el documento del que cuelga el token.
 
-**No queda nada pendiente.** El esquema está validado y la pasada del 27-08-2026 no dejó
-ninguna comprobación en rojo: 80/80.
+**No queda nada pendiente.** El esquema está validado y la pasada del 01-09-2026 no dejó
+ninguna comprobación en rojo: 99/99, ya con Dinero.
 
 ## Pendiente
 
 Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
+
+### Notas de la ejecución (01-09-2026)
+
+- **99/99.** Las tres tablas de Dinero (`budgets`, `expenses`, `quotes`) se aplicaron a
+  mano en el SQL Editor ese día y el arnés gana **diez comprobaciones**, repartidas por
+  las secciones que ya existían en vez de en una nueva: no hay nada estructuralmente
+  distinto que probar, solo tres tablas más con la policy de siempre.
+- La que había que ver fallar es **el gasto con `budget_id` de otra familia**. Las otras
+  dos claves de `expenses` —`child_id` y `member_id`— repiten un patrón ya validado en
+  `events` y `tasks`, pero `budget_id` apunta a una tabla nueva y su trigger se escribió
+  con Dinero. Que estuviera escrito no probaba que saltara. Salta.
+- **No hay RPC nueva ni policy nueva.** Un presupuesto, un gasto y un presupuesto pedido
+  son filas con `family_id` y nada más, así que la de siempre los cubre. Lo que sí tienen
+  son `check` de importe (entre 1 céntimo y un millón de euros) y de estado, que la app
+  ya valida antes; ahí no hay comprobación automática todavía.
+- La limpieza los borra en cascada con las familias de prueba: cuelgan de `families` con
+  `on delete cascade`, así que no hizo falta tocar el arnés por ese lado.
 
 ### Notas de la ejecución (27-08-2026)
 

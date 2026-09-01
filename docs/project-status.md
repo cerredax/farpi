@@ -121,7 +121,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 
 - **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
   con la base como está, aplicado en el proyecto real y validado. Última pasada:
-  **89/89** (31-08-2026, con `notes`). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
+  **99/99** (01-09-2026, con las tres tablas de Dinero). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
   veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
@@ -226,18 +226,16 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-**Pendiente (31-08-2026): aplicar en el SQL Editor las tres tablas de Dinero.**
-`supabase/schema.sql` ya las lleva —`budgets`, `expenses` y `quotes`, con sus índices,
-sus triggers de `updated_at`, los tres triggers de integridad entre familias de
-`expenses` y sus policies— pero **no están aplicadas en el proyecto real**: se aplican a
-mano, como todo el esquema. Hasta que se peguen, la sección funciona en modo demo y no
-contra Supabase. Después toca `node scripts/validate-rls.mjs` y anotar el resultado en
-`docs/supabase-validation.md`; el arnés todavía no las cubre, así que las comprobaciones
-de las tres tablas hay que añadirlas ahí.
+Sin pendientes. La última pasada es del **01-09-2026**, con `node scripts/validate-rls.mjs`
+contra la base real y ya con las tres tablas de Dinero aplicadas: **99/99**. Las diez
+últimas son suyas: seis de las de siempre en `budgets`, `expenses` y `quotes` —A crea, B
+no ve—, una de que B tampoco puede escribir un gasto en la familia de A, y las tres de
+los triggers de `expenses`, que rechazan un gasto cuyo presupuesto, hijo o miembro sea de
+otra casa. La de `budget_id` es la que había que ver fallar: apunta a una tabla nueva y
+su trigger se escribió con la sección.
 
-Lo anterior, sin pendientes. La última pasada es del **31-08-2026**, con `node scripts/validate-rls.mjs`
-contra la base real y ya con la tabla `notes` aplicada: **89/89**. Las tres últimas son
-suyas —A la crea, B no la ve, B no puede escribir una en la familia de A—, que es todo lo
+Antes de eso, la pasada del **31-08-2026** dio **89/89** con la tabla `notes`. Sus tres
+comprobaciones —A la crea, B no la ve, B no puede escribir una en la familia de A— son todo lo
 que hay que comprobar en una tabla cuya única defensa es la policy por `family_id`, y
 que importa porque es donde la familia escribe la clave del wifi. Antes fueron las 70 del esquema
 con los documentos en Drive más las nueve de **cerrar una familia** (§13): que no la

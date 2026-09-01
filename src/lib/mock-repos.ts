@@ -101,6 +101,28 @@ export const mockRepos: Repos = {
     deleteNote: (id) => Promise.resolve(store.deleteNote(id)),
   },
 
+  budgets: {
+    getBudgets:   (familyId) => Promise.resolve(store.getBudgets(familyId)),
+    createBudget: (familyId, draft) => Promise.resolve(store.createBudget(familyId, draft)),
+    updateBudget: (id, draft) => Promise.resolve(store.updateBudget(id, draft)),
+    deleteBudget: (id) => Promise.resolve(store.deleteBudget(id)),
+  },
+
+  expenses: {
+    getExpenses:   (familyId) => Promise.resolve(store.getExpenses(familyId)),
+    createExpense: (familyId, draft) => Promise.resolve(store.createExpense(familyId, draft)),
+    updateExpense: (id, draft) => Promise.resolve(store.updateExpense(id, draft)),
+    deleteExpense: (id) => Promise.resolve(store.deleteExpense(id)),
+  },
+
+  quotes: {
+    getQuotes:      (familyId) => Promise.resolve(store.getQuotes(familyId)),
+    createQuote:    (familyId, draft) => Promise.resolve(store.createQuote(familyId, draft)),
+    updateQuote:    (id, draft) => Promise.resolve(store.updateQuote(id, draft)),
+    deleteQuote:    (id) => Promise.resolve(store.deleteQuote(id)),
+    setQuoteStatus: (id, status) => Promise.resolve(store.setQuoteStatus(id, status)),
+  },
+
   documents: {
     getDocuments:    (familyId) => Promise.resolve(store.getDocuments(familyId)),
     createDocument:  (familyId, draft) => Promise.resolve(store.createDocument(familyId, draft)),

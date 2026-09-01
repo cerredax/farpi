@@ -258,6 +258,28 @@ Objetivo: preparar uso diario.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que no es un gestor de contraseñas.
 - [x] Aplicado en el SQL Editor del proyecto real y validado: `node scripts/validate-rls.mjs` da **89/89** (31-08-2026).
 
+## Fase 8d - Dinero (31-08-2026)
+
+La última idea de la lista: un apartado de presupuestos. En español eran dos, así que la
+sección lleva dos pestañas. El porqué de cada decisión está en `docs/architecture.md`,
+"Dinero: dos cosas que en español se llaman igual".
+
+- [x] Tres tablas (`budgets`, `expenses`, `quotes`) con RLS por familia, índices,
+      triggers de `updated_at` y los tres de integridad entre familias de `expenses`.
+- [x] Importes en **céntimos enteros**, con una sola conversión (`src/lib/money.ts`)
+      compartida por el mock y Supabase.
+- [x] Contratos `BudgetsRepo`, `ExpensesRepo` y `QuotesRepo`, y las dos
+      implementaciones (mock con `SCHEMA_VER` 13 y Supabase).
+- [x] Pantalla `/money`: el mes con sus topes, sus gastos y el reparto por persona; y
+      los presupuestos pedidos, agrupados y comparados.
+- [x] En "Más" con Notas y Documentos, y en `SideNav` en escritorio.
+- [x] En la copia de seguridad y en `/privacidad`, con el aviso de que Farpi no se
+      conecta a ningún banco.
+- [x] 73 unitarios nuevos (`money.spec.ts`, `budgets.spec.ts`) y dos flujos de navegador.
+- [ ] **Aplicar el esquema en el SQL Editor del proyecto real** y revalidar con
+      `node scripts/validate-rls.mjs`, añadiendo antes al arnés las comprobaciones de
+      las tres tablas. Hasta entonces la sección solo funciona en modo demo.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

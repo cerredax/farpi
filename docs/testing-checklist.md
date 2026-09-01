@@ -264,6 +264,43 @@ verdad, que es que el otro vea el documento sin conectar nada.
 - [ ] En escritorio las tarjetas van en rejilla (dos desde `lg`, tres desde `xl`) y una
       nota corta no se estira hasta el alto de la más larga de su fila.
 
+## 8c. Dinero
+
+Los datos de demo están sembrados en junio de 2026, así que el mes en curso arranca
+vacío: para ver gastos sembrados hay que ir hacia atrás con la flecha.
+
+**El mes**
+
+- [ ] Se ven los tres presupuestos de demo (Compra, Cosas de Ana, Casa) con su tope,
+      también los que no tienen ni un gasto ese mes.
+- [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su presupuesto, y el total de
+      arriba, sin recargar.
+- [ ] El importe entiende `24,90`, `24.90`, `1.234,56` y `24,90 €`, y se guarda exacto:
+      la fila y el tope dicen el mismo número.
+- [ ] Un importe imposible (`gratis`, `0`, dos millones) no deja guardar y el mensaje
+      distingue «no se entiende» de «como mucho un millón».
+- [ ] Pasarse del tope lo dice **con palabras** («Te has pasado por 40 €»), no solo con
+      el rojo, y la barra no se sale de la tarjeta.
+- [ ] Un gasto sin presupuesto se puede apuntar, no cuenta para ningún tope y la nota
+      de debajo de la lista lo dice.
+- [ ] Elegir quién lo pagó pinta su punto de color y su nombre en la fila, y suma en el
+      reparto de arriba. Sin elegir a nadie sale como «De casa».
+- [ ] Borrar un presupuesto **no borra sus gastos**: siguen en la lista, sin categoría.
+      El sheet lo avisa antes.
+- [ ] Las flechas cambian de mes, el mes vacío lo dice, y «Volver a este mes» aparece
+      solo cuando no estás en el actual.
+- [ ] Un gasto nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
+
+**Presupuestos pedidos**
+
+- [ ] Los tres de «Cambiar la caldera» salen juntos, de más barato a más caro, y el de
+      Clima Ruiz lleva «Más barato».
+- [ ] Aceptar uno deja el grupo en «Decidido» y retira la marca del más barato.
+- [ ] Descartar uno lo deja en gris y deja de poder ser el más barato.
+- [ ] Apuntar otro con el mismo título —escrito con otras mayúsculas o tildes— cae en el
+      mismo grupo, y el título ya usado se ofrece bajo el campo.
+- [ ] Un precio con fecha pasada dice «Caducó el…» y **no** se esconde.
+
 ## 9. Ajustes - familias
 
 - [ ] Se puede editar nombre de familia.

@@ -1,8 +1,10 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, MealSlot, List, ListItem, Document, Note,
+  Budget, Expense, Quote,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, DocumentDraft, NoteDraft, StorageConnection,
+  BudgetDraft, ExpenseDraft, QuoteDraft,
 } from '@/types'
 
 // ─── Contratos de repositorios ─────────────────────────────────────────────────
@@ -99,6 +101,38 @@ export interface NotesRepo {
   deleteNote(id: string): Promise<void>
 }
 
+/**
+ * Los topes de gasto al mes. Borrar uno **no borra sus gastos**: se quedan sin
+ * presupuesto (`budget_id` a null, que es lo que hace la clave ajena en la base),
+ * porque el dinero se gastó igual. El mock tiene que hacer lo mismo.
+ */
+export interface BudgetsRepo {
+  getBudgets(familyId: string): Promise<Budget[]>
+  createBudget(familyId: string, draft: BudgetDraft): Promise<Budget>
+  updateBudget(id: string, draft: BudgetDraft): Promise<void>
+  deleteBudget(id: string): Promise<void>
+}
+
+export interface ExpensesRepo {
+  getExpenses(familyId: string): Promise<Expense[]>
+  createExpense(familyId: string, draft: ExpenseDraft): Promise<Expense>
+  updateExpense(id: string, draft: ExpenseDraft): Promise<void>
+  deleteExpense(id: string): Promise<void>
+}
+
+export interface QuotesRepo {
+  getQuotes(familyId: string): Promise<Quote[]>
+  createQuote(familyId: string, draft: QuoteDraft): Promise<Quote>
+  updateQuote(id: string, draft: QuoteDraft): Promise<void>
+  deleteQuote(id: string): Promise<void>
+  /**
+   * Aceptar o descartar sin abrir el formulario entero. Es el gesto que se hace
+   * desde la propia fila —el mismo caso que `toggleTask`—: decidir entre tres
+   * presupuestos no debería obligar a pasar por un sheet con seis campos.
+   */
+  setQuoteStatus(id: string, status: Quote['status']): Promise<void>
+}
+
 export interface MealsRepo {
   getMeals(familyId: string): Promise<MealPlan[]>
   createMeal(familyId: string, draft: MealDraft): Promise<MealPlan>
@@ -153,6 +187,9 @@ export interface Repos {
   listItems: ListItemsRepo
   meals: MealsRepo
   notes: NotesRepo
+  budgets: BudgetsRepo
+  expenses: ExpensesRepo
+  quotes: QuotesRepo
   documents: DocumentsRepo
   storageProviders: StorageProvidersRepo
 }

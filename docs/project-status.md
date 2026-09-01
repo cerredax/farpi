@@ -1,12 +1,12 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-28.
+Última revisión: 2026-08-31.
 
 ## Resumen
 
 Farpi está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Farpi: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
-La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Lo que queda no es código de producto: dos comprobaciones baratas y funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
+La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado") y **un paso a mano pendiente**: las tres tablas de Dinero (31-08-2026) están en `supabase/schema.sql` pero todavía no aplicadas en el proyecto real, así que esa sección hoy solo funciona en modo demo.
 
 ## Implementado
 
@@ -69,6 +69,17 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   tarjeta, sin abrir nada. Vive en "Más", delante de Documentos, y **no sale en Inicio**:
   la clave del wifi no es de hoy, es de siempre. Ojo con lo que se guarda ahí: es texto
   plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
+- **Dinero** (31-08-2026): el gasto de la casa, en `/money`, con dos pestañas porque
+  "presupuesto" en español son dos cosas. **«El mes»**: topes de gasto por categoría
+  («Compra 300 €/mes»), los gastos que se van apuntando debajo —importe, fecha, qué fue,
+  de qué presupuesto sale y **quién lo pagó**— y el reparto de quién ha puesto cuánto. Las
+  barras dicen con palabras si te has pasado y por cuánto, no solo con el color. Se
+  navega por meses. **«Presupuestos»**: los que te pasan de fuera (el fontanero, el
+  dentista), agrupados por para qué son y ordenados de más barato a más caro, con el
+  barato marcado mientras el trabajo siga sin decidir; se aceptan o se descartan desde la
+  propia fila. Todo el dinero se guarda en **céntimos enteros**. No hay saldos entre
+  adultos ni conexión con ningún banco, y **no sale en Inicio**: es del mes, no de hoy.
+  Vive en "Más", con Notas y Documentos.
 - Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
   Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
   catorce días van en su bloque; el aviso de las siete felicita el mismo día.
@@ -78,7 +89,7 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Cuenta y Ajustes, por sitios distintos según el tamaño (28-08-2026). En escritorio, el
   pie de la barra lateral (`AccountFooter.tsx`): tu inicial y tu nombre como letrero, y
   debajo Ajustes y cerrar sesión, cada uno en su fila y a un clic. En móvil, **"Más"**, la
-  sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva Notas y Documentos —que
+  sexta pastilla de la barra de abajo (`MoreMenu.tsx`), que lleva Dinero, Notas y Documentos —que
   por eso no son pastillas—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
   Qué secciones caen ahí lo dice la bandera `enMas` de `secciones.ts`, que leen las dos
   barras: era un filtro escrito a mano y con dos secciones ya podía contradecirse.
@@ -163,15 +174,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **395 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **449 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 306 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 28-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo y, desde el 27-08-2026, el almacenamiento de documentos: caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado de los tokens). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 89 de navegador. La cifra sale de la pasada completa del 28-08-2026 (395 en total,
-    306 unitarios): ese día no se pudo correr con el dev server, porque había otro
-    ocupando la carpeta, y se corrió contra el build servido con `next start` en :3100
-    en modo demo, que es lo que hay que hacer cuando `npm run dev` está ocupado:
+  - 343 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 31-08-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, y los presupuestos —cuánto llevas, cuánto te has pasado, quién ha puesto qué y la agrupación de los presupuestos pedidos—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 106 de navegador. La cifra sale de la pasada completa del 31-08-2026 (449 en total,
+    343 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral y rejilla de comidas; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -217,7 +226,16 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **31-08-2026**, con `node scripts/validate-rls.mjs`
+**Pendiente (31-08-2026): aplicar en el SQL Editor las tres tablas de Dinero.**
+`supabase/schema.sql` ya las lleva —`budgets`, `expenses` y `quotes`, con sus índices,
+sus triggers de `updated_at`, los tres triggers de integridad entre familias de
+`expenses` y sus policies— pero **no están aplicadas en el proyecto real**: se aplican a
+mano, como todo el esquema. Hasta que se peguen, la sección funciona en modo demo y no
+contra Supabase. Después toca `node scripts/validate-rls.mjs` y anotar el resultado en
+`docs/supabase-validation.md`; el arnés todavía no las cubre, así que las comprobaciones
+de las tres tablas hay que añadirlas ahí.
+
+Lo anterior, sin pendientes. La última pasada es del **31-08-2026**, con `node scripts/validate-rls.mjs`
 contra la base real y ya con la tabla `notes` aplicada: **89/89**. Las tres últimas son
 suyas —A la crea, B no la ve, B no puede escribir una en la familia de A—, que es todo lo
 que hay que comprobar en una tabla cuya única defensa es la policy por `family_id`, y

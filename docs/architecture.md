@@ -1178,6 +1178,96 @@ se hace es decirlo donde se lee: el sheet lo avisa bajo el campo de contenido y
 `/privacidad` lo repite. Sirve para la clave del wifi de casa; no es un gestor de
 contraseñas.
 
+### Dinero: dos cosas que en español se llaman igual (31-08-2026)
+
+"Presupuesto" en una casa española son dos cosas distintas: lo que te puedes gastar al mes
+en la compra, y el papel que te pasa el fontanero. No se parecen en nada por dentro —una
+es una cuenta que corre todo el mes, la otra una decisión que se toma una vez— pero las
+dos contestan a "¿qué pasa con el dinero de casa?". Van en la misma sección, `/money`, con
+**dos pestañas**: «El mes» y «Presupuestos». Separarlas en dos entradas de la navegación
+habría dejado la app con nueve sitios a los que entrar; mezclarlas en una lista habría
+hecho ilegibles las dos.
+
+La sección se llama **Dinero** y no «Presupuestos» justo por eso: si el contenedor se
+llamara igual que una de las dos mitades, la otra parecería estar de prestado.
+
+**Tres tablas: `budgets`, `expenses`, `quotes`.** No se tocan entre ellas salvo
+`expenses.budget_id`, que es opcional. Comparten pantalla, no modelo.
+
+**Todo el dinero va en céntimos, en `integer`.** Ni coma flotante —0,1 + 0,2 da
+0,30000000000000004, y un céntimo de más convierte "llevas 300,01 de 300" en un
+presupuesto incumplido— ni `numeric`, que llegaría a JavaScript como cadena. El texto que
+se teclea lo convierte `parseAmountToCents` (`src/lib/money.ts`) en **un solo sitio**, y
+lo llaman los dos lados de la frontera: si el mock y Supabase convirtieran cada uno por su
+cuenta, "12,50" acabaría valiendo distinto según el modo. El formato también se escribe a
+mano en vez de con `Intl.NumberFormat`, que mete un espacio duro cuya forma cambia con la
+versión de ICU: el mismo importe tiene que leerse igual en un test y en un móvil.
+
+**El tope de un presupuesto no es por mes.** Una fila por categoría, no una por categoría y
+mes. Se valoró lo segundo —permitiría "en diciembre gastamos más"— y se descartó: obliga a
+"abrir septiembre" cada treinta días, que es el trabajo administrativo que esta app existe
+para no pedir. Cambiar el tope vale desde ya y no toca lo apuntado.
+
+**Un presupuesto no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
+(ver "Asignación de eventos, tareas y documentos"), y un presupuesto no es de nadie:
+dárselo lo haría indistinguible de una persona en la misma pantalla donde sí hay personas.
+Lo que sí lleva color es quién pagó cada gasto, que es exactamente el significado de
+siempre.
+
+**Quién pagó reutiliza `child_id` + `member_id`**, el mismo par excluyente de eventos,
+tareas y documentos. Así vale el mismo `AssigneePicker`, los mismos triggers de integridad
+entre familias y la misma lectura: los dos a null es "de la casa", el caso normal de la
+cuenta común, no un hueco sin rellenar.
+
+**Se ve el reparto, nunca un saldo.** La pantalla dice "Omar 60 €, Sofía 20 €" y ahí se
+para. Nada de "Sofía te debe 40 €": en cuanto una app de casa lleva la cuenta de quién
+debe a quién deja de ser una app de casa y pasa a ser un árbitro. Con el reparto delante
+ya se sabe a quién le toca la próxima compra grande.
+
+**Borrar un presupuesto no borra sus gastos.** Se quedan, con `budget_id` a null, bajo
+«Sin presupuesto». Lo hace la clave ajena (`on delete set null`) y el mock lo imita a mano.
+Perder el histórico de agosto por reorganizar las categorías en septiembre sería el peor
+modo posible de fallar, y "sin presupuesto" es además un estado legítimo: la mitad de los
+gastos de una casa no caen en ninguna categoría, y obligar a elegir una hace que se
+apunten mal o que no se apunten.
+
+**"Te has pasado" se dice con palabras.** La barra se pone roja, pero lo que lleva el
+mensaje es el texto: "te has pasado por 40 €". Es la misma regla que ordena el color en
+todo el proyecto —el color acompaña, nunca es lo único—, y aquí importa dos veces porque
+una barra llena de rojo y una llena de verde son la misma barra para quien no distingue
+los dos. La barra además se recorta al 100 %: pasarse un 300 % no dibuja una barra que se
+sale de la tarjeta; cuánto es exactamente lo dice el texto.
+
+**Los presupuestos pedidos se agrupan por para qué son.** `title` es el trabajo ("Cambiar
+la caldera") y `provider` quién lo da ("Fontanería López"): la pantalla agrupa por el
+primero y así los tres de la caldera salen juntos, ordenados de más barato a más caro, que
+es como se leen tres precios que se comparan. Se descartó una tabla de trabajos y otra de
+proveedores —dos tablas más para que una casa apunte tres presupuestos al año— y en su
+lugar el formulario ofrece los títulos ya usados; aun así la agrupación no depende de
+escribirlo clavado, porque compara sin tildes, sin mayúsculas y sin espacios de más.
+
+**El más barato se marca solo mientras el trabajo sigue abierto.** Marcarlo en uno ya
+decidido sería un reproche —"el que aceptaste no era el barato"— y esa decisión ya está
+tomada, a veces por razones que la app no sabe: que vinieran antes, que los conozcas. Un
+descartado tampoco puede ser el más barato, y con un solo presupuesto no se marca nada
+porque no hay comparación.
+
+**Un precio caducado se dice, no se esconde ni se tacha.** Sigue sirviendo para comparar
+—el fontanero suele repetirlo— y ocultarlo dejaría un hueco sin explicar en una comparación
+de tres. «Caducado» no es un estado que nadie marque a mano: sale de comparar `valid_until`
+con hoy, igual que se hace con los documentos.
+
+**No sale en Inicio**, por lo mismo que las notas: Inicio contesta "¿qué tenemos que saber
+hoy?", y "llevas 180 de 300 en la compra" es del mes, no de hoy. Meterlo ahí convertiría la
+primera pantalla en un cuadro de mandos.
+
+**Va en "Más"**, con Notas y Documentos. Las cinco pastillas de abajo son las cinco
+pantallas de todos los días.
+
+**Farpi no se conecta a ningún banco** y no lo va a hacer: nada de números de cuenta, de
+tarjeta ni credenciales. Todo lo de esta sección lo escribe la familia a mano, y así lo
+dice `/privacidad`.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

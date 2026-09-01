@@ -1,7 +1,7 @@
 import { ALL_MEAL_SLOTS } from '../meal-slots'
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, List, ListItem, Document, Note,
+  MealPlan, List, ListItem, Document, Note, Budget, Expense, Quote,
 } from '@/types'
 
 interface DB {
@@ -15,6 +15,9 @@ interface DB {
   listItems: ListItem[]
   mealPlans: MealPlan[]
   notes:     Note[]
+  budgets:   Budget[]
+  expenses:  Expense[]
+  quotes:    Quote[]
   documents: Document[]
 }
 
@@ -110,6 +113,34 @@ export const db: DB = {
     { id: 'n2', family_id: 'f1', title: 'Teléfonos útiles', body: 'Pediatra Ana: 985 12 34 56\nCentro de salud: 985 65 43 21\nFarmacia de guardia: 985 11 22 33', emoji: '☎️', pinned: true, created_by: 'u2', created_at: '2026-06-04T09:00:00', updated_at: '2026-06-16T19:00:00' },
     { id: 'n3', family_id: 'f1', title: 'Tallas de Ana', body: 'Ropa: 0-3 meses. Pañal: talla 1. Pie: aún sin calzado.', emoji: '👕', pinned: false, created_by: 'u2', created_at: '2026-06-10T18:00:00', updated_at: '2026-06-17T08:00:00' },
     { id: 'n4', family_id: 'f1', title: 'Contador de la luz', body: 'Está en el rellano, a la izquierda. La llave pequeña del llavero azul.', emoji: '💡', pinned: false, created_by: 'u1', created_at: '2026-06-12T20:00:00', updated_at: '2026-06-12T20:00:00' },
+  ],
+
+  // El dinero de la casa. Los importes van en céntimos, como en la base.
+  budgets: [
+    { id: 'b1', family_id: 'f1', name: 'Compra',     emoji: '🛒', monthly_limit_cents: 40000, sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'b2', family_id: 'f1', name: 'Cosas de Ana', emoji: '👶', monthly_limit_cents: 15000, sort_order: 1, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'b3', family_id: 'f1', name: 'Casa',       emoji: '🏠', monthly_limit_cents: 12000, sort_order: 2, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+  ],
+
+  expenses: [
+    { id: 'g1', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm1', amount_cents: 6240, date: '2026-06-16', description: 'Compra semanal',            created_by: 'u1', created_at: '2026-06-16T19:30:00', updated_at: '2026-06-16T19:30:00' },
+    { id: 'g2', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm2', amount_cents: 1815, date: '2026-06-14', description: 'Fruta y verdura',           created_by: 'u2', created_at: '2026-06-14T11:00:00', updated_at: '2026-06-14T11:00:00' },
+    { id: 'g3', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: 'm1', amount_cents: 3450, date: '2026-06-15', description: 'Pañales y toallitas',       created_by: 'u1', created_at: '2026-06-15T18:00:00', updated_at: '2026-06-15T18:00:00' },
+    { id: 'g4', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: null, amount_cents: 2990, date: '2026-06-12', description: 'Body y muselinas',          created_by: 'u2', created_at: '2026-06-12T17:00:00', updated_at: '2026-06-12T17:00:00' },
+    { id: 'g5', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm2', amount_cents: 8900, date: '2026-06-10', description: 'Cambiador para el salón',   created_by: 'u2', created_at: '2026-06-10T12:00:00', updated_at: '2026-06-10T12:00:00' },
+    { id: 'g6', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm1', amount_cents: 4520, date: '2026-06-17', description: 'Bombillas y pilas',         created_by: 'u1', created_at: '2026-06-17T09:00:00', updated_at: '2026-06-17T09:00:00' },
+    // Sin presupuesto: la farmacia no la presupuestó nadie y sale igual, bajo
+    // "Sin presupuesto". Es el caso que hay que poder ver en demo.
+    { id: 'g7', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm2', amount_cents: 1230, date: '2026-06-16', description: 'Farmacia: vitamina D',      created_by: 'u2', created_at: '2026-06-16T20:00:00', updated_at: '2026-06-16T20:00:00' },
+  ],
+
+  // Tres para lo mismo (la caldera) y uno ya aceptado: es justo la forma que
+  // tiene que poder verse en la pantalla sin apuntar nada.
+  quotes: [
+    { id: 'p1', family_id: 'f1', title: 'Cambiar la caldera', provider: 'Fontanería López', amount_cents: 240000, status: 'pedido',    valid_until: '2026-09-15', notes: 'Incluye instalación y retirada de la vieja', created_by: 'u1', created_at: '2026-06-10T10:00:00', updated_at: '2026-06-10T10:00:00' },
+    { id: 'p2', family_id: 'f1', title: 'Cambiar la caldera', provider: 'Clima Ruiz',       amount_cents: 215000, status: 'pedido',    valid_until: '2026-09-10', notes: null,                                        created_by: 'u1', created_at: '2026-06-11T10:00:00', updated_at: '2026-06-11T10:00:00' },
+    { id: 'p3', family_id: 'f1', title: 'Cambiar la caldera', provider: 'Gas y Hogar',      amount_cents: 268000, status: 'descartado', valid_until: null,       notes: 'Tardaban un mes en venir',                   created_by: 'u2', created_at: '2026-06-12T10:00:00', updated_at: '2026-06-12T10:00:00' },
+    { id: 'p4', family_id: 'f1', title: 'Pintar el salón',    provider: 'Pinturas Nieto',   amount_cents: 62000,  status: 'aceptado',  valid_until: null,        notes: 'Empiezan en septiembre',                     created_by: 'u1', created_at: '2026-06-05T10:00:00', updated_at: '2026-06-14T10:00:00' },
   ],
 
   documents: [

@@ -15,6 +15,68 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-08-31
 
+### Dinero, la última idea de la lista (31-08-2026)
+
+Quedaba una sola cosa por hacer en el roadmap: «un apartado de presupuestos». Y la
+primera media hora se fue en algo que no era código: **en español eso son dos cosas**.
+Está el presupuesto de la compra —cuánto nos podemos gastar este mes— y está el
+presupuesto del fontanero —el papel con un precio y una fecha de validez—. Son la misma
+palabra y no se parecen en nada: una es una cuenta que corre treinta días, la otra una
+decisión que se toma una vez. Preguntado, salieron las dos.
+
+Podían haber sido dos secciones. No lo son porque la barra de navegación ya tiene ocho
+sitios y una novena entrada por algo que se usa tres veces al año no se sostiene; y
+tampoco una lista mezclada, donde un tope mensual y un precio de caldera se leen fatal
+juntos. La salida fue **una sección con dos pestañas**, y llamarla **Dinero** en vez de
+«Presupuestos»: si el contenedor se llama igual que una de sus dos mitades, la otra
+parece estar de prestado.
+
+**Lo que costó decidir, no escribir.** Tres cosas:
+
+- **El tope no es por mes.** La tentación era una fila por categoría y mes, que permite
+  «en diciembre gastamos más». Se descartó: obliga a abrir septiembre cada treinta días,
+  y ese trabajo administrativo es justo lo que esta app existe para no pedir. El tope
+  vale hasta que se cambie.
+- **Se ve el reparto, nunca un saldo.** El gasto lleva quién lo pagó, y la pantalla suma
+  «Omar 60 €, Sofía 20 €». Ahí se para. En cuanto una app de casa escribe «Sofía te debe
+  40 €» deja de ser una app de casa y pasa a ser un árbitro, y eso no lo pidió nadie.
+- **Borrar un presupuesto no borra sus gastos.** Pasan a «Sin presupuesto». Lo hace el
+  `on delete set null` de la clave ajena y el mock lo imita a mano. Perder el histórico
+  de agosto por reordenar las categorías en septiembre habría sido el peor modo posible
+  de fallar.
+
+**Los céntimos.** Todo el dinero se guarda en `integer`, y la conversión de lo que se
+teclea vive en un solo archivo (`src/lib/money.ts`) que llaman las dos implementaciones
+del contrato. Es la clase de cosa que, escrita dos veces, hace que «12,50» valga 1250 en
+modo demo y 12,5 contra Supabase y nadie se entere hasta que las cuentas no cuadran. El
+formato también se escribe a mano en vez de con `Intl.NumberFormat`, que mete un espacio
+duro cuya forma depende de la versión de ICU del navegador: el mismo importe tiene que
+leerse igual en una aserción y en un móvil. El parser acepta coma y punto porque el
+teclado de cada móvil ofrece uno u otro, y distingue `1.234` (miles) de `1,50`
+(decimales) por cuántas cifras van detrás.
+
+**Lo que encontró la suite y no habría encontrado nadie mirando.** Dos cosas, y las dos
+en la primera pasada completa:
+
+- Los **tres sheets** de la pantalla cuelgan del mismo padre, y las demás pantallas usan
+  `key="create"` para el suyo porque solo tienen uno. Aquí eso daba dos hermanos con la
+  misma clave, que React canta por consola y que `runtime.spec.ts` convierte en suite
+  caída. Ahora cada clave lleva delante de qué sheet es.
+- El enlace «Nuevo presupuesto» medía 126×16 px y el mínimo de `movil.spec.ts` son 24
+  (WCAG 2.5.8). Se arregló con relleno y un margen negativo, que agranda la zona de toque
+  sin mover el texto de su línea.
+
+**Lo que la máquina puso de su parte.** A mitad de sesión los tests dejaron de arrancar
+con «out of memory»: había **1900 procesos `node` huérfanos** (26 GB) que había dejado un
+`npm run test:e2e` anterior, todos workers de dev de este proyecto. Se cerraron uno a uno
+filtrando por línea de comandos, y con la carpeta `.next` corrupta por medio hubo que
+borrarla entera. No es un problema del código, pero conviene tenerlo apuntado: si el dev
+server no levanta, mirar cuántos `node` hay vivos antes de buscar la causa en otro sitio.
+
+Queda un paso que no se puede dar desde aquí: **aplicar las tres tablas en el SQL Editor**
+del proyecto real y revalidar la RLS. Hasta entonces la sección funciona en modo demo y
+no contra Supabase.
+
 ### De Nido a Farpi (31-08-2026)
 
 Cambio de nombre, y solo de nombre: ni una pantalla, ni un flujo, ni el icono. Lo que

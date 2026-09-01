@@ -1,4 +1,4 @@
-import type { DocCategory, DocMimeType, MealSlot, TaskPriority, TaskRecurrence } from '@/types'
+import type { DocCategory, DocMimeType, MealSlot, QuoteStatus, TaskPriority, TaskRecurrence } from '@/types'
 
 // ─── Documentos ───────────────────────────────────────────────────────────────
 
@@ -226,6 +226,18 @@ export const DIAS_AVISO_CUMPLE = 14
  */
 export const ANOS_DE_CUMPLE = 20
 
+// ─── Dinero ───────────────────────────────────────────────────────────────────
+
+/**
+ * En qué anda cada presupuesto pedido, con el nombre que se lee en la pantalla.
+ * El orden es el del ciclo: se pide, y luego se acepta o se descarta.
+ */
+export const QUOTE_STATUSES: { value: QuoteStatus; label: string; corto: string }[] = [
+  { value: 'pedido',     label: 'Pedido',     corto: 'Decidiendo' },
+  { value: 'aceptado',   label: 'Aceptado',   corto: 'Aceptado' },
+  { value: 'descartado', label: 'Descartado', corto: 'Descartado' },
+]
+
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {
@@ -234,6 +246,7 @@ export const ROUTES = {
   tasks:    '/tasks',
   lists:    '/lists',
   meals:    '/meals',
+  money:    '/money',
   notes:    '/notes',
   docs:     '/docs',
   settings: '/settings',

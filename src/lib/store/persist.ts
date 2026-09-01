@@ -23,7 +23,7 @@ function migrarClaveVieja(): void {
     localStorage.removeItem(STORAGE_KEY_NIDO)
   } catch { /* ignore */ }
 }
-const SCHEMA_VER  = 12 // v12: notes (lo que hay que tener apuntado y no es fecha, tarea ni papel)
+const SCHEMA_VER  = 13 // v13: budgets, expenses y quotes (el dinero de la casa)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return
@@ -48,6 +48,9 @@ export function loadFromStorage(): void {
     if (Array.isArray(d.listItems)) db.listItems = d.listItems
     if (Array.isArray(d.mealPlans)) db.mealPlans = d.mealPlans
     if (Array.isArray(d.notes))     db.notes     = d.notes
+    if (Array.isArray(d.budgets))   db.budgets   = d.budgets
+    if (Array.isArray(d.expenses))  db.expenses  = d.expenses
+    if (Array.isArray(d.quotes))    db.quotes    = d.quotes
     if (Array.isArray(d.documents)) db.documents = d.documents
   } catch {
     localStorage.removeItem(STORAGE_KEY)
@@ -69,6 +72,9 @@ export function persistAll(): void {
       listItems: db.listItems,
       mealPlans: db.mealPlans,
       notes:     db.notes,
+      budgets:   db.budgets,
+      expenses:  db.expenses,
+      quotes:    db.quotes,
       documents: db.documents,
     }))
   } catch { /* ignore */ }

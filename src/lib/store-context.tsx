@@ -9,12 +9,16 @@ import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './sele
 import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
 import type { Repos } from './repos/types'
 import type {
+  Budget,
+  BudgetDraft,
   Child,
   ChildDraft,
   Document,
   DocumentDraft,
   Event,
   EventDraft,
+  Expense,
+  ExpenseDraft,
   Family,
   FamilyInvite,
   FamilyMember,
@@ -28,6 +32,9 @@ import type {
   Note,
   NoteDraft,
   PendingItem,
+  Quote,
+  QuoteDraft,
+  QuoteStatus,
   StorageConnection,
   Task,
   TaskDraft,
@@ -74,6 +81,9 @@ interface StoreValue {
   allListItems: ListItem[]
   meals: MealPlan[]
   notes: Note[]
+  budgets: Budget[]
+  expenses: Expense[]
+  quotes: Quote[]
   documents: Document[]
   /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
   mealSlots: MealSlot[]
@@ -116,6 +126,17 @@ interface StoreValue {
   createNote: (draft: NoteDraft) => Promise<void>
   updateNote: (id: string, draft: NoteDraft) => Promise<void>
   deleteNote: (id: string) => Promise<void>
+  createBudget: (draft: BudgetDraft) => Promise<void>
+  updateBudget: (id: string, draft: BudgetDraft) => Promise<void>
+  /** Borra el tope. Sus gastos se quedan, sin presupuesto. */
+  deleteBudget: (id: string) => Promise<void>
+  createExpense: (draft: ExpenseDraft) => Promise<void>
+  updateExpense: (id: string, draft: ExpenseDraft) => Promise<void>
+  deleteExpense: (id: string) => Promise<void>
+  createQuote: (draft: QuoteDraft) => Promise<void>
+  updateQuote: (id: string, draft: QuoteDraft) => Promise<void>
+  deleteQuote: (id: string) => Promise<void>
+  setQuoteStatus: (id: string, status: QuoteStatus) => Promise<void>
   createDocument: (draft: DocumentDraft) => Promise<void>
   updateDocument: (id: string, draft: DocumentDraft) => Promise<void>
   deleteDocument: (id: string) => Promise<void>
@@ -153,6 +174,9 @@ const EMPTY_SLICES = {
   allListItems: [] as ListItem[],
   meals: [] as MealPlan[],
   notes: [] as Note[],
+  budgets: [] as Budget[],
+  expenses: [] as Expense[],
+  quotes: [] as Quote[],
   documents: [] as Document[],
 }
 
@@ -174,6 +198,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [allListItems, setListItems] = useState<ListItem[]>(EMPTY_SLICES.allListItems)
   const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
   const [notes, setNotes] = useState<Note[]>(EMPTY_SLICES.notes)
+  const [budgets, setBudgets] = useState<Budget[]>(EMPTY_SLICES.budgets)
+  const [expenses, setExpenses] = useState<Expense[]>(EMPTY_SLICES.expenses)
+  const [quotes, setQuotes] = useState<Quote[]>(EMPTY_SLICES.quotes)
   const [documents, setDocuments] = useState<Document[]>(EMPTY_SLICES.documents)
   const [storageConnection, setStorageConnection] = useState<StorageConnection | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -194,6 +221,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         nextListItems,
         nextMeals,
         nextNotes,
+        nextBudgets,
+        nextExpenses,
+        nextQuotes,
         nextDocuments,
         nextUserId,
       ] = await Promise.all([
@@ -208,6 +238,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         repos.listItems.getListItems(familyId),
         repos.meals.getMeals(familyId),
         repos.notes.getNotes(familyId),
+        repos.budgets.getBudgets(familyId),
+        repos.expenses.getExpenses(familyId),
+        repos.quotes.getQuotes(familyId),
         repos.documents.getDocuments(familyId),
         repos.members.getCurrentUserId(),
       ])
@@ -230,6 +263,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       setListItems(nextListItems)
       setMeals(nextMeals)
       setNotes(nextNotes)
+      setBudgets(nextBudgets)
+      setExpenses(nextExpenses)
+      setQuotes(nextQuotes)
       setDocuments(nextDocuments)
       setCurrentUserId(nextUserId)
     } catch (err) {
@@ -372,6 +408,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       allListItems,
       meals,
       notes,
+      budgets,
+      expenses,
+      quotes,
       documents,
       mealSlots,
       todayMeals,
@@ -477,6 +516,16 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createNote: (draft: NoteDraft) => runMutation(() => repos.notes.createNote(familyId, draft)),
       updateNote: (id: string, draft: NoteDraft) => runMutation(() => repos.notes.updateNote(id, draft)),
       deleteNote: (id: string) => runMutation(() => repos.notes.deleteNote(id)),
+      createBudget: (draft: BudgetDraft) => runMutation(() => repos.budgets.createBudget(familyId, draft)),
+      updateBudget: (id: string, draft: BudgetDraft) => runMutation(() => repos.budgets.updateBudget(id, draft)),
+      deleteBudget: (id: string) => runMutation(() => repos.budgets.deleteBudget(id)),
+      createExpense: (draft: ExpenseDraft) => runMutation(() => repos.expenses.createExpense(familyId, draft)),
+      updateExpense: (id: string, draft: ExpenseDraft) => runMutation(() => repos.expenses.updateExpense(id, draft)),
+      deleteExpense: (id: string) => runMutation(() => repos.expenses.deleteExpense(id)),
+      createQuote: (draft: QuoteDraft) => runMutation(() => repos.quotes.createQuote(familyId, draft)),
+      updateQuote: (id: string, draft: QuoteDraft) => runMutation(() => repos.quotes.updateQuote(id, draft)),
+      deleteQuote: (id: string) => runMutation(() => repos.quotes.deleteQuote(id)),
+      setQuoteStatus: (id: string, status: QuoteStatus) => runMutation(() => repos.quotes.setQuoteStatus(id, status)),
       createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
       updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),
@@ -508,6 +557,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     allListItems,
     meals,
     notes,
+    budgets,
+    expenses,
+    quotes,
     documents,
     mealSlots,
     todayMeals,

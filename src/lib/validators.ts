@@ -1,6 +1,10 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
 import { isRangeKind } from './events'
-import type { ChildDraft, EventDraft, TaskDraft, MealDraft, ListDraft, ListItemDraft, NoteDraft } from '@/types'
+import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './money'
+import type {
+  BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, TaskDraft, MealDraft,
+  ListDraft, ListItemDraft, NoteDraft, QuoteDraft,
+} from '@/types'
 
 // ─── Email ────────────────────────────────────────────────────────────────────
 
@@ -114,6 +118,49 @@ export function validateListItemDraft(draft: ListItemDraft): string | null {
 export function validateNoteDraft(draft: NoteDraft): string | null {
   if (!draft.title.trim()) return 'El título de la nota no puede estar vacío.'
   return null
+}
+
+// ─── Dinero ───────────────────────────────────────────────────────────────────
+
+/**
+ * Un importe tecleado, validado una sola vez para las tres cosas que llevan
+ * dinero. El mensaje distingue los dos fallos posibles porque no se arreglan
+ * igual: uno es no entender lo escrito, y el otro es entenderlo perfectamente y
+ * que sea absurdo.
+ */
+function validateImporte(texto: string, queEs: string): string | null {
+  if (!texto.trim()) return `Pon ${queEs}.`
+  // Sin tope aquí: pasarse es un error distinto de no entenderse, y decir "no
+  // parece correcto" ante un número perfectamente escrito de dos millones no
+  // ayuda a nadie a arreglarlo.
+  const centimos = parseAmountToCentsBruto(texto)
+  if (centimos === null) return 'El importe no parece correcto. Prueba con algo como 24,90.'
+  if (centimos > MAX_CENTIMOS) return `Como mucho ${formatCentsCorto(MAX_CENTIMOS)}.`
+  return null
+}
+
+export function validateBudgetDraft(draft: BudgetDraft): string | null {
+  if (!draft.name.trim()) return 'El presupuesto necesita un nombre.'
+  return validateImporte(draft.monthly_limit, 'cuánto se puede gastar al mes')
+}
+
+/**
+ * Un gasto necesita importe y fecha, y nada más. La descripción es opcional a
+ * propósito: la mitad de los gastos de una casa son "la compra" y obligar a
+ * escribirlo cada vez es la clase de fricción que hace que se deje de apuntar,
+ * que es el único modo en que esta pantalla falla de verdad.
+ */
+export function validateExpenseDraft(draft: ExpenseDraft): string | null {
+  const importe = validateImporte(draft.amount, 'cuánto ha sido')
+  if (importe) return importe
+  if (!draft.date) return 'La fecha es obligatoria.'
+  return null
+}
+
+export function validateQuoteDraft(draft: QuoteDraft): string | null {
+  if (!draft.title.trim()) return 'Di para qué es el presupuesto.'
+  if (!draft.provider.trim()) return 'Di quién te lo ha pasado.'
+  return validateImporte(draft.amount, 'cuánto cuesta')
 }
 
 // ─── Vuelta al sitio después de entrar ────────────────────────────────────────

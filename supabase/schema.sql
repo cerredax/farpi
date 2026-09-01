@@ -210,6 +210,106 @@ create table if not exists public.notes (
   updated_at  timestamptz not null default now()
 );
 
+-- ----------------------------------------------------------------------------
+-- Dinero: presupuestos, gastos y presupuestos pedidos fuera
+-- ----------------------------------------------------------------------------
+--
+-- Tres tablas para dos preguntas distintas que en español se llaman igual.
+-- `budgets` + `expenses` contestan «¿vamos bien este mes?»; `quotes` contesta
+-- «¿cuál de los tres presupuestos de la caldera aceptamos?». Comparten pantalla
+-- y nada más: ni claves ajenas entre ellas ni columnas comunes.
+--
+-- **Todo el dinero va en céntimos, en `integer`.** Ni `float`, que redondea
+-- mal, ni `numeric`, que llegaría a JavaScript como cadena y habría que
+-- convertirlo en cada lectura. Un `integer` aguanta 21 millones de euros en
+-- céntimos, muy por encima del tope de un millón que ponen los `check`.
+
+-- Cuánto se quiere gastar al mes en algo. El tope es **fijo y no por mes**: una
+-- fila por categoría, no una por categoría y mes. Poner el tope de septiembre
+-- sería una tarea administrativa cada treinta días, que es justo lo que esta app
+-- existe para no pedir; quien quiera cambiarlo lo cambia y vale desde ya.
+--
+-- Sin color, a propósito: en Farpi el color dice **de quién** es algo, y un
+-- presupuesto no es de nadie. Lo que lo distingue de un vistazo es su emoji, como
+-- en las listas.
+create table if not exists public.budgets (
+  id                  uuid primary key default uuid_generate_v4(),
+  family_id           uuid not null references public.families(id) on delete cascade,
+  name                text not null,
+  emoji               text,
+  monthly_limit_cents integer not null,
+  sort_order          integer not null default 0,
+  created_by          uuid references auth.users(id) on delete set null,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now(),
+  -- Un tope de cero no es un tope, es un presupuesto que nace incumplido. El
+  -- techo de un millón de euros está para que un dedo torpe en el teclado
+  -- numérico no deje una barra de progreso que no se puede ni pintar.
+  constraint budgets_limite_valido check (monthly_limit_cents between 1 and 100000000)
+);
+
+-- Un gasto de la casa. Lo que hace que el tope de arriba signifique algo.
+--
+-- `budget_id` es opcional y se queda a null si se borra el presupuesto: el gasto
+-- pasó de verdad y no se borra porque su categoría desaparezca. La pantalla los
+-- junta bajo «Sin presupuesto», que además es el sitio donde se ven los gastos
+-- de las cosas que nadie presupuestó.
+--
+-- `child_id` y `member_id` son **quién lo pagó**, con la misma forma que en
+-- eventos, tareas y documentos: como mucho uno de los dos, y los dos a null
+-- significa «de la casa», no «no se sabe». Se reutiliza el par de columnas de
+-- siempre para que valga el mismo selector de personas y las mismas reglas de
+-- integridad, en vez de inventar un tercer modo de señalar a alguien.
+create table if not exists public.expenses (
+  id           uuid primary key default uuid_generate_v4(),
+  family_id    uuid not null references public.families(id) on delete cascade,
+  budget_id    uuid references public.budgets(id) on delete set null,
+  child_id     uuid references public.children(id) on delete set null,
+  member_id    uuid references public.family_members(id) on delete set null,
+  amount_cents integer not null,
+  date         date not null,
+  description  text,
+  created_by   uuid references auth.users(id) on delete set null,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  -- Un gasto de cero euros no es un gasto. Los negativos tampoco entran: una
+  -- devolución contada como gasto negativo haría que «llevamos 180 de 300» dejara
+  -- de poder leerse de un vistazo, y una casa no lleva contabilidad de partida
+  -- doble.
+  constraint expenses_importe_valido check (amount_cents between 1 and 100000000),
+  constraint expenses_una_sola_asignacion check (child_id is null or member_id is null)
+);
+
+-- Lo que te pasa el fontanero, el dentista o la academia. Es la otra mitad de la
+-- palabra «presupuesto» y una tabla aparte porque no tiene nada que ver con el
+-- gasto del mes: aquí todavía no se ha pagado nada.
+--
+-- Comparar dos o tres para lo mismo es el 90 % de para qué sirve, y por eso el
+-- «para qué» (`title`) y el «quién lo da» (`provider`) son columnas distintas: la
+-- pantalla agrupa por título y así los tres de la caldera salen juntos, con el
+-- más barato marcado. Sin tabla de trabajos ni de proveedores — dos tablas más
+-- para que una casa apunte tres presupuestos al año no sale a cuenta, y el
+-- formulario ofrece los títulos que ya existen para que no haya que teclearlos
+-- bien dos veces.
+create table if not exists public.quotes (
+  id           uuid primary key default uuid_generate_v4(),
+  family_id    uuid not null references public.families(id) on delete cascade,
+  title        text not null,
+  provider     text not null,
+  amount_cents integer not null,
+  status       text not null default 'pedido',
+  valid_until  date,
+  notes        text,
+  created_by   uuid references auth.users(id) on delete set null,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  constraint quotes_importe_valido check (amount_cents between 1 and 100000000),
+  -- Tres estados y no más: se pide, se acepta o se descarta. «Caducado» no es un
+  -- estado que nadie tenga que marcar a mano, lo dice `valid_until` comparado con
+  -- hoy.
+  constraint quotes_estado_valido check (status in ('pedido', 'aceptado', 'descartado'))
+);
+
 -- Qué se come. Una comida por familia, día y franja: el `unique` es lo que deja
 -- que la pantalla escriba sin preguntar antes si ya había algo.
 create table if not exists public.meal_plans (
@@ -360,6 +460,17 @@ create index if not exists list_items_list_idx      on public.list_items(list_id
 create index if not exists notes_family_idx         on public.notes(family_id, pinned desc, updated_at desc);
 create index if not exists meal_plans_family_date_idx on public.meal_plans(family_id, date);
 
+-- El gasto se lee siempre por mes y de lo más reciente a lo más viejo, que es
+-- justo este orden. Los presupuestos, por su orden de la pantalla.
+create index if not exists budgets_family_idx        on public.budgets(family_id, sort_order);
+create index if not exists expenses_family_date_idx  on public.expenses(family_id, date desc);
+create index if not exists idx_expenses_budget       on public.expenses(budget_id);
+create index if not exists idx_expenses_member       on public.expenses(member_id);
+create index if not exists idx_expenses_child        on public.expenses(child_id);
+-- Los presupuestos pedidos se agrupan por «para qué es», así que se piden ya
+-- juntos por título.
+create index if not exists quotes_family_idx         on public.quotes(family_id, title, amount_cents);
+
 create index if not exists documents_family_idx   on public.documents(family_id, created_at desc);
 create index if not exists idx_documents_member    on public.documents(member_id);
 create index if not exists idx_documents_expires   on public.documents(family_id, expires_on);
@@ -399,6 +510,9 @@ drop trigger if exists set_families_updated_at   on public.families;
 drop trigger if exists set_events_updated_at     on public.events;
 drop trigger if exists set_lists_updated_at      on public.lists;
 drop trigger if exists set_notes_updated_at      on public.notes;
+drop trigger if exists set_budgets_updated_at    on public.budgets;
+drop trigger if exists set_expenses_updated_at   on public.expenses;
+drop trigger if exists set_quotes_updated_at     on public.quotes;
 drop trigger if exists set_meal_plans_updated_at on public.meal_plans;
 drop trigger if exists set_documents_updated_at  on public.documents;
 drop trigger if exists set_tasks_updated_at      on public.tasks;
@@ -408,6 +522,9 @@ create trigger set_families_updated_at   before update on public.families   for 
 create trigger set_events_updated_at     before update on public.events     for each row execute function public.set_updated_at();
 create trigger set_lists_updated_at      before update on public.lists      for each row execute function public.set_updated_at();
 create trigger set_notes_updated_at      before update on public.notes      for each row execute function public.set_updated_at();
+create trigger set_budgets_updated_at    before update on public.budgets    for each row execute function public.set_updated_at();
+create trigger set_expenses_updated_at   before update on public.expenses   for each row execute function public.set_updated_at();
+create trigger set_quotes_updated_at     before update on public.quotes     for each row execute function public.set_updated_at();
 create trigger set_meal_plans_updated_at before update on public.meal_plans for each row execute function public.set_updated_at();
 create trigger set_documents_updated_at  before update on public.documents  for each row execute function public.set_updated_at();
 create trigger set_tasks_updated_at      before update on public.tasks      for each row execute function public.set_updated_at();
@@ -519,6 +636,48 @@ begin
 end;
 $$;
 
+create or replace function public.check_expense_budget_family()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.budget_id is not null then
+    if not exists (
+      select 1 from public.budgets where id = new.budget_id and family_id = new.family_id
+    ) then
+      raise exception 'expenses: budget_id no pertenece a la misma family_id';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.check_expense_child_family()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.child_id is not null then
+    if not exists (
+      select 1 from public.children where id = new.child_id and family_id = new.family_id
+    ) then
+      raise exception 'expenses: child_id no pertenece a la misma family_id';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.check_expense_member_family()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.member_id is not null then
+    if not exists (
+      select 1 from public.family_members where id = new.member_id and family_id = new.family_id
+    ) then
+      raise exception 'expenses: member_id no pertenece a la misma family_id';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
 drop trigger if exists trg_list_item_family      on public.list_items;
 drop trigger if exists trg_event_child_family    on public.events;
 drop trigger if exists trg_event_member_family   on public.events;
@@ -526,6 +685,9 @@ drop trigger if exists trg_document_child_family on public.documents;
 drop trigger if exists trg_document_member_family on public.documents;
 drop trigger if exists trg_task_child_family     on public.tasks;
 drop trigger if exists trg_task_member_family    on public.tasks;
+drop trigger if exists trg_expense_budget_family on public.expenses;
+drop trigger if exists trg_expense_child_family  on public.expenses;
+drop trigger if exists trg_expense_member_family on public.expenses;
 
 create trigger trg_list_item_family       before insert or update on public.list_items for each row execute function public.check_list_item_family();
 create trigger trg_event_child_family     before insert or update on public.events     for each row execute function public.check_event_child_family();
@@ -534,6 +696,9 @@ create trigger trg_document_child_family  before insert or update on public.docu
 create trigger trg_document_member_family before insert or update on public.documents  for each row execute function public.check_document_member_family();
 create trigger trg_task_child_family      before insert or update on public.tasks      for each row execute function public.check_task_child_family();
 create trigger trg_task_member_family     before insert or update on public.tasks      for each row execute function public.check_task_member_family();
+create trigger trg_expense_budget_family  before insert or update on public.expenses  for each row execute function public.check_expense_budget_family();
+create trigger trg_expense_child_family   before insert or update on public.expenses  for each row execute function public.check_expense_child_family();
+create trigger trg_expense_member_family  before insert or update on public.expenses  for each row execute function public.check_expense_member_family();
 
 -- ============================================================================
 -- 4. Row Level Security
@@ -564,6 +729,9 @@ alter table public.events             enable row level security;
 alter table public.lists              enable row level security;
 alter table public.list_items         enable row level security;
 alter table public.notes              enable row level security;
+alter table public.budgets            enable row level security;
+alter table public.expenses           enable row level security;
+alter table public.quotes             enable row level security;
 alter table public.meal_plans         enable row level security;
 alter table public.documents          enable row level security;
 alter table public.tasks              enable row level security;
@@ -642,6 +810,21 @@ create policy "Miembros CRUD items de su familia"
 drop policy if exists "Miembros CRUD notas de su familia" on public.notes;
 create policy "Miembros CRUD notas de su familia"
   on public.notes for all
+  using (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros CRUD presupuestos de su familia" on public.budgets;
+create policy "Miembros CRUD presupuestos de su familia"
+  on public.budgets for all
+  using (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros CRUD gastos de su familia" on public.expenses;
+create policy "Miembros CRUD gastos de su familia"
+  on public.expenses for all
+  using (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros CRUD presupuestos pedidos de su familia" on public.quotes;
+create policy "Miembros CRUD presupuestos pedidos de su familia"
+  on public.quotes for all
   using (family_id in (select public.my_family_ids()));
 
 drop policy if exists "Miembros CRUD comidas de su familia" on public.meal_plans;

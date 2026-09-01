@@ -60,6 +60,7 @@ const ROUTES = [
   '/tasks',
   '/lists',
   '/meals',
+  '/money',
   '/notes',
   '/docs',
   '/settings',
@@ -91,6 +92,7 @@ const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
   { route: '/notes', button: 'Nueva nota', dialog: 'Nueva nota' },
+  { route: '/money', button: 'Nuevo gasto', dialog: 'Nuevo gasto' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
   { route: '/calendar', button: 'Apuntar algo', dialog: 'Apuntar en el calendario' },
   { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
@@ -733,4 +735,54 @@ test('en Inicio, cada ítem dice sus unidades', async ({ page }) => {
 
   // Y un ítem de uno no escribe nada: "×1" diría lo que ya dice la fila.
   await expect(seccion.getByText('Toallitas sin perfume', { exact: false }).first()).not.toContainText('×')
+})
+
+// ─── Dinero ───────────────────────────────────────────────────────────────────
+//
+// Los dos flujos que sostienen la pantalla, y los dos son de cuenta: que apuntar
+// un gasto mueva el tope de su presupuesto, y que dos presupuestos pedidos para
+// el mismo trabajo salgan juntos con el barato marcado. La conversión de "24,90"
+// a céntimos vive en `e2e/unit/money.spec.ts`; aquí se comprueba que llega entera
+// hasta la pantalla.
+
+test('un gasto apuntado mueve el tope de su presupuesto', async ({ page }) => {
+  await page.goto('/money')
+  await page.waitForTimeout(800)
+
+  // La demo está sembrada en junio de 2026, así que el mes en curso arranca
+  // vacío: el presupuesto de la compra empieza a cero y su tope entero libre.
+  const compra = page.getByRole('button').filter({ hasText: 'Compra' }).first()
+  await expect(compra).toContainText('Quedan 400 €')
+
+  await page.getByRole('button', { name: 'Nuevo gasto' }).click()
+  await page.locator('#expense-amount').fill('24,90')
+  await page.locator('#expense-description').fill('Compra semanal')
+  await page.getByRole('button', { name: 'Compra', exact: true }).click()
+  await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+  await page.waitForTimeout(500)
+
+  // El importe se lee igual en la fila y en el tope, y el resto sale de restar.
+  await expect(page.getByText('Compra semanal')).toBeVisible()
+  await expect(compra).toContainText('24,90 €')
+  await expect(compra).toContainText('Quedan 375,10 €')
+})
+
+test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {
+  await page.goto('/money')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Presupuestos' }).click()
+
+  // La caldera viene sembrada con tres, uno de ellos descartado. El más barato
+  // de los que siguen vivos es el de Clima Ruiz.
+  const caldera = page.getByRole('region', { name: 'Cambiar la caldera' })
+  await expect(caldera).toBeVisible()
+  await expect(caldera.getByText('Más barato')).toBeVisible()
+  await expect(caldera.getByText('Más barato').locator('xpath=ancestor::p[1]')).toContainText('Clima Ruiz')
+
+  // Al aceptar uno, el grupo queda decidido y la marca del barato desaparece:
+  // no se le reprocha a nadie la decisión que acaba de tomar.
+  await caldera.getByRole('button', { name: 'Aceptar Clima Ruiz' }).click()
+  await page.waitForTimeout(500)
+  await expect(caldera).toContainText('Decidido')
+  await expect(caldera.getByText('Más barato')).toHaveCount(0)
 })

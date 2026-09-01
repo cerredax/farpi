@@ -26,7 +26,8 @@ export default function PrivacidadPage() {
       <LegalSection heading="Qué datos tratamos">
         <p>
           Datos de tu cuenta (correo electrónico y nombre para mostrar) y el contenido que creas en la app:
-          familias y miembros, hijos, eventos, tareas, listas, comidas, notas y los documentos que subes. De cada
+          familias y miembros, hijos, eventos, tareas, listas, comidas, notas, el dinero de la casa y los
+          documentos que subes. De cada
           documento guardamos su ficha (nombre, categoría, fecha de caducidad); <strong>el archivo en sí se
           guarda en el Google Drive de la persona que lo sube</strong>, en una carpeta llamada «Farpi». Solo tu
           familia puede verlo, y siempre a través de la app.
@@ -37,12 +38,20 @@ export default function PrivacidadPage() {
           —teléfonos, la clave del wifi, dónde está cada cosa—. <strong>Farpi no es un gestor de contraseñas</strong>:
           no guardes ahí claves de banca, del correo o de servicios importantes.
         </p>
+        <p>
+          En el apartado de <strong>Dinero</strong> se guardan los topes de gasto que pone la familia, los gastos
+          que apunta —importe, fecha, una descripción y qué persona de la familia lo pagó— y los presupuestos que
+          os pasan proveedores de fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a
+          ningún banco</strong>: no pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias,
+          y todo lo de este apartado lo escribe la familia a mano.
+        </p>
       </LegalSection>
 
       <LegalSection heading="Quién puede acceder a tus datos">
         <p>
           La información de una familia se comparte con los adultos que forman parte de esa familia dentro de
-          Farpi. Esto incluye eventos, tareas, listas, comidas, notas, documentos y datos de hijos o adultos sin cuenta
+          Farpi. Esto incluye eventos, tareas, listas, comidas, notas, presupuestos y gastos, documentos y datos de
+          hijos o adultos sin cuenta
           que se hayan añadido para organizar el día a día. Una persona de otra familia no puede acceder a esos
           datos.
         </p>

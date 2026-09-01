@@ -48,9 +48,10 @@ export function BottomNav() {
           )
         })}
 
-        {/* La sexta: Documentos, Ajustes y cerrar sesión. No se marca activa en
-            /docs ni en /settings —no es una pantalla, es por dónde se llega— y
-            marcarla haría creer que la barra tiene una sección llamada "Más". */}
+        {/* La sexta: Dinero, Notas, Documentos, Ajustes y cerrar sesión. No se
+            marca activa en ninguna de esas rutas —no es una pantalla, es por
+            dónde se llega— y marcarla haría creer que la barra tiene una sección
+            llamada "Más". */}
         <MoreMenu className={claseItem(false)}>
           <MoreHorizontal size={22} strokeWidth={1.8} />
           <span className={CLASE_ETIQUETA}>Más</span>

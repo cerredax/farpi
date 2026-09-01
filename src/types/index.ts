@@ -139,6 +139,89 @@ export interface Note {
   updated_at: string
 }
 
+/**
+ * Un tope de gasto al mes para algo: la compra, el colegio, el ocio.
+ *
+ * El tope **no es por mes**: es una cifra que vale hasta que se cambie. Una fila
+ * por categoría y mes obligaría a "abrir septiembre" cada treinta días, que es
+ * el trabajo administrativo que esta app existe para no pedir.
+ *
+ * Sin color a propósito: en Farpi el color dice de quién es algo, y un
+ * presupuesto no es de nadie. Lo que lo distingue es su emoji, como en las
+ * listas.
+ */
+export interface Budget {
+  id: string
+  family_id: string
+  name: string
+  emoji: string | null
+  /** En céntimos, siempre. Ni euros con decimales ni cadenas. */
+  monthly_limit_cents: number
+  sort_order: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Un gasto de la casa. Lo que hace que el tope de un `Budget` signifique algo.
+ *
+ * `budget_id` puede ser null: o no se le puso presupuesto, o se borró el que
+ * tenía. El gasto pasó igual, así que no se va con su categoría; la pantalla lo
+ * junta bajo "Sin presupuesto".
+ *
+ * `child_id` y `member_id` son **quién lo pagó**, con la misma forma excluyente
+ * que en eventos, tareas y documentos. Los dos a null significa "de la casa", no
+ * "no se sabe": es el caso normal de la cuenta común.
+ */
+export interface Expense {
+  id: string
+  family_id: string
+  budget_id: string | null
+  /** Lo pagó una persona sin cuenta. Excluyente con `member_id`. */
+  child_id: string | null
+  /** Lo pagó un adulto con cuenta. */
+  member_id: string | null
+  amount_cents: number
+  date: string
+  description: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * En qué anda un presupuesto que te han pasado. Tres y no más: se pide, se
+ * acepta o se descarta. "Caducado" no es un estado que nadie marque a mano, lo
+ * dice `valid_until` comparado con hoy.
+ */
+export type QuoteStatus = 'pedido' | 'aceptado' | 'descartado'
+
+/**
+ * Lo que te pasa el fontanero, el dentista o la academia. La otra mitad de la
+ * palabra "presupuesto", y nada que ver con el gasto del mes: aquí todavía no se
+ * ha pagado nada.
+ *
+ * `title` es **para qué es** ("Cambiar la caldera") y `provider` **quién lo da**
+ * ("Fontanería López"). Están separados porque comparar dos o tres para lo mismo
+ * es casi todo para lo que sirve esto: la pantalla agrupa por título y marca el
+ * más barato.
+ */
+export interface Quote {
+  id: string
+  family_id: string
+  title: string
+  provider: string
+  amount_cents: number
+  status: QuoteStatus
+  /** Hasta cuándo vale el precio. La mayoría lo dicen; algunos no. */
+  valid_until: string | null
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 
 export interface MealPlan {
@@ -265,6 +348,37 @@ export interface NoteDraft {
   body: string
   emoji: string
   pinned: boolean
+}
+
+export interface BudgetDraft {
+  name: string
+  emoji: string
+  /**
+   * Lo que se teclea, tal cual: "300", "300,50", "1.200". A céntimos lo pasa
+   * `parseAmountToCents` al guardar, en un solo sitio, para que el mock y
+   * Supabase no puedan interpretarlo distinto.
+   */
+  monthly_limit: string
+}
+
+export interface ExpenseDraft {
+  amount: string
+  date: string
+  description: string
+  /** Vacío = sin presupuesto. */
+  budget_id: string | null
+  child_id: string | null
+  member_id: string | null
+}
+
+export interface QuoteDraft {
+  title: string
+  provider: string
+  amount: string
+  status: QuoteStatus
+  /** Vacío = no dice hasta cuándo vale. */
+  valid_until: string
+  notes: string
 }
 
 export interface ListItemDraft {

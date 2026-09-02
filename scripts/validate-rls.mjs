@@ -290,6 +290,47 @@ async function main() {
   comprobar('Tras los rechazos, las franjas siguen siendo las de A',
     JSON.stringify((await api(`/rest/v1/families?id=eq.${famA}&select=meal_slots`, { token: tokA })).cuerpo?.[0]?.meal_slots)
       === JSON.stringify(['breakfast', 'lunch']))
+
+  // ── 8 bis. El comedor y los platos de una comida (02-09-2026) ────────
+  // La franja del comedor es un valor más en dos `check` distintos —el de
+  // `meal_plans.slot` y el del array de `families.meal_slots`, que además pasó de
+  // cuatro a cinco elementos— y las dos columnas de platos son opcionales. Lo que
+  // se comprueba es que el valor nuevo entra por los dos sitios, que sigue
+  // **apagado** por defecto (una familia nueva no se despierta con la fila puesta)
+  // y que las columnas guardan y admiten nulo.
+  console.log('\n== 8 bis. Comedor y platos (02-09-2026)')
+  comprobar('El comedor NO viene puesto en una familia nueva',
+    !(await api(`/rest/v1/families?id=eq.${famB}&select=meal_slots`, { token: tokB })).cuerpo?.[0]?.meal_slots?.includes('school'))
+  comprobar('A puede encender el comedor, y caben las cinco franjas',
+    filas(await api(`/rest/v1/families?id=eq.${famA}`, {
+      metodo: 'PATCH', token: tokA,
+      datos: { meal_slots: ['breakfast', 'lunch', 'school', 'snack', 'dinner'] },
+      cabeceras: REPRESENTACION,
+    })) === 1)
+  const menuComedor = await api('/rest/v1/meal_plans', {
+    metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+    datos: {
+      family_id: famA, date: '2026-09-02', slot: 'school',
+      name: 'Sopa de fideos', second_course: 'Filete de pollo', dessert: 'Fruta',
+    },
+  })
+  comprobar('Un menú de comedor con tres platos se guarda', menuComedor.estado < 400, `estado ${menuComedor.estado}`)
+  comprobar('Los tres platos quedan guardados',
+    menuComedor.cuerpo?.[0]?.name === 'Sopa de fideos'
+      && menuComedor.cuerpo?.[0]?.second_course === 'Filete de pollo'
+      && menuComedor.cuerpo?.[0]?.dessert === 'Fruta')
+  comprobar('Una comida sin segundo ni postre sigue valiendo',
+    filas(await api('/rest/v1/meal_plans', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, date: '2026-09-03', slot: 'breakfast', name: 'Tostadas' },
+    })) === 1)
+  comprobar('El check rechaza una franja de comida que no existe',
+    (await api('/rest/v1/meal_plans', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, date: '2026-09-04', slot: 'brunch', name: 'Lo que sea' },
+    })).estado >= 400)
+  comprobar('Un ajeno NO ve el menú del comedor de A',
+    filas(await api(`/rest/v1/meal_plans?family_id=eq.${famA}&slot=eq.school&select=id`, { token: tokC })) === 0)
   // ── 9. Festivos (020) ──────────────────────────────────────────────
   // La 020 añade el cuarto valor de `kind` y su restricción de rango. Se comprueban
   // las dos cosas: que el valor nuevo entra, que uno inventado no, y que un festivo
@@ -457,6 +498,31 @@ async function main() {
     })).estado >= 400)
   comprobar('Un ajeno NO ve el documento de A aunque conozca su id de Drive',
     filas(await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=id', { token: tokC })) === 0)
+
+  // Las once carpetas (02-09-2026). El `check` de `category` es la copia en la base
+  // de `DOC_CATEGORIES`, y las dos tienen que decir lo mismo: si la app ofrece
+  // «Vivienda» y el check no la conoce, guardar ese papel falla en producción.
+  comprobar('Una categoría nueva entra (vivienda)',
+    filas(await api('/rest/v1/documents', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, name: 'contrato', category: 'vivienda', storage_path: 'x1', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
+    })) === 1)
+  comprobar('Y también las otras seis (vehiculo, seguros, finanzas, facturas, mascotas, viajes)',
+    (await Promise.all(['vehiculo', 'seguros', 'finanzas', 'facturas', 'mascotas', 'viajes'].map(async (cat, i) =>
+      filas(await api('/rest/v1/documents', {
+        metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+        datos: { family_id: famA, name: `papel ${cat}`, category: cat, storage_path: `x2-${i}`, storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
+      })) === 1))).every(Boolean))
+  comprobar('El check rechaza una categoría que no existe',
+    (await api('/rest/v1/documents', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, name: 'papel raro', category: 'astronomia', storage_path: 'x3', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
+    })).estado >= 400)
+  comprobar('Un papel sin categoría sigue valiendo (nulo permitido)',
+    filas(await api('/rest/v1/documents', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, name: 'papel sin carpeta', storage_path: 'x4', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
+    })) === 1)
 
   // ── 13. Cerrar una familia (delete_family) ──────────────────────────
   // `families` no tiene policy de `delete`, así que cerrar una casa va por RPC.

@@ -1,7 +1,20 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-01 (tarde), con `fixed_entries` y `expenses.kind` ya aplicados.
-**106/106 comprobaciones correctas.**
+Última ejecución: 2026-09-02, con la franja del comedor, los platos de una comida y las
+once carpetas de documentos ya aplicados. **117/117 comprobaciones correctas.**
+
+Son las 106 anteriores más las **once del comedor y las carpetas**, repartidas por las
+secciones que ya existían. Siete son la §8 bis: que el comedor **no** viene puesto en una
+familia nueva (el `default` de la columna no cambió, y una casa donde nadie come fuera no
+se despierta con una fila que llenar siete veces por semana), que caben las cinco franjas
+—el `check` del array pasó de cuatro elementos a cinco—, que un menú con los tres platos
+se guarda y se lee tal cual, que una comida sin segundo ni postre sigue valiendo, que una
+franja inventada se rechaza y que un ajeno no ve el menú del comedor de otra casa. Las
+otras cuatro son de la §12: que las siete categorías nuevas de `documents.category` entran
+—«Vivienda» y las seis restantes—, que una inventada se rechaza y que un papel sin carpeta
+sigue admitiendo nulo. Ese `check` es la copia en la base de `DOC_CATEGORIES`, y si las dos
+listas dejan de decir lo mismo, guardar un papel de una carpeta que la app ya ofrece falla
+en producción; por eso se comprueba una por una y no solo la primera.
 
 Son las 99 anteriores más las **siete de los fijos y el tipo de movimiento**. Tres son las
 de siempre sobre una tabla nueva —que A crea un fijo en su familia, que B no lo ve y que B
@@ -207,13 +220,34 @@ por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fi
 el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
 que puede ver el documento del que cuelga el token.
 
-**No queda nada pendiente.** El esquema está validado y la pasada del 01-09-2026 no dejó
-ninguna comprobación en rojo: 99/99, ya con Finanzas.
+**No queda nada pendiente.** El esquema está validado y la pasada del 02-09-2026 no dejó
+ninguna comprobación en rojo: 117/117, ya con el comedor, los platos de una comida y las
+once carpetas de documentos.
 
 ## Pendiente
 
 Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
+
+### Notas de la ejecución (02-09-2026)
+
+- **117/117.** Dos cambios de esquema del mismo día, los dos aplicados a mano en el SQL
+  Editor: la franja del comedor con las dos columnas de platos (`meal_plans.second_course`
+  y `dessert`, más los `check` de `slot` y de `families.meal_slots`, este último ahora de
+  1 a 5) y las once carpetas de `documents.category`.
+- Lo que había que ver de verdad no es que el valor nuevo entre, sino que **el comedor
+  siga apagado por defecto**. Es la mitad de la decisión: si el `default` de la columna
+  hubiera crecido con el `check`, todas las familias existentes se habrían despertado con
+  una fila vacía en la pantalla de Comidas. El arnés lo comprueba en la familia que crea
+  desde cero, que es el único sitio donde se ve el `default` de verdad.
+- Las categorías se comprueban **una por una** y no con una muestra. El `check` de la base
+  y `DOC_CATEGORIES` son dos listas que tienen que decir lo mismo, escritas en dos
+  archivos distintos; una que se quede fuera no da error al desplegar, lo da el día que
+  alguien guarda ese papel.
+- **Ni RPC ni policy nuevas.** Las dos son columnas y `check` sobre tablas que ya estaban
+  protegidas por la policy de `family_id`, así que el aislamiento no cambia — y aun así se
+  comprueba con C, el usuario que nunca entra en ninguna familia, que el menú del comedor
+  de una casa no se ve desde fuera.
 
 ### Notas de la ejecución (01-09-2026)
 

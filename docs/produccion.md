@@ -143,6 +143,16 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
       sesión de usuario, ni siquiera la de su dueño.
 - [x] ~~Bucket `documents`~~ **borrado el 27-08-2026**, con sus policies. Farpi ya no
       guarda archivos: viven en el Google Drive de quien los sube.
+- [x] **El comedor y los platos de una comida**: `meal_plans.second_course` y
+      `dessert`, el `check` de `slot` con `school` y el de `families.meal_slots` de 1 a
+      5, aplicados el 02-09-2026 y **validados** ese mismo día (§4). El `default` de
+      `meal_slots` **no** cambió: el comedor entra apagado, y por eso ninguna familia
+      existente se despertó con una fila más en Comidas.
+- [x] **Las once carpetas de documentos**: el `check` de `documents.category` aplicado el
+      02-09-2026 y **validado** ese mismo día, categoría por categoría (§4). Ese check y
+      `DOC_CATEGORIES` son dos listas que tienen que decir lo mismo: si una crece y la
+      otra no, guardar ese papel falla en producción y no al desplegar.
+- [x] Las dos cosas juntas: **117/117**, con once comprobaciones nuevas en el arnés.
 - [x] RLS activo en todas las tablas privadas. `storage_connections` la lleva activada
       y **sin ninguna policy**, que es lo que la deja solo para el service role.
 

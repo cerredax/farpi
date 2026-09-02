@@ -64,7 +64,7 @@ export function DocsView() {
           entraban cuatro y las otras ocho quedaban fuera de pantalla, así que la
           tira parecía un revoltijo cortado y las categorías del final —Mascotas,
           Viajes, Otros— no existían para quien no supiera que aquello se
-          arrastraba. Envueltas ocupan tres líneas y se leen de un golpe.
+          arrastraba. Envueltas ocupan cuatro líneas a 390 px y se leen de un golpe.
 
           Es la misma lección que el catálogo de las listas y las tareas del día:
           en esta app esconder contenido ha salido mal cada vez. El precio de que

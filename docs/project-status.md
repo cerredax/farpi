@@ -78,8 +78,10 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   una mancha distinta en cada sistema. Con doce filtros la fila no cabe en una línea, así
   que **envuelve en los dos tamaños** (02-09-2026): en móvil se arrastraba, y a 390 px
   entraban cuatro y las otras ocho quedaban fuera de pantalla —Mascotas, Viajes y Otros
-  no existían para quien no supiera que aquello se arrastraba—. Envueltas ocupan tres
-  líneas y se leen de un golpe.
+  no existían para quien no supiera que aquello se arrastraba—. Envueltas ocupan cuatro
+  líneas a 390 px y se leen de un golpe. La categoría «Finanzas» lleva el símbolo € desde
+  el 02-09-2026, el mismo que la sección: fue una tarjeta de crédito y luego una hucha,
+  que de cerca es un cerdito y no dice «dinero» sino «ahorrar».
 - **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
   tarea ni un papel —el teléfono del pediatra, la clave del wifi, dónde está el contador—.
   Título, texto libre, un emoji y la posibilidad de fijar una arriba. Sin categorías, sin

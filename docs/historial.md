@@ -51,13 +51,25 @@ una pregunta que no ha hecho. La portada, además, redirige sola a `/home` si ha
 sesión, así que no hay forma de acabar en un sitio raro.
 
 **La categoría «finanzas» de Documentos seguía siendo una tarjeta de crédito**, cuando
-la sección Finanzas es una hucha desde hace dos commits y la portada también. El mismo
-concepto con dos caras dentro de la misma app. Ahora es `PiggyBank` en los tres.
+la sección Finanzas era una hucha desde hacía dos commits y la portada también. El
+mismo concepto con dos caras dentro de la misma app.
+
+Y esa misma tarde la hucha se fue también. Vista en la app y no en el listado de
+iconos, `PiggyBank` es un cerdito, y un cerdito no dice «el dinero de la casa»: dice
+«ahorrar», que es otra cosa y además infantil para la pantalla donde se apunta lo que
+cuesta el colegio. Es el segundo icono que se descarta después de la cartera. Se quedó
+el **símbolo €** (`Euro`), que en España no necesita interpretarse. Se valoraron las
+monedas apiladas —un objeto dibujado, que encaja mejor con el resto del set, todo
+casas y calendarios—, el billete, que se parece demasiado al `Receipt` de Facturas, y
+el € dentro de una insignia. Ganó el € a secas: en la captura se lee perfectamente a
+tamaño de chip, que era el único pero que tenía. Va en los tres sitios —el menú, la
+portada y la categoría de Documentos—, y las capturas de la portada se regeneraron
+para que no siguieran enseñando otra cosa.
 
 **Los filtros de Documentos se arrastraban.** Once categorías y «Todos» en una fila con
 `overflow-x-auto`: a 390 px entraban cuatro, y Mascotas, Viajes y Otros no existían
-para quien no supiera que aquello se movía. Envueltas ocupan tres líneas y se ven las
-doce de un golpe. Es exactamente la lección del catálogo de las listas y de las tareas
+para quien no supiera que aquello se movía. Envueltas ocupan cuatro líneas a 390 px y
+se ven las doce de un golpe. Es exactamente la lección del catálogo de las listas y de las tareas
 del día: en esta app, esconder contenido ha salido mal cada vez. Las pestañas de
 Ajustes iban detrás con un comentario que decía «mismo patrón que los filtros de
 Documentos», así que se fueron con ellos.

@@ -49,6 +49,17 @@ import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/type
  * Con qué pestaña se entra lo dice la URL (`?seccion=casa`), porque el menú de
  * la cuenta lleva directo a cada una. Sin `seccion` se abre "Familia": es la más
  * predecible y la que más se usa. La última visitada no se recuerda.
+ *
+ * En escritorio (02-09-2026) esas pestañas se ponen de pie: columna de secciones
+ * a la izquierda y contenido a la derecha, que es como se ordenan los ajustes de
+ * cualquier herramienta seria y lo que la pantalla pedía desde que se hizo. Las
+ * pestañas arreglaron la columna interminable, pero Ajustes seguía siendo la
+ * única pantalla de contenido atada a `max-w-lg`: 512 px de contenido en medio
+ * de 1440, con una fila de pastillas encima. Es **el mismo `role="tablist"`**,
+ * no dos: duplicarlo para móvil y escritorio repetiría los `id` de cada pestaña
+ * y dejaría los `aria-controls` apuntando a dos sitios. Solo cambia cómo se
+ * coloca, de fila que envuelve a columna pegada (`lg:sticky`), para que las
+ * secciones sigan a la vista mientras se baja por una pestaña larga.
  */
 
 /**
@@ -174,15 +185,28 @@ export function SettingsView() {
 
   return (
     <>
-      <div className="max-w-lg mx-auto px-4 py-4 pb-10">
+      <div className="max-w-lg mx-auto px-4 py-4 pb-10 lg:max-w-5xl lg:px-6 lg:py-6 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-8 lg:items-start">
         {/* Mismo patrón que los filtros de Documentos, que el 02-09-2026 dejaron
             de arrastrarse: las cinco se ven a la vez y envuelven si no caben.
             Una pestaña que hay que descubrir arrastrando es peor que un
-            plegable, porque ni siquiera se sabe que está ahí. */}
+            plegable, porque ni siquiera se sabe que está ahí.
+
+            El verde macizo se fue el mismo día. La pestaña activa se marca como
+            se marca la sección activa en `SideNav` —fondo verde muy claro y
+            letra verde oscura, que da 4,5:1 sobre el tinte—, y las demás son
+            texto y nada más: cinco pastillas blancas con borde eran cinco
+            botones pidiendo que los pulsaras, y solo uno era el sitio donde ya
+            estabas.
+
+            El `lg:top-6` del pegado es 24 px y no 80: quien hace scroll aquí no
+            es la ventana sino el `<main>` de `AppShell`, que ya lleva el `pt-14`
+            que deja sitio a `TopBar`. Un `sticky` se mide contra su contenedor
+            de scroll, así que 80 px habría bajado la columna otros 56 px de
+            entrada, desalineada con el contenido antes incluso de mover nada. */}
         <div
           role="tablist"
           aria-label="Secciones de ajustes"
-          className="mb-6 flex flex-wrap gap-2 pb-1"
+          className="mb-6 flex flex-wrap gap-2 pb-1 lg:mb-0 lg:flex-col lg:flex-nowrap lg:gap-1 lg:pb-0 lg:sticky lg:top-6"
         >
           {PESTAÑAS_VISIBLES.map(p => (
             <button
@@ -193,157 +217,171 @@ export function SettingsView() {
               aria-selected={pestañaActiva === p.key}
               aria-controls={`panel-${p.key}`}
               onClick={() => irAPestaña(p.key)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                pestañaActiva === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
+              className={`inline-flex items-center rounded-xl px-3 py-1.5 text-xs font-bold transition-colors lg:flex lg:w-full lg:min-h-11 lg:gap-3 lg:py-2.5 lg:text-sm ${
+                pestañaActiva === p.key
+                  ? 'bg-primary-tint text-primary-strong'
+                  : 'text-muted hover:bg-surface hover:text-ink'
               }`}
             >
+              <p.icon
+                size={19}
+                strokeWidth={pestañaActiva === p.key ? 2.4 : 1.8}
+                aria-hidden
+                className="hidden flex-shrink-0 lg:block"
+              />
               {p.label}
             </button>
           ))}
         </div>
 
-        <div id="panel-familia" role="tabpanel" aria-labelledby="tab-familia" hidden={pestañaActiva !== 'familia'} className="space-y-7">
-          <Bloque titulo="Tu familia">
-            <FamilyCard family={family} onEdit={() => setFamilySheetOpen(true)} />
+        {/* La segunda columna. En móvil no es nada: los paneles van uno detrás
+            de otro como siempre. `min-w-0` porque una rejilla no deja encoger a
+            sus columnas por debajo de su contenido, y basta una tabla ancha
+            dentro de un panel para empujar la página a lo ancho. */}
+        <div className="min-w-0">
+          <div id="panel-familia" role="tabpanel" aria-labelledby="tab-familia" hidden={pestañaActiva !== 'familia'} className="space-y-7">
+            <Bloque titulo="Tu familia">
+              <FamilyCard family={family} onEdit={() => setFamilySheetOpen(true)} />
 
-            <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
-              {/* Con una sola familia la lista repetía el nombre que ya está en la
-                  tarjeta de arriba, y tocarla no hacía nada. Se enseña cuando hay
-                  de dónde elegir; crear una nueva se puede siempre. */}
-              {families.length > 1 && families.map((f: Family) => (
-                <button
-                  key={f.id}
-                  onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
-                >
-                  <span className="text-sm font-semibold text-ink">{f.name}</span>
-                  {f.id === activeFamilyId && (
-                    <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">activa</span>
-                  )}
-                </button>
-              ))}
-              {creatingFamily ? (
-                <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3">
-                  <input
-                    autoFocus
-                    value={newFamilyName}
-                    onChange={e => setNewFamilyName(e.target.value)}
-                    placeholder="Nombre de la familia"
-                    className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
-                  <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex flex-shrink-0 items-center justify-center px-3 py-2 rounded-xl border border-line text-muted transition-colors hover:bg-surface hover:text-ink"><X size={16} strokeWidth={2.4} /></button>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setCreatingFamily(true)}
-                  className="w-full px-4 py-3 text-sm text-primary-strong font-semibold text-left hover:bg-canvas transition-colors"
-                >
-                  + Nueva familia
-                </button>
-              )}
-            </div>
-          </Bloque>
+              <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
+                {/* Con una sola familia la lista repetía el nombre que ya está en la
+                    tarjeta de arriba, y tocarla no hacía nada. Se enseña cuando hay
+                    de dónde elegir; crear una nueva se puede siempre. */}
+                {families.length > 1 && families.map((f: Family) => (
+                  <button
+                    key={f.id}
+                    onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
+                    className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
+                  >
+                    <span className="text-sm font-semibold text-ink">{f.name}</span>
+                    {f.id === activeFamilyId && (
+                      <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">activa</span>
+                    )}
+                  </button>
+                ))}
+                {creatingFamily ? (
+                  <form onSubmit={handleCreateFamily} className="flex gap-2 px-4 py-3">
+                    <input
+                      autoFocus
+                      value={newFamilyName}
+                      onChange={e => setNewFamilyName(e.target.value)}
+                      placeholder="Nombre de la familia"
+                      className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
+                    <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex flex-shrink-0 items-center justify-center px-3 py-2 rounded-xl border border-line text-muted transition-colors hover:bg-surface hover:text-ink"><X size={16} strokeWidth={2.4} /></button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setCreatingFamily(true)}
+                    className="w-full px-4 py-3 text-sm text-primary-strong font-semibold text-left hover:bg-canvas transition-colors"
+                  >
+                    + Nueva familia
+                  </button>
+                )}
+              </div>
+            </Bloque>
 
-          <Bloque titulo="Personas">
-            <p className="-mt-1 px-1 text-xs text-muted">{resumenPersonas}</p>
+            <Bloque titulo="Personas">
+              <p className="-mt-1 px-1 text-xs text-muted">{resumenPersonas}</p>
 
-            {/* "Con cuenta" y "sin cuenta" es la frontera de verdad de la app, no
-                adulto/niño: para estar en `family_members` hace falta correo,
-                cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
-                dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
-            <Grupo titulo="Adultos con cuenta">
-              <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
-            </Grupo>
-
-            <Grupo titulo="Adultos sin cuenta">
-              <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
-            </Grupo>
-
-            <Grupo titulo="Hijos">
-              <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
-            </Grupo>
-          </Bloque>
-        </div>
-
-        <div id="panel-casa" role="tabpanel" aria-labelledby="tab-casa" hidden={pestañaActiva !== 'casa'} className="space-y-7">
-          <Bloque titulo="Preferencias de la casa">
-            {/* Solo aparece cuando el navegador ofrece instalar. */}
-            <InstallPWA />
-
-            <Grupo titulo="Franjas de comida">
-              <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
-            </Grupo>
-          </Bloque>
-        </div>
-
-        <div id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" hidden={pestañaActiva !== 'cuenta'} className="space-y-7">
-          <Bloque titulo="Cuenta">
-            {!IS_DEMO_MODE && (
-              <Grupo titulo="Notificaciones">
-                <NotificationsCard />
+              {/* "Con cuenta" y "sin cuenta" es la frontera de verdad de la app, no
+                  adulto/niño: para estar en `family_members` hace falta correo,
+                  cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
+                  dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
+              <Grupo titulo="Adultos con cuenta">
+                <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
               </Grupo>
-            )}
 
-            {/* La copia de seguridad son datos de la familia, no de tu cuenta,
-                pero vive en esta pestaña porque es donde se buscan las cosas de
-                "gestionar mi cuenta y mis datos". Funciona igual en modo demo
-                (exporta lo que hay en localStorage), así que no depende de
-                IS_DEMO_MODE: si dependiera, la suite no podría probarla. */}
-            <BackupCard />
+              <Grupo titulo="Adultos sin cuenta">
+                <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
+              </Grupo>
 
-            {!IS_DEMO_MODE && <AccountActions />}
-
-            {/* Borrar cuenta, al final de su propia pestaña (28-08-2026). Estuvo
-                en Legal para que no se confundiera con cerrar sesión, que vivía
-                justo encima; ahora cerrar sesión está en el menú de la cuenta y
-                ya no hay con qué confundirla, así que vuelve donde se busca. La
-                separación sigue siendo visual: tarjeta aparte, en rojo y con
-                confirmación. */}
-            {!IS_DEMO_MODE && <DeleteAccountCard />}
-          </Bloque>
-        </div>
-
-        {!IS_DEMO_MODE && (
-          <div id="panel-sincronizacion" role="tabpanel" aria-labelledby="tab-sincronizacion" hidden={pestañaActiva !== 'sincronizacion'} className="space-y-7">
-            <Bloque titulo="Sincronización">
-              <StorageCard />
+              <Grupo titulo="Hijos">
+                <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
+              </Grupo>
             </Bloque>
           </div>
-        )}
 
-        <div id="panel-legal" role="tabpanel" aria-labelledby="tab-legal" hidden={pestañaActiva !== 'legal'} className="space-y-7">
-          <Bloque titulo="Legal">
-            <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
-              <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
-                Política de privacidad <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
-              </Link>
-              <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
-                Términos de servicio <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
-              </Link>
+          <div id="panel-casa" role="tabpanel" aria-labelledby="tab-casa" hidden={pestañaActiva !== 'casa'} className="space-y-7">
+            <Bloque titulo="Preferencias de la casa">
+              {/* Solo aparece cuando el navegador ofrece instalar. */}
+              <InstallPWA />
+
+              <Grupo titulo="Franjas de comida">
+                <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
+              </Grupo>
+            </Bloque>
+          </div>
+
+          <div id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" hidden={pestañaActiva !== 'cuenta'} className="space-y-7">
+            <Bloque titulo="Cuenta">
+              {!IS_DEMO_MODE && (
+                <Grupo titulo="Notificaciones">
+                  <NotificationsCard />
+                </Grupo>
+              )}
+
+              {/* La copia de seguridad son datos de la familia, no de tu cuenta,
+                  pero vive en esta pestaña porque es donde se buscan las cosas de
+                  "gestionar mi cuenta y mis datos". Funciona igual en modo demo
+                  (exporta lo que hay en localStorage), así que no depende de
+                  IS_DEMO_MODE: si dependiera, la suite no podría probarla. */}
+              <BackupCard />
+
+              {!IS_DEMO_MODE && <AccountActions />}
+
+              {/* Borrar cuenta, al final de su propia pestaña (28-08-2026). Estuvo
+                  en Legal para que no se confundiera con cerrar sesión, que vivía
+                  justo encima; ahora cerrar sesión está en el menú de la cuenta y
+                  ya no hay con qué confundirla, así que vuelve donde se busca. La
+                  separación sigue siendo visual: tarjeta aparte, en rojo y con
+                  confirmación. */}
+              {!IS_DEMO_MODE && <DeleteAccountCard />}
+            </Bloque>
+          </div>
+
+          {!IS_DEMO_MODE && (
+            <div id="panel-sincronizacion" role="tabpanel" aria-labelledby="tab-sincronizacion" hidden={pestañaActiva !== 'sincronizacion'} className="space-y-7">
+              <Bloque titulo="Sincronización">
+                <StorageCard />
+              </Bloque>
             </div>
-          </Bloque>
-        </div>
+          )}
 
-        {/* Modo demo no entra en pestañas: no es una sección más de la
-            pantalla, es un aviso sobre la pantalla entera, así que se queda
-            siempre a la vista debajo, pase lo que pase con la pestaña activa. */}
-        {IS_DEMO_MODE && (
-          <div className="mt-7">
-            <Bloque titulo="Modo demo">
-              <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm space-y-3">
-                <p className="text-xs text-muted">Los datos son de prueba y viven en este navegador.</p>
-                <button
-                  onClick={handleReset}
-                  onBlur={() => setConfirmReset(false)}
-                  className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
-                >
-                  {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
-                </button>
+          <div id="panel-legal" role="tabpanel" aria-labelledby="tab-legal" hidden={pestañaActiva !== 'legal'} className="space-y-7">
+            <Bloque titulo="Legal">
+              <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
+                <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
+                  Política de privacidad <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
+                </Link>
+                <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
+                  Términos de servicio <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
+                </Link>
               </div>
             </Bloque>
           </div>
-        )}
+
+          {/* Modo demo no entra en pestañas: no es una sección más de la
+              pantalla, es un aviso sobre la pantalla entera, así que se queda
+              siempre a la vista debajo, pase lo que pase con la pestaña activa. */}
+          {IS_DEMO_MODE && (
+            <div className="mt-7">
+              <Bloque titulo="Modo demo">
+                <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm space-y-3">
+                  <p className="text-xs text-muted">Los datos son de prueba y viven en este navegador.</p>
+                  <button
+                    onClick={handleReset}
+                    onBlur={() => setConfirmReset(false)}
+                    className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
+                  >
+                    {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
+                  </button>
+                </div>
+              </Bloque>
+            </div>
+          )}
+        </div>
       </div>
 
       <FamilySheet

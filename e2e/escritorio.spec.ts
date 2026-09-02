@@ -72,6 +72,16 @@ async function columnasDeTarjetas(page: import('@playwright/test').Page) {
   })
 }
 
+/**
+ * Dónde cae la lista de secciones de Ajustes respecto al panel que enseña. En
+ * escritorio es la columna de la izquierda; por debajo de `lg`, una fila encima.
+ */
+async function ajustesSeccionesYPanel(page: import('@playwright/test').Page) {
+  const secciones = (await page.getByRole('tablist', { name: 'Secciones de ajustes' }).boundingBox())!
+  const panel = (await page.locator('#panel-familia').boundingBox())!
+  return { secciones, panel }
+}
+
 test.describe('escritorio a 1440 px', () => {
   test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
 
@@ -96,6 +106,29 @@ test.describe('escritorio a 1440 px', () => {
     // Ancha de columna, no de página: es la segunda columna de la rejilla.
     const ancho = (await tarjeta.boundingBox())!.width
     expect(ancho).toBeLessThan(420)
+  })
+
+  // Ajustes fue la última pantalla atada a `max-w-lg`: 512 px de contenido en
+  // medio de 1440 con una fila de pastillas encima. Ahora las secciones son
+  // columna y el contenido ocupa lo que le toca.
+  test('en Ajustes las secciones son la columna de la izquierda', async ({ page }) => {
+    await page.goto('/settings')
+    await page.waitForTimeout(800)
+
+    const { secciones, panel } = await ajustesSeccionesYPanel(page)
+    expect(secciones.x + secciones.width, 'las secciones se montan sobre el contenido').toBeLessThanOrEqual(panel.x)
+    expect(Math.abs(secciones.y - panel.y), 'las secciones no arrancan a la altura del contenido').toBeLessThan(24)
+    expect(panel.width, 'el contenido sigue en la columna estrecha de móvil').toBeGreaterThan(560)
+
+    // Y la columna se queda a la vista al bajar, que es para lo que se pegó.
+    // Quien hace scroll es el `<main>` de `AppShell`, no la ventana: con
+    // `window.scrollBy` esto pasaría sin comprobar nada.
+    await page.locator('main').evaluate(el => el.scrollBy(0, 500))
+    await page.waitForTimeout(400)
+    await expect(
+      page.getByRole('tab', { name: 'Legal' }),
+      'las secciones se han ido con el scroll',
+    ).toBeInViewport()
   })
 
   test('manda la barra lateral y desaparece la de abajo', async ({ page }) => {
@@ -450,6 +483,14 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
     await page.goto('/docs')
     await page.waitForTimeout(800)
     expect(await columnasDeTarjetas(page), 'la rejilla de Documentos se ha colado por debajo de lg').toBe(0)
+  })
+
+  test('en Ajustes las secciones siguen siendo una fila encima', async ({ page }) => {
+    await page.goto('/settings')
+    await page.waitForTimeout(800)
+
+    const { secciones, panel } = await ajustesSeccionesYPanel(page)
+    expect(secciones.y + secciones.height, 'la columna de Ajustes se ha colado por debajo de lg').toBeLessThanOrEqual(panel.y)
   })
 
   test('la rejilla de comidas conserva las columnas de siempre', async ({ page }) => {

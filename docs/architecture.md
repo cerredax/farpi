@@ -447,8 +447,19 @@ Cada vista aprovecha el ancho como le conviene, no todas con la misma plantilla:
   hasta `lg:max-w-3xl`, porque una lista de la compra sigue siendo una columna.
 - `DocsView`: rejilla de tarjetas (dos y tres) y los filtros sin arrastre, que en
   escritorio caben los cinco.
+- `SettingsView`: las secciones se ponen de pie. En móvil son una fila de etiquetas
+  encima del contenido; desde `lg` son una columna de 13 rem a la izquierda —con icono,
+  y pegada con `lg:sticky` para que sigan a la vista al bajar— y el contenido ocupa el
+  resto hasta `lg:max-w-5xl`. Es **el mismo `role="tablist"`**, no uno por tamaño:
+  duplicarlo repetiría los `id` de cada pestaña y dejaría los `aria-controls` apuntando
+  a dos sitios. Lo único que cambia es cómo se coloca.
 
-Home y Ajustes siguen siendo la columna de móvil centrada.
+Home sigue siendo la columna de móvil centrada.
+
+Un detalle que se paga en cualquier `sticky` de la app: **quien hace scroll es el
+`<main>` de `AppShell`** (`overflow-y-auto pt-14`), no la ventana. El desplazamiento se
+mide contra ese contenedor, que ya empieza por debajo de `TopBar`, así que el `top` va
+en el orden del padding de la vista (24 px) y no en el alto de la cabecera.
 
 **Las cuatro pantallas de lista abren igual** (`ViewHeader`, 28-08-2026): bajo el título
 verde de `TopBar`, una fila con el resumen de lo que hay, el buscador y el `+` de alta.

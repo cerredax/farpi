@@ -381,6 +381,12 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 
 ## 9. Ajustes - familias
 
+> Automatizado en `e2e/escritorio.spec.ts`: que a 1440 px las secciones sean la columna
+> de la izquierda, a la altura del contenido y pegadas al bajar, y que a 1023 px sigan
+> siendo una fila encima.
+
+- [ ] Con las cinco secciones (fuera de modo demo) la fila de móvil envuelve a dos
+      líneas y no se arrastra; la activa se lee en verde clarito y las demás, en gris.
 - [ ] Se puede editar nombre de familia.
 - [ ] Se puede crear nueva familia.
 - [ ] Nueva familia crea adulto admin inicial.

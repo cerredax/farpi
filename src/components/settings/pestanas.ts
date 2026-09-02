@@ -1,3 +1,4 @@
+import { Users, SlidersHorizontal, CircleUser, RefreshCw, Scale } from 'lucide-react'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 
 /**
@@ -11,12 +12,20 @@ import { IS_DEMO_MODE } from '@/lib/supabase/client'
  */
 export type PestañaKey = 'familia' | 'casa' | 'cuenta' | 'sincronizacion' | 'legal'
 
-export const PESTAÑAS: { key: PestañaKey; label: string }[] = [
-  { key: 'familia', label: 'Familia' },
-  { key: 'casa', label: 'Casa' },
-  { key: 'cuenta', label: 'Cuenta' },
-  { key: 'sincronizacion', label: 'Sincronización' },
-  { key: 'legal', label: 'Legal' },
+/**
+ * El icono es de la columna de escritorio y solo de ella: en móvil las
+ * secciones son una fila de etiquetas y cinco iconos ahí no ordenan nada,
+ * ocupan. Se guarda aquí y no en `SettingsView` por lo mismo que la etiqueta:
+ * una sección nueva se describe entera en un sitio. Casa no lleva casita a
+ * propósito —esa es la de Inicio en `SECCIONES`— sino los mandos de las
+ * preferencias, que es lo que hay dentro.
+ */
+export const PESTAÑAS: { key: PestañaKey; label: string; icon: typeof Users }[] = [
+  { key: 'familia', label: 'Familia', icon: Users },
+  { key: 'casa', label: 'Casa', icon: SlidersHorizontal },
+  { key: 'cuenta', label: 'Cuenta', icon: CircleUser },
+  { key: 'sincronizacion', label: 'Sincronización', icon: RefreshCw },
+  { key: 'legal', label: 'Legal', icon: Scale },
 ]
 
 /**

@@ -15,6 +15,45 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-02
 
+### Ajustes se pone de pie en escritorio (02-09-2026)
+
+Ajustes ya se había arreglado dos veces ese mes —de once secciones al mismo nivel a
+cinco bloques, y de ahí a pestañas— y seguía sin verse bien en una pantalla grande.
+El motivo, mirando el código y no la pantalla: era **la única vista de contenido atada
+a `max-w-lg`**. Todas las demás suben a `lg:max-w-4xl`, `5xl` o `6xl`; esta se quedaba
+en 512 px de contenido en medio de 1440, con una fila de pastillas verdes encima. Las
+pestañas habían resuelto la columna interminable, pero la desproporción de escritorio
+seguía entera.
+
+Se hizo lo que hace cualquier herramienta con ajustes: **las secciones de pie a la
+izquierda**, con su icono, y el contenido a la derecha. Un `lg:grid` de dos columnas y
+nada más — por debajo de `lg` no se mueve un píxel, que es la regla del repositorio.
+
+Tres decisiones dentro:
+
+- **Un solo `role="tablist"`**, no uno por tamaño. Pintar la fila para móvil y la
+  columna para escritorio habría repetido el `id` de cada pestaña y dejado los
+  `aria-controls` apuntando a dos sitios a la vez. Lo que cambia es cómo se coloca:
+  `flex-wrap` de base, `lg:flex-col` y `lg:sticky` arriba.
+- **El `sticky` va a 24 px, no a 80.** Aquí quien hace scroll no es la ventana sino el
+  `<main>` de `AppShell`, que ya lleva el `pt-14` de la cabecera. Con `top-20` la
+  columna arrancaba 56 px por debajo del contenido antes de mover nada — se vio porque
+  el test nuevo mide que las dos empiecen a la misma altura, no porque se notara a
+  ojo.
+- **Se fue el verde macizo de la pestaña activa**, en los dos tamaños. Ahora se marca
+  como la sección activa de `SideNav` (fondo `primary-tint`, letra `primary-strong`,
+  4,5:1 sobre ese fondo) y las inactivas son texto y nada más. Cinco pastillas blancas
+  con borde eran cinco botones pidiendo que los pulsaras, y uno de ellos era el sitio
+  donde ya estabas.
+
+El icono de cada sección vive en `pestanas.ts`, con la etiqueta, y solo se pinta en la
+columna: en la fila de móvil cinco iconos no ordenan nada, ocupan. Casa no lleva casita
+—esa es la de Inicio— sino los mandos de las preferencias.
+
+Dos tests en `escritorio.spec.ts`, uno por lado del corte: a 1440 px las secciones están
+a la izquierda del panel, a su misma altura, y siguen a la vista tras bajar 500 px; a
+1023 px siguen siendo una fila encima. La suite queda en 510.
+
 ### Seis preguntas sobre la app ya hecha, y las cinco que tenían arreglo (02-09-2026)
 
 Una revisión de las que salen de usar la app y no de mirar el código. Vinieron seis

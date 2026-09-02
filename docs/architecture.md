@@ -1337,8 +1337,12 @@ cambio de no tener que «abrir septiembre» cada treinta días. Duró un día. E
 la sección sirve para llevar el control de una casa, un pasado que se reescribe
 solo no es un pasado, y la contrapartida deja de estar pagada.
 
-**La regla, entera, en una línea:** la plantilla es cómo suele ser un mes; el mes
-en curso la refleja; el mes que termina se queda con una copia congelada.
+**La regla, entera, en una línea:** si el mes tiene copia, manda la copia; si no y
+el mes no ha terminado, refleja la plantilla.
+
+El orden importa y no es el obvio. Se escribió al revés —preguntando primero «¿ha
+terminado el mes?»— y entonces no había manera de cerrar un mes antes de tiempo: la
+copia quedaba guardada y la pantalla seguía enseñando el espejo.
 
 ```
 «El mes tipo» — LA PLANTILLA        «El mes» — UN MES CONCRETO
@@ -1360,6 +1364,28 @@ descartó por dos casos que pasan de verdad: quien monta la app a mitad de mes s
 habría quedado con una foto vacía imposible de rellenar, y quien se equivoca al dar
 de alta un fijo habría cargado con el error treinta días. Congelar sirve para que
 el pasado no se mueva, no para que el presente no se pueda arreglar.
+
+**Lo que se congela es el plan, no el día a día.** Es la distinción que se pasó por
+alto la primera vez, y estuvo unas horas rota: al hacer «mes cerrado» se escondió
+también el botón de apuntar, así que el 2 de octubre no había dónde meter los 40 €
+del 29 de septiembre. La vida llega tarde y los apuntes tienen que caber en el mes
+en que se gastaron. En un mes cerrado no se editan los fijos ni las partidas —eso es
+el plan— y sí se apunta, siempre.
+
+**El cierre a mano existe, y es un atajo, no una tarea.** Como el mes en curso es
+espejo, no se puede dejar preparado un cambio «para el mes que viene»: subir el
+alquiler el 20 de septiembre lo mete también en septiembre. Con «dar el mes por
+cerrado» se congela septiembre el día que se dé por terminado y a partir de ahí la
+plantilla solo mira a octubre. **Si nadie lo toca, el mes se cierra solo el día 1
+igual**, así que no hay nada que recordar. Se descartó la versión obligatoria —el mes
+no pasa hasta que alguien lo cierra— por lo de siempre: es la tarea administrativa
+que esta app existe para no pedir, y además en una casa la haría quien llegara antes,
+por los dos.
+
+**Y se puede deshacer, pero solo mientras el mes siga siendo el de hoy.**
+`reopen_month` es lo que permite ofrecer el cierre anticipado sin miedo a un toque
+de más. Un mes terminado no se reabre jamás: si el pasado se pudiera reabrir, no
+estaría cerrado, y todo lo demás sobra.
 
 **Nadie cierra nada a mano.** Lo hace la RPC `close_previous_month`, y la llaman
 dos sitios que no se coordinan: el cron diario (`/api/cron/reminders`, que ya
@@ -1393,11 +1419,22 @@ así que pasan a «sin partida», que es donde de verdad están.
 `month_plan_lines` son las únicas tablas de contenido con policy de solo `select`:
 no hay insert, update ni delete para nadie, ni siquiera para el dueño. Lo que hace
 que un mes cerrado se pueda dar por bueno es que la app no pueda reescribirlo.
-Quien escribe es `close_month`, que es `security definer` y tiene el `execute`
-**revocado** de `public`, `anon` y `authenticated` —Postgres lo concede a `public`
-por defecto en cada función nueva, y sin ese `revoke` cualquiera podría congelarle
-el mes a cualquier familia—. Se lo concede solo a `service_role`, para el cron, y a
-la app le queda `close_previous_month`, que sí comprueba la familia.
+Quien escribe es `close_month_copy`, y son **cinco funciones en escalera** porque
+cada una responde a una pregunta distinta:
+
+| Función | Qué decide | Quién la llama |
+|---|---|---|
+| `close_month_copy` | nada: copia y punto | nadie de fuera (`execute` revocado) |
+| `close_month` | solo meses **terminados** | el cron (`service_role`) |
+| `close_previous_month` | el mes anterior, y tu familia | la app al arrancar |
+| `close_month_now` | no futuros, y tu familia | el botón de cerrar ya |
+| `reopen_month` | solo el mes **en curso**, y tu familia | el botón de deshacer |
+
+Las dos primeras llevan el `execute` **revocado** de `public`, `anon` y
+`authenticated`: Postgres lo concede a `public` por defecto en cada función nueva, y
+sin ese `revoke` cualquiera podría congelarle el mes a cualquier familia con la
+plantilla equivocada. `close_month_copy` es la peligrosa de verdad, porque no tiene
+ninguna guarda de fecha.
 
 **Son dos tablas y no una** porque hace falta distinguir «este mes se cerró y no
 había nada puesto» de «este mes no se ha cerrado». Con solo las líneas, las dos

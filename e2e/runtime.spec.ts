@@ -917,14 +917,72 @@ test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ pa
   await expect(resumen).toContainText('−870,90 €')
 })
 
-// En un mes que ya pasó no se apunta: el botón no está. Lo que pasó, pasó.
-test('un mes cerrado no ofrece apuntar nada', async ({ page }) => {
+// Lo congelado es **el plan**, no el día a día. El 2 de octubre te acuerdas de los
+// 40 € del 29 de septiembre y tienen que caber en septiembre. Estuvieron sin caber
+// un rato el 02-09-2026, por confundir las dos cosas.
+test('en un mes cerrado se sigue pudiendo apuntar, pero no tocar sus partidas', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
-  await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toBeVisible()
+  await retroceder(page, 3)
 
+  // El plan está congelado: ni se crean partidas ni se editan las que hay.
+  await expect(page.getByRole('button', { name: 'Nueva partida' })).toHaveCount(0)
+  const partidas = page.locator('section[aria-label="Partidas del mes"]')
+  await expect(partidas.getByRole('button')).toHaveCount(0)
+
+  // Pero el día a día sigue abierto, y lo apuntado cae en el mes que se mira.
+  await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+  await page.locator('#expense-amount').fill('40')
+  await page.locator('#expense-description').fill('Se me olvidó apuntarlo')
+  await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+  await page.waitForTimeout(500)
+
+  await expect(page.getByText('Se me olvidó apuntarlo')).toBeVisible()
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await expect(resumen).toContainText('Junio 2026')
+  // Los fijos congelados no se han movido; solo lo gastado.
+  await expect(resumen).toContainText('−870,90 €')
+})
+
+// El atajo para preparar el mes que viene, y su vuelta atrás.
+test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await expect(resumen).not.toContainText('Mes cerrado')
+
+  // Dos toques: el segundo confirma.
+  const cerrar = page.getByRole('button', { name: /Dar el mes por cerrado/ })
+  await cerrar.click()
+  await page.getByRole('button', { name: /¿Seguro\?/ }).click()
+  await page.waitForTimeout(500)
+  await expect(resumen).toContainText('Mes cerrado')
+
+  // Y desde aquí, tocar la plantilla ya no mueve este mes.
+  await page.getByRole('tab', { name: 'El mes tipo' }).click()
+  await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
+  await page.locator('#fixed-entry-amount').fill('900')
+  await page.getByRole('button', { name: 'Guardar' }).click()
+  await page.waitForTimeout(500)
+  await page.getByRole('tab', { name: 'El mes', exact: true }).click()
+  await expect(resumen).toContainText('−935,90 €')
+
+  // Reabrirlo lo devuelve a seguir la plantilla, ya con los 900.
+  await page.getByRole('button', { name: /Volver a seguir la plantilla/ }).click()
+  await page.waitForTimeout(500)
+  await expect(resumen).not.toContainText('Mes cerrado')
+  await expect(resumen).toContainText('−1.055,90 €')
+})
+
+// Reabrir es solo para el mes en curso: si el pasado se pudiera reabrir, no
+// estaría cerrado.
+test('un mes que ya terminó no se puede reabrir', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
   await retroceder(page, 1)
-  await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Volver a seguir la plantilla/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Dar el mes por cerrado/ })).toHaveCount(0)
 })
 
 // Agosto no está sembrado: si sale como cerrado es que el cierre automático se

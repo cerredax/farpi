@@ -373,10 +373,19 @@ guardada aunque luego los cambies**. El porqué y las alternativas descartadas, 
       plantilla del día en que se aplicó.
 - [x] `SCHEMA_VER` 16 en el mock, con junio y julio sembrados con otras cifras para
       que la demo enseñe la diferencia.
-- [x] 14 unitarios nuevos y 5 flujos de navegador; 12 comprobaciones nuevas en el
+- [x] **Lo congelado es el plan, no el día a día**: en un mes cerrado no se editan
+      los fijos ni las partidas, y sí se apunta. Se rompió al principio, por
+      confundir las dos cosas, y lo cazó la pregunta de cómo se generaba octubre.
+- [x] **Cerrar el mes a mano**, opcional, para poder preparar la plantilla del mes
+      siguiente. Con vuelta atrás (`reopen_month`) mientras siga siendo el mes en
+      curso; un mes terminado no se reabre nunca. Se descartó la versión
+      obligatoria: es la tarea administrativa que la app existe para no pedir.
+- [x] La regla del código pasa a ser «si hay copia, manda la copia», y no «¿ha
+      terminado el mes?»: escrita al revés, el cierre anticipado no hacía nada.
+- [x] 15 unitarios nuevos y 7 flujos de navegador; 22 comprobaciones nuevas en el
       arnés de RLS, en una §4 bis propia.
 - [x] Aplicado en el SQL Editor del proyecto real y revalidado el 02-09-2026:
-      **129/129**. El delta que se aplicó quedó en
+      **139/139**. El delta, idempotente y reescrito entero en cada cambio, queda en
       `supabase/aplicar-meses-cerrados.sql`.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)

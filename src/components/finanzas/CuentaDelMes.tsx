@@ -1,6 +1,7 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock, LockOpen } from 'lucide-react'
+import { useConfirmAction } from '@/hooks/useConfirmAction'
 import { formatCents, formatCentsCorto } from '@/lib/finanzas'
 import type { Aportacion, CuentaDelMes as Cuenta } from '@/lib/budgets'
 
@@ -14,6 +15,12 @@ interface CuentaDelMesProps {
   reparto: Aportacion[]
   /** Lleva a «El mes tipo». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
+  /** Este mes se puede dar por cerrado a mano: aún no lo está y ya ha empezado. */
+  sePuedeCerrarYa: boolean
+  /** Y deshacerlo, mientras siga siendo el mes de hoy. */
+  sePuedeReabrir: boolean
+  onCerrarYa: () => void
+  onReabrir: () => void
 }
 
 /** Una línea del desglose. El signo va en la etiqueta y en el importe. */
@@ -53,17 +60,26 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * deja de ser una app de casa.
  *
  * **De dónde salen los fijos se dice cuando no es obvio** (02-09-2026). En el mes
- * en curso no se dice nada: es lo normal y una etiqueta ahí sería ruido en la
- * primera pantalla que se mira. En un mes cerrado se avisa de que las cifras son
- * las de entonces, porque si no, ver un alquiler distinto del de hoy parece un
+ * en curso sin cerrar no se dice nada: es lo normal y una etiqueta ahí sería ruido
+ * en la primera pantalla que se mira. En un mes cerrado se avisa de que las cifras
+ * son las de entonces, porque si no, ver un alquiler distinto del de hoy parece un
  * error. Y en un mes que nunca llegó a cerrarse se dice tal cual: la alternativa
  * —enseñar la plantilla de hoy— es justo el error que este cambio vino a quitar.
+ *
+ * **Cerrar el mes antes de tiempo se ofrece aquí, y en pequeño.** Es un atajo, no
+ * una tarea: si nadie lo toca, el mes se cierra solo el día 1. Sirve para lo que no
+ * se podía hacer de otra manera —preparar un cambio de la plantilla que valga a
+ * partir del mes que viene— y por eso el texto habla de eso y no de «cerrar».
+ * Pide confirmación con el patrón de siempre, y mientras el mes siga siendo el de
+ * hoy se puede deshacer: un mes terminado, nunca.
  */
 export function CuentaDelMes({
   cuenta, nombreDelMes, esMesActual, onAnterior, onSiguiente, onVolverAHoy, reparto, onPonerFijos,
+  sePuedeCerrarYa, sePuedeReabrir, onCerrarYa, onReabrir,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
+  const { confirming, requestConfirm } = useConfirmAction()
 
   return (
     <section aria-label="Resumen del mes" className="rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
@@ -106,6 +122,33 @@ export function CuentaDelMes({
             ? 'Mes cerrado: los fijos y las partidas son los que había entonces.'
             : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
         </p>
+      )}
+
+      {/* El texto no dice «cerrar el mes» a secas porque eso no explica para qué
+          sirve. Lo que se está ofreciendo es poder tocar la plantilla sin que el
+          cambio caiga en este mes, y eso es lo que se escribe. */}
+      {sePuedeCerrarYa && hayFijos && (
+        <button
+          type="button"
+          onClick={() => requestConfirm(onCerrarYa)}
+          className="mt-1 flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-[11px] text-faint transition-colors hover:text-muted"
+        >
+          <Lock size={11} strokeWidth={2.4} aria-hidden />
+          {confirming
+            ? '¿Seguro? Los fijos de hoy quedan guardados en este mes'
+            : 'Dar el mes por cerrado y poder cambiar los fijos del que viene'}
+        </button>
+      )}
+
+      {sePuedeReabrir && (
+        <button
+          type="button"
+          onClick={onReabrir}
+          className="mt-1 flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-[11px] text-faint transition-colors hover:text-muted"
+        >
+          <LockOpen size={11} strokeWidth={2.4} aria-hidden />
+          Volver a seguir la plantilla este mes
+        </button>
       )}
 
       {!esMesActual && (

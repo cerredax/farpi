@@ -9,7 +9,7 @@ Farpi está conectado a Supabase de extremo a extremo: autenticación, repositor
 La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Las tablas de Finanzas se aplicaron en el proyecto real y se validaron el 01-09-2026: primero las tres iniciales (99/99) y, con la reforma de los fijos de esa misma tarde, `fixed_entries` y `expenses.kind` (**106/106**). La sección funciona entera con datos reales. El 02-09-2026 se
 aplicaron y validaron tres cambios más de esquema —la franja del comedor con los platos de
 una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**—:
-**129/129**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
+**139/139**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
@@ -103,10 +103,14 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   **Cada mes enseña lo que valía entonces** (02-09-2026): el mes en curso refleja la
   plantilla —cambias un fijo y se ve al momento— y el mes que terminó enseña la copia
   congelada que se guardó al cerrarlo, con sus fijos y los límites que tenían sus partidas.
-  En un mes cerrado no se apunta nada ni se editan sus partidas, y la tarjeta lo dice. El
-  cierre lo hacen solos el cron diario y la app al arrancar; no hay ningún botón. Un mes
-  terminado que nunca llegó a cerrarse lo dice tal cual en vez de enseñar la plantilla de
-  hoy, que es lo que hacía antes.
+  **Lo congelado es el plan, no el día a día**: en un mes cerrado no se editan los fijos ni
+  las partidas, y sí se apunta —la vida llega tarde y los 40 € del 29 de septiembre tienen
+  que caber en septiembre—. El cierre lo hacen solos el cron diario y la app al arrancar. Y
+  se puede **adelantar a mano** («dar el mes por cerrado»), que es la única forma de dejar
+  preparado un cambio de plantilla para el mes que viene; mientras siga siendo el mes de hoy
+  se puede deshacer, y un mes terminado no se reabre nunca. Un mes terminado que nunca llegó
+  a cerrarse lo dice tal cual en vez de enseñar la plantilla de hoy, que es lo que hacía
+  antes.
   **«Presupuestos»**: ahora la palabra significa una sola cosa —lo que cuesta algo que aún
   no has hecho—: los que te pasan de fuera (el fontanero, el dentista), agrupados por para
   qué son y ordenados de más barato a más caro, con el barato marcado mientras el trabajo
@@ -317,9 +321,9 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 362 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos y, desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 114 de navegador. La cifra sale de la pasada completa del 02-09-2026 (476 en total,
-    362 unitarios):
+  - 372 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 121 de navegador. La cifra sale de la pasada completa del 02-09-2026 (493 en total,
+    372 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas y la columna de acceso anclada de la portada; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -367,9 +371,9 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 Sin pendientes. La última pasada es del **02-09-2026**, con
 `node scripts/validate-rls.mjs` contra la base real y ya con los meses cerrados de Finanzas
-aplicados: **129/129**. El detalle de las doce comprobaciones nuevas —y de por qué la que
-más importa es que nadie pueda llamar a `close_month` directamente— está en
-`docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
+aplicados: **139/139**. El detalle de las veintidós comprobaciones nuevas —y de por qué las
+que más importan son que nadie pueda llamar a `close_month_copy` directamente y que un mes
+terminado no se pueda reabrir— está en `docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
 `supabase/aplicar-meses-cerrados.sql`.
 
 Antes de eso, la pasada del **01-09-2026 (tarde)** dio **106/106**. Las siete últimas son de la reforma de los fijos:

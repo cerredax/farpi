@@ -82,9 +82,14 @@ export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): numb
 // que vale hasta que se cambie. Por sí solas no saben contar el pasado, porque
 // subir el alquiler en marzo hacía que enero también lo dijera.
 //
-// La regla es de una línea: **el mes en curso refleja la plantilla, y el mes que
-// terminó enseña la copia que se guardó al cerrarlo.** Todo lo que la pantalla de
-// «El mes» necesita saber pasa antes por aquí.
+// La regla es de una línea: **si el mes tiene copia, manda la copia; si no y el
+// mes no ha terminado, refleja la plantilla.** Todo lo que la pantalla de «El mes»
+// necesita saber pasa antes por aquí.
+//
+// El orden importa y no es el obvio. Se escribió al revés —primero «¿ha terminado
+// el mes?»— y no dejaba cerrar un mes antes de tiempo: la copia estaba guardada y
+// la pantalla seguía enseñando el espejo. Preguntar por la copia primero es lo que
+// hace que cerrar septiembre el día 28 signifique algo.
 
 /** Un fijo tal y como valía en un mes. Viene de la plantilla o de la copia. */
 export interface FijoDelMes {
@@ -117,9 +122,10 @@ export interface PartidaDelMes {
 /**
  * De dónde salen los números de un mes:
  *
- * - `plantilla` — el mes en curso o uno por venir: espejo de lo que hay puesto
- *   ahora mismo. Se cambia un fijo y se ve al momento.
- * - `copia` — un mes terminado, con la foto que se guardó al cerrarlo.
+ * - `plantilla` — el mes en curso o uno por venir, todavía sin cerrar: espejo de lo
+ *   que hay puesto ahora mismo. Se cambia un fijo y se ve al momento.
+ * - `copia` — un mes con su foto ya guardada. Normalmente uno que terminó, pero
+ *   también el mes en curso si se cerró a mano antes de tiempo.
  * - `sin-plan` — un mes terminado que nunca llegó a cerrarse. No se inventa nada:
  *   la pantalla lo dice. Enseñar la plantilla de hoy sería exactamente el error
  *   que este cambio vino a arreglar.
@@ -169,7 +175,10 @@ export function plantillaDelMes(
   budgets: Budget[],
   planes: MonthPlan[],
 ): PlantillaDelMes {
-  if (mes >= mesActual) {
+  const plan = planes.find(p => p.month === mes)
+
+  if (!plan) {
+    if (mes < mesActual) return { origen: 'sin-plan', fijos: [], partidas: [] }
     return {
       origen: 'plantilla',
       fijos: ordenarFijos(fixed.map(f => ({
@@ -192,9 +201,6 @@ export function plantillaDelMes(
       }))),
     }
   }
-
-  const plan = planes.find(p => p.month === mes)
-  if (!plan) return { origen: 'sin-plan', fijos: [], partidas: [] }
 
   return {
     origen: 'copia',

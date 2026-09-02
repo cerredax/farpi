@@ -158,20 +158,31 @@ export interface MealsRepo {
 }
 
 /**
- * Los meses ya cerrados. **Solo se leen.**
+ * Los meses cerrados. **No se editan: se cierran y se reabren, nada más.**
  *
- * No hay `create` ni `update` a propósito, y no es una omisión que rellenar más
- * adelante: lo que hace que un mes cerrado signifique algo es que la app no pueda
- * reescribirlo. Quien lo escribe es la RPC `close_previous_month` en Supabase y el
- * cierre perezoso del mock, cada uno por su lado.
+ * No hay `create` ni `update` de una línea suelta, y no es una omisión que
+ * rellenar más adelante: lo que hace que un mes cerrado signifique algo es que la
+ * app no pueda reescribirlo. Lo único que se puede hacer es congelar la plantilla
+ * entera de un mes, o —solo en el mes en curso— deshacerlo.
  *
- * `closePreviousMonth` no devuelve el plan: devuelve **si ha cerrado algo**, para
- * que quien llame sepa si tiene que recargar. Es idempotente y se puede llamar
- * todas las veces que haga falta.
+ * Las tres devuelven **si han hecho algo**, no el plan: con eso quien llama sabe
+ * si tiene que recargar. Las tres son idempotentes.
  */
 export interface MonthPlansRepo {
   getMonthPlans(familyId: string): Promise<MonthPlan[]>
+  /** El cierre automático del mes que acaba de terminar. Lo llama la app al cargar. */
   closePreviousMonth(familyId: string): Promise<boolean>
+  /**
+   * Cerrar un mes **a mano y antes de tiempo**, para poder tocar la plantilla sin
+   * que el cambio caiga en el mes en curso. Acepta el mes actual; rechaza los que
+   * aún no han llegado.
+   */
+  closeMonthNow(familyId: string, month: string): Promise<boolean>
+  /**
+   * Deshacer un cierre anticipado. **Solo vale para el mes en curso**: un mes
+   * terminado no se reabre nunca, que es lo que sostiene todo lo demás.
+   */
+  reopenMonth(familyId: string, month: string): Promise<boolean>
 }
 
 export interface DocumentsRepo {

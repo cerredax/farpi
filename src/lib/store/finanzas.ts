@@ -234,7 +234,35 @@ export function getMonthPlans(familyId: string): MonthPlan[] {
  * recargar.
  */
 export function closePreviousMonth(familyId: string): boolean {
-  const mes = mesVecino(mesDe(getLocalDateString(new Date())), -1)
+  return copiarPlantillaAlMes(familyId, mesVecino(mesDe(getLocalDateString(new Date())), -1))
+}
+
+/**
+ * Cerrar un mes a mano y antes de tiempo. Acepta el mes en curso —es para lo que
+ * está— y rechaza los que no han llegado, igual que `close_month_now`.
+ */
+export function closeMonthNow(familyId: string, month: string): boolean {
+  if (month > mesDe(getLocalDateString(new Date()))) {
+    throw new Error('No se puede cerrar un mes que no ha llegado')
+  }
+  return copiarPlantillaAlMes(familyId, month)
+}
+
+/**
+ * Deshacer un cierre anticipado. **Solo el mes en curso**, como `reopen_month`: un
+ * mes terminado no se reabre nunca.
+ */
+export function reopenMonth(familyId: string, month: string): boolean {
+  if (month !== mesDe(getLocalDateString(new Date()))) {
+    throw new Error('Solo se puede reabrir el mes en curso')
+  }
+  const antes = db.monthPlans.length
+  db.monthPlans = db.monthPlans.filter(p => !(p.family_id === familyId && p.month === month))
+  return db.monthPlans.length < antes
+}
+
+/** La copia en sí. El equivalente de `close_month_copy`: sin guardas de fecha. */
+function copiarPlantillaAlMes(familyId: string, mes: string): boolean {
   if (db.monthPlans.some(p => p.family_id === familyId && p.month === mes)) return false
 
   const now = new Date().toISOString()

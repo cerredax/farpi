@@ -254,6 +254,40 @@ async function main() {
   // congelarle el mes a cualquier casa.
   comprobar('Nadie puede llamar a close_month directamente',
     (await api('/rest/v1/rpc/close_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famB, p_month: mesPasado } })).estado >= 400)
+  // `close_month_copy` es la que de verdad escribe, y no tiene ninguna guarda de
+  // fecha: si se pudiera llamar desde fuera, cualquiera congelaría cualquier mes
+  // de cualquier casa, incluido uno que no ha llegado.
+  comprobar('Nadie puede llamar a close_month_copy directamente',
+    (await api('/rest/v1/rpc/close_month_copy', { metodo: 'POST', token: tokB, datos: { p_family_id: famB, p_month: mesPasado } })).estado >= 400)
+
+  // El cierre a mano y antes de tiempo, que es lo que permite preparar el mes que
+  // viene sin que el cambio caiga en el que está en curso.
+  const mesActual = new Date().toISOString().slice(0, 7)
+  comprobar('A puede cerrar a mano el mes en curso',
+    (await api('/rest/v1/rpc/close_month_now', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesActual } })).cuerpo === true)
+  comprobar('El mes en curso queda cerrado',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesActual}&select=month`, { token: tokA })) === 1)
+  // Congelar noviembre en septiembre guardaría una foto de tres meses antes y
+  // nadie se acordaría de que está ahí.
+  const mesFuturo = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 2, 1))
+    .toISOString().slice(0, 7)
+  comprobar('NO se puede cerrar un mes que no ha llegado',
+    (await api('/rest/v1/rpc/close_month_now', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesFuturo } })).estado >= 400)
+  comprobar('B NO puede cerrarle a mano el mes a la familia de A',
+    (await api('/rest/v1/rpc/close_month_now', { metodo: 'POST', token: tokB, datos: { p_family_id: famA, p_month: mesActual } })).estado >= 400)
+
+  // Reabrir existe para deshacer un cierre anticipado, y **solo eso**. Si un mes
+  // terminado se pudiera reabrir, no estaría cerrado, y todo lo de arriba sobra.
+  comprobar('A puede reabrir el mes en curso que cerró de más',
+    (await api('/rest/v1/rpc/reopen_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesActual } })).cuerpo === true)
+  comprobar('Tras reabrirlo, el mes en curso ya no está cerrado',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesActual}&select=month`, { token: tokA })) === 0)
+  comprobar('A NO puede reabrir un mes que ya terminó',
+    (await api('/rest/v1/rpc/reopen_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesPasado } })).estado >= 400)
+  comprobar('El mes pasado sigue cerrado después del intento',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}&select=month`, { token: tokA })) === 1)
+  comprobar('B NO puede reabrirle el mes a la familia de A',
+    (await api('/rest/v1/rpc/reopen_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famA, p_month: mesActual } })).estado >= 400)
 
   // Lo que hace que un mes cerrado se pueda dar por bueno: ni el propio dueño lo
   // reescribe. No hay policy de insert, update ni delete para nadie.

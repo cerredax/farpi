@@ -1450,22 +1450,21 @@ $$;
 
 grant execute on function public.accept_family_invite(uuid) to authenticated;
 
--- Cierra un mes copiando la plantilla tal y como está ahora mismo.
+-- Copiar la plantilla a un mes. **Es el único sitio que escribe la foto**, y no
+-- comprueba nada más allá del formato: quién puede y qué meses valen lo deciden
+-- las tres funciones de abajo, cada una a su manera.
 --
--- **Idempotente y sin devolver error si ya estaba cerrado**, porque la llaman dos
--- sitios que no se coordinan: el cron diario y la app al arrancar. El `insert ...
--- on conflict do nothing` es lo que resuelve la carrera entre dos móviles de la
--- misma casa abriendo la app el día 1 a la vez, y el `row_count` de después es lo
--- que evita duplicar las líneas.
+-- **Idempotente**, porque la llaman sitios que no se coordinan: el cron diario, la
+-- app al arrancar y el botón de cerrar antes de tiempo. El `insert ... on conflict
+-- do nothing` resuelve la carrera entre dos móviles de la misma casa el día 1, y
+-- el `row_count` de después es lo que evita duplicar las líneas.
 --
 -- `security definer` porque las dos tablas no tienen policy de escritura para
 -- nadie: es justo lo que hace que un mes cerrado se pueda dar por bueno. Y **no
--- comprueba la familia**, así que su `execute` se revoca ahí abajo: quien la llama
--- desde la app es `close_previous_month`, que sí la comprueba, y desde el cron el
--- service role, que ya pasa por encima de todo. Sin ese `revoke` cualquiera podría
--- cerrarle el mes a cualquier familia, porque Postgres concede `execute` a
--- `public` por defecto en cada función nueva.
-create or replace function public.close_month(p_family_id uuid, p_month text)
+-- comprueba la familia**, así que su `execute` se revoca ahí abajo. Sin ese
+-- `revoke` cualquiera podría cerrarle el mes a cualquier familia, porque Postgres
+-- concede `execute` a `public` por defecto en cada función nueva.
+create or replace function public.close_month_copy(p_family_id uuid, p_month text)
 returns boolean
 language plpgsql
 security definer
@@ -1475,19 +1474,7 @@ declare
   v_filas integer;
 begin
   if p_month !~ '^[0-9]{4}-(0[1-9]|1[0-2])$' then
-    raise exception 'close_month: el mes tiene que ser YYYY-MM, y llegó %', p_month;
-  end if;
-
-  -- Solo se cierran meses **terminados**. El mes en curso es espejo de la
-  -- plantilla a propósito, y congelarlo antes de tiempo dejaría a quien monta la
-  -- app a mitad de mes con una foto vacía que ya no se puede rellenar.
-  --
-  -- La zona horaria va escrita aquí y no leída de ninguna parte, igual que en el
-  -- cron: la familia vive en España y un mes se acaba cuando se acaba en su
-  -- calendario, no en UTC. En UTC, el 1 de marzo a las 00:30 en Madrid todavía
-  -- sería febrero y el cierre se saltaría un día.
-  if p_month >= to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
-    return false;
+    raise exception 'close_month_copy: el mes tiene que ser YYYY-MM, y llegó %', p_month;
   end if;
 
   insert into public.month_plans (family_id, month)
@@ -1517,6 +1504,34 @@ begin
 end;
 $$;
 
+revoke all on function public.close_month_copy(uuid, text) from public;
+revoke all on function public.close_month_copy(uuid, text) from anon;
+revoke all on function public.close_month_copy(uuid, text) from authenticated;
+
+-- El cierre automático: **solo meses ya terminados**. Es la que llama el cron con
+-- el service role, y la que no puede equivocarse nunca porque nadie la está
+-- mirando. Cerrar de oficio el mes en curso dejaría a quien monta la app a mitad
+-- de mes con una foto vacía; adelantarlo es una decisión que se toma a mano, y
+-- para eso está `close_month_now`.
+--
+-- La zona horaria va escrita aquí y no leída de ninguna parte, igual que en el
+-- cron: la familia vive en España y un mes se acaba cuando se acaba en su
+-- calendario, no en UTC. En UTC, el 1 de marzo a las 00:30 en Madrid todavía sería
+-- febrero y el cierre se saltaría un día.
+create or replace function public.close_month(p_family_id uuid, p_month text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_month >= to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
+    return false;
+  end if;
+  return public.close_month_copy(p_family_id, p_month);
+end;
+$$;
+
 revoke all on function public.close_month(uuid, text) from public;
 revoke all on function public.close_month(uuid, text) from anon;
 revoke all on function public.close_month(uuid, text) from authenticated;
@@ -1527,7 +1542,7 @@ revoke all on function public.close_month(uuid, text) from authenticated;
 grant execute on function public.close_month(uuid, text) to service_role;
 
 -- El mes que acaba de terminar, para una familia del que llama. Es la que usa la
--- app: nadie tiene que saber calcular «el mes pasado» en dos sitios.
+-- app al arrancar: nadie tiene que saber calcular «el mes pasado» en dos sitios.
 --
 -- **Solo cierra el mes anterior, nunca más atrás.** Si el cron estuvo caído tres
 -- meses, copiar la plantilla de hoy en enero escribiría en enero unos números que
@@ -1551,11 +1566,76 @@ begin
     'YYYY-MM'
   );
 
-  return public.close_month(p_family_id, v_mes);
+  return public.close_month_copy(p_family_id, v_mes);
 end;
 $$;
 
 grant execute on function public.close_previous_month(uuid) to authenticated;
+
+-- Cerrar un mes **antes de tiempo**, a mano y a propósito (02-09-2026).
+--
+-- Existe por un hueco concreto: el mes en curso es espejo de la plantilla, así que
+-- no se puede dejar preparado un cambio «para el mes que viene». Subir el alquiler
+-- el 20 de septiembre lo mete también en septiembre. Con esto se cierra septiembre
+-- el día que se dé por terminado y a partir de ahí la plantilla solo mira a
+-- octubre.
+--
+-- **No es obligatorio y no sustituye a nada.** Si nadie la llama, el mes se cierra
+-- solo el día 1 como siempre. Es un atajo, no una tarea.
+--
+-- Acepta el mes en curso —es su razón de ser— y **rechaza los que aún no han
+-- llegado**: congelar noviembre en septiembre guardaría una foto de tres meses
+-- antes y nadie se acordaría de que está ahí.
+create or replace function public.close_month_now(p_family_id uuid, p_month text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_family_id not in (select public.my_family_ids()) then
+    raise exception 'Acceso denegado: no perteneces a esa familia';
+  end if;
+  if p_month > to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
+    raise exception 'close_month_now: no se puede cerrar un mes que no ha llegado (%)', p_month;
+  end if;
+  return public.close_month_copy(p_family_id, p_month);
+end;
+$$;
+
+grant execute on function public.close_month_now(uuid, text) to authenticated;
+
+-- Deshacer un cierre anticipado, y **solo eso**.
+--
+-- Es lo que hace que el botón de cerrar antes de tiempo se pueda ofrecer sin
+-- miedo: te has adelantado por error y lo devuelves a espejo. **Un mes terminado
+-- no se reabre jamás**, que es justo lo que sostiene todo lo demás: si el pasado
+-- se pudiera reabrir, no estaría cerrado.
+--
+-- Las líneas se van solas con la cabecera por el `on delete cascade`.
+create or replace function public.reopen_month(p_family_id uuid, p_month text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_filas integer;
+begin
+  if p_family_id not in (select public.my_family_ids()) then
+    raise exception 'Acceso denegado: no perteneces a esa familia';
+  end if;
+  if p_month <> to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
+    raise exception 'reopen_month: solo se puede reabrir el mes en curso, y llegó %', p_month;
+  end if;
+
+  delete from public.month_plans where family_id = p_family_id and month = p_month;
+  get diagnostics v_filas = row_count;
+  return v_filas > 0;
+end;
+$$;
+
+grant execute on function public.reopen_month(uuid, text) to authenticated;
 
 -- ============================================================================
 -- Relleno de los meses que ya habían pasado (02-09-2026)
@@ -1576,6 +1656,7 @@ begin
   for r in
     select distinct family_id, to_char(date, 'YYYY-MM') as mes
     from public.expenses
+    where to_char(date, 'YYYY-MM') < to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM')
   loop
     perform public.close_month(r.family_id, r.mes);
   end loop;

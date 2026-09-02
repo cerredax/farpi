@@ -28,6 +28,7 @@ export type PestañaFinanzas = 'mes' | 'plantilla' | 'presupuestos'
 export function useFinanzasState() {
   const {
     fixedEntries, budgets, expenses, quotes, monthPlans, members, kids,
+    closeMonthNow, reopenMonth,
     createFixedEntry, updateFixedEntry, deleteFixedEntry,
     createBudget, updateBudget, deleteBudget,
     createExpense, updateExpense, deleteExpense,
@@ -101,11 +102,21 @@ export function useFinanzasState() {
     volverAHoy: () => setMes(mesActual),
     esMesActual: mes === mesActual,
     /**
-     * Si lo que se está mirando se puede tocar. Un mes cerrado enseña la copia
-     * que se guardó: sus partidas no se editan desde ahí y no se le apuntan
-     * gastos nuevos, porque lo que pasó en enero ya pasó.
+     * Si el plan de este mes está congelado: sus partidas no se editan desde aquí
+     * y no se ofrece crear ninguna, porque una partida es de la plantilla.
+     *
+     * **No tiene nada que ver con apuntar.** Lo que se congela es el plan —los
+     * fijos y los límites—, no el día a día: el 2 de octubre te acuerdas de los
+     * 40 € del 29 de septiembre y tienen que caber. Estuvieron sin caber unas
+     * horas el 02-09-2026, por confundir las dos cosas.
      */
-    esMesEditable: mes >= mesActual,
+    planCongelado: plantilla.origen === 'copia',
+    /** Se puede cerrar a mano lo que aún no está cerrado y ya ha empezado. */
+    sePuedeCerrarYa: plantilla.origen === 'plantilla' && mes <= mesActual,
+    /** Y deshacerlo, solo mientras el mes siga siendo el de hoy. */
+    sePuedeReabrir: plantilla.origen === 'copia' && mes === mesActual,
+    cerrarMesYa: () => closeMonthNow(mes),
+    reabrirMes: () => reopenMonth(mes),
     plantilla,
 
     pestaña, setPestaña,

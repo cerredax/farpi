@@ -344,6 +344,21 @@ test.describe('qué plantilla valía en un mes', () => {
     expect(p.partidas).toEqual([])
   })
 
+  // El cierre anticipado: la copia manda aunque el mes no haya terminado. Esto
+  // es lo que hace que «dar septiembre por cerrado el día 28» signifique algo, y
+  // se escribió al revés la primera vez —preguntando antes si el mes había
+  // terminado—, con lo que la copia se guardaba y la pantalla la ignoraba.
+  test('un mes en curso ya cerrado enseña su copia, no la plantilla', () => {
+    const AGOSTO = plan('2026-08', [
+      linea({ id: 'l1', month: '2026-08', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+    ])
+    const p = plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [AGOSTO])
+    expect(p.origen).toBe('copia')
+    expect(p.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
+    // Y la plantilla, que dice 80000, ya no lo toca.
+    expect(p.partidas).toEqual([])
+  })
+
   test('las líneas de la copia salen en el orden de la pantalla', () => {
     const desordenado = plan('2026-06', [
       linea({ id: 'z', month: '2026-06', line: 'gasto', name: 'Zumba', sort_order: 1 }),

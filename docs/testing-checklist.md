@@ -344,8 +344,13 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
       entonces (−870,90 €), no los de hoy (−935,90 €).
 - [ ] La partida de la compra en junio se mide contra **350 €**, no contra los 400 de hoy.
 - [ ] Cambiar el alquiler en «El mes tipo» mueve **este mes al momento** y **no toca** junio.
-- [ ] En un mes cerrado no hay botón de apuntar, ni enlace de «Nueva partida», y las barras
-      de las partidas no se pueden tocar.
+- [ ] En un mes cerrado **sí se puede apuntar** —el botón está—, y lo apuntado cae en ese
+      mes sin mover sus fijos congelados. Lo que no se puede es crear ni editar partidas:
+      no hay enlace de «Nueva partida» y las barras no se tocan.
+- [ ] En el mes en curso, «Dar el mes por cerrado…» pide confirmación con dos toques. Tras
+      cerrarlo, cambiar el alquiler en «El mes tipo» ya no mueve este mes.
+- [ ] Y sale «Volver a seguir la plantilla este mes», que lo deshace. En un mes que ya
+      terminó **no aparece ninguno de los dos botones**.
 - [ ] Agosto sale como cerrado aunque no esté sembrado: lo cierra la app al abrirse.
 - [ ] Borrar una partida y mirar un mes cerrado que la tenía: **sigue saliendo con su
       nombre y su límite**, y sus gastos pasan a contarse en «sin partida».

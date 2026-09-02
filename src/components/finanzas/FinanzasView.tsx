@@ -92,6 +92,10 @@ export function FinanzasView() {
           onVolverAHoy={s.volverAHoy}
           reparto={s.reparto}
           onPonerFijos={() => s.setPestaña('plantilla')}
+          sePuedeCerrarYa={s.sePuedeCerrarYa}
+          sePuedeReabrir={s.sePuedeReabrir}
+          onCerrarYa={s.cerrarMesYa}
+          onReabrir={s.reabrirMes}
         />
 
         <section aria-label="Partidas del mes" className="space-y-2">
@@ -106,7 +110,7 @@ export function FinanzasView() {
                 `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
                 negativo devuelve el texto a la línea del título para que la
                 zona de toque crezca sin que se note. */}
-            {s.esMesEditable && (
+            {!s.planCongelado && (
               <button
                 type="button"
                 onClick={() => s.setPestaña('plantilla')}
@@ -122,16 +126,16 @@ export function FinanzasView() {
             <EmptyState
               emoji="🎯"
               title="Sin partidas"
-              description={s.esMesEditable
-                ? 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «El mes tipo», y aquí verás cuánto llevas de cada una.'
-                : 'Ese mes se cerró sin ninguna partida puesta.'}
+              description={s.planCongelado
+                ? 'Ese mes se cerró sin ninguna partida puesta.'
+                : 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «El mes tipo», y aquí verás cuánto llevas de cada una.'}
             />
           ) : (
             s.resumen.map(r => (
               <BudgetBar
                 key={r.partida.key}
                 resumen={r}
-                onEdit={s.esMesEditable && r.partida.budgetId
+                onEdit={!s.planCongelado && r.partida.budgetId
                   ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
                   : undefined}
               />
@@ -236,27 +240,27 @@ export function FinanzasView() {
           es lo primero que hay dentro del sheet, así que corregirlo es un toque, y
           las partidas tienen su propio «+» en su bloque.
 
-          **En un mes cerrado no hay botón.** Apuntar un gasto en enero desde la
-          pantalla de enero es justo lo que este cambio vino a impedir; para
-          apuntar algo se vuelve a este mes, que está a un toque en la tarjeta. */}
-      {!(s.pestaña === 'mes' && !s.esMesEditable) && (
-        <button
-          type="button"
-          onClick={() => {
-            if (s.pestaña === 'mes') s.abrirApunte(null)
-            else if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
-            else s.abrirPedido(null)
-          }}
-          aria-label={
-            s.pestaña === 'mes' ? 'Nuevo apunte'
-              : s.pestaña === 'plantilla' ? 'Nuevo gasto fijo'
-                : 'Nuevo presupuesto pedido'
-          }
-          className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover lg:bottom-8 lg:right-8"
-        >
-          <Plus size={24} strokeWidth={2.4} />
-        </button>
-      )}
+          **En un mes cerrado se sigue pudiendo apuntar**, y es a propósito. Lo que
+          se congela es el plan —los fijos y los límites de las partidas—, no el día
+          a día: el 2 de octubre te acuerdas de los 40 € del 29 de septiembre y
+          tienen que caber en septiembre, que es cuando se gastaron. Un rato del
+          02-09-2026 no cupieron, por confundir las dos cosas. */}
+      <button
+        type="button"
+        onClick={() => {
+          if (s.pestaña === 'mes') s.abrirApunte(null)
+          else if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
+          else s.abrirPedido(null)
+        }}
+        aria-label={
+          s.pestaña === 'mes' ? 'Nuevo apunte'
+            : s.pestaña === 'plantilla' ? 'Nuevo gasto fijo'
+              : 'Nuevo presupuesto pedido'
+        }
+        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover lg:bottom-8 lg:right-8"
+      >
+        <Plus size={24} strokeWidth={2.4} />
+      </button>
 
       <FixedEntrySheet
         key={s.fixedKey}

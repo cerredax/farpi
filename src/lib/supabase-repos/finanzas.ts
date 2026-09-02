@@ -323,4 +323,24 @@ export const monthPlansRepo: MonthPlansRepo = {
     assertNoError(error)
     return data === true
   },
+
+  async closeMonthNow(familyId: string, month: string): Promise<boolean> {
+    const supabase = createClient()
+    const { data, error } = await supabase.rpc('close_month_now', {
+      p_family_id: familyId,
+      p_month: month,
+    })
+    assertNoError(error)
+    return data === true
+  },
+
+  async reopenMonth(familyId: string, month: string): Promise<boolean> {
+    const supabase = createClient()
+    const { data, error } = await supabase.rpc('reopen_month', {
+      p_family_id: familyId,
+      p_month: month,
+    })
+    assertNoError(error)
+    return data === true
+  },
 }

@@ -1,10 +1,10 @@
 # Validación Supabase
 
 Última ejecución: 2026-09-02, con **los meses cerrados** ya aplicados en el proyecto
-real. **129/129 comprobaciones correctas.**
+real. **139/139 comprobaciones correctas.**
 
-Son las 117 anteriores más las **doce de los meses cerrados**, que van juntas en una §4 bis
-propia. `month_plans` y `month_plan_lines` son las dos primeras tablas de contenido con
+Son las 117 anteriores más las **veintidós de los meses cerrados**, que van juntas en una
+§4 bis propia. `month_plans` y `month_plan_lines` son las dos primeras tablas de contenido con
 policy de **solo `select`**, y eso es exactamente lo que había que ver funcionar: lo que
 hace que un mes cerrado signifique algo no es que esté guardado, es que la app no pueda
 reescribirlo.
@@ -21,10 +21,20 @@ familia, y Postgres concede `execute` a `public` por defecto en cada función nu
 `revoke` se cayera —o si alguien recreara la función sin él— cualquiera podría congelarle el
 mes a cualquier casa con la plantilla equivocada. Se comprueba desde B, con su token.
 
-Y cuatro son la parte de solo lectura, todas contra **A, el propio dueño**: que no puede
+Cuatro son la parte de solo lectura, todas contra **A, el propio dueño**: que no puede
 insertar un mes a mano, ni añadir una línea a uno cerrado, ni reescribir el importe de una
 línea, ni borrar un mes. Comprobarlas con el dueño y no con un ajeno es el punto: contra un
 ajeno bastaba la RLS de siempre, y lo que aquí se está afirmando es más fuerte.
+
+Y las diez últimas son del **cierre a mano** y de deshacerlo. Que `close_month_copy` —la
+que de verdad escribe y la única sin ninguna guarda de fecha— tampoco se puede llamar desde
+fuera. Que A puede cerrar el mes en curso y queda cerrado, que **no** puede cerrar uno que
+no ha llegado —congelar noviembre en septiembre guardaría una foto de tres meses antes que
+nadie recordaría— y que B no puede cerrárselo a A. Y las de `reopen_month`: que A deshace su
+propio cierre anticipado, que **NO puede reabrir un mes que ya terminó**, que ese mes sigue
+cerrado después del intento, y que B no puede reabrirle nada a A. La de reabrir el pasado es
+la que sostiene lo demás: si un mes terminado se pudiera reabrir, no estaría cerrado y las
+veintiuna anteriores no afirmarían nada.
 
 Lo que este arnés **no** cubre y hay que mirar a mano una vez: que el relleno de los meses
 que ya habían pasado escribió lo que tenía que escribir. El arnés trabaja con familias de

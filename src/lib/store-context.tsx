@@ -95,6 +95,12 @@ interface StoreValue {
    * escribe es el cierre automático, no ninguna pantalla.
    */
   monthPlans: MonthPlan[]
+  /**
+   * Cerrar el mes a mano antes de tiempo, y deshacerlo. Lo segundo **solo vale
+   * para el mes en curso**: un mes terminado no se reabre nunca.
+   */
+  closeMonthNow: (month: string) => Promise<void>
+  reopenMonth: (month: string) => Promise<void>
   documents: Document[]
   /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
   mealSlots: MealSlot[]
@@ -604,6 +610,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       updateQuote: (id: string, draft: QuoteDraft) => runMutation(() => repos.quotes.updateQuote(id, draft)),
       deleteQuote: (id: string) => runMutation(() => repos.quotes.deleteQuote(id)),
       setQuoteStatus: (id: string, status: QuoteStatus) => runMutation(() => repos.quotes.setQuoteStatus(id, status)),
+      closeMonthNow: (month: string) => runMutation(() => repos.monthPlans.closeMonthNow(familyId, month)),
+      reopenMonth: (month: string) => runMutation(() => repos.monthPlans.reopenMonth(familyId, month)),
       createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
       updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),

@@ -69,10 +69,32 @@ En la demo, junio y julio vienen sembrados con otras cifras —760 € de alquil
 de compra— y agosto lo cierra la app al arrancar. Sin eso, un mes congelado y un mes
 espejo se ven exactamente igual y no hay nada que entender.
 
-Aplicado en el proyecto real ese mismo día y revalidado: **129/129**, con doce
-comprobaciones nuevas en una §4 bis del arnés. Cuatro de ellas van contra el propio
-dueño —que A no puede insertar, añadir, reescribir ni borrar en un mes cerrado—, que
-es la afirmación fuerte y la que no se podía dar por supuesta.
+Y una cosa más, que salió preguntando cómo se generaría octubre. Al hacer «mes
+cerrado» se había escondido también el botón de apuntar, así que el 2 de octubre no
+había dónde meter los 40 € del 29 de septiembre. Era confundir dos cosas: lo que se
+pidió congelar fue **el plan** —los fijos y los límites—, no el día a día. La vida
+llega tarde y los apuntes tienen que caber en el mes en que se gastaron.
+
+De ahí salió también el cierre a mano. Como el mes en curso es espejo, no había forma
+de dejar preparado un cambio para el mes siguiente: subir el alquiler el 20 de
+septiembre lo metía en septiembre. Ahora la tarjeta ofrece «dar el mes por cerrado y
+poder cambiar los fijos del que viene», que **no es obligatorio** —si nadie lo toca,
+el día 1 se cierra solo— y se puede deshacer mientras el mes siga siendo el de hoy.
+Se descartó la versión obligatoria, en la que el mes no pasa hasta que alguien lo
+cierra: es la tarea administrativa que la app existe para no pedir, y en una casa la
+haría quien llegara antes, por los dos.
+
+Eso obligó a dar la vuelta a la regla del código. Estaba escrita como «¿ha terminado
+el mes? entonces copia», y así el cierre anticipado no hacía nada: la copia se
+guardaba y la pantalla seguía enseñando el espejo. Ahora es **«si hay copia, manda la
+copia»**, que además se lee mejor.
+
+Aplicado en el proyecto real ese mismo día y revalidado: **139/139**, con veintidós
+comprobaciones nuevas en una §4 bis del arnés. Las que sostienen todo lo demás son
+cuatro contra el propio dueño —que A no puede insertar, añadir, reescribir ni borrar
+en un mes cerrado— y una contra el pasado: **que A no puede reabrir un mes que ya
+terminó**. Si eso se pudiera, no estaría cerrado y las otras veintiuna no afirmarían
+nada.
 
 ### Finanzas deja de hablar como un banco: partidas y el día a día (02-09-2026)
 

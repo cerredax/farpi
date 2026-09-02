@@ -58,6 +58,32 @@
   --color-danger-line:    #F1C9C9; /* borde de peligro */
   --color-danger-tint:    #FDF6F6; /* fondo de tarjeta de peligro */
 
+  /* Gráficos de Finanzas (02-09-2026). Van aparte de los tokens de la interfaz
+     porque responden a otra pregunta: aquí el color codifica un dato, no un
+     estado ni una persona.
+
+     `entra`/`sale` son un **par divergente**: lo que manda es la posición
+     respecto al cero —arriba entra, abajo sale— y el tono solo acompaña. Se
+     probaron el verde y el salmón de marca como par categórico y no valen: están
+     a ΔE 2,3 en protanopía y a 11,3 con visión normal, por debajo del suelo de 15.
+     Con las barras separadas por la línea del cero eso deja de importar.
+
+     La rampa es **secuencial de un solo tono**, para el anillo de «en qué se va».
+     Un color por partida rompería la regla del proyecto —el color dice de quién es
+     algo, y una partida no es de nadie—, así que la identidad la llevan el emoji y
+     el nombre de la leyenda, y el verde solo ordena por cuánto. Los seis pasos son
+     monotónicos en L* y todos pasan de 3:1 sobre blanco (el peor, 3,23): con menos
+     contraste habría porciones que no se ven. Seis y no más es también por qué el
+     reparto se corta en cinco partidas y «Otras». */
+  --color-chart-entra:    #5C7A59;
+  --color-chart-sale:     #B26A3C;
+  --color-chart-ramp-1:   #6E9A6B;
+  --color-chart-ramp-2:   #5F8A5E;
+  --color-chart-ramp-3:   #517A51;
+  --color-chart-ramp-4:   #446944;
+  --color-chart-ramp-5:   #385838;
+  --color-chart-ramp-6:   #2C462C;
+
   --color-line:           #EDE9E3; /* borde principal */
   --color-line-strong:    #D8D4CE; /* borde marcado y discontinuo */
   --color-surface:        #F0EDE8; /* superficie / hover */

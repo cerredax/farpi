@@ -998,6 +998,47 @@ test('el mes pasado se cierra solo al abrir la app', async ({ page }) => {
   await expect(resumen).not.toContainText('no se guardó el plan')
 })
 
+// ─── El resumen ──────────────────────────────────────────────────────────────
+
+test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Resumen' }).click()
+
+  // La serie: junio y julio vienen cerrados en la demo y agosto lo cierra la app
+  // al arrancar. Los números viven en la tabla plegada, que es la que hace que el
+  // dibujo no sea lo único que dice el dato.
+  const serie = page.getByRole('region', { name: 'Cómo van los meses' })
+  await serie.getByText('Ver los números').click()
+  // Junio: 3.130 de nóminas + 120 de un ingreso apuntado, contra 870,90 de fijos
+  // congelados + 291,45 de gastos. La serie cuenta los fijos **y** lo apuntado,
+  // que es lo que hace que la barra sea el mes entero y no solo su plan.
+  const junio = serie.getByRole('row', { name: /Junio/ })
+  await expect(junio).toContainText('3.250 €')
+  await expect(junio).toContainText('−1.162,35 €')
+  await expect(junio).toContainText('2.087,65 €')
+  // De ese mes no hay plan guardado, así que no puede salir en la serie.
+  await expect(serie.getByRole('row', { name: /Mayo/ })).toHaveCount(0)
+
+  // Y el anillo del mes que se está mirando, que arranca en el actual y vacío.
+  await expect(page.getByRole('region', { name: /en qué se va/ })).toContainText('Nada gastado')
+})
+
+test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await retroceder(page, 3)
+
+  await page.getByRole('tab', { name: 'Resumen' }).click()
+  // Junio: 291,45 € de gastos, de los que 80,55 € son de la compra (28 %).
+  const anillo = page.getByRole('region', { name: /en qué se va/ })
+  await expect(anillo).toContainText('Junio 2026')
+  await expect(anillo).toContainText('Compra')
+  await expect(anillo).toContainText('28 %')
+  // Y lo que no cae en ninguna partida sale igual.
+  await expect(anillo).toContainText('Sin partida')
+})
+
 test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)

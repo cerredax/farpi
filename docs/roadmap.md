@@ -388,6 +388,21 @@ guardada aunque luego los cambies**. El porqué y las alternativas descartadas, 
       **139/139**. El delta, idempotente y reescrito entero en cada cambio, queda en
       `supabase/aplicar-meses-cerrados.sql`.
 
+## Fase 8i - Finanzas: el resumen, y el `+` de vuelta arriba (02-09-2026)
+
+- [x] Cuarta pestaña **«Resumen»** con tres gráficos en SVG a mano, sin librerías:
+      barras divergentes de los últimos seis meses, el desglose de fijos contra
+      apuntado del mes que se mire, y un anillo de en qué se va.
+- [x] **El `+` vuelve arriba** (`ViewHeader`). Finanzas era la única pantalla con
+      botón flotante, que es la divergencia que `ViewHeader` vino a cerrar.
+- [x] **Cerrar el mes se va al pie de «El mes»**: en la tarjeta del resumen
+      quedaba mal y la convertía en un panel de mandos.
+- [x] En las partidas, 🍺 en lugar de 💡. La luz es un fijo y no se le pone
+      partida, así que ofrecer la bombilla ahí invitaba a lo que no hay que hacer.
+- [x] Tokens de gráfico en `globals.css`, **con el color validado y no elegido a
+      ojo**: el verde y el salmón de marca están a ΔE 2,3 en protanopía.
+- [x] 12 unitarios nuevos y 2 flujos de navegador.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

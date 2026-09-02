@@ -1,7 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Lock, LockOpen } from 'lucide-react'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatCents, formatCentsCorto } from '@/lib/finanzas'
 import type { Aportacion, CuentaDelMes as Cuenta } from '@/lib/budgets'
 
@@ -15,12 +14,6 @@ interface CuentaDelMesProps {
   reparto: Aportacion[]
   /** Lleva a «El mes tipo». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
-  /** Este mes se puede dar por cerrado a mano: aún no lo está y ya ha empezado. */
-  sePuedeCerrarYa: boolean
-  /** Y deshacerlo, mientras siga siendo el mes de hoy. */
-  sePuedeReabrir: boolean
-  onCerrarYa: () => void
-  onReabrir: () => void
 }
 
 /** Una línea del desglose. El signo va en la etiqueta y en el importe. */
@@ -66,20 +59,16 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * error. Y en un mes que nunca llegó a cerrarse se dice tal cual: la alternativa
  * —enseñar la plantilla de hoy— es justo el error que este cambio vino a quitar.
  *
- * **Cerrar el mes antes de tiempo se ofrece aquí, y en pequeño.** Es un atajo, no
- * una tarea: si nadie lo toca, el mes se cierra solo el día 1. Sirve para lo que no
- * se podía hacer de otra manera —preparar un cambio de la plantilla que valga a
- * partir del mes que viene— y por eso el texto habla de eso y no de «cerrar».
- * Pide confirmación con el patrón de siempre, y mientras el mes siga siendo el de
- * hoy se puede deshacer: un mes terminado, nunca.
+ * **Cerrar el mes no se ofrece aquí.** Estuvo un rato y quedaba mal: esta tarjeta
+ * es la conclusión de la pantalla —una cifra grande y su desglose— y colgarle
+ * debajo dos acciones la convertía en un panel de mandos. Se fue al pie de «El
+ * mes», que es donde se lee como «he terminado con esto» (ver `CierreDelMes`).
  */
 export function CuentaDelMes({
   cuenta, nombreDelMes, esMesActual, onAnterior, onSiguiente, onVolverAHoy, reparto, onPonerFijos,
-  sePuedeCerrarYa, sePuedeReabrir, onCerrarYa, onReabrir,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
-  const { confirming, requestConfirm } = useConfirmAction()
 
   return (
     <section aria-label="Resumen del mes" className="rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
@@ -123,34 +112,6 @@ export function CuentaDelMes({
             : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
         </p>
       )}
-
-      {/* El texto no dice «cerrar el mes» a secas porque eso no explica para qué
-          sirve. Lo que se está ofreciendo es poder tocar la plantilla sin que el
-          cambio caiga en este mes, y eso es lo que se escribe. */}
-      {sePuedeCerrarYa && hayFijos && (
-        <button
-          type="button"
-          onClick={() => requestConfirm(onCerrarYa)}
-          className="mt-1 flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-[11px] text-faint transition-colors hover:text-muted"
-        >
-          <Lock size={11} strokeWidth={2.4} aria-hidden />
-          {confirming
-            ? '¿Seguro? Los fijos de hoy quedan guardados en este mes'
-            : 'Dar el mes por cerrado y poder cambiar los fijos del que viene'}
-        </button>
-      )}
-
-      {sePuedeReabrir && (
-        <button
-          type="button"
-          onClick={onReabrir}
-          className="mt-1 flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-[11px] text-faint transition-colors hover:text-muted"
-        >
-          <LockOpen size={11} strokeWidth={2.4} aria-hidden />
-          Volver a seguir la plantilla este mes
-        </button>
-      )}
-
       {!esMesActual && (
         <button
           type="button"

@@ -348,6 +348,144 @@ export function gastosSinPartida(expenses: Expense[], mes: string): Expense[] {
   return soloGastos(apuntesDelMes(expenses, mes)).filter(e => !e.budget_id)
 }
 
+// ─── Lo que dibuja la pestaña «Resumen» ───────────────────────────────────────
+//
+// Dos cosas, y las dos son puras: cómo ha ido cada uno de los últimos meses, y en
+// qué se ha ido el dinero de uno concreto. Se calculan aquí y no en el componente
+// por lo de siempre —así se pueden probar sin navegador— y porque las dos tienen
+// un caso raro que no se ve mirando la pantalla: un mes que nunca se cerró.
+
+export interface MesDeLaSerie {
+  /** `YYYY-MM`. */
+  mes: string
+  entra: number
+  sale: number
+  /** `entra - sale`. **Negativo si ese mes se fue de las manos.** */
+  queda: number
+  origen: OrigenDelMes
+}
+
+/**
+ * Los últimos `cuantos` meses, del más viejo al más nuevo, que es como se leen de
+ * izquierda a derecha.
+ *
+ * **Los meses sin plan se van fuera, no salen a cero.** Es la diferencia entre
+ * «ese mes no gastasteis nada» y «de ese mes no sabemos»: una barra a cero dice lo
+ * primero y sería mentira. Un hueco en medio de la serie es más honesto y además
+ * se explica solo.
+ *
+ * `entra` y `sale` llevan los fijos **de ese mes** y lo apuntado a mano. Los fijos
+ * salen de la copia congelada si el mes está cerrado, así que la serie cuenta lo
+ * que de verdad pasó y no lo que pasaría con la plantilla de hoy. Antes del
+ * 02-09-2026 este gráfico no se podía dibujar: todos los meses habrían dicho lo
+ * mismo.
+ */
+export function serieDeMeses(
+  mesFinal: string,
+  cuantos: number,
+  mesActual: string,
+  fixed: FixedEntry[],
+  budgets: Budget[],
+  planes: MonthPlan[],
+  expenses: Expense[],
+): MesDeLaSerie[] {
+  // Se camina hacia atrás de uno en uno y se le da la vuelta al final, en vez de
+  // ampliar `mesVecino` a saltos de N: esa función es «el mes de al lado» y darle
+  // un entero cualquiera la convierte en aritmética de meses, que es otra cosa.
+  const haciaAtras: string[] = []
+  let cursor = mesFinal
+  for (let i = 0; i < cuantos; i++) {
+    haciaAtras.push(cursor)
+    cursor = mesVecino(cursor, -1)
+  }
+
+  const meses: MesDeLaSerie[] = []
+
+  for (const mes of haciaAtras.reverse()) {
+    const plantilla = plantillaDelMes(mes, mesActual, fixed, budgets, planes)
+    if (plantilla.origen === 'sin-plan') continue
+
+    const cuenta = cuentaDelMes(plantilla, expenses, mes)
+    const entra = cuenta.ingresosFijos + cuenta.ingresosApuntados
+    const sale = cuenta.gastosFijos + cuenta.gastosApuntados
+    meses.push({ mes, entra, sale, queda: entra - sale, origen: plantilla.origen })
+  }
+
+  return meses
+}
+
+export interface TrozoDelReparto {
+  key: string
+  nombre: string
+  emoji: string | null
+  total: number
+  /** De 0 a 100, sobre el gasto total del mes. Para el arco y para el texto. */
+  porcentaje: number
+}
+
+/**
+ * En qué se ha ido el gasto de un mes, de más a menos.
+ *
+ * **Lo que no cuelga de ninguna partida entra igual**, como «Sin partida». Es la
+ * mitad de lo que gasta una casa y esconderlo dejaría un anillo que no suma el
+ * mes: la pregunta es «en qué se va el dinero», no «en qué se va el dinero que
+ * supimos clasificar».
+ *
+ * **Se corta en `maximo` y el resto se junta en «Otras».** No es solo estética:
+ * un anillo de doce porciones no se lee, y la rampa de verdes con la que se pinta
+ * tiene seis pasos —más allá, dos porciones seguidas serían el mismo color—.
+ *
+ * Solo gastos: un ingreso no se «va» a ninguna parte.
+ */
+export function repartoPorPartida(
+  plantilla: PlantillaDelMes,
+  expenses: Expense[],
+  mes: string,
+  maximo = 5,
+): TrozoDelReparto[] {
+  const gastos = soloGastos(apuntesDelMes(expenses, mes))
+  const total = sumaDe(gastos)
+  if (total === 0) return []
+
+  const trozos: TrozoDelReparto[] = plantilla.partidas
+    .map(partida => ({
+      key: partida.key,
+      nombre: partida.name,
+      emoji: partida.emoji,
+      total: partida.budgetId === null
+        ? 0
+        : sumaDe(gastos.filter(g => g.budget_id === partida.budgetId)),
+      porcentaje: 0,
+    }))
+    .filter(t => t.total > 0)
+
+  const sinPartida = sumaDe(gastos.filter(g => !g.budget_id))
+  if (sinPartida > 0) {
+    trozos.push({ key: 'sin-partida', nombre: 'Sin partida', emoji: null, total: sinPartida, porcentaje: 0 })
+  }
+
+  trozos.sort((a, b) => b.total - a.total)
+
+  const visibles = trozos.slice(0, maximo)
+  const resto = trozos.slice(maximo)
+  if (resto.length > 0) {
+    visibles.push({
+      key: 'otras',
+      nombre: resto.length === 1 ? resto[0].nombre : 'Otras',
+      emoji: resto.length === 1 ? resto[0].emoji : null,
+      total: sumaDe2(resto),
+      porcentaje: 0,
+    })
+  }
+
+  return visibles.map(t => ({ ...t, porcentaje: Math.round((t.total / total) * 100) }))
+}
+
+/** Suma de trozos. `sumaDe` es de `Expense[]` y aquí ya no hay gastos, hay trozos. */
+function sumaDe2(trozos: TrozoDelReparto[]): number {
+  return trozos.reduce((total, t) => total + t.total, 0)
+}
+
 // ─── Quién puso el dinero ─────────────────────────────────────────────────────
 
 export interface Aportacion {

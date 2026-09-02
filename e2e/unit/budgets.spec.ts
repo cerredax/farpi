@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test'
 import {
   agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, fijosDe,
   gastosSinPartida, mesDe, mesVecino, plantillaDelMes, repartoDelMes,
-  resumenPartidas, sumaDeFijos, titulosDePresupuestos,
+  repartoPorPartida, resumenPartidas, serieDeMeses, sumaDeFijos,
+  titulosDePresupuestos,
 } from '@/lib/budgets'
 import type {
   Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MonthPlanLine, Quote,
@@ -422,6 +423,123 @@ test.describe('la cuenta y las partidas de un mes cerrado', () => {
     expect(c.origen).toBe('sin-plan')
     expect(c.hayFijos).toBe(false)
     expect(c.gastosApuntados).toBe(4200)
+  })
+})
+
+test.describe('la serie de meses del resumen', () => {
+  const FIJOS = [
+    fijo({ id: 'in1', kind: 'ingreso', name: 'Nómina', amount_cents: 200000 }),
+    fijo({ id: 'ga1', kind: 'gasto', name: 'Alquiler', amount_cents: 80000 }),
+  ]
+  const JUNIO = plan('2026-06', [
+    linea({ id: 'j1', month: '2026-06', line: 'ingreso', name: 'Nómina', amount_cents: 150000 }),
+    linea({ id: 'j2', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+  ])
+
+  test('va del más viejo al más nuevo, que es como se leen las barras', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO, plan('2026-07', [])], [])
+    expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-07', '2026-08'])
+  })
+
+  // Cada mes con **sus** fijos: junio se cerró con 150.000 de nómina y agosto,
+  // que está en curso, tira de la plantilla, que dice 200.000.
+  test('cada mes cuenta con los fijos que tenía entonces', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO, plan('2026-07', [])], [])
+    expect(r[0]).toMatchObject({ mes: '2026-06', entra: 150000, sale: 76000, queda: 74000 })
+    expect(r[2]).toMatchObject({ mes: '2026-08', entra: 200000, sale: 80000, queda: 120000 })
+  })
+
+  test('lo apuntado a mano suma a los fijos de su mes', () => {
+    const r = serieDeMeses('2026-08', 1, '2026-08', FIJOS, [], [], [
+      gasto({ id: 'g', amount_cents: 5000, date: '2026-08-10' }),
+      ingreso({ id: 'i', amount_cents: 3000, date: '2026-08-11' }),
+      gasto({ id: 'otro-mes', amount_cents: 99900, date: '2026-07-01' }),
+    ])
+    expect(r[0]).toMatchObject({ entra: 203000, sale: 85000 })
+  })
+
+  // Una barra a cero diría «ese mes no gastasteis nada», que es distinto de «de
+  // ese mes no sabemos». El hueco es lo honesto.
+  test('un mes sin plan se cae de la serie en vez de salir a cero', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO], [])
+    expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-08'])
+  })
+
+  test('sin nada que enseñar, la serie viene vacía', () => {
+    expect(serieDeMeses('2026-08', 3, '2026-09', [], [], [], [])).toEqual([])
+  })
+})
+
+test.describe('el reparto por partida del anillo', () => {
+  const PARTIDAS = [
+    budget({ id: 'b1', name: 'Compra', monthly_limit_cents: 40000 }),
+    budget({ id: 'b2', name: 'Coche', sort_order: 1, monthly_limit_cents: 15000 }),
+  ]
+  const agosto = () => plantillaDelMes('2026-08', '2026-08', [], PARTIDAS, [])
+
+  test('ordena de más a menos y calcula el porcentaje sobre el gasto del mes', () => {
+    const r = repartoPorPartida(agosto(), [
+      gasto({ id: 'g1', budget_id: 'b1', amount_cents: 6000 }),
+      gasto({ id: 'g2', budget_id: 'b2', amount_cents: 2000 }),
+      gasto({ id: 'g3', budget_id: 'b1', amount_cents: 2000 }),
+    ], '2026-08')
+    expect(r.map(t => [t.nombre, t.total, t.porcentaje])).toEqual([
+      ['Compra', 8000, 80],
+      ['Coche', 2000, 20],
+    ])
+  })
+
+  // La mitad de lo que gasta una casa no cae en ninguna partida. Esconderlo
+  // dejaría un anillo que no suma el mes.
+  test('lo que no cuelga de ninguna partida entra como «Sin partida»', () => {
+    const r = repartoPorPartida(agosto(), [
+      gasto({ id: 'g1', budget_id: 'b1', amount_cents: 5000 }),
+      gasto({ id: 'g2', budget_id: null, amount_cents: 5000 }),
+    ], '2026-08')
+    expect(r.map(t => t.nombre)).toEqual(['Compra', 'Sin partida'])
+    expect(r.reduce((t, x) => t + x.total, 0)).toBe(10000)
+  })
+
+  test('una partida sin gasto no pinta porción', () => {
+    const r = repartoPorPartida(agosto(), [gasto({ id: 'g', budget_id: 'b1', amount_cents: 100 })], '2026-08')
+    expect(r.map(t => t.nombre)).toEqual(['Compra'])
+  })
+
+  test('un ingreso no se va a ninguna parte, así que no cuenta', () => {
+    const r = repartoPorPartida(agosto(), [
+      gasto({ id: 'g', budget_id: 'b1', amount_cents: 1000 }),
+      ingreso({ id: 'i', amount_cents: 9000 }),
+    ], '2026-08')
+    expect(r).toHaveLength(1)
+    expect(r[0].porcentaje).toBe(100)
+  })
+
+  // Seis pasos tiene la rampa de verdes: más porciones serían dos seguidas del
+  // mismo color, además de un anillo ilegible.
+  test('se corta en el máximo y el resto se junta en «Otras»', () => {
+    const muchas = [1, 2, 3, 4, 5, 6, 7].map(n =>
+      budget({ id: `b${n}`, name: `P${n}`, sort_order: n }))
+    const gastos = [1, 2, 3, 4, 5, 6, 7].map(n =>
+      gasto({ id: `g${n}`, budget_id: `b${n}`, amount_cents: (8 - n) * 1000 }))
+    const r = repartoPorPartida(plantillaDelMes('2026-08', '2026-08', [], muchas, []), gastos, '2026-08', 5)
+    expect(r).toHaveLength(6)
+    expect(r[5].nombre).toBe('Otras')
+    // 2.000 + 1.000 de las dos que se quedaron fuera.
+    expect(r[5].total).toBe(3000)
+  })
+
+  // Si solo sobra una, se la llama por su nombre: «Otras» para una sola cosa es
+  // esconder un dato que cabía.
+  test('si solo sobra una, conserva su nombre', () => {
+    const seis = [1, 2, 3, 4, 5, 6].map(n => budget({ id: `b${n}`, name: `P${n}`, sort_order: n }))
+    const gastos = [1, 2, 3, 4, 5, 6].map(n =>
+      gasto({ id: `g${n}`, budget_id: `b${n}`, amount_cents: (7 - n) * 1000 }))
+    const r = repartoPorPartida(plantillaDelMes('2026-08', '2026-08', [], seis, []), gastos, '2026-08', 5)
+    expect(r[5].nombre).toBe('P6')
+  })
+
+  test('sin gastos no hay anillo', () => {
+    expect(repartoPorPartida(agosto(), [], '2026-08')).toEqual([])
   })
 })
 

@@ -305,6 +305,20 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       y el importe se enseña **en positivo** (no «−120 € de más»).
 - [ ] La pestaña se llama **«El mes tipo»** y tiene tres bloques: entra, sale y se reparte
       en. Las partidas se crean y se editan ahí.
+- [ ] El botón de alta está **arriba a la derecha**, como en el resto de la app, y no
+      flotando abajo. Crea lo de la pestaña que se esté mirando.
+- [ ] Las cuatro pestañas se arrastran a 390 px sin desbordar.
+
+**Resumen**
+
+- [ ] «Cómo van los meses» enseña jun, jul, ago y sep, **mires el mes que mires**: la
+      serie no sigue al selector. El mes que se está mirando va en negrita.
+- [ ] «Ver los números» abre la tabla, y junio dice 3.250 € / −1.162,35 € / 2.087,65 €.
+- [ ] El anillo y el desglose **sí** siguen al mes que se mira, y lo dicen en el título.
+- [ ] En junio, el anillo enseña Casa, Compra, Coche y **Sin partida**, de mayor a menor
+      y de verde oscuro a claro.
+- [ ] Todas las porciones son del mismo verde: si alguna sale de otro color, algo ha
+      vuelto a darle identidad a una partida.
 - [ ] Se ven las partidas de demo (Compra, Coche, Casa) con su límite, también las que no
       tienen ni un gasto ese mes.
 - [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su partida, y la cuenta de

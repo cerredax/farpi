@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
   agruparPresupuestos, apuntesDelMes, cuentaDelMes, fijosDe, gastosSinPartida,
-  mesDe, mesVecino, plantillaDelMes, repartoDelMes, resumenPartidas, sumaDeFijos,
-  titulosDePresupuestos,
+  mesDe, mesVecino, plantillaDelMes, repartoDelMes, repartoPorPartida,
+  resumenPartidas, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
 } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
 import type {
@@ -13,7 +13,7 @@ import type {
   MovementKind, Quote, QuoteDraft,
 } from '@/types'
 
-export type PestañaFinanzas = 'mes' | 'plantilla' | 'presupuestos'
+export type PestañaFinanzas = 'mes' | 'resumen' | 'plantilla' | 'presupuestos'
 
 /**
  * El estado de la pantalla de Finanzas: qué pestaña se mira, qué mes y qué sheet
@@ -76,7 +76,15 @@ export function useFinanzasState() {
     () => budgets.reduce((total, b) => total + b.monthly_limit_cents, 0),
     [budgets],
   )
-  const reparto = useMemo(() => repartoDelMes(expenses, mes, members, kids), [expenses, mes, members, kids])
+  const repartoPorPersona = useMemo(() => repartoDelMes(expenses, mes, members, kids), [expenses, mes, members, kids])
+  // Seis meses **hasta hoy**, no hasta el mes que se esté mirando. La tendencia
+  // es de la casa, no del mes: mirando junio, cortarla en junio escondía julio,
+  // agosto y septiembre y dejaba una sola barra, que no es una tendencia.
+  const serie = useMemo(
+    () => serieDeMeses(mesActual, 6, mesActual, fixedEntries, budgets, monthPlans, expenses),
+    [mesActual, fixedEntries, budgets, monthPlans, expenses],
+  )
+  const reparto = useMemo(() => repartoPorPartida(plantilla, expenses, mes), [plantilla, expenses, mes])
   const grupos = useMemo(() => agruparPresupuestos(quotes), [quotes])
   const titulos = useMemo(() => titulosDePresupuestos(quotes), [quotes])
 
@@ -122,7 +130,8 @@ export function useFinanzasState() {
     pestaña, setPestaña,
 
     budgets, members, kids,
-    resumen, delMes, sinPartida, cuenta, reparto, grupos, titulos,
+    resumen, delMes, sinPartida, cuenta, grupos, titulos,
+    repartoPorPersona, serie, reparto,
     ingresosFijos, gastosFijos, partidasPlantilla, totalPartidas,
     totalIngresosFijos: sumaDeFijos(fixedEntries, 'ingreso'),
     totalGastosFijos: sumaDeFijos(fixedEntries, 'gasto'),

@@ -80,8 +80,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 372 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 493 (372 unitarios + 121 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 384 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 507 (384 unitarios + 123 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -219,6 +219,14 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, AssigneePicker, SelectChip, DeleteButton, SectionLink, Suggestions y algunos más.
+- **El botón de alta va arriba, en `ViewHeader`**, nunca flotando sobre el contenido.
+  Lo usan las seis pantallas de contenido y existe justamente porque habían
+  divergido. Finanzas volvió al redil el 02-09-2026.
+- **Los gráficos se dibujan a mano, con SVG en línea**: ninguna librería de
+  visualización. Y el color se **calcula, no se elige**: la paleta de marca es de
+  baja saturación y dos tonos que parecen distintos pueden no serlo (el verde y el
+  salmón están a ΔE 2,3 en protanopía). Los tokens y el porqué, en `globals.css`,
+  bloque «Gráficos de Finanzas».
 - Hooks compartidos en `src/hooks/`: además de los dos de los sheets, `useConfirmAction`, `useIsClient` y `useMediaQuery`.
 - Tailwind v4 (sin `tailwind.config`; tokens en `src/app/globals.css`).
 

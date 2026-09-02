@@ -5,6 +5,7 @@ import { es } from 'date-fns/locale'
 import { Plus } from 'lucide-react'
 import { BudgetBar } from './BudgetBar'
 import { BudgetSheet } from './BudgetSheet'
+import { CierreDelMes } from './CierreDelMes'
 import { CuentaDelMes } from './CuentaDelMes'
 import { ExpenseRow } from './ExpenseRow'
 import { ExpenseSheet } from './ExpenseSheet'
@@ -12,8 +13,10 @@ import { FixedEntrySheet } from './FixedEntrySheet'
 import { MesTipoPanel } from './MesTipoPanel'
 import { QuoteGroupCard } from './QuoteGroupCard'
 import { QuoteSheet } from './QuoteSheet'
+import { ResumenPanel } from './ResumenPanel'
 import { useFinanzasState, type PestañaFinanzas } from './useFinanzasState'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { ViewHeader } from '@/components/ui/ViewHeader'
 import { capitalize } from '@/lib/text'
 
 /**
@@ -50,6 +53,38 @@ import { capitalize } from '@/lib/text'
  * es del mes. Meterlo ahí convertiría la primera pantalla de la app en un cuadro
  * de mandos, que es justo lo que Farpi no quiere ser.
  */
+type EstadoFinanzas = ReturnType<typeof useFinanzasState>
+
+/**
+ * Qué dice la cabecera en cada pestaña. Es el hueco de `resumen` de `ViewHeader`,
+ * que en las demás pantallas lleva «6 listas de la familia»: aquí no hay una sola
+ * cosa que contar, así que cada pestaña cuenta la suya.
+ */
+const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => string> = {
+  mes: s => `${s.delMes.length} apunte${s.delMes.length === 1 ? '' : 's'} este mes`,
+  resumen: s => `${s.serie.length} mes${s.serie.length === 1 ? '' : 'es'} con datos`,
+  plantilla: s => `${s.ingresosFijos.length + s.gastosFijos.length} fijos · ${s.partidasPlantilla.length} partidas`,
+  presupuestos: s => `${s.grupos.length} trabajo${s.grupos.length === 1 ? '' : 's'} presupuestado${s.grupos.length === 1 ? '' : 's'}`,
+}
+
+/**
+ * Y qué crea el `+`. Uno solo que hace lo de la pestaña que se mira: tres botones,
+ * dos de ellos siempre inactivos, sería peor.
+ *
+ * En «El mes tipo» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
+ * lo que se añade después son recibos—, y de todos modos el tipo es lo primero que
+ * hay dentro del sheet. Las partidas tienen su propio «+» en su bloque.
+ *
+ * En «Resumen» abre un apunte, igual que en «El mes»: es lo mismo que se está
+ * mirando, y un `+` que no hiciera nada sería peor que uno que hace lo obvio.
+ */
+const ETIQUETA_DE_ALTA: Record<PestañaFinanzas, string> = {
+  mes: 'Nuevo apunte',
+  resumen: 'Nuevo apunte',
+  plantilla: 'Nuevo gasto fijo',
+  presupuestos: 'Nuevo presupuesto pedido',
+}
+
 export function FinanzasView() {
   const s = useFinanzasState()
 
@@ -57,11 +92,33 @@ export function FinanzasView() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-4xl lg:px-6">
+      {/* El `+` va arriba y no flotando abajo, como en Listas, Tareas, Comidas,
+          Notas y Documentos. Finanzas era la única que se había quedado con el
+          botón flotante, que es justo la divergencia que `ViewHeader` vino a
+          cerrar. El resumen cambia con la pestaña porque el `+` también. */}
+      <ViewHeader
+        resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
+        buscador={null}
+        onAdd={() => {
+          if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
+          else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
+          else s.abrirApunte(null)
+        }}
+        addLabel={ETIQUETA_DE_ALTA[s.pestaña]}
+      />
+
       {/* Mismo patrón de pestañas que Ajustes: se arrastran en móvil y caben
-          enteras en escritorio. */}
-      <div role="tablist" aria-label="Secciones de finanzas" className="flex gap-2">
+          enteras en escritorio. Con la cuarta ya no caben a 390 px, así que el
+          `overflow-x-auto` dejó de ser precaución y es lo que evita el desborde
+          que `movil.spec.ts` vigila. */}
+      <div
+        role="tablist"
+        aria-label="Secciones de finanzas"
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0"
+      >
         {([
           { key: 'mes', label: 'El mes' },
+          { key: 'resumen', label: 'Resumen' },
           { key: 'plantilla', label: 'El mes tipo' },
           { key: 'presupuestos', label: 'Presupuestos' },
         ] as { key: PestañaFinanzas; label: string }[]).map(p => (
@@ -90,12 +147,8 @@ export function FinanzasView() {
           onAnterior={s.mesAnterior}
           onSiguiente={s.mesSiguiente}
           onVolverAHoy={s.volverAHoy}
-          reparto={s.reparto}
+          reparto={s.repartoPorPersona}
           onPonerFijos={() => s.setPestaña('plantilla')}
-          sePuedeCerrarYa={s.sePuedeCerrarYa}
-          sePuedeReabrir={s.sePuedeReabrir}
-          onCerrarYa={s.cerrarMesYa}
-          onReabrir={s.reabrirMes}
         />
 
         <section aria-label="Partidas del mes" className="space-y-2">
@@ -177,6 +230,23 @@ export function FinanzasView() {
             </p>
           )}
         </section>
+
+        <CierreDelMes
+          sePuedeCerrar={s.sePuedeCerrarYa}
+          sePuedeReabrir={s.sePuedeReabrir}
+          onCerrar={s.cerrarMesYa}
+          onReabrir={s.reabrirMes}
+        />
+      </div>
+
+      <div id="panel-resumen" role="tabpanel" aria-labelledby="tab-resumen" hidden={s.pestaña !== 'resumen'}>
+        <ResumenPanel
+          serie={s.serie}
+          reparto={s.reparto}
+          cuenta={s.cuenta}
+          mes={s.mes}
+          nombreDelMes={nombreDelMes}
+        />
       </div>
 
       {/* Los totales salen de la **plantilla de hoy**, no del mes que se esté
@@ -230,37 +300,6 @@ export function FinanzasView() {
           ))
         )}
       </div>
-
-      {/* El botón de alta es uno y hace lo de la pestaña que se está mirando. Un
-          `+` que significara siempre lo mismo obligaría a tener tres, y dos
-          estarían inactivos en todo momento.
-
-          En «El mes tipo» abre un gasto fijo: las nóminas se ponen una vez y son
-          dos, y lo que se va añadiendo después son recibos. De todos modos el tipo
-          es lo primero que hay dentro del sheet, así que corregirlo es un toque, y
-          las partidas tienen su propio «+» en su bloque.
-
-          **En un mes cerrado se sigue pudiendo apuntar**, y es a propósito. Lo que
-          se congela es el plan —los fijos y los límites de las partidas—, no el día
-          a día: el 2 de octubre te acuerdas de los 40 € del 29 de septiembre y
-          tienen que caber en septiembre, que es cuando se gastaron. Un rato del
-          02-09-2026 no cupieron, por confundir las dos cosas. */}
-      <button
-        type="button"
-        onClick={() => {
-          if (s.pestaña === 'mes') s.abrirApunte(null)
-          else if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
-          else s.abrirPedido(null)
-        }}
-        aria-label={
-          s.pestaña === 'mes' ? 'Nuevo apunte'
-            : s.pestaña === 'plantilla' ? 'Nuevo gasto fijo'
-              : 'Nuevo presupuesto pedido'
-        }
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover lg:bottom-8 lg:right-8"
-      >
-        <Plus size={24} strokeWidth={2.4} />
-      </button>
 
       <FixedEntrySheet
         key={s.fixedKey}

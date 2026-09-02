@@ -11,9 +11,15 @@ import type { Budget, BudgetDraft } from '@/types'
 // Dieciséis iconos, dos filas de ocho, en la línea de `ListSheet` y `NoteSheet`.
 // Son las cosas en las que gasta una casa; el 💶 va al final por ser el que
 // viene puesto y valer para cualquiera.
+//
+// La bombilla se fue el 02-09-2026 y entraron las cañas. No es capricho: la luz
+// es un **fijo**, se paga clavada y no se le pone partida —colgarla de una la
+// llenaría sola, que es la regla que separa las dos pestañas—, así que ofrecerla
+// aquí invitaba justo a lo que no hay que hacer. Salir es de lo primero en lo que
+// una casa se pasa, y no tenía icono. La 💡 sigue, donde sí toca, en los fijos.
 const EMOJIS = [
   '🛒', '🏠', '🚗', '🎒', '🏥', '👶', '🍽️', '👕',
-  '🐾', '✈️', '🎁', '📱', '💡', '🎬', '🏋️', '💶',
+  '🐾', '✈️', '🎁', '📱', '🍺', '🎬', '🏋️', '💶',
 ]
 
 interface BudgetSheetProps {

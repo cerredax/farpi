@@ -1538,6 +1538,51 @@ una barra llena de rojo y una llena de verde son la misma barra para quien no di
 los dos. La barra además se recorta al 100 %: pasarse un 300 % no dibuja una barra que se
 sale de la tarjeta; cuánto es exactamente lo dice el texto.
 
+#### Los gráficos del «Resumen» (02-09-2026)
+
+Una cuarta pestaña con lo mismo de «El mes», dibujado. Es pestaña y no un trozo de
+«El mes» por dos razones: la serie de varios meses no cabe dentro de un mes concreto
+sin quedar rara, y «El mes» es la pantalla del uso diario —apuntar y mirar cuánto
+queda— así que meterle dos gráficos delante pone medio scroll entre quien entra y lo
+que venía a hacer.
+
+**Nada de librerías de gráficos.** Tres SVG escritos a mano. Una librería de
+visualización pesa más que toda la app y trae su propio sistema de temas, que habría
+que pelear con el de Tailwind.
+
+**El color se calcula, no se elige, y esa fue la lección.** Se iba a usar el verde y
+el salmón de marca como par de series, y medidos están a **ΔE 2,3 en protanopía** y a
+11,3 con visión normal, por debajo del suelo de 15: para mucha gente serían el mismo
+color. El verde de marca además es de baja saturación por diseño, así que suspende el
+suelo de croma en cualquier pareja que se le ponga.
+
+De ahí salen las dos decisiones de forma:
+
+- **«Cómo van los meses» son barras divergentes**, entra hacia arriba y sale hacia
+  abajo desde una línea de cero. Entra y sale no son dos categorías: son los dos
+  lados de una misma cosa, y la **posición** los separa sin depender de distinguir
+  dos tonos. El color pasa a acompañar, que es donde tiene que estar.
+- **El anillo de «en qué se va» es de un solo tono en seis claridades**, no una
+  paleta de categorías. Dar un color a cada partida rompería la regla central —el
+  color dice de quién es algo, y una partida no es de nadie— y las haría
+  indistinguibles de una persona en la misma pantalla donde sí hay personas. Aquí el
+  verde solo ordena por cuánto, del más oscuro al más pequeño, y la identidad la
+  llevan el emoji y el nombre de la leyenda. Los seis pasos son monotónicos en L* y
+  todos pasan de 3:1 sobre blanco: con menos, habría porciones que no se ven. Que
+  sean seis es también por qué el reparto se corta en cinco partidas y «Otras».
+
+**La serie va siempre hasta hoy**, mires el mes que mires: la tendencia es de la casa
+y no del mes. Se hizo al revés primero —cortándola en el mes seleccionado— y mirando
+junio quedaba una sola barra, que no es una tendencia.
+
+**Un mes sin plan se cae de la serie, no sale a cero.** Una barra a cero dice «ese
+mes no gastasteis nada», que es distinto de «de ese mes no sabemos». El hueco es lo
+honesto, y es la misma decisión que la del estado `sin-plan` de la tarjeta.
+
+**Debajo de las barras están los números, en una tabla plegada.** Es la regla de
+siempre del proyecto —el dibujo acompaña, nunca lleva el mensaje solo— y aquí además
+resuelve que un importe no cabe bajo una barra de 44 px sin partirse en dos líneas.
+
 **Los presupuestos pedidos se agrupan por para qué son.** `title` es el trabajo ("Cambiar
 la caldera") y `provider` quién lo da ("Fontanería López"): la pantalla agrupa por el
 primero y así los tres de la caldera salen juntos, ordenados de más barato a más caro, que

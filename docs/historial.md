@@ -15,6 +15,51 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-02
 
+### Finanzas: el resumen dibujado, y el `+` de vuelta a su sitio (02-09-2026)
+
+Cuatro cosas que salieron de mirar la pantalla ya hecha, que es cuando se ven.
+
+**El `+` estaba flotando abajo a la derecha** y en toda la app está arriba. No era
+una preferencia: `ViewHeader` existe desde hace semanas precisamente porque las
+pantallas habían divergido en esto, y su propio comentario dice «Tareas ponía el
+`+` flotando abajo a la derecha». Finanzas nació después y se quedó fuera. Ahora usa
+`ViewHeader` como las otras cinco, con el resumen y la etiqueta cambiando según la
+pestaña.
+
+**El botón de cerrar el mes quedaba mal en la tarjeta.** Esa tarjeta es la
+conclusión de la pantalla —una cifra grande y su desglose— y colgarle debajo dos
+acciones la convertía en un panel de mandos. Se fue al pie de «El mes», después del
+día a día, donde se lee como lo que es: «he terminado con este mes».
+
+**Y una pestaña «Resumen» con tres gráficos.** Lo interesante fue el color. Se iba a
+usar el verde y el salmón de marca como par de series y, medidos, están a **ΔE 2,3 en
+protanopía**: para mucha gente serían el mismo color. El verde de marca es además de
+baja saturación por diseño, así que suspende el suelo de croma con cualquier pareja.
+Eso obligó a replantear la forma en vez del tono, que resultó ser la lección: entra y
+sale no son dos categorías sino los dos lados de una misma cosa, así que van como
+**barras divergentes** a un lado y otro del cero, y la posición hace el trabajo que el
+color no podía hacer.
+
+El anillo tuvo el mismo problema por otro lado. Un color por partida rompía la regla
+central del proyecto —el color dice **de quién** es algo, y una partida no es de
+nadie; es la razón por la que lleva emoji y no color— y las habría hecho
+indistinguibles de una persona en la misma pantalla donde sí hay personas. Se resolvió
+con un solo verde en seis claridades, ordenado por cuánto: eso es una rampa
+secuencial, que codifica magnitud y no identidad. Los seis pasos se eligieron
+comprobando que todos pasan de 3:1 sobre blanco, porque con menos hay porciones que
+no se ven.
+
+Dos cosas más salieron solas al mirar la primera captura, que en el código no se
+veían: la serie se cortaba en el mes que estuvieras mirando —dejando una sola barra
+si mirabas junio, que no es una tendencia— y el importe bajo cada barra no cabía en
+44 px y partía el símbolo del euro a la línea siguiente. La serie va ahora siempre
+hasta hoy y los números viven en una tabla plegable.
+
+**Y en las partidas, 🍺 en vez de 💡.** La luz es un fijo, se paga clavada y no se le
+pone partida —colgarla de una la llenaría sola—, así que ofrecer la bombilla ahí
+invitaba justo a lo que no hay que hacer. Salir es de lo primero en lo que una casa
+se pasa y no tenía icono. La bombilla sigue donde sí toca, en los fijos.
+
 ### Finanzas con historia: el mes tipo y los meses cerrados (02-09-2026)
 
 El mismo día que se arreglaron las palabras salió el problema de debajo, que era de

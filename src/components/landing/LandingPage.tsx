@@ -7,7 +7,7 @@ import {
   NotebookText,
   Smartphone,
   UtensilsCrossed,
-  Wallet,
+  PiggyBank,
 } from 'lucide-react'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Garantias } from '@/components/ui/Garantias'
@@ -146,7 +146,7 @@ const FUNCIONES = [
     texto: 'El menú de la semana, para no decidirlo cada día a las dos de la tarde.',
   },
   {
-    icon: Wallet,
+    icon: PiggyBank,
     titulo: 'Finanzas',
     texto: 'El tope que os ponéis cada mes, cuánto lleváis y quién ha puesto qué.',
   },

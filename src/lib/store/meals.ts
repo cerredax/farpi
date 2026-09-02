@@ -28,6 +28,8 @@ export function createMeal(familyId: string, draft: MealDraft): MealPlan {
     date: draft.date,
     slot: draft.slot,
     name: draft.name.trim(),
+    second_course: draft.second_course.trim() || null,
+    dessert: draft.dessert.trim() || null,
     notes: draft.notes.trim() || null,
     created_by: 'u1',
     created_at: now,
@@ -44,6 +46,8 @@ export function updateMeal(id: string, draft: MealDraft): void {
       date: draft.date,
       slot: draft.slot,
       name: draft.name.trim(),
+      second_course: draft.second_course.trim() || null,
+      dessert: draft.dessert.trim() || null,
       notes: draft.notes.trim() || null,
       updated_at: new Date().toISOString(),
     }
@@ -70,6 +74,8 @@ export function copyMealDay(familyId: string, sourceDate: string, targetDate: st
           date: currentDate,
           slot: meal.slot,
           name: meal.name,
+          second_course: meal.second_course ?? '',
+          dessert: meal.dessert ?? '',
           notes: meal.notes ?? '',
         }))
       }

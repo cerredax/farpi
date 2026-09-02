@@ -94,8 +94,13 @@ export function useMealsState() {
     isCurrent: desktopWeekOffset === 0,
   }
 
-  // El catálogo de platos no se mantiene a mano: es lo que la familia ya ha cocinado.
-  const historialPlatos = useMemo(() => meals.map(meal => meal.name), [meals])
+  // El catálogo de platos no se mantiene a mano: es lo que la familia ya ha
+  // cocinado, primeros y segundos por igual —un segundo del comedor es un plato
+  // como cualquier otro y también sirve de sugerencia—.
+  const historialPlatos = useMemo(
+    () => meals.flatMap(meal => [meal.name, meal.second_course ?? '']).filter(plato => plato.length > 0),
+    [meals],
+  )
 
   return {
     todayMeals, sortedTodayMeals, mealsByCell, occupiedSlots, historialPlatos,

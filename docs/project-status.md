@@ -57,7 +57,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, notas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
-- Comidas (día/semana, copiar día). Las cuatro franjas se activan y desactivan por familia desde Ajustes; apagar una no borra lo apuntado en ella.
+- Comidas (día/semana, copiar día). Las **cinco** franjas se activan y desactivan por
+  familia desde Ajustes; apagar una no borra lo apuntado en ella. `Comedor` (02-09-2026)
+  es lo que le ponen a los niños fuera de casa: va detrás de `Comida` porque el mismo día
+  hay dos menús a la misma hora, y entra **apagado** —una casa donde nadie come fuera
+  tendría una fila vacía siete veces por semana—. Comida y comedor se apuntan por
+  **primero, segundo y postre** (`second_course` y `dessert`, opcionales); desayuno,
+  merienda y cena, con un plato solo.
 - Documentos: subir, abrir, editar, borrar y aviso de caducidad en la tarjeta. Los
   archivos están en el Google Drive de quien los sube y los sirve Farpi con el token
   del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
@@ -292,13 +298,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **470 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **476 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 357 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 01-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, los topes —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos y, desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca los topes ni entra en el reparto—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 113 de navegador. La cifra sale de la pasada completa del 01-09-2026 (470 en total,
-    357 unitarios):
+  - 362 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, los topes —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos y, desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca los topes ni entra en el reparto—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 114 de navegador. La cifra sale de la pasada completa del 02-09-2026 (476 en total,
+    362 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas y la columna de acceso anclada de la portada; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 

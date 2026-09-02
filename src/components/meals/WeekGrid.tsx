@@ -5,6 +5,7 @@ import { format, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Card } from '@/components/ui/Card'
 import type { MEAL_SLOTS } from '@/lib/constants'
+import { mealCourses } from '@/lib/meal-slots'
 import { capitalize } from '@/lib/text'
 import type { MealPlan, MealSlot } from '@/types'
 
@@ -134,6 +135,11 @@ export function WeekGrid({
                           <p className="mt-1 text-sm font-semibold text-ink leading-snug">
                             {meal.name}
                           </p>
+                          {mealCourses(meal).slice(1).map(plato => (
+                            <p key={plato} className="mt-0.5 text-[11px] text-ink/70 leading-snug">
+                              {plato}
+                            </p>
+                          ))}
                           {meal.notes && (
                             <p className="mt-1 text-[11px] text-muted leading-snug">
                               {meal.notes}

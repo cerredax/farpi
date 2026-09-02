@@ -611,7 +611,7 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
   await expect(page.locator('[aria-pressed][aria-label*="de vacaciones"]')).toHaveCount(3)
 })
 
-// Las cuatro franjas de comida están fijas en el código, pero no todas las casas
+// Las franjas de comida están fijas en el código, pero no todas las casas
 // meriendan: en Ajustes se apagan las que no se usan y Comidas deja de pedirlas.
 // Apagar no borra, y por eso al final se vuelve a encender: lo que hubiera
 // apuntado en esa franja sigue ahí.
@@ -656,6 +656,32 @@ test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => 
   await page.waitForTimeout(800)
   await page.getByRole('button', { name: 'Esta semana' }).click()
   await expect(page.getByText('Merienda').first()).toBeVisible()
+})
+
+// El menú del comedor viene en tres líneas —primero, segundo y postre—, así que
+// esas dos franjas piden tres campos. Un desayuno, no: ahí los dos campos extra
+// serían huecos que llenar todos los días, y por eso el formulario los quita al
+// cambiar de franja en vez de dejarlos escondidos con lo que se hubiera escrito.
+test('el comedor se apunta por platos y el desayuno no', async ({ page }) => {
+  await page.goto('/meals')
+  await page.waitForTimeout(800)
+  await page.getByRole('button', { name: 'Añadir comida' }).first().click()
+
+  const sheet = page.getByRole('dialog', { name: 'Añadir comida' })
+  await sheet.getByRole('button', { name: 'Comedor' }).click()
+  await expect(sheet.getByLabel('Primer plato')).toBeVisible()
+  await sheet.getByLabel('Segundo plato').fill('Filete de pollo')
+  await sheet.getByLabel('Postre').fill('Fruta del tiempo')
+
+  await sheet.getByRole('button', { name: 'Desayuno' }).click()
+  await expect(sheet.getByLabel('Segundo plato')).toHaveCount(0)
+  await expect(sheet.getByLabel('Plato')).toBeVisible()
+
+  // Y al volver al comedor los campos vuelven vacíos: lo que se escribió mientras
+  // no se veían no se guarda a escondidas.
+  await sheet.getByRole('button', { name: 'Comedor' }).click()
+  await expect(sheet.getByLabel('Segundo plato')).toHaveValue('')
+  await expect(sheet.getByLabel('Postre')).toHaveValue('')
 })
 
 // Un descanso deja marcados **todos** los días de su rango, no solo el primero.

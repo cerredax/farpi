@@ -100,9 +100,18 @@ export const PERSON_COLORS: { value: string; label: string }[] = [
 export const MEAL_SLOTS: { key: MealSlot; label: string; emoji: string; order: number }[] = [
   { key: 'breakfast', label: 'Desayuno', emoji: '☀️',  order: 0 },
   { key: 'lunch',     label: 'Comida',   emoji: '🍽️', order: 1 },
-  { key: 'snack',     label: 'Merienda', emoji: '🍎',  order: 2 },
-  { key: 'dinner',    label: 'Cena',     emoji: '🌙',  order: 3 },
+  { key: 'school',    label: 'Comedor',  emoji: '🎒',  order: 2 },
+  { key: 'snack',     label: 'Merienda', emoji: '🍎',  order: 3 },
+  { key: 'dinner',    label: 'Cena',     emoji: '🌙',  order: 4 },
 ]
+
+/**
+ * Las franjas que se apuntan por platos —primero, segundo y postre— y no con un
+ * plato solo. El comedor siempre viene así, y la comida de casa muchas veces
+ * también; un desayuno o una merienda, nunca, y ahí los campos extra serían dos
+ * huecos que la app pide llenar todos los días.
+ */
+export const MEAL_SLOTS_CON_PLATOS: MealSlot[] = ['lunch', 'school']
 
 /** Acceso por clave a la franja horaria, para no recorrer `MEAL_SLOTS` en cada render. */
 export const MEAL_SLOT_META = Object.fromEntries(

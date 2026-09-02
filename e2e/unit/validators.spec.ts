@@ -52,7 +52,7 @@ test.describe('validateChildDraft', () => {
 })
 
 test.describe('validateMealDraft', () => {
-  const base = { date: '2026-08-03', slot: 'lunch' as const, name: 'Arroz', notes: '' }
+  const base = { date: '2026-08-03', slot: 'lunch' as const, name: 'Arroz', second_course: '', dessert: '', notes: '' }
 
   test('exige fecha y nombre de plato', () => {
     expect(validateMealDraft({ ...base, date: '' })).not.toBeNull()

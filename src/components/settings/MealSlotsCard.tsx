@@ -13,7 +13,7 @@ interface MealSlotsCardProps {
 /**
  * Qué franjas de comida ve la familia.
  *
- * Salen siempre las cuatro, encendidas o apagadas: es la lista de lo que hay,
+ * Salen siempre todas, encendidas o apagadas: es la lista de lo que hay,
  * no la de lo que queda. La que está sola no se puede apagar —con cero franjas
  * la pantalla de comidas se queda sin filas y sin manera de volver— y lo dice en
  * la propia fila en vez de dejar un botón que no hace nada.

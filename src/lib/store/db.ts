@@ -24,6 +24,9 @@ interface DB {
 
 export const db: DB = {
   families: [
+    // La demo enseña las cinco franjas, comedor incluido: una familia nueva
+    // arranca sin él (`DEFAULT_MEAL_SLOTS`), pero aquí hay una niña que come en
+    // el colegio y la pantalla tiene que poder contarlo.
     { id: 'f1', name: 'Familia de Carlos, María y Cris', meal_slots: [...ALL_MEAL_SLOTS], created_at: '2026-06-01T00:00:00', updated_at: '2026-06-17T08:00:00' },
   ],
 
@@ -97,17 +100,23 @@ export const db: DB = {
   ],
 
   mealPlans: [
-    { id: 'mp01', family_id: 'f1', date: '2026-06-16', slot: 'lunch',     name: 'Arroz con verduras',           notes: 'Dejar ración para mañana',      created_by: 'u1', created_at: '2026-06-15T21:00:00', updated_at: '2026-06-15T21:00:00' },
-    { id: 'mp02', family_id: 'f1', date: '2026-06-16', slot: 'dinner',    name: 'Crema de calabacín',           notes: 'Algo rápido',                   created_by: 'u2', created_at: '2026-06-15T21:00:00', updated_at: '2026-06-15T21:00:00' },
-    { id: 'mp03', family_id: 'f1', date: '2026-06-17', slot: 'breakfast', name: 'Tostadas y café',              notes: 'Turno corto antes del pediatra', created_by: 'u1', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
-    { id: 'mp04', family_id: 'f1', date: '2026-06-17', slot: 'lunch',     name: 'Pollo al horno con patatas',   notes: 'Preparado por la abuela',       created_by: 'u2', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
-    { id: 'mp05', family_id: 'f1', date: '2026-06-17', slot: 'dinner',    name: 'Tortilla francesa y sopa',     notes: null,                            created_by: 'u1', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
-    { id: 'mp06', family_id: 'f1', date: '2026-06-18', slot: 'lunch',     name: 'Lentejas suaves',              notes: 'Congelar dos raciones',         created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
-    { id: 'mp07', family_id: 'f1', date: '2026-06-18', slot: 'dinner',    name: 'Ensalada de tomate y atún',    notes: null,                            created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
-    { id: 'mp08', family_id: 'f1', date: '2026-06-19', slot: 'lunch',     name: 'Pasta con pesto',              notes: 'Muy rápido',                    created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
-    { id: 'mp09', family_id: 'f1', date: '2026-06-19', slot: 'dinner',    name: 'Sándwiches calientes',         notes: 'Noche tranquila',               created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
-    { id: 'mp10', family_id: 'f1', date: '2026-06-20', slot: 'lunch',     name: 'Merluza con arroz',            notes: null,                            created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
-    { id: 'mp11', family_id: 'f1', date: '2026-06-20', slot: 'dinner',    name: 'Gazpacho y empanada',          notes: 'Compra hecha',                  created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp01', family_id: 'f1', date: '2026-06-16', slot: 'lunch',     name: 'Arroz con verduras',           second_course: null, dessert: null, notes: 'Dejar ración para mañana',      created_by: 'u1', created_at: '2026-06-15T21:00:00', updated_at: '2026-06-15T21:00:00' },
+    { id: 'mp02', family_id: 'f1', date: '2026-06-16', slot: 'dinner',    name: 'Crema de calabacín',           second_course: null, dessert: null, notes: 'Algo rápido',                   created_by: 'u2', created_at: '2026-06-15T21:00:00', updated_at: '2026-06-15T21:00:00' },
+    { id: 'mp03', family_id: 'f1', date: '2026-06-17', slot: 'breakfast', name: 'Tostadas y café',              second_course: null, dessert: null, notes: 'Turno corto antes del pediatra', created_by: 'u1', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
+    { id: 'mp04', family_id: 'f1', date: '2026-06-17', slot: 'lunch',     name: 'Pollo al horno con patatas',   second_course: null, dessert: null, notes: 'Preparado por la abuela',       created_by: 'u2', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
+    { id: 'mp05', family_id: 'f1', date: '2026-06-17', slot: 'dinner',    name: 'Tortilla francesa y sopa',     second_course: null, dessert: null, notes: null,                            created_by: 'u1', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
+    { id: 'mp06', family_id: 'f1', date: '2026-06-18', slot: 'lunch',     name: 'Lentejas suaves',              second_course: null, dessert: null, notes: 'Congelar dos raciones',         created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp07', family_id: 'f1', date: '2026-06-18', slot: 'dinner',    name: 'Ensalada de tomate y atún',    second_course: null, dessert: null, notes: null,                            created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp08', family_id: 'f1', date: '2026-06-19', slot: 'lunch',     name: 'Pasta con pesto',              second_course: null, dessert: null, notes: 'Muy rápido',                    created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp09', family_id: 'f1', date: '2026-06-19', slot: 'dinner',    name: 'Sándwiches calientes',         second_course: null, dessert: null, notes: 'Noche tranquila',               created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp10', family_id: 'f1', date: '2026-06-20', slot: 'lunch',     name: 'Merluza con arroz',            second_course: null, dessert: null, notes: null,                            created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp11', family_id: 'f1', date: '2026-06-20', slot: 'dinner',    name: 'Gazpacho y empanada',          second_course: null, dessert: null, notes: 'Compra hecha',                  created_by: 'u1', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    // El comedor de Cris: los tres platos que trae el menú del colegio, y el
+    // mismo día con comida en casa —mp04— para que se vea que son dos filas y
+    // no una eligiendo entre dos sitios.
+    { id: 'mp12', family_id: 'f1', date: '2026-06-17', slot: 'school',    name: 'Sopa de fideos',               second_course: 'Filete de pollo con ensalada', dessert: 'Fruta del tiempo', notes: null,                   created_by: 'u2', created_at: '2026-06-16T21:00:00', updated_at: '2026-06-16T21:00:00' },
+    { id: 'mp13', family_id: 'f1', date: '2026-06-18', slot: 'school',    name: 'Crema de calabaza',            second_course: 'Merluza al horno con arroz',    dessert: 'Yogur',            notes: 'Le toca turno pronto', created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
+    { id: 'mp14', family_id: 'f1', date: '2026-06-19', slot: 'school',    name: 'Macarrones con tomate',        second_course: 'Tortilla de patata',            dessert: 'Fruta del tiempo', notes: null,                   created_by: 'u2', created_at: '2026-06-17T08:00:00', updated_at: '2026-06-17T08:00:00' },
   ],
 
   notes: [

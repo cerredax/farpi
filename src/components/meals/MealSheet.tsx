@@ -6,7 +6,7 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import { Suggestions } from '@/components/ui/Suggestions'
 import { PLATOS_SUGERIDOS } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
-import { editableMealSlots } from '@/lib/meal-slots'
+import { editableMealSlots, mealSlotHasCourses } from '@/lib/meal-slots'
 import { selectSuggestions } from '@/lib/selectors'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateMealDraft } from '@/lib/validators'
@@ -49,12 +49,21 @@ function initDraft(
   defaultSlot?: MealSlot,
 ): MealDraft {
   if (mode === 'edit' && initial) {
-    return { date: initial.date, slot: initial.slot, name: initial.name, notes: initial.notes ?? '' }
+    return {
+      date: initial.date,
+      slot: initial.slot,
+      name: initial.name,
+      second_course: initial.second_course ?? '',
+      dessert: initial.dessert ?? '',
+      notes: initial.notes ?? '',
+    }
   }
   return {
     date: defaultDate ?? getLocalDateString(),
     slot: slotPorDefecto(visibles, defaultSlot),
     name: '',
+    second_course: '',
+    dessert: '',
     notes: '',
   }
 }
@@ -65,6 +74,9 @@ const COLUMNAS_FRANJA: Record<number, string> = {
   2: 'grid-cols-2',
   3: 'grid-cols-3',
   4: 'grid-cols-4',
+  // Cinco chips en una fila a 390 px no caben: con el comedor encendido pasan a
+  // tres arriba y dos abajo, que es lo que entra sin apretar el texto.
+  5: 'grid-cols-3',
 }
 
 export function MealSheet({
@@ -98,6 +110,18 @@ export function MealSheet({
   // entero y el bloque pasa a ser scrollable.
   const sugerencias = selectSuggestions(historial, draft.name, PLATOS_SUGERIDOS)
   const buscando = draft.name.trim().length > 0
+
+  // El comedor y la comida se apuntan por platos; un desayuno, con uno solo.
+  const porPlatos = mealSlotHasCourses(draft.slot)
+
+  /**
+   * Cambiar de franja a una que no lleva platos vacía el segundo y el postre.
+   * Si se quedaran puestos, el formulario diría «Tostadas» y guardaría además un
+   * segundo que ya no se ve en ninguna parte.
+   */
+  function cambiarFranja(slot: MealSlot) {
+    patch(mealSlotHasCourses(slot) ? { slot } : { slot, second_course: '', dessert: '' })
+  }
 
   const handleSubmit = submitHandler(valid => {
     if (mode === 'create') onCreate(valid)
@@ -143,7 +167,7 @@ export function MealSheet({
                 <button
                   key={slot.key}
                   type="button"
-                  onClick={() => patch({ slot: slot.key })}
+                  onClick={() => cambiarFranja(slot.key)}
                   className={`py-2.5 rounded-xl text-center transition-colors flex flex-col items-center gap-1 relative ${selected ? 'bg-primary text-white' : 'bg-canvas text-muted hover:bg-surface'}`}
                 >
                   <span className="text-base">{slot.emoji}</span>
@@ -162,7 +186,7 @@ export function MealSheet({
           )}
         </Field>
 
-        <Field label="Plato" htmlFor="meal-name">
+        <Field label={porPlatos ? 'Primer plato' : 'Plato'} htmlFor="meal-name">
           <input
             id="meal-name"
             ref={firstFieldRef}
@@ -185,6 +209,32 @@ export function MealSheet({
             <p className="text-[11px] text-faint">Plato nuevo: no lo habíais apuntado nunca.</p>
           )}
         </Field>
+
+        {porPlatos && (
+          <>
+            <Field label="Segundo plato" htmlFor="meal-second" hint="(opcional)">
+              <input
+                id="meal-second"
+                type="text"
+                value={draft.second_course}
+                onChange={e => patch({ second_course: e.target.value })}
+                placeholder="Ej: Filete de pollo con ensalada"
+                className="field-input"
+              />
+            </Field>
+
+            <Field label="Postre" htmlFor="meal-dessert" hint="(opcional)">
+              <input
+                id="meal-dessert"
+                type="text"
+                value={draft.dessert}
+                onChange={e => patch({ dessert: e.target.value })}
+                placeholder="Ej: Fruta del tiempo"
+                className="field-input"
+              />
+            </Field>
+          </>
+        )}
 
         <Field label="Notas" htmlFor="meal-notes" hint="(opcional)">
           <input

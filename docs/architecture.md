@@ -538,9 +538,10 @@ En la lista sí queda señal de color —la banda de 4 px al borde de la tarjeta
 que además lleva el nombre al lado. Es la misma distinción de forma y sitio que separa la
 franja de vacaciones de la etiqueta de un evento.
 
-**Las franjas de comida se eligen, y son de la familia** (migración 019). Las cuatro
-—desayuno, comida, merienda y cena— están fijas en el código, pero en una casa que no
-merienda esa fila es un hueco que la app pide llenar siete veces por semana. En Ajustes se
+**Las franjas de comida se eligen, y son de la familia** (migración 019). Las de casa
+—desayuno, comida, merienda y cena, más el comedor desde el 02-09-2026— están fijas en el
+código, pero en una casa que no merienda esa fila es un hueco que la app pide llenar siete
+veces por semana. En Ajustes se
 apagan las que no se usan. Tres cosas se decidieron a propósito:
 
 - **Se guarda en `families`, no por dispositivo.** "En casa no merendamos" es un hecho de
@@ -553,6 +554,36 @@ apagan las que no se usan. Tres cosas se decidieron a propósito:
   pantalla de comidas se queda sin filas y sin manera de volver a activarlas desde ella. Se
   comprueba en los tres sitios: el `check` de la 019, `toggleMealSlot` y la propia fila de
   Ajustes, que lo dice en vez de ofrecer un botón que no hace nada.
+
+**El comedor es una franja más, no una marca de la comida** (02-09-2026). En una casa
+con niños en el comedor hay dos menús el mismo día y a la misma hora: lo que le ponen a
+los niños en el colegio y lo que se come en casa. Se resolvió añadiendo `school` a las
+franjas —`Comedor`, justo detrás de `Comida`— en vez de partir cada comida en dos
+públicos, y por tres razones:
+
+- **El `unique(family_id, date, slot)` sigue en pie.** Es lo que deja que la pantalla
+  escriba un hueco sin preguntar antes si ya había algo. Un `audience` en la fila obligaba
+  a ampliarlo y, con él, a que cada celda de la rejilla pasara de una comida a una lista.
+- **La configuración ya existía.** Las franjas se eligen por familia desde la 019, así que
+  el comedor se enciende una vez en Ajustes y no hay pantalla nueva. Entra **apagado**
+  (`DEFAULT_MEAL_SLOTS`, que no es `ALL_MEAL_SLOTS`): en una casa donde nadie come fuera
+  sería una fila vacía que la app pide llenar siete veces por semana, que es exactamente
+  lo que la 019 vino a arreglar con la merienda.
+- **Lo que no cabe se dice.** Dos hijos en dos comedores distintos no caben en una fila.
+  Es el mismo límite que tiene el resto de Comidas —una casa, un menú— y se prefiere a
+  meter personas en un modelo que hoy es de la familia entera.
+
+**Una comida tiene hasta tres platos.** El menú del comedor viene en primero, segundo y
+postre, y todo junto en `name` queda como una frase sin forma. De ahí `second_course` y
+`dessert`, los dos opcionales y nulos en casi todas las comidas: una tostada no tiene
+segundo. El formulario los enseña **solo** en las franjas de `MEAL_SLOTS_CON_PLATOS`
+—comida y comedor—; en el desayuno o la merienda serían dos huecos más que llenar cada
+día. Y al cambiar a una franja sin platos se **vacían**: dejarlos puestos guardaría un
+segundo que ya no se ve en ninguna parte. Las pantallas no miran campo a campo, piden la
+lista a `mealCourses()`: en la tarjeta de la semana y en la lista de hoy van en renglones;
+en la semana de móvil y en Inicio, el primero en su línea y el resto debajo separados por
+puntos —los tres seguidos cortaban el postre a 390 px, que es lo que se mira—; y en el
+sheet de copiar, donde la fila es de una línea, los tres con puntos.
 
 **Lo atrasado se arrastra al día de hoy.** El tramo del calendario empieza hoy, así
 que todo lo vencido caía fuera: lo que más urge era lo único invisible. Una tarea

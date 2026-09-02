@@ -35,6 +35,8 @@ export function meal(over: Partial<MealPlan> = {}): MealPlan {
     date: '2026-08-03',
     slot: 'lunch' as MealSlot,
     name: 'Plato',
+    second_course: null,
+    dessert: null,
     notes: null,
     created_by: 'u1',
     created_at: '2026-08-01T10:00:00Z',

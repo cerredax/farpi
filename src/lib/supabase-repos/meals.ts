@@ -24,6 +24,8 @@ export const mealsRepo: MealsRepo = {
         date: draft.date,
         slot: draft.slot,
         name: draft.name.trim(),
+        second_course: draft.second_course.trim() || null,
+        dessert: draft.dessert.trim() || null,
         notes: draft.notes.trim() || null,
         created_by: userId,
       }, { onConflict: 'family_id,date,slot' })
@@ -37,7 +39,14 @@ export const mealsRepo: MealsRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('meal_plans')
-      .update({ date: draft.date, slot: draft.slot, name: draft.name.trim(), notes: draft.notes.trim() || null })
+      .update({
+        date: draft.date,
+        slot: draft.slot,
+        name: draft.name.trim(),
+        second_course: draft.second_course.trim() || null,
+        dessert: draft.dessert.trim() || null,
+        notes: draft.notes.trim() || null,
+      })
       .eq('id', id)
     assertNoError(error)
   },
@@ -73,6 +82,8 @@ export const mealsRepo: MealsRepo = {
           date: currentDate,
           slot: meal.slot,
           name: meal.name,
+          second_course: meal.second_course,
+          dessert: meal.dessert,
           notes: meal.notes,
           created_by: userId,
         }))

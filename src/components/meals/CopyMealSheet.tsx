@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { MEAL_SLOT_META } from '@/lib/constants'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
+import { mealCourses } from '@/lib/meal-slots'
 import type { MealPlan } from '@/types'
 
 interface CopyMealSheetProps {
@@ -88,7 +89,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
                     <span className="text-base">{meta.emoji}</span>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{meta.label}</p>
-                      <p className="truncate text-sm font-semibold text-ink">{meal.name}</p>
+                      <p className="truncate text-sm font-semibold text-ink">{mealCourses(meal).join(' · ')}</p>
                     </div>
                   </div>
                 )

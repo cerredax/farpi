@@ -5,6 +5,7 @@ import { format, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Card } from '@/components/ui/Card'
 import type { MEAL_SLOTS } from '@/lib/constants'
+import { mealCourses } from '@/lib/meal-slots'
 import { capitalize } from '@/lib/text'
 import type { MealPlan, MealSlot } from '@/types'
 
@@ -61,6 +62,11 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
             <ul className="divide-y divide-hairline">
               {slots.map(slot => {
                 const meal = mealsByCell.get(`${dayKey}:${slot.key}`)
+                // El primero en su línea y el resto debajo, no los tres
+                // seguidos con puntos: en 390 px eso cortaba el postre siempre,
+                // y el postre es justo lo que se mira. Tres renglones sí serían
+                // un muro, así que el segundo y el postre comparten el segundo.
+                const [primero, ...siguientes] = meal ? mealCourses(meal) : []
                 return (
                   <li key={slot.key}>
                     {meal ? (
@@ -73,7 +79,10 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
                         <span className="w-6 flex-shrink-0 text-center text-base">{slot.emoji}</span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">{slot.label}</span>
-                          <span className="block truncate text-sm font-semibold text-ink">{meal.name}</span>
+                          <span className="block truncate text-sm font-semibold text-ink">{primero}</span>
+                          {siguientes.length > 0 && (
+                            <span className="block truncate text-xs text-muted">{siguientes.join(' · ')}</span>
+                          )}
                         </span>
                         <Pencil size={13} className="flex-shrink-0 text-faint transition-colors group-hover:text-primary" strokeWidth={1.9} />
                       </button>

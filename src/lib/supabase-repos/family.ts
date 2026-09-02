@@ -13,7 +13,7 @@ type FamilyRow = Omit<Family, 'meal_slots'> & { meal_slots?: string[] | null }
  * Normaliza `meal_slots` en la frontera, que es lo que permite desplegar este
  * código antes de aplicar la 019 a mano en el SQL Editor: mientras la columna no
  * exista, `select('*')` no la trae, llega `undefined` y aquí se convierte en las
- * cuatro franjas. Arriba nadie tiene que comprobar nada.
+ * franjas de siempre. Arriba nadie tiene que comprobar nada.
  */
 function mapFamily(row: FamilyRow): Family {
   return { ...row, meal_slots: normalizeMealSlots(row.meal_slots) }

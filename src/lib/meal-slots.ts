@@ -1,4 +1,4 @@
-import { MEAL_SLOTS } from './constants'
+import { MEAL_SLOTS, MEAL_SLOTS_CON_PLATOS } from './constants'
 import type { MealPlan, MealSlot } from '@/types'
 
 /**
@@ -10,8 +10,21 @@ import type { MealPlan, MealSlot } from '@/types'
  * pantallas no lo repitan cada una a su manera.
  */
 
-/** Las cuatro, en el orden del día, que es el de `MEAL_SLOTS`. */
+/** Todas, en el orden del día, que es el de `MEAL_SLOTS`. */
 export const ALL_MEAL_SLOTS: MealSlot[] = MEAL_SLOTS.map(slot => slot.key)
+
+/**
+ * Con las que empieza una familia, y a las que se vuelve cuando la lista
+ * guardada no sirve. No son todas: el comedor entra apagado.
+ *
+ * Una casa donde nadie come fuera no tiene comedor ningún día, y encenderlo por
+ * defecto le pondría una fila vacía que la app le pide llenar siete veces por
+ * semana —el mismo estropicio que arregló la 019 con la merienda—. Quien lo
+ * necesita lo enciende una vez en Ajustes y vale para toda la familia.
+ */
+export const DEFAULT_MEAL_SLOTS: MealSlot[] = MEAL_SLOTS
+  .filter(slot => slot.key !== 'school')
+  .map(slot => slot.key)
 
 const ORDEN = new Map(MEAL_SLOTS.map((slot, i) => [slot.key, i]))
 
@@ -21,19 +34,19 @@ function esFranja(value: unknown): value is MealSlot {
 
 /**
  * Deja la lista en su forma canónica: solo franjas válidas, sin repetidos y en
- * el orden del día. Si no queda ninguna, devuelve las cuatro.
+ * el orden del día. Si no queda ninguna, devuelve las de siempre.
  *
  * Lo de «si no queda ninguna» no es defensa por defender, son tres casos reales:
  * una familia creada antes de la 019 (la columna no existe y llega `undefined`),
  * un `localStorage` del modo demo guardado con el esquema anterior, y el propio
  * intento de dejarlo todo apagado. Con cero franjas la pantalla de comidas se
  * queda sin filas y sin manera de volver, así que el caso vacío significa
- * «todas», nunca «ninguna».
+ * `DEFAULT_MEAL_SLOTS`, nunca «ninguna».
  */
 export function normalizeMealSlots(value: unknown): MealSlot[] {
-  if (!Array.isArray(value)) return [...ALL_MEAL_SLOTS]
+  if (!Array.isArray(value)) return [...DEFAULT_MEAL_SLOTS]
   const limpias = [...new Set(value.filter(esFranja))]
-  if (limpias.length === 0) return [...ALL_MEAL_SLOTS]
+  if (limpias.length === 0) return [...DEFAULT_MEAL_SLOTS]
   return limpias.sort((a, b) => ORDEN.get(a)! - ORDEN.get(b)!)
 }
 
@@ -79,4 +92,24 @@ export function editableMealSlots(slots: MealSlot[], editing?: MealSlot): typeof
 export function filterMealsBySlots(meals: MealPlan[], slots: MealSlot[]): MealPlan[] {
   const visibles = new Set(normalizeMealSlots(slots))
   return meals.filter(meal => visibles.has(meal.slot))
+}
+
+/**
+ * Si esa franja se apunta por platos. Lo consulta el formulario para decidir si
+ * enseña «Segundo plato» y «Postre», y las pantallas para saber si hay más de
+ * una línea que pintar.
+ */
+export function mealSlotHasCourses(slot: MealSlot): boolean {
+  return MEAL_SLOTS_CON_PLATOS.includes(slot)
+}
+
+/**
+ * Los platos de una comida, en orden y sin huecos: uno solo en un desayuno,
+ * hasta tres en el comedor. Las pantallas los pintan desde aquí en vez de
+ * mirar campo a campo, que es como se olvida uno.
+ */
+export function mealCourses(meal: Pick<MealPlan, 'name' | 'second_course' | 'dessert'>): string[] {
+  return [meal.name, meal.second_course, meal.dessert]
+    .map(plato => plato?.trim() ?? '')
+    .filter(plato => plato.length > 0)
 }

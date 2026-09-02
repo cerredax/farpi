@@ -23,7 +23,7 @@ function migrarClaveVieja(): void {
     localStorage.removeItem(STORAGE_KEY_NIDO)
   } catch { /* ignore */ }
 }
-const SCHEMA_VER  = 14 // v14: fixed_entries (el mes tipo) y `kind` en expenses
+const SCHEMA_VER  = 15 // v15: la franja del comedor y los platos de una comida
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return

@@ -1,5 +1,5 @@
 import type { Family, FamilyMember, FamilyInvite, MealSlot } from '@/types'
-import { ALL_MEAL_SLOTS, normalizeMealSlots } from '../meal-slots'
+import { DEFAULT_MEAL_SLOTS, normalizeMealSlots } from '../meal-slots'
 import { db } from './db'
 
 export function getFamily(familyId: string): Family | undefined {
@@ -32,8 +32,9 @@ export function setFamilyMealSlots(familyId: string, slots: MealSlot[]): Family 
 
 export function createFamily(name: string): Family {
   const now = new Date().toISOString()
-  // Las cuatro franjas, que es el `default` de la columna en la 019.
-  const f: Family = { id: crypto.randomUUID(), name: name.trim(), meal_slots: [...ALL_MEAL_SLOTS], created_at: now, updated_at: now }
+  // Las de siempre, que es el `default` de la columna en la 019: el comedor no
+  // entra hasta que la familia lo enciende.
+  const f: Family = { id: crypto.randomUUID(), name: name.trim(), meal_slots: [...DEFAULT_MEAL_SLOTS], created_at: now, updated_at: now }
   db.families = [...db.families, f]
   const adminMember: FamilyMember = {
     id: crypto.randomUUID(),

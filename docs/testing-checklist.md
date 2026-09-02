@@ -192,6 +192,15 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
       dispositivo).
 - [ ] Con una cuenta que no es admin de la familia, el interruptor da error al guardar (el
       mismo límite que renombrar la familia).
+- [ ] Ajustes → Comidas: `Comedor` aparece **apagado** en una familia nueva, y encenderlo
+      añade su fila justo detrás de `Comida`.
+- [ ] Comedor y comida piden primero, segundo y postre; desayuno, merienda y cena, un
+      plato solo. Automatizado en `e2e/runtime.spec.ts`, que además comprueba que cambiar
+      a una franja sin platos vacía el segundo y el postre.
+- [ ] Un día con comedor **y** comida en casa enseña las dos filas, no una.
+- [ ] Los tres platos se leen en la tarjeta de la semana (escritorio), en la lista de hoy,
+      en la fila de Inicio y en el sheet de copiar día.
+- [ ] Copiar un día se lleva los tres platos, no solo el primero.
 
 ## 8. Documentos
 

@@ -270,14 +270,27 @@ export interface Quote {
   updated_at: string
 }
 
-export type MealSlot = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+/**
+ * `school` es el comedor: lo que le ponen a los niños fuera de casa. Es una
+ * franja aparte de `lunch` y no un adorno de ella, porque a la misma hora se
+ * come una cosa en el colegio y otra en casa, y las dos hay que saberlas.
+ */
+export type MealSlot = 'breakfast' | 'lunch' | 'school' | 'dinner' | 'snack'
 
 export interface MealPlan {
   id: string
   family_id: string
   date: string
   slot: MealSlot
+  /** Plato único, o el primero cuando hay más de uno. Nunca vacío. */
   name: string
+  /**
+   * El menú del comedor viene en tres líneas —primero, segundo y postre—, y
+   * apuntarlo todo en `name` lo deja como una frase sin forma. Los dos van
+   * nulos en casi todas las comidas: una tostada no tiene segundo.
+   */
+  second_course: string | null
+  dessert: string | null
   notes: string | null
   created_by: string | null
   created_at: string
@@ -383,6 +396,8 @@ export interface MealDraft {
   date: string
   slot: MealSlot
   name: string
+  second_course: string
+  dessert: string
   notes: string
 }
 

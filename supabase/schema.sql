@@ -59,12 +59,14 @@ create table if not exists public.families (
   name        text not null,
   -- Franjas de comida visibles en la pantalla de comidas. Ocultar una no borra
   -- sus `meal_plans`: se dejan de pintar, y si se reactiva la franja reaparecen.
+  -- El comedor (`school`) no entra por defecto: una casa donde nadie come fuera
+  -- tendría una fila vacía que llenar siete veces por semana.
   meal_slots  text[] not null default array['breakfast', 'lunch', 'snack', 'dinner']::text[],
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
   constraint families_meal_slots_validos check (
-    meal_slots <@ array['breakfast', 'lunch', 'dinner', 'snack']::text[]
-    and cardinality(meal_slots) between 1 and 4
+    meal_slots <@ array['breakfast', 'lunch', 'school', 'dinner', 'snack']::text[]
+    and cardinality(meal_slots) between 1 and 5
   )
 );
 
@@ -372,12 +374,22 @@ create table if not exists public.quotes (
 
 -- Qué se come. Una comida por familia, día y franja: el `unique` es lo que deja
 -- que la pantalla escriba sin preguntar antes si ya había algo.
+--
+-- `school` es el comedor, y es una franja más y no una marca de `lunch`: a la
+-- misma hora los niños comen una cosa fuera y en casa se come otra, y las dos
+-- filas tienen que caber el mismo día. De ahí también `second_course` y
+-- `dessert`: el menú del comedor viene en tres líneas, y las tres se apuntan
+-- por separado en vez de amontonarlas en `name`. Van nulas en casi todas las
+-- comidas —una tostada no tiene segundo—, así que son opcionales y `name`
+-- sigue siendo el plato único o el primero.
 create table if not exists public.meal_plans (
   id          uuid primary key default uuid_generate_v4(),
   family_id   uuid not null references public.families(id) on delete cascade,
   date        date not null,
-  slot        text not null check (slot in ('breakfast', 'lunch', 'dinner', 'snack')),
+  slot        text not null check (slot in ('breakfast', 'lunch', 'school', 'dinner', 'snack')),
   name        text not null,
+  second_course text,
+  dessert     text,
   notes       text,
   created_by  uuid references auth.users(id) on delete set null,
   created_at  timestamptz not null default now(),

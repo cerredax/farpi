@@ -4,6 +4,7 @@ import {
   extractDate,
   extractTime,
   getDayPeriod,
+  getDayPeriodEnMadrid,
   getDayPeriodFromHour,
   getLocalDateString,
   isSameLocalDay,
@@ -129,6 +130,18 @@ test('el tramo del día parte en las 12 y en las 20', () => {
   expect(getDayPeriodFromHour(19)).toBe('tarde')
   expect(getDayPeriodFromHour(20)).toBe('noche')
   expect(getDayPeriodFromHour(23)).toBe('noche')
+})
+
+// La portada y el login se pintan en el servidor, que va en UTC. Lo que estos
+// tests fijan es que el tramo se decide por el reloj de Madrid y no por el de la
+// máquina: a las 22:30 UTC de un día de verano en España ya es el siguiente.
+
+test('el tramo en Madrid no es el de UTC', () => {
+  // Verano (UTC+2): las 23:00 UTC son la 1 de la madrugada en Madrid.
+  expect(getDayPeriodEnMadrid(new Date('2026-06-17T23:00:00Z'))).toBe('mañana')
+  // Invierno (UTC+1): las 19:30 UTC son las 20:30 en Madrid, ya de noche.
+  expect(getDayPeriodEnMadrid(new Date('2026-01-17T19:30:00Z'))).toBe('noche')
+  expect(getDayPeriodEnMadrid(new Date('2026-01-17T18:30:00Z'))).toBe('tarde')
 })
 
 test('el tramo de una fecha es el de su hora local', () => {

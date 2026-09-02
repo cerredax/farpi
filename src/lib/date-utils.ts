@@ -7,16 +7,37 @@ export type DayPeriod = 'mañana' | 'tarde' | 'noche'
 /**
  * Tramo del día por la hora suelta, sin fecha alrededor.
  *
- * Existe aparte porque la portada pública pinta la misma ilustración **desde el
- * servidor**, y ahí no vale `date.getHours()`: en Vercel el servidor va en UTC y
- * en España son una o dos horas más. La portada calcula la hora de Madrid y
- * pregunta por ella, en vez de repetir estos límites en otro archivo y que un
- * día dejen de coincidir con el saludo.
+ * Existe aparte porque la portada pública y el login pintan la misma ilustración
+ * **desde el servidor**, y ahí no vale `date.getHours()`: en Vercel el servidor
+ * va en UTC y en España son una o dos horas más. Quien resuelve la hora de
+ * Madrid es `getDayPeriodEnMadrid`, aquí debajo, y pregunta por ella: así estos
+ * límites no se repiten en otro archivo y no dejan de coincidir con el saludo.
  */
 export function getDayPeriodFromHour(hour: number): DayPeriod {
   if (hour < 12) return 'mañana'
   if (hour < 20) return 'tarde'
   return 'noche'
+}
+
+/**
+ * El tramo del día en España, para lo que se pinta **en el servidor**.
+ *
+ * En Vercel el servidor va en UTC, así que preguntar por la hora de la máquina
+ * enseñaría a media España el cielo de una hora antes. Lo usan la portada
+ * pública y la pantalla de login, que enseñan la misma casa: vive aquí y no en
+ * una de las dos para que no se separen.
+ *
+ * La fecha se puede pasar para poder probarlo; por defecto es ahora.
+ */
+export function getDayPeriodEnMadrid(now: Date = new Date()): DayPeriod {
+  const hora = Number(
+    new Intl.DateTimeFormat('es-ES', {
+      timeZone: 'Europe/Madrid',
+      hour: '2-digit',
+      hourCycle: 'h23',
+    }).format(now)
+  )
+  return getDayPeriodFromHour(hora)
 }
 
 /** Tramo del día por la hora. Decide el saludo y el cielo de la ilustración

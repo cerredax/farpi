@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ChevronRight, X } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
 import { memberColor, splitPeople } from '@/lib/assignees'
 import { resetDemoData } from '@/lib/family-config'
@@ -50,21 +51,41 @@ import type { FamilyMember, Child, ChildDraft, Family, PersonKind } from '@/type
  * predecible y la que más se usa. La última visitada no se recuerda.
  */
 
-/** Un bloque de Ajustes: el nivel de "¿a qué he entrado?". */
+/**
+ * Un bloque de Ajustes: el nivel de "¿a qué he entrado?".
+ *
+ * Con su rayita de color encima, la misma que separa las secciones de la
+ * portada. Hasta el 02-09-2026 era un `<h2>` de 14 px sin nada alrededor,
+ * flotando sobre unas tarjetas que sí tienen borde y sombra: el título pesaba
+ * menos que lo que titulaba y la pantalla se leía como una lista de trozos
+ * sueltos. La rayita dice "aquí empieza algo" sin encerrarlo en otra caja —
+ * meter cada bloque en un cuadro habría sido cuadros dentro de cuadros— y de
+ * paso mete el color de marca en una pantalla que no tenía ninguno.
+ */
 function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="px-1 text-sm font-bold text-ink">{titulo}</h2>
+      <div className="px-1">
+        <span aria-hidden className="mb-2.5 block h-1 w-9 rounded-full bg-primary" />
+        <h2 className="text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
+      </div>
       {children}
     </section>
   )
 }
 
-/** Un grupo dentro de un bloque, para cuando sus partes necesitan nombre. */
+/**
+ * Un grupo dentro de un bloque, para cuando sus partes necesitan nombre.
+ *
+ * En gris y a media voz, que es todo lo que tiene que hacer: nombrar la tabla
+ * de abajo. Iba en versalitas con `tracking-widest`, y esa letra ancha y
+ * espaciada llamaba tanto la atención como el título del bloque —a veces más,
+ * porque era más larga—, así que los dos niveles competían en vez de ordenarse.
+ */
 function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
-      <h3 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">{titulo}</h3>
+      <h3 className="px-1 text-xs font-bold text-muted">{titulo}</h3>
       {children}
     </div>
   )
@@ -154,12 +175,14 @@ export function SettingsView() {
   return (
     <>
       <div className="max-w-lg mx-auto px-4 py-4 pb-10">
-        {/* Mismo patrón que los filtros de Documentos: se arrastra en móvil,
-            sangrando hasta el borde, y cabe entero en escritorio. */}
+        {/* Mismo patrón que los filtros de Documentos, que el 02-09-2026 dejaron
+            de arrastrarse: las cinco se ven a la vez y envuelven si no caben.
+            Una pestaña que hay que descubrir arrastrando es peor que un
+            plegable, porque ni siquiera se sabe que está ahí. */}
         <div
           role="tablist"
           aria-label="Secciones de ajustes"
-          className="mb-6 flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0"
+          className="mb-6 flex flex-wrap gap-2 pb-1"
         >
           {PESTAÑAS_VISIBLES.map(p => (
             <button
@@ -170,7 +193,7 @@ export function SettingsView() {
               aria-selected={pestañaActiva === p.key}
               aria-controls={`panel-${p.key}`}
               onClick={() => irAPestaña(p.key)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
                 pestañaActiva === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
               }`}
             >
@@ -209,7 +232,7 @@ export function SettingsView() {
                     className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
-                  <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex-shrink-0 px-3 py-2 rounded-xl border border-line text-sm text-muted">✕</button>
+                  <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex flex-shrink-0 items-center justify-center px-3 py-2 rounded-xl border border-line text-muted transition-colors hover:bg-surface hover:text-ink"><X size={16} strokeWidth={2.4} /></button>
                 </form>
               ) : (
                 <button
@@ -293,10 +316,10 @@ export function SettingsView() {
           <Bloque titulo="Legal">
             <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
               <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
-                Política de privacidad <span className="text-faint">›</span>
+                Política de privacidad <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
               </Link>
               <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
-                Términos de servicio <span className="text-faint">›</span>
+                Términos de servicio <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
               </Link>
             </div>
           </Bloque>

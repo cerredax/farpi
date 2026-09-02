@@ -79,9 +79,11 @@ export function MoreMenu({ className, children }: { className?: string; children
 
   async function cerrarSesion() {
     await signOut()
-    // Sin `router.replace`: el proxy decide a dónde se puede ir sin sesión, y
-    // recargar de verdad tira además el estado que quedara en memoria.
-    window.location.href = '/auth/login'
+    // A la portada y no al login: quien sale de casa no está intentando entrar.
+    // Al login se llega desde una invitación o un correo de recuperación, no al
+    // terminar. Sin `router.replace`: recargar de verdad tira además el estado
+    // que quedara en memoria.
+    window.location.href = '/'
   }
 
   const sheet = (

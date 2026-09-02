@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-08-31.
+Última revisión: 2026-09-02.
 
 ## Resumen
 
@@ -75,8 +75,11 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   `personal` es identidad —DNI, pasaporte, libro de familia—, no el cajón de lo que no
   encaja; para eso está «Otros». Cada una lleva un icono de lucide
   (`docs/CategoryIcon.tsx`), no un emoji: el chip mide 10 px y ahí un emoji de color es
-  una mancha distinta en cada sistema. Con doce filtros la fila ya no cabe en una
-  línea: en móvil se arrastra y en escritorio se reparte.
+  una mancha distinta en cada sistema. Con doce filtros la fila no cabe en una línea, así
+  que **envuelve en los dos tamaños** (02-09-2026): en móvil se arrastraba, y a 390 px
+  entraban cuatro y las otras ocho quedaban fuera de pantalla —Mascotas, Viajes y Otros
+  no existían para quien no supiera que aquello se arrastraba—. Envueltas ocupan tres
+  líneas y se leen de un golpe.
 - **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
   tarea ni un papel —el teléfono del pediatra, la clave del wifi, dónde está el contador—.
   Título, texto libre, un emoji y la posibilidad de fijar una arriba. Sin categorías, sin
@@ -137,8 +140,11 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   por eso no son pastillas—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
   Qué secciones caen ahí lo dice la bandera `enMas` de `secciones.ts`, que leen las dos
   barras: era un filtro escrito a mano y con dos secciones ya podía contradecirse.
-  Ajustes abre en Familia; elegir pestaña es cosa de las pestañas. Cambiar contraseña
-  (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes.
+  Ajustes abre en Familia; elegir pestaña es cosa de las pestañas — y las cinco se ven a
+  la vez desde el 02-09-2026, que envuelven en vez de arrastrarse. Cambiar contraseña
+  (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes. **Cerrar sesión
+  deja en la portada** (02-09-2026), no en el login: quien sale de casa no está
+  intentando entrar, y al login se llega desde un correo, no al terminar.
 - Listas, Tareas, Comidas, Notas y Documentos abren con la misma fila (`ViewHeader.tsx`,
   28-08-2026): resumen, buscador y el `+` de alta, bajo el título de la cabecera. El `+`
   de Tareas estaba flotando abajo a la derecha y era el único fuera de sitio.
@@ -156,6 +162,13 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   dos pestañas, Google si el proveedor está activo, los campos y recuperar contraseña,
   y lo montan los dos sitios: `/auth/login` y la portada. No hay copia: un segundo
   formulario de autenticación diverge en cuanto alguien toca un mensaje de error.
+- **Y desde el 02-09-2026 dicen también lo mismo alrededor del formulario.** La
+  columna de presentación del login (`LoginHero.tsx`) tenía titular propio, una
+  insignia de corazón y una línea de escudo al pie; ahora lleva el titular de la
+  portada, la casa de `DayIllustration` y `Garantias`, que es lo que ve quien llega
+  desde una invitación por correo o un enlace de recuperación. El tramo del día lo
+  calculan las dos con `getDayPeriodEnMadrid`: se pinta en el servidor, que va en
+  UTC, y ese apaño estaba escrito solo en la portada.
 - **Va pegado al titular en móvil y anclado en una columna a la derecha en escritorio**
   (`sticky top-20`, solo en `lg:`), y **se pinta una sola vez**: repetirlo arriba y
   abajo duplicaría los `id` de los campos, que es lo que ata cada etiqueta con el suyo.
@@ -322,13 +335,13 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **476 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **508 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 384 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 123 de navegador. La cifra sale de la pasada completa del 02-09-2026 (507 en total,
-    384 unitarios):
+  - 385 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 123 de navegador. La cifra sale de la pasada completa del 02-09-2026 (508 en total,
+    385 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas y la columna de acceso anclada de la portada; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 

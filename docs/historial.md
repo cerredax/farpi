@@ -15,6 +15,71 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-02
 
+### Seis preguntas sobre la app ya hecha, y las cinco que tenían arreglo (02-09-2026)
+
+Una revisión de las que salen de usar la app y no de mirar el código. Vinieron seis
+cosas; se hicieron cinco, y la que se descartó es la que más se pensó.
+
+**Un buscador general en Inicio: no.** Ya hay buscador en seis de las siete pantallas
+de contenido, todos por `ViewHeader`, y son buscadores que saben qué buscan. Uno
+global tendría que mezclar siete formas de dato distintas en una lista de resultados
+y encima vivir en Inicio, que es la pantalla que contesta «qué hay que saber hoy» en
+diez segundos de lectura. Técnicamente era barato —el store ya tiene todo en memoria,
+no hacía falta ni una RPC—, y eso es justo lo que lo hacía tentador. Se deja para
+cuando alguien de la familia diga «no encuentro esto», que hoy no ha pasado.
+
+**El login y la portada decían cosas distintas.** El formulario ya era el mismo desde
+el 01-09-2026 (`AuthCard`), pero lo de alrededor no: la portada llevaba la casa de
+Inicio, «Qué tenemos que saber hoy en casa.» y `Garantias`; el login, un titular
+propio, una insignia de corazón y una línea de escudo al pie. Dos caras para la misma
+app a un clic de distancia. Ahora `LoginHero` dice lo de la portada. Importa más de lo
+que parece porque al login no se llega navegando —ya no hay ningún enlace que lleve—:
+se llega desde una invitación por correo o un enlace de recuperación, y lo que hace
+falta ahí es reconocer lo que se vio en el anuncio.
+
+El apaño de la zona horaria se fue a `date-utils` de paso: la casa se pinta en el
+servidor, que en Vercel va en UTC, así que hay que preguntar por la hora de Madrid o
+media España ve el cielo de una hora antes. Estaba escrito solo en la portada;
+copiarlo al login habrían sido dos sitios donde equivocarse. `getDayPeriodEnMadrid`
+acepta la fecha para poder probarla, y su test fija lo que importa: que a las 23:00
+UTC de un día de junio en Madrid ya es de mañana.
+
+**Cerrar sesión llevaba al login.** Ahora lleva a la portada, en los dos sitios donde
+está el botón (`AccountFooter` en escritorio, `MoreMenu` en móvil). Quien sale de casa
+no está intentando entrar; dejarlo delante de un formulario de acceso es contestar a
+una pregunta que no ha hecho. La portada, además, redirige sola a `/home` si hay
+sesión, así que no hay forma de acabar en un sitio raro.
+
+**La categoría «finanzas» de Documentos seguía siendo una tarjeta de crédito**, cuando
+la sección Finanzas es una hucha desde hace dos commits y la portada también. El mismo
+concepto con dos caras dentro de la misma app. Ahora es `PiggyBank` en los tres.
+
+**Los filtros de Documentos se arrastraban.** Once categorías y «Todos» en una fila con
+`overflow-x-auto`: a 390 px entraban cuatro, y Mascotas, Viajes y Otros no existían
+para quien no supiera que aquello se movía. Envueltas ocupan tres líneas y se ven las
+doce de un golpe. Es exactamente la lección del catálogo de las listas y de las tareas
+del día: en esta app, esconder contenido ha salido mal cada vez. Las pestañas de
+Ajustes iban detrás con un comentario que decía «mismo patrón que los filtros de
+Documentos», así que se fueron con ellos.
+
+**Y Ajustes estaba "de andar por casa".** No la estructura —cinco pestañas con bloques
+con nombre, decidido a conciencia y sin plegables—, sino el acabado. Tres cosas:
+los títulos de bloque eran un `<h2>` de 14 px flotando sobre tarjetas que sí tienen
+borde y sombra, así que el título pesaba menos que lo que titulaba; los subtítulos de
+grupo iban en versalitas con `tracking-widest`, que a veces llamaban más la atención
+que el título de encima; y quedaban dos caracteres sueltos haciendo de icono, un «✕»
+para cancelar y dos «›» en Legal, en una app que es lucide de arriba abajo.
+
+Los títulos llevan ahora la rayita de color de las secciones de la portada. Se pensó
+en darles un icono en pastilla, como `FamilyCard`, y se descartó por dos razones: el
+bloque «Tu familia» habría tenido un icono de casa a cuarenta píxeles del icono de
+casa de la tarjeta que contiene, y meter cada bloque en su caja habría sido cuadros
+dentro de cuadros. La rayita dice «aquí empieza algo» sin encerrar nada, y de paso
+mete el color de marca en una pantalla que no tenía ninguno.
+
+De rebote apareció que `project-status.md` decía «476 tests» cuando la pasada daba
+507. Ahora dice 508, que es lo que da con el test nuevo.
+
 ### Finanzas: el resumen dibujado, y el `+` de vuelta a su sitio (02-09-2026)
 
 Cuatro cosas que salieron de mirar la pantalla ya hecha, que es cuando se ven.

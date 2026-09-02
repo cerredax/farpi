@@ -12,7 +12,7 @@ import {
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Garantias } from '@/components/ui/Garantias'
 import { DayIllustration } from '@/components/home/DayIllustration'
-import { getDayPeriodFromHour } from '@/lib/date-utils'
+import { getDayPeriodEnMadrid } from '@/lib/date-utils'
 
 const CONTACT = 'cerredax@gmail.com'
 
@@ -202,19 +202,12 @@ export function LandingPage() {
    * noche. Es la misma ilustración que preside Inicio, y esa es la gracia: quien
    * entra ya ha visto la app.
    *
-   * Se pinta **en el servidor**, que en Vercel va en UTC, así que la hora se
-   * pide en la de Madrid: si no, media España vería el cielo de una hora antes.
-   * Y se resuelve aquí y no en el navegador para que no haya un parpadeo entre
-   * lo que llega pintado y lo que decide el reloj de quien mira.
+   * Se resuelve aquí y no en el navegador para que no haya un parpadeo entre lo
+   * que llega pintado y lo que decide el reloj de quien mira. El apaño de la
+   * zona horaria —el servidor va en UTC— vive en `getDayPeriodEnMadrid`, que
+   * comparte con la pantalla de login desde que las dos enseñan esta casa.
    */
-  const horaMadrid = Number(
-    new Intl.DateTimeFormat('es-ES', {
-      timeZone: 'Europe/Madrid',
-      hour: '2-digit',
-      hourCycle: 'h23',
-    }).format(new Date())
-  )
-  const tramo = getDayPeriodFromHour(horaMadrid)
+  const tramo = getDayPeriodEnMadrid()
 
   return (
     <div className="min-h-dvh bg-canvas text-ink">

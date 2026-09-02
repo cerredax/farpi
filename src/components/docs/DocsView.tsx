@@ -58,12 +58,19 @@ export function DocsView() {
       )}
 
       {/* Filtros */}
-      {/* En móvil los filtros se arrastran y sangran hasta el borde (`-mx-4
-          px-4`); en escritorio se reparten en varias líneas, así que se quita el
-          sangrado y el arrastre. Son once categorías y «Todos»: no caben en una
-          fila en ningún sitio, y es el precio de que cada papel de la casa tenga
-          su carpeta. */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0">
+      {/* Son once categorías y «Todos», y **se ven las doce a la vez**, aquí y
+          en escritorio. Hasta el 02-09-2026 en móvil se arrastraban en una fila
+          sangrada hasta el borde (`-mx-4 px-4` + `overflow-x-auto`): a 390 px
+          entraban cuatro y las otras ocho quedaban fuera de pantalla, así que la
+          tira parecía un revoltijo cortado y las categorías del final —Mascotas,
+          Viajes, Otros— no existían para quien no supiera que aquello se
+          arrastraba. Envueltas ocupan tres líneas y se leen de un golpe.
+
+          Es la misma lección que el catálogo de las listas y las tareas del día:
+          en esta app esconder contenido ha salido mal cada vez. El precio de que
+          cada papel de la casa tenga su carpeta se paga en alto, no en
+          desplazamiento lateral. */}
+      <div className="flex flex-wrap gap-2 pb-1">
         {ALL_FILTERS.map(f => (
           <button
             key={String(f.key)}

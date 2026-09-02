@@ -470,7 +470,7 @@ export function LandingPage() {
 
             <blockquote className="my-7 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
               Esta aplicación está hecha para que no se nos pase nada, y también para evitar
-              discusiones de pareja por los despistes de no acordarse de las cosas.
+              discusiones tontas por los despistes.
             </blockquote>
 
             <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">

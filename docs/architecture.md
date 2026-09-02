@@ -1419,6 +1419,38 @@ pantallas de todos los días.
 tarjeta ni credenciales. Todo lo de esta sección lo escribe la familia a mano, y así lo
 dice `/privacidad`.
 
+### Documentos: once carpetas, y «Personal» significa identidad (02-09-2026)
+
+Las categorías eran cuatro —Salud, Colegio, Personal y Otros— y el problema no era que
+fueran pocas, sino que dos de ellas no querían decir nada. El seguro del coche estaba en
+«Personal». La factura de la lavadora habría acabado en «Otros». Con eso el filtro no
+filtra: si medio cajón cae en la misma carpeta por descarte, abrirla es como no abrir
+ninguna.
+
+Así que hay once, y la regla que las sostiene es que **cada papel que hay de verdad en una
+casa tenga una carpeta que no sea «Otros»**: Salud, Colegio, Personal, Vivienda, Vehículo,
+Seguros, Finanzas, Facturas, Mascotas, Viajes y Otros. La lista viva está en
+`DOC_CATEGORIES` (`src/lib/constants.ts`) y el `check` de `documents.category` en
+`supabase/schema.sql` la copia: si una crece, la otra crece con ella.
+
+**`personal` es identidad**, no el cajón de lo que sobra: DNI, pasaporte, libro de familia,
+títulos. Es lo que la palabra ya significaba en la cabeza de quien la eligió, y lo que no
+podía significar mientras fuera el único sitio donde meter una póliza. La clave no se
+renombró aunque «Identidad» sea más exacto: hay documentos reales en producción con ese
+valor y cambiarlo obligaría a migrar filas para ganar precisión de vocabulario.
+
+**El icono es de lucide y no un emoji** (`src/components/docs/CategoryIcon.tsx`). El chip de
+la tarjeta tiene el texto a 10 px; a ese tamaño un emoji de color es una mancha, y encima
+Android, iOS y Windows dibujan cada uno el suyo. Los iconos son monocromos, heredan el color
+del chip y son los mismos que el resto de la app. `constants.ts` se queda sin el campo
+`emoji` y **sin icono**: ese archivo lo importa también el servidor y no puede arrastrar
+`lucide-react`.
+
+**Doce filtros no caben en una fila, y se acepta.** En móvil la fila se arrastra —ya lo
+hacía— y en escritorio se reparte en varias líneas con `lg:flex-wrap`. La alternativa era un
+desplegable, que esconde las carpetas y cuesta dos toques en vez de uno. `e2e/escritorio.spec.ts`
+comprueba lo que importa: que en escritorio no se arrastre.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

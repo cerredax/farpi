@@ -2,12 +2,13 @@
 
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { CategoryIcon } from './CategoryIcon'
 import { FileTypeIcon } from './FileTypeIcon'
 import { textColorOn } from '@/lib/assignees'
 import { DOC_CATEGORIES, FAMILY_COLOR } from '@/lib/constants'
 import { selectExpiryState } from '@/lib/selectors'
 import { formatFileSize } from '@/lib/text'
-import type { Document } from '@/types'
+import type { DocCategory, Document } from '@/types'
 
 const CADUCIDAD_ESTILO = {
   caducado: 'bg-danger-soft text-danger-strong',
@@ -15,9 +16,9 @@ const CADUCIDAD_ESTILO = {
   vigente:  'bg-surface text-muted',
 } as const
 
-const CATEGORY_META = Object.fromEntries(
-  DOC_CATEGORIES.map(c => [c.key, { label: c.label, emoji: c.emoji }])
-)
+const ETIQUETAS = Object.fromEntries(
+  DOC_CATEGORIES.map(c => [c.key, c.label])
+) as Record<DocCategory, string>
 
 interface DocCardProps {
   doc: Document
@@ -29,7 +30,7 @@ interface DocCardProps {
 
 /** Tarjeta de documento en el listado, con categoría, dueño y metadatos. */
 export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardProps) {
-  const cat = doc.category ? CATEGORY_META[doc.category] : CATEGORY_META['otros']
+  const categoria: DocCategory = doc.category ?? 'otros'
   const caducidad = selectExpiryState(doc.expires_on)
 
   return (
@@ -49,11 +50,9 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
           <p className="text-xs text-muted mt-0.5 truncate">{doc.description}</p>
         )}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          {cat && (
-            <span className="text-[10px] font-bold bg-surface text-muted px-2 py-0.5 rounded-full">
-              {cat.emoji} {cat.label}
-            </span>
-          )}
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-surface text-muted px-2 py-0.5 rounded-full">
+            <CategoryIcon category={categoria} /> {ETIQUETAS[categoria] ?? 'Otros'}
+          </span>
           {assigneeName && (
             <span
               className="text-[10px] font-bold px-2 py-0.5 rounded-full"

@@ -1,4 +1,15 @@
-export type DocCategory = 'salud' | 'colegio' | 'personal' | 'otros'
+export type DocCategory =
+  | 'salud'
+  | 'colegio'
+  | 'personal'
+  | 'vivienda'
+  | 'vehiculo'
+  | 'seguros'
+  | 'finanzas'
+  | 'facturas'
+  | 'mascotas'
+  | 'viajes'
+  | 'otros'
 export type DocMimeType = 'application/pdf' | 'image/jpeg' | 'image/png'
 
 export interface Family {

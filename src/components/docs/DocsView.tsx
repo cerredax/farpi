@@ -1,16 +1,18 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { CategoryIcon } from './CategoryIcon'
 import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
 import { DOC_CATEGORIES } from '@/lib/constants'
 import { resolveAssignee } from '@/lib/assignees'
 import { ViewHeader } from '@/components/ui/ViewHeader'
+import type { DocCategory } from '@/types'
 
-const ALL_FILTERS = [
-  { key: null as string | null, label: 'Todos' },
-  ...DOC_CATEGORIES.map(c => ({ key: c.key as string | null, label: `${c.emoji} ${c.label}` })),
+const ALL_FILTERS: { key: DocCategory | null; label: string }[] = [
+  { key: null, label: 'Todos' },
+  ...DOC_CATEGORIES,
 ]
 
 export function DocsView() {
@@ -57,15 +59,18 @@ export function DocsView() {
 
       {/* Filtros */}
       {/* En móvil los filtros se arrastran y sangran hasta el borde (`-mx-4
-          px-4`); en escritorio caben los cinco de una vez, así que se quita el
-          sangrado y el arrastre. */}
+          px-4`); en escritorio se reparten en varias líneas, así que se quita el
+          sangrado y el arrastre. Son once categorías y «Todos»: no caben en una
+          fila en ningún sitio, y es el precio de que cada papel de la casa tenga
+          su carpeta. */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0">
         {ALL_FILTERS.map(f => (
           <button
             key={String(f.key)}
             onClick={() => s.setActiveFilter(f.key)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
+            className={`flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
           >
+            {f.key && <CategoryIcon category={f.key} size={13} />}
             {f.label}
           </button>
         ))}

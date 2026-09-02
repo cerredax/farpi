@@ -2,11 +2,30 @@ import type { DocCategory, DocMimeType, MealSlot, QuoteStatus, TaskPriority, Tas
 
 // ─── Documentos ───────────────────────────────────────────────────────────────
 
-export const DOC_CATEGORIES: { key: DocCategory; label: string; emoji: string }[] = [
-  { key: 'salud',    label: 'Salud',    emoji: '🏥' },
-  { key: 'colegio',  label: 'Colegio',  emoji: '🎒' },
-  { key: 'personal', label: 'Personal', emoji: '👤' },
-  { key: 'otros',    label: 'Otros',    emoji: '📄' },
+/**
+ * Las carpetas del cajón de los papeles, en el orden en que se enseñan.
+ *
+ * `personal` es **identidad**: DNI, pasaporte, libro de familia, títulos. Lo que
+ * antes caía ahí por descarte —el seguro del coche, la factura de la lavadora—
+ * tiene ahora su sitio, y por eso la lista es larga: el filtro solo sirve si
+ * cada papel de una casa cabe en una carpeta que no sea «Otros».
+ *
+ * Aquí no hay icono a propósito: este archivo lo importa también el servidor y
+ * no puede arrastrar `lucide-react`. El icono de cada clave lo pone
+ * `src/components/docs/CategoryIcon.tsx`.
+ */
+export const DOC_CATEGORIES: { key: DocCategory; label: string }[] = [
+  { key: 'salud',    label: 'Salud' },
+  { key: 'colegio',  label: 'Colegio' },
+  { key: 'personal', label: 'Personal' },
+  { key: 'vivienda', label: 'Vivienda' },
+  { key: 'vehiculo', label: 'Vehículo' },
+  { key: 'seguros',  label: 'Seguros' },
+  { key: 'finanzas', label: 'Finanzas' },
+  { key: 'facturas', label: 'Facturas' },
+  { key: 'mascotas', label: 'Mascotas' },
+  { key: 'viajes',   label: 'Viajes' },
+  { key: 'otros',    label: 'Otros' },
 ]
 
 export const VALID_MIME_TYPES: DocMimeType[] = ['application/pdf', 'image/jpeg', 'image/png']

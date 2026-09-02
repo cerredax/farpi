@@ -7,6 +7,7 @@ import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember, StorageConnection } from '@/types'
+import { CategoryIcon } from './CategoryIcon'
 import { ConnectStorage } from './ConnectStorage'
 import { FileTypeIcon } from './FileTypeIcon'
 import { DOC_CATEGORIES } from '@/lib/constants'
@@ -228,7 +229,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                 selected={draft.category === cat.key}
                 onClick={() => patch({ category: cat.key })}
               >
-                <span>{cat.emoji}</span> {cat.label}
+                <CategoryIcon category={cat.key} size={13} /> {cat.label}
               </SelectChip>
             ))}
           </div>

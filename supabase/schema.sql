@@ -409,7 +409,14 @@ create table if not exists public.documents (
   member_id     uuid references public.family_members(id) on delete set null,
   name          text not null,
   description   text,
-  category      text check (category is null or category in ('salud', 'colegio', 'personal', 'otros')),
+  -- Las carpetas del cajón de los papeles. `personal` es identidad (DNI,
+  -- pasaporte, libro de familia): lo que antes caía ahí por descarte tiene
+  -- ahora su clave. La lista viva está en `DOC_CATEGORIES`; si crece, este
+  -- check crece con ella.
+  category      text check (category is null or category in (
+                  'salud', 'colegio', 'personal', 'vivienda', 'vehiculo',
+                  'seguros', 'finanzas', 'facturas', 'mascotas', 'viajes', 'otros'
+                )),
   -- Dónde está el archivo para su proveedor: el `fileId` de Drive. El nombre es
   -- herencia del bucket y se queda: renombrar una columna en producción para
   -- ganar precisión de vocabulario no compensa.

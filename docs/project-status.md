@@ -67,7 +67,13 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 - Documentos: subir, abrir, editar, borrar y aviso de caducidad en la tarjeta. Los
   archivos están en el Google Drive de quien los sube y los sirve Farpi con el token
   del dueño; el resto de la familia no conecta nada ni se entera de que hay un Drive
-  detrás.
+  detrás. **Once categorías** (02-09-2026), en `DOC_CATEGORIES`: Salud, Colegio,
+  Personal, Vivienda, Vehículo, Seguros, Finanzas, Facturas, Mascotas, Viajes y Otros.
+  `personal` es identidad —DNI, pasaporte, libro de familia—, no el cajón de lo que no
+  encaja; para eso está «Otros». Cada una lleva un icono de lucide
+  (`docs/CategoryIcon.tsx`), no un emoji: el chip mide 10 px y ahí un emoji de color es
+  una mancha distinta en cada sistema. Con doce filtros la fila ya no cabe en una
+  línea: en móvil se arrastra y en escritorio se reparte.
 - **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
   tarea ni un papel —el teléfono del pediatra, la clave del wifi, dónde está el contador—.
   Título, texto libre, un emoji y la posibilidad de fijar una arriba. Sin categorías, sin

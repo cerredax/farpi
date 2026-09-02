@@ -209,7 +209,9 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede editar documento.
 - [ ] Se puede borrar documento.
 - [ ] Se puede asociar documento a familia o hijo.
-- [ ] Filtros por categoría funcionan.
+- [ ] Filtros por categoría funcionan, las once.
+- [ ] La fila de filtros se arrastra en móvil y se reparte en varias líneas en escritorio.
+- [ ] Cada categoría enseña su icono en el filtro, en el chip de la tarjeta y en el sheet.
 - [ ] El buscador filtra por nombre y descripción, y manda sobre la categoría abierta.
 - [ ] Un documento con caducidad la enseña en su tarjeta: ámbar dentro de 30 días, rojo si ya pasó.
 - [ ] Solo se aceptan PDF, JPG y PNG.

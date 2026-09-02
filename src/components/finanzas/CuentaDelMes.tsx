@@ -12,7 +12,7 @@ interface CuentaDelMesProps {
   onSiguiente: () => void
   onVolverAHoy: () => void
   reparto: Aportacion[]
-  /** Lleva a la pestaña de fijos. Solo se ofrece cuando no hay ninguno. */
+  /** Lleva a «El mes tipo». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
 }
 
@@ -51,6 +51,13 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * El reparto de abajo es **solo de gastos** y no lleva saldos: dice "Carlos 60 €,
  * María 20 €" y ahí se para. En cuanto una app de casa dice "María te debe 40 €"
  * deja de ser una app de casa.
+ *
+ * **De dónde salen los fijos se dice cuando no es obvio** (02-09-2026). En el mes
+ * en curso no se dice nada: es lo normal y una etiqueta ahí sería ruido en la
+ * primera pantalla que se mira. En un mes cerrado se avisa de que las cifras son
+ * las de entonces, porque si no, ver un alquiler distinto del de hoy parece un
+ * error. Y en un mes que nunca llegó a cerrarse se dice tal cual: la alternativa
+ * —enseñar la plantilla de hoy— es justo el error que este cambio vino a quitar.
  */
 export function CuentaDelMes({
   cuenta, nombreDelMes, esMesActual, onAnterior, onSiguiente, onVolverAHoy, reparto, onPonerFijos,
@@ -93,6 +100,14 @@ export function CuentaDelMes({
         </button>
       </div>
 
+      {cuenta.origen !== 'plantilla' && (
+        <p className="mt-1 text-center text-[11px] text-faint">
+          {cuenta.origen === 'copia'
+            ? 'Mes cerrado: los fijos y las partidas son los que había entonces.'
+            : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
+        </p>
+      )}
+
       {!esMesActual && (
         <button
           type="button"
@@ -116,17 +131,17 @@ export function CuentaDelMes({
           )}
           <Linea etiqueta="Gastos apuntados" importe={gastosApuntados} tono="sale" />
         </dl>
-      ) : (
+      ) : cuenta.origen === 'plantilla' ? (
         <button
           type="button"
           onClick={onPonerFijos}
           className="mt-2 min-h-6 w-full border-t border-hairline pt-2.5 text-left text-[11px] text-muted"
         >
           Pon tus ingresos y gastos de todos los meses en{' '}
-          <span className="font-semibold text-primary-strong">Fijos</span> y aquí verás
-          cuánto queda.
+          <span className="font-semibold text-primary-strong">El mes tipo</span> y aquí
+          verás cuánto queda.
         </button>
-      )}
+      ) : null}
 
       {/* Quién ha puesto el dinero. Una línea de nombres con su color y su
           parte, y nada más: ni saldos ni "te debe". */}

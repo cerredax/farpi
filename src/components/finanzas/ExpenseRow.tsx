@@ -15,7 +15,7 @@ interface ExpenseRowProps {
 }
 
 /**
- * Un movimiento en la lista del mes: qué fue, de qué tope sale, quién lo pagó y
+ * Un apunte en la lista del mes: qué fue, de qué partida sale, quién lo pagó y
  * cuánto.
  *
  * **Un ingreso lleva su signo delante y el verde de la marca.** Los dos, no solo

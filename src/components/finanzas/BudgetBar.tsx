@@ -1,15 +1,26 @@
 'use client'
 
 import { formatCentsCorto } from '@/lib/finanzas'
-import type { ResumenTope } from '@/lib/budgets'
+import type { ResumenPartida } from '@/lib/budgets'
 
 interface BudgetBarProps {
-  resumen: ResumenTope
-  onEdit: () => void
+  resumen: ResumenPartida
+  /**
+   * Editar la partida. **Va sin él en un mes cerrado**, y entonces la fila deja
+   * de ser un botón: lo que se está viendo es la copia de un mes que terminó y no
+   * hay nada que tocar ahí. Lo que se edita —la plantilla— está en «El mes tipo»,
+   * y tocarlo no puede cambiar lo que dijo enero.
+   */
+  onEdit?: () => void
 }
 
 /**
- * Cómo va un tope este mes: el nombre, cuánto llevas de cuánto y una barra.
+ * Cómo fue una partida en un mes: el nombre, cuánto llevas de cuánto y una barra.
+ *
+ * **El límite es el de ese mes**, no el de hoy: viene resuelto en `ResumenPartida`
+ * y sale de la plantilla si el mes está en curso o de la copia congelada si ya
+ * terminó. Desde el 02-09-2026 mirar junio enseña los 350 € que la compra tenía
+ * en junio y no los 400 de ahora.
  *
  * **Lo de "te has pasado" se dice con palabras**, no solo con el rojo de la
  * barra. Es la misma regla que ordena el color en el resto de Farpi: el color
@@ -20,22 +31,17 @@ interface BudgetBarProps {
  * La barra se recorta al 100 %: pasarse un 300 % no dibuja una barra tres veces
  * más ancha que la tarjeta. Cuánto te has pasado lo dice el texto, que además es
  * el dato exacto.
- *
- * Toda la fila es un botón y lleva a editar el tope, igual que en las notas.
  */
 export function BudgetBar({ resumen, onEdit }: BudgetBarProps) {
-  const { budget, gastado, restante, porcentaje, pasado } = resumen
+  const { partida, gastado, restante, porcentaje, pasado } = resumen
 
-  return (
-    <button
-      onClick={onEdit}
-      className="flex w-full flex-col gap-1.5 rounded-2xl border border-surface bg-white px-4 py-3 text-left shadow-sm transition-colors hover:bg-canvas active:bg-canvas"
-    >
+  const contenido = (
+    <>
       <div className="flex w-full items-baseline gap-2">
-        {budget.emoji && <span className="flex-shrink-0 text-base leading-none" aria-hidden>{budget.emoji}</span>}
-        <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{budget.name}</span>
+        {partida.emoji && <span className="flex-shrink-0 text-base leading-none" aria-hidden>{partida.emoji}</span>}
+        <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{partida.name}</span>
         <span className="flex-shrink-0 text-xs font-bold text-ink">{formatCentsCorto(gastado)}</span>
-        <span className="flex-shrink-0 text-xs text-muted">de {formatCentsCorto(budget.monthly_limit_cents)}</span>
+        <span className="flex-shrink-0 text-xs text-muted">de {formatCentsCorto(partida.limiteCents)}</span>
       </div>
 
       {/* `aria-hidden` porque la barra no dice nada que no esté escrito encima y
@@ -55,6 +61,16 @@ export function BudgetBar({ resumen, onEdit }: BudgetBarProps) {
           ? `Te has pasado por ${formatCentsCorto(-restante)}`
           : `Quedan ${formatCentsCorto(restante)}`}
       </span>
+    </>
+  )
+
+  const clases = 'flex w-full flex-col gap-1.5 rounded-2xl border border-surface bg-white px-4 py-3 text-left shadow-sm'
+
+  if (!onEdit) return <div className={clases}>{contenido}</div>
+
+  return (
+    <button onClick={onEdit} className={`${clases} transition-colors hover:bg-canvas active:bg-canvas`}>
+      {contenido}
     </button>
   )
 }

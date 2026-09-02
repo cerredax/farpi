@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test'
 import {
-  agruparPresupuestos, cuentaDelMes, estaCaducado, fijosDe, gastosSinTope,
-  mesDe, mesVecino, movimientosDelMes, repartoDelMes, resumenTopes,
-  sumaDeFijos, titulosDePresupuestos,
+  agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, fijosDe,
+  gastosSinPartida, mesDe, mesVecino, plantillaDelMes, repartoDelMes,
+  resumenPartidas, sumaDeFijos, titulosDePresupuestos,
 } from '@/lib/budgets'
-import type { Budget, Child, Expense, FamilyMember, FixedEntry, Quote } from '@/types'
+import type {
+  Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MonthPlanLine, Quote,
+} from '@/types'
 
 // Lo que la pantalla de Finanzas calcula y no está guardado en ninguna fila.
 
@@ -41,7 +43,7 @@ function gasto(over: Partial<Expense> = {}): Expense {
   }
 }
 
-/** Un movimiento de entrada. Nunca cuelga de un tope, así que nace sin él. */
+/** Un apunte de entrada. Nunca cuelga de una partida, así que nace sin ella. */
 function ingreso(over: Partial<Expense> = {}): Expense {
   return gasto({ id: 'i1', kind: 'ingreso', budget_id: null, ...over })
 }
@@ -81,6 +83,37 @@ function pedido(over: Partial<Quote> = {}): Quote {
   }
 }
 
+function linea(over: Partial<MonthPlanLine> = {}): MonthPlanLine {
+  return {
+    id: 'mp1',
+    family_id: 'f1',
+    month: '2026-07',
+    line: 'gasto',
+    budget_id: null,
+    name: 'Alquiler',
+    emoji: '🏠',
+    amount_cents: 76000,
+    child_id: null,
+    member_id: null,
+    sort_order: 0,
+    created_at: '2026-08-01T05:00:00',
+    ...over,
+  }
+}
+
+function plan(month: string, lines: MonthPlanLine[]): MonthPlan {
+  return { family_id: 'f1', month, closed_at: `${month}-28T05:00:00`, lines }
+}
+
+/**
+ * La plantilla resuelta de un mes en curso. Es lo que esperaban los tests de
+ * partidas y de la cuenta antes de que los meses tuvieran historia: como mes
+ * actual se pasa `'2026-08'`, así que agosto sale espejo de lo que se le dé.
+ */
+function espejo(fixed: FixedEntry[] = [], budgets: Budget[] = []) {
+  return plantillaDelMes('2026-08', '2026-08', fixed, budgets, [])
+}
+
 const MIEMBROS: FamilyMember[] = [
   { id: 'm1', family_id: 'f1', user_id: 'u1', display_name: 'Omar',  avatar_url: null, color: '#A8503A', role: 'admin',  created_at: '2026-06-01T00:00:00' },
   { id: 'm2', family_id: 'f1', user_id: 'u2', display_name: 'Sofía', avatar_url: null, color: '#4A6C8C', role: 'member', created_at: '2026-06-01T00:00:00' },
@@ -102,10 +135,10 @@ test.describe('el mes', () => {
   })
 })
 
-test.describe('resumenTopes', () => {
+test.describe('resumenPartidas', () => {
   test('suma solo los gastos de ese mes y de ese presupuesto', () => {
-    const r = resumenTopes(
-      [budget({ id: 'b1' }), budget({ id: 'b2', name: 'Casa', sort_order: 1, monthly_limit_cents: 10000 })],
+    const r = resumenPartidas(
+      espejo([], [budget({ id: 'b1' }), budget({ id: 'b2', name: 'Casa', sort_order: 1, monthly_limit_cents: 10000 })]),
       [
         gasto({ id: 'g1', budget_id: 'b1', amount_cents: 6000, date: '2026-08-05' }),
         gasto({ id: 'g2', budget_id: 'b1', amount_cents: 4000, date: '2026-08-20' }),
@@ -113,12 +146,12 @@ test.describe('resumenTopes', () => {
         gasto({ id: 'g3', budget_id: 'b1', amount_cents: 9900, date: '2026-07-31' }),
         // De otro presupuesto.
         gasto({ id: 'g4', budget_id: 'b2', amount_cents: 2500, date: '2026-08-10' }),
-        // Sin presupuesto: no cuenta para ningún tope.
+        // Sin partida: no cuenta para ninguna.
         gasto({ id: 'g5', budget_id: null, amount_cents: 5000, date: '2026-08-10' }),
       ],
       '2026-08',
     )
-    expect(r.map(x => [x.budget.id, x.gastado])).toEqual([['b1', 10000], ['b2', 2500]])
+    expect(r.map(x => [x.partida.budgetId, x.gastado])).toEqual([['b1', 10000], ['b2', 2500]])
     expect(r[0].restante).toBe(20000)
     expect(r[0].porcentaje).toBe(33)
     expect(r[0].pasado).toBe(false)
@@ -126,15 +159,15 @@ test.describe('resumenTopes', () => {
 
   // Un presupuesto sin gastos es justo lo que hay que ver a primeros de mes.
   test('los presupuestos sin gastos también salen, a cero', () => {
-    const r = resumenTopes([budget()], [], '2026-08')
+    const r = resumenPartidas(espejo([], [budget()]), [], '2026-08')
     expect(r).toHaveLength(1)
     expect(r[0].gastado).toBe(0)
     expect(r[0].porcentaje).toBe(0)
   })
 
-  test('pasarse deja el restante en negativo y la barra al tope', () => {
-    const r = resumenTopes(
-      [budget({ monthly_limit_cents: 10000 })],
+  test('pasarse deja el restante en negativo y la barra al 100 %', () => {
+    const r = resumenPartidas(
+      espejo([], [budget({ monthly_limit_cents: 10000 })]),
       [gasto({ amount_cents: 34000 })],
       '2026-08',
     )
@@ -145,13 +178,13 @@ test.describe('resumenTopes', () => {
   })
 
   test('gastarlo justo no es pasarse', () => {
-    const r = resumenTopes([budget({ monthly_limit_cents: 10000 })], [gasto({ amount_cents: 10000 })], '2026-08')
+    const r = resumenPartidas(espejo([], [budget({ monthly_limit_cents: 10000 })]), [gasto({ amount_cents: 10000 })], '2026-08')
     expect(r[0].pasado).toBe(false)
     expect(r[0].restante).toBe(0)
   })
 
-  test('gastosSinTope son los del mes que no cuelgan de ninguno', () => {
-    const r = gastosSinTope([
+  test('gastosSinPartida son los del mes que no cuelgan de ninguna', () => {
+    const r = gastosSinPartida([
       gasto({ id: 'con', budget_id: 'b1' }),
       gasto({ id: 'sin', budget_id: null }),
       gasto({ id: 'otro-mes', budget_id: null, date: '2026-07-01' }),
@@ -160,9 +193,9 @@ test.describe('resumenTopes', () => {
   })
 })
 
-test.describe('los movimientos del mes', () => {
-  test('movimientosDelMes trae gastos e ingresos juntos, del más reciente al más viejo', () => {
-    const r = movimientosDelMes([
+test.describe('los apuntes del mes', () => {
+  test('apuntesDelMes trae gastos e ingresos juntos, del más reciente al más viejo', () => {
+    const r = apuntesDelMes([
       gasto({ id: 'g-viejo', date: '2026-08-02' }),
       ingreso({ id: 'i', date: '2026-08-20' }),
       gasto({ id: 'g-nuevo', date: '2026-08-25' }),
@@ -171,11 +204,11 @@ test.describe('los movimientos del mes', () => {
     expect(r.map(m => m.id)).toEqual(['g-nuevo', 'i', 'g-viejo'])
   })
 
-  // Si un ingreso descontara de un tope, una devolución de 40 € "liberaría"
+  // Si un ingreso descontara de una partida, una devolución de 40 € "liberaría"
   // 40 € de la compra sin que nadie haya dejado de comprar.
-  test('un ingreso no cuenta para ningún tope', () => {
-    const r = resumenTopes(
-      [budget({ monthly_limit_cents: 30000 })],
+  test('un ingreso no cuenta para ninguna partida', () => {
+    const r = resumenPartidas(
+      espejo([], [budget({ monthly_limit_cents: 30000 })]),
       [
         gasto({ id: 'g', budget_id: 'b1', amount_cents: 10000 }),
         // Aunque llegara con `budget_id` puesto —la base no deja, pero el
@@ -187,8 +220,8 @@ test.describe('los movimientos del mes', () => {
     expect(r[0].gastado).toBe(10000)
   })
 
-  test('«sin tope» cuenta gastos, no ingresos', () => {
-    const r = gastosSinTope([
+  test('«sin partida» cuenta gastos, no ingresos', () => {
+    const r = gastosSinPartida([
       gasto({ id: 'sin', budget_id: null }),
       ingreso({ id: 'entrada' }),
     ], '2026-08')
@@ -224,7 +257,7 @@ test.describe('los fijos y la cuenta del mes', () => {
 
   // La cuenta entera, que es el número que la pantalla existe para dar.
   test('queda = fijos + ingresos apuntados − gastos apuntados', () => {
-    const c = cuentaDelMes(FIJOS, [
+    const c = cuentaDelMes(espejo(FIJOS), [
       gasto({ id: 'g1', amount_cents: 6000 }),
       gasto({ id: 'g2', amount_cents: 4000, budget_id: null }),
       ingreso({ id: 'i1', amount_cents: 12000 }),
@@ -241,18 +274,10 @@ test.describe('los fijos y la cuenta del mes', () => {
     expect(c.hayFijos).toBe(true)
   })
 
-  // Los fijos no llevan vigencias: son una cifra que vale hasta que se cambie.
-  // Mirar julio con el alquiler de hoy es la contrapartida asumida.
-  test('los fijos valen igual en cualquier mes que se mire', () => {
-    const agosto = cuentaDelMes(FIJOS, [], '2026-08')
-    const mayo = cuentaDelMes(FIJOS, [], '2026-05')
-    expect(mayo.paraElMes).toBe(agosto.paraElMes)
-  })
-
   // Sin fijos, «queda» sería el gasto del mes en negativo, que no significa
   // nada. La pantalla lo mira para enseñar otra cosa.
   test('sin ningún fijo lo dice, y la cuenta se queda en el gasto del mes', () => {
-    const c = cuentaDelMes([], [gasto({ amount_cents: 4200 })], '2026-08')
+    const c = cuentaDelMes(espejo([]), [gasto({ amount_cents: 4200 })], '2026-08')
     expect(c.hayFijos).toBe(false)
     expect(c.paraElMes).toBe(0)
     expect(c.gastosApuntados).toBe(4200)
@@ -261,11 +286,127 @@ test.describe('los fijos y la cuenta del mes', () => {
 
   test('gastar más de lo que hay deja «queda» en negativo', () => {
     const c = cuentaDelMes(
-      [fijo({ kind: 'ingreso', amount_cents: 100000 }), fijo({ kind: 'gasto', amount_cents: 90000 })],
+      espejo([fijo({ kind: 'ingreso', amount_cents: 100000 }), fijo({ kind: 'gasto', amount_cents: 90000 })]),
       [gasto({ amount_cents: 15000 })],
       '2026-08',
     )
     expect(c.queda).toBe(-5000)
+  })
+})
+
+test.describe('qué plantilla valía en un mes', () => {
+  const FIJOS = [
+    fijo({ id: 'in1', kind: 'ingreso', name: 'Nómina', amount_cents: 200000 }),
+    fijo({ id: 'ga1', kind: 'gasto', name: 'Alquiler', amount_cents: 80000 }),
+  ]
+  const PARTIDAS = [budget({ id: 'b1', name: 'Compra', monthly_limit_cents: 40000 })]
+
+  // Junio se cerró con otros números: 760 de alquiler y 350 de compra.
+  const JUNIO = plan('2026-06', [
+    linea({ id: 'l1', month: '2026-06', line: 'ingreso', name: 'Nómina', amount_cents: 200000 }),
+    linea({ id: 'l2', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+    linea({ id: 'l3', month: '2026-06', line: 'partida', budget_id: 'b1', name: 'Compra', amount_cents: 35000 }),
+  ])
+
+  test('el mes en curso es espejo de la plantilla', () => {
+    const p = plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    expect(p.origen).toBe('plantilla')
+    expect(p.fijos.map(f => f.amountCents)).toEqual([200000, 80000])
+    expect(p.partidas[0].limiteCents).toBe(40000)
+  })
+
+  // Un mes que aún no ha llegado también refleja la plantilla: es lo único que
+  // se puede decir de él, y es además lo que va a heredar cuando llegue.
+  test('un mes por venir también refleja la plantilla', () => {
+    expect(plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, []).origen).toBe('plantilla')
+  })
+
+  // El caso entero: esto es lo que el cambio del 02-09-2026 vino a arreglar.
+  test('un mes cerrado enseña lo que valía entonces, no lo de hoy', () => {
+    const p = plantillaDelMes('2026-06', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    expect(p.origen).toBe('copia')
+    expect(p.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
+    expect(p.partidas[0].limiteCents).toBe(35000)
+  })
+
+  test('cambiar la plantilla no toca un mes ya cerrado', () => {
+    const subido = [fijo({ id: 'ga1', kind: 'gasto', name: 'Alquiler', amount_cents: 99000 })]
+    const p = plantillaDelMes('2026-06', '2026-08', subido, [], [JUNIO])
+    expect(p.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
+  })
+
+  // No inventarse el pasado es la mitad de la decisión. Enseñar la plantilla de
+  // hoy en un mes que nunca se cerró es exactamente el error de antes.
+  test('un mes terminado y sin cerrar no se rellena con la plantilla de hoy', () => {
+    const p = plantillaDelMes('2026-07', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    expect(p.origen).toBe('sin-plan')
+    expect(p.fijos).toEqual([])
+    expect(p.partidas).toEqual([])
+  })
+
+  test('las líneas de la copia salen en el orden de la pantalla', () => {
+    const desordenado = plan('2026-06', [
+      linea({ id: 'z', month: '2026-06', line: 'gasto', name: 'Zumba', sort_order: 1 }),
+      linea({ id: 'a', month: '2026-06', line: 'gasto', name: 'Agua', sort_order: 1 }),
+      linea({ id: 'p', month: '2026-06', line: 'gasto', name: 'Primero', sort_order: 0 }),
+    ])
+    const p = plantillaDelMes('2026-06', '2026-08', [], [], [desordenado])
+    expect(p.fijos.map(f => f.name)).toEqual(['Primero', 'Agua', 'Zumba'])
+  })
+})
+
+test.describe('la cuenta y las partidas de un mes cerrado', () => {
+  const JUNIO = plan('2026-06', [
+    linea({ id: 'l1', month: '2026-06', line: 'ingreso', name: 'Nómina', amount_cents: 200000 }),
+    linea({ id: 'l2', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+    linea({ id: 'l3', month: '2026-06', line: 'partida', budget_id: 'b1', name: 'Compra', amount_cents: 35000 }),
+  ])
+  const junio = () => plantillaDelMes('2026-06', '2026-08', [], [], [JUNIO])
+
+  test('la cuenta sale de la copia y dice de dónde sale', () => {
+    const c = cuentaDelMes(junio(), [gasto({ id: 'g', amount_cents: 5000, date: '2026-06-10' })], '2026-06')
+    expect(c.origen).toBe('copia')
+    expect(c.ingresosFijos).toBe(200000)
+    expect(c.gastosFijos).toBe(76000)
+    expect(c.paraElMes).toBe(124000)
+    expect(c.queda).toBe(119000)
+  })
+
+  test('la barra de la partida se mide contra el límite de aquel mes', () => {
+    const r = resumenPartidas(junio(), [
+      gasto({ id: 'g', budget_id: 'b1', amount_cents: 30000, date: '2026-06-10' }),
+    ], '2026-06')
+    expect(r[0].partida.limiteCents).toBe(35000)
+    expect(r[0].restante).toBe(5000)
+    // Con el límite de hoy (400 €) no se habría pasado ni de lejos; con el de
+    // junio (350 €) va justo. Es justo lo que hay que poder ver.
+    expect(r[0].pasado).toBe(false)
+  })
+
+  // Borrar una partida en abril no puede dejar a junio con un hueco donde decía
+  // «Compra 350 €». La línea guarda el nombre y sobrevive sin `budget_id`.
+  test('una partida borrada después sigue saliendo en el mes que ya se cerró', () => {
+    const sinEnlace = plan('2026-06', [
+      linea({ id: 'l3', month: '2026-06', line: 'partida', budget_id: null, name: 'Compra', amount_cents: 35000 }),
+    ])
+    const r = resumenPartidas(plantillaDelMes('2026-06', '2026-08', [], [], [sinEnlace]), [], '2026-06')
+    expect(r[0].partida.name).toBe('Compra')
+    expect(r[0].partida.budgetId).toBeNull()
+    // Sus gastos perdieron el `budget_id` con ella, así que ya no cuentan aquí:
+    // están en «sin partida», que es donde de verdad están.
+    expect(r[0].gastado).toBe(0)
+  })
+
+  // Sin plan no se puede decir qué quedó, y decir cero sería mentir distinto.
+  test('un mes sin plan no da cuenta, solo lo apuntado', () => {
+    const c = cuentaDelMes(
+      plantillaDelMes('2026-07', '2026-08', [], [], []),
+      [gasto({ id: 'g', amount_cents: 4200, date: '2026-07-10' })],
+      '2026-07',
+    )
+    expect(c.origen).toBe('sin-plan')
+    expect(c.hayFijos).toBe(false)
+    expect(c.gastosApuntados).toBe(4200)
   })
 })
 

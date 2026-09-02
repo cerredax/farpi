@@ -103,7 +103,7 @@ export function formatCents(centimos: number): string {
 /**
  * El mismo importe sin los `,00` cuando son redondos: `300 €`, `1.234,56 €`.
  *
- * Es el que se usa en las tarjetas y en los topes, que es donde la cifra tiene
+ * Es el que se usa en las tarjetas y en las partidas, que es donde la cifra tiene
  * que leerse de un vistazo: un presupuesto se pone en euros enteros y "300,00 €"
  * hace leer dos ceros que no dicen nada.
  */

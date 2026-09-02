@@ -1,7 +1,7 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, MealSlot, List, ListItem, Document, Note,
-  Budget, Expense, FixedEntry, Quote,
+  Budget, Expense, FixedEntry, Quote, MonthPlan,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, DocumentDraft, NoteDraft, StorageConnection,
   BudgetDraft, ExpenseDraft, FixedEntryDraft, QuoteDraft,
@@ -113,8 +113,8 @@ export interface FixedEntriesRepo {
 }
 
 /**
- * Los topes de gasto al mes. Borrar uno **no borra sus movimientos**: se quedan
- * sin tope (`budget_id` a null, que es lo que hace la clave ajena en la base),
+ * Las partidas de gasto al mes. Borrar una **no borra sus apuntes**: se quedan
+ * sin partida (`budget_id` a null, que es lo que hace la clave ajena en la base),
  * porque el dinero se gastó igual. El mock tiene que hacer lo mismo.
  */
 export interface BudgetsRepo {
@@ -125,9 +125,9 @@ export interface BudgetsRepo {
 }
 
 /**
- * Los movimientos: gastos e ingresos con fecha. Un ingreso llega **siempre** con
- * `budget_id` a null —un tope mide gasto—, y las dos implementaciones tienen que
- * forzarlo, no confiar en que el formulario lo haya hecho.
+ * Los apuntes: gastos e ingresos con fecha. Un ingreso llega **siempre** con
+ * `budget_id` a null —una partida mide gasto—, y las dos implementaciones tienen
+ * que forzarlo, no confiar en que el formulario lo haya hecho.
  */
 export interface ExpensesRepo {
   getExpenses(familyId: string): Promise<Expense[]>
@@ -155,6 +155,23 @@ export interface MealsRepo {
   updateMeal(id: string, draft: MealDraft): Promise<void>
   deleteMeal(id: string): Promise<void>
   copyMealDay(familyId: string, sourceDate: string, targetDate: string, repeatUntil?: string): Promise<void>
+}
+
+/**
+ * Los meses ya cerrados. **Solo se leen.**
+ *
+ * No hay `create` ni `update` a propósito, y no es una omisión que rellenar más
+ * adelante: lo que hace que un mes cerrado signifique algo es que la app no pueda
+ * reescribirlo. Quien lo escribe es la RPC `close_previous_month` en Supabase y el
+ * cierre perezoso del mock, cada uno por su lado.
+ *
+ * `closePreviousMonth` no devuelve el plan: devuelve **si ha cerrado algo**, para
+ * que quien llame sepa si tiene que recargar. Es idempotente y se puede llamar
+ * todas las veces que haga falta.
+ */
+export interface MonthPlansRepo {
+  getMonthPlans(familyId: string): Promise<MonthPlan[]>
+  closePreviousMonth(familyId: string): Promise<boolean>
 }
 
 export interface DocumentsRepo {
@@ -207,6 +224,7 @@ export interface Repos {
   budgets: BudgetsRepo
   expenses: ExpensesRepo
   quotes: QuotesRepo
+  monthPlans: MonthPlansRepo
   documents: DocumentsRepo
   storageProviders: StorageProvidersRepo
 }

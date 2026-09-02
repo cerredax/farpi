@@ -152,12 +152,12 @@ export function validateFixedEntryDraft(draft: FixedEntryDraft): string | null {
 }
 
 export function validateBudgetDraft(draft: BudgetDraft): string | null {
-  if (!draft.name.trim()) return 'El tope necesita un nombre.'
+  if (!draft.name.trim()) return 'La partida necesita un nombre.'
   return validateImporte(draft.monthly_limit, 'cuánto se puede gastar al mes')
 }
 
 /**
- * Un movimiento necesita importe y fecha, y nada más. La descripción es opcional
+ * Un apunte necesita importe y fecha, y nada más. La descripción es opcional
  * a propósito: la mitad de los gastos de una casa son "la compra" y obligar a
  * escribirlo cada vez es la clase de fricción que hace que se deje de apuntar,
  * que es el único modo en que esta pantalla falla de verdad.

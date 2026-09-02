@@ -148,7 +148,7 @@ const FUNCIONES = [
   {
     icon: PiggyBank,
     titulo: 'Finanzas',
-    texto: 'El tope que os ponéis cada mes, cuánto lleváis y quién ha puesto qué.',
+    texto: 'Las partidas que os repartís cada mes, cuánto lleváis y quién ha puesto qué.',
   },
   {
     icon: NotebookText,

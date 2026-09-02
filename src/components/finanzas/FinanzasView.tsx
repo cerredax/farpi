@@ -8,8 +8,8 @@ import { BudgetSheet } from './BudgetSheet'
 import { CuentaDelMes } from './CuentaDelMes'
 import { ExpenseRow } from './ExpenseRow'
 import { ExpenseSheet } from './ExpenseSheet'
-import { FijosPanel } from './FijosPanel'
 import { FixedEntrySheet } from './FixedEntrySheet'
+import { MesTipoPanel } from './MesTipoPanel'
 import { QuoteGroupCard } from './QuoteGroupCard'
 import { QuoteSheet } from './QuoteSheet'
 import { useFinanzasState, type PestañaFinanzas } from './useFinanzasState'
@@ -26,13 +26,24 @@ import { capitalize } from '@/lib/text'
  *
  * **El vocabulario.** «Presupuesto» en español son dos cosas y aquí solo significa
  * una: lo que cuesta algo que aún no has hecho —los tres de la caldera, la
- * reforma del baño—. Lo que antes se llamaba así en «El mes» ahora son **topes**,
- * que es lo que son; y lo que se apunta a mano son **movimientos**, porque una
+ * reforma del baño—. Lo que se reparte el dinero del mes son **partidas**: la de
+ * la compra, la del ocio. Y lo que se apunta a mano es **el día a día**, una fila
+ * cada vez, que se llama **apunte** porque el verbo ya era «apuntar» y porque una
  * entrada es un gasto o un ingreso, nunca un presupuesto.
  *
- * **El mes.** El de hoy al entrar, con flechas para ir atrás. Los fijos, en
- * cambio, no dependen del mes que se mire: son una cifra que vale hasta que se
- * cambie, y esa es la razón de que no haya nada que abrir cada treinta días.
+ * «Movimiento» y «tope» estuvieron ahí hasta el 02-09-2026 y se fueron por lo
+ * mismo: los dos son palabras de banco. Una casa no tiene movimientos, tiene un
+ * día a día; y no se pone un tope a la compra, se le pone una partida.
+ *
+ * **El mes.** El de hoy al entrar, con flechas para ir atrás. Y cada mes enseña
+ * **lo que valía entonces**: el mes en curso refleja la plantilla —cambias un fijo
+ * y se ve al momento— y el mes que terminó enseña la copia que se guardó al
+ * cerrarlo. Hasta el 02-09-2026 se leían siempre los fijos de hoy, así que mirar
+ * mayo enseñaba el alquiler de septiembre.
+ *
+ * Nadie cierra nada a mano: lo hace la app al arrancar y el cron diario. Un botón
+ * de «cerrar el mes» sería la tarea administrativa que Farpi existe para no pedir,
+ * que es la misma razón por la que los fijos no se marcan como pagados.
  *
  * **No sale en Inicio**, igual que Notas y por una razón parecida: Inicio
  * contesta "¿qué tenemos que saber hoy?", y "quedan 758 € este mes" no es de hoy,
@@ -51,7 +62,7 @@ export function FinanzasView() {
       <div role="tablist" aria-label="Secciones de finanzas" className="flex gap-2">
         {([
           { key: 'mes', label: 'El mes' },
-          { key: 'fijos', label: 'Fijos' },
+          { key: 'plantilla', label: 'El mes tipo' },
           { key: 'presupuestos', label: 'Presupuestos' },
         ] as { key: PestañaFinanzas; label: string }[]).map(p => (
           <button
@@ -80,42 +91,57 @@ export function FinanzasView() {
           onSiguiente={s.mesSiguiente}
           onVolverAHoy={s.volverAHoy}
           reparto={s.reparto}
-          onPonerFijos={() => s.setPestaña('fijos')}
+          onPonerFijos={() => s.setPestaña('plantilla')}
         />
 
-        <section aria-label="Topes del mes" className="space-y-2">
+        <section aria-label="Partidas del mes" className="space-y-2">
           <div className="flex items-center justify-between gap-3 px-1">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Topes</h2>
-            {/* `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
+            {/* En un mes cerrado no se ofrece añadir: lo que se está mirando es la
+                copia de un mes que terminó. El enlace lleva a la plantilla y no
+                abre el sheet aquí, porque una partida es del mes tipo y no de un
+                mes — abrirla desde enero haría creer que se está creando en enero.
+
+                `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
                 `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
                 negativo devuelve el texto a la línea del título para que la
                 zona de toque crezca sin que se note. */}
-            <button
-              type="button"
-              onClick={() => s.abrirTope(null)}
-              className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
-            >
-              <Plus size={14} strokeWidth={2.6} aria-hidden />
-              Nuevo tope
-            </button>
+            {s.esMesEditable && (
+              <button
+                type="button"
+                onClick={() => s.setPestaña('plantilla')}
+                className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
+              >
+                <Plus size={14} strokeWidth={2.6} aria-hidden />
+                Nueva partida
+              </button>
+            )}
           </div>
 
           {s.resumen.length === 0 ? (
             <EmptyState
               emoji="🎯"
-              title="Sin topes"
-              description="Pon un tope al mes a lo que varía —la compra, el ocio— y verás cuánto llevas."
+              title="Sin partidas"
+              description={s.esMesEditable
+                ? 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «El mes tipo», y aquí verás cuánto llevas de cada una.'
+                : 'Ese mes se cerró sin ninguna partida puesta.'}
             />
           ) : (
             s.resumen.map(r => (
-              <BudgetBar key={r.budget.id} resumen={r} onEdit={() => s.abrirTope(r.budget)} />
+              <BudgetBar
+                key={r.partida.key}
+                resumen={r}
+                onEdit={s.esMesEditable && r.partida.budgetId
+                  ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
+                  : undefined}
+              />
             ))
           )}
         </section>
 
-        <section aria-label="Movimientos del mes" className="space-y-2">
+        <section aria-label="El día a día" className="space-y-2">
           <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
-            Movimientos {s.delMes.length > 0 && <span className="text-faint">({s.delMes.length})</span>}
+            El día a día {s.delMes.length > 0 && <span className="text-faint">({s.delMes.length})</span>}
           </h2>
 
           {s.delMes.length === 0 ? (
@@ -126,40 +152,47 @@ export function FinanzasView() {
             />
           ) : (
             <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
-              {s.delMes.map(movimiento => (
+              {s.delMes.map(apunte => (
                 <ExpenseRow
-                  key={movimiento.id}
-                  expense={movimiento}
+                  key={apunte.id}
+                  expense={apunte}
                   budgets={s.budgets}
                   members={s.members}
                   kids={s.kids}
-                  onEdit={() => s.abrirGasto(movimiento)}
+                  onEdit={() => s.abrirApunte(apunte)}
                 />
               ))}
             </div>
           )}
 
-          {s.sinTope.length > 0 && (
+          {s.sinPartida.length > 0 && (
             <p className="px-1 text-[11px] text-faint">
-              {s.sinTope.length === 1
-                ? 'Hay 1 gasto sin tope: no cuenta para ninguno.'
-                : `Hay ${s.sinTope.length} gastos sin tope: no cuentan para ninguno.`}
+              {s.sinPartida.length === 1
+                ? 'Hay 1 gasto sin partida: no cuenta para ninguna.'
+                : `Hay ${s.sinPartida.length} gastos sin partida: no cuentan para ninguna.`}
             </p>
           )}
         </section>
       </div>
 
-      <div id="panel-fijos" role="tabpanel" aria-labelledby="tab-fijos" hidden={s.pestaña !== 'fijos'}>
-        <FijosPanel
+      {/* Los totales salen de la **plantilla de hoy**, no del mes que se esté
+          mirando: esta pestaña no tiene mes. Mirando junio y saltando aquí, lo que
+          hay que ver es el alquiler que se paga ahora. */}
+      <div id="panel-plantilla" role="tabpanel" aria-labelledby="tab-plantilla" hidden={s.pestaña !== 'plantilla'}>
+        <MesTipoPanel
           ingresos={s.ingresosFijos}
           gastos={s.gastosFijos}
-          totalIngresos={s.cuenta.ingresosFijos}
-          totalGastos={s.cuenta.gastosFijos}
-          paraElMes={s.cuenta.paraElMes}
+          partidas={s.partidasPlantilla}
+          totalIngresos={s.totalIngresosFijos}
+          totalGastos={s.totalGastosFijos}
+          totalPartidas={s.totalPartidas}
+          paraElMes={s.totalIngresosFijos - s.totalGastosFijos}
           members={s.members}
           kids={s.kids}
-          onNuevo={s.abrirFijoNuevo}
-          onEditar={s.abrirFijo}
+          onNuevoFijo={s.abrirFijoNuevo}
+          onEditarFijo={s.abrirFijo}
+          onNuevaPartida={() => s.abrirPartida(null)}
+          onEditarPartida={s.abrirPartida}
         />
       </div>
 
@@ -198,25 +231,32 @@ export function FinanzasView() {
           `+` que significara siempre lo mismo obligaría a tener tres, y dos
           estarían inactivos en todo momento.
 
-          En «Fijos» abre uno de gasto: las nóminas se ponen una vez y son dos, y
-          lo que se va añadiendo después son recibos. De todos modos el tipo es lo
-          primero que hay dentro del sheet, así que corregirlo es un toque. */}
-      <button
-        type="button"
-        onClick={() => {
-          if (s.pestaña === 'mes') s.abrirGasto(null)
-          else if (s.pestaña === 'fijos') s.abrirFijoNuevo('gasto')
-          else s.abrirPedido(null)
-        }}
-        aria-label={
-          s.pestaña === 'mes' ? 'Nuevo movimiento'
-            : s.pestaña === 'fijos' ? 'Nuevo gasto fijo'
-              : 'Nuevo presupuesto pedido'
-        }
-        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover lg:bottom-8 lg:right-8"
-      >
-        <Plus size={24} strokeWidth={2.4} />
-      </button>
+          En «El mes tipo» abre un gasto fijo: las nóminas se ponen una vez y son
+          dos, y lo que se va añadiendo después son recibos. De todos modos el tipo
+          es lo primero que hay dentro del sheet, así que corregirlo es un toque, y
+          las partidas tienen su propio «+» en su bloque.
+
+          **En un mes cerrado no hay botón.** Apuntar un gasto en enero desde la
+          pantalla de enero es justo lo que este cambio vino a impedir; para
+          apuntar algo se vuelve a este mes, que está a un toque en la tarjeta. */}
+      {!(s.pestaña === 'mes' && !s.esMesEditable) && (
+        <button
+          type="button"
+          onClick={() => {
+            if (s.pestaña === 'mes') s.abrirApunte(null)
+            else if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
+            else s.abrirPedido(null)
+          }}
+          aria-label={
+            s.pestaña === 'mes' ? 'Nuevo apunte'
+              : s.pestaña === 'plantilla' ? 'Nuevo gasto fijo'
+                : 'Nuevo presupuesto pedido'
+          }
+          className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover lg:bottom-8 lg:right-8"
+        >
+          <Plus size={24} strokeWidth={2.4} />
+        </button>
+      )}
 
       <FixedEntrySheet
         key={s.fixedKey}
@@ -232,14 +272,14 @@ export function FinanzasView() {
         key={s.expenseKey}
         open={s.expenseSheetOpen}
         initial={s.editingExpense}
-        // Un movimiento nuevo nace hoy si se está mirando este mes; si se está
+        // Un apunte nuevo nace hoy si se está mirando este mes; si se está
         // mirando otro, el día 1 de ese, que es lo que se estaba haciendo:
         // rellenar un mes pasado. Poner "hoy" ahí lo colaría en un mes que no se
         // está mirando y desaparecería de la lista al guardarlo.
         fechaPorDefecto={s.esMesActual ? s.hoy : `${s.mes}-01`}
         budgets={s.budgets}
         onClose={() => s.setExpenseSheetOpen(false)}
-        onSave={s.guardarGasto}
+        onSave={s.guardarApunte}
         onDelete={s.deleteExpense}
       />
 
@@ -248,7 +288,7 @@ export function FinanzasView() {
         open={s.budgetSheetOpen}
         initial={s.editingBudget}
         onClose={() => s.setBudgetSheetOpen(false)}
-        onSave={s.guardarTope}
+        onSave={s.guardarPartida}
         onDelete={s.deleteBudget}
       />
 

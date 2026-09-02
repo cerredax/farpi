@@ -207,11 +207,68 @@ async function main() {
   comprobar('Rechaza fijo con member_id de otra familia',
     (await api('/rest/v1/fixed_entries', { metodo: 'POST', token: tokA, datos: { family_id: famA, kind: 'ingreso', name: 'cross', amount_cents: 500, member_id: miembroB } })).estado >= 400)
   // Los dos `check` que sostienen el vocabulario: un tipo que no existe, y un
-  // ingreso que descontaría de un tope.
-  comprobar('Rechaza un movimiento con un tipo que no existe',
+  // ingreso que descontaría de una partida.
+  comprobar('Rechaza un apunte con un tipo que no existe',
     (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', kind: 'traspaso' } })).estado >= 400)
-  comprobar('Rechaza un ingreso colgado de un tope',
+  comprobar('Rechaza un ingreso colgado de una partida',
     (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', kind: 'ingreso', budget_id: presuA } })).estado >= 400)
+
+  // ── Los meses cerrados ─────────────────────────────────────────────────────
+  //
+  // Son las dos primeras tablas de contenido con policy de **solo `select`**, y
+  // eso es justo lo que hay que ver funcionar: que se leen las de tu familia, que
+  // no se leen las de otra, y sobre todo **que nadie puede escribirlas ni
+  // reescribirlas desde la app**. Si esto último se cayera, un mes cerrado
+  // dejaría de significar nada.
+  console.log('\n== 4b. Los meses cerrados (solo lectura)')
+
+  // El mes pasado, calculado igual que la RPC. Cerrar el actual no hace nada a
+  // propósito, así que probar con él no probaría nada.
+  const ahora = new Date()
+  const mesPasado = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() - 1, 1))
+    .toISOString().slice(0, 7)
+
+  const cierre = await api('/rest/v1/rpc/close_previous_month', {
+    metodo: 'POST', token: tokA, datos: { p_family_id: famA },
+  })
+  comprobar('A puede cerrar el mes pasado de su familia', cierre.estado < 400)
+  comprobar('El cierre deja el plan del mes pasado',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}&select=month`, { token: tokA })) === 1)
+  // La foto tiene que llevar el fijo y la partida sembrados arriba.
+  comprobar('El plan copia los fijos y las partidas de la plantilla',
+    filas(await api(`/rest/v1/month_plan_lines?family_id=eq.${famA}&month=eq.${mesPasado}&select=id`, { token: tokA })) === 2)
+  // Idempotente: es lo que permite llamarla desde el cron y desde la app sin que
+  // se coordinen. Un segundo cierre no puede duplicar las líneas.
+  await api('/rest/v1/rpc/close_previous_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA } })
+  comprobar('Cerrar dos veces no duplica las líneas',
+    filas(await api(`/rest/v1/month_plan_lines?family_id=eq.${famA}&month=eq.${mesPasado}&select=id`, { token: tokA })) === 2)
+
+  comprobar('B NO ve los meses cerrados de la familia de A',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&select=month`, { token: tokB })) === 0)
+  comprobar('B NO ve las líneas de los meses cerrados de A',
+    filas(await api(`/rest/v1/month_plan_lines?family_id=eq.${famA}&select=id`, { token: tokB })) === 0)
+  comprobar('B NO puede cerrarle el mes a la familia de A',
+    (await api('/rest/v1/rpc/close_previous_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famA } })).estado >= 400)
+  // `close_month` es `security definer` y no comprueba familia, así que su
+  // `execute` está revocado. Si esta comprobación se cae, cualquiera puede
+  // congelarle el mes a cualquier casa.
+  comprobar('Nadie puede llamar a close_month directamente',
+    (await api('/rest/v1/rpc/close_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famB, p_month: mesPasado } })).estado >= 400)
+
+  // Lo que hace que un mes cerrado se pueda dar por bueno: ni el propio dueño lo
+  // reescribe. No hay policy de insert, update ni delete para nadie.
+  comprobar('A NO puede escribir a mano en los meses cerrados',
+    (await api('/rest/v1/month_plans', { metodo: 'POST', token: tokA, datos: { family_id: famA, month: '2020-01' } })).estado >= 400)
+  comprobar('A NO puede añadir una línea a un mes cerrado',
+    (await api('/rest/v1/month_plan_lines', { metodo: 'POST', token: tokA, datos: { family_id: famA, month: mesPasado, line: 'gasto', name: 'Inventado', amount_cents: 999 } })).estado >= 400)
+  comprobar('A NO puede reescribir una línea de un mes cerrado',
+    filas(await api(`/rest/v1/month_plan_lines?family_id=eq.${famA}&month=eq.${mesPasado}`, {
+      metodo: 'PATCH', token: tokA, datos: { amount_cents: 1 }, cabeceras: REPRESENTACION,
+    })) === 0)
+  comprobar('A NO puede borrar un mes cerrado',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}`, {
+      metodo: 'DELETE', token: tokA, cabeceras: REPRESENTACION,
+    })) === 0)
 
   console.log('\n== 5. RPCs de administración (regla del último admin)')
   comprobar('NO se puede eliminar al único admin',

@@ -2,6 +2,7 @@ import { ALL_MEAL_SLOTS } from '../meal-slots'
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, List, ListItem, Document, Note, Budget, Expense, FixedEntry, Quote,
+  MonthPlan,
 } from '@/types'
 
 interface DB {
@@ -19,6 +20,7 @@ interface DB {
   budgets:   Budget[]
   expenses:  Expense[]
   quotes:    Quote[]
+  monthPlans: MonthPlan[]
   documents: Document[]
 }
 
@@ -153,12 +155,51 @@ export const db: DB = {
     { id: 'g4', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: null, kind: 'gasto' as const, amount_cents: 2990, date: '2026-06-12', description: 'Taller: cambio de aceite',          created_by: 'u2', created_at: '2026-06-12T17:00:00', updated_at: '2026-06-12T17:00:00' },
     { id: 'g5', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 8900, date: '2026-06-10', description: 'Estantería para el salón',   created_by: 'u2', created_at: '2026-06-10T12:00:00', updated_at: '2026-06-10T12:00:00' },
     { id: 'g6', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 4520, date: '2026-06-17', description: 'Bombillas y pilas',         created_by: 'u1', created_at: '2026-06-17T09:00:00', updated_at: '2026-06-17T09:00:00' },
-    // Sin presupuesto: la farmacia no la presupuestó nadie y sale igual, bajo
-    // "Sin presupuesto". Es el caso que hay que poder ver en demo.
+    // Sin partida: la farmacia no cae en ninguna y sale igual, bajo
+    // "Sin partida". Es el caso que hay que poder ver en demo.
     { id: 'g7', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1230, date: '2026-06-16', description: 'Farmacia',      created_by: 'u2', created_at: '2026-06-16T20:00:00', updated_at: '2026-06-16T20:00:00' },
     // Un ingreso apuntado, que no es la nómina: lo que entra de vez en cuando y
-    // por eso no es un fijo. Nunca cuelga de un tope.
+    // por eso no es un fijo. Nunca cuelga de una partida.
     { id: 'g8', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm1', kind: 'ingreso' as const, amount_cents: 12000, date: '2026-06-13', description: 'Devolución de la compra online', created_by: 'u1', created_at: '2026-06-13T10:00:00', updated_at: '2026-06-13T10:00:00' },
+  ],
+
+  // Los meses ya cerrados, con la foto que tenían entonces.
+  //
+  // **Junio y julio llevan números distintos de los de hoy a propósito**: en junio
+  // el alquiler eran 760 € y no había seguro del coche, y la partida de la compra
+  // era de 350 y no de 400. Es lo único que enseña de verdad para qué sirve todo
+  // esto — con las mismas cifras en todos los meses, un mes congelado y un mes
+  // espejo se ven exactamente igual y no hay nada que entender.
+  //
+  // Agosto no está: lo cierra la propia app al arrancar (`closePreviousMonth`),
+  // que es el camino normal y también conviene poder verlo funcionar.
+  monthPlans: [
+    {
+      family_id: 'f1', month: '2026-06', closed_at: '2026-07-01T05:00:00',
+      lines: [
+        { id: 'mp1',  family_id: 'f1', month: '2026-06', line: 'ingreso' as const, budget_id: null, name: 'Nómina de Carlos', emoji: '💼', amount_cents: 165000, child_id: null, member_id: 'm1',  sort_order: 0, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp2',  family_id: 'f1', month: '2026-06', line: 'ingreso' as const, budget_id: null, name: 'Nómina de María',  emoji: '💼', amount_cents: 148000, child_id: null, member_id: 'm2',  sort_order: 1, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp3',  family_id: 'f1', month: '2026-06', line: 'gasto'   as const, budget_id: null, name: 'Alquiler',         emoji: '🏠', amount_cents: 76000,  child_id: null, member_id: null, sort_order: 0, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp4',  family_id: 'f1', month: '2026-06', line: 'gasto'   as const, budget_id: null, name: 'Luz y gas',        emoji: '💡', amount_cents: 6100,   child_id: null, member_id: null, sort_order: 1, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp5',  family_id: 'f1', month: '2026-06', line: 'gasto'   as const, budget_id: null, name: 'Internet y móvil', emoji: '📱', amount_cents: 4990,   child_id: null, member_id: null, sort_order: 2, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp6',  family_id: 'f1', month: '2026-06', line: 'partida' as const, budget_id: 'b1', name: 'Compra',           emoji: '🛒', amount_cents: 35000,  child_id: null, member_id: null, sort_order: 0, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp7',  family_id: 'f1', month: '2026-06', line: 'partida' as const, budget_id: 'b2', name: 'Coche',            emoji: '🚗', amount_cents: 15000,  child_id: null, member_id: null, sort_order: 1, created_at: '2026-07-01T05:00:00' },
+        { id: 'mp8',  family_id: 'f1', month: '2026-06', line: 'partida' as const, budget_id: 'b3', name: 'Casa',             emoji: '🏠', amount_cents: 12000,  child_id: null, member_id: null, sort_order: 2, created_at: '2026-07-01T05:00:00' },
+      ],
+    },
+    {
+      family_id: 'f1', month: '2026-07', closed_at: '2026-08-01T05:00:00',
+      lines: [
+        { id: 'mp9',  family_id: 'f1', month: '2026-07', line: 'ingreso' as const, budget_id: null, name: 'Nómina de Carlos', emoji: '💼', amount_cents: 165000, child_id: null, member_id: 'm1',  sort_order: 0, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp10', family_id: 'f1', month: '2026-07', line: 'ingreso' as const, budget_id: null, name: 'Nómina de María',  emoji: '💼', amount_cents: 148000, child_id: null, member_id: 'm2',  sort_order: 1, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp11', family_id: 'f1', month: '2026-07', line: 'gasto'   as const, budget_id: null, name: 'Alquiler',         emoji: '🏠', amount_cents: 78000,  child_id: null, member_id: null, sort_order: 0, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp12', family_id: 'f1', month: '2026-07', line: 'gasto'   as const, budget_id: null, name: 'Luz y gas',        emoji: '💡', amount_cents: 9800,   child_id: null, member_id: null, sort_order: 1, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp13', family_id: 'f1', month: '2026-07', line: 'gasto'   as const, budget_id: null, name: 'Internet y móvil', emoji: '📱', amount_cents: 4990,   child_id: null, member_id: null, sort_order: 2, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp14', family_id: 'f1', month: '2026-07', line: 'partida' as const, budget_id: 'b1', name: 'Compra',           emoji: '🛒', amount_cents: 40000,  child_id: null, member_id: null, sort_order: 0, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp15', family_id: 'f1', month: '2026-07', line: 'partida' as const, budget_id: 'b2', name: 'Coche',            emoji: '🚗', amount_cents: 15000,  child_id: null, member_id: null, sort_order: 1, created_at: '2026-08-01T05:00:00' },
+        { id: 'mp16', family_id: 'f1', month: '2026-07', line: 'partida' as const, budget_id: 'b3', name: 'Casa',             emoji: '🏠', amount_cents: 12000,  child_id: null, member_id: null, sort_order: 2, created_at: '2026-08-01T05:00:00' },
+      ],
+    },
   ],
 
   // Tres para lo mismo (la caldera) y uno ya aceptado: es justo la forma que

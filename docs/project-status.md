@@ -7,8 +7,9 @@
 Farpi está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Farpi: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
 La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Las tablas de Finanzas se aplicaron en el proyecto real y se validaron el 01-09-2026: primero las tres iniciales (99/99) y, con la reforma de los fijos de esa misma tarde, `fixed_entries` y `expenses.kind` (**106/106**). La sección funciona entera con datos reales. El 02-09-2026 se
-aplicaron y validaron dos cambios más de esquema —la franja del comedor con los platos de
-una comida, y las once carpetas de documentos—: **117/117**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
+aplicaron y validaron tres cambios más de esquema —la franja del comedor con los platos de
+una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**—:
+**129/129**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
@@ -83,23 +84,29 @@ una comida, y las once carpetas de documentos—: **117/117**. Lo que queda no e
   tarjeta, sin abrir nada. Vive en "Más", delante de Documentos, y **no sale en Inicio**:
   la clave del wifi no es de hoy, es de siempre. Ojo con lo que se guarda ahí: es texto
   plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
-- **Finanzas** (31-08-2026, rehecha el 01-09-2026): el dinero de la casa, en `/finanzas`,
+- **Finanzas** (31-08-2026, rehecha el 01-09-2026; vocabulario afinado el 02-09-2026): el dinero de la casa, en `/finanzas`,
   con **tres pestañas** y cuatro piezas de vocabulario que no se pisan.
-  **«Fijos»**: el mes tipo —lo que entra y lo que sale todos los meses sin apuntar nada:
-  las nóminas, el alquiler, la luz, las suscripciones—, en dos bloques con su total y la
-  cifra de «para el mes». No genera movimientos ni hay nada que marcar como pagado: es un
-  dato que vale hasta que se cambie, igual que un tope, y por eso no hay que abrir
-  septiembre. Contrapartida: los fijos no llevan historia, así que cambiar el alquiler
-  cambia también lo que dicen los meses pasados.
+  **«El mes tipo»**: la plantilla —lo que entra y lo que sale todos los meses sin apuntar
+  nada: las nóminas, el alquiler, la luz, las suscripciones— y **las partidas** en las que
+  se reparte lo que varía, en tres bloques con su total y la cifra de «para el mes». No
+  genera apuntes ni hay nada que marcar como pagado, y por eso no hay que abrir septiembre.
+  Se copia a cada mes que empieza.
   **«El mes»**: arriba **la cuenta** —ingresos fijos, gastos fijos, «para el mes», lo
   apuntado y **cuánto queda**—, que es el número que la sección existe para dar; debajo los
-  **topes** de lo que varía («Compra 400 €/mes»), y debajo los **movimientos** que se van
-  apuntando: un gasto o un **ingreso** —una devolución, un trabajo suelto—, con importe,
-  fecha, qué fue, de qué tope sale y quién puso el dinero. Un ingreso no cuelga de ningún
-  tope y no entra en el reparto, que sigue siendo solo de gastos. Las barras dicen con
-  palabras si te has pasado y por cuánto, no solo con el color. Se navega por meses; los
-  fijos no dependen del mes que se mire. Sin ningún fijo puesto, la tarjeta enseña lo
-  gastado, como antes, y ofrece ponerlos.
+  **partidas** de ese mes con su barra, y debajo **el día a día**: los
+  **apuntes** que se van poniendo, un gasto o un **ingreso** —una devolución, un trabajo
+  suelto—, con importe, fecha, qué fue, de qué partida sale y quién puso el dinero. Un
+  ingreso no cuelga de ninguna partida y no entra en el reparto, que sigue siendo solo de
+  gastos. Las barras dicen con
+  palabras si te has pasado y por cuánto, no solo con el color. Sin ningún fijo puesto, la
+  tarjeta enseña lo gastado, como antes, y ofrece ponerlos.
+  **Cada mes enseña lo que valía entonces** (02-09-2026): el mes en curso refleja la
+  plantilla —cambias un fijo y se ve al momento— y el mes que terminó enseña la copia
+  congelada que se guardó al cerrarlo, con sus fijos y los límites que tenían sus partidas.
+  En un mes cerrado no se apunta nada ni se editan sus partidas, y la tarjeta lo dice. El
+  cierre lo hacen solos el cron diario y la app al arrancar; no hay ningún botón. Un mes
+  terminado que nunca llegó a cerrarse lo dice tal cual en vez de enseñar la plantilla de
+  hoy, que es lo que hacía antes.
   **«Presupuestos»**: ahora la palabra significa una sola cosa —lo que cuesta algo que aún
   no has hecho—: los que te pasan de fuera (el fontanero, el dentista), agrupados por para
   qué son y ordenados de más barato a más caro, con el barato marcado mientras el trabajo
@@ -310,7 +317,7 @@ una comida, y las once carpetas de documentos—: **117/117**. Lo que queda no e
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 362 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, los topes —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos y, desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca los topes ni entra en el reparto—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 362 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos y, desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
   - 114 de navegador. La cifra sale de la pasada completa del 02-09-2026 (476 en total,
     362 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas y la columna de acceso anclada de la portada; 1023 px: que por debajo del corte no cambie nada). `npm run test:e2e` los corre todos levantando el dev server en :3100.
@@ -358,20 +365,25 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **01-09-2026 (tarde)**, con
-`node scripts/validate-rls.mjs` contra la base real y ya con `fixed_entries` y
-`expenses.kind` aplicados: **106/106**. Las siete últimas son de la reforma de los fijos:
+Sin pendientes. La última pasada es del **02-09-2026**, con
+`node scripts/validate-rls.mjs` contra la base real y ya con los meses cerrados de Finanzas
+aplicados: **129/129**. El detalle de las doce comprobaciones nuevas —y de por qué la que
+más importa es que nadie pueda llamar a `close_month` directamente— está en
+`docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
+`supabase/aplicar-meses-cerrados.sql`.
+
+Antes de eso, la pasada del **01-09-2026 (tarde)** dio **106/106**. Las siete últimas son de la reforma de los fijos:
 tres de las de siempre sobre la tabla nueva —A crea, B no ve, B no puede escribir—, que
 pesan más que en otras porque ahí está lo que más dice de una casa, cuánto cobra cada uno;
 dos de los triggers de asignación entre familias, que un fijo tiene por llevar el mismo par
 `child_id`/`member_id`; y dos de los `check` que sostienen el vocabulario en la base y no en
-la pantalla: un movimiento con un tipo que no existe, y **un ingreso colgado de un tope**.
+la pantalla: un apunte con un tipo que no existe, y **un ingreso colgado de una partida**.
 Ese último es el que había que ver fallar de verdad.
 
 Esa misma mañana, con las tres primeras tablas de Finanzas, fueron **99/99**: seis de las
 de siempre en `budgets`, `expenses` y `quotes` —A crea, B no ve—, una de que B tampoco
 puede escribir un gasto en la familia de A, y las tres de los triggers de `expenses`, que
-rechazan un gasto cuyo tope, hijo o miembro sea de otra casa. La de `budget_id` era la que
+rechazan un gasto cuya partida, hijo o miembro sea de otra casa. La de `budget_id` era la que
 había que ver fallar: apunta a una tabla nueva y su trigger se escribió con la sección.
 
 Antes de eso, la pasada del **31-08-2026** dio **89/89** con la tabla `notes`. Sus tres

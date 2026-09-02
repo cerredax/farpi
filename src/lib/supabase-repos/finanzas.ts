@@ -3,12 +3,14 @@ import { parseAmountToCents } from '../finanzas'
 import { assertNoError, currentUserId } from './shared'
 import type {
   Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
-  Quote, QuoteDraft, QuoteStatus,
+  MonthPlan, MonthPlanLine, Quote, QuoteDraft, QuoteStatus,
 } from '@/types'
-import type { BudgetsRepo, ExpensesRepo, FixedEntriesRepo, QuotesRepo } from '../repos/types'
+import type {
+  BudgetsRepo, ExpensesRepo, FixedEntriesRepo, MonthPlansRepo, QuotesRepo,
+} from '../repos/types'
 
 /**
- * El dinero de la casa contra Supabase: fijos, topes, movimientos y presupuestos
+ * El dinero de la casa contra Supabase: fijos, partidas, apuntes y presupuestos
  * pedidos.
  *
  * Lo único que hay que mirar dos veces es la conversión del importe: el
@@ -109,7 +111,7 @@ export const budgetsRepo: BudgetsRepo = {
     const userId = await currentUserId()
     // El sitio en la lista se calcula con lo que ya hay. Una carrera entre dos
     // móviles dejaría dos con el mismo número, y no pasa nada: el orden desempata
-    // por nombre (`resumenTopes`).
+    // por nombre (`resumenPartidas`).
     const { count, error: errorCuenta } = await supabase
       .from('budgets')
       .select('id', { count: 'exact', head: true })
@@ -145,7 +147,7 @@ export const budgetsRepo: BudgetsRepo = {
     assertNoError(error)
   },
 
-  // Los movimientos que colgaban de él se quedan, sin tope: lo hace el
+  // Los apuntes que colgaban de ella se quedan, sin partida: lo hace el
   // `on delete set null` de la clave ajena, no hace falta tocarlos aquí.
   async deleteBudget(id: string): Promise<void> {
     const supabase = createClient()
@@ -173,7 +175,7 @@ export const expensesRepo: ExpensesRepo = {
       .from('expenses')
       .insert({
         family_id: familyId,
-        // Un ingreso nunca cuelga de un tope. Lo fuerza también el `check`
+        // Un ingreso nunca cuelga de una partida. Lo fuerza también el `check`
         // `expenses_ingreso_sin_tope`, pero enviarlo bien de aquí evita un 400
         // que la pantalla tendría que traducir a algo que nadie entendería.
         budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
@@ -277,5 +279,48 @@ export const quotesRepo: QuotesRepo = {
     const supabase = createClient()
     const { error } = await supabase.from('quotes').delete().eq('id', id)
     assertNoError(error)
+  },
+}
+
+/**
+ * Los meses ya cerrados.
+ *
+ * **Se leen y no se escriben.** Las dos tablas no tienen policy de escritura para
+ * nadie, así que aquí no hay `create` ni `update` que valgan: lo único que puede
+ * tocarlas es la RPC `close_previous_month`, que es `security definer`. Eso es
+ * precisamente lo que hace que un mes cerrado se pueda dar por bueno.
+ *
+ * Las líneas llegan en la misma consulta que la cabecera —un `select` anidado, no
+ * dos viajes— y se reparten aquí. Una casa tiene doce meses al año con diez líneas
+ * cada uno: no hay nada que paginar.
+ */
+export const monthPlansRepo: MonthPlansRepo = {
+  async getMonthPlans(familyId: string): Promise<MonthPlan[]> {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('month_plans')
+      .select('family_id, month, closed_at, month_plan_lines(*)')
+      .eq('family_id', familyId)
+      .order('month', { ascending: false })
+    assertNoError(error)
+
+    return (data ?? []).map(fila => {
+      const { month_plan_lines, ...plan } = fila as typeof fila & { month_plan_lines: MonthPlanLine[] }
+      return { ...plan, lines: month_plan_lines ?? [] }
+    })
+  },
+
+  /**
+   * Cierra el mes pasado si hacía falta. Devuelve si ha cerrado algo, y con eso
+   * quien llama sabe si tiene que recargar.
+   *
+   * La RPC es idempotente, así que llamarla de más no cuesta nada más que el
+   * viaje; quien la llama solo lo hace cuando ve que falta el mes pasado.
+   */
+  async closePreviousMonth(familyId: string): Promise<boolean> {
+    const supabase = createClient()
+    const { data, error } = await supabase.rpc('close_previous_month', { p_family_id: familyId })
+    assertNoError(error)
+    return data === true
   },
 }

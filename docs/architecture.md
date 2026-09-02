@@ -1252,10 +1252,10 @@ la app con nueve sitios a los que entrar.
 
 El 01-09-2026 se rehízo, porque tenía dos problemas de fondo:
 
-1. **La palabra seguía significando dos cosas dentro de la app.** Los topes por categoría
-   se llamaban «presupuestos» en la pestaña «El mes», y los papeles del fontanero también,
-   en la otra pestaña. Un nombre que hay que desambiguar por contexto en la misma pantalla
-   no es un nombre.
+1. **La palabra seguía significando dos cosas dentro de la app.** Las categorías con
+   límite mensual se llamaban «presupuestos» en la pestaña «El mes», y los papeles del
+   fontanero también, en la otra pestaña. Un nombre que hay que desambiguar por contexto en
+   la misma pantalla no es un nombre.
 2. **No existían los ingresos.** Sin ellos, la sección contestaba "llevas 180 de 300 en la
    compra", que es una curiosidad de una categoría, y no "quedan 758 € este mes", que es la
    pregunta que se hace de verdad en una casa a mitad de mes.
@@ -1264,9 +1264,9 @@ Ahora son **cuatro piezas y tres pestañas**, y cada pieza contesta una pregunta
 
 | Tabla | En pantalla | Dónde | Contesta |
 |---|---|---|---|
-| `fixed_entries` | **Fijos** | pestaña «Fijos» | ¿con cuánto contamos y qué está comprometido? |
-| `budgets` | **Topes** | pestaña «El mes» | ¿me estoy pasando en lo que sí controlo? |
-| `expenses` | **Movimientos** | pestaña «El mes» | ¿qué ha pasado este mes? |
+| `fixed_entries` | **Fijos** | pestaña «El mes tipo» | ¿con cuánto contamos y qué está comprometido? |
+| `budgets` | **Partidas** | pestaña «El mes tipo», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
+| `expenses` | **El día a día** (una fila, un **apunte**) | pestaña «El mes» | ¿qué ha pasado este mes? |
 | `quotes` | **Presupuestos** | pestaña «Presupuestos» | ¿cuánto va a costar esto que aún no hemos hecho? |
 
 Con eso «presupuesto» pasa a significar **una sola cosa** en toda la app: lo que cuesta algo
@@ -1275,15 +1275,38 @@ genérico y de proyecto que la palabra pide. Y una entrada del día a día vuelv
 por su nombre: un gasto o un ingreso.
 
 **Las tablas no se renombraron.** `budgets` sigue llamándose `budgets` aunque en pantalla
-sea «Topes», y `expenses` sigue siendo `expenses` aunque sean «movimientos». Es el mismo
+sean «partidas», y `expenses` sigue siendo `expenses` aunque sean «apuntes». Es el mismo
 criterio que con Dinero → Finanzas: renombrar obliga a migrar la base real a cambio de una
-palabra, y la base real está en producción con datos de una familia.
+palabra, y la base real está en producción con datos de una familia. Por lo mismo el `check`
+`expenses_ingreso_sin_tope` conserva su nombre viejo.
+
+#### «Topes» y «movimientos» duraron un día (02-09-2026)
+
+El reparto de arriba se llamó **«Topes»** y la lista **«Movimientos»** entre el 01 y el
+02-09-2026. Los dos se cayeron por lo mismo, y es una regla que vale para toda la app: **son
+palabras de banco**. Una casa no tiene movimientos, tiene un día a día; y a la compra no se
+le pone un tope, se le pone una partida.
+
+No es solo estética. «Tope» nombra únicamente el techo —lo que **no** puedes pasar—, así que
+la pantalla se leía como una advertencia incluso a primeros de mes, con las barras vacías.
+«Partida» nombra la cosa entera: un apartado con dinero asignado, que es lo que la fila
+enseña de verdad (178 de 250, y 72 por delante). Y «movimiento» arrastraba otro problema:
+nadie llama «movimiento» a lo que acaba de apuntar.
+
+Así que la lista se llama **«El día a día»** y una fila suya es un **apunte**, que encaja con
+el verbo que la sección ya usaba en todas partes («apunta lo que se va gastando», «nada
+apuntado este mes»). Sección, fila y acción dicen lo mismo sin enseñar vocabulario nuevo.
+
+El cambio bajó hasta el código —`resumenPartidas`, `apuntesDelMes`, `gastosSinPartida`,
+`abrirPartida`, `guardarApunte`— por el mismo motivo que bajó Dinero → Finanzas: para no
+traducir mentalmente en cada archivo. Lo que **no** cambió: las tablas, el `check` y el tipo
+`MovementKind`, que en inglés sigue siendo un nombre correcto para «gasto o ingreso».
 
 La sección se llama **Finanzas** y no «Presupuestos» justo por eso: si el contenedor se
 llamara igual que una de sus piezas, las otras parecerían estar de prestado.
 
 Se llamó **Dinero** hasta el 01-09-2026. «Dinero» nombra la materia; «Finanzas» nombra lo
-que la familia hace con ella, que es de lo que va la pantalla: mirar el mes, poner un tope,
+que la familia hace con ella, que es de lo que va la pantalla: mirar el mes, abrir una partida,
 comparar tres presupuestos. El cambio bajó hasta el código —`/finanzas`, `src/lib/finanzas.ts`,
 `FinanzasView`— para que no hubiera que traducir mentalmente en cada archivo. Las tablas
 (`budgets`, `expenses`, `quotes`) no se tocaron: nunca llevaron ese nombre y renombrarlas
@@ -1302,43 +1325,130 @@ cuenta, "12,50" acabaría valiendo distinto según el modo. El formato también 
 mano en vez de con `Intl.NumberFormat`, que mete un espacio duro cuya forma cambia con la
 versión de ICU: el mismo importe tiene que leerse igual en un test y en un móvil.
 
-**Los fijos son un dato, no una plantilla que genere movimientos.** El mes tipo —dos
+#### El mes tipo y los meses cerrados (02-09-2026)
+
+La decisión más grande de Finanzas, y la que se comió una de las de la víspera.
+
+**El problema.** `fixed_entries` y `budgets` eran «una cifra que vale hasta que se
+cambie». Eso contesta muy bien «¿cómo va este mes?» y no contesta en absoluto
+«¿cómo fue enero?»: subir el alquiler de 800 a 850 en marzo hacía que enero
+también dijera 850. El 01-09-2026 eso figuraba aquí como contrapartida asumida, a
+cambio de no tener que «abrir septiembre» cada treinta días. Duró un día. En cuanto
+la sección sirve para llevar el control de una casa, un pasado que se reescribe
+solo no es un pasado, y la contrapartida deja de estar pagada.
+
+**La regla, entera, en una línea:** la plantilla es cómo suele ser un mes; el mes
+en curso la refleja; el mes que termina se queda con una copia congelada.
+
+```
+«El mes tipo» — LA PLANTILLA        «El mes» — UN MES CONCRETO
+  ingresos fijos                      espejo, si es el mes en curso
+  gastos fijos          ──copia──▶    copia congelada, si ya terminó
+  partidas                            ──────────────────────────────
+                                      el día a día (apuntes)
+```
+
+**Las partidas se fueron a la plantilla.** Una partida es exactamente lo mismo que
+un fijo —una cifra del mes tipo— solo que en vez de gastarse sola se va llenando.
+Tenerlas colgando de «El mes» obligaba a contestar qué significaba cambiar una a
+mitad de mes; en la plantilla no hay nada que contestar. En «El mes» se siguen
+viendo, con su barra, que es donde tienen sentido.
+
+**El mes en curso es espejo y no copia, y eso es deliberado.** Se valoró congelar
+también el mes en curso el día 1 —lo más literal de «no se puede alterar»— y se
+descartó por dos casos que pasan de verdad: quien monta la app a mitad de mes se
+habría quedado con una foto vacía imposible de rellenar, y quien se equivoca al dar
+de alta un fijo habría cargado con el error treinta días. Congelar sirve para que
+el pasado no se mueva, no para que el presente no se pueda arreglar.
+
+**Nadie cierra nada a mano.** Lo hace la RPC `close_previous_month`, y la llaman
+dos sitios que no se coordinan: el cron diario (`/api/cron/reminders`, que ya
+pasaba por ahí todos los días) y la propia app al arrancar, si ve que falta el mes
+pasado. Las dos son idempotentes —`insert ... on conflict do nothing`— y la de la
+app solo se intenta cuando falta, así que los otros treinta días del mes no cuesta
+ni un viaje. Un botón de «cerrar el mes» sería exactamente la tarea administrativa
+que esta app existe para no pedir, que es la misma razón por la que los fijos no se
+marcan como pagados.
+
+Son **dos** llamadas y no una porque cada una tapa el agujero de la otra: el cron
+puede fallar o llegar tarde, y hay familias que abren la app el día 1 antes de que
+el cron pase. Y se ejecuta **todos los días**, no solo el 1: la RPC solo mira el mes
+anterior, así que el día 2 no hace nada. Un `if (día === 1)` haría que un cron caído
+esa madrugada perdiera el mes entero sin que nadie se enterara.
+
+**Solo se cierra el mes anterior, nunca más atrás.** Si el cron estuviera caído tres
+meses, copiar la plantilla de hoy en enero escribiría en enero unos números que
+puede que en enero no fueran esos. Un mes sin cerrar se ve —la tarjeta lo dice— y se
+puede arreglar; un mes cerrado con datos inventados, no. Por eso el tercer estado
+existe y se enseña: `sin-plan` no es un fallo, es la respuesta honesta.
+
+**La copia guarda el nombre y el emoji, no solo el importe.** Borrar la partida
+«Coche» en abril no puede dejar a enero con un hueco donde decía «Coche 150 €». Por
+eso `month_plan_lines.budget_id` es `on delete set null` y no `cascade`: el enlace
+sirve para casar los gastos con su barra mientras la partida exista, y la línea vive
+sin él. Cuando se pierde, los gastos que colgaban de ella también perdieron el suyo,
+así que pasan a «sin partida», que es donde de verdad están.
+
+**Las dos tablas son de solo lectura, y es la mitad del diseño.** `month_plans` y
+`month_plan_lines` son las únicas tablas de contenido con policy de solo `select`:
+no hay insert, update ni delete para nadie, ni siquiera para el dueño. Lo que hace
+que un mes cerrado se pueda dar por bueno es que la app no pueda reescribirlo.
+Quien escribe es `close_month`, que es `security definer` y tiene el `execute`
+**revocado** de `public`, `anon` y `authenticated` —Postgres lo concede a `public`
+por defecto en cada función nueva, y sin ese `revoke` cualquiera podría congelarle
+el mes a cualquier familia—. Se lo concede solo a `service_role`, para el cron, y a
+la app le queda `close_previous_month`, que sí comprueba la familia.
+
+**Son dos tablas y no una** porque hace falta distinguir «este mes se cerró y no
+había nada puesto» de «este mes no se ha cerrado». Con solo las líneas, las dos
+cosas son cero filas y la pantalla tiene que decir cosas distintas.
+
+**El relleno de los meses viejos se hizo una vez, el día que se aplicó.** Cerrar con
+la plantilla de hoy todos los meses terminados que tuvieran algún apunte era
+correcto **ese día y solo ese día**: la plantilla no había cambiado desde que se
+puso, porque Finanzas nació el 31-08-2026 y los fijos el 01-09-2026. La misma
+sentencia un mes más tarde habría escrito números inventados. Está en `schema.sql`
+como un `do $$ ... $$` idempotente y ahí se queda, como registro de lo que se hizo.
+
+**Los fijos son un dato, no una plantilla que genere apuntes.** El mes tipo —dos
 nóminas, alquiler, luz, suscripciones— se guarda como filas que **valen todos los meses**,
-igual que el tope de un `budget`. Se valoraron las otras dos formas y se descartaron: que
+igual que la partida de un `budget`. Se valoraron las otras dos formas y se descartaron: que
 cada fijo apareciera como pendiente y hubiera que marcarlo pagado, y que el día 1 se
-crearan solos los movimientos del mes. Las dos son más fieles a la realidad —la luz varía—
+crearan solos los apuntes del mes. Las dos son más fieles a la realidad —la luz varía—
 y las dos piden abrir el mes y tachar seis cosas cada treinta días, que es exactamente el
 trabajo administrativo que esta app existe para no pedir. Si un mes la luz sale distinta,
-se cambia el fijo o se apunta la diferencia como movimiento.
+se cambia el fijo o se apunta la diferencia en el día a día.
 
-**Un fijo no tiene historia, y hay que saberlo.** Subir el alquiler de 800 a 850 en marzo
-hace que enero también diga 850: no hay vigencias por concepto y mes. Es la contrapartida
-asumida de no tener una tabla de tramos y un formulario que pregunte "¿desde cuándo?", y es
-la misma clase de decisión que "el tope no es por mes". A cambio, mirar atrás cuenta lo que
-se gastó de verdad —los movimientos sí llevan fecha— sobre un mes tipo que es el de hoy.
+**Un fijo sigue sin tener vigencias, y ya no hace falta que las tenga.** No hay una
+fila por concepto y mes ni un formulario que pregunte "¿desde cuándo?": lo que hay
+es la foto del mes al cerrarse, que da lo mismo con una tabla que se escribe sola.
+Lo único que se pierde con eso es el tramo dentro de un mes —subir el alquiler el
+día 15 cuenta como si valiera para todo el mes—, y eso sí es una contrapartida
+asumida: una casa no lleva el alquiler prorrateado por días.
 
 **Los fijos viven en Finanzas, no en Ajustes.** Se tocan dos veces al año, así que parecían
 configuración; no lo son. En Farpi, Ajustes guarda **cómo se comporta la app** —miembros,
 franjas de comida, notificaciones, sincronización—, y una nómina de 1.650 € es un **dato de
 la familia**, más parecido a un hijo o a una lista que a "activar push". Y la cuenta del mes
-necesita leerlos al lado de los movimientos: con los fijos en otra sección, el resumen
+necesita leerlos al lado del día a día: con los fijos en otra sección, el resumen
 enseñaría un número cuyo origen está en otra pantalla.
 
-**Un fijo no cuelga de un tope.** Son para cosas distintas: un fijo es exacto y un tope es
-para lo que varía. Colgar el alquiler de un tope lo llenaría solo, sin que nadie haya
-apuntado nada, y la barra dejaría de medir lo único que sabe medir. Por eso `fixed_entries`
-no tiene `budget_id`, y por eso «lo que varía» es lo que dice el formulario de un tope.
+**Un fijo no cuelga de una partida.** Son para cosas distintas: un fijo es exacto y una
+partida es para lo que varía. Colgar el alquiler de una partida la llenaría sola, sin que
+nadie haya apuntado nada, y la barra dejaría de medir lo único que sabe medir. Por eso
+`fixed_entries` no tiene `budget_id`, y por eso «lo que varía» es lo que dice el formulario
+de una partida.
 
-**Un movimiento es un gasto o un ingreso, y el importe es siempre positivo.** Lo que los
+**Un apunte es un gasto o un ingreso, y el importe es siempre positivo.** Lo que los
 separa es la columna `kind`, no el signo. Un ingreso guardado como gasto negativo haría que
 cada suma dependiera del signo de cada fila y que "llevas 180 de 300" dejara de poder leerse
-de un vistazo; una casa no lleva partida doble. En pantalla, el ingreso lleva un `+` delante
+de un vistazo; una casa no lleva libros de contabilidad. En pantalla, el ingreso lleva un `+` delante
 **y** el verde de la marca: el color acompaña pero nunca lleva el mensaje solo, que es la
 regla de siempre y aquí importa doble porque un ingreso y un gasto de 120 € serían la misma
 fila para quien no distingue el verde.
 
-**Un ingreso no puede colgar de un tope, y lo impide la base.** Lo garantiza el `check`
-`expenses_ingreso_sin_tope`, no la pantalla: si un ingreso descontara de un tope, una
+**Un ingreso no puede colgar de una partida, y lo impide la base.** Lo garantiza el `check`
+`expenses_ingreso_sin_tope`, no la pantalla: si un ingreso descontara de una partida, una
 devolución de 40 € "liberaría" 40 € de la compra sin que nadie haya dejado de comprar. El
 formulario ni pregunta —el campo desaparece al elegir «Un ingreso», en vez de quedarse
 apagado obligando a preguntarse por qué— y las dos implementaciones del repo fuerzan el
@@ -1354,13 +1464,15 @@ negativo, que no significa nada y asusta a quien acaba de entrar. En ese caso el
 grande sigue siendo lo gastado —como antes de que existieran los fijos— y debajo se ofrece
 ponerlos, que es además la única pista de que la cuenta existe.
 
-**El tope no es por mes.** Una fila por categoría, no una por categoría y
-mes. Se valoró lo segundo —permitiría "en diciembre gastamos más"— y se descartó: obliga a
-"abrir septiembre" cada treinta días, que es el trabajo administrativo que esta app existe
-para no pedir. Cambiar el tope vale desde ya y no toca lo apuntado.
+**La partida se pone una vez, no una por mes.** Se valoró una fila por categoría y
+mes —permitiría "en diciembre gastamos más"— y se descartó: obliga a "abrir
+septiembre" cada treinta días, que es el trabajo administrativo que esta app existe
+para no pedir. Cambiarla vale desde ya para el mes en curso y no toca lo apuntado ni
+los meses cerrados, que se quedaron con el límite que tenían (ver "El mes tipo y los
+meses cerrados").
 
-**Un tope no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
-(ver "Asignación de eventos, tareas y documentos"), y un tope no es de nadie:
+**Una partida no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
+(ver "Asignación de eventos, tareas y documentos"), y una partida no es de nadie:
 dárselo lo haría indistinguible de una persona en la misma pantalla donde sí hay personas.
 Lo que sí lleva color es quién pagó cada gasto, que es exactamente el significado de
 siempre.
@@ -1375,10 +1487,10 @@ para. Nada de "Sofía te debe 40 €": en cuanto una app de casa lleva la cuenta
 debe a quién deja de ser una app de casa y pasa a ser un árbitro. Con el reparto delante
 ya se sabe a quién le toca la próxima compra grande.
 
-**Borrar un tope no borra sus movimientos.** Se quedan, con `budget_id` a null, bajo
-«Sin tope». Lo hace la clave ajena (`on delete set null`) y el mock lo imita a mano.
+**Borrar una partida no borra sus apuntes.** Se quedan, con `budget_id` a null, bajo
+«Sin partida». Lo hace la clave ajena (`on delete set null`) y el mock lo imita a mano.
 Perder el histórico de agosto por reorganizar las categorías en septiembre sería el peor
-modo posible de fallar, y "sin tope" es además un estado legítimo: la mitad de los
+modo posible de fallar, y "sin partida" es además un estado legítimo: la mitad de los
 gastos de una casa no caen en ninguna categoría, y obligar a elegir una hace que se
 apunten mal o que no se apunten.
 

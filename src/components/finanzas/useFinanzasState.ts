@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
-  agruparPresupuestos, cuentaDelMes, fijosDe, gastosSinTope, mesDe,
-  mesVecino, movimientosDelMes, repartoDelMes, resumenTopes,
+  agruparPresupuestos, apuntesDelMes, cuentaDelMes, fijosDe, gastosSinPartida,
+  mesDe, mesVecino, plantillaDelMes, repartoDelMes, resumenPartidas, sumaDeFijos,
   titulosDePresupuestos,
 } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -13,7 +13,7 @@ import type {
   MovementKind, Quote, QuoteDraft,
 } from '@/types'
 
-export type PestañaFinanzas = 'mes' | 'fijos' | 'presupuestos'
+export type PestañaFinanzas = 'mes' | 'plantilla' | 'presupuestos'
 
 /**
  * El estado de la pantalla de Finanzas: qué pestaña se mira, qué mes y qué sheet
@@ -27,7 +27,7 @@ export type PestañaFinanzas = 'mes' | 'fijos' | 'presupuestos'
  */
 export function useFinanzasState() {
   const {
-    fixedEntries, budgets, expenses, quotes, members, kids,
+    fixedEntries, budgets, expenses, quotes, monthPlans, members, kids,
     createFixedEntry, updateFixedEntry, deleteFixedEntry,
     createBudget, updateBudget, deleteBudget,
     createExpense, updateExpense, deleteExpense,
@@ -49,18 +49,38 @@ export function useFinanzasState() {
   const [quoteSheetOpen, setQuoteSheetOpen] = useState(false)
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
 
-  const resumen = useMemo(() => resumenTopes(budgets, expenses, mes), [budgets, expenses, mes])
-  const delMes = useMemo(() => movimientosDelMes(expenses, mes), [expenses, mes])
-  const sinTope = useMemo(() => gastosSinTope(expenses, mes), [expenses, mes])
-  const cuenta = useMemo(() => cuentaDelMes(fixedEntries, expenses, mes), [fixedEntries, expenses, mes])
+  const mesActual = mesDe(hoy)
+
+  // Qué valía en el mes que se está mirando: la plantilla viva si no ha
+  // terminado, la copia congelada si terminó. Todo lo de «El mes» cuelga de aquí,
+  // y por eso se calcula una sola vez y no en cada selector.
+  const plantilla = useMemo(
+    () => plantillaDelMes(mes, mesActual, fixedEntries, budgets, monthPlans),
+    [mes, mesActual, fixedEntries, budgets, monthPlans],
+  )
+
+  const resumen = useMemo(() => resumenPartidas(plantilla, expenses, mes), [plantilla, expenses, mes])
+  const delMes = useMemo(() => apuntesDelMes(expenses, mes), [expenses, mes])
+  const sinPartida = useMemo(() => gastosSinPartida(expenses, mes), [expenses, mes])
+  const cuenta = useMemo(() => cuentaDelMes(plantilla, expenses, mes), [plantilla, expenses, mes])
   const ingresosFijos = useMemo(() => fijosDe(fixedEntries, 'ingreso'), [fixedEntries])
   const gastosFijos = useMemo(() => fijosDe(fixedEntries, 'gasto'), [fixedEntries])
+  const partidasPlantilla = useMemo(
+    () => [...budgets].sort((a, b) => (
+      a.sort_order === b.sort_order ? a.name.localeCompare(b.name, 'es') : a.sort_order - b.sort_order
+    )),
+    [budgets],
+  )
+  const totalPartidas = useMemo(
+    () => budgets.reduce((total, b) => total + b.monthly_limit_cents, 0),
+    [budgets],
+  )
   const reparto = useMemo(() => repartoDelMes(expenses, mes, members, kids), [expenses, mes, members, kids])
   const grupos = useMemo(() => agruparPresupuestos(quotes), [quotes])
   const titulos = useMemo(() => titulosDePresupuestos(quotes), [quotes])
 
   // Los sheets se remontan al cambiar de cosa editada, como en el resto de la
-  // app: sin esto, editar un gasto justo después de otro deja los valores del
+  // app: sin esto, editar un apunte justo después de otro deja los valores del
   // primero escritos en los campos.
   //
   // Cada clave lleva delante de qué sheet es, y no es adorno: **los cuatro
@@ -69,8 +89,8 @@ export function useFinanzasState() {
   // React lo cantaba por consola. Lo pilló `runtime.spec.ts`, que tumba la suite
   // ante cualquier `console.error`.
   const fixedKey = editingFixed ? `fijo-${editingFixed.id}` : `fijo-nuevo-${kindNuevoFijo}`
-  const expenseKey = editingExpense ? `gasto-${editingExpense.id}` : `gasto-nuevo-${mes}`
-  const budgetKey = editingBudget ? `tope-${editingBudget.id}` : 'tope-nuevo'
+  const expenseKey = editingExpense ? `apunte-${editingExpense.id}` : `apunte-nuevo-${mes}`
+  const budgetKey = editingBudget ? `partida-${editingBudget.id}` : 'partida-nueva'
   const quoteKey = editingQuote ? `pedido-${editingQuote.id}` : 'pedido-nuevo'
 
   return {
@@ -78,14 +98,23 @@ export function useFinanzasState() {
     mesAnterior: () => setMes(m => mesVecino(m, -1)),
     mesSiguiente: () => setMes(m => mesVecino(m, 1)),
     /** Volver al mes en curso. Se ofrece solo cuando se está mirando otro. */
-    volverAHoy: () => setMes(mesDe(hoy)),
-    esMesActual: mes === mesDe(hoy),
+    volverAHoy: () => setMes(mesActual),
+    esMesActual: mes === mesActual,
+    /**
+     * Si lo que se está mirando se puede tocar. Un mes cerrado enseña la copia
+     * que se guardó: sus partidas no se editan desde ahí y no se le apuntan
+     * gastos nuevos, porque lo que pasó en enero ya pasó.
+     */
+    esMesEditable: mes >= mesActual,
+    plantilla,
 
     pestaña, setPestaña,
 
     budgets, members, kids,
-    resumen, delMes, sinTope, cuenta, reparto, grupos, titulos,
-    ingresosFijos, gastosFijos,
+    resumen, delMes, sinPartida, cuenta, reparto, grupos, titulos,
+    ingresosFijos, gastosFijos, partidasPlantilla, totalPartidas,
+    totalIngresosFijos: sumaDeFijos(fixedEntries, 'ingreso'),
+    totalGastosFijos: sumaDeFijos(fixedEntries, 'gasto'),
 
     fixedSheetOpen, setFixedSheetOpen, editingFixed, kindNuevoFijo, fixedKey,
     expenseSheetOpen, setExpenseSheetOpen, editingExpense, expenseKey,
@@ -101,11 +130,22 @@ export function useFinanzasState() {
       setEditingFixed(fijo)
       setFixedSheetOpen(true)
     },
-    abrirGasto(expense: Expense | null) {
+    abrirApunte(expense: Expense | null) {
       setEditingExpense(expense)
       setExpenseSheetOpen(true)
     },
-    abrirTope(budget: Budget | null) {
+    abrirPartida(budget: Budget | null) {
+      setEditingBudget(budget)
+      setBudgetSheetOpen(true)
+    },
+    /**
+     * Editar una partida desde su barra en «El mes». La barra solo lleva el id
+     * —lo demás lo tiene copiado, para poder pintar una partida ya borrada—, así
+     * que hay que ir a buscar la viva. Si no está, no se abre nada.
+     */
+    abrirPartidaPorId(id: string) {
+      const budget = budgets.find(b => b.id === id)
+      if (!budget) return
       setEditingBudget(budget)
       setBudgetSheetOpen(true)
     },
@@ -118,11 +158,11 @@ export function useFinanzasState() {
       if (editingFixed) updateFixedEntry(editingFixed.id, draft)
       else createFixedEntry(draft)
     },
-    guardarGasto(draft: ExpenseDraft) {
+    guardarApunte(draft: ExpenseDraft) {
       if (editingExpense) updateExpense(editingExpense.id, draft)
       else createExpense(draft)
     },
-    guardarTope(draft: BudgetDraft) {
+    guardarPartida(draft: BudgetDraft) {
       if (editingBudget) updateBudget(editingBudget.id, draft)
       else createBudget(draft)
     },

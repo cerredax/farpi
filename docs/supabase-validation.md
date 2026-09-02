@@ -1,7 +1,37 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-02, con la franja del comedor, los platos de una comida y las
-once carpetas de documentos ya aplicados. **117/117 comprobaciones correctas.**
+Última ejecución: 2026-09-02, con **los meses cerrados** ya aplicados en el proyecto
+real. **129/129 comprobaciones correctas.**
+
+Son las 117 anteriores más las **doce de los meses cerrados**, que van juntas en una §4 bis
+propia. `month_plans` y `month_plan_lines` son las dos primeras tablas de contenido con
+policy de **solo `select`**, y eso es exactamente lo que había que ver funcionar: lo que
+hace que un mes cerrado signifique algo no es que esté guardado, es que la app no pueda
+reescribirlo.
+
+Cuatro son del cierre en sí: que A puede cerrar el mes pasado de su familia con
+`close_previous_month`, que el plan queda escrito, que copia los fijos **y** las partidas
+de la plantilla, y que **cerrar dos veces no duplica las líneas** —la RPC la llaman el cron
+y la app sin coordinarse, así que la idempotencia no es un adorno—.
+
+Cuatro son de acceso: que B no ve ni los meses ni las líneas de la familia de A, que B no
+puede cerrarle el mes a A, y que **nadie puede llamar a `close_month` directamente**. Esa
+última es la que más importa de todas: `close_month` es `security definer` y no comprueba
+familia, y Postgres concede `execute` a `public` por defecto en cada función nueva. Si el
+`revoke` se cayera —o si alguien recreara la función sin él— cualquiera podría congelarle el
+mes a cualquier casa con la plantilla equivocada. Se comprueba desde B, con su token.
+
+Y cuatro son la parte de solo lectura, todas contra **A, el propio dueño**: que no puede
+insertar un mes a mano, ni añadir una línea a uno cerrado, ni reescribir el importe de una
+línea, ni borrar un mes. Comprobarlas con el dueño y no con un ajeno es el punto: contra un
+ajeno bastaba la RLS de siempre, y lo que aquí se está afirmando es más fuerte.
+
+Lo que este arnés **no** cubre y hay que mirar a mano una vez: que el relleno de los meses
+que ya habían pasado escribió lo que tenía que escribir. El arnés trabaja con familias de
+prueba que crea y borra, así que no puede decir nada de los datos reales. La consulta está
+en `supabase/aplicar-meses-cerrados.sql`, bloque 7.
+
+## Antes: 117/117 (02-09-2026, el comedor y las carpetas)
 
 Son las 106 anteriores más las **once del comedor y las carpetas**, repartidas por las
 secciones que ya existían. Siete son la §8 bis: que el comedor **no** viene puesto en una
@@ -16,14 +46,14 @@ sigue admitiendo nulo. Ese `check` es la copia en la base de `DOC_CATEGORIES`, y
 listas dejan de decir lo mismo, guardar un papel de una carpeta que la app ya ofrece falla
 en producción; por eso se comprueba una por una y no solo la primera.
 
-Son las 99 anteriores más las **siete de los fijos y el tipo de movimiento**. Tres son las
+Son las 99 anteriores más las **siete de los fijos y el tipo de apunte**. Tres son las
 de siempre sobre una tabla nueva —que A crea un fijo en su familia, que B no lo ve y que B
 no puede escribirlo—, y pesan más que en otras tablas porque `fixed_entries` guarda lo que
 más dice de una casa: cuánto cobra cada uno. Dos son los **triggers de integridad entre
 familias**: un fijo se asigna con el mismo par `child_id`/`member_id` de siempre, así que
 tiene el mismo modo de asignarse mal, y se rechaza. Y las dos últimas son los `check` que
-sostienen el vocabulario en la base y no en la pantalla: un movimiento con un `kind` que no
-existe, y **un ingreso colgado de un tope** —que es el que había que ver fallar de verdad,
+sostienen el vocabulario en la base y no en la pantalla: un apunte con un `kind` que no
+existe, y **un ingreso colgado de una partida** —que es el que había que ver fallar de verdad,
 porque si pasara, una devolución de 40 € liberaría 40 € de la compra sin que nadie haya
 dejado de comprar—.
 

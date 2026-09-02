@@ -1,10 +1,12 @@
 import { resolveAssignee } from './assignees'
 import { normalizaParaBuscar } from './text'
-import type { Budget, Child, Expense, FamilyMember, FixedEntry, Quote } from '@/types'
+import type {
+  Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MovementKind, Quote,
+} from '@/types'
 
 /**
  * Lo que la pantalla de Finanzas necesita saber y no está guardado en ninguna
- * fila: cuánto queda del mes, cuánto llevamos de cada tope, quién puso el dinero
+ * fila: cuánto queda del mes, cuánto llevamos de cada partida, quién puso el dinero
  * y cuál de los tres presupuestos de la caldera es el más barato.
  *
  * Todo son funciones puras sobre lo que el store ya tiene en memoria. No hay
@@ -34,25 +36,25 @@ export function mesVecino(mes: string, salto: 1 | -1): string {
 }
 
 /**
- * Los movimientos de un mes —gastos e ingresos—, de lo más reciente a lo más
+ * Los apuntes de un mes —gastos e ingresos—, de lo más reciente a lo más
  * antiguo. Van mezclados a propósito: la pregunta que contesta la lista es "¿qué
  * ha pasado este mes?", y partirla en dos obligaría a leer dos veces para saber
  * en qué día se quedó uno.
  */
-export function movimientosDelMes(expenses: Expense[], mes: string): Expense[] {
+export function apuntesDelMes(expenses: Expense[], mes: string): Expense[] {
   return expenses
     .filter(e => mesDe(e.date) === mes)
     .sort((a, b) => (a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date)))
 }
 
-/** Solo lo que sale. Lo que miran los topes y el reparto. */
-export function soloGastos(movimientos: Expense[]): Expense[] {
-  return movimientos.filter(m => m.kind === 'gasto')
+/** Solo lo que sale. Lo que miran las partidas y el reparto. */
+export function soloGastos(apuntes: Expense[]): Expense[] {
+  return apuntes.filter(a => a.kind === 'gasto')
 }
 
 /** Solo lo que entra sin ser fijo: una devolución, un trabajo suelto. */
-export function soloIngresos(movimientos: Expense[]): Expense[] {
-  return movimientos.filter(m => m.kind === 'ingreso')
+export function soloIngresos(apuntes: Expense[]): Expense[] {
+  return apuntes.filter(a => a.kind === 'ingreso')
 }
 
 /** Suma de importes. Todos son positivos: el signo lo pone quien los agrupa. */
@@ -73,6 +75,152 @@ export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): numb
   return fixed.filter(f => f.kind === kind).reduce((total, f) => total + f.amount_cents, 0)
 }
 
+// ─── Qué plantilla valía en un mes ────────────────────────────────────────────
+//
+// La pieza que le da historia a Finanzas (02-09-2026). `fixed_entries` y
+// `budgets` son el **mes tipo**: cómo suele ser un mes en esta casa, una cifra
+// que vale hasta que se cambie. Por sí solas no saben contar el pasado, porque
+// subir el alquiler en marzo hacía que enero también lo dijera.
+//
+// La regla es de una línea: **el mes en curso refleja la plantilla, y el mes que
+// terminó enseña la copia que se guardó al cerrarlo.** Todo lo que la pantalla de
+// «El mes» necesita saber pasa antes por aquí.
+
+/** Un fijo tal y como valía en un mes. Viene de la plantilla o de la copia. */
+export interface FijoDelMes {
+  key: string
+  kind: MovementKind
+  name: string
+  emoji: string | null
+  amountCents: number
+  childId: string | null
+  memberId: string | null
+  sortOrder: number
+}
+
+/** Una partida tal y como valía en un mes, con el límite que tenía entonces. */
+export interface PartidaDelMes {
+  /**
+   * La partida viva de la que salió, o `null` si se borró después de cerrarse el
+   * mes. Es lo que casa los gastos con su barra; el resto de los datos están
+   * copiados aquí justamente para que borrarla no deje un hueco en enero.
+   */
+  budgetId: string | null
+  /** Clave estable para React. Cae en el id cuando lo hay. */
+  key: string
+  name: string
+  emoji: string | null
+  limiteCents: number
+  sortOrder: number
+}
+
+/**
+ * De dónde salen los números de un mes:
+ *
+ * - `plantilla` — el mes en curso o uno por venir: espejo de lo que hay puesto
+ *   ahora mismo. Se cambia un fijo y se ve al momento.
+ * - `copia` — un mes terminado, con la foto que se guardó al cerrarlo.
+ * - `sin-plan` — un mes terminado que nunca llegó a cerrarse. No se inventa nada:
+ *   la pantalla lo dice. Enseñar la plantilla de hoy sería exactamente el error
+ *   que este cambio vino a arreglar.
+ */
+export type OrigenDelMes = 'plantilla' | 'copia' | 'sin-plan'
+
+export interface PlantillaDelMes {
+  origen: OrigenDelMes
+  fijos: FijoDelMes[]
+  partidas: PartidaDelMes[]
+}
+
+function ordenar<T extends { sortOrder: number; name: string }>(lineas: T[]): T[] {
+  return [...lineas].sort((a, b) => (
+    a.sortOrder === b.sortOrder ? a.name.localeCompare(b.name, 'es') : a.sortOrder - b.sortOrder
+  ))
+}
+
+/**
+ * Los fijos, primero los que entran y luego los que salen.
+ *
+ * El `sort_order` **empieza en cero en cada tipo** —las nóminas van 0, 1 y los
+ * recibos también 0, 1, 2—, así que ordenar la lista mezclada solo por él
+ * interleaba unos con otros y daba «Nómina, Alquiler, Nómina». Partir por `kind`
+ * antes es lo que hace que esta lista se lea igual que la pantalla de la
+ * plantilla, donde son dos bloques separados.
+ */
+function ordenarFijos(fijos: FijoDelMes[]): FijoDelMes[] {
+  return [
+    ...ordenar(fijos.filter(f => f.kind === 'ingreso')),
+    ...ordenar(fijos.filter(f => f.kind === 'gasto')),
+  ]
+}
+
+/**
+ * Qué valía en un mes: la plantilla viva si el mes no ha terminado, y la copia
+ * congelada si terminó.
+ *
+ * `mesActual` se pasa desde fuera en vez de leer el reloj aquí dentro. Es una
+ * función pura y así se puede probar cualquier mes sin tocar la hora del sistema,
+ * que es la misma razón por la que `date-utils.ts` recibe siempre la fecha.
+ */
+export function plantillaDelMes(
+  mes: string,
+  mesActual: string,
+  fixed: FixedEntry[],
+  budgets: Budget[],
+  planes: MonthPlan[],
+): PlantillaDelMes {
+  if (mes >= mesActual) {
+    return {
+      origen: 'plantilla',
+      fijos: ordenarFijos(fixed.map(f => ({
+        key: f.id,
+        kind: f.kind,
+        name: f.name,
+        emoji: f.emoji,
+        amountCents: f.amount_cents,
+        childId: f.child_id,
+        memberId: f.member_id,
+        sortOrder: f.sort_order,
+      }))),
+      partidas: ordenar(budgets.map(b => ({
+        budgetId: b.id,
+        key: b.id,
+        name: b.name,
+        emoji: b.emoji,
+        limiteCents: b.monthly_limit_cents,
+        sortOrder: b.sort_order,
+      }))),
+    }
+  }
+
+  const plan = planes.find(p => p.month === mes)
+  if (!plan) return { origen: 'sin-plan', fijos: [], partidas: [] }
+
+  return {
+    origen: 'copia',
+    fijos: ordenarFijos(plan.lines.filter(l => l.line !== 'partida').map(l => ({
+      key: l.id,
+      kind: l.line as MovementKind,
+      name: l.name,
+      emoji: l.emoji,
+      amountCents: l.amount_cents,
+      childId: l.child_id,
+      memberId: l.member_id,
+      sortOrder: l.sort_order,
+    }))),
+    partidas: ordenar(plan.lines.filter(l => l.line === 'partida').map(l => ({
+      budgetId: l.budget_id,
+      key: l.id,
+      name: l.name,
+      emoji: l.emoji,
+      limiteCents: l.amount_cents,
+      sortOrder: l.sort_order,
+    }))),
+  }
+}
+
+// ─── La cuenta del mes ────────────────────────────────────────────────────────
+
 export interface CuentaDelMes {
   ingresosFijos: number
   gastosFijos: number
@@ -84,10 +232,12 @@ export interface CuentaDelMes {
   /** Lo que queda. **Negativo si el mes se ha ido de las manos.** */
   queda: number
   /**
-   * Si la familia ha puesto algún fijo. Sin ninguno, `queda` sería el gasto del
-   * mes en negativo, que no significa nada, y la pantalla enseña otra cosa.
+   * Si ese mes tenía algún fijo. Sin ninguno, `queda` sería el gasto del mes en
+   * negativo, que no significa nada, y la pantalla enseña otra cosa.
    */
   hayFijos: boolean
+  /** De dónde salen las cifras de arriba. La pantalla lo dice cuando no es hoy. */
+  origen: OrigenDelMes
 }
 
 /**
@@ -97,14 +247,21 @@ export interface CuentaDelMes {
  * de que hubiera ingresos: "llevas 180 de 300 en la compra" es una curiosidad;
  * "quedan 758 €" es lo que se pregunta en una casa.
  *
- * Los fijos **no dependen del mes que se mire**: son una cifra que vale hasta
- * que se cambie. Mirar mayo con el alquiler de hoy es la contrapartida asumida
- * de no llevar una fila por concepto y mes.
+ * **Los fijos que usa son los de ese mes**, no los de hoy: la plantilla ya viene
+ * resuelta en `PlantillaDelMes`. Hasta el 02-09-2026 se leían siempre los de hoy y
+ * mirar mayo enseñaba el alquiler de septiembre.
+ *
+ * En un mes sin plan guardado sale todo a cero y `hayFijos` en false, que es lo
+ * que hace que la tarjeta enseñe lo gastado en vez de un "queda" inventado.
  */
-export function cuentaDelMes(fixed: FixedEntry[], expenses: Expense[], mes: string): CuentaDelMes {
-  const ingresosFijos = sumaDeFijos(fixed, 'ingreso')
-  const gastosFijos = sumaDeFijos(fixed, 'gasto')
-  const delMes = movimientosDelMes(expenses, mes)
+export function cuentaDelMes(
+  plantilla: PlantillaDelMes,
+  expenses: Expense[],
+  mes: string,
+): CuentaDelMes {
+  const ingresosFijos = sumaDeLineas(plantilla.fijos, 'ingreso')
+  const gastosFijos = sumaDeLineas(plantilla.fijos, 'gasto')
+  const delMes = apuntesDelMes(expenses, mes)
   const gastosApuntados = sumaDe(soloGastos(delMes))
   const ingresosApuntados = sumaDe(soloIngresos(delMes))
   const paraElMes = ingresosFijos - gastosFijos
@@ -116,14 +273,20 @@ export function cuentaDelMes(fixed: FixedEntry[], expenses: Expense[], mes: stri
     gastosApuntados,
     ingresosApuntados,
     queda: paraElMes + ingresosApuntados - gastosApuntados,
-    hayFijos: fixed.length > 0,
+    hayFijos: plantilla.fijos.length > 0,
+    origen: plantilla.origen,
   }
 }
 
-// ─── Cómo va cada tope ────────────────────────────────────────────────────────
+/** Suma de los fijos de un tipo dentro de la plantilla ya resuelta de un mes. */
+export function sumaDeLineas(fijos: FijoDelMes[], kind: MovementKind): number {
+  return fijos.filter(f => f.kind === kind).reduce((total, f) => total + f.amountCents, 0)
+}
 
-export interface ResumenTope {
-  budget: Budget
+// ─── Cómo va cada partida ─────────────────────────────────────────────────────
+
+export interface ResumenPartida {
+  partida: PartidaDelMes
   gastado: number
   /** Lo que queda. **Negativo si se ha pasado**, que es el caso que importa. */
   restante: number
@@ -133,44 +296,50 @@ export interface ResumenTope {
 }
 
 /**
- * Cómo va cada tope este mes.
+ * Cómo fue cada partida en un mes, con **el límite que tenía ese mes**.
  *
- * Devuelve **todos** los topes, también los que no tienen ni un gasto: un tope en
- * el que no has gastado nada es justo lo que quieres ver a primeros de mes, y
- * esconderlo hasta el primer gasto haría que la pantalla cambiara de forma sola.
+ * Devuelve **todas** las partidas, también las que no tienen ni un gasto: una
+ * partida en la que no has gastado nada es justo lo que quieres ver a primeros de
+ * mes, y esconderla hasta el primer gasto haría que la pantalla cambiara de forma
+ * sola.
  *
- * Solo mira los **gastos**: un ingreso no cuelga de ningún tope, y si contara,
+ * Solo mira los **gastos**: un ingreso no cuelga de ninguna partida, y si contara,
  * una devolución de 40 € liberaría 40 € de la compra sin que nadie haya dejado
  * de comprar.
+ *
+ * En un mes cerrado se casa por `budgetId`, que es lo que la copia guarda. Una
+ * partida borrada después de cerrarse el mes llega con `budgetId` a null: sigue
+ * enseñando su nombre y su límite, y sus gastos —que también perdieron el
+ * `budget_id`— pasan a contarse en «sin partida», que es donde están de verdad.
  */
-export function resumenTopes(
-  budgets: Budget[],
+export function resumenPartidas(
+  plantilla: PlantillaDelMes,
   expenses: Expense[],
   mes: string,
-): ResumenTope[] {
+): ResumenPartida[] {
   const delMes = expenses.filter(e => e.kind === 'gasto' && mesDe(e.date) === mes)
-  return [...budgets]
-    .sort((a, b) => (a.sort_order === b.sort_order ? a.name.localeCompare(b.name, 'es') : a.sort_order - b.sort_order))
-    .map(budget => {
-      const gastado = sumaDe(delMes.filter(e => e.budget_id === budget.id))
-      const limite = budget.monthly_limit_cents
-      return {
-        budget,
-        gastado,
-        restante: limite - gastado,
-        porcentaje: Math.min(100, Math.round((gastado / limite) * 100)),
-        pasado: gastado > limite,
-      }
-    })
+  return plantilla.partidas.map(partida => {
+    const gastado = partida.budgetId === null
+      ? 0
+      : sumaDe(delMes.filter(e => e.budget_id === partida.budgetId))
+    const limite = partida.limiteCents
+    return {
+      partida,
+      gastado,
+      restante: limite - gastado,
+      porcentaje: Math.min(100, Math.round((gastado / limite) * 100)),
+      pasado: gastado > limite,
+    }
+  })
 }
 
 /**
- * Los gastos del mes que no cuelgan de ningún tope. Los ingresos no cuentan:
- * nunca tienen tope y decir que hay "3 movimientos sin tope" cuando dos son
+ * Los gastos del mes que no cuelgan de ninguna partida. Los ingresos no cuentan:
+ * nunca tienen partida y decir que hay "3 apuntes sin partida" cuando dos son
  * nóminas sería una alarma inventada.
  */
-export function gastosSinTope(expenses: Expense[], mes: string): Expense[] {
-  return soloGastos(movimientosDelMes(expenses, mes)).filter(e => !e.budget_id)
+export function gastosSinPartida(expenses: Expense[], mes: string): Expense[] {
+  return soloGastos(apuntesDelMes(expenses, mes)).filter(e => !e.budget_id)
 }
 
 // ─── Quién puso el dinero ─────────────────────────────────────────────────────
@@ -206,7 +375,7 @@ export function repartoDelMes(
 ): Aportacion[] {
   const acumulado = new Map<string, Aportacion>()
 
-  for (const gasto of soloGastos(movimientosDelMes(expenses, mes))) {
+  for (const gasto of soloGastos(apuntesDelMes(expenses, mes))) {
     const persona = resolveAssignee(gasto, members, kids)
     const key = persona?.key ?? 'casa'
     const previo = acumulado.get(key)

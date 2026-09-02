@@ -5,6 +5,8 @@ import * as store from './store'
 import { mockRepos } from './mock-repos'
 import { supabaseRepos } from './supabase-repos'
 import { IS_DEMO_MODE } from './supabase/client'
+import { mesDe, mesVecino } from './budgets'
+import { getLocalDateString } from './date-utils'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
 import type { Repos } from './repos/types'
@@ -28,6 +30,7 @@ import type {
   ListDraft,
   ListItem,
   ListItemDraft,
+  MonthPlan,
   MealDraft,
   MealPlan,
   MealSlot,
@@ -87,6 +90,11 @@ interface StoreValue {
   budgets: Budget[]
   expenses: Expense[]
   quotes: Quote[]
+  /**
+   * Los meses ya cerrados, con la plantilla que tenían. Solo lectura: quien los
+   * escribe es el cierre automático, no ninguna pantalla.
+   */
+  monthPlans: MonthPlan[]
   documents: Document[]
   /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
   mealSlots: MealSlot[]
@@ -134,7 +142,7 @@ interface StoreValue {
   deleteFixedEntry: (id: string) => Promise<void>
   createBudget: (draft: BudgetDraft) => Promise<void>
   updateBudget: (id: string, draft: BudgetDraft) => Promise<void>
-  /** Borra el tope. Sus gastos se quedan, sin presupuesto. */
+  /** Borra la partida. Sus gastos se quedan, sin partida. */
   deleteBudget: (id: string) => Promise<void>
   createExpense: (draft: ExpenseDraft) => Promise<void>
   updateExpense: (id: string, draft: ExpenseDraft) => Promise<void>
@@ -184,7 +192,41 @@ const EMPTY_SLICES = {
   budgets: [] as Budget[],
   expenses: [] as Expense[],
   quotes: [] as Quote[],
+  monthPlans: [] as MonthPlan[],
   documents: [] as Document[],
+}
+
+/**
+ * Cierra el mes pasado si todavía no lo estaba, y devuelve los planes buenos.
+ *
+ * Tres cosas que no son evidentes:
+ *
+ * 1. **Solo se llama cuando falta el mes pasado.** El resto de los días del mes
+ *    esto no hace ni un viaje, que es lo que permite tenerlo en la carga.
+ * 2. **No se cierra el mes anterior a que existiera la familia.** Una familia
+ *    creada hoy no tuvo agosto, y guardarle un agosto vacío sería inventarle un
+ *    pasado que además luego se lee como «ese mes no pusisteis nada».
+ * 3. **Si falla, no pasa nada.** Se devuelven los planes que ya había. No poder
+ *    cerrar agosto no puede dejar Finanzas en blanco, y sobre todo no puede
+ *    escribir en consola: `e2e/runtime.spec.ts` tumba la suite ante cualquier
+ *    `console.error`.
+ */
+async function cerrarMesPasadoSiFalta(
+  repos: Repos,
+  familyId: string,
+  family: Family,
+  planes: MonthPlan[],
+): Promise<MonthPlan[]> {
+  const mesPasado = mesVecino(mesDe(getLocalDateString(new Date())), -1)
+  if (planes.some(p => p.month === mesPasado)) return planes
+  if (mesDe(family.created_at) > mesPasado) return planes
+
+  try {
+    const cerrado = await repos.monthPlans.closePreviousMonth(familyId)
+    return cerrado ? await repos.monthPlans.getMonthPlans(familyId) : planes
+  } catch {
+    return planes
+  }
 }
 
 export function StoreProvider({ children, familyId, switchFamily }: StoreProviderProps) {
@@ -209,6 +251,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [budgets, setBudgets] = useState<Budget[]>(EMPTY_SLICES.budgets)
   const [expenses, setExpenses] = useState<Expense[]>(EMPTY_SLICES.expenses)
   const [quotes, setQuotes] = useState<Quote[]>(EMPTY_SLICES.quotes)
+  const [monthPlans, setMonthPlans] = useState<MonthPlan[]>(EMPTY_SLICES.monthPlans)
   const [documents, setDocuments] = useState<Document[]>(EMPTY_SLICES.documents)
   const [storageConnection, setStorageConnection] = useState<StorageConnection | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -233,6 +276,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         nextBudgets,
         nextExpenses,
         nextQuotes,
+        nextMonthPlans,
         nextDocuments,
         nextUserId,
       ] = await Promise.all([
@@ -251,11 +295,28 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         repos.budgets.getBudgets(familyId),
         repos.expenses.getExpenses(familyId),
         repos.quotes.getQuotes(familyId),
+        repos.monthPlans.getMonthPlans(familyId),
         repos.documents.getDocuments(familyId),
         repos.members.getCurrentUserId(),
       ])
 
       if (!nextFamily) throw new Error('No se ha encontrado la familia activa')
+
+      // El cierre del mes pasado, que es lo que le da historia a Finanzas.
+      //
+      // Va aquí y no en un botón porque un «cerrar el mes» sería exactamente la
+      // tarea administrativa que esta app existe para no pedir. Y va aquí además
+      // del cron: el cron puede fallar o llegar tarde, y abrir la app el día 1 es
+      // lo que hace de verdad todo el mundo. Las dos llamadas son idempotentes.
+      //
+      // Solo se intenta cuando **falta**, así que en el uso normal no cuesta ni un
+      // viaje: los otros 30 días del mes el plan ya está.
+      //
+      // No cuenta como error de la app si falla, igual que la conexión de Drive:
+      // no poder cerrar agosto no puede dejar la pantalla en blanco. Y **sin
+      // registrar nada en consola**, que `e2e/runtime.spec.ts` tumba la suite ante
+      // cualquier `console.error`.
+      const planes = await cerrarMesPasadoSiFalta(repos, familyId, nextFamily, nextMonthPlans)
 
       // El mock vive en memoria, así que sin esto recargar la página tira lo
       // que acabas de escribir. Va aquí porque toda escritura termina en un
@@ -277,6 +338,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       setBudgets(nextBudgets)
       setExpenses(nextExpenses)
       setQuotes(nextQuotes)
+      setMonthPlans(planes)
       setDocuments(nextDocuments)
       setCurrentUserId(nextUserId)
     } catch (err) {
@@ -423,6 +485,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       budgets,
       expenses,
       quotes,
+      monthPlans,
       documents,
       mealSlots,
       todayMeals,
@@ -576,6 +639,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     budgets,
     expenses,
     quotes,
+    monthPlans,
     documents,
     mealSlots,
     todayMeals,

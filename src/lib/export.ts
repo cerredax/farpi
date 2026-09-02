@@ -139,7 +139,7 @@ export function resumenDeExportacion(datos: DatosParaExportar): string {
   cuenta(datos.listItems.length, 'artículo', 'artículos')
   cuenta(datos.meals.length, 'comida', 'comidas')
   cuenta(datos.notes.length, 'nota', 'notas')
-  cuenta(datos.expenses.length, 'movimiento', 'movimientos')
+  cuenta(datos.expenses.length, 'apunte', 'apuntes')
   cuenta(datos.documents.length, 'documento', 'documentos')
   return partes.join(' · ')
 }

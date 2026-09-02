@@ -278,7 +278,7 @@ verdad, que es que el otro vea el documento sin conectar nada.
 ## 8c. Finanzas
 
 Los datos de demo están sembrados en junio de 2026, así que el mes en curso arranca sin
-movimientos: para ver los sembrados hay que ir hacia atrás con la flecha. **Los fijos sí
+apuntes: para ver los sembrados hay que ir hacia atrás con la flecha. **Los fijos sí
 se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 
 **Fijos**
@@ -303,36 +303,52 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       apuntado y **cuánto queda**. Los números cuadran con los de la pestaña Fijos.
 - [ ] Gastar más de lo que hay deja «queda» en rojo y con la etiqueta «de más este mes»,
       y el importe se enseña **en positivo** (no «−120 € de más»).
-- [ ] Se ven los topes de demo (Compra, Coche, Casa) con su límite, también los que no
+- [ ] La pestaña se llama **«El mes tipo»** y tiene tres bloques: entra, sale y se reparte
+      en. Las partidas se crean y se editan ahí.
+- [ ] Se ven las partidas de demo (Compra, Coche, Casa) con su límite, también las que no
       tienen ni un gasto ese mes.
-- [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su tope, y la cuenta de
+- [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su partida, y la cuenta de
       arriba, sin recargar.
 - [ ] El importe entiende `24,90`, `24.90`, `1.234,56` y `24,90 €`, y se guarda exacto:
-      la fila y el tope dicen el mismo número.
+      la fila y la partida dicen el mismo número.
 - [ ] Un importe imposible (`gratis`, `0`, dos millones) no deja guardar y el mensaje
       distingue «no se entiende» de «como mucho un millón».
-- [ ] Pasarse del tope lo dice **con palabras** («Te has pasado por 40 €»), no solo con
+- [ ] Pasarse de la partida lo dice **con palabras** («Te has pasado por 40 €»), no solo con
       el rojo, y la barra no se sale de la tarjeta.
-- [ ] Un gasto sin tope se puede apuntar, no cuenta para ninguno y la nota de debajo de
+- [ ] Un gasto sin partida se puede apuntar, no cuenta para ninguna y la nota de debajo de
       la lista lo dice.
 - [ ] Elegir quién lo pagó pinta su punto de color y su nombre en la fila, y suma en el
       reparto de arriba. Sin elegir a nadie sale como «De casa».
-- [ ] Borrar un tope **no borra sus movimientos**: siguen en la lista, sin categoría.
+- [ ] Borrar una partida **no borra sus apuntes**: siguen en la lista, sin categoría.
       El sheet lo avisa antes.
 - [ ] Las flechas cambian de mes, el mes vacío lo dice, y «Volver a este mes» aparece
       solo cuando no estás en el actual.
-- [ ] Un movimiento nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
+- [ ] Un apunte nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
 
 **Ingresos apuntados**
 
-- [ ] Elegir «Un ingreso» en el sheet **hace desaparecer** el campo del tope (no lo deja
+- [ ] Elegir «Un ingreso» en el sheet **hace desaparecer** el campo de la partida (no lo deja
       apagado), y el botón pasa a decir «Apuntar ingreso».
 - [ ] El ingreso sale en la lista con un `+` delante y en verde, y **no** mueve ninguna
-      barra de tope.
+      barra de partida.
 - [ ] Sube «queda» y aparece como línea propia («Ingresos apuntados») en la cuenta de
       arriba; **no** aparece en el reparto de quién pagó.
-- [ ] Editar un gasto que tenía tope y pasarlo a ingreso lo suelta del tope: al volver a
-      abrirlo sigue como ingreso y sin tope, y la barra de aquel tope ha bajado.
+- [ ] Editar un gasto que tenía partida y pasarlo a ingreso la suelta: al volver a
+      abrirlo sigue como ingreso y sin partida, y la barra de aquella partida ha bajado.
+
+**Los meses cerrados** (02-09-2026). En demo, junio y julio vienen ya cerrados con otras
+cifras —en junio el alquiler eran 760 € y la compra 350— y agosto lo cierra la app sola al
+arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
+
+- [ ] Ir tres meses atrás (junio): la tarjeta dice **«Mes cerrado»** y los fijos son los de
+      entonces (−870,90 €), no los de hoy (−935,90 €).
+- [ ] La partida de la compra en junio se mide contra **350 €**, no contra los 400 de hoy.
+- [ ] Cambiar el alquiler en «El mes tipo» mueve **este mes al momento** y **no toca** junio.
+- [ ] En un mes cerrado no hay botón de apuntar, ni enlace de «Nueva partida», y las barras
+      de las partidas no se pueden tocar.
+- [ ] Agosto sale como cerrado aunque no esté sembrado: lo cierra la app al abrirse.
+- [ ] Borrar una partida y mirar un mes cerrado que la tenía: **sigue saliendo con su
+      nombre y su límite**, y sus gastos pasan a contarse en «sin partida».
 
 **Presupuestos pedidos**
 

@@ -62,8 +62,9 @@ function initDraft(initial: FixedEntry | null | undefined, kindPorDefecto: Movem
  * después de creado: apuntar una nómina en el bloque de gastos es un error de un
  * toque y arreglarlo no debería obligar a borrar y volver a escribir.
  *
- * Tampoco hay tope al que colgarlo: un fijo es exacto y un tope es para lo que
- * varía. Colgar el alquiler de un tope lo llenaría solo, sin haber apuntado nada.
+ * Tampoco hay partida a la que colgarlo: un fijo es exacto y una partida es para
+ * lo que varía. Colgar el alquiler de una partida la llenaría sola, sin haber
+ * apuntado nada.
  */
 export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave, onDelete }: FixedEntrySheetProps) {
   const { members, kids } = useStore()

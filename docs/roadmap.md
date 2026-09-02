@@ -271,7 +271,7 @@ cuatro piezas y una sola palabra «presupuesto»".
       compartida por el mock y Supabase.
 - [x] Contratos `BudgetsRepo`, `ExpensesRepo` y `QuotesRepo`, y las dos
       implementaciones (mock con `SCHEMA_VER` 13 y Supabase).
-- [x] Pantalla `/finanzas`: el mes con sus topes, sus gastos y el reparto por persona; y
+- [x] Pantalla `/finanzas`: el mes con sus partidas, sus gastos y el reparto por persona; y
       los presupuestos pedidos, agrupados y comparados.
 - [x] En "Más" con Notas y Documentos, y en `SideNav` en escritorio.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que Farpi no se
@@ -314,14 +314,14 @@ pregunta que se hace en una casa a mitad de mes. El porqué entero está en
 
 - [x] Tabla nueva `fixed_entries` —el mes tipo: nóminas, alquiler, luz, suscripciones—
       con RLS por familia, índices, trigger de `updated_at` y los dos de integridad entre
-      familias. **No genera movimientos**: es un dato que vale hasta que se cambie.
+      familias. **No genera apuntes**: es un dato que vale hasta que se cambie.
 - [x] Columna `kind` en `expenses` (`default 'gasto'`, así que lo ya apuntado sigue
       valiendo) y el `check` `expenses_ingreso_sin_tope`, que impide en la base que un
-      ingreso descuente de un tope.
+      ingreso descuente de una partida.
 - [x] Contrato `FixedEntriesRepo` y las dos implementaciones (mock con `SCHEMA_VER` 14 y
       Supabase), las dos forzando el `budget_id` a null en los ingresos.
 - [x] `cuentaDelMes` en `src/lib/budgets.ts`: ingresos fijos, gastos fijos, «para el mes»,
-      lo apuntado y **cuánto queda**. Los topes y el reparto pasan a mirar solo los gastos.
+      lo apuntado y **cuánto queda**. Las partidas y el reparto pasan a mirar solo los gastos.
 - [x] Tercera pestaña **«Fijos»** (`FijosPanel`, `FixedEntrySheet`) y la tarjeta
       `CuentaDelMes` arriba de «El mes», con su caso aparte para cuando no hay ningún fijo.
 - [x] **Vocabulario**: los `budgets` pasan a llamarse «topes» y los `expenses`
@@ -330,12 +330,54 @@ pregunta que se hace en una casa a mitad de mes. El porqué entero está en
 - [x] En la copia de seguridad (quince tablas) y en la semilla de la demo, con un mes tipo
       de una familia normal.
 - [x] Catorce unitarios nuevos en `budgets.spec.ts` y `finanzas.spec.ts`, y dos flujos de
-      navegador (la cuenta del mes con un ingreso que no toca los topes; un gasto fijo que
+      navegador (la cuenta del mes con un ingreso que no toca las partidas; un gasto fijo que
       baja lo que queda).
 - [x] Esquema aplicado en el SQL Editor del proyecto real y revalidado el 01-09-2026:
       **106/106**, con siete comprobaciones nuevas en el arnés —los tres de RLS sobre
       `fixed_entries`, los dos triggers de asignación entre familias y los dos `check` que
-      impiden un tipo inventado y un ingreso colgado de un tope.
+      impiden un tipo inventado y un ingreso colgado de una partida.
+
+## Fase 8g - Finanzas: fuera las palabras de banco (02-09-2026)
+
+Los nombres que puso la fase anterior duraron un día. El porqué está en
+`docs/architecture.md`, en «"Topes" y "movimientos" duraron un día».
+
+- [x] Los `budgets` dejan de ser «topes» y pasan a ser **partidas**: la palabra nombra el
+      apartado con dinero asignado, no solo el techo que no se puede pasar.
+- [x] Los `expenses` dejan de ser «movimientos»: la lista se llama **«El día a día»** y una
+      fila suya es un **apunte**, que es el verbo que la sección ya usaba.
+- [x] El cambio baja al código (`resumenPartidas`, `apuntesDelMes`, `gastosSinPartida`,
+      `abrirPartida`, `guardarApunte`). Las tablas, el `check`
+      `expenses_ingreso_sin_tope` y el tipo `MovementKind` **no** se tocan.
+
+## Fase 8h - Finanzas con historia: el mes tipo y los meses cerrados (02-09-2026)
+
+Lo que pedía el uso real: que la cuenta de un mes se cargue de los fijos y **quede
+guardada aunque luego los cambies**. El porqué y las alternativas descartadas, en
+`docs/architecture.md`, «El mes tipo y los meses cerrados».
+
+- [x] La plantilla es cómo suele ser un mes; el mes en curso la refleja; el mes que
+      termina se queda con una copia congelada. Sin ningún botón de cerrar nada.
+- [x] Tablas `month_plans` y `month_plan_lines`, las dos primeras de contenido con
+      policy de **solo lectura**: no hay insert, update ni delete para nadie.
+- [x] RPC `close_month` (`security definer`, con el `execute` revocado de `public`,
+      `anon` y `authenticated`, y concedido a `service_role`) y
+      `close_previous_month`, que sí comprueba la familia y es la que llama la app.
+- [x] El cierre lo intentan dos sitios idempotentes: el cron diario y la app al
+      arrancar cuando ve que falta el mes pasado.
+- [x] Las **partidas se mudan a «El mes tipo»**: son una cifra del mes tipo, igual
+      que un fijo. En «El mes» se siguen viendo con su barra.
+- [x] `plantillaDelMes` en `src/lib/budgets.ts` resuelve qué valía en cada mes;
+      `cuentaDelMes` y `resumenPartidas` cuelgan de ella.
+- [x] Relleno de una sola vez de los meses terminados que ya tenían apuntes, con la
+      plantilla del día en que se aplicó.
+- [x] `SCHEMA_VER` 16 en el mock, con junio y julio sembrados con otras cifras para
+      que la demo enseñe la diferencia.
+- [x] 14 unitarios nuevos y 5 flujos de navegador; 12 comprobaciones nuevas en el
+      arnés de RLS, en una §4 bis propia.
+- [x] Aplicado en el SQL Editor del proyecto real y revalidado el 02-09-2026:
+      **129/129**. El delta que se aplicó quedó en
+      `supabase/aplicar-meses-cerrados.sql`.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

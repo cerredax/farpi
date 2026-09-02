@@ -13,6 +13,100 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-02
+
+### Finanzas con historia: el mes tipo y los meses cerrados (02-09-2026)
+
+El mismo día que se arreglaron las palabras salió el problema de debajo, que era de
+fondo: **la cuenta de un mes se reescribía sola**. Los fijos y las partidas eran «una
+cifra que vale hasta que se cambie», así que subir el alquiler en septiembre hacía
+que junio también dijera el alquiler de septiembre. La víspera eso figuraba en
+`architecture.md` como contrapartida asumida a cambio de no tener que «abrir
+septiembre» cada treinta días. Duró un día: en cuanto la sección sirve para llevar
+el control de una casa, un pasado que se reescribe solo no es un pasado.
+
+La solución tenía que respetar la condición que lo había motivado todo, que no se
+negociaba: **nada de cerrar el mes a mano**. Un botón de cierre mensual habría
+resuelto el problema técnico creando el problema de producto que Farpi existe para
+no tener.
+
+Quedó en una regla de una línea: la plantilla es cómo suele ser un mes, el mes en
+curso la refleja, y el mes que termina se queda con una copia congelada. Las
+partidas se mudaron con los fijos a la plantilla —una partida es lo mismo que un
+fijo, una cifra del mes tipo, solo que en vez de gastarse sola se va llenando—, y la
+pestaña «Fijos» pasó a llamarse **«El mes tipo»** porque ya no eran solo fijos.
+
+Lo que más se discutió fue si congelar también el mes en curso, que es lo más
+literal de «no se puede alterar». Se descartó por dos casos que pasan de verdad:
+quien monta la app a mitad de mes se habría quedado con una foto vacía imposible de
+rellenar, y quien se equivoca al dar de alta un fijo habría cargado con el error
+treinta días. Congelar sirve para que el pasado no se mueva, no para que el presente
+no se pueda arreglar.
+
+El cierre lo intentan dos sitios que no se coordinan y que son idempotentes: el cron
+diario, que ya pasaba por ahí todos los días, y la propia app al arrancar si ve que
+falta el mes pasado. Cada uno tapa el agujero del otro. Y **solo se cierra el mes
+anterior, nunca más atrás**: si el cron estuviera caído tres meses, copiar la
+plantilla de hoy en enero escribiría en enero unos números que puede que en enero no
+fueran esos. Por eso hay un tercer estado que se enseña tal cual —«de este mes no se
+guardó el plan»— en vez de rellenarlo con lo de hoy, que era el error de partida.
+
+Dos detalles que costaron y que conviene no volver a pensar. Las dos tablas nuevas
+son las primeras de contenido **sin policy de escritura para nadie**, ni para el
+dueño: lo que hace que un mes cerrado se pueda dar por bueno es que la app no pueda
+reescribirlo. Y `close_month` es `security definer` y no comprueba familia, así que
+hubo que **revocarle el `execute`** de `public`, `anon` y `authenticated` — Postgres
+lo concede a `public` por defecto en cada función nueva, y sin ese `revoke`
+cualquiera podía congelarle el mes a cualquier casa. Se lo queda `service_role` para
+el cron; la app usa `close_previous_month`, que sí comprueba.
+
+Los meses que ya habían pasado se rellenaron con una sentencia de una sola vez, y
+era correcta **ese día y solo ese día**: la plantilla no había cambiado desde que se
+puso, porque Finanzas nació el 31-08 y los fijos el 01-09. Un mes más tarde, esa
+misma sentencia habría escrito números inventados.
+
+En la demo, junio y julio vienen sembrados con otras cifras —760 € de alquiler, 350
+de compra— y agosto lo cierra la app al arrancar. Sin eso, un mes congelado y un mes
+espejo se ven exactamente igual y no hay nada que entender.
+
+Aplicado en el proyecto real ese mismo día y revalidado: **129/129**, con doce
+comprobaciones nuevas en una §4 bis del arnés. Cuatro de ellas van contra el propio
+dueño —que A no puede insertar, añadir, reescribir ni borrar en un mes cerrado—, que
+es la afirmación fuerte y la que no se podía dar por supuesta.
+
+### Finanzas deja de hablar como un banco: partidas y el día a día (02-09-2026)
+
+Los nombres que había puesto la reforma del día anterior —«Topes» arriba,
+«Movimientos» debajo— duraron exactamente un día. No eran ambiguos, que era el
+problema que se había arreglado la víspera; eran **de banco**. Una casa no tiene
+movimientos, tiene un día a día; y a la compra no se le pone un tope, se le pone
+una partida.
+
+Con «tope» el fallo era además concreto y se veía en la pantalla: la palabra
+nombra solo el techo —lo que **no** puedes pasar—, así que la sección se leía como
+una advertencia incluso a primeros de mes, con todas las barras vacías. «Partida»
+nombra la cosa entera: un apartado con dinero asignado. Es lo que la fila enseña de
+verdad, que no es «no te pases de 250» sino «llevas 178 y te quedan 72».
+
+Con «movimiento» el fallo era otro: no daba singular utilizable. «El día a día»
+funciona como título de la lista, pero nadie llama «movimiento» a lo que acaba de
+apuntar. La palabra que faltaba ya estaba escrita por toda la sección, en los
+estados vacíos y en los botones: **apuntar**. Así que una fila es un **apunte**, y
+sección, fila y acción dicen lo mismo sin enseñar vocabulario nuevo.
+
+Se descartaron por el camino «sobres» —el método del sobre encaja con la hucha de
+la sección, pero promete un dinero apartado que Farpi no aparta—, «límites» —exacto
+y frío, la misma app de banco de la que se venía— y «secciones», que ya significa
+otra cosa en Farpi: Inicio, Tareas, Finanzas.
+
+El cambio bajó hasta el código (`resumenPartidas`, `apuntesDelMes`,
+`gastosSinPartida`, `abrirPartida`, `guardarApunte`), por el mismo motivo por el
+que bajó Dinero → Finanzas: para no traducir mentalmente en cada archivo. Lo que no
+se tocó: las tablas `budgets` y `expenses`, el `check` `expenses_ingreso_sin_tope`
+y el tipo `MovementKind`. Renombrar cualquiera de los tres obliga a migrar la base
+real —que está en producción con datos de una familia— a cambio de una palabra que
+nadie ve.
+
 ## Cerrado el 2026-09-01
 
 ### Finanzas: los fijos, los ingresos y una palabra que dejó de significar dos cosas (01-09-2026)

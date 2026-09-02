@@ -130,6 +130,11 @@ export const mockRepos: Repos = {
     setQuoteStatus: (id, status) => Promise.resolve(store.setQuoteStatus(id, status)),
   },
 
+  monthPlans: {
+    getMonthPlans:       (familyId) => Promise.resolve(store.getMonthPlans(familyId)),
+    closePreviousMonth:  (familyId) => Promise.resolve(store.closePreviousMonth(familyId)),
+  },
+
   documents: {
     getDocuments:    (familyId) => Promise.resolve(store.getDocuments(familyId)),
     createDocument:  (familyId, draft) => Promise.resolve(store.createDocument(familyId, draft)),

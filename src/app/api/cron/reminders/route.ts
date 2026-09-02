@@ -101,6 +101,19 @@ function fallo(contexto: string, mensaje: string) {
   return NextResponse.json({ error: 'No se pudieron preparar los recordatorios', contexto }, { status: 500 })
 }
 
+/**
+ * El mes que acaba de terminar, `YYYY-MM`, en la zona de la familia.
+ *
+ * En UTC, el 1 de marzo a las 00:30 en Madrid todavía es 28 de febrero, así que
+ * «el mes pasado» saldría enero y el cierre se saltaría un día. Es la misma razón
+ * por la que el resto del cron calcula «hoy» con `REMINDER_TIME_ZONE`.
+ */
+function mesAnteriorEn(timeZone: string): string {
+  const { year, month } = getZonedDateParts(new Date(), timeZone)
+  const anterior = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 }
+  return `${anterior.year}-${String(anterior.month).padStart(2, '0')}`
+}
+
 export async function GET(req: NextRequest) {
   // Esta ruta queda fuera del control de sesión del proxy (el cron de Vercel
   // llama sin cookies), así que el secreto es su única defensa: sin él
@@ -126,11 +139,37 @@ export async function GET(req: NextRequest) {
   if (keepAliveError) console.error('[cron] Keep-alive:', keepAliveError.message)
   const keptAlive = !keepAliveError
 
+  // Cerrar el mes que ha terminado, para todas las familias.
+  //
+  // Va **antes** de las salidas tempranas de las push a propósito: cerrar el mes
+  // no tiene nada que ver con notificar a nadie, y colgarlo de que haya
+  // suscripciones dejaría sin historia a la familia que no las tenga activadas.
+  //
+  // Se hace todos los días y no solo el 1: la RPC es idempotente y solo mira el
+  // mes anterior, así que el día 2 no hace nada y el día 1 —o el 3, si el cron
+  // llegó tarde— cierra lo que falte. Un `if (día === 1)` haría que un cron caído
+  // esa madrugada perdiera el mes entero sin que nadie se enterara.
+  //
+  // Si falla no aborta: los recordatorios de hoy importan más que la foto de un
+  // mes que ya terminó, y la app lo reintenta sola en cuanto alguien la abra.
+  const { data: todasLasFamilias, error: familiasError } = await supabase.from('families').select('id')
+  if (familiasError) console.error('[cron] Cierre de mes, consulta de familias:', familiasError.message)
+
+  let mesesCerrados = 0
+  for (const familia of todasLasFamilias ?? []) {
+    const { data: cerrado, error } = await supabase.rpc('close_month', {
+      p_family_id: familia.id,
+      p_month: mesAnteriorEn(REMINDER_TIME_ZONE),
+    })
+    if (error) console.error('[cron] Cierre de mes:', error.message)
+    else if (cerrado === true) mesesCerrados++
+  }
+
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   const privateKey = process.env.VAPID_PRIVATE_KEY
   const subject = process.env.VAPID_SUBJECT
   if (!publicKey || !privateKey || !subject) {
-    return NextResponse.json({ skipped: 'VAPID no configurado', keptAlive })
+    return NextResponse.json({ skipped: 'VAPID no configurado', keptAlive, mesesCerrados })
   }
   webpush.setVapidDetails(subject, publicKey, privateKey)
 
@@ -140,7 +179,7 @@ export async function GET(req: NextRequest) {
   // `{ sent: 0 }`, la primera vez que esto se ejecute de verdad no habría forma
   // de saber si es que nadie se ha suscrito o es que no había nada que contar.
   if (!subs || subs.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, keptAlive, sinSuscripciones: true })
+    return NextResponse.json({ ok: true, sent: 0, keptAlive, mesesCerrados, sinSuscripciones: true })
   }
 
   const userIds = [...new Set(subs.map(s => s.user_id))]
@@ -153,7 +192,7 @@ export async function GET(req: NextRequest) {
 
   const familyIds = [...new Set((members ?? []).map(m => m.family_id))]
   if (familyIds.length === 0) {
-    return NextResponse.json({ ok: true, sent: 0, keptAlive, sinFamilias: true })
+    return NextResponse.json({ ok: true, sent: 0, keptAlive, mesesCerrados, sinFamilias: true })
   }
 
   const todayParts = getZonedDateParts(new Date(), REMINDER_TIME_ZONE)
@@ -285,5 +324,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, fallidos, caducadas })
+  return NextResponse.json({ ok: true, sent, fallidos, caducadas, mesesCerrados })
 }

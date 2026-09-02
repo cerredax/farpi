@@ -14,7 +14,7 @@ import type { Budget, Expense, ExpenseDraft } from '@/types'
 interface ExpenseSheetProps {
   open: boolean
   initial?: Expense | null
-  /** Con qué fecha nace un gasto nuevo: hoy, o el día 1 si se mira otro mes. */
+  /** Con qué fecha nace un apunte nuevo: hoy, o el día 1 si se mira otro mes. */
   fechaPorDefecto: string
   budgets: Budget[]
   onClose: () => void
@@ -40,15 +40,15 @@ function initDraft(initial: Expense | null | undefined, fechaPorDefecto: string)
 }
 
 /**
- * Apuntar un movimiento: un gasto, o un ingreso que no es de todos los meses
- * —una devolución, un trabajo suelto, el regalo de la abuela—. Es el formulario
- * que más se usa de esta pantalla y por eso es el más corto que puede ser.
+ * Apuntar: un gasto, o un ingreso que no es de todos los meses —una devolución,
+ * un trabajo suelto, el regalo de la abuela—. Es el formulario que más se usa de
+ * esta pantalla y por eso es el más corto que puede ser.
  *
- * **El tope solo se pregunta en los gastos.** En un ingreso el campo no está,
- * porque no hay nada que elegir: un tope mide lo que se gasta y una devolución de
- * 40 € no puede liberar 40 € de la compra. Se esconde en vez de deshabilitarse
- * —un campo apagado obliga a preguntarse por qué— y al cambiar a ingreso el tope
- * ya elegido se suelta, que es lo que van a guardar el mock y Supabase.
+ * **La partida solo se pregunta en los gastos.** En un ingreso el campo no está,
+ * porque no hay nada que elegir: una partida mide lo que se gasta y una devolución
+ * de 40 € no puede liberar 40 € de la compra. Se esconde en vez de deshabilitarse
+ * —un campo apagado obliga a preguntarse por qué— y al cambiar a ingreso la
+ * partida ya elegida se suelta, que es lo que van a guardar el mock y Supabase.
  *
  * El importe es el primer campo y el que recibe el foco. Va como `inputMode`
  * decimal y no como `type="number"`: el numérico del navegador trae flechas de
@@ -80,7 +80,7 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
   return (
     <BottomSheet
       open={open}
-      title={initial ? 'Editar movimiento' : 'Nuevo movimiento'}
+      title={initial ? 'Editar apunte' : 'Nuevo apunte'}
       onClose={onClose}
       footer={
         <SheetFooter
@@ -89,7 +89,7 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
           disabled={!draft.amount.trim()}
           error={formError}
           onDelete={initial
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar movimiento', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar apunte', confirmLabel: 'Confirmar eliminación' }
             : undefined}
         />
       }
@@ -103,7 +103,7 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
             >
               Un gasto
             </SelectChip>
-            {/* Al pasar a ingreso se suelta el tope: si se quedara puesto, el
+            {/* Al pasar a ingreso se suelta la partida: si se quedara puesta, el
                 `check` de la base rechazaría la fila y el mock guardaría algo
                 distinto de lo que enseñó el formulario. */}
             <SelectChip
@@ -151,14 +151,14 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
           />
         </Field>
 
-        {/* Sin tope es una opción de verdad y va la primera: la mitad de los
+        {/* Sin partida es una opción de verdad y va la primera: la mitad de los
             gastos de una casa no caen en ninguna categoría, y obligar a elegir
             una haría que se apuntaran mal o no se apuntaran. */}
         {!esIngreso && (
-          <Field label="De qué tope sale" spacing="group">
+          <Field label="De qué partida sale" spacing="group">
             <div className="flex flex-wrap gap-2">
               <SelectChip selected={draft.budget_id === null} onClick={() => patch({ budget_id: null })}>
-                Sin tope
+                Sin partida
               </SelectChip>
               {budgets.map(budget => (
                 <SelectChip

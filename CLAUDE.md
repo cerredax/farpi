@@ -52,8 +52,9 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
   arquitectura grande. No sobrerrefactorizar.
 - Antes de "arreglar" algo que parezca una incoherencia —las listas marcan lo que
   falta y no lo hecho, el catálogo se pide con `+` y no con un tic, lo atrasado se
-  arrastra a hoy, las vacaciones no salen en los planes del día—, lee "Decisiones de
-  producto" en `docs/architecture.md`. Está así a propósito y costó varias vueltas.
+  arrastra a hoy, las vacaciones no salen en los planes del día, un mes de Finanzas
+  que ya terminó no se puede tocar—, lee "Decisiones de producto" en
+  `docs/architecture.md`. Está así a propósito y costó varias vueltas.
 - Si tocas lógica pura (fechas, recurrencia, selectores, validadores), añade o ajusta
   su test en `e2e/unit/` y ejecuta `npm run test:unit`. Playwright es el **único**
   runner, para los unitarios y para los de navegador: no añadir Jest ni Vitest.
@@ -79,8 +80,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 362 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 476 (362 unitarios + 114 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 371 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 490 (371 unitarios + 119 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)

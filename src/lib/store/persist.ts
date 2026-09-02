@@ -23,7 +23,7 @@ function migrarClaveVieja(): void {
     localStorage.removeItem(STORAGE_KEY_NIDO)
   } catch { /* ignore */ }
 }
-const SCHEMA_VER  = 15 // v15: la franja del comedor y los platos de una comida
+const SCHEMA_VER  = 16 // v16: los meses cerrados (`monthPlans`)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return
@@ -52,6 +52,7 @@ export function loadFromStorage(): void {
     if (Array.isArray(d.budgets))   db.budgets   = d.budgets
     if (Array.isArray(d.expenses))  db.expenses  = d.expenses
     if (Array.isArray(d.quotes))    db.quotes    = d.quotes
+    if (Array.isArray(d.monthPlans)) db.monthPlans = d.monthPlans
     if (Array.isArray(d.documents)) db.documents = d.documents
   } catch {
     localStorage.removeItem(STORAGE_KEY)
@@ -77,6 +78,7 @@ export function persistAll(): void {
       budgets:   db.budgets,
       expenses:  db.expenses,
       quotes:    db.quotes,
+      monthPlans: db.monthPlans,
       documents: db.documents,
     }))
   } catch { /* ignore */ }

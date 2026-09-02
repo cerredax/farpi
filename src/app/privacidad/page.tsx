@@ -41,7 +41,7 @@ export default function PrivacidadPage() {
         <p>
           En el apartado de <strong>Finanzas</strong> se guardan los ingresos y gastos fijos del mes que apunta la
           familia —incluidos, si los ponéis, los <strong>importes de las nóminas</strong> y de quién es cada una—,
-          los topes de gasto, los movimientos que se van apuntando —importe, fecha, una descripción, de qué tope
+          las partidas de gasto, los apuntes del día a día —importe, fecha, una descripción, de qué partida
           sale y qué persona de la familia lo pagó o lo trajo— y los presupuestos que os pasan proveedores de
           fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a ningún banco</strong>: no
           pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias, y todo lo de este apartado

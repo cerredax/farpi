@@ -151,7 +151,7 @@ export interface Note {
 }
 
 /**
- * Gasto o ingreso. Lo que parte en dos tanto los fijos como los movimientos.
+ * Gasto o ingreso. Lo que parte en dos tanto los fijos como los apuntes.
  *
  * Es un campo y no un signo en el importe: los importes son **siempre
  * positivos**, aquí y en la base. Un ingreso guardado como gasto negativo haría
@@ -164,8 +164,8 @@ export type MovementKind = 'gasto' | 'ingreso'
  * El mes tipo: lo que entra y lo que sale todos los meses sin apuntar nada. Las
  * dos nóminas, el alquiler, la luz, la suscripción.
  *
- * **No genera movimientos.** Es una cifra que vale hasta que se cambie, igual
- * que el tope de un `Budget`. Con la contrapartida que hay que saber: cambiar el
+ * **No genera apuntes.** Es una cifra que vale hasta que se cambie, igual que la
+ * partida de un `Budget`. Con la contrapartida que hay que saber: cambiar el
  * alquiler cambia también lo que dicen los meses pasados, porque no hay
  * vigencias por fila y mes.
  *
@@ -190,9 +190,9 @@ export interface FixedEntry {
 }
 
 /**
- * Un tope de gasto al mes para algo: la compra, el colegio, el ocio.
+ * Una partida de gasto al mes para algo: la compra, el colegio, el ocio.
  *
- * El tope **no es por mes**: es una cifra que vale hasta que se cambie. Una fila
+ * La partida **no es por mes**: es una cifra que vale hasta que se cambie. Una fila
  * por categoría y mes obligaría a "abrir septiembre" cada treinta días, que es
  * el trabajo administrativo que esta app existe para no pedir.
  *
@@ -214,18 +214,18 @@ export interface Budget {
 }
 
 /**
- * Un movimiento de la casa: un gasto o un ingreso, con su fecha. Lo que hace que
- * el tope de un `Budget` signifique algo.
+ * Un apunte de la casa: un gasto o un ingreso, con su fecha. Lo que hace que la
+ * partida de un `Budget` signifique algo.
  *
  * Se sigue llamando `Expense` porque así se llama la tabla, que no se renombró:
- * hacerlo obligaba a migrar la base real a cambio de una palabra. En pantalla
- * son «movimientos».
+ * hacerlo obligaba a migrar la base real a cambio de una palabra. En pantalla la
+ * lista se llama «El día a día» y una fila suya es un «apunte».
  *
- * `budget_id` puede ser null: o no se le puso tope, o se borró el que tenía. El
- * gasto pasó igual, así que no se va con su categoría; la pantalla lo junta bajo
- * "Sin tope". **Un ingreso lo tiene siempre a null**, y eso lo garantiza un
- * `check` de la base: si un ingreso descontara de un tope, una devolución de 40 €
- * liberaría 40 € de la compra sin que nadie haya dejado de comprar.
+ * `budget_id` puede ser null: o no se le puso partida, o se borró la que tenía.
+ * El gasto pasó igual, así que no se va con su categoría; la pantalla lo junta
+ * bajo "Sin partida". **Un ingreso lo tiene siempre a null**, y eso lo garantiza
+ * un `check` de la base: si un ingreso descontara de una partida, una devolución
+ * de 40 € liberaría 40 € de la compra sin que nadie haya dejado de comprar.
  *
  * `child_id` y `member_id` son **quién lo pagó o quién lo trajo**, con la misma
  * forma excluyente que en eventos, tareas y documentos. Los dos a null significa
@@ -279,6 +279,51 @@ export interface Quote {
   created_by: string | null
   created_at: string
   updated_at: string
+}
+
+/**
+ * Una línea de la foto de un mes cerrado: un fijo tal y como estaba, o una
+ * partida con el límite que tenía.
+ *
+ * `line` hace de `kind` y de discriminante a la vez. En `'ingreso'` y `'gasto'`
+ * la línea es un fijo y `budget_id` va siempre a null; en `'partida'`,
+ * `amount_cents` es el límite del mes y `budget_id` apunta a la partida viva —o a
+ * null, si se borró después—.
+ *
+ * El nombre y el emoji se copian, no se leen de la plantilla: borrar la partida
+ * «Coche» en abril no puede dejar a enero con un hueco donde decía «Coche 150 €».
+ */
+export interface MonthPlanLine {
+  id: string
+  family_id: string
+  /** `YYYY-MM`. */
+  month: string
+  line: MovementKind | 'partida'
+  budget_id: string | null
+  name: string
+  emoji: string | null
+  /** Importe del fijo o límite de la partida, en céntimos y siempre positivo. */
+  amount_cents: number
+  child_id: string | null
+  member_id: string | null
+  sort_order: number
+  created_at: string
+}
+
+/**
+ * Un mes que ya terminó, con la plantilla que tenía el día que se cerró.
+ *
+ * **Que exista la cabecera es el dato.** Un mes cerrado sin ninguna línea —una
+ * familia que no había puesto nada— y un mes sin cerrar son las dos cero líneas,
+ * y la pantalla tiene que decir cosas distintas: «no había nada puesto» y «de este
+ * mes no hay plan guardado» no son lo mismo.
+ */
+export interface MonthPlan {
+  family_id: string
+  /** `YYYY-MM`. */
+  month: string
+  closed_at: string
+  lines: MonthPlanLine[]
 }
 
 /**
@@ -441,7 +486,7 @@ export interface ExpenseDraft {
   date: string
   description: string
   /**
-   * Vacío = sin tope. En un ingreso es **siempre** null: el formulario ni
+   * Vacío = sin partida. En un ingreso es **siempre** null: el formulario ni
    * pregunta, y la base lo rechazaría si llegara con valor.
    */
   budget_id: string | null

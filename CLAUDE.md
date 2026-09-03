@@ -112,6 +112,16 @@ Pantallas (src/components/**)
             -> src/lib/store/* (módulos del mock) -> localStorage (`farpi_store_v1`)
 ```
 
+- **Toda escritura declara qué datos toca.** `runMutation(accion, ['tasks'])` recarga solo
+  esa porción; sin el segundo argumento se recargan las 18, que es lo que hacían todas
+  hasta el 03-09-2026 —marcar la leche en la compra volvía a descargar los eventos, las
+  comidas, los gastos y los documentos—. Qué declarar **no** es «la tabla en la que
+  escribo», es esa y todas a las que llegue el esquema solo: `supabase/schema.sql` está
+  lleno de `on delete set null` y `on delete cascade`. Borrar una partida toca los gastos
+  **y** las líneas de los meses cerrados; borrar un hijo o echar a un miembro toca seis
+  tablas, y por eso esas dos no declaran nada. **Si hay duda, no se declara**: declarar de
+  menos deja un dato viejo en la pantalla de alguien, no declarar cuesta unas consultas.
+  La lista y la regla, en el bloque de `Porcion` en `store-context.tsx`.
 - `IS_DEMO_MODE` se calcula **en un solo sitio**: `src/lib/supabase/env.ts` (URL/anon key ausentes o placeholder). Lo comparten cliente, servidor, proxy y rutas API — no reimplementar esa detección en otra capa.
 - Cualquier operación nueva se añade **primero al contrato** `repos/types.ts` y después a las **dos** implementaciones. El mock debe imitar el comportamiento de Supabase (filtrado por `family_id`, `child_id = null` al borrar un hijo, comidas únicas por familia/fecha/slot, invitaciones separadas de miembros).
 - El mock persiste con `SCHEMA_VER` en `src/lib/store/persist.ts`: si cambia la forma de los datos, sube la versión y revisa la migración de `localStorage`.

@@ -397,6 +397,25 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
+## Rendimiento
+
+- **Invalidación por porción en el store** (03-09-2026). Cada escritura declara qué datos
+  toca y solo se recargan esos. Antes toda escritura pasaba por un `Promise.all` de 18
+  consultas con el dataset completo de la familia: marcar un ítem de la compra volvía a
+  descargar eventos, comidas, gastos, notas y documentos. Ahora casi todas piden una sola
+  porción; tres piden dos o tres (el nombre de la familia sale también en el selector;
+  borrar una cesta se lleva sus ítems; borrar una partida toca gastos **y** las líneas de
+  los meses cerrados) y **dos recargan todo a propósito** —borrar un hijo y echar a un
+  miembro ponen su asignación a `null` en seis tablas—. Sin declarar nada se recarga todo,
+  así que una escritura nueva que se olvide de declarar cuesta consultas, no corrección.
+  El mapeo lo cubre `runtime.spec.ts`: recorre los CRUD de cada pantalla, y una porción mal
+  declarada deja el dato viejo en la interfaz y tumba el test.
+- Lo que **no** se ha tocado y sigue pendiente: los getters no tienen ventana temporal
+  (`getEvents`, `getMeals`, `getExpenses` traen todas las filas de la familia desde
+  siempre), y no hay actualización optimista en los dos gestos de más frecuencia. Las dos
+  cosas son decisiones de semántica —hasta dónde puede navegar el calendario— y merecen su
+  propia vuelta.
+
 ## Correcciones de seguridad
 
 - `my_family_ids()` con `set search_path = public` (evita search path hijacking).

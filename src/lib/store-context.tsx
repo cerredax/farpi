@@ -185,6 +185,38 @@ interface StoreProviderProps {
   switchFamily: (id: string) => void
 }
 
+/**
+ * Las porciones de datos que el provider sabe recargar por separado.
+ *
+ * Es la lista de la que sale todo lo demás: `cargadores` es un `Record` con
+ * exactamente estas claves —así que añadir una porción sin su cargador no
+ * compila— y las escrituras declaran cuáles tocan.
+ *
+ * `currentUserId` está aquí por completitud, aunque no la declare ninguna
+ * escritura: quién eres no cambia por escribir nada. Se recarga solo en la carga
+ * completa, que es donde importa.
+ *
+ * **Cómo se decide qué porciones declara una escritura nueva.** No es «la tabla
+ * en la que escribo»: es esa **y todas a las que llegue el esquema por su
+ * cuenta**. `supabase/schema.sql` está lleno de `on delete set null` y de
+ * `on delete cascade`, y una fila que cambia sola no avisa. Se mira ahí, no aquí:
+ *
+ *   - borrar una cesta se lleva sus ítems (`list_items.list_id`, cascade);
+ *   - borrar una partida deja a `null` el `budget_id` de los gastos **y** el de
+ *     las líneas de los meses ya cerrados —dos tablas, no una—;
+ *   - borrar un hijo o echar a un miembro pone su asignación a `null` en las
+ *     **seis** tablas que la tienen, y por eso esas dos no declaran nada.
+ *
+ * Y la regla de oro: **si hay duda, no se declara.** Sin porciones se recarga
+ * todo, que es exactamente lo que hacía la app antes de que esto existiera.
+ * Equivocarse por declarar de menos deja un dato viejo en la pantalla de alguien;
+ * equivocarse por no declarar cuesta unas consultas. No son el mismo error.
+ */
+export type Porcion =
+  | 'family' | 'families' | 'members' | 'invites' | 'kids' | 'events' | 'tasks'
+  | 'lists' | 'listItems' | 'meals' | 'notes' | 'fixedEntries' | 'budgets'
+  | 'expenses' | 'quotes' | 'monthPlans' | 'documents' | 'currentUserId'
+
 const EMPTY_SLICES = {
   families: [] as Family[],
   members: [] as FamilyMember[],
@@ -264,51 +296,71 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [storageConnection, setStorageConnection] = useState<StorageConnection | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
+  /**
+   * Cómo se trae cada porción de datos. Una función por porción, cada una se
+   * pide sola y cada una devuelve lo que ha traído además de guardarlo.
+   *
+   * Existe para que una escritura no tenga que recargar la casa entera. Antes
+   * había un solo `Promise.all` de dieciocho consultas y **toda** escritura
+   * pasaba por él: marcar la leche en la lista de la compra volvía a descargar
+   * los eventos, las comidas, los gastos y los documentos. Con una familia y un
+   * año de datos eso son cientos de filas por cada tic de un círculo.
+   *
+   * Devuelven el valor y no solo lo guardan porque el cierre del mes pasado
+   * necesita leer dos de ellas —la familia y los planes— y los `setState` de
+   * React no se pueden leer justo después de llamarlos.
+   */
+  const cargadores: Record<Porcion, () => Promise<unknown>> = useMemo(() => ({
+    family: async () => {
+      const f = await repos.family.getFamily(familyId)
+      if (!f) throw new Error('No se ha encontrado la familia activa')
+      setFamily(f)
+      return f
+    },
+    families:      async () => { const v = await repos.family.getFamilies();               setFamilies(v);     return v },
+    members:       async () => { const v = await repos.members.getMembers(familyId);       setMembers(v);      return v },
+    invites:       async () => { const v = await repos.invites.getInvites(familyId);       setInvites(v);      return v },
+    kids:          async () => { const v = await repos.children.getKids(familyId);         setKids(v);         return v },
+    events:        async () => { const v = await repos.events.getEvents(familyId);         setEvents(v);       return v },
+    tasks:         async () => { const v = await repos.tasks.getTasks(familyId);           setTasks(v);        return v },
+    lists:         async () => { const v = await repos.lists.getLists(familyId);           setLists(v);        return v },
+    listItems:     async () => { const v = await repos.listItems.getListItems(familyId);   setListItems(v);    return v },
+    meals:         async () => { const v = await repos.meals.getMeals(familyId);           setMeals(v);        return v },
+    notes:         async () => { const v = await repos.notes.getNotes(familyId);           setNotes(v);        return v },
+    fixedEntries:  async () => { const v = await repos.fixedEntries.getFixedEntries(familyId); setFixedEntries(v); return v },
+    budgets:       async () => { const v = await repos.budgets.getBudgets(familyId);       setBudgets(v);      return v },
+    expenses:      async () => { const v = await repos.expenses.getExpenses(familyId);     setExpenses(v);     return v },
+    quotes:        async () => { const v = await repos.quotes.getQuotes(familyId);         setQuotes(v);       return v },
+    monthPlans:    async () => { const v = await repos.monthPlans.getMonthPlans(familyId); setMonthPlans(v);   return v },
+    documents:     async () => { const v = await repos.documents.getDocuments(familyId);   setDocuments(v);    return v },
+    currentUserId: async () => { const v = await repos.members.getCurrentUserId();          setCurrentUserId(v); return v },
+  }), [repos, familyId])
+
+  /**
+   * Recargar solo unas porciones, después de una escritura que se sabe qué toca.
+   *
+   * **No toca `isLoading`** a propósito: eso es "estamos cargando la familia" y
+   * lo mira la pantalla de arranque. Lo que hay aquí es una escritura ya
+   * terminada, y para eso está `isSaving`, que `runMutationWith` ya lleva. Y
+   * **no cierra el mes pasado**: eso es cosa de la carga inicial, que es cuando
+   * se abre la app.
+   */
+  const recargarPorciones = useCallback(async (porciones: Porcion[]) => {
+    await Promise.all(porciones.map(p => cargadores[p]()))
+    // Igual que en la carga completa: el mock vive en memoria y sin esto
+    // recargar la página tira lo que acabas de escribir.
+    if (IS_DEMO_MODE) store.persistAll()
+  }, [cargadores])
+
   const reload = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const [
-        nextFamily,
-        nextFamilies,
-        nextMembers,
-        nextInvites,
-        nextKids,
-        nextEvents,
-        nextTasks,
-        nextLists,
-        nextListItems,
-        nextMeals,
-        nextNotes,
-        nextFixedEntries,
-        nextBudgets,
-        nextExpenses,
-        nextQuotes,
-        nextMonthPlans,
-        nextDocuments,
-        nextUserId,
-      ] = await Promise.all([
-        repos.family.getFamily(familyId),
-        repos.family.getFamilies(),
-        repos.members.getMembers(familyId),
-        repos.invites.getInvites(familyId),
-        repos.children.getKids(familyId),
-        repos.events.getEvents(familyId),
-        repos.tasks.getTasks(familyId),
-        repos.lists.getLists(familyId),
-        repos.listItems.getListItems(familyId),
-        repos.meals.getMeals(familyId),
-        repos.notes.getNotes(familyId),
-        repos.fixedEntries.getFixedEntries(familyId),
-        repos.budgets.getBudgets(familyId),
-        repos.expenses.getExpenses(familyId),
-        repos.quotes.getQuotes(familyId),
-        repos.monthPlans.getMonthPlans(familyId),
-        repos.documents.getDocuments(familyId),
-        repos.members.getCurrentUserId(),
-      ])
-
-      if (!nextFamily) throw new Error('No se ha encontrado la familia activa')
+      const traido = Object.fromEntries(
+        await Promise.all(
+          (Object.keys(cargadores) as Porcion[]).map(async p => [p, await cargadores[p]()]),
+        ),
+      ) as { family: Family; monthPlans: MonthPlan[] }
 
       // El cierre del mes pasado, que es lo que le da historia a Finanzas.
       //
@@ -324,37 +376,22 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       // no poder cerrar agosto no puede dejar la pantalla en blanco. Y **sin
       // registrar nada en consola**, que `e2e/runtime.spec.ts` tumba la suite ante
       // cualquier `console.error`.
-      const planes = await cerrarMesPasadoSiFalta(repos, familyId, nextFamily, nextMonthPlans)
+      const planes = await cerrarMesPasadoSiFalta(repos, familyId, traido.family, traido.monthPlans)
+      // Solo si el cierre ha cambiado algo: `cerrarMesPasadoSiFalta` devuelve los
+      // mismos planes que le entran cuando no había nada que cerrar, que es lo que
+      // pasa 30 días de cada 31.
+      if (planes !== traido.monthPlans) setMonthPlans(planes)
 
       // El mock vive en memoria, así que sin esto recargar la página tira lo
-      // que acabas de escribir. Va aquí porque toda escritura termina en un
-      // `reload()`, y es el simétrico del `loadFromStorage()` de más arriba.
+      // que acabas de escribir. Es el simétrico del `loadFromStorage()` de más
+      // arriba, y lo hace también `recargarPorciones`.
       if (IS_DEMO_MODE) store.persistAll()
-
-      setFamily(nextFamily)
-      setFamilies(nextFamilies)
-      setMembers(nextMembers)
-      setInvites(nextInvites)
-      setKids(nextKids)
-      setEvents(nextEvents)
-      setTasks(nextTasks)
-      setLists(nextLists)
-      setListItems(nextListItems)
-      setMeals(nextMeals)
-      setNotes(nextNotes)
-      setFixedEntries(nextFixedEntries)
-      setBudgets(nextBudgets)
-      setExpenses(nextExpenses)
-      setQuotes(nextQuotes)
-      setMonthPlans(planes)
-      setDocuments(nextDocuments)
-      setCurrentUserId(nextUserId)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando los datos')
     } finally {
       setIsLoading(false)
     }
-  }, [familyId, repos])
+  }, [familyId, repos, cargadores])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -408,13 +445,22 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     action: () => Promise<T>,
     fallback: T,
     mensaje: string,
+    porciones?: Porcion[],
   ): Promise<T> => {
     setError(null)
     setUndoAction(null)
     setIsSaving(true)
     try {
       const resultado = await action()
-      await reload()
+      // Sin `porciones` se recarga todo, que es lo que hacían todas antes. No es
+      // un descuido dejarlas así: es lo que hay que hacer cuando una escritura
+      // toca de verdad media base —borrar un hijo o echar a alguien deja su
+      // asignación a `null` en eventos, tareas, documentos, fijos y gastos— y es
+      // además la red de seguridad de la escritura nueva que se escriba mañana:
+      // olvidarse de declarar cuesta una recarga de más, no un dato viejo en
+      // pantalla. Lo caro se declara; lo raro se recarga entero.
+      if (porciones) await recargarPorciones(porciones)
+      else await reload()
       return resultado
     } catch (err) {
       setError(err instanceof Error ? err.message : mensaje)
@@ -422,12 +468,12 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     } finally {
       setIsSaving(false)
     }
-  }, [reload])
+  }, [reload, recargarPorciones])
 
   /** El caso corriente: se escribe y no hay nada que devolver. */
   const runMutation = useCallback(
-    (action: () => Promise<unknown>): Promise<void> =>
-      runMutationWith<void>(async () => { await action() }, undefined, 'No se pudo guardar el cambio'),
+    (action: () => Promise<unknown>, porciones?: Porcion[]): Promise<void> =>
+      runMutationWith<void>(async () => { await action() }, undefined, 'No se pudo guardar el cambio', porciones),
     [runMutationWith],
   )
 
@@ -534,16 +580,32 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           setIsSaving(false)
         }
       },
-      updateFamilyName: (name: string) => runMutation(() => repos.family.setFamilyName(familyId, name)),
-      updateMealSlots: (slots: MealSlot[]) => runMutation(() => repos.family.setFamilyMealSlots(familyId, slots)),
-      inviteMember: (email: string) => runMutation(() => repos.invites.createInvite(familyId, email)),
+      // El nombre de la familia se ve en dos sitios: la pantalla de Ajustes y el
+      // selector de familias de la cabecera, que se pinta con `families`. Con una
+      // sola porción, el selector seguiría diciendo el nombre viejo.
+      updateFamilyName: (name: string) =>
+        runMutation(() => repos.family.setFamilyName(familyId, name), ['family', 'families']),
+      // Las franjas viven en la fila de la familia. Lo apuntado en una franja que se
+      // apaga no se borra, solo deja de pintarse —`todayMeals` lo filtra en
+      // memoria—, así que `meals` no hace falta.
+      updateMealSlots: (slots: MealSlot[]) =>
+        runMutation(() => repos.family.setFamilyMealSlots(familyId, slots), ['family']),
+      inviteMember: (email: string) => runMutation(() => repos.invites.createInvite(familyId, email), ['invites']),
       updateMember: (id: string, name: string, color: string | null) =>
-        runMutation(() => repos.members.updateMemberProfile(id, name, color)),
-      updateMemberRole: (id: string, role: 'admin' | 'member') => runMutation(() => repos.members.updateMemberRole(id, role)),
+        runMutation(() => repos.members.updateMemberProfile(id, name, color), ['members']),
+      updateMemberRole: (id: string, role: 'admin' | 'member') =>
+        runMutation(() => repos.members.updateMemberRole(id, role), ['members']),
+      // **Sin porciones, recarga completa, y es a propósito.** Echar a alguien deja su
+      // `member_id` a `null` en eventos, tareas, documentos, fijos, gastos y
+      // presupuestos: media base cambia de golpe. Declarar la lista aquí sería
+      // copiar a mano los `on delete set null` del esquema, y el día que crezca una
+      // tabla más no vendría nadie a actualizarla.
       removeMember: (id: string) => runMutation(() => repos.members.removeMember(id)),
-      cancelInvite: (id: string) => runMutation(() => repos.invites.cancelInvite(id)),
-      createKid: (draft: ChildDraft) => runMutation(() => repos.children.createKid(familyId, draft)),
-      updateKid: (id: string, draft: ChildDraft) => runMutation(() => repos.children.updateKid(id, draft)),
+      cancelInvite: (id: string) => runMutation(() => repos.invites.cancelInvite(id), ['invites']),
+      createKid: (draft: ChildDraft) => runMutation(() => repos.children.createKid(familyId, draft), ['kids']),
+      updateKid: (id: string, draft: ChildDraft) => runMutation(() => repos.children.updateKid(id, draft), ['kids']),
+      // Recarga completa por lo mismo que `removeMember`: borrar un hijo pone su
+      // `child_id` a `null` en todo lo que se le hubiera asignado.
       deleteKid: (id: string) => runMutation(() => repos.children.deleteKid(id)),
       // Los eventos devuelven lo creado —la vista salta a esa fecha—, y por eso
       // pasan por `runMutationWith` y no por `runMutation`. El tipo va escrito a
@@ -554,70 +616,96 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           () => repos.events.createEvent(familyId, draft),
           null,
           'No se pudo crear el evento',
+          ['events'],
         ),
       createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) =>
         runMutationWith<Event[]>(
           () => repos.events.createEventSeries(familyId, draft, weekdays, endDate),
           [],
           'No se pudo crear la serie de eventos',
+          ['events'],
         ),
       createYearlySeries: (draft: EventDraft, endYear: number) =>
         runMutationWith<Event[]>(
           () => repos.events.createYearlySeries(familyId, draft, endYear),
           [],
           'No se pudo crear la serie de eventos',
+          ['events'],
         ),
-      updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft)),
-      deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id)),
-      deleteEventSeries: (groupId: string) => runMutation(() => repos.events.deleteEventSeries(groupId)),
-      createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft)),
-      updateTask: (id: string, draft: TaskDraft) => runMutation(() => repos.tasks.updateTask(id, draft)),
-      deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id)),
+      updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft), ['events']),
+      deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id), ['events']),
+      deleteEventSeries: (groupId: string) => runMutation(() => repos.events.deleteEventSeries(groupId), ['events']),
+      createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft), ['tasks']),
+      updateTask: (id: string, draft: TaskDraft) => runMutation(() => repos.tasks.updateTask(id, draft), ['tasks']),
+      deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id), ['tasks']),
       // Marcar una tarea es lo más fácil de hacer sin querer: es un círculo que
       // se toca al pasar el dedo por la lista. Se guarda cómo estaba antes para
       // poder devolverla, que hasta ahora no había manera si se repetía.
       toggleTask: async (id: string) => {
         const previo = tasks.find(t => t.id === id)
-        await runMutation(() => repos.tasks.toggleTask(id))
+        await runMutation(() => repos.tasks.toggleTask(id), ['tasks'])
         if (previo) setUndoAction({ label: 'Hecho', run: () => restaurarTarea(previo) })
       },
-      createList: (draft: ListDraft) => runMutation(() => repos.lists.createList(familyId, draft)),
-      updateList: (id: string, draft: ListDraft) => runMutation(() => repos.lists.updateList(id, draft)),
-      deleteList: (id: string) => runMutation(() => repos.lists.deleteList(id)),
+      createList: (draft: ListDraft) => runMutation(() => repos.lists.createList(familyId, draft), ['lists']),
+      updateList: (id: string, draft: ListDraft) => runMutation(() => repos.lists.updateList(id, draft), ['lists']),
+      // Borrar una cesta se lleva sus ítems por cascada. Aquí sí se declaran las dos
+      // en vez de caer a la recarga completa, porque son dos tablas contadas y
+      // conocidas: la cascada de un hijo o de un miembro son seis y abiertas.
+      deleteList: (id: string) => runMutation(() => repos.lists.deleteList(id), ['lists', 'listItems']),
       createListItem: (listId: string, draft: ListItemDraft) =>
-        runMutation(() => repos.listItems.createListItem(listId, familyId, draft)),
-      updateListItem: (id: string, draft: ListItemDraft) => runMutation(() => repos.listItems.updateListItem(id, draft)),
-      deleteListItem: (id: string) => runMutation(() => repos.listItems.deleteListItem(id)),
-      toggleListItem: (id: string) => runMutation(() => repos.listItems.toggleListItem(id)),
+        runMutation(() => repos.listItems.createListItem(listId, familyId, draft), ['listItems']),
+      updateListItem: (id: string, draft: ListItemDraft) =>
+        runMutation(() => repos.listItems.updateListItem(id, draft), ['listItems']),
+      deleteListItem: (id: string) => runMutation(() => repos.listItems.deleteListItem(id), ['listItems']),
+      // El gesto más repetido de la app entera: un círculo que se toca en el súper,
+      // con el móvil en una mano y el carro en la otra. Es el que más gana con esto.
+      toggleListItem: (id: string) => runMutation(() => repos.listItems.toggleListItem(id), ['listItems']),
       setListItemQuantity: (id: string, quantity: number) =>
-        runMutation(() => repos.listItems.setListItemQuantity(id, quantity)),
-      createMeal: (draft: MealDraft) => runMutation(() => repos.meals.createMeal(familyId, draft)),
+        runMutation(() => repos.listItems.setListItemQuantity(id, quantity), ['listItems']),
+      createMeal: (draft: MealDraft) => runMutation(() => repos.meals.createMeal(familyId, draft), ['meals']),
       copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) =>
-        runMutation(() => repos.meals.copyMealDay(familyId, sourceDate, targetDate, repeatUntil)),
-      updateMeal: (id: string, draft: MealDraft) => runMutation(() => repos.meals.updateMeal(id, draft)),
-      deleteMeal: (id: string) => runMutation(() => repos.meals.deleteMeal(id)),
-      createNote: (draft: NoteDraft) => runMutation(() => repos.notes.createNote(familyId, draft)),
-      updateNote: (id: string, draft: NoteDraft) => runMutation(() => repos.notes.updateNote(id, draft)),
-      deleteNote: (id: string) => runMutation(() => repos.notes.deleteNote(id)),
-      createFixedEntry: (draft: FixedEntryDraft) => runMutation(() => repos.fixedEntries.createFixedEntry(familyId, draft)),
-      updateFixedEntry: (id: string, draft: FixedEntryDraft) => runMutation(() => repos.fixedEntries.updateFixedEntry(id, draft)),
-      deleteFixedEntry: (id: string) => runMutation(() => repos.fixedEntries.deleteFixedEntry(id)),
-      createBudget: (draft: BudgetDraft) => runMutation(() => repos.budgets.createBudget(familyId, draft)),
-      updateBudget: (id: string, draft: BudgetDraft) => runMutation(() => repos.budgets.updateBudget(id, draft)),
-      deleteBudget: (id: string) => runMutation(() => repos.budgets.deleteBudget(id)),
-      createExpense: (draft: ExpenseDraft) => runMutation(() => repos.expenses.createExpense(familyId, draft)),
-      updateExpense: (id: string, draft: ExpenseDraft) => runMutation(() => repos.expenses.updateExpense(id, draft)),
-      deleteExpense: (id: string) => runMutation(() => repos.expenses.deleteExpense(id)),
-      createQuote: (draft: QuoteDraft) => runMutation(() => repos.quotes.createQuote(familyId, draft)),
-      updateQuote: (id: string, draft: QuoteDraft) => runMutation(() => repos.quotes.updateQuote(id, draft)),
-      deleteQuote: (id: string) => runMutation(() => repos.quotes.deleteQuote(id)),
-      setQuoteStatus: (id: string, status: QuoteStatus) => runMutation(() => repos.quotes.setQuoteStatus(id, status)),
-      closeMonthNow: (month: string) => runMutation(() => repos.monthPlans.closeMonthNow(familyId, month)),
-      reopenMonth: (month: string) => runMutation(() => repos.monthPlans.reopenMonth(familyId, month)),
-      emptyMonth: (month: string) => runMutation(() => repos.monthPlans.emptyMonth(familyId, month)),
-      createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
-      updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
-      deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),
+        runMutation(() => repos.meals.copyMealDay(familyId, sourceDate, targetDate, repeatUntil), ['meals']),
+      updateMeal: (id: string, draft: MealDraft) => runMutation(() => repos.meals.updateMeal(id, draft), ['meals']),
+      deleteMeal: (id: string) => runMutation(() => repos.meals.deleteMeal(id), ['meals']),
+      createNote: (draft: NoteDraft) => runMutation(() => repos.notes.createNote(familyId, draft), ['notes']),
+      updateNote: (id: string, draft: NoteDraft) => runMutation(() => repos.notes.updateNote(id, draft), ['notes']),
+      deleteNote: (id: string) => runMutation(() => repos.notes.deleteNote(id), ['notes']),
+      // Los fijos y las partidas no tocan lo apuntado, y por eso no recargan ni
+      // `expenses` ni `monthPlans`: la plantilla de un mes en curso se calcula en
+      // memoria (`plantillaDelMes`) y la de un mes cerrado está congelada.
+      createFixedEntry: (draft: FixedEntryDraft) =>
+        runMutation(() => repos.fixedEntries.createFixedEntry(familyId, draft), ['fixedEntries']),
+      updateFixedEntry: (id: string, draft: FixedEntryDraft) =>
+        runMutation(() => repos.fixedEntries.updateFixedEntry(id, draft), ['fixedEntries']),
+      deleteFixedEntry: (id: string) =>
+        runMutation(() => repos.fixedEntries.deleteFixedEntry(id), ['fixedEntries']),
+      createBudget: (draft: BudgetDraft) => runMutation(() => repos.budgets.createBudget(familyId, draft), ['budgets']),
+      updateBudget: (id: string, draft: BudgetDraft) => runMutation(() => repos.budgets.updateBudget(id, draft), ['budgets']),
+      // Borrar una partida deja sus gastos **sin partida**, no los borra: la fila de
+      // cada gasto cambia. Y cambia una tercera cosa que no se ve venir: las líneas
+      // de los meses ya cerrados llevan `budget_id` con `on delete set null`, así
+      // que también se les queda a `null`. Sin recargar `monthPlans`, una línea
+      // congelada seguiría diciendo que es de la partida X mientras sus gastos ya
+      // no lo dicen, y las dos sumas de un mes cerrado dejarían de cuadrar
+      // (`resumenPartidas` cruza `partida.budgetId` con `expense.budget_id`).
+      deleteBudget: (id: string) =>
+        runMutation(() => repos.budgets.deleteBudget(id), ['budgets', 'expenses', 'monthPlans']),
+      createExpense: (draft: ExpenseDraft) => runMutation(() => repos.expenses.createExpense(familyId, draft), ['expenses']),
+      updateExpense: (id: string, draft: ExpenseDraft) => runMutation(() => repos.expenses.updateExpense(id, draft), ['expenses']),
+      deleteExpense: (id: string) => runMutation(() => repos.expenses.deleteExpense(id), ['expenses']),
+      createQuote: (draft: QuoteDraft) => runMutation(() => repos.quotes.createQuote(familyId, draft), ['quotes']),
+      updateQuote: (id: string, draft: QuoteDraft) => runMutation(() => repos.quotes.updateQuote(id, draft), ['quotes']),
+      deleteQuote: (id: string) => runMutation(() => repos.quotes.deleteQuote(id), ['quotes']),
+      setQuoteStatus: (id: string, status: QuoteStatus) =>
+        runMutation(() => repos.quotes.setQuoteStatus(id, status), ['quotes']),
+      closeMonthNow: (month: string) => runMutation(() => repos.monthPlans.closeMonthNow(familyId, month), ['monthPlans']),
+      reopenMonth: (month: string) => runMutation(() => repos.monthPlans.reopenMonth(familyId, month), ['monthPlans']),
+      emptyMonth: (month: string) => runMutation(() => repos.monthPlans.emptyMonth(familyId, month), ['monthPlans']),
+      createDocument: (draft: DocumentDraft) =>
+        runMutation(() => repos.documents.createDocument(familyId, draft), ['documents']),
+      updateDocument: (id: string, draft: DocumentDraft) =>
+        runMutation(() => repos.documents.updateDocument(id, draft), ['documents']),
+      deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id), ['documents']),
       getDocumentUrl: (document: Document) => repos.documents.getDownloadUrl(document),
       storageConnection,
       reloadStorageConnection,

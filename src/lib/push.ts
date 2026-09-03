@@ -2,6 +2,93 @@ import { IS_DEMO_MODE } from './supabase/env'
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''
 
+/**
+ * Los servidores de push que existen. Todo lo demás no se guarda.
+ *
+ * Una suscripción es una **URL que el servidor de Farpi visita**: el cron le hace
+ * un POST a cada una, todos los días. Sin esta lista, cualquiera de la familia
+ * podía dejar apuntada una dirección cualquiera y convertir el cron en un
+ * mensajero: pedirle que llame a un servicio interno, a una IP de la red privada
+ * de Vercel o a un sitio de fuera que solo quiere saber que alguien llamó. No es
+ * un agujero grande —hace falta sesión, y el cuerpo va cifrado con las claves del
+ * navegador— pero el cron no tiene por qué visitar más que estos cuatro sitios.
+ *
+ * El endpoint lo da el navegador, no la persona, así que la lista es la de los
+ * cuatro que reparten push en la web:
+ *
+ *   Chrome, Edge y los Chromium   fcm.googleapis.com
+ *   Firefox                       updates.push.services.mozilla.com
+ *   Safari, iOS incluido          web.push.apple.com
+ *   Edge antiguo (WNS)            wns2-….notify.windows.com
+ *
+ * Si un día aparece un navegador con su propio servidor, el síntoma será que a
+ * esa persona no le llegan los avisos y en el log queda su host: se añade aquí.
+ * Es el precio de la lista blanca, y es el mismo criterio que `PUBLIC_ROUTES` o
+ * que el `connect-src` de la CSP —se nombra lo que vale, no lo que no—.
+ */
+const HOSTS_DE_PUSH = [
+  'fcm.googleapis.com',
+  'updates.push.services.mozilla.com',
+  'web.push.apple.com',
+]
+
+/** WNS reparte por región, así que el host lleva delante el centro de datos. */
+const SUFIJO_WNS = '.notify.windows.com'
+
+/** Ninguna URL de push real se acerca; el tope está para que no entre una barbaridad. */
+const MAX_LARGO_ENDPOINT = 1000
+
+/**
+ * ¿Es esto la dirección de un servidor de push de verdad?
+ *
+ * Pura y aquí —y no dentro de la ruta API— porque es una regla que hay que poder
+ * probar sin levantar nada, y porque el día que se añada un host se toca un solo
+ * sitio.
+ */
+export function endpointDePushValido(endpoint: unknown): endpoint is string {
+  if (typeof endpoint !== 'string' || endpoint.length > MAX_LARGO_ENDPOINT) return false
+
+  let url: URL
+  try {
+    url = new URL(endpoint)
+  } catch {
+    return false
+  }
+
+  // `https:` y nada más. Un `http:` no lo emite ningún navegador, y los esquemas
+  // raros —`file:`, `data:`— son justo lo que se está cerrando.
+  if (url.protocol !== 'https:') return false
+
+  return (
+    HOSTS_DE_PUSH.includes(url.hostname) ||
+    // Con el punto delante, para que `malonotify.windows.com` no cuele.
+    url.hostname.endsWith(SUFIJO_WNS)
+  )
+}
+
+/**
+ * Las dos claves con las que se cifra el aviso, tal y como las escribe el
+ * navegador: base64url, la pública de 65 bytes y el secreto de 16.
+ *
+ * No se comprueba el largo exacto que tendrían al descodificar, sino un margen:
+ * lo que importa aquí es que sea base64url y de un tamaño sensato, porque una
+ * clave con la forma correcta y el contenido equivocado la rechaza igual
+ * `web-push` al cifrar. Lo que esto evita es guardar una fila que no puede
+ * funcionar y que el cron contará como fallo todos los días sin que nadie sepa
+ * por qué.
+ */
+export function clavesDePushValidas(
+  keys: { p256dh?: string; auth?: string } | undefined,
+): keys is { p256dh: string; auth: string } {
+  if (!keys) return false
+  const { p256dh, auth } = keys
+  const base64url = /^[A-Za-z0-9_-]+=*$/
+  return (
+    typeof p256dh === 'string' && p256dh.length >= 80 && p256dh.length <= 120 && base64url.test(p256dh) &&
+    typeof auth === 'string' && auth.length >= 16 && auth.length <= 32 && base64url.test(auth)
+  )
+}
+
 /** El navegador soporta Service Worker + Push + Notification. */
 export function pushSupported(): boolean {
   return (

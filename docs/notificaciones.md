@@ -7,6 +7,13 @@ Estado y pasos para activar los recordatorios por notificación push.
 - **Service worker** (`public/sw.js`): maneja `push` (muestra la notificación) y `notificationclick` (enfoca/abre la app).
 - **Cliente** (`src/lib/push.ts`): pedir permiso, suscribirse y cancelar. Degrada solo si el navegador no soporta o falta configuración.
 - **API** (`src/app/api/push/route.ts`): `POST` guarda la suscripción, `DELETE` la borra (autenticado; bloqueada en modo demo).
+  El `POST` **solo acepta los cuatro servidores de push que existen** (`fcm.googleapis.com`,
+  `updates.push.services.mozilla.com`, `web.push.apple.com` y `*.notify.windows.com`), porque lo que
+  se guarda no es un dato: es una dirección que el cron visita todos los días. La lista y el porqué
+  están en `endpointDePushValido`, en `src/lib/push.ts`, con sus unitarios en `e2e/unit/push.spec.ts`.
+  **Si un navegador nuevo trae su propio servidor**, el síntoma será que a esa persona no le llegan
+  los avisos y en los Runtime Logs de Vercel queda su host: se añade a la lista. Darse de baja no
+  comprueba el host a propósito, para que una suscripción vieja siempre se pueda quitar.
 - **BD** (`supabase/schema.sql`): tabla `push_subscriptions` con RLS por usuario, ya aplicada.
 - **UI**: tarjeta "Recordatorios" en Ajustes (solo en modo real) para activar/desactivar.
 

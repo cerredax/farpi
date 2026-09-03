@@ -258,9 +258,15 @@ test('el mes se pasa arrastrando el dedo', async ({ page }) => {
 test('elegir un día del mes enseña qué hay ese día', async ({ page }) => {
   await page.goto('/calendar')
 
-  // Un día cualquiera que no sea hoy. El 3 siempre está en la rejilla y, en el
-  // demo, no tiene nada apuntado.
-  await page.locator('button[aria-label*="3 de"]').first().click()
+  // Un día cualquiera que no sea hoy. El 3 y el 4 están siempre en la rejilla y,
+  // en el demo, no tienen nada apuntado; se coge el que no caiga hoy.
+  //
+  // El día se elegía a pelo y era el 3, con este mismo comentario al lado: así
+  // que el 3 de cada mes el test pinchaba **hoy** y luego comprobaba que el panel
+  // de hoy no sale, que es justo lo que la app hace bien. Fallaba un día de cada
+  // treinta, y el aviso llegaba en la pasada previa al commit de otra cosa.
+  const diaSuelto = new Date().getDate() === 3 ? 4 : 3
+  await page.locator(`button[aria-label*="${diaSuelto} de"]`).first().click()
   const panel = page.getByRole('region', { name: /Qué hay el/ })
   await expect(panel).toBeVisible()
   await expect(panel.getByText('Nada apuntado.')).toBeVisible()

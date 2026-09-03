@@ -320,12 +320,15 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] «Cómo van los meses» enseña jun, jul, ago y sep, **mires el mes que mires**: la
       serie no sigue al selector. El mes que se está mirando va en negrita.
 - [ ] «Ver los números» abre la tabla, y junio dice 3.250 € / −1.162,35 € / 2.087,65 €.
-- [ ] Encima de las barras se lee la media de lo que queda al mes, y la barra más alta
-      de cada lado —arriba y abajo— lleva su importe escrito. El mes que se mira va
-      sobre un fondo crema.
-- [ ] «De dónde sale» cierra con «Queda 2.087,65 €» y explica una sola vez qué es el
-      trozo pálido. Sin nada apuntado a mano, el pie dice «nada apuntado a mano» y no
-      «0 € apuntado nada».
+- [ ] Encima de las barras se lee la media de lo que queda al mes. Hay **una barra por
+      mes** —lo que quedó—, la más grande lleva su importe escrito y el mes que se
+      mira va sobre un fondo crema y con su cifra.
+- [ ] **Las barras se ven verdes**, no negras: si salen negras es que algún `var()` del
+      SVG se armó con una plantilla y Tailwind se comió la variable (03-09-2026).
+- [ ] Con todos los meses en positivo **no queda medio dibujo en blanco** bajo la línea
+      del cero.
+- [ ] La pestaña tiene **dos bloques y ninguno lleva pie**: «de dónde sale» se fue el
+      03-09-2026 porque repetía el desglose de la tarjeta de «El mes».
 - [ ] «En qué se va» y el desglose **sí** siguen al mes que se mira, y lo dicen en el
       título. Arriba se lee «Se han ido 291,45 €».
 - [ ] En junio, «en qué se va» enseña Casa, Compra, Coche y **Sin partida**, de mayor a
@@ -336,6 +339,10 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       tienen ni un gasto ese mes.
 - [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su partida, y la cuenta de
       arriba, sin recargar.
+- [ ] **Tocar una partida la abre** y enseña sus líneas —fecha, concepto, quién y
+      cuánto—, que suman exactamente lo que dice su cifra. Tocar una línea abre ese
+      apunte; «Editar la partida» abre la partida. Una partida sin gastos se abre y
+      dice «nada apuntado en esta partida».
 - [ ] El importe entiende `24,90`, `24.90`, `1.234,56` y `24,90 €`, y se guarda exacto:
       la fila y la partida dicen el mismo número.
 - [ ] Un importe imposible (`gratis`, `0`, dos millones) no deja guardar y el mensaje
@@ -373,7 +380,10 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] Cambiar el alquiler en «Lo fijo» mueve **este mes al momento** y **no toca** junio.
 - [ ] En un mes cerrado **sí se puede apuntar** —el botón está—, y lo apuntado cae en ese
       mes sin mover sus fijos congelados. Lo que no se puede es crear ni editar partidas:
-      no hay enlace de «Nueva partida» y las barras no se tocan.
+      no hay enlace de «Nueva partida», y una partida se abre —enseña sus líneas— pero
+      dentro no ofrece «Editar la partida».
+- [ ] En un mes **pasado que nunca se cerró** tampoco hay «Nueva partida» (03-09-2026):
+      crearla no le pondría nada a ese mes, nace en la plantilla de hoy.
 - [ ] En el mes en curso, «Dar el mes por cerrado…» pide confirmación con dos toques. Tras
       cerrarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
 - [ ] Los tres botones del mes —cerrar, deshacer, poner a cero— están **debajo de la

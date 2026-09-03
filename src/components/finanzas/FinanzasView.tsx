@@ -187,16 +187,17 @@ export function FinanzasView() {
           <section aria-label="Partidas del mes" className="space-y-2">
             <div className="flex items-center justify-between gap-3 px-1">
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
-              {/* En un mes cerrado no se ofrece añadir: lo que se está mirando es la
-                  copia de un mes que terminó. El enlace lleva a la plantilla y no
-                  abre el sheet aquí, porque una partida es de la plantilla y no de un
-                  mes — abrirla desde enero haría creer que se está creando en enero.
+              {/* Solo se ofrece añadir donde las partidas son las vivas: en un mes
+                  pasado —cerrado o no— lo que se mira es lo que hubo, y no hay nada
+                  que tocar ahí. El enlace lleva a la plantilla y no abre el sheet
+                  aquí, porque una partida es de la plantilla y no de un mes —
+                  abrirla desde enero haría creer que se está creando en enero.
 
                   `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
                   `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
                   negativo devuelve el texto a la línea del título para que la
                   zona de toque crezca sin que se note. */}
-              {!s.planCongelado && (
+              {s.planVivo && (
                 <button
                   type="button"
                   onClick={() => s.setPestaña('plantilla')}
@@ -212,18 +213,23 @@ export function FinanzasView() {
               <EmptyState
                 emoji="🎯"
                 title="Sin partidas"
-                description={s.planCongelado
-                  ? 'Ese mes se cerró sin ninguna partida puesta.'
-                  : 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Lo fijo», y aquí verás cuánto llevas de cada una.'}
+                description={s.planVivo
+                  ? 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Lo fijo», y aquí verás cuánto llevas de cada una.'
+                  : s.planCongelado
+                    ? 'Ese mes se cerró sin ninguna partida puesta.'
+                    : 'De ese mes no se guardó el plan, así que no se sabe qué partidas había.'}
               />
             ) : (
               s.resumen.map(r => (
                 <BudgetBar
                   key={r.partida.key}
                   resumen={r}
-                  onEdit={!s.planCongelado && r.partida.budgetId
+                  members={s.members}
+                  kids={s.kids}
+                  onEdit={s.planVivo && r.partida.budgetId
                     ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
                     : undefined}
+                  onEditApunte={s.abrirApunte}
                 />
               ))
             )}
@@ -274,7 +280,6 @@ export function FinanzasView() {
         <ResumenPanel
           serie={s.serie}
           reparto={s.reparto}
-          cuenta={s.cuenta}
           mes={s.mes}
           nombreDelMes={nombreDelMes}
         />

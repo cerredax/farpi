@@ -6,12 +6,11 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { mediaQueQueda } from '@/lib/budgets'
 import { formatCentsCorto } from '@/lib/finanzas'
 import { capitalize } from '@/lib/text'
-import type { CuentaDelMes, MesDeLaSerie, TrozoDelReparto } from '@/lib/budgets'
+import type { MesDeLaSerie, TrozoDelReparto } from '@/lib/budgets'
 
 interface ResumenPanelProps {
   serie: MesDeLaSerie[]
   reparto: TrozoDelReparto[]
-  cuenta: CuentaDelMes
   /** `YYYY-MM` del mes que se está mirando, para señalarlo en la serie. */
   mes: string
   nombreDelMes: string
@@ -37,52 +36,58 @@ function enEuros(centimos: number): string {
 // ─── Cómo van los meses ───────────────────────────────────────────────────────
 
 /**
- * Barras divergentes: lo que entra sube del cero y lo que sale baja.
+ * Una barra por mes: **lo que quedó**, hacia arriba si sobró y hacia abajo si no.
  *
- * **La posición es la que lleva el mensaje, no el color.** Entra y sale no son dos
- * categorías sino los dos lados de una misma cosa, y separarlos por la línea del
- * cero los distingue sin depender de distinguir dos tonos — que en esta paleta,
- * medido, no se distinguen: el verde y el salmón de marca están a ΔE 2,3 en
- * protanopía. Cada barra lleva además su etiqueta.
+ * **Eran entra y sale hasta el 03-09-2026**, dos barras por mes con su leyenda.
+ * Dos series para contestar una pregunta de una sola cifra: seis meses en los
+ * 318 px que caben a 390 px daban doce barras, y comparar agosto con junio
+ * obligaba a mirar cuatro y restar de cabeza. Entra y sale siguen estando,
+ * escritos y exactos, en la tabla de debajo, que es donde se leen.
  *
- * **Qué cambió el 02-09-2026, la segunda vez.** El dibujo era el mismo pero medía
- * 46 px por lado y no llevaba una sola cifra: dos meses parecidos se veían
- * exactamente iguales y no había nada contra lo que medir una barra, así que el
- * gráfico no contestaba nada que no contestara ya la tabla. Ahora:
+ * Con una sola serie **no hay leyenda**: no hay dos cosas que distinguir. Lo que
+ * lleva el mensaje es la posición respecto al cero, y el tono solo acompaña —el
+ * verde y el salmón de marca no se distinguen en protanopía (ΔE 2,3), por eso
+ * nunca se les pide que distingan nada—.
  *
- * - **el doble de alto**, que es lo que hace visible la diferencia entre meses;
- * - **la barra más grande lleva su cifra escrita**, arriba y abajo, y con ella el
- *   resto tienen escala. Solo esas dos: un número sobre cada barra es ruido y no
- *   se lee (y la tabla ya está debajo);
- * - **el mes que se está mirando va sobre un fondo crema**, en vez de solo con la
- *   etiqueta en negrita. En una fila de seis barras iguales, encontrar cuál es
- *   septiembre era una búsqueda;
- * - **1 px de aire a cada lado del cero**, para que las dos barras de un mes no se
- *   lean como una sola columna partida por una raya.
+ * Se etiqueta **el mes más grande** y, si es otro, el que se está mirando. Un
+ * número sobre cada barra es ruido y no se lee a 9 px; sin ninguno, no hay escala
+ * contra la que medir el resto.
  *
  * El SVG va `aria-hidden` y debajo hay una tabla de verdad, plegada. Es la misma
  * regla de siempre: el dibujo acompaña, los números están escritos.
  */
-function BarrasDeMeses({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
-  const tope = Math.max(...serie.map(m => Math.max(m.entra, m.sale)), 1)
+function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
+  const tope = Math.max(...serie.map(m => Math.abs(m.queda)), 1)
   // La columna se estira para llenar la tarjeta —318 px es lo que queda dentro a
-  // 390 px— y se para en 72: con cuatro meses, seis barras de 46 px dejaban el
-  // dibujo encogido en el centro de un blanco enorme. La barra en cambio no
-  // crece más de 28: una columna de 54 px de ancho deja de ser una barra.
+  // 390 px— y se para en 72: con cuatro meses, barras estrechas dejaban el dibujo
+  // encogido en el centro de un blanco enorme. La barra en cambio no crece más de
+  // 32: una columna de 54 px de ancho deja de ser una barra.
   const ANCHO_MES = Math.min(72, Math.floor(318 / serie.length))
-  const ANCHO_BARRA = Math.min(28, ANCHO_MES - 16)
-  const ALTO_LADO = 52
-  /** Hueco arriba y abajo para las dos cifras que se escriben en el dibujo. */
+  const ANCHO_BARRA = Math.min(32, ANCHO_MES - 14)
+  /**
+   * Cada lado se lleva su alto **solo si hay algo que pintar ahí**. Con los seis
+   * meses en positivo —lo normal en una casa que va cuadrando— reservar los dos
+   * lados dejaba media tarjeta en blanco bajo la línea del cero, y el dibujo se
+   * leía como si faltara algo. Sin barras hacia abajo el lado de abajo se queda
+   * en el hueco justo para la línea y las etiquetas del mes.
+   */
+  const ALTO = 92
+  const hayArriba = serie.some(m => m.queda >= 0)
+  const hayAbajo = serie.some(m => m.queda < 0)
+  const ALTO_ARRIBA = hayArriba ? (hayAbajo ? ALTO / 2 : ALTO) : 0
+  const ALTO_ABAJO = hayAbajo ? (hayArriba ? ALTO / 2 : ALTO) : 0
+  /** Hueco arriba y abajo para las cifras que se escriben en el dibujo. */
   const AIRE = 14
   const ancho = serie.length * ANCHO_MES
-  const alto = ALTO_LADO * 2 + AIRE * 2
-  const cero = AIRE + ALTO_LADO
+  const alto = ALTO_ARRIBA + ALTO_ABAJO + AIRE * 2
+  const cero = AIRE + ALTO_ARRIBA
 
-  const alturaDe = (v: number) => Math.max(2, Math.round((v / tope) * ALTO_LADO))
-  // Los dos extremos, que son los únicos que se etiquetan. `reduce` y no un
-  // `sort`: hay que quedarse con la posición, no con el valor.
-  const iEntra = serie.reduce((mejor, m, i) => (m.entra > serie[mejor].entra ? i : mejor), 0)
-  const iSale = serie.reduce((mejor, m, i) => (m.sale > serie[mejor].sale ? i : mejor), 0)
+  const alturaDe = (v: number) =>
+    Math.max(2, Math.round((Math.abs(v) / tope) * (v >= 0 ? ALTO_ARRIBA : ALTO_ABAJO)))
+  // El mes más grande en magnitud, y el que se está mirando si sale en la serie.
+  // `reduce` y no un `sort`: hay que quedarse con la posición, no con el valor.
+  const iMayor = serie.reduce((mejor, m, i) => (Math.abs(m.queda) > Math.abs(serie[mejor].queda) ? i : mejor), 0)
+  const iMirado = serie.findIndex(m => m.mes === mes)
 
   return (
     <>
@@ -94,47 +99,41 @@ function BarrasDeMeses({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
           className="mx-auto block"
           aria-hidden
         >
-          {/* El mes que se está mirando en «El mes», señalado por detrás. */}
-          {serie.map((m, i) => m.mes === mes && (
+          {/* El mes que se está mirando en «El mes», señalado por detrás: en una
+              fila de seis barras iguales, encontrar cuál es septiembre era una
+              búsqueda. */}
+          {iMirado >= 0 && (
             <rect
-              key={`fondo-${m.mes}`}
-              x={i * ANCHO_MES + 2} y="0" width={ANCHO_MES - 4} height={alto}
+              x={iMirado * ANCHO_MES + 2} y="0" width={ANCHO_MES - 4} height={alto}
               rx="8" fill="var(--color-canvas)"
             />
-          ))}
+          )}
 
           {serie.map((m, i) => {
-            const x = i * ANCHO_MES
-            const centro = x + ANCHO_MES / 2
-            const hEntra = alturaDe(m.entra)
-            const hSale = alturaDe(m.sale)
+            const centro = i * ANCHO_MES + ANCHO_MES / 2
+            const h = alturaDe(m.queda)
+            const sobra = m.queda >= 0
+            // 1 px de aire sobre el cero, para que la barra no se lea pegada a la
+            // línea, y 3 px de radio como el resto de barras de la app.
+            const y = sobra ? cero - 1 - h : cero + 1
+            const etiquetada = i === iMayor || i === iMirado
             return (
               <g key={m.mes}>
-                {/* 3 px de radio y ancladas al cero, como el resto de barras de la
-                    app. El 1 px de separación del cero es el equivalente del hueco
-                    que llevan las barras apiladas de abajo. */}
+                {/* Los dos `var()` van escritos enteros y no armados con una
+                    plantilla: Tailwind v4 solo emite las variables del tema que
+                    encuentra **literales** en el código, así que partir el nombre
+                    las deja fuera del CSS y el `fill` cae en negro. Pasó justo
+                    aquí el 03-09-2026 y solo se vio mirando la pantalla. */}
                 <rect
-                  x={centro - ANCHO_BARRA / 2} y={cero - 1 - hEntra} width={ANCHO_BARRA} height={hEntra}
-                  rx="3" fill="var(--color-chart-entra)"
+                  x={centro - ANCHO_BARRA / 2} y={y} width={ANCHO_BARRA} height={h}
+                  rx="3" fill={sobra ? 'var(--color-chart-entra)' : 'var(--color-chart-sale)'}
                 />
-                <rect
-                  x={centro - ANCHO_BARRA / 2} y={cero + 1} width={ANCHO_BARRA} height={hSale}
-                  rx="3" fill="var(--color-chart-sale)"
-                />
-                {i === iEntra && (
+                {etiquetada && (
                   <text
-                    x={centro} y={cero - 5 - hEntra} textAnchor="middle"
+                    x={centro} y={sobra ? cero - 5 - h : cero + 12 + h} textAnchor="middle"
                     fontSize="9" fontWeight="700" fill="var(--color-muted)"
                   >
-                    {enEuros(m.entra)}
-                  </text>
-                )}
-                {i === iSale && (
-                  <text
-                    x={centro} y={cero + 12 + hSale} textAnchor="middle"
-                    fontSize="9" fontWeight="700" fill="var(--color-muted)"
-                  >
-                    {enEuros(m.sale)}
+                    {enEuros(m.queda)}
                   </text>
                 )}
               </g>
@@ -161,20 +160,7 @@ function BarrasDeMeses({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
         </div>
       </div>
 
-      {/* Leyenda: con dos series es obligatoria, y aquí además es lo que dice cuál
-          es cuál sin depender del color. */}
-      <div className="mt-3 flex justify-center gap-4">
-        <span className="flex items-center gap-1.5 text-[11px] text-muted">
-          <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: 'var(--color-chart-entra)' }} aria-hidden />
-          Entra
-        </span>
-        <span className="flex items-center gap-1.5 text-[11px] text-muted">
-          <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: 'var(--color-chart-sale)' }} aria-hidden />
-          Sale
-        </span>
-      </div>
-
-      <details className="mt-2">
+      <details className="mt-3">
         <summary className="cursor-pointer list-none text-center text-[11px] text-primary-strong">
           Ver los números
         </summary>
@@ -207,101 +193,6 @@ function BarrasDeMeses({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
   )
 }
 
-// ─── De dónde sale ────────────────────────────────────────────────────────────
-
-/**
- * Una barra partida en dos: lo que es fijo y lo que se apuntó a mano.
- *
- * Las dos barras del bloque comparten `tope`, que es lo que las hace comparables:
- * el carril gris de detrás mide lo mismo en las dos, así que se ve de un vistazo
- * cuánto le falta a lo que sale para alcanzar a lo que entra.
- */
-function BarraPartida({ etiqueta, fijo, apuntado, tope, color }: {
-  etiqueta: string
-  fijo: number
-  apuntado: number
-  tope: number
-  color: string
-}) {
-  const pct = (v: number) => (tope === 0 ? 0 : (v / tope) * 100)
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-baseline justify-between gap-2 text-[11px]">
-        <span className="text-muted">{etiqueta}</span>
-        <span className="font-bold tabular-nums text-ink">{formatCentsCorto(fijo + apuntado)}</span>
-      </div>
-      {/* Los 2 px de hueco separan los dos trozos sin necesitar un borde: dos
-          verdes pegados se leen como uno. El radio lo pone **el contenedor**, no
-          los trozos: con `rounded-full` en cada uno, el de «apuntado» —que suele
-          ser estrecho— salía como una bolita suelta al final de la barra. */}
-      <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-canvas" aria-hidden>
-        <div style={{ width: `${pct(fijo)}%`, backgroundColor: color }} />
-        <div className="opacity-45" style={{ width: `${pct(apuntado)}%`, backgroundColor: color }} />
-      </div>
-      {/* El pie decía «0 € apuntado nada» cuando no había nada apuntado: el «nada»
-          se añadía detrás en vez de sustituir al importe. */}
-      <p className="text-[10px] text-faint">
-        {apuntado === 0
-          ? `${formatCentsCorto(fijo)} de fijos, nada apuntado a mano`
-          : `${formatCentsCorto(fijo)} de fijos · ${formatCentsCorto(apuntado)} apuntado`}
-      </p>
-    </div>
-  )
-}
-
-/**
- * El bloque entero de «de dónde sale»: las dos barras, qué significa el trozo
- * pálido y la resta.
- *
- * **La leyenda va una vez y no en cada barra.** Lo que distingue los dos trozos de
- * una barra —fijo y apuntado a mano— es lo mismo en las dos, así que explicarlo
- * dos veces era repetir; y la resta de abajo es la conclusión que las dos barras
- * dibujan pero ninguna escribe.
- */
-function DeDondeSale({ cuenta }: { cuenta: CuentaDelMes }) {
-  const entra = cuenta.ingresosFijos + cuenta.ingresosApuntados
-  const sale = cuenta.gastosFijos + cuenta.gastosApuntados
-  const tope = Math.max(entra, sale, 1)
-
-  return (
-    <div className="space-y-4">
-      <BarraPartida
-        etiqueta="Entra"
-        fijo={cuenta.ingresosFijos}
-        apuntado={cuenta.ingresosApuntados}
-        tope={tope}
-        color="var(--color-chart-entra)"
-      />
-      <BarraPartida
-        etiqueta="Sale"
-        fijo={cuenta.gastosFijos}
-        apuntado={cuenta.gastosApuntados}
-        tope={tope}
-        color="var(--color-chart-sale)"
-      />
-
-      <div className="flex items-center gap-3 text-[10px] text-faint">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-4 rounded-sm bg-muted-soft" aria-hidden />
-          De fijos
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-4 rounded-sm bg-muted-soft opacity-45" aria-hidden />
-          Apuntado a mano
-        </span>
-      </div>
-
-      <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-2.5 text-[11px]">
-        <span className="font-semibold text-muted">{entra >= sale ? 'Queda' : 'Se ha ido de más'}</span>
-        <span className={`font-bold tabular-nums ${entra < sale ? 'text-danger-strong' : 'text-ink'}`}>
-          {formatCentsCorto(Math.abs(entra - sale))}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 // ─── En qué se va ─────────────────────────────────────────────────────────────
 
 /**
@@ -314,13 +205,9 @@ function DeDondeSale({ cuenta }: { cuenta: CuentaDelMes }) {
  * tarjeta para decir menos que seis filas. Las barras se leen de arriba abajo, en
  * el orden en el que ya venían, con el nombre pegado a su barra.
  *
- * **Todas las barras son del mismo color, y ahora sí del todo.** El anillo pintaba
- * cada porción con un paso distinto de una rampa de verdes, que era una forma
- * elegante de decir dos veces lo mismo: el tamaño ya ordenaba, y el tono repetía
- * ese orden gastando el único canal libre que quedaba. Un solo color —el mismo
- * «sale» de los otros dos gráficos, porque esto es exactamente el desglose de lo
- * que sale— y la identidad la llevan el emoji y el nombre, que es la regla del
- * proyecto: el color dice **de quién** es algo, y una partida no es de nadie.
+ * Todas del mismo color, y a propósito: el tamaño ya ordena, y en Farpi el color
+ * dice **de quién** es algo — y una partida no es de nadie. Lo que la distingue es
+ * su emoji.
  *
  * La barra se mide contra **la partida más grande**, no contra el total: contra el
  * total, un mes repartido entre seis partidas serían seis barras cortas y todas
@@ -367,16 +254,11 @@ function EnQueSeVa({ reparto }: { reparto: TrozoDelReparto[] }) {
 
 // ─── La pestaña ───────────────────────────────────────────────────────────────
 
-function Bloque({ titulo, pie, children }: {
-  titulo: string
-  pie?: string
-  children: React.ReactNode
-}) {
+function Bloque({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section aria-label={titulo} className="space-y-2">
       <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">{titulo}</h2>
       <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm">{children}</div>
-      {pie && <p className="px-1 text-[10px] leading-relaxed text-faint">{pie}</p>}
     </section>
   )
 }
@@ -390,23 +272,28 @@ function Bloque({ titulo, pie, children }: {
  * pone medio scroll entre quien entra y lo que venía a hacer.
  *
  * El mes del que habla es **el mismo que se esté mirando en «El mes»**, y por eso
- * lo dice en el título de cada bloque: aquí no hay flechas para cambiarlo, que
+ * lo dice en el título del segundo bloque: aquí no hay flechas para cambiarlo, que
  * serían un segundo sitio donde navegar meses.
  *
  * **Cada bloque empieza por la frase y sigue por el dibujo.** Un gráfico contesta
  * «¿cómo de distinto?» y no contesta «¿cuánto?»; la media de lo que queda al mes,
  * o lo que se ha ido en total, son una línea de texto y son lo primero que se
  * quiere saber. El dibujo va detrás, a explicar la forma.
+ *
+ * **Son dos bloques y no tres desde el 03-09-2026**, y sin pies. Había uno más,
+ * «de dónde sale», con dos barras partidas en fijo y apuntado: decía exactamente
+ * lo mismo que el desglose de la tarjeta de «El mes» —ingresos fijos, gastos
+ * fijos, apuntados, queda— pero dibujado y con su propia leyenda. Y con él se
+ * fueron los pies de cada bloque, tres párrafos que explicaban por qué el gráfico
+ * era como es: eso es de esta documentación, no de la pantalla, y ocupaban más
+ * alto que los dibujos que acompañaban.
  */
-export function ResumenPanel({ serie, reparto, cuenta, mes, nombreDelMes }: ResumenPanelProps) {
+export function ResumenPanel({ serie, reparto, mes, nombreDelMes }: ResumenPanelProps) {
   const media = mediaQueQueda(serie)
 
   return (
     <div className="space-y-5">
-      <Bloque
-        titulo="Cómo van los meses"
-        pie="Siempre los últimos meses hasta hoy, mires el mes que mires. Los que nunca llegaron a cerrarse no salen: de esos no se sabe qué había puesto, y una barra a cero diría que no gastasteis nada."
-      >
+      <Bloque titulo="Cómo van los meses">
         {serie.length === 0 ? (
           <EmptyState
             emoji="📈"
@@ -426,19 +313,12 @@ export function ResumenPanel({ serie, reparto, cuenta, mes, nombreDelMes }: Resu
                 {media < 0 ? ' de más al mes.' : ' al mes.'}
               </p>
             )}
-            <BarrasDeMeses serie={serie} mes={mes} />
+            <QuedaPorMes serie={serie} mes={mes} />
           </div>
         )}
       </Bloque>
 
-      <Bloque titulo={`${nombreDelMes}: de dónde sale`}>
-        <DeDondeSale cuenta={cuenta} />
-      </Bloque>
-
-      <Bloque
-        titulo={`${nombreDelMes}: en qué se va`}
-        pie="Todas las barras son del mismo color a propósito: en Farpi el color dice de quién es algo, y una partida no es de nadie. Lo que la distingue es su emoji."
-      >
+      <Bloque titulo={`${nombreDelMes}: en qué se va`}>
         {reparto.length === 0 ? (
           <EmptyState
             emoji="🧾"

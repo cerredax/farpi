@@ -1,21 +1,77 @@
 'use client'
 
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { ChevronDown } from 'lucide-react'
+import { useId, useState } from 'react'
+import { resolveAssignee } from '@/lib/assignees'
 import { formatCentsCorto } from '@/lib/finanzas'
 import type { ResumenPartida } from '@/lib/budgets'
+import type { Child, Expense, FamilyMember } from '@/types'
 
 interface BudgetBarProps {
   resumen: ResumenPartida
+  members: FamilyMember[]
+  kids: Child[]
   /**
-   * Editar la partida. **Va sin él en un mes cerrado**, y entonces la fila deja
-   * de ser un botón: lo que se está viendo es la copia de un mes que terminó y no
-   * hay nada que tocar ahí. Lo que se edita —la plantilla— está en «Lo fijo»,
+   * Editar la partida. **Va sin él en un mes que ya pasó**, y entonces el
+   * desplegable no ofrece el enlace: lo que se está viendo es cómo fue ese mes y
+   * no hay nada que tocar ahí. Lo que se edita —la plantilla— está en «Lo fijo»,
    * y tocarlo no puede cambiar lo que dijo enero.
    */
   onEdit?: () => void
+  /** Abrir uno de los apuntes de dentro. El día a día sí se toca en cualquier mes. */
+  onEditApunte: (apunte: Expense) => void
+}
+
+/** Una línea de dentro: cuándo, qué fue, quién lo puso y cuánto. */
+function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
+  apunte: Expense
+  members: FamilyMember[]
+  kids: Child[]
+  onEdit: () => void
+}) {
+  const quienPago = resolveAssignee(apunte, members, kids)
+
+  return (
+    <button
+      type="button"
+      onClick={onEdit}
+      className="flex w-full items-baseline gap-2 rounded-lg px-1 py-1.5 text-left text-[11px] transition-colors hover:bg-canvas active:bg-canvas"
+    >
+      <span className="w-12 flex-shrink-0 tabular-nums text-faint">
+        {format(parseISO(apunte.date), 'd MMM', { locale: es })}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-muted">
+        {apunte.description ?? 'Gasto'}
+      </span>
+      {quienPago && (
+        <span
+          className="h-2 w-2 flex-shrink-0 self-center rounded-full"
+          style={{ backgroundColor: quienPago.color }}
+          aria-label={quienPago.name}
+        />
+      )}
+      <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
+        {formatCentsCorto(apunte.amount_cents)}
+      </span>
+    </button>
+  )
 }
 
 /**
- * Cómo fue una partida en un mes: el nombre, cuánto llevas de cuánto y una barra.
+ * Cómo fue una partida en un mes: el nombre, cuánto llevas de cuánto, una barra
+ * y —al tocarla— en qué se ha ido.
+ *
+ * **Se despliega desde el 03-09-2026.** «Llevas 412 de 350» deja siempre la misma
+ * pregunta detrás —«¿en qué?»— y contestarla obligaba a bajar a «El día a día» y
+ * leer treinta filas mezcladas buscando cuáles eran de la compra. Ahora las
+ * líneas de la partida están dentro de la partida, que es donde se preguntan.
+ *
+ * Tocar la fila **abre**, ya no edita: editar la partida pasa a un enlace dentro
+ * del desplegable. Una fila que se despliega y además hace otra cosa al tocarla
+ * no se puede aprender, y lo que se quiere hacer aquí casi siempre es mirar, no
+ * cambiar el límite.
  *
  * **El límite es el de ese mes**, no el de hoy: viene resuelto en `ResumenPartida`
  * y sale de la plantilla si el mes está en curso o de la copia congelada si ya
@@ -32,10 +88,14 @@ interface BudgetBarProps {
  * más ancha que la tarjeta. Cuánto te has pasado lo dice el texto, que además es
  * el dato exacto.
  */
-export function BudgetBar({ resumen, onEdit }: BudgetBarProps) {
-  const { partida, gastado, restante, porcentaje, pasado } = resumen
+export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: BudgetBarProps) {
+  const { partida, apuntes, gastado, restante, porcentaje, pasado } = resumen
+  const [abierta, setAbierta] = useState(false)
+  const panelId = useId()
 
-  const contenido = (
+  const clases = 'flex w-full flex-col gap-1.5 overflow-hidden rounded-2xl border border-surface bg-white px-4 py-3 text-left shadow-sm'
+
+  const resumenDeLaFila = (
     <>
       <div className="flex w-full items-baseline gap-2">
         {partida.emoji && <span className="flex-shrink-0 text-base leading-none" aria-hidden>{partida.emoji}</span>}
@@ -53,24 +113,77 @@ export function BudgetBar({ resumen, onEdit }: BudgetBarProps) {
           style={{ width: `${Math.max(porcentaje, gastado > 0 ? 4 : 0)}%` }}
         />
       </div>
-
-      {/* `danger-strong` y no `danger` a secas: a 11 px esto es texto pequeño y
-          le toca el 4,5:1 de WCAG, que el rojo claro no alcanza sobre blanco. */}
-      <span className={`text-[11px] ${pasado ? 'font-semibold text-danger-strong' : 'text-muted'}`}>
-        {pasado
-          ? `Te has pasado por ${formatCentsCorto(-restante)}`
-          : `Quedan ${formatCentsCorto(restante)}`}
-      </span>
     </>
   )
 
-  const clases = 'flex w-full flex-col gap-1.5 rounded-2xl border border-surface bg-white px-4 py-3 text-left shadow-sm'
+  // `danger-strong` y no `danger` a secas: a 11 px esto es texto pequeño y le
+  // toca el 4,5:1 de WCAG, que el rojo claro no alcanza sobre blanco.
+  const pie = (
+    <span className={`text-[11px] ${pasado ? 'font-semibold text-danger-strong' : 'text-muted'}`}>
+      {pasado
+        ? `Te has pasado por ${formatCentsCorto(-restante)}`
+        : `Quedan ${formatCentsCorto(restante)}`}
+    </span>
+  )
 
-  if (!onEdit) return <div className={clases}>{contenido}</div>
+  // Una partida de un mes cerrado cuya partida viva se borró: ni tiene líneas
+  // —sus gastos perdieron el `budget_id`— ni se puede editar. No hay nada que
+  // abrir, así que no se hace pasar por un botón.
+  if (apuntes.length === 0 && !onEdit) {
+    return <div className={clases}>{resumenDeLaFila}{pie}</div>
+  }
 
   return (
-    <button onClick={onEdit} className={`${clases} transition-colors hover:bg-canvas active:bg-canvas`}>
-      {contenido}
-    </button>
+    <div className={clases}>
+      <button
+        type="button"
+        onClick={() => setAbierta(v => !v)}
+        aria-expanded={abierta}
+        aria-controls={panelId}
+        className="-mx-4 -mt-3 flex flex-col gap-1.5 px-4 pb-1 pt-3 text-left transition-colors hover:bg-canvas active:bg-canvas"
+      >
+        {resumenDeLaFila}
+        <span className="flex items-center justify-between gap-2">
+          {pie}
+          <ChevronDown
+            size={14}
+            strokeWidth={2.6}
+            aria-hidden
+            className={`flex-shrink-0 text-faint transition-transform ${abierta ? 'rotate-180' : ''}`}
+          />
+        </span>
+      </button>
+
+      {abierta && (
+        <div id={panelId} className="border-t border-hairline pt-1.5">
+          {apuntes.length === 0 ? (
+            <p className="px-1 py-1.5 text-[11px] text-faint">Nada apuntado en esta partida.</p>
+          ) : (
+            <ul className="-mx-1">
+              {apuntes.map(apunte => (
+                <li key={apunte.id}>
+                  <LineaDeLaPartida
+                    apunte={apunte}
+                    members={members}
+                    kids={kids}
+                    onEdit={() => onEditApunte(apunte)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {onEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="mt-1 min-h-6 px-1 py-1 text-[11px] font-semibold text-primary-strong"
+            >
+              Editar la partida
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

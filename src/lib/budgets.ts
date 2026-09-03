@@ -327,6 +327,16 @@ export function sumaDeLineas(fijos: FijoDelMes[], kind: MovementKind): number {
 
 export interface ResumenPartida {
   partida: PartidaDelMes
+  /**
+   * Los gastos que cuelgan de la partida ese mes, del más reciente al más
+   * antiguo — el mismo orden que «El día a día».
+   *
+   * Van aquí y no se filtran en la pantalla (03-09-2026) porque es lo mismo que
+   * ya hay que recorrer para sumar `gastado`, y porque así la fila que abre una
+   * partida enseña exactamente lo que su cifra cuenta: si sale «412 de 350», las
+   * líneas de debajo suman 412 y no hay dos maneras de contarlo.
+   */
+  apuntes: Expense[]
   gastado: number
   /** Lo que queda. **Negativo si se ha pasado**, que es el caso que importa. */
   restante: number
@@ -357,14 +367,18 @@ export function resumenPartidas(
   expenses: Expense[],
   mes: string,
 ): ResumenPartida[] {
-  const delMes = expenses.filter(e => e.kind === 'gasto' && mesDe(e.date) === mes)
+  // Por `apuntesDelMes` y no por un `filter` suelto: lo que devuelve va a la
+  // pantalla tal cual, así que tiene que salir ya ordenado como la lista del mes.
+  const delMes = soloGastos(apuntesDelMes(expenses, mes))
   return plantilla.partidas.map(partida => {
-    const gastado = partida.budgetId === null
-      ? 0
-      : sumaDe(delMes.filter(e => e.budget_id === partida.budgetId))
+    const apuntes = partida.budgetId === null
+      ? []
+      : delMes.filter(e => e.budget_id === partida.budgetId)
+    const gastado = sumaDe(apuntes)
     const limite = partida.limiteCents
     return {
       partida,
+      apuntes,
       gastado,
       restante: limite - gastado,
       porcentaje: Math.min(100, Math.round((gastado / limite) * 100)),

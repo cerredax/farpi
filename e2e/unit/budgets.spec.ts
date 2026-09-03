@@ -184,6 +184,40 @@ test.describe('resumenPartidas', () => {
     expect(r[0].restante).toBe(0)
   })
 
+  // Las líneas que enseña la partida al desplegarse (03-09-2026). Tienen que ser
+  // exactamente las que suma `gastado`, o la fila diría «412 de 350» sobre una
+  // lista que suma otra cosa, y en el mismo orden que «El día a día».
+  test('trae las líneas de cada partida, ordenadas como el día a día', () => {
+    const r = resumenPartidas(
+      espejo([], [budget({ id: 'b1' }), budget({ id: 'b2', name: 'Casa', sort_order: 1 })]),
+      [
+        gasto({ id: 'viejo', budget_id: 'b1', amount_cents: 6000, date: '2026-08-05' }),
+        gasto({ id: 'nuevo', budget_id: 'b1', amount_cents: 4000, date: '2026-08-20' }),
+        gasto({ id: 'otro-mes', budget_id: 'b1', amount_cents: 9900, date: '2026-07-31' }),
+        gasto({ id: 'de-b2', budget_id: 'b2', amount_cents: 2500, date: '2026-08-10' }),
+        gasto({ id: 'sin-partida', budget_id: null, amount_cents: 5000, date: '2026-08-10' }),
+        ingreso({ id: 'entrada', budget_id: 'b1', amount_cents: 4000, date: '2026-08-21' }),
+      ],
+      '2026-08',
+    )
+    expect(r[0].apuntes.map(a => a.id)).toEqual(['nuevo', 'viejo'])
+    expect(r[0].apuntes.reduce((t, a) => t + a.amount_cents, 0)).toBe(r[0].gastado)
+    expect(r[1].apuntes.map(a => a.id)).toEqual(['de-b2'])
+  })
+
+  // Una partida borrada después de cerrarse el mes llega con `budgetId` a null y
+  // sus gastos perdieron el suyo: no hay nada que enseñar dentro.
+  test('una partida sin id viva no tiene líneas', () => {
+    const sinEnlace = espejo([], [])
+    const r = resumenPartidas(
+      { ...sinEnlace, partidas: [{ budgetId: null, key: 'l1', name: 'Compra', emoji: null, limiteCents: 30000, sortOrder: 0 }] },
+      [gasto({ budget_id: null, amount_cents: 5000 })],
+      '2026-08',
+    )
+    expect(r[0].apuntes).toEqual([])
+    expect(r[0].gastado).toBe(0)
+  })
+
   test('gastosSinPartida son los del mes que no cuelgan de ninguna', () => {
     const r = gastosSinPartida([
       gasto({ id: 'con', budget_id: 'b1' }),

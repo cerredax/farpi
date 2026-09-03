@@ -818,6 +818,33 @@ test('un gasto apuntado mueve la partida de la que sale', async ({ page }) => {
   await expect(compra).toContainText('Quedan 375,10 €')
 })
 
+// «Llevas 24,90 de 400» deja siempre la misma pregunta detrás: ¿en qué? Desde el
+// 03-09-2026 se contesta ahí mismo, sin bajar a la lista del mes entero.
+test('una partida se abre y enseña en qué se ha ido', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+  await page.locator('#expense-amount').fill('24,90')
+  await page.locator('#expense-description').fill('Compra semanal')
+  await page.getByRole('button', { name: 'Compra', exact: true }).click()
+  await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+  await page.waitForTimeout(500)
+
+  const partidas = page.locator('section[aria-label="Partidas del mes"]')
+  const compra = partidas.getByRole('button').filter({ hasText: 'Compra' }).first()
+  // Cerrada no enseña sus líneas: lo que se ve es la cuenta, no la lista.
+  await expect(partidas).not.toContainText('Compra semanal')
+
+  await compra.click()
+  await expect(partidas).toContainText('Compra semanal')
+  await expect(partidas).toContainText('24,90 €')
+
+  // Y tocar una línea abre ese apunte, no la partida.
+  await partidas.getByRole('button', { name: /Compra semanal/ }).click()
+  await expect(page.locator('#expense-amount')).toHaveValue('24,90')
+})
+
 // La cuenta del mes es el número que esta pantalla existe para dar, y sale de
 // tres sitios a la vez: los fijos sembrados, lo que se gasta y lo que entra.
 test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async ({ page }) => {
@@ -948,10 +975,14 @@ test('en un mes cerrado se sigue pudiendo apuntar, pero no tocar sus partidas', 
   await page.waitForTimeout(800)
   await retroceder(page, 3)
 
-  // El plan está congelado: ni se crean partidas ni se editan las que hay.
+  // El plan está congelado: ni se crean partidas ni se editan las que hay. Sí se
+  // abren, que es mirar y no tocar: dentro salen sus líneas y no el enlace de
+  // editar, que es lo único que cambiaría el plan.
   await expect(page.getByRole('button', { name: 'Nueva partida' })).toHaveCount(0)
   const partidas = page.locator('section[aria-label="Partidas del mes"]')
-  await expect(partidas.getByRole('button')).toHaveCount(0)
+  await partidas.getByRole('button').filter({ hasText: 'Compra' }).first().click()
+  await expect(partidas).toContainText('Compra semanal')
+  await expect(partidas.getByRole('button', { name: 'Editar la partida' })).toHaveCount(0)
 
   // Pero el día a día sigue abierto, y lo apuntado cae en el mes que se mira.
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()

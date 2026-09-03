@@ -137,6 +137,18 @@ export function useFinanzasState() {
      */
     planCongelado: plantilla.origen === 'copia',
     /**
+     * Al revés: si las partidas que se están viendo son las **vivas** de la
+     * plantilla. Solo entonces se ofrece crear una o tocar la que hay.
+     *
+     * No es `!planCongelado` (03-09-2026): un mes pasado que nunca llegó a
+     * cerrarse no tiene copia, así que no estaba «congelado», y sin embargo
+     * seguía enseñando «+ Nueva partida». Crear una desde ahí no le pone nada a
+     * ese mes —la partida nace en la plantilla de hoy— y deja al que la pulsa
+     * creyendo que ha arreglado julio. Un mes por venir sí cuenta: lo que enseña
+     * con la previsión abierta es la plantilla de hoy tal cual.
+     */
+    planVivo: plantilla.origen === 'plantilla' || plantilla.origen === 'por-venir',
+    /**
      * Si el mes que se mira aún no ha empezado. Sale en cero y no se ofrece
      * apuntar: un gasto con fecha de octubre apuntado en septiembre no es un
      * gasto, es un recordatorio, y para eso están las tareas. Lo que sí se puede

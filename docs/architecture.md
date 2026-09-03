@@ -1640,9 +1640,15 @@ sin quedar rara, y «El mes» es la pantalla del uso diario —apuntar y mirar c
 queda— así que meterle dos gráficos delante pone medio scroll entre quien entra y lo
 que venía a hacer.
 
-**Nada de librerías de gráficos.** Tres SVG escritos a mano. Una librería de
+**Nada de librerías de gráficos.** SVG escritos a mano. Una librería de
 visualización pesa más que toda la app y trae su propio sistema de temas, que habría
 que pelear con el de Tailwind.
+
+Un detalle que cuesta una tarde si no se sabe: **los `var(--color-…)` de un SVG se
+escriben enteros y nunca se arman con una plantilla**. Tailwind v4 solo emite las
+variables del tema que encuentra literales en el código, así que un
+`` fill={`var(--color-chart-${x})`} `` las deja fuera del CSS y el `fill` cae en negro,
+sin error de ninguna clase. Pasó el 03-09-2026 y solo se vio abriendo la pantalla.
 
 **El color se calcula, no se elige, y esa fue la lección.** Se iba a usar el verde y
 el salmón de marca como par de series, y medidos están a **ΔE 2,3 en protanopía** y a
@@ -1652,10 +1658,11 @@ suelo de croma en cualquier pareja que se le ponga.
 
 De ahí salen las dos decisiones de forma:
 
-- **«Cómo van los meses» son barras divergentes**, entra hacia arriba y sale hacia
-  abajo desde una línea de cero. Entra y sale no son dos categorías: son los dos
-  lados de una misma cosa, y la **posición** los separa sin depender de distinguir
-  dos tonos. El color pasa a acompañar, que es donde tiene que estar.
+- **«Cómo van los meses» es una barra por mes**: lo que quedó, hacia arriba si
+  sobró y hacia abajo si no. Con una sola serie no hay dos cosas que distinguir, así
+  que no hay leyenda; lo que lleva el mensaje es la posición respecto al cero y el
+  color solo acompaña. Cada lado se lleva alto **solo si hay algo que pintar ahí**:
+  con todos los meses en positivo, reservar los dos dejaba media tarjeta en blanco.
 - **«En qué se va» son barras de un solo color**, no una paleta de categorías. Dar
   un color a cada partida rompería la regla central —el color dice de quién es algo,
   y una partida no es de nadie— y las haría indistinguibles de una persona en la
@@ -1701,7 +1708,42 @@ nada. Lo que se cambió, y por qué:
 - **«De dónde sale» dice qué es el trozo pálido y cierra con la resta.** La leyenda de
   «de fijos» y «apuntado a mano» iba repetida en el pie de cada barra, y la conclusión
   —lo que queda— la dibujaban las dos barras sin escribirla ninguna. De paso se
-  arregló un pie que decía «0 € apuntado nada» cuando no había nada apuntado.
+  arregló un pie que decía «0 € apuntado nada» cuando no había nada apuntado. (Ese
+  bloque se fue entero el 03-09-2026: ver más abajo.)
+
+##### La tercera vuelta: menos (03-09-2026)
+
+La pestaña tenía tres gráficos, tres pies explicativos, dos leyendas y una tabla, y
+el texto ocupaba más alto que los dibujos. Se podó:
+
+- **«De dónde sale» se fue entero.** Decía exactamente lo mismo que el desglose de la
+  tarjeta de «El mes» —ingresos fijos, gastos fijos, apuntados, queda— pero dibujado
+  y con su propia leyenda. Un gráfico que repite una tabla que está dos toques más
+  allá no está contestando nada.
+- **Los pies de cada bloque se fueron con él.** Explicaban por qué el gráfico era como
+  es («todas las barras son del mismo color a propósito…»): eso es de esta
+  documentación, no de la pantalla.
+- **La serie pasó de dos series a una.** Entra y sale, dos barras por mes, para
+  contestar una pregunta de una sola cifra: seis meses en los 318 px que caben a
+  390 px daban doce barras, y comparar agosto con junio obligaba a mirar cuatro y
+  restar de cabeza. Ahora es lo que quedó cada mes, y entra y sale siguen enteros y
+  exactos en la tabla plegada, que es donde se leían de verdad.
+
+##### Las partidas se abren (03-09-2026)
+
+«Llevas 412 de 350» deja siempre la misma pregunta detrás —«¿en qué?»— y contestarla
+obligaba a bajar a «El día a día» y leer treinta filas mezcladas buscando cuáles eran
+de la compra. Tocar una partida la **abre** y enseña sus líneas, con su fecha, quién
+lo puso y su importe; tocar una línea abre ese apunte.
+
+Las líneas salen de `resumenPartidas`, en el mismo recorrido que suma `gastado`, y no
+se filtran en la pantalla: si la fila dice «412 de 350», las líneas de debajo suman
+412 y no hay dos maneras de contarlo.
+
+Tocar la fila ya **no edita la partida** —eso pasa a un enlace dentro del
+desplegable—. Una fila que se despliega y además hace otra cosa al tocarla no se
+puede aprender, y lo que se quiere hacer aquí casi siempre es mirar. En un mes que ya
+pasó la partida se abre igual, pero dentro no hay enlace: mirar sí, tocar no.
 
 **Los presupuestos pedidos se agrupan por para qué son.** `title` es el trabajo ("Cambiar
 la caldera") y `provider` quién lo da ("Fontanería López"): la pantalla agrupa por el

@@ -15,6 +15,38 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-03
 
+### Finanzas: las partidas se abren y el resumen adelgaza (03-09-2026)
+
+De mirar la pantalla y no entender los gráficos. Tres cosas.
+
+**«Llevas 412 de 350» deja siempre la misma pregunta detrás: ¿en qué?** Y contestarla
+obligaba a bajar a «El día a día» y leer treinta filas mezcladas buscando cuáles eran
+de la compra. Ahora la partida se abre y enseña sus líneas —fecha, concepto, quién lo
+puso, cuánto—, y tocar una abre ese apunte. Las líneas salen de `resumenPartidas`, en
+el mismo recorrido que suma `gastado`: si la fila dice 412, las de debajo suman 412 y
+no hay dos maneras de contarlo. Tocar la fila ya no edita la partida —eso pasa a un
+enlace de dentro—: una fila que se despliega y además hace otra cosa al tocarla no se
+puede aprender, y aquí casi siempre se viene a mirar.
+
+**El «Resumen» tenía tres gráficos, tres pies, dos leyendas y una tabla**, y el texto
+ocupaba más alto que los dibujos. «De dónde sale» se fue entero: decía exactamente lo
+mismo que el desglose de la tarjeta de «El mes», pero dibujado y con leyenda propia.
+Los pies se fueron con él —explicaban por qué el gráfico era como es, que es de la
+documentación y no de la pantalla—. Y la serie de meses pasó de dos series a una: doce
+barras en 318 px para contestar una pregunta de una sola cifra, y comparar agosto con
+junio obligaba a mirar cuatro y restar de cabeza. Ahora es lo que quedó cada mes,
+arriba o abajo del cero, sin leyenda porque no hay dos cosas que distinguir. Entra y
+sale siguen enteros en la tabla plegada, que es donde se leían de verdad.
+
+**Y dos fallos, uno de cada clase.** El de lógica: «+ Nueva partida» no salía en un mes
+cerrado pero sí en uno pasado que **nunca llegó a cerrarse**, porque el guardián
+preguntaba por la copia congelada y no por lo que importa —si las partidas que se ven
+son las vivas—. Crear una desde ahí no le pone nada a ese mes y deja al que la pulsa
+creyendo que ha arreglado julio. El de pintura: **las barras salían negras**. Tailwind
+v4 solo emite las variables del tema que encuentra literales en el código, y el `fill`
+se armaba con una plantilla; se cayó sin error de ninguna clase y solo se vio abriendo
+la pantalla, que es exactamente para lo que sirve abrirla.
+
 ### Finanzas: «Lo fijo», el agosto que nadie vivió y el mes en cero (03-09-2026)
 
 Cuatro cosas, todas de usar la pantalla con los datos de casa.

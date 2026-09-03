@@ -455,6 +455,29 @@ Todo salió de usar la pantalla un día. El porqué de cada cosa, en
       `node scripts/validate-rls.mjs`, ver `docs/supabase-validation.md`. El delta,
       reescrito entero, sigue en `supabase/aplicar-meses-cerrados.sql`.
 
+## Fase 8l - Finanzas: las partidas se abren y el resumen adelgaza (03-09-2026)
+
+Salió de mirar la pantalla y no entender los gráficos. El porqué, en
+`docs/architecture.md`: «La tercera vuelta: menos» y «Las partidas se abren».
+
+- [x] **Las partidas se despliegan** y enseñan sus líneas —fecha, concepto, quién y
+      cuánto—, que salen del mismo recorrido que suma su cifra. Tocar una línea abre
+      ese apunte; editar la partida pasa a un enlace de dentro. En un mes que ya pasó
+      se abre igual, pero sin ese enlace.
+- [x] **«De dónde sale» se fue entero.** Repetía el desglose de la tarjeta de «El
+      mes», dibujado y con leyenda propia. Con él se fueron los tres pies que
+      explicaban por qué cada gráfico era como es: eso es documentación.
+- [x] **La serie pasó de dos series a una**: lo que quedó cada mes, arriba o abajo del
+      cero. Sin leyenda, porque no hay dos cosas que distinguir, y sin medio dibujo en
+      blanco cuando todos los meses son positivos. Entra y sale siguen en la tabla.
+- [x] **«+ Nueva partida» tampoco sale en un mes pasado que nunca se cerró.** Estaba
+      guardado contra la copia congelada (`planCongelado`) y no contra lo que de
+      verdad importa: si las partidas que se ven son las vivas (`planVivo`).
+- [x] Un fallo que solo se vio abriendo la pantalla: **las barras salían negras**.
+      Tailwind v4 solo emite las variables del tema que encuentra literales, y el
+      `fill` se armaba con una plantilla.
+- [x] 2 unitarios nuevos y un flujo de navegador más: **545** en la pasada completa.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

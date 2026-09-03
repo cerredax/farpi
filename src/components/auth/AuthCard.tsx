@@ -189,13 +189,25 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
               <button
                 type="button"
                 onClick={handleGoogle}
-                /* Al pulsarlo se hunde un poco y el fondo se va a `line`, igual
-                   que un `Button variant="secondary"`. Tenía solo `hover:bg-surface`,
-                   y en un móvil el hover se queda pegado después del toque: el
-                   botón se quedaba de otro color sin que pareciera que lo habías
-                   pulsado, solo distinto. El crema de `surface` está a un paso del
-                   blanco (#F0EDE8 sobre #FFF) y no se lee como una pulsación. */
-                className="mb-4 flex w-full select-none touch-manipulation items-center justify-center gap-2.5 rounded-2xl border border-line bg-white py-3 text-sm font-bold text-ink transition-[background-color,transform] duration-150 hover:bg-surface active:scale-[0.97] active:bg-line active:duration-0"
+                /* **El único sitio de la app con azul, y con el de Google.** El
+                   resto de la interfaz es crema y verde salvia, así que al pasar
+                   por encima y al pulsar este botón se va a la paleta de Google:
+                   `blue-50` (#E8F0FE) con el borde en `blue-500` (#4285F4) para el
+                   ratón encima, y `blue-100` (#D2E3FC) mientras está pulsado. Son
+                   los tonos oficiales de su botón de acceso, los mismos cuatro
+                   colores que ya lleva el logo de al lado.
+
+                   Los números van a pelo y no como token de `globals.css` a
+                   propósito: no son colores de Farpi, son de Google, y un token
+                   invitaría a usarlos en otro sitio.
+
+                   Antes tenía solo `hover:bg-surface` y no parecía que se pulsara.
+                   En un móvil el hover se queda pegado después del toque, así que
+                   el botón se quedaba de otro color sin haberse hundido, y encima
+                   el crema de `surface` está a un paso del blanco (#F0EDE8 sobre
+                   #FFF). El hundido al 97 % es el de `Button`, que es lo que hace
+                   que se lea como una pulsación y no como un cambio de estado. */
+                className="mb-4 flex w-full select-none touch-manipulation items-center justify-center gap-2.5 rounded-2xl border border-line bg-white py-3 text-sm font-bold text-ink transition-[background-color,border-color,transform] duration-150 hover:border-[#4285F4] hover:bg-[#E8F0FE] active:scale-[0.97] active:border-[#1A73E8] active:bg-[#D2E3FC] active:duration-0"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z" />

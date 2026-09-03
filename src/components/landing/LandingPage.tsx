@@ -110,7 +110,7 @@ const CAPTURAS = [
   { archivo: 'calendario', titulo: 'El mes',      texto: 'Todo el mes de un vistazo.' },
   { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra, en el móvil de todos.' },
   { archivo: 'comidas',    titulo: 'Comidas',     texto: '¿Qué comemos esta semana?' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'Cuánto queda del mes.' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: '¿En qué se nos va el dinero?' },
   { archivo: 'documentos', titulo: 'Documentos',  texto: 'Los papeles, cuando hacen falta.' },
 ]
 

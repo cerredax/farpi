@@ -255,12 +255,24 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
 - **Los textos de la portada dicen qué se gana, no qué trae** (03-09-2026). El párrafo del
   titular era un inventario de siete secciones y ahora es una frase; los pies de las
   capturas, una frase corta cada uno en vez de dos líneas explicando la pantalla que se
-  está viendo al lado (la de Comidas es la única que pregunta: «¿Qué comemos esta semana?»). En "En qué ayuda", Comidas nombra el **comedor** (media sección se
+  está viendo al lado. Dos preguntan, Comidas («¿Qué comemos esta semana?») y Finanzas
+  («¿En qué se nos va el dinero?»): es la pregunta con la que se entra en esas dos
+  pantallas. La de Finanzas dijo «Cuánto queda del mes» un día y se leía como cuántos
+  **días** quedan. En "En qué ayuda", Comidas nombra el **comedor** (media sección se
   quedaba fuera) y Finanzas habla de controlar el dinero de la casa y no de "quién ha
   puesto qué", que puesto en la portada suena a llevarle la cuenta a la pareja. Las
   **Preguntas** son cinco y contestan como una persona; se fue la de la cobertura, que
   explicaba una limitación con cariño en un sitio donde nadie la había preguntado. El
   párrafo del titular se cambia **en los dos sitios**: portada y `LoginHero`.
+- **El botón de "Continuar con Google" usa la paleta de Google** al pasar el ratón y al
+  pulsarlo (03-09-2026): `#E8F0FE` con borde `#4285F4` para el hover, `#D2E3FC` con borde
+  `#1A73E8` mientras está pulsado, más el hundido al 97 % de `Button`. Es **el único azul de
+  la app**, y los valores van literales y no como token de `globals.css` a propósito: no son
+  colores de Farpi, y un token invitaría a usarlos en otro sitio (igual que los cuatro
+  `fill` del logo). Antes tenía solo `hover:bg-surface`, que en un móvil se queda pegado
+  después del toque y encima está a un paso del blanco. **Ojo al verificarlo**: ese botón no
+  se ve en modo demo, porque sin credenciales `AuthCard` pinta "Modo local activo" en lugar
+  del formulario.
 - **Se dice "casa" y no "hogar"**, y se preguntó (03-09-2026). "Hogar" es la palabra de los
   seguros y de los anuncios de sofás. Además "¿Qué tenemos que saber hoy en casa?" está en
   el titular, en las metaetiquetas, en el aviso de las notificaciones, en `gen-capturas.mjs`

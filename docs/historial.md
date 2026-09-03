@@ -30,9 +30,11 @@ propósito desde el 02-09-2026.
 
 **Los pies de las capturas ahora son una frase.** Eran dos líneas cada uno explicando la
 pantalla, y al lado de la foto sobraban: la captura ya se ve. Se quedan en una frase corta
-—«Lo de hoy, sin buscarlo», «¿Qué comemos esta semana?», «Cuánto queda del mes»— que
-etiqueta la imagen en vez de sustituirla. La de Comidas es la única que pregunta, y es la
-que pidió Omar tal cual.
+—«Lo de hoy, sin buscarlo», «¿Qué comemos esta semana?», «¿En qué se nos va el dinero?»—
+que etiqueta la imagen en vez de sustituirla. Dos preguntan, Comidas y Finanzas, y las dos
+son la pregunta que uno se hace antes de abrir la sección. La de Finanzas decía «Cuánto
+queda del mes» y se leía como cuántos **días** quedan, que es justo lo que no cuenta esa
+pantalla: enseña entra, sale y queda, en euros.
 
 **Comidas habla del comedor y Finanzas del dinero.** En «En qué ayuda», Comidas contaba solo
 el menú de la semana y se dejaba fuera la franja del comedor, que es media sección y lo que
@@ -53,11 +55,28 @@ delante; de dónde sale «Farpi» —el juego de palabras con los apellidos de l
 porque eso sí cuenta algo de la casa. Lo pidió Omar, que es la única forma de tocar ese
 texto: la nota del componente sigue diciendo que ahí no se «mejora la redacción».
 
-**Y el botón de Google se hunde al pulsarlo.** Tenía `hover:bg-surface` y nada más. En un
-móvil el hover se queda pegado después del toque, así que el botón se quedaba de otro color
-sin que pareciera que lo habías pulsado, solo distinto — y encima `surface` (#F0EDE8) está a
-un paso del blanco. Ahora se comporta como un `Button variant="secondary"`: el fondo se va a
-`line` y baja al 97 % mientras está pulsado.
+**Y el botón de Google se enciende con los colores de Google.** Tenía `hover:bg-surface` y
+nada más. En un móvil el hover se queda pegado después del toque, así que el botón se
+quedaba de otro color sin que pareciera que lo habías pulsado, solo distinto — y encima
+`surface` (#F0EDE8) está a un paso del blanco. La primera vuelta lo dejó como un `Button
+variant="secondary"` (fondo a `line`, 97 % al pulsar), y a la segunda se pidió que fuesen
+**los colores típicos de Google**: con el ratón encima, `blue-50` (#E8F0FE) y el borde en
+`blue-500` (#4285F4); pulsado, `blue-100` (#D2E3FC) y `blue-600` (#1A73E8). Son los tonos
+oficiales de su botón de acceso, los mismos cuatro colores que ya lleva el logo de al lado,
+y el hundido al 97 % se queda porque es lo que se lee como pulsación y no como cambio de
+estado.
+
+Es **el único azul de la app**, que es crema y verde salvia de arriba abajo. Los números van
+a pelo y no como token de `globals.css` a propósito: no son colores de Farpi, son de Google,
+y un token invitaría a usarlos en otro sitio — la misma razón por la que el logo lleva sus
+cuatro `fill` literales. El contraste sale de sobra: la tinta queda a 13,4:1 sobre el hover y
+a 11,8:1 sobre el pulsado, y el borde azul se ve contra la tarjeta blanca a 3,6:1 y 4,5:1,
+donde el `border-line` de antes estaba a 1,2:1, o sea invisible.
+
+**No se ha visto renderizado.** Ese botón solo aparece si el proveedor de Google está activo
+en Supabase, y en modo demo `AuthCard` pinta «Modo local activo» en lugar del formulario. Lo
+comprobado son tipos, lint, build y el contraste por número; verlo de verdad pide `.env.local`
+con credenciales o la app publicada.
 
 **Lo que no se cambió: «casa».** Se preguntó si no quedaba mejor «hogar». No: «hogar» es la
 palabra de los seguros y de los anuncios de sofás, «casa» es la que se usa en casa. La

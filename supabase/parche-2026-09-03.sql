@@ -9,8 +9,9 @@
 -- crearse y las policies llevan su `drop ... if exists`, así que volver a pasarlo entero
 -- no rompe nada.
 --
--- Después: `node scripts/validate-rls.mjs` (163 comprobaciones) y anotar el resultado en
--- docs/supabase-validation.md.
+-- **Aplicado y validado el 03-09-2026**: `node scripts/validate-rls.mjs` dio 163/163
+-- contra la base real, anotado en docs/supabase-validation.md. Se queda en el repositorio
+-- como lo que se pasó por el editor, no como algo que quede por hacer.
 
 -- ============================================================================
 -- 1. El dueño y la ruta del archivo de un documento no se reescriben

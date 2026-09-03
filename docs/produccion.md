@@ -160,12 +160,11 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 
 - [x] **Authentication → URL Configuration → Site URL**: el dominio de producción.
 - [x] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y `http://localhost:3000/auth/callback` para desarrollo).
-- [ ] **Parche SQL del 03-09-2026 aplicado** (`supabase/parche-2026-09-03.sql`, cuatro
+- [x] **Parche SQL del 03-09-2026 aplicado** (`supabase/parche-2026-09-03.sql`, cuatro
       secciones): el trigger `trg_document_storage_inmutable`, la RPC
       `accept_family_invite`, las cuatro policies de `documents` y el `insert` de
-      `family_members`, que se va. Las dos primeras ya
-      están puestas; faltan la §3 y la §4. Después, `node scripts/validate-rls.mjs` (163
-      comprobaciones) y anotar el resultado en `docs/supabase-validation.md`.
+      `family_members`, que se fue. Validado después con `node scripts/validate-rls.mjs`:
+      **163/163**.
 - [x] **Email**: proveedor SMTP configurado (Auth → Emails, en `.../auth/smtp`). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
 - [x] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
       Desde el 03-09-2026 **la seguridad de las invitaciones ya no depende de este ajuste**:

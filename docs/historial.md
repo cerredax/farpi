@@ -136,7 +136,8 @@ pagan el día que cambia algo alrededor.
 Nueve comprobaciones nuevas en `validate-rls.mjs` —dos de invitaciones, cinco de
 documentos y dos de miembros— y siete unitarias: 424 unitarios y 554 en la pasada
 completa. Lo que toca la base real va aparte y en cuatro secciones, en
-`supabase/parche-2026-09-03.sql`, para pasar por el SQL Editor.
+`supabase/parche-2026-09-03.sql`, aplicado el mismo día y validado después contra la
+base real: **163/163**.
 
 ### Finanzas: el cierre pregunta en condiciones, y tres cosas que sobraban (03-09-2026)
 

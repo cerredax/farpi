@@ -502,6 +502,9 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
     —el proxy deja pasar todo en modo demo— sirviendo datos de mentira y aparentando
     funcionar, que es la avería que nadie mira.
 
+  Todo aplicado en el proyecto real el mismo día, en las cuatro secciones de
+  `supabase/parche-2026-09-03.sql`, y validado después: **163/163**.
+
   Y los seis endurecimientos menores del informe, hechos en la misma sesión:
 
   - **Origen propio en las rutas que escriben** (`deOtroSitio`, en `src/lib/peticiones.ts`,
@@ -554,11 +557,12 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 ## Validación Supabase
 
 Sin pendientes. La última pasada es del **03-09-2026**, con
-`node scripts/validate-rls.mjs` contra la base real y ya con la invitación que caduca y los
-cuatro índices que faltaban aplicados: **154/154**. El detalle
+`node scripts/validate-rls.mjs` contra la base real y ya con las cuatro secciones de
+`supabase/parche-2026-09-03.sql` aplicadas: **163/163**. El detalle
 —y por qué las que más importan son que nadie pueda llamar a `close_month_copy`
 directamente, que un mes terminado no se pueda reabrir, que poner un mes a cero deje la
-cabecera del plan y que nadie pueda apuntar una ficha al Drive de otro— está en
+cabecera del plan, que nadie pueda apuntar una ficha al Drive de otro y que ni un admin
+pueda meter a nadie en su familia a mano— está en
 `docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
 `supabase/aplicar-meses-cerrados.sql`, reescrito entero —como manda su cabecera— con las
 seis funciones tal y como están hoy en `supabase/schema.sql`.

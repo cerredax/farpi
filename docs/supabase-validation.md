@@ -1,48 +1,58 @@
 # Validación Supabase
 
-## 160/161, y el que falla es el bueno (03-09-2026)
+## Última ejecución: 163/163 (03-09-2026, la revisión de seguridad a la contra)
 
-La revisión de seguridad de ese día añadió **siete** comprobaciones —dos en la §7 y cinco
-en la §12— y dos cambios en la base: la RPC `accept_family_invite` y un trigger nuevo,
-`trg_document_storage_inmutable`. Aplicados los dos, la pasada dio **160/161**, y el que
-falló fue el que se había puesto para vigilar que el trigger **no** rompiera nada:
-«pero editar el nombre de la ficha sigue pudiendo cualquier miembro», con
+Con las cuatro secciones de `supabase/parche-2026-09-03.sql` aplicadas en el proyecto
+real. **163/163 comprobaciones correctas.**
+
+Son las 154 anteriores más nueve: dos en la §3 (miembros), dos en la §7 (invitaciones) y
+cinco en la §12 (documentos).
+
+- **§3, dos**: un admin **no** puede meter a un tercero a mano en su familia, y ese
+  tercero sigue sin ver nada. Se podía hasta hoy: la policy de `insert` de
+  `family_members` solo exigía que la familia fuera suya, así que se podía escribir una
+  fila con el `user_id` de cualquiera, sin invitación y sin que esa persona lo supiera. No
+  le abre los datos de nadie —al contrario, se lo mete en su casa— pero le hace aparecer
+  una familia ajena en el conmutador. La policy se fue entera: quien crea miembros de
+  verdad son `create_family_with_admin` y `accept_family_invite`, las dos
+  `security definer`.
+- **§7, dos**: una cuenta creada **después** de escribirse la invitación no puede
+  aceptarla, y sigue sin ver nada de la familia. Se montan con un cuarto usuario de prueba
+  (D) creado a propósito después de la invitación, que es exactamente el atacante: alguien
+  que ve un `invite_id` y se registra con el correo de la persona invitada. Antes bastaba
+  con que el correo cuadrara, y que eso probara algo dependía del ajuste «Confirm email»
+  del panel de Supabase, que se apaga en un click. `email_confirmed_at` no servía: apagado
+  el ajuste, esa columna viene rellena de fábrica.
+- **§12, cinco**: ni poner a nulo el dueño de un documento ajeno, ni reclamarlo para sí,
+  ni mover la ficha a otro archivo de Drive; que el dueño y la ruta siguen siendo los de A
+  después de intentarlo; y que renombrar la ficha **sí** sigue pudiendo cualquier miembro.
+
+### La última de las nueve encontró un fallo que no era de seguridad
+
+Con la §1 y la §2 aplicadas la pasada dio **160/161**, y el que falló fue justo el que se
+había escrito para vigilar que el trigger nuevo **no** rompiera nada: «pero editar el
+nombre de la ficha sigue pudiendo cualquier miembro», con
 `42501: new row violates row-level security policy`.
 
-No lo rompía el trigger: **estaba roto desde antes**, y lo rompía la policy `for all` con
-el `with check` de `storage_owner` que había entrado esa misma mañana. Postgres aplica el
-`with check` a la fila nueva de cualquier escritura, `update` incluido, y la fila nueva de
-un renombrado sigue llevando dentro el `storage_owner` de quien subió el papel: nadie podía
-editar la ficha de un documento ajeno —ni el nombre, ni la carpeta, ni la caducidad—. La
-regla que se quería escribir era «la llave prestada solo se presta la de uno», no «la ficha
-es de quien la subió», y esas dos se parecen solo si se lee la policy en vez de probarla.
+No lo rompía el trigger: estaba roto desde unas horas antes, y lo rompía la policy
+`for all` con el `with check` de `storage_owner` que había entrado esa misma mañana.
+Postgres aplica el `with check` a la fila nueva de **cualquier** escritura, `update`
+incluido, y la fila nueva de un renombrado sigue llevando dentro el `storage_owner` de
+quien subió el papel: **nadie podía editar la ficha de un documento ajeno**, ni el nombre,
+ni la carpeta, ni la caducidad. La regla que se quería escribir era «la llave prestada
+solo se presta la de uno», no «la ficha es de quien la subió», y esas dos se parecen solo
+si se lee la policy en vez de probarla.
 
-Arreglado partiendo la policy en cuatro (§3 de `supabase/parche-2026-09-03.sql`): la regla
-del dueño vive solo en el `insert`, y que después no cambie lo dice el trigger. **Las dos
-piezas van juntas**: sin el trigger, ese `update` sin `with check` de dueño volvería a
-dejar señalar el Drive de un tercero, esta vez editando en vez de insertando.
+Arreglado partiendo la policy en cuatro (§3 del parche): la regla del dueño vive solo en
+el `insert` y que después no cambie lo dice el trigger. **Las dos piezas van juntas**: sin
+el trigger, ese `update` sin `with check` de dueño volvería a dejar señalar el Drive de un
+tercero, esta vez editando en vez de insertando.
 
-Y del repaso de los puntos menores salió una comprobación más, con la §4 del parche: la
-policy de `insert` de `family_members` se fue entera. Dejaba a un admin meter en su
-familia una fila con el `user_id` que quisiera, sin invitación, y no hacía falta para nada
-—quien crea miembros de verdad son `create_family_with_admin` y `accept_family_invite`,
-las dos `security definer`—.
+Es la segunda vez que una comprobación escrita para vigilar el caso bueno encuentra el
+fallo. Si hay que sacar una regla de aquí: cada vez que se cierra algo, se escribe también
+la que dice qué tiene que seguir funcionando.
 
-**Pendiente de volver a ejecutar** con las §3 y §4 aplicadas; debería dar **163/163**.
-
-Qué comprueban las siete:
-
-- §7, dos: una cuenta creada **después** de escribirse la invitación no puede aceptarla, y
-  sigue sin ver nada de la familia. Se monta con un cuarto usuario de prueba (D) creado a
-  propósito después de la invitación, que es exactamente el atacante: alguien que ve un
-  `invite_id` y se registra con el correo de la persona invitada. Antes bastaba con que el
-  correo cuadrara, y que eso probara algo dependía del ajuste «Confirm email» del panel.
-- §12, cinco: ni poner a nulo el dueño de un documento ajeno, ni reclamarlo para sí, ni
-  mover la ficha a otro archivo de Drive; que el dueño y la ruta siguen siendo los de A
-  después de intentarlo; y que renombrar la ficha **sí** sigue pudiendo cualquier miembro,
-  que es la que encontró el fallo de arriba y la razón de escribirla.
-
-## Última ejecución: 154/154 (03-09-2026, la invitación que caduca)
+## Antes: 154/154 (03-09-2026, la invitación que caduca)
 
 Con **la invitación que caduca** y los tres índices por
 `family_id` que faltaban ya aplicados en el proyecto real. **154/154 comprobaciones

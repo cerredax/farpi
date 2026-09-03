@@ -1497,7 +1497,7 @@ begin
   -- **Solo se copia lo que ya existía antes de que el mes terminara**
   -- (03-09-2026). Una plantilla puesta después nunca estuvo en ese mes: agosto
   -- se cerró el 1 de septiembre con unas nóminas creadas ese mismo día 1, y
-  -- acabó diciendo que entraron 2.400 € que nadie vio. El relleno de meses
+  -- acabó diciendo que entraron 3.130 € que nadie vio. El relleno de meses
   -- pasados del final de este archivo ya llevaba la cautela —solo tocó los meses
   -- con apuntes—; el cierre automático, no.
   insert into public.month_plan_lines

@@ -80,8 +80,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 409 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 537 (409 unitarios + 128 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 414 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 542 (414 unitarios + 128 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -134,11 +134,23 @@ Pantallas (src/components/**)
 las navegaciones con fallback a `/offline`, stale-while-revalidate en los estáticos y
 **nunca** cachea `/api`, `/auth` ni Supabase.
 
+**Son dos cachés y no una** desde el 03-09-2026: `farpi-paginas-v1` guarda las
+navegaciones y `farpi-estaticos-v1` el precache y lo estático. Están separadas porque
+**cerrar sesión vacía la de páginas** —lo que se cacheó de una navegación se vio con la
+sesión abierta— y con una sola caché había que elegir entre dejarlas ahí o llevarse por
+delante `/offline`, que solo se repone en el `install` del worker siguiente. Lo pide la
+app (`signOut` manda `farpi:vaciar-paginas`), porque es ella la que sabe que se está
+saliendo.
+
 Si cambias `PRECACHE` —la lista o el **contenido** de lo que precachea, iconos
-incluidos—, sube `CACHE` en `public/sw.js` o los móviles que ya tienen la app instalada
-se quedan con la caché vieja. Va por `farpi-v1` desde el 31-08-2026: el cambio de nombre
-reinició la numeración, porque lo que importa no es el número sino que la cadena cambie.
-Es la misma clase de regla que el `SCHEMA_VER` del mock.
+incluidos—, sube el número de las dos y añádelas a `CACHES_VIGENTES`, o los móviles que
+ya tienen la app instalada se quedan con la caché vieja. Lo que importa no es el número
+sino que la cadena cambie: es la misma clase de regla que el `SCHEMA_VER` del mock.
+
+Y **el service worker se prueba contra `npm run start`**, nunca contra `npm run dev`, que
+no sirve lo mismo. La suite no lo cubre —Playwright corre en modo demo sobre el dev
+server—, así que un cambio aquí se comprueba a mano: registrar el worker, navegar, mirar
+`caches.keys()` y su contenido.
 
 ### Documentos: los archivos no los guarda Farpi
 

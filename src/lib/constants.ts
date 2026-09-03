@@ -234,6 +234,21 @@ export const PLATOS_SUGERIDOS = 30
 export const DIAS_AVISO_CADUCIDAD = 30
 
 /**
+ * Cuánto vale una invitación a la familia.
+ *
+ * **Este número está también en la base**, dentro de `accept_family_invite`
+ * (`interval '30 days'`), y ahí es donde manda: quien deja entrar es la RPC, no
+ * la pantalla. Aquí está para que Ajustes pueda decir «caducada» en vez de
+ * seguir diciendo «pendiente» de algo que ya no vale, y no puede ser de otra
+ * forma —una función de Postgres no se importa desde TypeScript—. Si cambia uno,
+ * cambia el otro; el que engaña es este, porque el que decide es aquel.
+ *
+ * Treinta días porque el caso real es alguien que tarda en mirar el correo o en
+ * crearse la cuenta, y eso se resuelve en días.
+ */
+export const DIAS_VALIDEZ_INVITACION = 30
+
+/**
  * Con cuánta antelación asoma un cumpleaños en Inicio. Dos semanas: lo justo
  * para comprar un regalo o cuadrar una comida, y poco para que el bloque no se
  * quede fijo en la pantalla todo el mes diciendo lo mismo.

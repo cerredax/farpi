@@ -19,6 +19,7 @@ import {
   selectEventMatches,
   selectFamilySummary,
   selectExpiryState,
+  invitacionCaducada,
   selectDocCategoryFilters,
   selectTodayEvents,
   selectTodayMeals,
@@ -652,5 +653,42 @@ test.describe('selectDocCategoryFilters', () => {
   test('la activa no se duplica si además tiene documentos', () => {
     const r = selectDocCategoryFilters([document({ category: 'salud' })], 'salud')
     expect(r.map(c => c.key)).toEqual(['salud'])
+  })
+})
+
+// La invitación que caduca (03-09-2026). Quien decide es la RPC
+// `accept_family_invite` con su `interval '30 days'`; esto es solo lo que hace que
+// Ajustes no siga diciendo «Pendiente» de algo que ya no vale.
+test.describe('invitacionCaducada', () => {
+  const hoy = '2026-09-03'
+
+  test('una recién hecha vale', () => {
+    expect(invitacionCaducada('2026-09-03T08:00:00+00:00', hoy)).toBe(false)
+  })
+
+  test('el día 30 todavía vale y el 31 ya no', () => {
+    // El mismo borde que la RPC: `created_at < now() - interval '30 days'`.
+    expect(invitacionCaducada('2026-08-04T08:00:00+00:00', hoy)).toBe(false) // 30 días
+    expect(invitacionCaducada('2026-08-03T08:00:00+00:00', hoy)).toBe(true)  // 31
+  })
+
+  test('una de hace meses está caducada', () => {
+    expect(invitacionCaducada('2026-05-01T08:00:00+00:00', hoy)).toBe(true)
+  })
+
+  test('sin fecha legible no se llama caducada a nada', () => {
+    // La respuesta honesta cuando no se sabe. Llamar «caducada» a una recién
+    // enviada porque su fecha no se pudo leer haría que el admin la cancelara
+    // para nada, y esto se pinta dentro de un componente: reventar no es opción.
+    for (const valor of [null, undefined, '', 'ayer por la tarde']) {
+      expect(invitacionCaducada(valor, hoy)).toBe(false)
+    }
+  })
+
+  test('la hora no decide: se compara por días', () => {
+    // A quien la mandó no le interesa si caducó a las nueve o a las once, y sin
+    // recortar el `timestamptz` el resultado bailaría según la hora del envío.
+    expect(invitacionCaducada('2026-08-04T00:01:00+00:00', hoy)).toBe(false)
+    expect(invitacionCaducada('2026-08-04T23:59:00+00:00', hoy)).toBe(false)
   })
 })

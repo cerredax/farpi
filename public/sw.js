@@ -5,17 +5,27 @@
 //  - API, /auth y peticiones cross-origin (Supabase): siempre red.
 
 // La numeración arranca de cero con el nombre nuevo (31-08-2026). Da igual el
-// número: lo único que importa es que la cadena cambie, y `farpi-v1` no es
-// `nido-v2`, así que el `activate` de abajo barre la caché vieja de todos los
-// móviles que ya tenían la app instalada. Tenía que subir igualmente: el
-// manifiesto está en `PRECACHE` y ahora dice otro nombre.
-const CACHE = 'farpi-v1'
+// número: lo único que importa es que la cadena cambie, así que el `activate` de
+// abajo barre la caché vieja de todos los móviles que ya tenían la app instalada.
+//
+// **Son dos cachés y no una desde el 03-09-2026**, y es lo que hace posible
+// vaciar al cerrar sesión sin romper nada. Lo que se guarda de una navegación es
+// una página que se vio **con la sesión abierta**, así que al salir no tiene por
+// qué quedarse en el disco de nadie; lo estático y el precache no son de nadie y
+// se quedan. Con una sola caché había que elegir entre dejar las páginas o
+// llevarse por delante `/offline` —que solo se repone en el `install`, es decir en
+// la siguiente versión del worker— y quedarse sin fallback de sin conexión hasta
+// entonces.
+const CACHE_PAGINAS = 'farpi-paginas-v1'
+const CACHE_ESTATICOS = 'farpi-estaticos-v1'
+/** Las que valen ahora. El `activate` borra toda caché que no esté aquí. */
+const CACHES_VIGENTES = [CACHE_PAGINAS, CACHE_ESTATICOS]
 const OFFLINE_URL = '/offline'
 const PRECACHE = ['/offline', '/manifest.json', '/icon-192.png', '/icon-512.png']
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE)
+    caches.open(CACHE_ESTATICOS)
       .then(cache => cache.addAll(PRECACHE))
       .then(() => self.skipWaiting()),
   )
@@ -24,9 +34,21 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => !CACHES_VIGENTES.includes(k)).map(k => caches.delete(k)),
+      ))
       .then(() => self.clients.claim()),
   )
+})
+
+// Cerrar sesión vacía las páginas cacheadas. Lo pide la propia app —`signOut` en
+// `src/lib/supabase/client.ts`— porque es ella la que sabe que se está saliendo;
+// aquí solo se sabe hacer. Se contesta siempre, incluso si falla, para que el
+// `signOut` no se quede esperando a un worker que no puede.
+self.addEventListener('message', event => {
+  if (event.data !== 'farpi:vaciar-paginas') return
+  const responder = ok => event.source && event.source.postMessage({ vaciado: ok })
+  caches.delete(CACHE_PAGINAS).then(responder, () => responder(false))
 })
 
 self.addEventListener('fetch', event => {
@@ -47,7 +69,7 @@ self.addEventListener('fetch', event => {
         .then(res => {
           if (res.ok) {
             const copy = res.clone()
-            caches.open(CACHE).then(cache => cache.put(request, copy))
+            caches.open(CACHE_PAGINAS).then(cache => cache.put(request, copy))
           }
           return res
         })
@@ -69,7 +91,7 @@ self.addEventListener('fetch', event => {
         const network = fetch(request)
           .then(res => {
             const copy = res.clone()
-            caches.open(CACHE).then(cache => cache.put(request, copy))
+            caches.open(CACHE_ESTATICOS).then(cache => cache.put(request, copy))
             return res
           })
           .catch(() => cached)

@@ -1,6 +1,7 @@
 import { Pencil, UserPlus, X } from 'lucide-react'
 import type { Child, FamilyMember, FamilyInvite } from '@/types'
 import { defaultMemberColor, memberColor, textColorOn } from '@/lib/assignees'
+import { invitacionCaducada } from '@/lib/selectors'
 
 interface MembersListProps {
   members: FamilyMember[]
@@ -47,7 +48,13 @@ export function MembersList({ members, invites, kids, onEdit, onInvite, onCancel
         )
       })}
 
-      {invites.map((invite, i) => (
+      {invites.map((invite, i) => {
+        // Una invitación caducada seguía diciendo «Pendiente», y quien la mandó
+        // esperaba a alguien que ya no podía llegar: pasados los 30 días la RPC
+        // `accept_family_invite` no la acepta. Sabiéndolo, se cancela y se vuelve
+        // a invitar, que es el botón de al lado.
+        const caducada = invitacionCaducada(invite.created_at)
+        return (
         <div key={invite.id} className="flex items-center gap-3 px-4 py-3.5 border-t border-hairline">
           <span
             className="w-9 h-9 rounded-full border-2 border-dashed border-sand flex items-center justify-center text-sand-strong text-xs font-extrabold flex-shrink-0"
@@ -58,11 +65,17 @@ export function MembersList({ members, invites, kids, onEdit, onInvite, onCancel
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-semibold text-ink text-sm leading-tight truncate">{invite.email}</p>
-              <span className="flex-shrink-0 text-[9px] font-bold bg-sand/30 text-sand-strong px-1.5 py-0.5 rounded-full">
-                Pendiente
+              <span
+                className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                  caducada ? 'bg-danger-soft text-danger' : 'bg-sand/30 text-sand-strong'
+                }`}
+              >
+                {caducada ? 'Caducada' : 'Pendiente'}
               </span>
             </div>
-            <p className="text-xs text-muted mt-0.5">Invitación enviada</p>
+            <p className="text-xs text-muted mt-0.5">
+              {caducada ? 'Ya no se puede aceptar: vuelve a invitar' : 'Invitación enviada'}
+            </p>
           </div>
           <button
             onClick={() => onCancelInvite(invite.id)}
@@ -72,7 +85,8 @@ export function MembersList({ members, invites, kids, onEdit, onInvite, onCancel
             <X size={15} strokeWidth={1.8} />
           </button>
         </div>
-      ))}
+        )
+      })}
 
       <div className="border-t border-hairline">
         <button

@@ -1,6 +1,6 @@
 import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
 import { eventCoversDay, isAbsence, isBirthday, isDigestPlan } from './events'
-import { DIAS_AVISO_CADUCIDAD, DOC_CATEGORIES, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
+import { DIAS_AVISO_CADUCIDAD, DIAS_VALIDEZ_INVITACION, DOC_CATEGORIES, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
 import type { DocCategory, Document, Event, MealPlan, MealSlot, Note, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
@@ -345,6 +345,37 @@ export function selectExpiryState(
     (parseLocalDate(expiresOn).getTime() - parseLocalDate(today).getTime()) / 86_400_000
   )
   return dias <= DIAS_AVISO_CADUCIDAD ? 'pronto' : 'vigente'
+}
+
+/**
+ * Si una invitación que sigue en «pendiente» ya no sirve para entrar.
+ *
+ * La decisión no se toma aquí: la toma `accept_family_invite` en la base, que es
+ * la única que deja entrar a alguien. Esto solo es lo que hace que Ajustes no
+ * mienta — una invitación de hace dos meses seguía luciendo «Pendiente», y quien
+ * la mandó esperaba a alguien que ya no podía llegar. Sabiéndolo, el admin
+ * cancela y vuelve a invitar, que cuesta un botón.
+ *
+ * `created_at` viene con hora (es un `timestamptz`), así que se compara por el
+ * día y no por el instante: al que la mandó no le interesa si caducó a las nueve
+ * o a las once.
+ */
+export function invitacionCaducada(
+  createdAt: string | null | undefined,
+  today = getLocalDateString(),
+): boolean {
+  // Sin fecha legible se dice que **no** ha caducado, y no es pereza: es la única
+  // respuesta honesta cuando no se sabe. Llamar «caducada» a una invitación
+  // recién enviada porque su fecha no se pudo leer haría que el admin la
+  // cancelara para nada. Y evita el reventón: una fila guardada en `localStorage`
+  // por una versión vieja del mock puede no traer `created_at`, y esto se pinta
+  // dentro de un componente.
+  if (!createdAt) return false
+  const desde = parseLocalDate(createdAt.slice(0, 10))
+  if (Number.isNaN(desde.getTime())) return false
+
+  const dias = Math.round((parseLocalDate(today).getTime() - desde.getTime()) / 86_400_000)
+  return dias > DIAS_VALIDEZ_INVITACION
 }
 
 /**

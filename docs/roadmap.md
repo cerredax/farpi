@@ -354,7 +354,7 @@ Los nombres que puso la fase anterior duraron un día. El porqué está en
 
 Lo que pedía el uso real: que la cuenta de un mes se cargue de los fijos y **quede
 guardada aunque luego los cambies**. El porqué y las alternativas descartadas, en
-`docs/architecture.md`, «La plantilla («Cada mes») y los meses cerrados».
+`docs/architecture.md`, «La plantilla («Lo fijo») y los meses cerrados».
 
 - [x] La plantilla es cómo suele ser un mes; el mes en curso la refleja; el mes que
       termina se queda con una copia congelada. Sin ningún botón de cerrar nada.
@@ -425,6 +425,34 @@ estado, `por-venir`.
       opcional, que es lo que permite que no haya `+`.
 - [x] 3 unitarios nuevos (`mediaQueQueda`, la serie sin futuro, el origen nuevo) y
       1 flujo de navegador.
+
+## Fase 8k - Finanzas: «Lo fijo», los meses que no se vivieron y el mes en cero (03-09-2026)
+
+Todo salió de usar la pantalla un día. El porqué de cada cosa, en
+`docs/architecture.md`: «La plantilla («Lo fijo») y los meses cerrados».
+
+- [x] **«Cada mes» pasa a llamarse «Lo fijo».** El problema no era lo que decía, era
+      estar pegado a «El mes» en la misma fila de pestañas: dos etiquetas con la
+      misma palabra y un determinante de diferencia. Dentro del código el concepto
+      sigue siendo **la plantilla**.
+- [x] **El cierre automático ya no inventa meses.** Solo copia lo que existía antes
+      de que el mes acabara, y si nada de la plantilla estuvo en ese mes no lo
+      cierra. Agosto se había cerrado el 1 de septiembre con las nóminas creadas
+      ese mismo día.
+- [x] **Un mes pasado se puede poner a cero** (`empty_month`): vacía el plan y deja
+      la cabecera, porque borrarla hacía que el cierre automático lo repitiera en la
+      siguiente carga. Los apuntes no se tocan. `reopen_month` vuelve a ser solo
+      del mes en curso.
+- [x] **Cerrar, deshacer y poner a cero suben** a debajo de la tarjeta del mes.
+      Estaban al pie y había que pasar por las partidas y todos los apuntes.
+- [x] **Un mes que no ha llegado sale en cero** y la previsión se pide con un
+      enlace. El aviso del 02-09-2026 no bastaba: una cifra donde los demás meses
+      llevan un saldo se lee como un saldo.
+- [x] 5 unitarios nuevos y 2 flujos de navegador; 6 comprobaciones nuevas en
+      `scripts/validate-rls.mjs`.
+- [ ] **Aplicar en el SQL Editor** la parte nueva de `supabase/schema.sql`
+      (`close_month_copy`, `reopen_month`, `empty_month`) y ejecutar
+      `node scripts/validate-rls.mjs`.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

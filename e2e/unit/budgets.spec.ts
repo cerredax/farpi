@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import {
-  agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, fijosDe,
-  gastosSinPartida, mediaQueQueda, mesDe, mesVecino, plantillaDelMes,
+  agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, existiaEnElMes,
+  fijosDe, gastosSinPartida, mediaQueQueda, mesDe, mesVecino, plantillaDelMes,
   repartoDelMes, repartoPorPartida, resumenPartidas, serieDeMeses, sumaDeFijos,
   titulosDePresupuestos,
 } from '@/lib/budgets'
@@ -316,14 +316,32 @@ test.describe('qué plantilla valía en un mes', () => {
     expect(p.partidas[0].limiteCents).toBe(40000)
   })
 
-  // Un mes que aún no ha llegado enseña las cifras de la plantilla —es lo único
-  // que se puede decir de él, y es lo que va a heredar cuando llegue— pero se
-  // marca aparte, para que la pantalla pueda avisar y no ofrecer apuntar.
-  test('un mes por venir refleja la plantilla, pero marcado como por venir', () => {
+  // Un mes que aún no ha llegado sale **vacío** (03-09-2026): en un mes en el que
+  // no ha pasado nada no hay nada que enseñar, y una cifra donde los demás meses
+  // llevan un saldo se lee como un saldo.
+  test('un mes por venir sale en cero', () => {
     const p = plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, [])
+    expect(p.origen).toBe('por-venir')
+    expect(p.fijos).toEqual([])
+    expect(p.partidas).toEqual([])
+  })
+
+  // Y la previsión se pide: entonces sí enseña las cifras de la plantilla, que es
+  // lo único que se puede decir de diciembre en agosto y lo que va a heredar.
+  test('con la previsión pedida, un mes por venir refleja la plantilla', () => {
+    const p = plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, [], true)
     expect(p.origen).toBe('por-venir')
     expect(p.fijos.map(f => f.amountCents)).toEqual([200000, 80000])
     expect(p.partidas[0].limiteCents).toBe(40000)
+  })
+
+  // La previsión es cosa del futuro: pedirla no puede reescribir un mes cerrado
+  // ni cambiar el mes en curso, que ya es espejo de la plantilla.
+  test('la previsión no toca ni el mes en curso ni uno cerrado', () => {
+    expect(plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [JUNIO], true).origen).toBe('plantilla')
+    const junio = plantillaDelMes('2026-06', '2026-08', FIJOS, PARTIDAS, [JUNIO], true)
+    expect(junio.origen).toBe('copia')
+    expect(junio.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
   })
 
   // El caso entero: esto es lo que el cambio del 02-09-2026 vino a arreglar.
@@ -427,6 +445,28 @@ test.describe('la cuenta y las partidas de un mes cerrado', () => {
     expect(c.origen).toBe('sin-plan')
     expect(c.hayFijos).toBe(false)
     expect(c.gastosApuntados).toBe(4200)
+  })
+})
+
+test.describe('lo que ya existía en un mes', () => {
+  // La guarda contra los meses inventados (03-09-2026): agosto se cerró el 1 de
+  // septiembre copiando unas nóminas creadas ese mismo día 1.
+  test('algo creado después de que el mes acabara no estuvo en él', () => {
+    expect(existiaEnElMes('2026-09-01T08:00:00', '2026-08')).toBe(false)
+    expect(existiaEnElMes('2026-12-31T23:59:59', '2026-08')).toBe(false)
+  })
+
+  // A mitad de mes sí cuenta: estuvo en ese mes, aunque fuera media.
+  test('algo creado dentro del mes, o antes, sí estuvo', () => {
+    expect(existiaEnElMes('2026-08-15T10:00:00', '2026-08')).toBe(true)
+    expect(existiaEnElMes('2026-08-31T23:59:59', '2026-08')).toBe(true)
+    expect(existiaEnElMes('2025-01-02T00:00:00', '2026-08')).toBe(true)
+  })
+
+  // Diciembre a enero es donde se rompe una comparación de cadenas ingenua.
+  test('el salto de año no la despista', () => {
+    expect(existiaEnElMes('2026-12-31T23:00:00', '2026-12')).toBe(true)
+    expect(existiaEnElMes('2027-01-01T00:00:00', '2026-12')).toBe(false)
   })
 })
 

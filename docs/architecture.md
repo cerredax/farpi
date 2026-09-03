@@ -1275,8 +1275,8 @@ Ahora son **cuatro piezas y tres pestañas**, y cada pieza contesta una pregunta
 
 | Tabla | En pantalla | Dónde | Contesta |
 |---|---|---|---|
-| `fixed_entries` | **Fijos** | pestaña «Cada mes» | ¿con cuánto contamos y qué está comprometido? |
-| `budgets` | **Partidas** | pestaña «Cada mes», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
+| `fixed_entries` | **Fijos** | pestaña «Lo fijo» | ¿con cuánto contamos y qué está comprometido? |
+| `budgets` | **Partidas** | pestaña «Lo fijo», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
 | `expenses` | **El día a día** (una fila, un **apunte**) | pestaña «El mes» | ¿qué ha pasado este mes? |
 | `quotes` | **Presupuestos** | pestaña «Presupuestos» | ¿cuánto va a costar esto que aún no hemos hecho? |
 
@@ -1336,7 +1336,7 @@ cuenta, "12,50" acabaría valiendo distinto según el modo. El formato también 
 mano en vez de con `Intl.NumberFormat`, que mete un espacio duro cuya forma cambia con la
 versión de ICU: el mismo importe tiene que leerse igual en un test y en un móvil.
 
-#### La plantilla («Cada mes») y los meses cerrados (02-09-2026)
+#### La plantilla («Lo fijo») y los meses cerrados (02-09-2026)
 
 La decisión más grande de Finanzas, y la que se comió una de las de la víspera.
 
@@ -1356,7 +1356,7 @@ terminado el mes?»— y entonces no había manera de cerrar un mes antes de tie
 copia quedaba guardada y la pantalla seguía enseñando el espejo.
 
 ```
-«Cada mes» — LA PLANTILLA           «El mes» — UN MES CONCRETO
+«Lo fijo» — LA PLANTILLA           «El mes» — UN MES CONCRETO
   ingresos fijos                      espejo, si es el mes en curso
   gastos fijos          ──copia──▶    copia congelada, si ya terminó
   partidas                            ──────────────────────────────
@@ -1393,6 +1393,14 @@ no pasa hasta que alguien lo cierra— por lo de siempre: es la tarea administra
 que esta app existe para no pedir, y además en una casa la haría quien llegara antes,
 por los dos.
 
+**Los tres botones van debajo de la tarjeta del mes** (03-09-2026), no al pie de la
+pantalla. Estuvieron abajo desde el 02-09-2026 con un argumento razonable —después
+del día a día se leen como «he terminado con este mes»— y al usarlo no se sostuvo:
+había que recorrer las partidas y todos los apuntes del mes para llegar a ellos. Lo
+que hay ahí no es un remate, es lo que se hace **con** el mes que la tarjeta acaba de
+resumir. Siguen **fuera** de la tarjeta y separados por su línea, que es lo que la
+salvó en su día de convertirse en un panel de mandos.
+
 **Y se puede deshacer, pero solo mientras el mes siga siendo el de hoy.**
 `reopen_month` es lo que permite ofrecer el cierre anticipado sin miedo a un toque
 de más. Un mes terminado no se reabre jamás: si el pasado se pudiera reabrir, no
@@ -1419,25 +1427,80 @@ puede que en enero no fueran esos. Un mes sin cerrar se ve —la tarjeta lo dice
 puede arreglar; un mes cerrado con datos inventados, no. Por eso el tercer estado
 existe y se enseña: `sin-plan` no es un fallo, es la respuesta honesta.
 
+**Y solo se copia lo que ya existía antes de que el mes acabara** (03-09-2026). La
+regla de arriba dejaba un hueco de un mes por el que se colaba exactamente lo que
+venía a evitar: agosto se cerró el 1 de septiembre —era «el mes anterior», todo
+correcto— copiando unas nóminas y unos recibos creados ese mismo día 1. Agosto
+acabó diciendo que entraron 3.130 € que nadie vio, y no había manera de quitarlo.
+Ahora `close_month_copy` filtra por `created_at` contra el primer instante del mes
+siguiente (`existiaEnElMes` en `budgets.ts` hace lo mismo en el mock), y **si había
+plantilla pero nada de ella estuvo en ese mes, no cierra**: el mes se queda en
+`sin-plan`, que suma cero y lo dice. El relleno del final de `schema.sql` ya llevaba
+la cautela —solo tocó los meses con apuntes— y su propio comentario avisaba de que
+hecho un mes más tarde «habría escrito números inventados». Lo estaba.
+
+**Un mes pasado se puede poner a cero: `empty_month`** (03-09-2026). Lo anterior
+evita el próximo mes inventado, no arregla el que ya se guardó, así que hace falta
+una salida. **Vacía el plan y deja la cabecera**, y esa es toda la sutileza: si
+borrara la cabecera —lo que hace `reopen_month`— la app vería «falta el mes pasado»
+en la siguiente carga y lo cerraría otra vez con la plantilla de hoy. Se descubrió
+en el test. Una cabecera sin líneas dice las dos cosas que hay que decir —ese mes
+está cerrado, y de él no se guardó nada— y se queda quieta; la tarjeta lo lee como
+«de este mes no se guardó ningún fijo ni ninguna partida». Los apuntes **no** se
+tocan: lo que se vacía es el plan, no el día a día. Y sigue sin poderse *reabrir* un
+mes terminado, que es lo que sostiene el resto: poner a cero no lo devuelve a
+espejo de la plantilla, lo deja en cero.
+
+Un mes puesto a cero **sí sale en la serie del resumen**, con su barra a cero, igual
+que cualquier mes cerrado sin líneas. Se valoró tirarlo como se tira el que nunca se
+cerró y se dejó estar: la regla escrita es que un mes cerrado cuenta y un mes sin
+plan no, y cambiarla movía la media de los seis meses por un caso de borde.
+
 **Y hay un cuarto estado: `por-venir`.** Hacia delante también se puede navegar, y
 hasta que se separó, octubre se veía en septiembre **exactamente igual** que
 septiembre: su «quedan 2.194 €», su botón de apuntar y ni una palabra que dijera que
-ese mes no ha llegado. Las cifras son las mismas —la plantilla de hoy es lo único que
-se puede decir de un mes que no ha empezado, y es lo que va a heredar cuando
-empiece—, pero el mes se marca aparte y la pantalla cambia en tres cosas: lo avisa
-(«este mes aún no ha empezado: es lo que quedaría si nada cambia»), habla en
-condicional («quedaría ese mes») y **no ofrece apuntar ni cerrar**. Un gasto con fecha
-del mes que viene no es un gasto, es un recordatorio, y para eso están las tareas.
+ese mes no ha llegado. El 02-09-2026 se marcó aparte: aviso, condicional
+(«quedaría ese mes») y **ni apuntar ni cerrar**. Un gasto con fecha del mes que
+viene no es un gasto, es un recordatorio, y para eso están las tareas.
 
-Se valoró cerrar la puerta del todo —que la flecha no pasara del mes en curso— y se
-descartó: mirar si el mes que viene cuadra es justamente para lo que sirve tener una
-plantilla, y prohibirlo obligaría a hacer la cuenta de cabeza.
+**El 03-09-2026 dejó además de enseñar la previsión de entrada, y sale en cero.**
+El aviso no bastaba: una cifra puesta donde el resto de los meses llevan un saldo
+se lee como un saldo, por mucho que la letra pequeña de debajo diga que no lo es.
+Ahora octubre está a cero —que es lo que hay en un mes en el que no ha pasado
+nada, y también lo que se pidió al usarlo— y las partidas ni se pintan.
 
-**El nombre de la pestaña.** Se llamó «El mes tipo» hasta el 02-09-2026. «Tipo» es
-una palabra de formulario: hay que pararse a deducir que significa «un mes
-cualquiera». «Cada mes» dice lo mismo sin traducirlo y encaja al lado de «El mes»,
-que es un mes concreto. Dentro del código el concepto sigue llamándose **la
-plantilla**, que es lo que es.
+**La previsión se pide.** Un enlace en la tarjeta («ver qué quedaría con lo fijo de
+hoy») abre las cifras de la plantilla, y entonces sí habla en condicional y vuelven
+las partidas. Se valoró cerrar la puerta del todo —que la flecha no pasara del mes
+en curso, o que no hubiera previsión ninguna— y se descartó por lo mismo de
+siempre: mirar si el mes que viene cuadra es justamente para lo que sirve tener una
+plantilla, y prohibirlo obligaría a hacer la cuenta de cabeza. Lo que cambia es
+quién pregunta. Y la previsión **se cierra al cambiar de mes**: se abre para una
+pregunta concreta, y dejarla abierta haría que noviembre saliera con cifras que
+nadie pidió. Apuntar sigue sin ofrecerse, con la previsión abierta o cerrada.
+
+En el código es un parámetro de `plantillaDelMes` (`conPrevision`, apagado por
+defecto), no un quinto origen: lo que se está mirando sigue siendo un mes por
+venir, con o sin cifras.
+
+**El nombre de la pestaña, dos vueltas.** Fue «El mes tipo» hasta el 02-09-2026
+—«tipo» es una palabra de formulario: hay que pararse a deducir que significa «un
+mes cualquiera»— y «Cada mes» un solo día, hasta el 03-09-2026. El problema de
+«Cada mes» no era lo que decía, era dónde estaba: pegado a «El mes» en la misma
+fila de pestañas, dos etiquetas con la misma palabra y un determinante de
+diferencia. Había que detenerse a mirar cuál era cuál, y una fila de pestañas es
+exactamente el sitio donde no se puede pedir eso.
+
+**«Lo fijo»** no repite «mes», así que se distingue de un vistazo, y nombra lo
+único que tienen en común las tres listas de dentro: que no cambian de un mes a
+otro. Se acepta a sabiendas que **una partida no es un fijo** —es justamente lo que
+varía— y que ahí la etiqueta le queda ancha; cabe porque lo fijo de una partida es
+lo que se le da al empezar el mes, que es la cifra que se pone en esta pestaña. Lo
+que varía es cuánto llevas, y eso se ve en «El mes».
+
+Dentro del código el concepto sigue llamándose **la plantilla**, que es lo que es;
+la clave de la pestaña es `plantilla` y el panel conserva el nombre del rótulo de
+ayer (`CadaMesPanel`).
 
 **La copia guarda el nombre y el emoji, no solo el importe.** Borrar la partida
 «Coche» en abril no puede dejar a enero con un hueco donde decía «Coche 150 €». Por
@@ -1537,7 +1600,7 @@ mes —permitiría "en diciembre gastamos más"— y se descartó: obliga a "abr
 septiembre" cada treinta días, que es el trabajo administrativo que esta app existe
 para no pedir. Cambiarla vale desde ya para el mes en curso y no toca lo apuntado ni
 los meses cerrados, que se quedaron con el límite que tenían (ver "La plantilla
-(«Cada mes») y los meses cerrados").
+(«Lo fijo») y los meses cerrados").
 
 **Una partida no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
 (ver "Asignación de eventos, tareas y documentos"), y una partida no es de nadie:

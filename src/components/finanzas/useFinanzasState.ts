@@ -28,7 +28,7 @@ export type PestañaFinanzas = 'mes' | 'resumen' | 'plantilla' | 'presupuestos'
 export function useFinanzasState() {
   const {
     fixedEntries, budgets, expenses, quotes, monthPlans, members, kids,
-    closeMonthNow, reopenMonth,
+    closeMonthNow, reopenMonth, emptyMonth,
     createFixedEntry, updateFixedEntry, deleteFixedEntry,
     createBudget, updateBudget, deleteBudget,
     createExpense, updateExpense, deleteExpense,
@@ -39,6 +39,13 @@ export function useFinanzasState() {
 
   const [pestaña, setPestaña] = useState<PestañaFinanzas>('mes')
   const [mes, setMes] = useState(() => mesDe(hoy))
+  /**
+   * Si en un mes que aún no ha llegado se ha pedido ver la previsión. Cerrada al
+   * entrar y **cerrada otra vez al cambiar de mes**: se abre para una pregunta
+   * concreta —«¿cuadra octubre?»— y dejarla abierta haría que noviembre saliera
+   * con cifras sin que nadie las hubiera pedido.
+   */
+  const [previsionAbierta, setPrevisionAbierta] = useState(false)
 
   const [fixedSheetOpen, setFixedSheetOpen] = useState(false)
   const [editingFixed, setEditingFixed] = useState<FixedEntry | null>(null)
@@ -56,8 +63,8 @@ export function useFinanzasState() {
   // terminado, la copia congelada si terminó. Todo lo de «El mes» cuelga de aquí,
   // y por eso se calcula una sola vez y no en cada selector.
   const plantilla = useMemo(
-    () => plantillaDelMes(mes, mesActual, fixedEntries, budgets, monthPlans),
-    [mes, mesActual, fixedEntries, budgets, monthPlans],
+    () => plantillaDelMes(mes, mesActual, fixedEntries, budgets, monthPlans, previsionAbierta),
+    [mes, mesActual, fixedEntries, budgets, monthPlans, previsionAbierta],
   )
 
   const resumen = useMemo(() => resumenPartidas(plantilla, expenses, mes), [plantilla, expenses, mes])
@@ -88,6 +95,16 @@ export function useFinanzasState() {
   const grupos = useMemo(() => agruparPresupuestos(quotes), [quotes])
   const titulos = useMemo(() => titulosDePresupuestos(quotes), [quotes])
 
+  const copiaVacia = plantilla.origen === 'copia'
+    && plantilla.fijos.length === 0
+    && plantilla.partidas.length === 0
+
+  /** Cambiar de mes cierra la previsión: se pidió para el mes que se miraba. */
+  const irAlMes = (siguiente: (actual: string) => string) => {
+    setMes(siguiente)
+    setPrevisionAbierta(false)
+  }
+
   // Los sheets se remontan al cambiar de cosa editada, como en el resto de la
   // app: sin esto, editar un apunte justo después de otro deja los valores del
   // primero escritos en los campos.
@@ -104,10 +121,10 @@ export function useFinanzasState() {
 
   return {
     hoy, mes, setMes,
-    mesAnterior: () => setMes(m => mesVecino(m, -1)),
-    mesSiguiente: () => setMes(m => mesVecino(m, 1)),
+    mesAnterior: () => irAlMes(m => mesVecino(m, -1)),
+    mesSiguiente: () => irAlMes(m => mesVecino(m, 1)),
     /** Volver al mes en curso. Se ofrece solo cuando se está mirando otro. */
-    volverAHoy: () => setMes(mesActual),
+    volverAHoy: () => irAlMes(() => mesActual),
     esMesActual: mes === mesActual,
     /**
      * Si el plan de este mes está congelado: sus partidas no se editan desde aquí
@@ -120,22 +137,38 @@ export function useFinanzasState() {
      */
     planCongelado: plantilla.origen === 'copia',
     /**
-     * Si el mes que se mira aún no ha empezado. Se puede entrar —ver qué va a
-     * quedar con la plantilla de hoy es justo para lo que sirve—, pero no se
-     * ofrece apuntar: un gasto con fecha de octubre apuntado en septiembre no es
-     * un gasto, es un recordatorio, y para eso están las tareas.
+     * Si el mes que se mira aún no ha empezado. Sale en cero y no se ofrece
+     * apuntar: un gasto con fecha de octubre apuntado en septiembre no es un
+     * gasto, es un recordatorio, y para eso están las tareas. Lo que sí se puede
+     * pedir es la previsión, que es para lo que sirve entrar.
      */
     esPorVenir: plantilla.origen === 'por-venir',
+    previsionAbierta,
+    alternarPrevision: () => setPrevisionAbierta(v => !v),
     /**
      * Se puede cerrar a mano lo que aún no está cerrado y ya ha empezado, que
      * desde que existe `por-venir` es exactamente lo que dice `origen`: un mes
      * sin copia y que no está en el futuro solo puede ser el de hoy.
      */
     sePuedeCerrarYa: plantilla.origen === 'plantilla',
-    /** Y deshacerlo, solo mientras el mes siga siendo el de hoy. */
+    /** Y deshacerlo, mientras el mes siga siendo el de hoy. */
     sePuedeReabrir: plantilla.origen === 'copia' && mes === mesActual,
+    /**
+     * Un mes pasado con algo guardado se puede **poner a cero** (03-09-2026): es
+     * la salida para un mes que se cerró de oficio con una plantilla que entonces
+     * no existía —agosto, con unas nóminas creadas el 1 de septiembre—. Si ya
+     * está vacío no se ofrece: no hay nada que quitar.
+     */
+    sePuedePonerACero: plantilla.origen === 'copia' && mes < mesActual && !copiaVacia,
+    /**
+     * Un mes cerrado del que no se guardó nada. Puede ser porque se puso a cero o
+     * porque cuando terminó no había plantilla que copiar; para quien lo mira es
+     * lo mismo —de ese mes no hay cuenta— y la tarjeta lo dice así.
+     */
+    copiaVacia,
     cerrarMesYa: () => closeMonthNow(mes),
     reabrirMes: () => reopenMonth(mes),
+    ponerMesACero: () => emptyMonth(mes),
     plantilla,
 
     pestaña, setPestaña,

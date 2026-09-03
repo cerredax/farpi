@@ -850,7 +850,7 @@ test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async
 test('un gasto fijo nuevo baja lo que queda para el mes', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Cada mes' }).click()
+  await page.getByRole('tab', { name: 'Lo fijo' }).click()
 
   const sale = page.getByRole('region', { name: 'Sale al mes' })
   await expect(sale).toContainText('−935,90 €')
@@ -924,7 +924,7 @@ test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ pa
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
 
-  await page.getByRole('tab', { name: 'Cada mes' }).click()
+  await page.getByRole('tab', { name: 'Lo fijo' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
   await page.getByRole('button', { name: 'Guardar' }).click()
@@ -983,7 +983,7 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
   await expect(resumen).toContainText('Mes cerrado')
 
   // Y desde aquí, tocar la plantilla ya no mueve este mes.
-  await page.getByRole('tab', { name: 'Cada mes' }).click()
+  await page.getByRole('tab', { name: 'Lo fijo' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
   await page.getByRole('button', { name: 'Guardar' }).click()
@@ -998,20 +998,53 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
   await expect(resumen).toContainText('−1.055,90 €')
 })
 
-// Reabrir es solo para el mes en curso: si el pasado se pudiera reabrir, no
-// estaría cerrado.
-test('un mes que ya terminó no se puede reabrir', async ({ page }) => {
+// Un mes pasado no se «reabre» —no vuelve a seguir la plantilla— pero sí se
+// puede poner a cero: es la salida para un mes que se cerró de oficio con una
+// plantilla que en aquel mes no existía (03-09-2026).
+test('un mes que ya terminó no vuelve a la plantilla, pero se puede poner a cero', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
   await retroceder(page, 1)
   await expect(page.getByRole('button', { name: /Volver a seguir la plantilla/ })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Dar el mes por cerrado/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /Poner este mes a cero/ })).toBeVisible()
 })
 
-// Hacia delante también se puede ir, pero lo que se ve ahí es una previsión, no
-// un mes: hasta el 02-09-2026 octubre se veía igual que septiembre, con su `+` y
-// su "quedan 2.194 €", y nada decía que ese mes no ha llegado.
-test('un mes que aún no ha empezado avisa, y no deja apuntar ni cerrar', async ({ page }) => {
+// Y ponerlo a cero de verdad: agosto deja de decir «mes cerrado» con unos fijos
+// que nadie pagó y pasa a decir que de ese mes no se guardó nada.
+test('poner un mes pasado a cero le quita el plan y no toca lo apuntado', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await retroceder(page, 1)
+
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await expect(resumen).toContainText('Agosto 2026')
+  await expect(resumen).toContainText('Mes cerrado')
+
+  // Dos toques, como todo lo que borra algo.
+  await page.getByRole('button', { name: /Poner este mes a cero/ }).click()
+  await page.getByRole('button', { name: /¿Seguro\?/ }).click()
+  await page.waitForTimeout(500)
+
+  await expect(resumen).toContainText('no se guardó ningún fijo')
+  await expect(resumen).not.toContainText('Mes cerrado:')
+  // Y ya no se ofrece ponerlo a cero otra vez: no queda nada que quitar.
+  await expect(page.getByRole('button', { name: /Poner este mes a cero/ })).toHaveCount(0)
+
+  // Y aguanta la recarga, que es donde estaba la trampa: el plan se vacía en vez
+  // de borrarse justamente para que el cierre automático no lo vuelva a cerrar.
+  await page.reload()
+  await page.waitForTimeout(800)
+  await retroceder(page, 1)
+  await expect(resumen).toContainText('Agosto 2026')
+  await expect(resumen).toContainText('no se guardó ningún fijo')
+})
+
+// Hacia delante también se puede ir, pero un mes que no ha llegado **está en
+// cero**: hasta el 02-09-2026 octubre se veía igual que septiembre, con su `+` y
+// su "quedan 2.194 €"; el 03-09-2026 dejó también de enseñar la previsión de
+// entrada, porque una cifra ahí se lee como un saldo aunque debajo diga que no.
+test('un mes que aún no ha empezado sale en cero, y la previsión se pide', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
   await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toBeVisible()
@@ -1021,13 +1054,23 @@ test('un mes que aún no ha empezado avisa, y no deja apuntar ni cerrar', async 
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
   await expect(resumen).toContainText('aún no ha empezado')
-  // Las cifras son las de la plantilla de hoy, dichas en condicional.
-  await expect(resumen).toContainText('quedaría ese mes')
-  await expect(resumen).toContainText('2.194,10 €')
+  await expect(resumen).toContainText('0,00 €')
+  await expect(resumen).not.toContainText('2.194,10 €')
 
   await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toHaveCount(0)
   await expect(page.getByText('Ese mes aún no ha empezado')).toBeVisible()
   await expect(page.getByRole('button', { name: /Dar el mes por cerrado/ })).toHaveCount(0)
+  // Sin previsión pedida no hay partidas que medir.
+  await expect(page.locator('section[aria-label="Partidas del mes"]')).toHaveCount(0)
+
+  // La previsión sí se puede pedir, y entonces habla en condicional.
+  await page.getByRole('button', { name: /Ver qué quedaría con lo fijo de hoy/ }).click()
+  await page.waitForTimeout(300)
+  await expect(resumen).toContainText('quedaría ese mes')
+  await expect(resumen).toContainText('2.194,10 €')
+  await expect(page.locator('section[aria-label="Partidas del mes"]')).toBeVisible()
+  // Y sigue sin dejar apuntar: es una previsión, no un mes.
+  await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toHaveCount(0)
 
   // Y volviendo a este mes, todo lo de siempre.
   await page.getByRole('button', { name: 'Volver a este mes' }).click()

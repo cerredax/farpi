@@ -1,5 +1,12 @@
 # Validación Supabase
 
+> **Pendiente (03-09-2026).** El esquema cambió en tres cosas —`close_month_copy` solo
+> copia lo que existía antes de que el mes acabara, `reopen_month` vuelve a ser solo del
+> mes en curso y nace `empty_month`— y `scripts/validate-rls.mjs` ya trae las
+> comprobaciones nuevas, **pero no se ha ejecutado**: hay que aplicar primero esa parte de
+> `supabase/schema.sql` en el SQL Editor, porque `empty_month` todavía no existe en el
+> proyecto real. Lo de abajo es de la ejecución anterior.
+
 Última ejecución: 2026-09-02, con **los meses cerrados** ya aplicados en el proyecto
 real. **139/139 comprobaciones correctas.**
 

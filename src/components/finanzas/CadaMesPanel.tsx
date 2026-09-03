@@ -119,14 +119,25 @@ function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }
 }
 
 /**
- * «Cada mes»: cómo suele ser un mes en esta casa.
+ * «Lo fijo»: cómo suele ser un mes en esta casa.
  *
- * **El nombre.** Se llamó «El mes tipo» hasta el 02-09-2026 y se cambió porque
- * «tipo» es una palabra de formulario: hay que pararse a deducir que significa
- * «un mes cualquiera». «Cada mes» dice lo mismo sin traducirlo —lo que pasa cada
- * mes: las nóminas, los recibos y lo que se le da a cada partida— y encaja al
- * lado de «El mes», que es un mes concreto. Dentro del código el concepto sigue
- * llamándose **la plantilla**, que es lo que es.
+ * **El nombre, dos vueltas.** Fue «El mes tipo» hasta el 02-09-2026 —«tipo» es
+ * una palabra de formulario: hay que pararse a deducir que significa «un mes
+ * cualquiera»— y «Cada mes» un día, hasta el 03-09-2026. El problema de «Cada
+ * mes» no era lo que decía, era dónde estaba: pegado a «El mes» en la misma fila
+ * de pestañas, dos etiquetas con la misma palabra y un determinante de
+ * diferencia, y había que detenerse a mirar cuál era cuál. «Lo fijo» no repite
+ * «mes», así que se distingue de un vistazo, y nombra lo único que tienen en
+ * común las tres listas de aquí: que no cambian de un mes a otro.
+ *
+ * Se acepta a sabiendas que **una partida no es un fijo** —es justamente lo que
+ * varía— y que la etiqueta le queda ancha. Cabe porque lo que es fijo de una
+ * partida es lo que se le da al empezar el mes, que es la cifra que se pone
+ * aquí; lo que varía es cuánto llevas, y eso se ve en «El mes».
+ *
+ * Dentro del código el concepto sigue llamándose **la plantilla**, que es lo que
+ * es. La clave de la pestaña es `plantilla` y este componente conserva el nombre
+ * del rótulo de ayer.
  *
  * **Es una plantilla, no un mes.** Lo que se pone aquí es lo que se copia a cada
  * mes que empieza: las nóminas, los recibos y cuánto se le da a cada partida.

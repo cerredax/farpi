@@ -1,4 +1,4 @@
-import { mesDe, mesVecino } from '../budgets'
+import { existiaEnElMes, mesDe, mesVecino } from '../budgets'
 import { getLocalDateString } from '../date-utils'
 import { parseAmountToCents } from '../finanzas'
 import type {
@@ -261,9 +261,48 @@ export function reopenMonth(familyId: string, month: string): boolean {
   return db.monthPlans.length < antes
 }
 
-/** La copia en sí. El equivalente de `close_month_copy`: sin guardas de fecha. */
+/**
+ * Poner a cero un mes pasado, como `empty_month` (03-09-2026: el caso de agosto,
+ * cerrado de oficio con unas nóminas creadas el 1 de septiembre).
+ *
+ * **Vacía el plan, no lo borra.** Es la diferencia con reabrir, y no es un
+ * detalle: sin cabecera, el cierre automático vuelve a ver «falta el mes pasado»
+ * en la siguiente carga y lo cierra otra vez con la plantilla de hoy. Una
+ * cabecera sin líneas dice las dos cosas que hay que decir —ese mes ya está
+ * cerrado, y lo que se guardó de él es nada— y se queda quieta.
+ *
+ * Los apuntes no se tocan: lo que se vacía es el plan, no el día a día.
+ */
+export function emptyMonth(familyId: string, month: string): boolean {
+  if (month >= mesDe(getLocalDateString(new Date()))) {
+    throw new Error('Solo se puede poner a cero un mes que ya terminó')
+  }
+  const plan = db.monthPlans.find(p => p.family_id === familyId && p.month === month)
+  if (!plan || plan.lines.length === 0) return false
+  db.monthPlans = db.monthPlans.map(p => (p === plan ? { ...p, lines: [] } : p))
+  return true
+}
+
+/**
+ * La copia en sí. El equivalente de `close_month_copy`: sin guardas de fecha.
+ *
+ * **Solo copia lo que ya existía antes de que el mes terminara** (03-09-2026, ver
+ * `existiaEnElMes`). Y si había plantilla pero nada de ella estuvo en ese mes, no
+ * cierra: el mes se queda sin plan, que es lo que la pantalla lee como «de este
+ * mes no se guardó el plan» y suma cero. Cerrarlo con una copia vacía diría «mes
+ * cerrado» sobre un mes del que en realidad no se sabe nada.
+ */
 function copiarPlantillaAlMes(familyId: string, mes: string): boolean {
   if (db.monthPlans.some(p => p.family_id === familyId && p.month === mes)) return false
+
+  const fijos = getFixedEntries(familyId)
+  const partidas = getBudgets(familyId)
+  const fijosDelMes = fijos.filter(f => existiaEnElMes(f.created_at, mes))
+  const partidasDelMes = partidas.filter(b => existiaEnElMes(b.created_at, mes))
+
+  if (fijos.length + partidas.length > 0 && fijosDelMes.length + partidasDelMes.length === 0) {
+    return false
+  }
 
   const now = new Date().toISOString()
   let n = 0
@@ -276,7 +315,7 @@ function copiarPlantillaAlMes(familyId: string, mes: string): boolean {
   })
 
   const lines: MonthPlanLine[] = [
-    ...getFixedEntries(familyId).map(f => linea({
+    ...fijosDelMes.map(f => linea({
       line: f.kind,
       budget_id: null,
       name: f.name,
@@ -286,7 +325,7 @@ function copiarPlantillaAlMes(familyId: string, mes: string): boolean {
       member_id: f.member_id,
       sort_order: f.sort_order,
     })),
-    ...getBudgets(familyId).map(b => linea({
+    ...partidasDelMes.map(b => linea({
       line: 'partida',
       budget_id: b.id,
       name: b.name,

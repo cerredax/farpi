@@ -1471,11 +1471,19 @@ security definer
 set search_path = public
 as $$
 declare
-  v_filas integer;
+  v_filas       integer;
+  v_fin         timestamptz;
+  v_copiadas    integer;
+  v_candidatas  integer;
 begin
   if p_month !~ '^[0-9]{4}-(0[1-9]|1[0-2])$' then
     raise exception 'close_month_copy: el mes tiene que ser YYYY-MM, y llegó %', p_month;
   end if;
+
+  -- El primer instante del mes siguiente, en el calendario de la familia. Es la
+  -- frontera de «esto ya existía en ese mes» (03-09-2026, ver abajo).
+  v_fin := ((to_date(p_month || '-01', 'YYYY-MM-DD') + interval '1 month')
+            at time zone 'Europe/Madrid');
 
   insert into public.month_plans (family_id, month)
   values (p_family_id, p_month)
@@ -1486,19 +1494,48 @@ begin
     return false;  -- ya estaba cerrado; no se toca nada
   end if;
 
+  -- **Solo se copia lo que ya existía antes de que el mes terminara**
+  -- (03-09-2026). Una plantilla puesta después nunca estuvo en ese mes: agosto
+  -- se cerró el 1 de septiembre con unas nóminas creadas ese mismo día 1, y
+  -- acabó diciendo que entraron 2.400 € que nadie vio. El relleno de meses
+  -- pasados del final de este archivo ya llevaba la cautela —solo tocó los meses
+  -- con apuntes—; el cierre automático, no.
   insert into public.month_plan_lines
     (family_id, month, line, name, emoji, amount_cents, child_id, member_id, sort_order)
   select f.family_id, p_month, f.kind, f.name, f.emoji, f.amount_cents,
          f.child_id, f.member_id, f.sort_order
   from public.fixed_entries f
-  where f.family_id = p_family_id;
+  where f.family_id = p_family_id
+    and f.created_at < v_fin;
+
+  get diagnostics v_copiadas = row_count;
 
   insert into public.month_plan_lines
     (family_id, month, line, budget_id, name, emoji, amount_cents, sort_order)
   select b.family_id, p_month, 'partida', b.id, b.name, b.emoji, b.monthly_limit_cents,
          b.sort_order
   from public.budgets b
-  where b.family_id = p_family_id;
+  where b.family_id = p_family_id
+    and b.created_at < v_fin;
+
+  get diagnostics v_filas = row_count;
+  v_copiadas := v_copiadas + v_filas;
+
+  select count(*) into v_candidatas
+  from (
+    select 1 from public.fixed_entries where family_id = p_family_id
+    union all
+    select 1 from public.budgets where family_id = p_family_id
+  ) t;
+
+  -- Había plantilla, pero nada de ella estuvo en ese mes: mejor sin cerrar. Un
+  -- mes sin plan suma cero y la pantalla lo dice («de este mes no se guardó el
+  -- plan»); cerrado con una copia vacía diría «mes cerrado» sobre un mes del que
+  -- en realidad no se sabe nada.
+  if v_copiadas = 0 and v_candidatas > 0 then
+    delete from public.month_plans where family_id = p_family_id and month = p_month;
+    return false;
+  end if;
 
   return true;
 end;
@@ -1610,7 +1647,8 @@ grant execute on function public.close_month_now(uuid, text) to authenticated;
 -- Es lo que hace que el botón de cerrar antes de tiempo se pueda ofrecer sin
 -- miedo: te has adelantado por error y lo devuelves a espejo. **Un mes terminado
 -- no se reabre jamás**, que es justo lo que sostiene todo lo demás: si el pasado
--- se pudiera reabrir, no estaría cerrado.
+-- se pudiera reabrir, no estaría cerrado. Para el mes pasado que se cerró con lo
+-- que no vivió está `empty_month`, que lo pone a cero sin devolverlo a espejo.
 --
 -- Las líneas se van solas con la cabecera por el `on delete cascade`.
 create or replace function public.reopen_month(p_family_id uuid, p_month text)
@@ -1636,6 +1674,53 @@ end;
 $$;
 
 grant execute on function public.reopen_month(uuid, text) to authenticated;
+
+-- Poner a cero un mes que ya terminó (03-09-2026).
+--
+-- El caso que la pidió: agosto se cerró de oficio el 1 de septiembre copiando
+-- unas nóminas y unos recibos creados ese mismo día 1, así que agosto acabó
+-- diciendo que entraron 3.130 € que nadie vio. `close_month_copy` ya no vuelve a
+-- hacerlo —solo copia lo que existía antes de que el mes acabara—, pero los meses
+-- que ya se guardaron mal no se arreglan solos, y un mes con datos que no vivió no
+-- es historia: es ruido.
+--
+-- **Vacía el plan; no lo borra.** Es la diferencia con `reopen_month` y es lo que
+-- la hace estable: sin cabecera, `close_previous_month` vería «falta el mes
+-- pasado» en la siguiente carga de la app y lo cerraría otra vez con la plantilla
+-- de hoy. Una cabecera sin líneas dice las dos cosas que hay que decir —ese mes
+-- está cerrado, y de él no se guardó nada— y no se mueve más.
+--
+-- **Solo meses terminados.** El mes en curso no se pone a cero: si se cerró antes
+-- de tiempo, lo que se quiere es `reopen_month`, que lo devuelve a seguir la
+-- plantilla. Y **los apuntes no se tocan**: lo que se vacía es el plan, no el día
+-- a día. Quien se equivoque tiene la vuelta a mano —`close_month_now` vuelve a
+-- copiar la plantilla de hoy en ese mes—, y por eso la UI pide confirmación pero
+-- no promete deshacer.
+create or replace function public.empty_month(p_family_id uuid, p_month text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_filas integer;
+begin
+  if p_family_id not in (select public.my_family_ids()) then
+    raise exception 'Acceso denegado: no perteneces a esa familia';
+  end if;
+  if p_month >= to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
+    raise exception 'empty_month: solo se pone a cero un mes que ya terminó, y llegó %', p_month;
+  end if;
+
+  delete from public.month_plan_lines
+  where family_id = p_family_id and month = p_month;
+
+  get diagnostics v_filas = row_count;
+  return v_filas > 0;
+end;
+$$;
+
+grant execute on function public.empty_month(uuid, text) to authenticated;
 
 -- ============================================================================
 -- Relleno de los meses que ya habían pasado (02-09-2026)

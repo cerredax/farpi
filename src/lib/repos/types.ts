@@ -163,7 +163,8 @@ export interface MealsRepo {
  * No hay `create` ni `update` de una línea suelta, y no es una omisión que
  * rellenar más adelante: lo que hace que un mes cerrado signifique algo es que la
  * app no pueda reescribirlo. Lo único que se puede hacer es congelar la plantilla
- * entera de un mes, o —solo en el mes en curso— deshacerlo.
+ * entera de un mes, deshacerlo mientras siga siendo el mes en curso, o dejar un
+ * mes pasado a cero cuando lo que se le guardó no fue lo que se vivió.
  *
  * Las tres devuelven **si han hecho algo**, no el plan: con eso quien llama sabe
  * si tiene que recargar. Las tres son idempotentes.
@@ -183,6 +184,12 @@ export interface MonthPlansRepo {
    * terminado no se reabre nunca, que es lo que sostiene todo lo demás.
    */
   reopenMonth(familyId: string, month: string): Promise<boolean>
+  /**
+   * **Poner a cero un mes pasado** que se cerró con lo que no vivió (03-09-2026).
+   * Vacía el plan en vez de borrarlo, porque sin cabecera el cierre automático lo
+   * cerraría otra vez en la siguiente carga. Los apuntes no se tocan.
+   */
+  emptyMonth(familyId: string, month: string): Promise<boolean>
 }
 
 export interface DocumentsRepo {

@@ -343,4 +343,14 @@ export const monthPlansRepo: MonthPlansRepo = {
     assertNoError(error)
     return data === true
   },
+
+  async emptyMonth(familyId: string, month: string): Promise<boolean> {
+    const supabase = createClient()
+    const { data, error } = await supabase.rpc('empty_month', {
+      p_family_id: familyId,
+      p_month: month,
+    })
+    assertNoError(error)
+    return data === true
+  },
 }

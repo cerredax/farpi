@@ -97,10 +97,12 @@ interface StoreValue {
   monthPlans: MonthPlan[]
   /**
    * Cerrar el mes a mano antes de tiempo, y deshacerlo. Lo segundo **solo vale
-   * para el mes en curso**: un mes terminado no se reabre nunca.
+   * para el mes en curso**: un mes terminado no se reabre nunca. Lo que sí se
+   * puede con un mes pasado es dejarlo a cero, que vacía su plan sin borrarlo.
    */
   closeMonthNow: (month: string) => Promise<void>
   reopenMonth: (month: string) => Promise<void>
+  emptyMonth: (month: string) => Promise<void>
   documents: Document[]
   /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
   mealSlots: MealSlot[]
@@ -612,6 +614,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       setQuoteStatus: (id: string, status: QuoteStatus) => runMutation(() => repos.quotes.setQuoteStatus(id, status)),
       closeMonthNow: (month: string) => runMutation(() => repos.monthPlans.closeMonthNow(familyId, month)),
       reopenMonth: (month: string) => runMutation(() => repos.monthPlans.reopenMonth(familyId, month)),
+      emptyMonth: (month: string) => runMutation(() => repos.monthPlans.emptyMonth(familyId, month)),
       createDocument: (draft: DocumentDraft) => runMutation(() => repos.documents.createDocument(familyId, draft)),
       updateDocument: (id: string, draft: DocumentDraft) => runMutation(() => repos.documents.updateDocument(id, draft)),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id)),

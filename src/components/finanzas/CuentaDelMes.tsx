@@ -12,7 +12,13 @@ interface CuentaDelMesProps {
   onSiguiente: () => void
   onVolverAHoy: () => void
   reparto: Aportacion[]
-  /** Lleva a «Cada mes». Solo se ofrece cuando no hay ningún fijo puesto. */
+  /** Un mes cerrado del que no se guardó ningún fijo ni partida. */
+  copiaVacia: boolean
+  /** Si en un mes por venir se ha pedido ver la previsión. */
+  previsionAbierta: boolean
+  /** Pedirla, o volver a esconderla. Solo se ofrece en un mes por venir. */
+  onVerPrevision: () => void
+  /** Lleva a «Lo fijo». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
 }
 
@@ -59,10 +65,14 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * error. Y en un mes que nunca llegó a cerrarse se dice tal cual: la alternativa
  * —enseñar la plantilla de hoy— es justo el error que este cambio vino a quitar.
  *
- * **En un mes que aún no ha llegado se avisa y se habla en condicional.** Las
- * cifras son las de la plantilla de hoy, que es lo único que se puede decir de
- * octubre en septiembre; sin el aviso, un «quedan 2.194 €» sobre un mes que no ha
- * empezado se lee como un saldo y no como una previsión.
+ * **Un mes que aún no ha llegado sale en cero** (03-09-2026). Hasta ese día
+ * enseñaba directamente la previsión —las cifras de la plantilla de hoy— con un
+ * aviso debajo, y el aviso no bastaba: una cifra puesta donde el resto de los
+ * meses llevan un saldo se lee como un saldo, por mucho que la letra pequeña diga
+ * que no lo es. Ahora octubre está a cero, que es lo que hay en un mes en el que
+ * no ha pasado nada, y la previsión se **pide**: un enlace la abre y entonces sí
+ * habla en condicional. Sigue habiendo respuesta a «¿cuadra el mes que viene?»,
+ * pero hay que preguntarla.
  *
  * **Cerrar el mes no se ofrece aquí.** Estuvo un rato y quedaba mal: esta tarjeta
  * es la conclusión de la pantalla —una cifra grande y su desglose— y colgarle
@@ -70,10 +80,14 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * mes», que es donde se lee como «he terminado con esto» (ver `CierreDelMes`).
  */
 export function CuentaDelMes({
-  cuenta, nombreDelMes, esMesActual, onAnterior, onSiguiente, onVolverAHoy, reparto, onPonerFijos,
+  cuenta, nombreDelMes, esMesActual, onAnterior, onSiguiente, onVolverAHoy, reparto,
+  copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
+  // Un mes por venir sin previsión: no hay fijos que enseñar, pero tampoco es el
+  // caso de «no has puesto fijos» —que ofrece ponerlos—, así que se separa.
+  const porVenirEnCero = cuenta.origen === 'por-venir' && !previsionAbierta
 
   return (
     <section aria-label="Resumen del mes" className="rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
@@ -93,17 +107,21 @@ export function CuentaDelMes({
             {/* En rojo se enseña el importe **en positivo**: la etiqueta ya
                 dice "de más este mes", y un "−120 € de más" obliga a deshacer
                 una doble negación para entender que se han gastado 120 de más. */}
-            {formatCents(hayFijos ? Math.abs(queda) : gastosApuntados)}
+            {formatCents(hayFijos ? Math.abs(queda) : cuenta.origen === 'por-venir' ? 0 : gastosApuntados)}
           </p>
           {/* En un mes que aún no ha llegado se habla en condicional: «queda
               este mes» sobre octubre, leído en septiembre, suena a que octubre
               ya está en marcha. */}
           <p className="text-[11px] text-muted">
-            {!hayFijos
-              ? 'gastado este mes'
-              : cuenta.origen === 'por-venir'
-                ? (queda < 0 ? 'de más ese mes' : 'quedaría ese mes')
-                : (queda < 0 ? 'de más este mes' : 'queda este mes')}
+            {/* Sin fijos que enseñar, un mes por venir dice lo suyo y no
+                «gastado este mes», que hablaría de un mes que no ha llegado. */}
+            {cuenta.origen === 'por-venir' && !hayFijos
+              ? 'aún no ha empezado'
+              : !hayFijos
+                ? 'gastado este mes'
+                : cuenta.origen === 'por-venir'
+                  ? (queda < 0 ? 'de más ese mes' : 'quedaría ese mes')
+                  : (queda < 0 ? 'de más este mes' : 'queda este mes')}
           </p>
         </div>
 
@@ -120,11 +138,28 @@ export function CuentaDelMes({
       {cuenta.origen !== 'plantilla' && (
         <p className="mt-1 text-center text-[11px] text-faint">
           {cuenta.origen === 'copia'
-            ? 'Mes cerrado: los fijos y las partidas son los que había entonces.'
+            ? copiaVacia
+              ? 'De este mes no se guardó ningún fijo ni ninguna partida.'
+              : 'Mes cerrado: los fijos y las partidas son los que había entonces.'
             : cuenta.origen === 'por-venir'
-              ? 'Este mes aún no ha empezado: es lo que quedaría si nada cambia.'
+              ? porVenirEnCero
+                ? 'Este mes aún no ha empezado, así que está en cero.'
+                : 'Previsión: es lo que quedaría si nada cambia.'
               : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
         </p>
+      )}
+
+      {/* La previsión se pide. El enlace es la única pista de que se puede
+          preguntar «¿cuadra el mes que viene?», y por eso está aquí y no en la
+          letra pequeña de más abajo. */}
+      {cuenta.origen === 'por-venir' && (
+        <button
+          type="button"
+          onClick={onVerPrevision}
+          className="mt-1 min-h-6 w-full py-1 text-center text-[11px] font-semibold text-primary-strong"
+        >
+          {previsionAbierta ? 'Ocultar la previsión' : 'Ver qué quedaría con lo fijo de hoy'}
+        </button>
       )}
       {!esMesActual && (
         <button
@@ -149,14 +184,14 @@ export function CuentaDelMes({
           )}
           <Linea etiqueta="Gastos apuntados" importe={gastosApuntados} tono="sale" />
         </dl>
-      ) : cuenta.origen === 'plantilla' || cuenta.origen === 'por-venir' ? (
+      ) : cuenta.origen === 'plantilla' ? (
         <button
           type="button"
           onClick={onPonerFijos}
           className="mt-2 min-h-6 w-full border-t border-hairline pt-2.5 text-left text-[11px] text-muted"
         >
           Pon tus ingresos y gastos de todos los meses en{' '}
-          <span className="font-semibold text-primary-strong">Cada mes</span> y aquí
+          <span className="font-semibold text-primary-strong">Lo fijo</span> y aquí
           verás cuánto queda.
         </button>
       ) : null}

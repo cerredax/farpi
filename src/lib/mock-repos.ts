@@ -135,6 +135,7 @@ export const mockRepos: Repos = {
     closePreviousMonth:  (familyId) => Promise.resolve(store.closePreviousMonth(familyId)),
     closeMonthNow:       (familyId, month) => Promise.resolve(store.closeMonthNow(familyId, month)),
     reopenMonth:         (familyId, month) => Promise.resolve(store.reopenMonth(familyId, month)),
+    emptyMonth:          (familyId, month) => Promise.resolve(store.emptyMonth(familyId, month)),
   },
 
   documents: {

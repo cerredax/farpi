@@ -228,14 +228,37 @@ async function main() {
   const mesPasado = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() - 1, 1))
     .toISOString().slice(0, 7)
 
+  // Primero, la guarda contra los meses inventados (03-09-2026): la plantilla de
+  // esta familia se ha sembrado hace un segundo, así que **no estuvo** en el mes
+  // pasado y cerrarlo no puede copiar nada. Es el caso de agosto, que se cerró el
+  // 1 de septiembre con unas nóminas creadas ese mismo día.
+  const cierreVacio = await api('/rest/v1/rpc/close_previous_month', {
+    metodo: 'POST', token: tokA, datos: { p_family_id: famA },
+  })
+  comprobar('Cerrar el mes pasado NO copia una plantilla creada después',
+    cierreVacio.cuerpo === false)
+  comprobar('Y ese mes se queda sin plan, en vez de con uno inventado',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}&select=month`, { token: tokA })) === 0)
+
+  // Ahora con una plantilla que sí estuvo en ese mes: se siembra con `created_at`
+  // viejo, que es lo único que distingue un caso del otro.
+  const haceUnAño = new Date(Date.UTC(ahora.getUTCFullYear() - 1, ahora.getUTCMonth(), 1)).toISOString()
+  await sembrar('fixed_entries', {
+    family_id: famA, kind: 'gasto', name: 'Alquiler viejo', amount_cents: 78000, created_at: haceUnAño,
+  })
+  await sembrar('budgets', {
+    family_id: famA, name: 'Compra vieja', monthly_limit_cents: 30000, created_at: haceUnAño,
+  })
+
   const cierre = await api('/rest/v1/rpc/close_previous_month', {
     metodo: 'POST', token: tokA, datos: { p_family_id: famA },
   })
   comprobar('A puede cerrar el mes pasado de su familia', cierre.estado < 400)
   comprobar('El cierre deja el plan del mes pasado',
     filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}&select=month`, { token: tokA })) === 1)
-  // La foto tiene que llevar el fijo y la partida sembrados arriba.
-  comprobar('El plan copia los fijos y las partidas de la plantilla',
+  // La foto lleva el fijo y la partida viejos, y **solo** esos dos: los de hoy no
+  // estuvieron en ese mes.
+  comprobar('El plan copia solo lo que ya existía en aquel mes',
     filas(await api(`/rest/v1/month_plan_lines?family_id=eq.${famA}&month=eq.${mesPasado}&select=id`, { token: tokA })) === 2)
   // Idempotente: es lo que permite llamarla desde el cron y desde la app sin que
   // se coordinen. Un segundo cierre no puede duplicar las líneas.
@@ -288,6 +311,22 @@ async function main() {
     filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}&select=month`, { token: tokA })) === 1)
   comprobar('B NO puede reabrirle el mes a la familia de A',
     (await api('/rest/v1/rpc/reopen_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famA, p_month: mesActual } })).estado >= 400)
+
+  // Poner a cero un mes pasado (03-09-2026): la salida para un mes que se cerró
+  // con lo que no vivió. **Vacía el plan y deja la cabecera**, que es lo que evita
+  // que el cierre automático lo vuelva a cerrar en la siguiente carga.
+  comprobar('A puede poner a cero un mes que ya terminó',
+    (await api('/rest/v1/rpc/empty_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesPasado } })).cuerpo === true)
+  comprobar('Al ponerlo a cero se van sus líneas',
+    filas(await api(`/rest/v1/month_plan_lines?family_id=eq.${famA}&month=eq.${mesPasado}&select=id`, { token: tokA })) === 0)
+  comprobar('Pero la cabecera se queda, o el cierre automático lo repetiría',
+    filas(await api(`/rest/v1/month_plans?family_id=eq.${famA}&month=eq.${mesPasado}&select=month`, { token: tokA })) === 1)
+  comprobar('Y volver a cerrarlo no lo revive con la plantilla de hoy',
+    (await api('/rest/v1/rpc/close_previous_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA } })).cuerpo === false)
+  comprobar('NO se puede poner a cero el mes en curso',
+    (await api('/rest/v1/rpc/empty_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesActual } })).estado >= 400)
+  comprobar('B NO puede poner a cero un mes de la familia de A',
+    (await api('/rest/v1/rpc/empty_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famA, p_month: mesPasado } })).estado >= 400)
 
   // Lo que hace que un mes cerrado se pueda dar por bueno: ni el propio dueño lo
   // reescribe. No hay policy de insert, update ni delete para nadie.

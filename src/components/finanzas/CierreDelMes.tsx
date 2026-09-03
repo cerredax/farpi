@@ -1,6 +1,6 @@
 'use client'
 
-import { Lock, LockOpen } from 'lucide-react'
+import { Eraser, Lock, LockOpen } from 'lucide-react'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 
 interface CierreDelMesProps {
@@ -8,36 +8,70 @@ interface CierreDelMesProps {
   sePuedeCerrar: boolean
   /** Se cerró antes de tiempo y el mes sigue siendo el de hoy: se puede deshacer. */
   sePuedeReabrir: boolean
+  /** Es un mes pasado con copia: se puede quitar y dejarlo en cero. */
+  sePuedePonerACero: boolean
   onCerrar: () => void
   onReabrir: () => void
+  onPonerACero: () => void
 }
 
 /**
- * El pie de «El mes»: dar el mes por cerrado, y deshacerlo.
+ * Qué se puede hacer con el mes que se está mirando: darlo por cerrado,
+ * deshacerlo o ponerlo a cero.
  *
- * **Está al final y no en la tarjeta de arriba** (02-09-2026). Ahí estuvo un rato y
- * quedaba mal: la tarjeta es la conclusión de la pantalla —una cifra grande y su
- * desglose— y colgarle debajo dos acciones la convertía en un panel de mandos. Al
- * pie, después del día a día, se lee como lo que es: «he terminado con este mes».
+ * **Va justo debajo de la tarjeta del mes** (03-09-2026), no al pie de la
+ * pantalla. Estuvo abajo desde el 02-09-2026 y la razón era buena —después del
+ * día a día se lee como «he terminado con este mes»—, pero en la práctica había
+ * que recorrer las partidas y todos los apuntes del mes para encontrarlo, y lo
+ * que hay aquí no es un remate: es lo que se hace **con** el mes que la tarjeta
+ * acaba de resumir. Sigue **fuera** de la tarjeta y separado por su línea, que es
+ * lo que la salvó de convertirse en un panel de mandos.
  *
- * **Es un atajo, no una tarea.** Si nadie lo toca, el mes se cierra solo el día 1.
- * Sirve para lo único que no se podía hacer de otra manera —preparar un cambio de
- * la plantilla que valga a partir del mes que viene, porque el mes en curso es
- * espejo de ella— y por eso el texto habla de eso y no de «cerrar el mes» a secas,
- * que no explica para qué sirve.
+ * Tres cosas, nunca dos a la vez:
  *
- * Pide confirmación con el patrón de siempre. Deshacerlo no la pide: reabrir no
- * pierde nada, solo devuelve el mes a seguir la plantilla, y un mes ya terminado
- * ni siquiera enseña el botón.
+ * 1. **Dar el mes por cerrado.** Un atajo, no una tarea: si nadie lo toca, el mes
+ *    se cierra solo el día 1. Sirve para lo único que no se podía hacer de otra
+ *    manera —preparar un cambio de la plantilla que valga a partir del mes que
+ *    viene, porque el mes en curso es espejo de ella— y por eso el texto habla de
+ *    eso y no de «cerrar el mes» a secas, que no explica para qué sirve.
+ * 2. **Volver a seguir la plantilla**, mientras el mes cerrado siga siendo el de
+ *    hoy. No pide confirmación: no pierde nada.
+ * 3. **Poner el mes a cero** (03-09-2026), en un mes pasado. Borra la copia y lo
+ *    deja como el mes que nunca se cerró: en cero y diciéndolo. Existe porque el
+ *    cierre automático llegó a guardar meses que no se vivieron —agosto, con unas
+ *    nóminas creadas el 1 de septiembre— y no había forma de quitarlos. **Los
+ *    apuntes no se borran**, y el texto lo dice antes de que nadie lo pregunte.
+ *
+ * Cerrar y poner a cero piden confirmación con el patrón de siempre, y la de
+ * poner a cero avisa de lo que se pierde: los fijos y las partidas guardados.
  */
-export function CierreDelMes({ sePuedeCerrar, sePuedeReabrir, onCerrar, onReabrir }: CierreDelMesProps) {
+export function CierreDelMes({
+  sePuedeCerrar, sePuedeReabrir, sePuedePonerACero, onCerrar, onReabrir, onPonerACero,
+}: CierreDelMesProps) {
   const { confirming, requestConfirm } = useConfirmAction()
 
-  if (!sePuedeCerrar && !sePuedeReabrir) return null
+  if (!sePuedeCerrar && !sePuedeReabrir && !sePuedePonerACero) return null
 
   return (
-    <section aria-label="Cierre del mes" className="border-t border-hairline pt-4">
-      {sePuedeCerrar ? (
+    <section aria-label="Cierre del mes" className="border-t border-hairline pt-3">
+      {sePuedePonerACero ? (
+        <>
+          <button
+            type="button"
+            onClick={() => requestConfirm(onPonerACero)}
+            className={`flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-xs font-semibold transition-colors ${
+              confirming ? 'text-danger-strong' : 'text-primary-strong'
+            }`}
+          >
+            <Eraser size={13} strokeWidth={2.4} aria-hidden />
+            {confirming ? '¿Seguro? Se borran los fijos y las partidas de ese mes' : 'Poner este mes a cero'}
+          </button>
+          <p className="mt-1 px-1 text-center text-[10px] leading-relaxed text-faint">
+            Para un mes que no llevasteis: quita los fijos y las partidas que se le
+            guardaron y lo deja como si no se hubiera cerrado. Lo apuntado no se toca.
+          </p>
+        </>
+      ) : sePuedeCerrar ? (
         <>
           <button
             type="button"

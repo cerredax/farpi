@@ -129,12 +129,14 @@ export interface PartidaDelMes {
  * - `sin-plan` — un mes terminado que nunca llegó a cerrarse. No se inventa nada:
  *   la pantalla lo dice. Enseñar la plantilla de hoy sería exactamente el error
  *   que este cambio vino a arreglar.
- * - `por-venir` — un mes que aún no ha empezado. Las cifras son las mismas que
- *   las de `plantilla` —es lo único que se puede decir de él, y es lo que va a
- *   heredar cuando llegue—, pero **no es un mes en el que esté pasando nada**:
- *   la pantalla lo avisa y no ofrece apuntar. Se separó de `plantilla` el
- *   02-09-2026, porque un octubre con «quedan 2.194 €» y un botón de apuntar
- *   invitaba a meterle gastos a un mes que no ha llegado.
+ * - `por-venir` — un mes que aún no ha empezado. **Sale en cero**, porque en un
+ *   mes que no ha llegado no ha pasado nada; lo que quedaría con la plantilla de
+ *   hoy se pide aparte (`conPrevision`) y se enseña como lo que es, una
+ *   previsión. Se separó de `plantilla` el 02-09-2026, porque un octubre con
+ *   «quedan 2.194 €» y un botón de apuntar invitaba a meterle gastos a un mes
+ *   que no ha llegado; el 03-09-2026 dejó además de enseñar la previsión de
+ *   entrada, porque una cifra en el sitio donde el resto de los meses llevan un
+ *   saldo se lee como un saldo por mucho que debajo diga que no lo es.
  */
 export type OrigenDelMes = 'plantilla' | 'copia' | 'sin-plan' | 'por-venir'
 
@@ -167,12 +169,34 @@ function ordenarFijos(fijos: FijoDelMes[]): FijoDelMes[] {
 }
 
 /**
+ * Si algo de la plantilla **ya existía antes de que el mes terminara**.
+ *
+ * Es la guarda contra los meses inventados (03-09-2026). Al cerrar un mes se
+ * copia la plantilla, y una plantilla que se puso después de que ese mes acabara
+ * nunca estuvo en él: agosto se cerró el 1 de septiembre con unas nóminas
+ * creadas el día 1, así que agosto acabó diciendo que entraron 2.400 € que nadie
+ * vio. El esquema ya avisaba del riesgo en el relleno de meses pasados, que solo
+ * tocó los que tenían apuntes; el cierre automático no llevaba la cautela.
+ *
+ * Se compara con el primer día del mes siguiente, así que algo creado a mitad de
+ * mes sí cuenta: estuvo en ese mes, aunque fuera media.
+ */
+export function existiaEnElMes(createdAt: string, mes: string): boolean {
+  return createdAt < `${mesVecino(mes, 1)}-01`
+}
+
+/**
  * Qué valía en un mes: la plantilla viva si el mes no ha terminado, y la copia
  * congelada si terminó.
  *
  * `mesActual` se pasa desde fuera en vez de leer el reloj aquí dentro. Es una
  * función pura y así se puede probar cualquier mes sin tocar la hora del sistema,
  * que es la misma razón por la que `date-utils.ts` recibe siempre la fecha.
+ *
+ * `conPrevision` solo pinta en un mes que aún no ha llegado, y por defecto va
+ * apagado: octubre sale vacío hasta que alguien pide ver qué quedaría con la
+ * plantilla de hoy. Los meses que ya son no lo miran, porque para ellos no hay
+ * nada que prever.
  */
 export function plantillaDelMes(
   mes: string,
@@ -180,11 +204,13 @@ export function plantillaDelMes(
   fixed: FixedEntry[],
   budgets: Budget[],
   planes: MonthPlan[],
+  conPrevision = false,
 ): PlantillaDelMes {
   const plan = planes.find(p => p.month === mes)
 
   if (!plan) {
     if (mes < mesActual) return { origen: 'sin-plan', fijos: [], partidas: [] }
+    if (mes > mesActual && !conPrevision) return { origen: 'por-venir', fijos: [], partidas: [] }
     return {
       // Un mes por venir enseña lo mismo que el de hoy —la plantilla— pero se
       // marca aparte: quien lo mira está viendo una previsión, no un mes.

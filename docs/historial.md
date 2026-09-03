@@ -15,6 +15,53 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-03
 
+### Finanzas: «Lo fijo», el agosto que nadie vivió y el mes en cero (03-09-2026)
+
+Cuatro cosas, todas de usar la pantalla con los datos de casa.
+
+**«Cada mes» duró un día.** El nombre no estaba mal por lo que decía, sino por dónde
+estaba: pegado a «El mes» en la misma fila de pestañas, dos etiquetas con la misma
+palabra y un determinante de diferencia, y había que detenerse a mirar cuál era cuál.
+Ahora es **«Lo fijo»**, que no repite «mes» y que nombra lo único que tienen en común
+las tres listas de dentro: que no cambian de un mes a otro. Se acepta a sabiendas que
+una partida no es un fijo —es lo que varía— y que ahí la etiqueta le queda ancha; lo
+fijo de una partida es lo que se le da al empezar el mes, que es la cifra que se pone
+en esa pestaña. Dentro del código sigue siendo **la plantilla**.
+
+**Agosto decía que entraron 3.130 € que nadie vio.** Al abrir la app en septiembre, el
+cierre automático cerró agosto copiando la plantilla de ese momento; pero los fijos se
+habían creado el 1 de septiembre, así que lo que se congeló en agosto nunca estuvo en
+agosto. La regla «solo el mes anterior, nunca más atrás» dejaba justo ese hueco de un
+mes. El propio esquema avisaba del riesgo: el relleno de meses pasados solo tocó los
+que tenían apuntes y su comentario decía que hecho un mes más tarde «habría escrito
+números inventados». Lo estaba. Ahora `close_month_copy` **solo copia lo que existía
+antes de que el mes acabara** y, si nada de la plantilla estuvo en ese mes, no cierra:
+el mes se queda sin plan, que suma cero y lo dice.
+
+**Y el agosto que ya estaba guardado había que poder quitarlo**, que era lo que se
+pedía. Nace `empty_month`: pone a cero un mes terminado. Lo que costó una vuelta es
+que **vacía el plan y deja la cabecera**; la primera versión borraba el plan entero
+—reutilizando `reopen_month`— y el test destapó que en la siguiente carga la app veía
+«falta el mes pasado» y lo cerraba otra vez. Una cabecera sin líneas dice las dos
+cosas que hay que decir —está cerrado, y de él no se guardó nada— y se queda quieta.
+Los apuntes no se tocan, y un mes terminado sigue sin poder *reabrirse*: poner a cero
+no lo devuelve a espejo de la plantilla.
+
+**Los botones del mes subieron, y el mes que viene bajó a cero.** Cerrar, deshacer y
+poner a cero estaban al pie de la pantalla desde el día anterior, con un argumento
+razonable —después del día a día se leen como «he terminado con este mes»— que no
+sobrevivió al uso: había que recorrer las partidas y todos los apuntes para llegar.
+Ahora van debajo de la tarjeta del mes, todavía fuera de ella. Y un mes que no ha
+llegado **sale en cero**: el aviso del día anterior no bastaba, porque una cifra puesta
+donde el resto de los meses llevan un saldo se lee como un saldo por mucho que la letra
+pequeña diga que no lo es. La previsión sigue estando —mirar si el mes que viene cuadra
+es para lo que sirve una plantilla— pero se pide con un enlace, y se cierra al cambiar
+de mes.
+
+Cinco unitarios nuevos, dos flujos de navegador y seis comprobaciones más en
+`scripts/validate-rls.mjs`. Queda **aplicar el esquema a mano** en el SQL Editor y
+ejecutar la validación: `empty_month` todavía no existe en el proyecto real.
+
 ### Los textos de la portada dejan de sonar a folleto (03-09-2026)
 
 Seis cambios de texto y uno de color, todos pedidos mirando la página publicada.

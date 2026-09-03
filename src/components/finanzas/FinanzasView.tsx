@@ -78,7 +78,7 @@ const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => strin
  * Y qué crea el `+`. Uno solo que hace lo de la pestaña que se mira: tres botones,
  * dos de ellos siempre inactivos, sería peor.
  *
- * En «Cada mes» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
+ * En «Lo fijo» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
  * lo que se añade después son recibos—, y de todos modos el tipo es lo primero que
  * hay dentro del sheet. Las partidas tienen su propio «+» en su bloque.
  *
@@ -132,7 +132,7 @@ export function FinanzasView() {
         {([
           { key: 'mes', label: 'El mes' },
           { key: 'resumen', label: 'Resumen' },
-          { key: 'plantilla', label: 'Cada mes' },
+          { key: 'plantilla', label: 'Lo fijo' },
           { key: 'presupuestos', label: 'Presupuestos' },
         ] as { key: PestañaFinanzas; label: string }[]).map(p => (
           <button
@@ -161,53 +161,74 @@ export function FinanzasView() {
           onSiguiente={s.mesSiguiente}
           onVolverAHoy={s.volverAHoy}
           reparto={s.repartoPorPersona}
+          copiaVacia={s.copiaVacia}
+          previsionAbierta={s.previsionAbierta}
+          onVerPrevision={s.alternarPrevision}
           onPonerFijos={() => s.setPestaña('plantilla')}
         />
 
-        <section aria-label="Partidas del mes" className="space-y-2">
-          <div className="flex items-center justify-between gap-3 px-1">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
-            {/* En un mes cerrado no se ofrece añadir: lo que se está mirando es la
-                copia de un mes que terminó. El enlace lleva a la plantilla y no
-                abre el sheet aquí, porque una partida es de la plantilla y no de un
-                mes — abrirla desde enero haría creer que se está creando en enero.
+        {/* Debajo de la tarjeta y no al pie de la pantalla (03-09-2026): es lo
+            que se hace con el mes que la tarjeta acaba de resumir, y abajo había
+            que pasar por las partidas y por todos los apuntes para encontrarlo. */}
+        <CierreDelMes
+          sePuedeCerrar={s.sePuedeCerrarYa}
+          sePuedeReabrir={s.sePuedeReabrir}
+          sePuedePonerACero={s.sePuedePonerACero}
+          onCerrar={s.cerrarMesYa}
+          onReabrir={s.reabrirMes}
+          onPonerACero={s.ponerMesACero}
+        />
 
-                `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
-                `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
-                negativo devuelve el texto a la línea del título para que la
-                zona de toque crezca sin que se note. */}
-            {!s.planCongelado && (
-              <button
-                type="button"
-                onClick={() => s.setPestaña('plantilla')}
-                className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
-              >
-                <Plus size={14} strokeWidth={2.6} aria-hidden />
-                Nueva partida
-              </button>
-            )}
-          </div>
+        {/* En un mes que no ha llegado y sin previsión pedida no se pintan las
+            partidas: no hay nada que medir, y un «Sin partidas» invitando a
+            repartir un mes que no existe es ruido. Con la previsión abierta
+            vuelven, que es lo que se ha ido a ver. */}
+        {(!s.esPorVenir || s.previsionAbierta) && (
+          <section aria-label="Partidas del mes" className="space-y-2">
+            <div className="flex items-center justify-between gap-3 px-1">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
+              {/* En un mes cerrado no se ofrece añadir: lo que se está mirando es la
+                  copia de un mes que terminó. El enlace lleva a la plantilla y no
+                  abre el sheet aquí, porque una partida es de la plantilla y no de un
+                  mes — abrirla desde enero haría creer que se está creando en enero.
 
-          {s.resumen.length === 0 ? (
-            <EmptyState
-              emoji="🎯"
-              title="Sin partidas"
-              description={s.planCongelado
-                ? 'Ese mes se cerró sin ninguna partida puesta.'
-                : 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Cada mes», y aquí verás cuánto llevas de cada una.'}
-            />
-          ) : (
-            s.resumen.map(r => (
-              <BudgetBar
-                key={r.partida.key}
-                resumen={r}
-                onEdit={!s.planCongelado && r.partida.budgetId
-                  ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
-                  : undefined}
+                  `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
+                  `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
+                  negativo devuelve el texto a la línea del título para que la
+                  zona de toque crezca sin que se note. */}
+              {!s.planCongelado && (
+                <button
+                  type="button"
+                  onClick={() => s.setPestaña('plantilla')}
+                  className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
+                >
+                  <Plus size={14} strokeWidth={2.6} aria-hidden />
+                  Nueva partida
+                </button>
+              )}
+            </div>
+
+            {s.resumen.length === 0 ? (
+              <EmptyState
+                emoji="🎯"
+                title="Sin partidas"
+                description={s.planCongelado
+                  ? 'Ese mes se cerró sin ninguna partida puesta.'
+                  : 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Lo fijo», y aquí verás cuánto llevas de cada una.'}
               />
-            ))
-          )}
-        </section>
+            ) : (
+              s.resumen.map(r => (
+                <BudgetBar
+                  key={r.partida.key}
+                  resumen={r}
+                  onEdit={!s.planCongelado && r.partida.budgetId
+                    ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
+                    : undefined}
+                />
+              ))
+            )}
+          </section>
+        )}
 
         <section aria-label="El día a día" className="space-y-2">
           <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
@@ -247,13 +268,6 @@ export function FinanzasView() {
             </p>
           )}
         </section>
-
-        <CierreDelMes
-          sePuedeCerrar={s.sePuedeCerrarYa}
-          sePuedeReabrir={s.sePuedeReabrir}
-          onCerrar={s.cerrarMesYa}
-          onReabrir={s.reabrirMes}
-        />
       </div>
 
       <div id="panel-resumen" role="tabpanel" aria-labelledby="tab-resumen" hidden={s.pestaña !== 'resumen'}>

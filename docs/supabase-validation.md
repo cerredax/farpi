@@ -1,6 +1,32 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-03, con **la invitación que caduca** y los tres índices por
+## Pendiente de ejecutar: 161 comprobaciones (03-09-2026)
+
+La revisión de seguridad de ese día añadió **siete** comprobaciones a `validate-rls.mjs`
+—dos en la §7 y cinco en la §12— y cambia dos cosas en la base: la RPC
+`accept_family_invite` y un trigger nuevo, `trg_document_storage_inmutable`. Las dos van en
+`supabase/parche-2026-09-03.sql`, que hay que pasar por el SQL Editor.
+
+**Todavía no se ha ejecutado el validador**: hasta que el parche esté aplicado, las siete
+nuevas saldrían en rojo con razón y el número de aquí no diría nada. El orden es aplicar el
+parche y entonces `node scripts/validate-rls.mjs`, que debería dar 161/161; si alguna de
+las siete sigue en rojo después, es que el parche no entró entero.
+
+Qué comprueban:
+
+- §7, dos: una cuenta creada **después** de escribirse la invitación no puede aceptarla, y
+  sigue sin ver nada de la familia. Se monta con un cuarto usuario de prueba (D) creado a
+  propósito después de la invitación, que es exactamente el atacante: alguien que ve un
+  `invite_id` y se registra con el correo de la persona invitada. Antes bastaba con que el
+  correo cuadrara, y que eso probara algo dependía del ajuste «Confirm email» del panel.
+- §12, cinco: ni poner a nulo el dueño de un documento ajeno, ni reclamarlo para sí, ni
+  mover la ficha a otro archivo de Drive; que el dueño y la ruta siguen siendo los de A
+  después de intentarlo; y que renombrar la ficha **sí** sigue pudiendo cualquier miembro,
+  que es lo que hace la app y lo que este trigger no debe romper.
+
+## Última ejecución: 154/154 (03-09-2026, la invitación que caduca)
+
+Con **la invitación que caduca** y los tres índices por
 `family_id` que faltaban ya aplicados en el proyecto real. **154/154 comprobaciones
 correctas.**
 

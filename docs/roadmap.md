@@ -210,6 +210,14 @@ Objetivo: preparar uso diario.
   build servido y no contra `dev`; el `redirectTo` del magic link deja de adivinar el
   dominio desde la cabecera `Host`; y las rutas API dejan de devolver el mensaje crudo de
   Postgres.
+- ✅ **Segunda revisión de seguridad, esta a la contra** (03-09-2026). Ninguna vía para
+  leer datos de otra familia. Salieron seis cosas y están arregladas: tope de diez
+  invitaciones al día por persona (`/api/invite` era un amplificador de correo abierto a
+  internet), aceptar una invitación exige que la cuenta no se haya creado después de
+  escribirse, el dueño y la ruta del archivo de un documento no se reescriben,
+  `safeNextPath` deja de mirar solo el principio de la cadena, HSTS escrita en el
+  repositorio y el build cortado si producción arranca en modo demo. El relato en
+  `docs/historial.md`; el SQL a aplicar, en `supabase/parche-2026-09-03.sql`.
 - ✅ **Copia de seguridad de la familia** (27-08-2026): un botón en Ajustes descarga
   un `.json` con todo. Sin ruta API ni tabla nueva —el store ya lo tenía todo en
   memoria— y sin tokens dentro. Nació de una incoherencia: los papeles ya prometían

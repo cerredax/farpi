@@ -160,8 +160,17 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 
 - [x] **Authentication → URL Configuration → Site URL**: el dominio de producción.
 - [x] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y `http://localhost:3000/auth/callback` para desarrollo).
+- [ ] **Parche SQL del 03-09-2026 aplicado** (`supabase/parche-2026-09-03.sql`): la RPC
+      `accept_family_invite` y el trigger `trg_document_storage_inmutable`. Después,
+      `node scripts/validate-rls.mjs` (161 comprobaciones) y anotar el resultado en
+      `docs/supabase-validation.md`.
 - [x] **Email**: proveedor SMTP configurado (Auth → Emails, en `.../auth/smtp`). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
 - [x] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
+      Desde el 03-09-2026 **la seguridad de las invitaciones ya no depende de este ajuste**:
+      `accept_family_invite` exige además que la cuenta la haya creado el propio correo de
+      invitación o que existiera antes de escribirse. Sigue teniendo que estar activado —un
+      correo sin confirmar es una cuenta que no se sabe de quién es— pero apagarlo ya no
+      abre la puerta de la familia.
 - [ ] **Google** (opcional): el botón "Continuar con Google" del login se muestra solo si el proveedor está habilitado en Supabase — la app lo consulta en `/auth/v1/settings` (ver `src/lib/supabase/auth-providers.ts`). Si lo habilitas, añade también el redirect `https://<dominio>/auth/callback`.
 
 > Estado a 2026-08-03: esquema completo (11 tablas), claves nuevas funcionando, SMTP propio configurado y primer usuario creado. Solo está activo el proveedor `email`; Google sigue desactivado.

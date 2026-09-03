@@ -15,6 +15,73 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-03
 
+### Revisión de seguridad a la contra, y seis cosas que arreglar (03-09-2026)
+
+Un repaso entero mirando la app como la miraría quien quiere entrar: rutas API, RLS,
+RPCs, OAuth de Drive, cabeceras, service worker y secretos. **No apareció ninguna vía
+para leer datos de otra familia**, que era lo que había que saber. Lo que sostiene eso
+son tres cosas que conviene no tocar: `my_family_ids()` con `search_path` fijo, las
+escrituras que una policy no sabe validar movidas a RPCs `security definer`, y el orden
+«primero el cliente del usuario, después el de servicio» en las rutas de documentos.
+
+Lo que sí apareció no era confidencialidad: era **abuso**, **configuración que puede
+fallar sola** y **controles que vivían en la plataforma en vez de en el repositorio**.
+
+Lo más gordo, y lo más aburrido de contar: **`/api/invite` estaba abierto a internet**.
+El registro es libre, crear una familia te hace admin de ella y admin era lo único que
+la ruta pedía, así que cualquiera podía registrarse y usar Farpi para mandar correos con
+pinta de invitación legítima a las direcciones que quisiera. Lo que se arriesga ahí no es
+la máquina: es la reputación del dominio, y con ella las invitaciones de verdad y los
+correos de recuperar contraseña de la familia que sí los espera. Diez al día por persona
+que invita, contadas sobre `family_invites` —no hay Redis y no hace falta, el rastro está
+ahí— y por quien invita y no por familia, porque las familias se crean gratis.
+
+El segundo salió de tirar de un hilo del panel de Supabase. Aceptar una invitación
+cotejaba el correo de la invitación con el de quien la acepta, y eso da por hecho que
+tener la cuenta prueba tener el correo — lo cual lo decide el ajuste «Confirm email», que
+se apaga en un click para probar en local y así se queda. Apagado, quien tuviera a la
+vista un `invite_id` podía crearse una cuenta con el correo de la persona invitada, sin
+llegar a leerlo, y entrar en su casa. El primer arreglo fue mirar `email_confirmed_at`, y
+**estaba mal**: con el ajuste apagado Supabase da la cuenta por confirmada de fábrica, así
+que la comprobación no valía nada justo en el único escenario que pretendía cubrir. Lo que
+de verdad distingue a quien estaba invitado es **de dónde sale su cuenta**: o la creó el
+propio correo de invitación (`invited_at`), o ya existía antes de que la invitación se
+escribiera. Registrarse *después* de ver el enlace es exactamente el ataque, y no hay caso
+legítimo que se le parezca.
+
+Los otros cuatro, en corto:
+
+- **El dueño y la ruta del archivo de un documento no se reescriben.** El `with check` de
+  la policy admite `storage_owner is null` por las fichas de antes de Drive, y eso dejaba
+  a cualquier miembro poner a nulo el dueño de un papel ajeno. No se lleva nada —el token
+  pasaría a ser el suyo y `drive.file` no le deja ver lo que subió otro— pero el documento
+  se queda sin poder abrirse para toda la casa. Es sabotaje, y la RLS no se enteraba. Va en
+  un trigger y no en la policy porque `with check` solo ve la fila nueva, y aquí hay que
+  comparar con la vieja.
+- **`safeNextPath` mirando solo el principio de la cadena no bastaba.** El navegador borra
+  tabuladores y saltos de línea de una URL antes de interpretarla, así que un
+  `/
+//otra-cosa.example` pasaba el filtro y se leía después como `///otra-cosa.example`.
+  Ahora se limpian los tres caracteres y la ruta se resuelve con `new URL` contra un origen
+  inventado: decide el navegador, que es quien va a interpretarla, en vez de imitar sus
+  reglas a mano. No se llegó a comprobar que fuera explotable con el router de Next; el
+  arreglo costaba cuatro líneas y el valor llega desde un correo.
+- **HSTS**, que la ponía Vercel por su cuenta. Era el único de los controles que vivía en
+  la plataforma y no aquí, y eso se descubre el día que deja de cumplirse.
+- **El build falla si producción arranca en modo demo.** Borra `NEXT_PUBLIC_SUPABASE_URL`
+  en Vercel y la app entera se queda abierta sin sesión —el proxy deja pasar todo en modo
+  demo, a propósito, porque ahí no hay nada que proteger— sirviendo datos de mentira con
+  toda la pinta de funcionar. Nadie mira una app que funciona. En un preview sigue
+  valiendo: es como se enseña sin dar de alta a nadie.
+
+Y dos que se quedan abiertas **porque son decisiones de producto y no fallos**: el
+registro sigue abierto a cualquiera, e `/api/invite` sigue diciendo con su código de
+respuesta si un correo ya tiene cuenta en Farpi. Cerrar lo segundo pide decidir antes qué
+pasa al invitar a alguien que ya está registrado, que hoy simplemente falla.
+
+Siete comprobaciones nuevas en `validate-rls.mjs` (dos de invitaciones, cinco de
+documentos), y el trozo de SQL que hay que pasar por el editor, en
+`supabase/parche-2026-09-03.sql`.
 ### Finanzas: el cierre pregunta en condiciones, y tres cosas que sobraban (03-09-2026)
 
 De volver a usar la pantalla. Cuatro retoques y ninguno de fondo.

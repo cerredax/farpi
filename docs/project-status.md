@@ -389,13 +389,13 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **546 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **547 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 416 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 03-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— y las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 130 de navegador. La cifra sale de la pasada completa del 03-09-2026 (546 en total,
-    416 unitarios):
+  - 417 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 03-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 130 de navegador. La cifra sale de la pasada completa del 03-09-2026 (547 en total,
+    417 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -425,7 +425,7 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
 - `family_invites` update con `using` + `with check`.
 - `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app. Sin eso,
   un enlace de correo legítimo podía acabar en otra web justo después de iniciar sesión.
-- Cinco cabeceras de seguridad en `next.config.ts`, **CSP incluida** desde el
+- Seis cabeceras de seguridad en `next.config.ts`, **CSP incluida** desde el
   26-08-2026 (ver `architecture.md`: lleva `'unsafe-inline'` en los scripts porque Next
   los inyecta, y `connect-src` se arma con la URL real del proyecto).
 - Rutas API: el motivo de un fallo va al log del servidor y la respuesta lleva un mensaje
@@ -455,6 +455,48 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   PostgREST. Solo se presta la llave de uno mismo. Tres comprobaciones nuevas en
   `validate-rls.mjs`, en rojo antes de aplicarlo y en verde después.
 
+- **Revisión de seguridad completa del 03-09-2026** (a la contra, buscando el hueco). No
+  apareció ninguna vía para leer datos de otra familia: la RLS, las RPCs y el orden
+  «cliente del usuario antes que service role» de las rutas de documentos aguantaron. Lo
+  que salió y ya está arreglado:
+  - **`/api/invite` era un amplificador de correo abierto a internet.** El registro está
+    abierto, crear una familia te hace admin de ella y admin era lo único que pedía la
+    ruta: cualquiera podía pedirle a Farpi que mandara correos con pinta de invitación a
+    las direcciones que quisiera, desde el SMTP y el dominio de la app. Ahora hay tope de
+    **diez invitaciones en 24 horas por persona que invita** (contado sobre
+    `family_invites`, que es donde queda el rastro; por familia se saltaría creando otra)
+    y el correo se valida también en el servidor, con el mismo `isValidEmail` que el sheet.
+  - **Aceptar una invitación ya no se cree que tener la cuenta prueba tener el correo.**
+    Eso lo decidía el ajuste «Confirm email» del panel de Supabase, y se apaga en un click:
+    apagado, quien tuviera a la vista un `invite_id` podía registrarse con el correo de la
+    persona invitada —sin leerlo— y entrar en su casa. `email_confirmed_at` no sirve de
+    nada aquí, porque con el ajuste apagado Supabase da la cuenta por confirmada de
+    fábrica; lo que distingue a quien de verdad estaba invitado es de dónde sale su cuenta,
+    así que la RPC exige que la creara el propio correo de invitación (`invited_at`) o que
+    ya existiera antes de escribirse la invitación.
+  - **El dueño y la ruta del archivo de un documento no se reescriben** (trigger
+    `trg_document_storage_inmutable`). El `with check` de la policy admite
+    `storage_owner is null` —está ahí por las fichas de antes de Drive— y eso dejaba a
+    cualquier miembro poner a nulo el dueño de un papel ajeno: no se lleva nada, pero deja
+    el documento sin poder abrirse para toda la casa. Va en un trigger porque una policy
+    no puede comparar con la fila anterior.
+  - **`safeNextPath` ya no mira solo el principio de la cadena.** El navegador borra
+    tabuladores y saltos de línea de una URL antes de interpretarla, así que un
+    `/
+//otra-cosa.example` pasaba el filtro y se leía después como `///otra-cosa.example`.
+    Ahora se limpian esos tres caracteres y la ruta se resuelve con `new URL` contra un
+    origen inventado: decide el navegador, que es quien va a interpretarla.
+  - **HSTS escrita en el repositorio.** La ponía Vercel por su cuenta, y era el único de
+    los controles que vivía en la plataforma en vez de aquí.
+  - **El build falla si producción arranca en modo demo.** El fallback sin credenciales es
+    correcto en local y en un preview; en producción es la app entera abierta sin sesión
+    —el proxy deja pasar todo en modo demo— sirviendo datos de mentira y aparentando
+    funcionar, que es la avería que nadie mira.
+
+  Lo que la revisión dejó **abierto a propósito**, por ser decisión de producto: el
+  registro sigue abierto a cualquiera, y `/api/invite` sigue distinguiendo con su código de
+  respuesta si un correo ya tiene cuenta en Farpi (cerrarlo pide decidir antes qué pasa al
+  invitar a alguien que ya está registrado, que hoy simplemente falla).
 ## Regla del último admin — DECISIÓN TOMADA
 
 Una familia debe tener siempre al menos un admin. Están prohibidas cuando quedaría cero admins:

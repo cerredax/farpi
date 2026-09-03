@@ -126,8 +126,19 @@ encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
 - El proxy (`src/proxy.ts`) manda al login todo lo que no sea público.
 - `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app.
   Sin eso, un enlace de correo legítimo podía acabar en otra web justo después
-  de iniciar sesión.
-- Cinco cabeceras en `next.config.ts`, **CSP incluida** desde el 26-08-2026. Estuvo
+  de iniciar sesión. **No basta mirar el principio de la cadena** (03-09-2026): el
+  navegador borra tabuladores y saltos de línea antes de interpretar una URL, así que
+  se limpian esos tres caracteres y la ruta se resuelve con `new URL` contra un origen
+  inventado — decide el navegador, que es quien va a interpretarla.
+- `/api/invite` tiene **tope de diez invitaciones en 24 horas por quien invita**
+  (03-09-2026). El registro está abierto y crear una familia te hace admin de ella, así
+  que sin tope la ruta era un amplificador de correo abierto a internet: lo que se
+  arriesga es la reputación del dominio, y con ella los correos que la familia sí espera.
+  Se cuenta sobre `family_invites` —ahí queda el rastro— y por persona y no por familia,
+  porque las familias se crean gratis.
+- Seis cabeceras en `next.config.ts`, **CSP incluida** desde el 26-08-2026 y **HSTS**
+  desde el 03-09-2026 (la ponía Vercel por su cuenta; era el único control que vivía en la
+  plataforma y no aquí). La CSP estuvo
   meses aparcada por un motivo que sigue siendo cierto —Next inyecta scripts en línea y
   una CSP mal puesta rompe producción sin avisar en local—, y por eso lleva
   `'unsafe-inline'` en `script-src`: no para un XSS en línea, pero sí cargar scripts de
@@ -137,6 +148,11 @@ encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
   `npm run dev`.
 
 No hay `dangerouslySetInnerHTML` ni `eval` en todo el código.
+
+Y **el build corta si producción arranca en modo demo** (03-09-2026, en `next.config.ts`).
+El fallback sin credenciales es correcto en local y en un preview; en producción es la app
+entera abierta sin sesión —el proxy deja pasar todo en modo demo— sirviendo datos de
+mentira y aparentando funcionar, que es la clase de avería que nadie mira.
 
 ## Regla del último admin
 
@@ -343,6 +359,15 @@ use de verdad (`getProvider(doc.storage_provider)`) en vez de quedar de adorno.
   el tope del producto. Y quien sube es el dueño del Drive, que es el caso en el que
   el proxy no compra nada. Por eso `connect-src` de la CSP abre `www.googleapis.com`.
 
+- **La ficha no puede cambiar de disco** (03-09-2026). `storage_owner` y `storage_path`
+  son inmutables desde el trigger `trg_document_storage_inmutable`: la policy acota el
+  dueño a uno mismo «o a nulo» —el nulo está por las fichas de antes de Drive— y ese hueco
+  dejaba a cualquier miembro poner a nulo el dueño de un papel ajeno y dejarlo sin poder
+  abrirse para toda la casa. No se lleva nada (con `drive.file`, el token de quien mira no
+  ve lo que subió otro), pero es sabotaje que la RLS no veía. Va en un trigger porque
+  `with check` solo ve la fila nueva y aquí hay que comparar con la vieja. Editar la ficha
+  —nombre, carpeta, asignación, caducidad— sigue pudiendo cualquier miembro, que es lo que
+  hace la app.
 ### El permiso prestado
 
 - Scope **`drive.file`** y ninguno más: solo los archivos que crea esta app. Es un

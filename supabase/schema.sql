@@ -786,6 +786,40 @@ begin
 end;
 $$;
 
+-- Ni el dueño del archivo ni su id se pueden reescribir (03-09-2026).
+--
+-- La policy de `documents` acota `storage_owner` a `auth.uid()` **o a nulo**, y
+-- ese "o a nulo" —que está para las fichas de antes de Drive— dejaba una grieta:
+-- cualquier miembro podía poner a nulo el dueño de una ficha ajena por
+-- PostgREST y, con `storage_path` intacto, el proxy de lectura pasaba a pedir
+-- ese archivo con el token de quien mira. No lee nada —`drive.file` solo ve lo
+-- que subió la propia app con **ese** token— pero deja el documento inservible
+-- para toda la casa, y eso es sabotaje sin que la RLS se entere.
+--
+-- Se arregla aquí y no en la policy porque una policy no puede comparar con la
+-- fila anterior: `with check` solo ve la nueva. Y se cierran las dos columnas y
+-- no solo el dueño, porque la pareja es la que dice dónde están los bytes.
+--
+-- La app nunca las toca al editar (ver `updateDocument` en
+-- `src/lib/supabase-repos/documents.ts`, que actualiza nombre, descripción,
+-- categoría, asignación y caducidad): mover un archivo de disco es dar de alta
+-- otra ficha, no editar esta.
+create or replace function public.check_document_storage_inmutable()
+returns trigger language plpgsql as $$
+begin
+  if new.storage_owner is distinct from old.storage_owner then
+    raise exception 'documents: storage_owner no se puede cambiar';
+  end if;
+  if new.storage_path is distinct from old.storage_path then
+    raise exception 'documents: storage_path no se puede cambiar';
+  end if;
+  if new.storage_provider is distinct from old.storage_provider then
+    raise exception 'documents: storage_provider no se puede cambiar';
+  end if;
+  return new;
+end;
+$$;
+
 create or replace function public.check_task_child_family()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
@@ -889,6 +923,7 @@ drop trigger if exists trg_event_child_family    on public.events;
 drop trigger if exists trg_event_member_family   on public.events;
 drop trigger if exists trg_document_child_family on public.documents;
 drop trigger if exists trg_document_member_family on public.documents;
+drop trigger if exists trg_document_storage_inmutable on public.documents;
 drop trigger if exists trg_task_child_family     on public.tasks;
 drop trigger if exists trg_task_member_family    on public.tasks;
 drop trigger if exists trg_fixed_entry_child_family  on public.fixed_entries;
@@ -902,6 +937,7 @@ create trigger trg_event_child_family     before insert or update on public.even
 create trigger trg_event_member_family    before insert or update on public.events     for each row execute function public.check_event_member_family();
 create trigger trg_document_child_family  before insert or update on public.documents  for each row execute function public.check_document_child_family();
 create trigger trg_document_member_family before insert or update on public.documents  for each row execute function public.check_document_member_family();
+create trigger trg_document_storage_inmutable before update on public.documents  for each row execute function public.check_document_storage_inmutable();
 create trigger trg_task_child_family      before insert or update on public.tasks      for each row execute function public.check_task_child_family();
 create trigger trg_task_member_family     before insert or update on public.tasks      for each row execute function public.check_task_member_family();
 create trigger trg_fixed_entry_child_family  before insert or update on public.fixed_entries for each row execute function public.check_fixed_entry_child_family();
@@ -1424,9 +1460,10 @@ grant execute on function public.update_family_member_role(uuid, text) to authen
 
 -- Aceptar una invitación. Quien la acepta todavía no es miembro, así que no hay
 -- policy que pueda dejarle escribir: tiene que ser una RPC. Comprueba que la
--- invitación es para su email —si no, cualquiera con el id entraría en casa
--- ajena—, que no lleve más de 30 días esperando, y es idempotente si ya era
--- miembro por otra vía.
+-- invitación es para su email, que su cuenta no se creó **después** de que la
+-- invitación se escribiera —si no, cualquiera con el id entraría en casa ajena—,
+-- que no lleve más de 30 días esperando, y es idempotente si ya era miembro por
+-- otra vía.
 create or replace function public.accept_family_invite(p_invite_id uuid)
 returns uuid
 language plpgsql
@@ -1434,15 +1471,19 @@ security definer
 set search_path = public
 as $$
 declare
-  v_invite       public.family_invites%rowtype;
-  v_caller_uid   uuid := auth.uid();
-  v_caller_email text;
+  v_invite            public.family_invites%rowtype;
+  v_caller_uid        uuid := auth.uid();
+  v_caller_email      text;
+  v_caller_invited_at timestamptz;
+  v_caller_created_at timestamptz;
 begin
   if v_caller_uid is null then
     raise exception 'Acceso denegado: usuario no autenticado';
   end if;
 
-  select email into v_caller_email from auth.users where id = v_caller_uid;
+  select email, invited_at, created_at
+    into v_caller_email, v_caller_invited_at, v_caller_created_at
+  from auth.users where id = v_caller_uid;
 
   select * into v_invite from public.family_invites where id = p_invite_id;
   if not found then
@@ -1477,6 +1518,39 @@ begin
   -- mano se le sigue contestando lo mismo que antes y nada más.
   if v_invite.created_at < now() - interval '30 days' then
     raise exception 'La invitación ha caducado. Pide que te la manden otra vez.';
+  end if;
+
+  -- Y la cuenta tiene que ser **anterior a la invitación, o haber nacido de
+  -- ella** (03-09-2026).
+  --
+  -- El cotejo del correo de arriba parece suficiente y no lo es: da por hecho
+  -- que tener la cuenta prueba tener el correo, y eso lo decide un interruptor
+  -- del panel de Supabase. Con "Confirm email" apagado —se apaga en un click
+  -- para probar en local, y así se queda— Supabase da por confirmado a quien se
+  -- registra, así que quien tuviera a la vista un `invite_id` (viaja en la URL
+  -- de vuelta del correo) podía registrarse con el correo de la persona
+  -- invitada, sin llegar a leerlo, y entrar en su casa. Mirar
+  -- `email_confirmed_at` no arregla nada por lo mismo: apagado el ajuste, esa
+  -- columna viene rellena de fábrica.
+  --
+  -- Lo que sí distingue a quien de verdad estaba invitado es **de dónde sale su
+  -- cuenta**: o la creó el propio correo de invitación (`invited_at`), o ya
+  -- existía antes de que la invitación se escribiera. Registrarse *después* de
+  -- ver el enlace es exactamente el ataque, y no hay caso legítimo que se
+  -- parezca: quien se apunta a Farpi por su cuenta y luego recibe la invitación
+  -- tiene la cuenta más vieja que ella.
+  --
+  -- El mensaje es el mismo que el del correo que no cuadra, a propósito: a un
+  -- desconocido con el id en la mano se le cuenta lo mismo en los dos casos.
+  --
+  -- Va **después** de la caducidad y no antes por una razón de prueba: lo único
+  -- que sabe envejecer una invitación en `validate-rls.mjs` es el service role
+  -- moviéndole el `created_at`, y entonces cualquier cuenta de prueba es más
+  -- nueva que ella. Con esta comprobación delante, la de los 30 días se pondría
+  -- en verde sin llegar a ejecutarse nunca. Lo que se cuenta de más al ponerla
+  -- aquí es que una invitación caducó, a quien además acertó el correo.
+  if v_caller_invited_at is null and v_caller_created_at > v_invite.created_at then
+    raise exception 'Acceso denegado: la invitación no pertenece a este usuario';
   end if;
 
   if exists (

@@ -80,8 +80,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 416 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 546 (416 unitarios + 130 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 417 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 547 (417 unitarios + 130 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -190,9 +190,15 @@ Detalle completo en `docs/architecture.md`, sección "Documentos en Google Drive
 
 ### Cabeceras de seguridad
 
-`next.config.ts` pone cinco en todas las rutas, porque Farpi guarda DNI, informes médicos
-y el libro de familia: `Content-Security-Policy`, `X-Frame-Options: DENY`, `nosniff`,
-`Referrer-Policy` y `Permissions-Policy`.
+`next.config.ts` pone seis en todas las rutas, porque Farpi guarda DNI, informes médicos
+y el libro de familia: `Content-Security-Policy`, `Strict-Transport-Security`,
+`X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` y `Permissions-Policy`. La de HSTS
+la pone además Vercel por su cuenta; está escrita porque era el único control que vivía
+en la plataforma y no aquí.
+
+El mismo archivo **corta el build si producción arranca en modo demo**: el fallback sin
+credenciales es correcto en local y en un preview, y en producción es la app abierta sin
+sesión sirviendo datos de mentira con toda la pinta de funcionar.
 
 **La CSP lleva `'unsafe-inline'` en los scripts** porque Next los inyecta, así que no para
 un XSS en línea; sí para cargar scripts de otro dominio, `<object>`, el iframe, reescribir

@@ -21,6 +21,29 @@ import { IS_DEMO_MODE, SUPABASE_URL } from "./src/lib/supabase/env";
 const GOOGLE_API = 'https://www.googleapis.com'
 
 /**
+ * Modo demo en producción: no se despliega (03-09-2026).
+ *
+ * `IS_DEMO_MODE` es el fallback sin credenciales, y está bien que lo sea: es lo
+ * que deja correr la suite y abrir la app sin secretos. Lo que no puede pasar es
+ * que se active **solo**, en producción, porque alguien borró o escribió mal
+ * `NEXT_PUBLIC_SUPABASE_URL` en Vercel. El proxy deja pasar todas las rutas sin
+ * sesión en modo demo (a propósito, ahí no hay nada que proteger), así que un
+ * despliegue así es la app entera abierta sirviendo datos de mentira **y
+ * aparentando funcionar**: nadie mira una app que funciona.
+ *
+ * Se comprueba aquí porque `next.config.ts` se evalúa al construir, así que el
+ * despliegue falla en Vercel con el nombre de la variable en el log en vez de
+ * publicarse. Solo en `production`: un preview en modo demo es útil y es como
+ * se enseña la app sin dar de alta a nadie.
+ */
+if (process.env.VERCEL_ENV === 'production' && IS_DEMO_MODE) {
+  throw new Error(
+    'Farpi no se construye en modo demo en producción: revisa NEXT_PUBLIC_SUPABASE_URL y ' +
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY en las variables de entorno de Vercel.',
+  )
+}
+
+/**
  * Content Security Policy (26-08-2026).
  *
  * Durante meses no hubo, y por una razón buena: Next inyecta scripts en línea y
@@ -93,6 +116,14 @@ function buildCsp(): string {
 
 const SECURITY_HEADERS = [
   { key: 'Content-Security-Policy', value: buildCsp() },
+  // Solo por HTTPS, y durante dos años. Vercel la pone por su cuenta en los
+  // dominios con certificado, así que esto no cambia nada hoy; está escrita
+  // porque era el único de los seis controles que vivía en la plataforma y no
+  // en el repositorio, y eso se descubre el día que se deja de cumplir.
+  // `preload` queda fuera a propósito: obliga a mantener HTTPS en el dominio y
+  // en todos sus subdominios para siempre, y eso se pide cuando se decide, no
+  // como efecto secundario de una cabecera.
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
   // Nadie mete Farpi en un iframe: sin esto, una web ajena puede superponerse a
   // los botones y conseguir que un toque borre algo (clickjacking). Se queda
   // junto a `frame-ancestors` porque los navegadores viejos solo entienden esta.

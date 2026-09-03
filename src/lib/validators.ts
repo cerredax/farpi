@@ -177,18 +177,39 @@ export function validateQuoteDraft(draft: QuoteDraft): string | null {
 
 // ─── Vuelta al sitio después de entrar ────────────────────────────────────────
 
+const ORIGEN_DE_PRUEBA = 'https://farpi.invalid'
+
 /**
  * A dónde se puede mandar a alguien después de validar un enlace de correo.
  *
  * El `?next=` de la URL lo escribe quien manda el enlace, no la app, así que un
  * `next=https://otra-cosa.example` convertiría un correo legítimo de Farpi en un
  * salto a una web ajena justo después de iniciar sesión — que es el momento en
- * el que uno se cree lo que ve. Solo se aceptan rutas de la propia app: una
- * barra y nada de `//`, que es la forma corta de decir "otro dominio".
+ * el que uno se cree lo que ve. Solo se aceptan rutas de la propia app.
+ *
+ * Mirar el principio de la cadena **no basta** (03-09-2026): el navegador borra
+ * los tabuladores y los saltos de línea de una URL *antes* de interpretarla, así
+ * que un `/<salto>//otra-cosa.example` pasaba el filtro por la izquierda y se
+ * leía después como `///otra-cosa.example`, que es otro dominio. Se limpian esos
+ * tres caracteres y luego se resuelve la ruta contra un origen inventado: si al
+ * resolverla el origen cambia, no era una ruta de la app. Decide el navegador,
+ * que es quien va a interpretarla, en vez de imitar sus reglas a mano.
  */
 export function safeNextPath(next: string | null | undefined): string {
   if (!next) return '/home'
-  if (!next.startsWith('/')) return '/home'
-  if (next.startsWith('//') || next.startsWith('/\\')) return '/home'
-  return next
+
+  // Los tres que el navegador ignora al parsear, y en todo el valor, no solo al
+  // principio: tabulador, salto de línea y retorno de carro.
+  const limpio = next.replace(/[\t\n\r]/g, '')
+  if (!limpio.startsWith('/')) return '/home'
+
+  try {
+    const url = new URL(limpio, ORIGEN_DE_PRUEBA)
+    if (url.origin !== ORIGEN_DE_PRUEBA) return '/home'
+    // Se devuelve lo que el navegador entendió y no lo que llegó, para que el
+    // destino sea exactamente el que se acaba de comprobar.
+    return `${url.pathname}${url.search}${url.hash}`
+  } catch {
+    return '/home'
+  }
 }

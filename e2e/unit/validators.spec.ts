@@ -189,4 +189,17 @@ test.describe('safeNextPath', () => {
     expect(safeNextPath('/\\ejemplo-falso.test')).toBe('/home')
     expect(safeNextPath('javascript:alert(1)')).toBe('/home')
   })
+
+  // Los que el navegador borra de una URL antes de parsearla. Con el filtro
+  // mirando solo el principio de la cadena, un salto de línea colado en medio
+  // hacía que `/\n//otra.test` pasara y el navegador lo leyera después como
+  // `///otra.test`, que es otro dominio.
+  test('rechaza los caracteres que el navegador se come', () => {
+    expect(safeNextPath('/\n//ejemplo-falso.test')).toBe('/home')
+    expect(safeNextPath('/\t//ejemplo-falso.test')).toBe('/home')
+    expect(safeNextPath('/\r\n//ejemplo-falso.test')).toBe('/home')
+    expect(safeNextPath('//\nejemplo-falso.test')).toBe('/home')
+    // Y lo que era una ruta de verdad sigue llegando limpia.
+    expect(safeNextPath('/\nhome')).toBe('/home')
+  })
 })

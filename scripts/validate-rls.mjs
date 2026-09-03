@@ -409,11 +409,36 @@ async function main() {
     (await api('/rest/v1/rpc/accept_family_invite', { metodo: 'POST', token: tokC, datos: { p_invite_id: invitacionVieja } })).estado >= 400)
   comprobar('Y quien la guardaba sigue fuera de la familia',
     filas(await api(`/rest/v1/children?family_id=eq.${famA}&select=id`, { token: tokC })) === 0)
+
   // El caso bueno no hace falta montarlo aquí: es B aceptando la suya recién
   // hecha, seis líneas más arriba en esta misma sección. Eso es lo que impide que
   // estas dos pasen con una RPC que rechazara **todas** las invitaciones — y sale
   // gratis, sin meter a C en la familia para luego sacarlo y dejar las secciones
   // de abajo colgando de que esa limpieza funcione.
+
+  // Registrarse *después* de ver el enlace no sirve (03-09-2026).
+  //
+  // Cotejar el correo de la invitación con el de quien la acepta parecía
+  // suficiente, y daba por hecho que tener la cuenta prueba tener el correo: eso
+  // lo decide el ajuste "Confirm email" del panel de Supabase, que se apaga en un
+  // click. Apagado, quien tuviera a la vista un `invite_id` podía crearse una
+  // cuenta con el correo de la persona invitada —sin leerlo— y entrar en su casa.
+  // Y `email_confirmed_at` no lo arregla: con el ajuste apagado, Supabase da la
+  // cuenta por confirmada de fábrica.
+  //
+  // Se prueba con un usuario nacido **después** de escribir la invitación, que es
+  // el atacante, y con la misma contraseña y el mismo dominio de prueba que los
+  // otros tres. Se limpia abajo, con ellos.
+  const emailD = `rls-d-${sufijo}@farpi-test.invalid`
+  const invitacionParaD = (await api('/rest/v1/family_invites', {
+    metodo: 'POST', token: tokA, datos: { family_id: famA, email: emailD, invited_by: uidA }, cabeceras: REPRESENTACION,
+  })).cuerpo?.[0]?.id
+  const uidD = await crearUsuario(emailD, password)
+  const tokD = await entrar(emailD, password)
+  comprobar('Una cuenta creada después de la invitación NO puede aceptarla',
+    (await api('/rest/v1/rpc/accept_family_invite', { metodo: 'POST', token: tokD, datos: { p_invite_id: invitacionParaD } })).estado >= 400)
+  comprobar('Y sigue sin ver nada de la familia',
+    filas(await api(`/rest/v1/children?family_id=eq.${famA}&select=id`, { token: tokD })) === 0)
 
   // La 019 guarda en `families` qué franjas de comida ve la casa. No trae policy
   // nueva —usa la de update de la 002— así que lo que hay que comprobar es que esa
@@ -667,16 +692,41 @@ async function main() {
       metodo: 'POST', token: tokB,
       datos: { family_id: famA, name: 'doc ajeno', storage_path: 'id-de-drive-999', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
     })).estado >= 400)
-  // Lo que se prohíbe es señalar a **otro**, no reclamar lo propio: si B se pone a
-  // sí mismo como dueño de un papel de A, el archivo deja de abrirse (su token no
-  // ve lo que subió A) pero nadie se lleva nada, y borrar ese documento ya podía
-  // cualquier miembro por diseño. La columna es una llave prestada, y la regla es
-  // que solo se presta la de uno.
-  comprobar('Ni puede cambiar el dueño de un documento que ya existe por un tercero',
+  // Y **ni el dueño ni la ruta se reescriben, punto** (03-09-2026). El `with
+  // check` de la policy acota `storage_owner` a uno mismo "o a nulo", y ese "o a
+  // nulo" —que está para las fichas de antes de Drive— dejaba a cualquier
+  // miembro poner a nulo el dueño de un papel ajeno: no se lleva nada (el proxy
+  // pasaría a pedir el archivo con el token de quien mira, y `drive.file` no le
+  // deja ver lo que subió otro) pero el documento se queda sin poder abrirse
+  // para toda la casa. Eso es sabotaje, y la RLS no se enteraba. Lo cierra el
+  // trigger `trg_document_storage_inmutable`, que es el único sitio donde se
+  // puede comparar con la fila anterior.
+  comprobar('Ni cambiar el dueño de un documento que ya existe por un tercero',
     (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
-      metodo: 'PATCH', token: tokB,
-      datos: { storage_owner: uidC },
+      metodo: 'PATCH', token: tokB, datos: { storage_owner: uidC },
     })).estado >= 400)
+  comprobar('B NO puede poner a nulo el dueño de un documento de A',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+      metodo: 'PATCH', token: tokB, datos: { storage_owner: null },
+    })).estado >= 400)
+  comprobar('Ni reclamar para sí un documento de A',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+      metodo: 'PATCH', token: tokB, datos: { storage_owner: uidB },
+    })).estado >= 400)
+  comprobar('Ni mover la ficha a otro archivo de Drive',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+      metodo: 'PATCH', token: tokB, datos: { storage_path: 'id-de-drive-de-b' },
+    })).estado >= 400)
+  comprobar('El dueño y la ruta siguen siendo los de A',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=storage_owner', { token: tokA }))
+      .cuerpo?.[0]?.storage_owner === uidA)
+  // Editar la ficha —el nombre, la carpeta, la caducidad— sigue pudiendo
+  // cualquier miembro: es lo que hace la app, y no toca ninguna de esas tres
+  // columnas.
+  comprobar('Pero editar el nombre de la ficha sigue pudiendo cualquier miembro',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+      metodo: 'PATCH', token: tokB, datos: { name: 'doc drive (renombrado por B)' },
+    })).estado < 400)
   comprobar('Pero sí puede subir el suyo a la misma familia',
     filas(await api('/rest/v1/documents', {
       metodo: 'POST', token: tokB, cabeceras: REPRESENTACION,
@@ -749,8 +799,8 @@ async function main() {
   // `storage_connections` cuelga del usuario y no de la familia, así que se iría
   // con el borrado del usuario (on delete cascade). Se borra igual por si el
   // script se corta antes de llegar ahí.
-  for (const uid of [uidA, uidB, uidC]) await api(`/rest/v1/storage_connections?user_id=eq.${uid}`, { metodo: 'DELETE' })
-  for (const uid of [uidA, uidB, uidC]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })
+  for (const uid of [uidA, uidB, uidC, uidD]) await api(`/rest/v1/storage_connections?user_id=eq.${uid}`, { metodo: 'DELETE' })
+  for (const uid of [uidA, uidB, uidC, uidD]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })
   const familias = (await api('/rest/v1/families?select=name')).cuerpo
   console.log('   familias que quedan:', Array.isArray(familias) ? familias.map(f => f.name) : familias)
 

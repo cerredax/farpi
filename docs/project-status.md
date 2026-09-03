@@ -389,13 +389,13 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **547 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **554 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 417 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 03-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 130 de navegador. La cifra sale de la pasada completa del 03-09-2026 (547 en total,
-    417 unitarios):
+  - 424 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 03-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 130 de navegador. La cifra sale de la pasada completa del 03-09-2026 (554 en total,
+    424 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
@@ -480,6 +480,15 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
     cualquier miembro poner a nulo el dueño de un papel ajeno: no se lleva nada, pero deja
     el documento sin poder abrirse para toda la casa. Va en un trigger porque una policy
     no puede comparar con la fila anterior.
+  - **Y de paso apareció un fallo que no era de seguridad sino de uso**, y que llevaba
+    unas horas en producción: con la policy de `documents` en un solo `for all`, el
+    `with check` de `storage_owner` se aplicaba también a los `update` —Postgres lo
+    aplica a la fila nueva de cualquier escritura— y **nadie podía editar la ficha de un
+    documento que hubiera subido otra persona**: ni el nombre, ni la carpeta, ni la
+    caducidad. Lo encontró la comprobación que se había añadido para vigilar lo
+    contrario, que el trigger nuevo no rompiera el renombrado. Ahora son cuatro policies:
+    la regla del dueño vive solo en el `insert` y la inmutabilidad la sostiene el trigger,
+    y las dos piezas van juntas.
   - **`safeNextPath` ya no mira solo el principio de la cadena.** El navegador borra
     tabuladores y saltos de línea de una URL antes de interpretarla, así que un
     `/
@@ -493,6 +502,27 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
     —el proxy deja pasar todo en modo demo— sirviendo datos de mentira y aparentando
     funcionar, que es la avería que nadie mira.
 
+  Y los seis endurecimientos menores del informe, hechos en la misma sesión:
+
+  - **Origen propio en las rutas que escriben** (`deOtroSitio`, en `src/lib/peticiones.ts`,
+    llamado desde `requiereSesion`, que ahora **exige** la petición para que no se pueda
+    olvidar). Lo paraba el `SameSite=Lax` de las cookies de Supabase, que es una defensa
+    prestada. Un `GET` no entra: la vuelta de Google es cruzada y tiene que pasar.
+  - **El `ref` de una subida tiene que ser de esa familia.** `POST /api/documents` daba de
+    alta la ficha de cualquier archivo que alcanzara el token de quien llama; ahora se
+    compara con la etiqueta `farpi_family` que el proveedor le puso al abrir la subida
+    (`ArchivoGuardado.familia`).
+  - **`family_members` se queda solo con `select`.** El `insert` dejaba a un admin meter
+    en su familia el `user_id` que quisiera, sin invitación. Quien crea miembros son las
+    dos RPCs `security definer`.
+  - **`/api/salud` guarda la medida diez segundos.** Es pública por diseño y hacía dos
+    peticiones a Supabase por llamada: un botón gratis para hacer ruido desde fuera. Un
+    vigía pregunta cada minutos, así que nunca ve una guardada.
+  - **El `Origin` de la subida a Drive sale de `SITE_URL`**, no de la cabecera `Host`, con
+    respaldo solo en localhost. Mismo cambio que ya se hizo con el dominio del magic link.
+    **Ojo**: si `SITE_URL` faltara en Vercel, subir un documento pasa a fallar igual que
+    ya falla invitar.
+  - **El `CRON_SECRET` se compara en tiempo constante.**
   Lo que la revisión dejó **abierto a propósito**, por ser decisión de producto: el
   registro sigue abierto a cualquiera, y `/api/invite` sigue distinguiendo con su código de
   respuesta si un correo ya tiene cuenta en Farpi (cerrarlo pide decidir antes qué pasa al

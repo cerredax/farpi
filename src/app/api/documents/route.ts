@@ -21,7 +21,7 @@ import type { DocumentDraft } from '@/types'
  * alguien intente abrir el documento.
  */
 export async function POST(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents')
@@ -39,6 +39,21 @@ export async function POST(req: NextRequest) {
     const ctx = await contextoDeAlmacen({ ownerId: user.id, familyId, origen: origenDe(req) })
     const proveedor = getProvider('google_drive')
     const archivo = await proveedor.describir(ctx, ref)
+
+    // El `ref` lo manda el navegador, así que hay que comprobar que salió de una
+    // subida nuestra y para **esta** familia, y no lo ha elegido quien llama. Lo
+    // dice la etiqueta que le puso el proveedor al abrir la subida. Con
+    // `drive.file` el token de esa persona solo alcanza lo que subió la propia app,
+    // así que lo peor que se podía hacer era dar de alta dos fichas del mismo papel
+    // suyo — pero esta es la única puerta por la que un id de archivo entra desde
+    // fuera, y cerrarla cuesta una línea.
+    //
+    // No se borra el archivo en este caso, al contrario que abajo: si no es de esta
+    // subida, no es nuestro para borrarlo.
+    if (archivo.familia !== familyId) {
+      console.error('[documents] el archivo no es de esta familia:', archivo.familia ?? 'sin etiqueta')
+      return NextResponse.json({ error: 'Ese archivo no es de esta subida' }, { status: 400 })
+    }
 
     if (!VALID_MIME_TYPES.includes(archivo.mimeType as (typeof VALID_MIME_TYPES)[number])) {
       await proveedor.borrar(ctx, ref).catch(() => {})

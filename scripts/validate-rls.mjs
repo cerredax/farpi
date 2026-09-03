@@ -164,6 +164,18 @@ async function main() {
     (await api('/rest/v1/fixed_entries', { metodo: 'POST', token: tokB, datos: { family_id: famA, kind: 'ingreso', name: 'Intruso', amount_cents: 100 } })).estado >= 400)
   comprobar('B NO puede auto-añadirse como miembro de A',
     (await api('/rest/v1/family_members', { metodo: 'POST', token: tokB, datos: { family_id: famA, user_id: uidB, display_name: 'Intruso', role: 'admin' } })).estado >= 400)
+  // Y un admin tampoco puede meter a nadie a mano, que **sí se podía** hasta el
+  // 03-09-2026: la policy de `insert` solo exigía que la familia fuera suya, así que
+  // A podía escribir una fila con el `user_id` de cualquiera. No le abre los datos de
+  // ese tercero —al contrario, se lo mete en su casa— pero le hace aparecer una
+  // familia ajena en el conmutador sin haberla aceptado, que es justo la puerta que
+  // `family_invites` existe para cerrar. La policy se fue entera: quien crea miembros
+  // de verdad son `create_family_with_admin` y `accept_family_invite`, las dos
+  // `security definer`.
+  comprobar('A, admin de su familia, NO puede meter a un tercero a mano',
+    (await api('/rest/v1/family_members', { metodo: 'POST', token: tokA, datos: { family_id: famA, user_id: uidC, display_name: 'Colado', role: 'member' } })).estado >= 400)
+  comprobar('Y ese tercero sigue sin ver nada de la familia de A',
+    filas(await api(`/rest/v1/children?family_id=eq.${famA}&select=id`, { token: tokC })) === 0)
   comprobar('B NO puede borrar tareas de A',
     filas(await api(`/rest/v1/tasks?id=eq.${tareaA}`, { metodo: 'DELETE', token: tokB, cabeceras: REPRESENTACION })) === 0)
 
@@ -723,10 +735,12 @@ async function main() {
   // Editar la ficha —el nombre, la carpeta, la caducidad— sigue pudiendo
   // cualquier miembro: es lo que hace la app, y no toca ninguna de esas tres
   // columnas.
+  const renombradoPorB = await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+    metodo: 'PATCH', token: tokB, datos: { name: 'doc drive (renombrado por B)' },
+  })
   comprobar('Pero editar el nombre de la ficha sigue pudiendo cualquier miembro',
-    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
-      metodo: 'PATCH', token: tokB, datos: { name: 'doc drive (renombrado por B)' },
-    })).estado < 400)
+    renombradoPorB.estado < 400,
+    renombradoPorB.estado < 400 ? '' : `estado ${renombradoPorB.estado}: ${JSON.stringify(renombradoPorB.cuerpo)}`)
   comprobar('Pero sí puede subir el suyo a la misma familia',
     filas(await api('/rest/v1/documents', {
       metodo: 'POST', token: tokB, cabeceras: REPRESENTACION,

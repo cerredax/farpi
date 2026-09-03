@@ -28,7 +28,7 @@ import type { DocMimeType } from '@/types'
  * proponen.
  */
 export async function POST(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents/upload-session')

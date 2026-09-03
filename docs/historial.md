@@ -74,14 +74,70 @@ Los otros cuatro, en corto:
   toda la pinta de funcionar. Nadie mira una app que funciona. En un preview sigue
   valiendo: es como se enseña sin dar de alta a nadie.
 
+Y una que no buscaba nadie. La última de las siete comprobaciones nuevas se escribió para
+vigilar que el trigger de arriba **no** rompiera lo que la app sí hace —renombrar una
+ficha— y salió en rojo: `42501`, la RLS. No la rompía el trigger; estaba roto desde esa
+misma mañana, cuando `documents` pasó a tener un `with check` sobre `storage_owner` dentro
+de una policy `for all`. Postgres aplica el `with check` a la fila nueva de cualquier
+escritura, y la fila nueva de un renombrado sigue llevando dentro el dueño de quien subió
+el papel: **nadie podía editar la ficha de un documento ajeno**, ni el nombre, ni la
+carpeta, ni la caducidad. Media pantalla de Documentos en una casa donde suben papeles dos
+personas. La regla que se quería escribir era «la llave prestada solo se presta la de
+uno», no «la ficha es de quien la subió», y esas dos se parecen solo si se lee la policy en
+vez de probarla. Ahora son cuatro policies: el dueño se comprueba en el `insert`, que es
+donde una fila nace diciendo de quién es el disco, y que después no cambie lo dice el
+trigger. Van juntas y está escrito donde se ven: quitar el trigger reabre el agujero por
+el `update`.
 Y dos que se quedan abiertas **porque son decisiones de producto y no fallos**: el
 registro sigue abierto a cualquiera, e `/api/invite` sigue diciendo con su código de
 respuesta si un correo ya tiene cuenta en Farpi. Cerrar lo segundo pide decidir antes qué
 pasa al invitar a alguien que ya está registrado, que hoy simplemente falla.
 
-Siete comprobaciones nuevas en `validate-rls.mjs` (dos de invitaciones, cinco de
-documentos), y el trozo de SQL que hay que pasar por el editor, en
-`supabase/parche-2026-09-03.sql`.
+Y después, de una tirada, los seis endurecimientos que la revisión había dejado en la
+lista de «no abren nada hoy». Van juntos porque son de la misma clase: cosas que se
+pagan el día que cambia algo alrededor.
+
+- **Las rutas que escriben rechazan lo que venga de otra web.** No había nada nuestro
+  contra un CSRF: lo paraba el `SameSite=Lax` de las cookies de Supabase, que no es una
+  decisión de Farpi. La regla vive en `src/lib/peticiones.ts` y no dentro del guard,
+  porque el guard arrastra el cliente de Supabase y las cookies de Next y no se puede
+  importar desde un test; ahora tiene siete. Y `requiereSesion` **exige** la petición
+  como argumento en vez de aceptarla opcional: una guarda que se puede omitir es la que
+  se olvida en la ruta siguiente, que es exactamente lo que ese archivo existe para
+  evitar. Un `GET` no entra en la comprobación: la vuelta de Google al conectar Drive es
+  una navegación cruzada y tiene que pasar.
+- **El `ref` de una subida tiene que ser de esta familia.** `POST /api/documents` se
+  creía el id de archivo que le mandaran y daba de alta su ficha. Con `drive.file` ese
+  token solo alcanza lo que subió la propia app, así que lo peor era registrar dos veces
+  un papel propio — pero es la única puerta por la que un id entra desde fuera, y ahora
+  se compara con la etiqueta que el proveedor le puso al abrir la subida. Costó añadir
+  un campo al contrato (`ArchivoGuardado.familia`) y pedir `appProperties` a Drive.
+- **`family_members` se queda solo con `select`.** El `insert` dejaba a un admin escribir
+  en su familia una fila con el `user_id` de cualquiera, sin invitación y sin que esa
+  persona lo supiera: no le abre los datos de nadie, pero le hace aparecer una familia
+  ajena en el conmutador, que es justo la puerta que `family_invites` existe para cerrar.
+  Y no hacía falta: nadie inserta ahí por PostgREST.
+- **`/api/salud` guarda la medida diez segundos.** Es pública y sin secreto porque la
+  mira un vigía externo que solo entiende de 200 y 503, y cada llamada hacía dos
+  peticiones a Supabase: un botón gratis para hacerle ruido al proyecto de la familia
+  desde fuera. Un vigía pregunta cada minutos, así que nunca ve una guardada; cuando se
+  sirve una, la respuesta lo dice con `medidaDeHace`.
+- **El `Origin` de la subida a Drive sale de `SITE_URL`** y no de la cabecera `Host`, con
+  respaldo solo en localhost. Es el mismo cambio que se hizo el 01-09-2026 con el dominio
+  del magic link y por la misma razón. Hoy no era explotable —a Vercel solo llegan los
+  dominios configurados— y el día que se añada un comodín de subdominio, sí. Tiene una
+  consecuencia que hay que saber: si `SITE_URL` faltara, subir un documento pasa a fallar
+  igual que ya fallaba invitar.
+- **El `CRON_SECRET` se compara en tiempo constante.** Por red y con una función
+  serverless de por medio el ruido se come esa señal, así que no arregla un agujero
+  abierto: es que comparar secretos así no cuesta nada y la alternativa hay que
+  justificarla.
+
+Nueve comprobaciones nuevas en `validate-rls.mjs` —dos de invitaciones, cinco de
+documentos y dos de miembros— y siete unitarias: 424 unitarios y 554 en la pasada
+completa. Lo que toca la base real va aparte y en cuatro secciones, en
+`supabase/parche-2026-09-03.sql`, para pasar por el SQL Editor.
+
 ### Finanzas: el cierre pregunta en condiciones, y tres cosas que sobraban (03-09-2026)
 
 De volver a usar la pantalla. Cuatro retoques y ninguno de fondo.

@@ -58,11 +58,30 @@ export function respuestaDeError(err: unknown, ruta: string, nombreDueno: string
  * Desde dónde va a subir el navegador.
  *
  * Google solo devuelve una sesión de subida utilizable desde el navegador si la
- * petición que la abre lleva este origen, así que se toma del propio `request`
- * en vez de configurarlo: así vale igual en local, en un preview y en producción.
+ * petición que la abre lleva este origen, así que hay que decírselo.
+ *
+ * **No sale de la cabecera `Host` si se puede evitar** (03-09-2026). Salía de
+ * `req.nextUrl.origin`, que es el `Host` que manda quien llama: hoy a Vercel solo
+ * llegan los dominios configurados, así que no era explotable, pero el día que se
+ * añada un comodín de subdominio esa sesión de subida quedaría utilizable desde
+ * cualquiera de ellos. Es el mismo cambio que ya se hizo en `/api/invite` con el
+ * dominio del magic link, y por la misma razón: un origen que se adivina de una
+ * cabecera no es un origen.
+ *
+ * El respaldo por `Host` se queda **solo para localhost**, que es donde hace falta
+ * para poder probar sin configurar nada.
  */
 export function origenDe(req: NextRequest): string {
-  return req.nextUrl.origin
+  const configurado = (process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL)?.replace(/\/$/, '')
+  if (configurado) return configurado
+
+  const propio = req.nextUrl.origin
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(propio)) return propio
+
+  throw new ErrorAlmacen(
+    'desconocido',
+    'Falta configurar SITE_URL: no se puede abrir una subida sin saber el dominio de la app.',
+  )
 }
 
 /**

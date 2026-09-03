@@ -27,7 +27,7 @@ import { isValidEmail, normalizeEmail } from '@/lib/validators'
 const MAX_INVITACIONES_DIARIAS = 10
 
 export async function POST(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
 

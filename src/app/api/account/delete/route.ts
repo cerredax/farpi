@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { requiereSesion } from '@/lib/supabase/guard'
 
@@ -15,8 +15,8 @@ function fallo(contexto: string, mensaje: string) {
   return NextResponse.json({ error: 'No se pudo borrar la cuenta' }, { status: 500 })
 }
 
-export async function POST() {
-  const guardia = await requiereSesion()
+export async function POST(req: NextRequest) {
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { user } = guardia
 

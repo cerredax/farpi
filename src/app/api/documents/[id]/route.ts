@@ -20,7 +20,7 @@ import { contextoDeAlmacen, FALTA_CONFIG_DRIVE, respuestaSinConfigDrive } from '
  * suyo y puede borrar cuando quiera.
  */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents/[id]')

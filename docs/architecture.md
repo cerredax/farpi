@@ -123,6 +123,15 @@ encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
   policy no deja tocar filas ajenas.
 - `/api/cron/reminders` se protege con `CRON_SECRET`, y el proxy la deja pasar
   sin sesión a propósito.
+- **Las rutas que escriben rechazan lo que venga de otra web** (03-09-2026,
+  `deOtroSitio` en `src/lib/peticiones.ts`). Lo paraba el `SameSite=Lax` de las cookies
+  de Supabase, que es una defensa prestada: el día que una cookie pase a `None`,
+  `/api/account/delete` queda a un `fetch` ajeno. Se mira `Sec-Fetch-Site` y, si no
+  viene, el `Origin` contra el `Host`; sin ninguna de las dos se deja pasar, porque eso
+  no es un navegador y sin navegador no hay cookie que viaje sin querer. Un `GET` no
+  entra: la vuelta de Google al conectar Drive es cruzada y tiene que pasar, y lo que la
+  protege es el `state`. `requiereSesion` **exige** la petición como argumento para que
+  la comprobación no se pueda olvidar en la ruta siguiente.
 - El proxy (`src/proxy.ts`) manda al login todo lo que no sea público.
 - `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app.
   Sin eso, un enlace de correo legítimo podía acabar en otra web justo después
@@ -359,15 +368,22 @@ use de verdad (`getProvider(doc.storage_provider)`) en vez de quedar de adorno.
   el tope del producto. Y quien sube es el dueño del Drive, que es el caso en el que
   el proxy no compra nada. Por eso `connect-src` de la CSP abre `www.googleapis.com`.
 
-- **La ficha no puede cambiar de disco** (03-09-2026). `storage_owner` y `storage_path`
-  son inmutables desde el trigger `trg_document_storage_inmutable`: la policy acota el
-  dueño a uno mismo «o a nulo» —el nulo está por las fichas de antes de Drive— y ese hueco
-  dejaba a cualquier miembro poner a nulo el dueño de un papel ajeno y dejarlo sin poder
-  abrirse para toda la casa. No se lleva nada (con `drive.file`, el token de quien mira no
-  ve lo que subió otro), pero es sabotaje que la RLS no veía. Va en un trigger porque
-  `with check` solo ve la fila nueva y aquí hay que comparar con la vieja. Editar la ficha
-  —nombre, carpeta, asignación, caducidad— sigue pudiendo cualquier miembro, que es lo que
-  hace la app.
+- **La ficha no puede cambiar de disco, y la puede editar cualquiera de la casa**
+  (03-09-2026). Son dos piezas y van juntas. `storage_owner` se comprueba en el `insert`
+  —solo se presta la llave de uno— y su inmutabilidad, junto con la de `storage_path` y
+  `storage_provider`, la sostiene el trigger `trg_document_storage_inmutable`, porque una
+  policy no puede comparar con la fila anterior: `with check` solo ve la nueva. El hueco
+  que cerraba era poder poner a nulo el dueño de un papel ajeno y dejarlo sin abrirse para
+  toda la casa —no se lleva nada, con `drive.file` el token de quien mira no ve lo que
+  subió otro, pero es sabotaje que la RLS no veía—.
+
+  Estuvo todo en una sola policy `for all` con el `with check` del dueño, y **eso rompía el
+  renombrado**: Postgres aplica el `with check` a la fila nueva de cualquier escritura, y
+  la de un renombrado sigue llevando dentro el dueño de quien subió el papel, así que nadie
+  podía editar la ficha de un documento ajeno. Ahora son cuatro policies. Si alguien quita
+  el trigger, el `update` sin `with check` de dueño vuelve a dejar señalar el Drive de un
+  tercero, esta vez editando en vez de insertando.
+
 ### El permiso prestado
 
 - Scope **`drive.file`** y ninguno más: solo los archivos que crea esta app. Es un

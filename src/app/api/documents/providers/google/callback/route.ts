@@ -24,7 +24,7 @@ function volverADocumentos(req: NextRequest, resultado: 'ok' | 'error'): NextRes
 }
 
 export async function GET(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { user } = guardia
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents/providers/google/callback')

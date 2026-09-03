@@ -216,7 +216,12 @@ Objetivo: preparar uso diario.
   internet), aceptar una invitación exige que la cuenta no se haya creado después de
   escribirse, el dueño y la ruta del archivo de un documento no se reescriben,
   `safeNextPath` deja de mirar solo el principio de la cadena, HSTS escrita en el
-  repositorio y el build cortado si producción arranca en modo demo. El relato en
+  repositorio y el build cortado si producción arranca en modo demo. Y de propina, un
+  fallo de uso que llevaba unas horas en producción: nadie podía editar la ficha de un
+  documento que hubiera subido otra persona. Detrás fueron los seis endurecimientos
+  menores —guarda de CSRF propia, el `ref` de una subida atado a su familia,
+  `family_members` solo con `select`, `/api/salud` sin amplificar, el `Origin` de la
+  subida desde `SITE_URL` y el `CRON_SECRET` en tiempo constante—. El relato en
   `docs/historial.md`; el SQL a aplicar, en `supabase/parche-2026-09-03.sql`.
 - ✅ **Copia de seguridad de la familia** (27-08-2026): un botón en Ajustes descarga
   un `.json` con todo. Sin ruta API ni tabla nueva —el store ya lo tenía todo en

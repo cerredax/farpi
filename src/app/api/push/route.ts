@@ -9,7 +9,7 @@ import { clavesDePushValidas, endpointDePushValido } from '@/lib/push'
  * cualquier URL — el detalle, en `endpointDePushValido`.
  */
 export async function POST(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
  * ella— se quedaría sin forma de quitarse.
  */
 export async function DELETE(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
 

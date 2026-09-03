@@ -26,7 +26,7 @@ import { safeFileName } from '@/lib/text'
  * archivo.
  */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents/file')

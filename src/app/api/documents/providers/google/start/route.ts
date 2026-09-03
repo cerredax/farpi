@@ -17,7 +17,7 @@ import { CONFIG_GOOGLE, FALTA_CONFIG_DRIVE, respuestaSinConfigDrive } from '@/li
  * conexión falla siempre.
  */
 export async function GET(req: NextRequest) {
-  const guardia = await requiereSesion()
+  const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents/providers/google/start')
 

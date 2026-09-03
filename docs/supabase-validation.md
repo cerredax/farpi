@@ -1,18 +1,36 @@
 # Validación Supabase
 
-## Pendiente de ejecutar: 161 comprobaciones (03-09-2026)
+## 160/161, y el que falla es el bueno (03-09-2026)
 
-La revisión de seguridad de ese día añadió **siete** comprobaciones a `validate-rls.mjs`
-—dos en la §7 y cinco en la §12— y cambia dos cosas en la base: la RPC
-`accept_family_invite` y un trigger nuevo, `trg_document_storage_inmutable`. Las dos van en
-`supabase/parche-2026-09-03.sql`, que hay que pasar por el SQL Editor.
+La revisión de seguridad de ese día añadió **siete** comprobaciones —dos en la §7 y cinco
+en la §12— y dos cambios en la base: la RPC `accept_family_invite` y un trigger nuevo,
+`trg_document_storage_inmutable`. Aplicados los dos, la pasada dio **160/161**, y el que
+falló fue el que se había puesto para vigilar que el trigger **no** rompiera nada:
+«pero editar el nombre de la ficha sigue pudiendo cualquier miembro», con
+`42501: new row violates row-level security policy`.
 
-**Todavía no se ha ejecutado el validador**: hasta que el parche esté aplicado, las siete
-nuevas saldrían en rojo con razón y el número de aquí no diría nada. El orden es aplicar el
-parche y entonces `node scripts/validate-rls.mjs`, que debería dar 161/161; si alguna de
-las siete sigue en rojo después, es que el parche no entró entero.
+No lo rompía el trigger: **estaba roto desde antes**, y lo rompía la policy `for all` con
+el `with check` de `storage_owner` que había entrado esa misma mañana. Postgres aplica el
+`with check` a la fila nueva de cualquier escritura, `update` incluido, y la fila nueva de
+un renombrado sigue llevando dentro el `storage_owner` de quien subió el papel: nadie podía
+editar la ficha de un documento ajeno —ni el nombre, ni la carpeta, ni la caducidad—. La
+regla que se quería escribir era «la llave prestada solo se presta la de uno», no «la ficha
+es de quien la subió», y esas dos se parecen solo si se lee la policy en vez de probarla.
 
-Qué comprueban:
+Arreglado partiendo la policy en cuatro (§3 de `supabase/parche-2026-09-03.sql`): la regla
+del dueño vive solo en el `insert`, y que después no cambie lo dice el trigger. **Las dos
+piezas van juntas**: sin el trigger, ese `update` sin `with check` de dueño volvería a
+dejar señalar el Drive de un tercero, esta vez editando en vez de insertando.
+
+Y del repaso de los puntos menores salió una comprobación más, con la §4 del parche: la
+policy de `insert` de `family_members` se fue entera. Dejaba a un admin meter en su
+familia una fila con el `user_id` que quisiera, sin invitación, y no hacía falta para nada
+—quien crea miembros de verdad son `create_family_with_admin` y `accept_family_invite`,
+las dos `security definer`—.
+
+**Pendiente de volver a ejecutar** con las §3 y §4 aplicadas; debería dar **163/163**.
+
+Qué comprueban las siete:
 
 - §7, dos: una cuenta creada **después** de escribirse la invitación no puede aceptarla, y
   sigue sin ver nada de la familia. Se monta con un cuarto usuario de prueba (D) creado a
@@ -22,7 +40,7 @@ Qué comprueban:
 - §12, cinco: ni poner a nulo el dueño de un documento ajeno, ni reclamarlo para sí, ni
   mover la ficha a otro archivo de Drive; que el dueño y la ruta siguen siendo los de A
   después de intentarlo; y que renombrar la ficha **sí** sigue pudiendo cualquier miembro,
-  que es lo que hace la app y lo que este trigger no debe romper.
+  que es la que encontró el fallo de arriba y la razón de escribirla.
 
 ## Última ejecución: 154/154 (03-09-2026, la invitación que caduca)
 

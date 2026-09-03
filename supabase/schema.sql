@@ -1010,11 +1010,21 @@ create policy "Miembros admin actualizan su familia"
 
 -- --- family_members ---------------------------------------------------------
 --
--- Solo `select` e `insert`. No hay policy de `update` ni de `delete`, y no es un
--- olvido: cambiar un rol o echar a alguien tiene que comprobar antes que la
--- familia no se quede sin ningún admin, y eso vive en `update_family_member_role`
--- y `remove_family_member`. Editar el nombre o el color, en
--- `update_family_member_profile`.
+-- **Solo `select`.** No hay policy de `insert`, ni de `update`, ni de `delete`, y
+-- ninguna de las tres es un olvido: entrar en una familia, cambiar un rol y echar a
+-- alguien son las tres cosas que hay que validar antes —la invitación es para ese
+-- correo, la familia no se queda sin ningún admin— y eso una policy no sabe hacerlo.
+-- Viven en `accept_family_invite`, `update_family_member_role` y
+-- `remove_family_member`; el nombre y el color, en `update_family_member_profile`.
+--
+-- El `insert` se fue el 03-09-2026. Dejaba a un admin meter en su familia una fila
+-- con **el `user_id` que quisiera**, sin invitación y sin que la otra persona lo
+-- supiera: no le abre los datos de nadie —al contrario, mete al tercero en su casa—
+-- pero le hace aparecer una familia ajena en el conmutador, que es justo la puerta
+-- que `family_invites` existe para cerrar. Y no hacía falta para nada: nadie inserta
+-- aquí por PostgREST. Las dos filas que nacen de verdad las escriben
+-- `create_family_with_admin` y `accept_family_invite`, las dos `security definer`,
+-- que pasan por encima de la RLS y comprueban lo suyo antes.
 drop policy if exists "Miembros ven su familia" on public.family_members;
 create policy "Miembros ven su familia"
   on public.family_members for select
@@ -1022,14 +1032,6 @@ create policy "Miembros ven su familia"
 
 drop policy if exists "Admin gestiona miembros" on public.family_members;
 drop policy if exists "Admin inserta miembros" on public.family_members;
-create policy "Admin inserta miembros"
-  on public.family_members for insert
-  with check (
-    family_id in (
-      select family_id from public.family_members
-      where user_id = auth.uid() and role = 'admin'
-    )
-  );
 
 -- --- contenido de la familia ------------------------------------------------
 --
@@ -1038,7 +1040,8 @@ create policy "Admin inserta miembros"
 -- justo lo que se quiere.
 --
 -- Dos salen del molde y las dos lo explican donde están: los meses cerrados, que
--- son de solo lectura, y los documentos, que además acotan `storage_owner`.
+-- son de solo lectura, y los documentos, que van en cuatro policies porque la
+-- regla de `storage_owner` solo vale para el `insert`.
 drop policy if exists "Miembros CRUD hijos de su familia" on public.children;
 create policy "Miembros CRUD hijos de su familia"
   on public.children for all
@@ -1104,26 +1107,60 @@ create policy "Miembros CRUD comidas de su familia"
   on public.meal_plans for all
   using (family_id in (select public.my_family_ids()));
 
--- Los documentos son la única tabla de contenido con un `with check` propio, y
--- no es simetría rota: es la única cuyas columnas alimentan una decisión que se
--- toma **con el cliente de servicio**. `/api/documents/[id]/file` lee
+-- Los documentos son la única tabla de contenido con **cuatro policies** en vez de
+-- una, y no es simetría rota: es la única cuyas columnas alimentan una decisión
+-- que se toma **con el cliente de servicio**. `/api/documents/[id]/file` lee
 -- `storage_owner` de la ficha y con él pide prestado el token de esa persona para
--- servir el archivo. Sin este `with check`, cualquier miembro podía escribir ahí
--- el id de otro por PostgREST —la app solo actualiza nombre, carpeta y fecha, pero
--- la app no es el único camino hasta la base— y hacer que Farpi fuera a buscar un
--- archivo al Drive de un tercero. El scope `drive.file` acota el daño (ese token
--- solo ve lo que subió la propia app), pero acotado no es lo mismo que cerrado.
+-- servir el archivo, sin RLS que le pare. Así que quien escribe esa columna solo
+-- puede ponerse a sí mismo: sin eso, cualquier miembro podía escribir ahí el id de
+-- otro por PostgREST y hacer que Farpi fuera a buscar un archivo al Drive de un
+-- tercero. El scope `drive.file` acota el daño (ese token solo ve lo que subió la
+-- propia app), pero acotado no es lo mismo que cerrado.
 --
--- `is null` sigue valiendo: son las fichas de antes del 27-08-2026, cuando el
--- archivo vivía en el bucket de Farpi y no en el Drive de nadie.
+-- **Estuvo en una sola policy `for all` con ese `with check`, y estaba mal**
+-- (03-09-2026). Postgres aplica el `with check` a la fila nueva de **cualquier**
+-- escritura, `update` incluido, y la fila nueva de un renombrado sigue llevando
+-- dentro el `storage_owner` de quien subió el papel. Resultado: nadie podía editar
+-- la ficha de un documento ajeno —ni el nombre, ni la carpeta, ni la caducidad—,
+-- que es media pantalla de Documentos en una casa donde suben papeles dos personas.
+-- La regla que se quería escribir no era «la ficha es de quien la subió», era «la
+-- llave prestada solo se presta la de uno», y esas dos cosas se parecen solo si se
+-- lee la policy en vez de probarla. Lo encontró la comprobación que se añadió para
+-- vigilar justo lo contrario: que el trigger nuevo no rompiera el renombrado.
+--
+-- Ahora la regla del dueño vive **solo en el `insert`**, que es donde una fila nace
+-- diciendo de quién es el disco. Que después no cambie no lo puede decir una policy
+-- —`with check` solo ve la fila nueva, nunca la vieja— y lo dice el trigger
+-- `trg_document_storage_inmutable`. **Las dos piezas van juntas**: si alguien
+-- quitara ese trigger, este `update` sin `with check` de dueño volvería a dejar
+-- señalar el Drive de un tercero, esta vez editando en vez de insertando.
+--
+-- `is null` sigue valiendo en el insert: son las fichas de antes del 27-08-2026,
+-- cuando el archivo vivía en el bucket de Farpi y no en el Drive de nadie.
 drop policy if exists "Miembros CRUD documentos de su familia" on public.documents;
-create policy "Miembros CRUD documentos de su familia"
-  on public.documents for all
-  using (family_id in (select public.my_family_ids()))
+drop policy if exists "Miembros ven los documentos de su familia" on public.documents;
+create policy "Miembros ven los documentos de su familia"
+  on public.documents for select
+  using (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros suben documentos a su familia" on public.documents;
+create policy "Miembros suben documentos a su familia"
+  on public.documents for insert
   with check (
     family_id in (select public.my_family_ids())
     and (storage_owner is null or storage_owner = auth.uid())
   );
+
+drop policy if exists "Miembros editan la ficha de su familia" on public.documents;
+create policy "Miembros editan la ficha de su familia"
+  on public.documents for update
+  using (family_id in (select public.my_family_ids()))
+  with check (family_id in (select public.my_family_ids()));
+
+drop policy if exists "Miembros borran documentos de su familia" on public.documents;
+create policy "Miembros borran documentos de su familia"
+  on public.documents for delete
+  using (family_id in (select public.my_family_ids()));
 
 drop policy if exists "Miembros CRUD tareas de su familia" on public.tasks;
 create policy "Miembros CRUD tareas de su familia"

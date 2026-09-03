@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
@@ -114,6 +115,26 @@ function mesAnteriorEn(timeZone: string): string {
   return `${anterior.year}-${String(anterior.month).padStart(2, '0')}`
 }
 
+/**
+ * El secreto del cron, comparado en tiempo constante.
+ *
+ * Con `!==` el tiempo que tarda en decir no depende de cuántos caracteres ha
+ * acertado quien prueba, y eso deja adivinarlo carácter a carácter midiendo. Por
+ * red y con una función serverless de por medio el ruido se come esa señal, así que
+ * esto no arregla un agujero abierto: es que comparar secretos así no cuesta nada y
+ * la alternativa hay que justificarla.
+ *
+ * `timingSafeEqual` exige el mismo tamaño o lanza, así que la longitud se comprueba
+ * antes — y esa sí se filtra, que es la parte que no tiene arreglo y no importa.
+ */
+function secretoCorrecto(cabecera: string | null, secret: string): boolean {
+  if (!cabecera) return false
+  const esperado = Buffer.from(`Bearer ${secret}`)
+  const recibido = Buffer.from(cabecera)
+  if (esperado.length !== recibido.length) return false
+  return timingSafeEqual(esperado, recibido)
+}
+
 export async function GET(req: NextRequest) {
   // Esta ruta queda fuera del control de sesión del proxy (el cron de Vercel
   // llama sin cookies), así que el secreto es su única defensa: sin él
@@ -124,7 +145,7 @@ export async function GET(req: NextRequest) {
     console.error('[cron] Falta CRON_SECRET: la tarea no se ejecuta.')
     return NextResponse.json({ error: 'Cron no configurado' }, { status: 503 })
   }
-  if (req.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!secretoCorrecto(req.headers.get('authorization'), secret)) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   }
 

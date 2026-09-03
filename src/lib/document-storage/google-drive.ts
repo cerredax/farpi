@@ -88,6 +88,7 @@ function aArchivoGuardado(datos: {
   size?: string
   mimeType?: string
   trashed?: boolean
+  appProperties?: Record<string, string>
 }): ArchivoGuardado {
   if (!datos.id) throw new ErrorAlmacen('archivo_no_esta', 'Google Drive no devolvió el archivo')
   // Un archivo en la papelera se ve exactamente igual que uno borrado desde el
@@ -98,6 +99,9 @@ function aArchivoGuardado(datos: {
     nombre: datos.name ?? '',
     mimeType: datos.mimeType ?? 'application/octet-stream',
     tamano: Number(datos.size ?? 0),
+    // Las dos claves, como en `listar`: los archivos subidos cuando la app era
+    // Nido llevan dentro la vieja y esa marca no se puede reescribir.
+    familia: datos.appProperties?.[CLAVE_FAMILIA] ?? datos.appProperties?.[CLAVE_FAMILIA_NIDO] ?? null,
   }
 }
 
@@ -135,7 +139,7 @@ export const googleDrive: DocumentStorageProvider = {
   },
 
   async describir(ctx: ContextoAlmacen, ref: string): Promise<ArchivoGuardado> {
-    const res = await pedir(ctx, `${API}/files/${encodeURIComponent(ref)}?fields=id,name,size,mimeType,trashed`)
+    const res = await pedir(ctx, `${API}/files/${encodeURIComponent(ref)}?fields=id,name,size,mimeType,trashed,appProperties`)
     return aArchivoGuardado(await res.json())
   },
 
@@ -158,7 +162,7 @@ export const googleDrive: DocumentStorageProvider = {
     const q = `(${deFarpi} or ${deNido}) and trashed = false`
     const res = await pedir(
       ctx,
-      `${API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType)&pageSize=1000&spaces=drive`,
+      `${API}/files?q=${encodeURIComponent(q)}&fields=files(id,name,size,mimeType,appProperties)&pageSize=1000&spaces=drive`,
     )
     const archivos = (await res.json())?.files ?? []
     return archivos.map(aArchivoGuardado)

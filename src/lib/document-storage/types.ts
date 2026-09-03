@@ -98,6 +98,18 @@ export interface ArchivoGuardado {
   nombre: string
   mimeType: string
   tamano: number
+  /**
+   * De qué familia dijo ser este archivo **cuando se subió**, según la etiqueta que
+   * le puso el propio proveedor. `null` si no la lleva.
+   *
+   * Es la única forma de comprobar que un `ref` que llega desde el navegador salió
+   * de una subida nuestra y no lo ha elegido quien llama: sin esto,
+   * `POST /api/documents` daba de alta la ficha de cualquier archivo que el token
+   * de esa persona alcanzara. Con `drive.file` eso son solo los que subió la propia
+   * app, así que el daño era registrar dos veces un papel suyo — pero acotado no es
+   * lo mismo que cerrado, y esta es la puerta por la que un id entra desde fuera.
+   */
+  familia: string | null
 }
 
 /**

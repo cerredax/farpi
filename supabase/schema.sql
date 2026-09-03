@@ -598,6 +598,15 @@ create table if not exists public.push_subscriptions (
 -- Todos van por `family_id` delante, porque toda consulta de la app empieza
 -- filtrando por familia: es lo que impone la RLS.
 
+-- La excepción, y la más importante de todas: `my_family_ids()` busca por
+-- `user_id` y nada más, y esa función se evalúa en **toda** comprobación de RLS
+-- de **toda** consulta de la app. El `unique(family_id, user_id)` de la tabla no
+-- sirve para esto —un índice btree con la primera columna sin restringir hay que
+-- recorrerlo entero—, así que sin esta línea la consulta más frecuente de la base
+-- era la única sin índice. Con cuatro filas por familia da igual; es la que peor
+-- envejece.
+create index if not exists family_members_user_idx on public.family_members(user_id);
+
 create index if not exists events_family_start_idx     on public.events(family_id, start_at);
 create index if not exists idx_events_kind             on public.events(kind);
 create index if not exists idx_events_member           on public.events(member_id);
@@ -979,9 +988,12 @@ create policy "Admin inserta miembros"
 
 -- --- contenido de la familia ------------------------------------------------
 --
--- Todas la misma línea. `for all` sin `with check` explícito: Postgres reutiliza
--- la expresión de `using` para comprobar lo que se escribe, que es justo lo que
--- se quiere.
+-- Casi todas la misma línea. `for all` sin `with check` explícito: Postgres
+-- reutiliza la expresión de `using` para comprobar lo que se escribe, que es
+-- justo lo que se quiere.
+--
+-- Dos salen del molde y las dos lo explican donde están: los meses cerrados, que
+-- son de solo lectura, y los documentos, que además acotan `storage_owner`.
 drop policy if exists "Miembros CRUD hijos de su familia" on public.children;
 create policy "Miembros CRUD hijos de su familia"
   on public.children for all
@@ -1047,10 +1059,26 @@ create policy "Miembros CRUD comidas de su familia"
   on public.meal_plans for all
   using (family_id in (select public.my_family_ids()));
 
+-- Los documentos son la única tabla de contenido con un `with check` propio, y
+-- no es simetría rota: es la única cuyas columnas alimentan una decisión que se
+-- toma **con el cliente de servicio**. `/api/documents/[id]/file` lee
+-- `storage_owner` de la ficha y con él pide prestado el token de esa persona para
+-- servir el archivo. Sin este `with check`, cualquier miembro podía escribir ahí
+-- el id de otro por PostgREST —la app solo actualiza nombre, carpeta y fecha, pero
+-- la app no es el único camino hasta la base— y hacer que Farpi fuera a buscar un
+-- archivo al Drive de un tercero. El scope `drive.file` acota el daño (ese token
+-- solo ve lo que subió la propia app), pero acotado no es lo mismo que cerrado.
+--
+-- `is null` sigue valiendo: son las fichas de antes del 27-08-2026, cuando el
+-- archivo vivía en el bucket de Farpi y no en el Drive de nadie.
 drop policy if exists "Miembros CRUD documentos de su familia" on public.documents;
 create policy "Miembros CRUD documentos de su familia"
   on public.documents for all
-  using (family_id in (select public.my_family_ids()));
+  using (family_id in (select public.my_family_ids()))
+  with check (
+    family_id in (select public.my_family_ids())
+    and (storage_owner is null or storage_owner = auth.uid())
+  );
 
 drop policy if exists "Miembros CRUD tareas de su familia" on public.tasks;
 create policy "Miembros CRUD tareas de su familia"

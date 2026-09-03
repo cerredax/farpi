@@ -629,6 +629,33 @@ async function main() {
   comprobar('Un ajeno NO ve el documento de A aunque conozca su id de Drive',
     filas(await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=id', { token: tokC })) === 0)
 
+  // La ficha dice en el disco de quién está el archivo, y `/api/documents/[id]/file`
+  // se lo cree: lee `storage_owner` y con él pide prestado el token de esa persona,
+  // ya con el cliente de servicio y sin RLS que le pare. Así que quien escribe esa
+  // columna solo puede ponerse a sí mismo. B es miembro de la familia de A (§7), o
+  // sea el caso que parece inofensivo: está dentro y aun así no puede señalar el
+  // Drive de otro.
+  comprobar('B, miembro de la familia, NO puede crear una ficha que apunte al Drive de A',
+    (await api('/rest/v1/documents', {
+      metodo: 'POST', token: tokB,
+      datos: { family_id: famA, name: 'doc ajeno', storage_path: 'id-de-drive-999', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
+    })).estado >= 400)
+  // Lo que se prohíbe es señalar a **otro**, no reclamar lo propio: si B se pone a
+  // sí mismo como dueño de un papel de A, el archivo deja de abrirse (su token no
+  // ve lo que subió A) pero nadie se lleva nada, y borrar ese documento ya podía
+  // cualquier miembro por diseño. La columna es una llave prestada, y la regla es
+  // que solo se presta la de uno.
+  comprobar('Ni puede cambiar el dueño de un documento que ya existe por un tercero',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+      metodo: 'PATCH', token: tokB,
+      datos: { storage_owner: uidC },
+    })).estado >= 400)
+  comprobar('Pero sí puede subir el suyo a la misma familia',
+    filas(await api('/rest/v1/documents', {
+      metodo: 'POST', token: tokB, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, name: 'doc de B', storage_path: 'id-de-drive-de-b', storage_owner: uidB, mime_type: 'application/pdf', size_bytes: 10 },
+    })) === 1)
+
   // Las once carpetas (02-09-2026). El `check` de `category` es la copia en la base
   // de `DOC_CATEGORIES`, y las dos tienen que decir lo mismo: si la app ofrece
   // «Vivienda» y el check no la conoce, guardar ese papel falla en producción.

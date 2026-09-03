@@ -412,6 +412,11 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   es el aviso del último administrador, que es una regla de negocio y hay que leerla.
 - Sin `SUPABASE_SERVICE_ROLE_KEY`, las rutas que usan el cliente admin responden 503 en
   vez de reventar con el «supabaseKey is required» de la librería.
+- `documents` tiene `with check` propio sobre `storage_owner` (03-09-2026): esa columna es
+  la que `/api/documents/[id]/file` usa para pedir prestado el token del dueño, y con la
+  policy `for all using` a secas cualquier miembro podía escribir ahí el id de otro por
+  PostgREST. Solo se presta la llave de uno mismo. Tres comprobaciones nuevas en
+  `validate-rls.mjs`, en rojo antes de aplicarlo y en verde después.
 
 ## Regla del último admin — DECISIÓN TOMADA
 
@@ -440,10 +445,11 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 ## Validación Supabase
 
 Sin pendientes. La última pasada es del **03-09-2026**, con
-`node scripts/validate-rls.mjs` contra la base real y ya con el cierre que no inventa meses
-y `empty_month` aplicados: **149/149**. El detalle —y por qué las que más importan son que
-nadie pueda llamar a `close_month_copy` directamente, que un mes terminado no se pueda
-reabrir y que poner un mes a cero deje la cabecera del plan— está en
+`node scripts/validate-rls.mjs` contra la base real y ya con el `with check` de
+`storage_owner` y el índice de `family_members(user_id)` aplicados: **152/152**. El detalle
+—y por qué las que más importan son que nadie pueda llamar a `close_month_copy`
+directamente, que un mes terminado no se pueda reabrir, que poner un mes a cero deje la
+cabecera del plan y que nadie pueda apuntar una ficha al Drive de otro— está en
 `docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
 `supabase/aplicar-meses-cerrados.sql`, reescrito entero —como manda su cabecera— con las
 seis funciones tal y como están hoy en `supabase/schema.sql`.

@@ -7,7 +7,11 @@ export async function POST(req: NextRequest) {
   if (guardia.fallo) return guardia.fallo
   const { supabase, user } = guardia
 
-  const body = await req.json() as { familyId?: string; email?: string }
+  // El `catch` no es adorno: sin él, un cuerpo que no es JSON hace que `json()`
+  // lance y la ruta contesta un 500 sin dueño, cuando lo que ha pasado es que
+  // falta un parámetro y eso ya se cuenta abajo con un 400. Las demás rutas de la
+  // app lo hacen así.
+  const body = (await req.json().catch(() => ({}))) as { familyId?: string; email?: string }
   const { familyId, email } = body
 
   if (!familyId || !email) {

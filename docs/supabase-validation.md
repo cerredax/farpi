@@ -1,7 +1,33 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-03, con **el cierre que no inventa meses y `empty_month`** ya
-aplicados en el proyecto real. **149/149 comprobaciones correctas.**
+Última ejecución: 2026-09-03, con **la llave prestada que solo se presta la de uno** y el
+índice de `family_members(user_id)` ya aplicados en el proyecto real. **152/152
+comprobaciones correctas.**
+
+Son las 149 anteriores más tres, todas en la §12, y las tres van de la misma columna:
+`storage_owner`. Esa columna dice en el Drive de quién está el archivo, y
+`/api/documents/[id]/file` se la cree —lee el dueño y con él pide prestado su token, ya con
+el cliente de servicio y sin RLS que le pare—. La policy de `documents` era `for all using`
+a secas, así que Postgres reutilizaba la expresión de lectura para comprobar la escritura y
+**cualquier miembro podía escribir ahí el id de otro** por PostgREST. La app solo actualiza
+nombre, carpeta y fecha, pero la app no es el único camino hasta la base.
+
+Las dos primeras son las que estaban abiertas: que B, **siendo miembro de la familia de
+A**, no puede crear una ficha que apunte al Drive de A, ni cambiarle el dueño a una ficha
+que ya existe poniendo a un tercero. Se comprobaron en rojo antes de aplicar el `with
+check` —150/152— y en verde después, que es lo que dice que prueban algo. La tercera es la
+que evita pasarse de celo: B **sí** puede subir su propio documento a la familia de A, que
+es el caso normal y el que un `with check` mal escrito habría roto.
+
+Lo que se prohíbe es señalar a otro, no reclamar lo propio: si B se pone a sí mismo como
+dueño de un papel de A, el archivo deja de abrirse —su token no ve lo que subió A— pero
+nadie se lleva nada, y borrar ese documento ya podía cualquier miembro por diseño.
+
+El índice no se comprueba aquí porque no cambia ninguna respuesta, solo el tiempo:
+`my_family_ids()` busca por `user_id` y es la función que se evalúa en toda comprobación de
+RLS de toda consulta de la app. El `unique(family_id, user_id)` de la tabla no le servía.
+
+## Antes: 149/149 (03-09-2026, el cierre que no inventa meses y `empty_month`)
 
 Son las 139 anteriores más diez. **Ocho son las del mes que no se vivió**, todas en la §4
 bis de los meses cerrados; las otras dos las dispara el propio arnés, porque esa sección

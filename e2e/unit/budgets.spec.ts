@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
 import {
   agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, fijosDe,
-  gastosSinPartida, mesDe, mesVecino, plantillaDelMes, repartoDelMes,
-  repartoPorPartida, resumenPartidas, serieDeMeses, sumaDeFijos,
+  gastosSinPartida, mediaQueQueda, mesDe, mesVecino, plantillaDelMes,
+  repartoDelMes, repartoPorPartida, resumenPartidas, serieDeMeses, sumaDeFijos,
   titulosDePresupuestos,
 } from '@/lib/budgets'
 import type {
@@ -316,10 +316,14 @@ test.describe('qué plantilla valía en un mes', () => {
     expect(p.partidas[0].limiteCents).toBe(40000)
   })
 
-  // Un mes que aún no ha llegado también refleja la plantilla: es lo único que
-  // se puede decir de él, y es además lo que va a heredar cuando llegue.
-  test('un mes por venir también refleja la plantilla', () => {
-    expect(plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, []).origen).toBe('plantilla')
+  // Un mes que aún no ha llegado enseña las cifras de la plantilla —es lo único
+  // que se puede decir de él, y es lo que va a heredar cuando llegue— pero se
+  // marca aparte, para que la pantalla pueda avisar y no ofrecer apuntar.
+  test('un mes por venir refleja la plantilla, pero marcado como por venir', () => {
+    const p = plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, [])
+    expect(p.origen).toBe('por-venir')
+    expect(p.fijos.map(f => f.amountCents)).toEqual([200000, 80000])
+    expect(p.partidas[0].limiteCents).toBe(40000)
   })
 
   // El caso entero: esto es lo que el cambio del 02-09-2026 vino a arreglar.
@@ -468,9 +472,27 @@ test.describe('la serie de meses del resumen', () => {
   test('sin nada que enseñar, la serie viene vacía', () => {
     expect(serieDeMeses('2026-08', 3, '2026-09', [], [], [], [])).toEqual([])
   })
+
+  // La pantalla nunca pide un tramo que llegue al futuro, pero la función es
+  // pura y se le puede pedir: una previsión de la plantilla al lado de meses que
+  // ya pasaron no es una tendencia, es dos cosas distintas en el mismo dibujo.
+  test('un mes que aún no ha llegado tampoco entra en la serie', () => {
+    const r = serieDeMeses('2026-10', 3, '2026-08', FIJOS, [], [], [])
+    expect(r.map(m => m.mes)).toEqual(['2026-08'])
+  })
+
+  test('la media de lo que queda sale de los meses que hay', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO, plan('2026-07', [])], [])
+    // Junio 74.000, julio 0 (se cerró sin líneas) y agosto 120.000.
+    expect(mediaQueQueda(r)).toBe(64667)
+  })
+
+  test('sin meses no hay media', () => {
+    expect(mediaQueQueda([])).toBe(0)
+  })
 })
 
-test.describe('el reparto por partida del anillo', () => {
+test.describe('el reparto por partida de «en qué se va»', () => {
   const PARTIDAS = [
     budget({ id: 'b1', name: 'Compra', monthly_limit_cents: 40000 }),
     budget({ id: 'b2', name: 'Coche', sort_order: 1, monthly_limit_cents: 15000 }),
@@ -490,7 +512,7 @@ test.describe('el reparto por partida del anillo', () => {
   })
 
   // La mitad de lo que gasta una casa no cae en ninguna partida. Esconderlo
-  // dejaría un anillo que no suma el mes.
+  // dejaría un desglose que no suma el mes.
   test('lo que no cuelga de ninguna partida entra como «Sin partida»', () => {
     const r = repartoPorPartida(agosto(), [
       gasto({ id: 'g1', budget_id: 'b1', amount_cents: 5000 }),
@@ -514,8 +536,8 @@ test.describe('el reparto por partida del anillo', () => {
     expect(r[0].porcentaje).toBe(100)
   })
 
-  // Seis pasos tiene la rampa de verdes: más porciones serían dos seguidas del
-  // mismo color, además de un anillo ilegible.
+  // Doce filas dejan de ser un gráfico y son una lista, y las últimas serían
+  // rayas de dos píxeles que no dicen nada.
   test('se corta en el máximo y el resto se junta en «Otras»', () => {
     const muchas = [1, 2, 3, 4, 5, 6, 7].map(n =>
       budget({ id: `b${n}`, name: `P${n}`, sort_order: n }))
@@ -538,7 +560,7 @@ test.describe('el reparto por partida del anillo', () => {
     expect(r[5].nombre).toBe('P6')
   })
 
-  test('sin gastos no hay anillo', () => {
+  test('sin gastos no hay reparto', () => {
     expect(repartoPorPartida(agosto(), [], '2026-08')).toEqual([])
   })
 })

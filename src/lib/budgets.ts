@@ -78,7 +78,7 @@ export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): numb
 // ─── Qué plantilla valía en un mes ────────────────────────────────────────────
 //
 // La pieza que le da historia a Finanzas (02-09-2026). `fixed_entries` y
-// `budgets` son el **mes tipo**: cómo suele ser un mes en esta casa, una cifra
+// `budgets` son **la plantilla**: cómo suele ser un mes en esta casa, una cifra
 // que vale hasta que se cambie. Por sí solas no saben contar el pasado, porque
 // subir el alquiler en marzo hacía que enero también lo dijera.
 //
@@ -122,15 +122,21 @@ export interface PartidaDelMes {
 /**
  * De dónde salen los números de un mes:
  *
- * - `plantilla` — el mes en curso o uno por venir, todavía sin cerrar: espejo de lo
- *   que hay puesto ahora mismo. Se cambia un fijo y se ve al momento.
+ * - `plantilla` — el mes en curso, todavía sin cerrar: espejo de lo que hay
+ *   puesto ahora mismo. Se cambia un fijo y se ve al momento.
  * - `copia` — un mes con su foto ya guardada. Normalmente uno que terminó, pero
  *   también el mes en curso si se cerró a mano antes de tiempo.
  * - `sin-plan` — un mes terminado que nunca llegó a cerrarse. No se inventa nada:
  *   la pantalla lo dice. Enseñar la plantilla de hoy sería exactamente el error
  *   que este cambio vino a arreglar.
+ * - `por-venir` — un mes que aún no ha empezado. Las cifras son las mismas que
+ *   las de `plantilla` —es lo único que se puede decir de él, y es lo que va a
+ *   heredar cuando llegue—, pero **no es un mes en el que esté pasando nada**:
+ *   la pantalla lo avisa y no ofrece apuntar. Se separó de `plantilla` el
+ *   02-09-2026, porque un octubre con «quedan 2.194 €» y un botón de apuntar
+ *   invitaba a meterle gastos a un mes que no ha llegado.
  */
-export type OrigenDelMes = 'plantilla' | 'copia' | 'sin-plan'
+export type OrigenDelMes = 'plantilla' | 'copia' | 'sin-plan' | 'por-venir'
 
 export interface PlantillaDelMes {
   origen: OrigenDelMes
@@ -180,7 +186,9 @@ export function plantillaDelMes(
   if (!plan) {
     if (mes < mesActual) return { origen: 'sin-plan', fijos: [], partidas: [] }
     return {
-      origen: 'plantilla',
+      // Un mes por venir enseña lo mismo que el de hoy —la plantilla— pero se
+      // marca aparte: quien lo mira está viendo una previsión, no un mes.
+      origen: mes > mesActual ? 'por-venir' : 'plantilla',
       fijos: ordenarFijos(fixed.map(f => ({
         key: f.id,
         kind: f.kind,
@@ -403,7 +411,12 @@ export function serieDeMeses(
 
   for (const mes of haciaAtras.reverse()) {
     const plantilla = plantillaDelMes(mes, mesActual, fixed, budgets, planes)
-    if (plantilla.origen === 'sin-plan') continue
+    // Fuera los meses de los que no se puede contar nada: el que nunca se cerró
+    // —no se sabe qué había puesto— y el que aún no ha llegado, que solo tendría
+    // la previsión de la plantilla y una serie no compara lo que pasó con lo que
+    // pasaría. Con `mesFinal` en el mes en curso el segundo no aparece nunca,
+    // pero la función es pura y se le puede pedir cualquier tramo.
+    if (plantilla.origen === 'sin-plan' || plantilla.origen === 'por-venir') continue
 
     const cuenta = cuentaDelMes(plantilla, expenses, mes)
     const entra = cuenta.ingresosFijos + cuenta.ingresosApuntados
@@ -412,6 +425,22 @@ export function serieDeMeses(
   }
 
   return meses
+}
+
+/**
+ * Lo que se queda de media al mes, sobre los meses que hay en la serie.
+ *
+ * Es la frase que contesta «¿cómo van los meses?» sin mirar el gráfico, y por eso
+ * va escrita encima de él: seis barras dicen la forma, no la cifra. Sin meses
+ * devuelve cero, que es lo único honesto y lo que hace que la pantalla no la
+ * escriba.
+ *
+ * Se redondea al céntimo con `Math.round` y no truncando: media de 100 y 101 son
+ * 100,50, y quedarse con 100 escondería medio céntimo por mes sin motivo.
+ */
+export function mediaQueQueda(serie: MesDeLaSerie[]): number {
+  if (serie.length === 0) return 0
+  return Math.round(serie.reduce((total, m) => total + m.queda, 0) / serie.length)
 }
 
 export interface TrozoDelReparto {
@@ -427,13 +456,13 @@ export interface TrozoDelReparto {
  * En qué se ha ido el gasto de un mes, de más a menos.
  *
  * **Lo que no cuelga de ninguna partida entra igual**, como «Sin partida». Es la
- * mitad de lo que gasta una casa y esconderlo dejaría un anillo que no suma el
+ * mitad de lo que gasta una casa y esconderlo dejaría un desglose que no suma el
  * mes: la pregunta es «en qué se va el dinero», no «en qué se va el dinero que
  * supimos clasificar».
  *
  * **Se corta en `maximo` y el resto se junta en «Otras».** No es solo estética:
- * un anillo de doce porciones no se lee, y la rampa de verdes con la que se pinta
- * tiene seis pasos —más allá, dos porciones seguidas serían el mismo color—.
+ * doce filas dejan de ser un gráfico y son una lista, y las últimas serían rayas
+ * de dos píxeles que no dicen nada. Seis es lo que cabe leyéndose de un vistazo.
  *
  * Solo gastos: un ingreso no se «va» a ninguna parte.
  */

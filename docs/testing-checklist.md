@@ -303,7 +303,7 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       apuntado y **cuánto queda**. Los números cuadran con los de la pestaña Fijos.
 - [ ] Gastar más de lo que hay deja «queda» en rojo y con la etiqueta «de más este mes»,
       y el importe se enseña **en positivo** (no «−120 € de más»).
-- [ ] La pestaña se llama **«El mes tipo»** y tiene tres bloques: entra, sale y se reparte
+- [ ] La pestaña se llama **«Cada mes»** y tiene tres bloques: entra, sale y se reparte
       en. Las partidas se crean y se editan ahí.
 - [ ] El botón de alta está **arriba a la derecha**, como en el resto de la app, y no
       flotando abajo. Crea lo de la pestaña que se esté mirando.
@@ -314,11 +314,18 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] «Cómo van los meses» enseña jun, jul, ago y sep, **mires el mes que mires**: la
       serie no sigue al selector. El mes que se está mirando va en negrita.
 - [ ] «Ver los números» abre la tabla, y junio dice 3.250 € / −1.162,35 € / 2.087,65 €.
-- [ ] El anillo y el desglose **sí** siguen al mes que se mira, y lo dicen en el título.
-- [ ] En junio, el anillo enseña Casa, Compra, Coche y **Sin partida**, de mayor a menor
-      y de verde oscuro a claro.
-- [ ] Todas las porciones son del mismo verde: si alguna sale de otro color, algo ha
-      vuelto a darle identidad a una partida.
+- [ ] Encima de las barras se lee la media de lo que queda al mes, y la barra más alta
+      de cada lado —arriba y abajo— lleva su importe escrito. El mes que se mira va
+      sobre un fondo crema.
+- [ ] «De dónde sale» cierra con «Queda 2.087,65 €» y explica una sola vez qué es el
+      trozo pálido. Sin nada apuntado a mano, el pie dice «nada apuntado a mano» y no
+      «0 € apuntado nada».
+- [ ] «En qué se va» y el desglose **sí** siguen al mes que se mira, y lo dicen en el
+      título. Arriba se lee «Se han ido 291,45 €».
+- [ ] En junio, «en qué se va» enseña Casa, Compra, Coche y **Sin partida**, de mayor a
+      menor, cada una con su barra, su importe y su porcentaje.
+- [ ] Todas las barras son del mismo color: si alguna sale de otro, algo ha vuelto a
+      darle identidad a una partida.
 - [ ] Se ven las partidas de demo (Compra, Coche, Casa) con su límite, también las que no
       tienen ni un gasto ese mes.
 - [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su partida, y la cuenta de
@@ -357,15 +364,18 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] Ir tres meses atrás (junio): la tarjeta dice **«Mes cerrado»** y los fijos son los de
       entonces (−870,90 €), no los de hoy (−935,90 €).
 - [ ] La partida de la compra en junio se mide contra **350 €**, no contra los 400 de hoy.
-- [ ] Cambiar el alquiler en «El mes tipo» mueve **este mes al momento** y **no toca** junio.
+- [ ] Cambiar el alquiler en «Cada mes» mueve **este mes al momento** y **no toca** junio.
 - [ ] En un mes cerrado **sí se puede apuntar** —el botón está—, y lo apuntado cae en ese
       mes sin mover sus fijos congelados. Lo que no se puede es crear ni editar partidas:
       no hay enlace de «Nueva partida» y las barras no se tocan.
 - [ ] En el mes en curso, «Dar el mes por cerrado…» pide confirmación con dos toques. Tras
-      cerrarlo, cambiar el alquiler en «El mes tipo» ya no mueve este mes.
+      cerrarlo, cambiar el alquiler en «Cada mes» ya no mueve este mes.
 - [ ] Y sale «Volver a seguir la plantilla este mes», que lo deshace. En un mes que ya
       terminó **no aparece ninguno de los dos botones**.
 - [ ] Agosto sale como cerrado aunque no esté sembrado: lo cierra la app al abrirse.
+- [ ] Ir al mes **siguiente**: la tarjeta avisa de que «aún no ha empezado», habla en
+      condicional («quedaría ese mes») y **no hay `+` ni «Dar el mes por cerrado»**. El
+      día a día dice «Ese mes aún no ha empezado». Volviendo a este mes, todo vuelve.
 - [ ] Borrar una partida y mirar un mes cerrado que la tenía: **sigue saliendo con su
       nombre y su límite**, y sus gastos pasan a contarse en «sin partida».
 

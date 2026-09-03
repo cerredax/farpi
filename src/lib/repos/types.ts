@@ -102,7 +102,7 @@ export interface NotesRepo {
 }
 
 /**
- * El mes tipo: ingresos y gastos que se repiten sin apuntarlos. No hay nada que
+ * La plantilla: ingresos y gastos que se repiten sin apuntarlos. No hay nada que
  * generar ni ninguna fecha que pasar: se leen enteros y la pantalla los suma.
  */
 export interface FixedEntriesRepo {

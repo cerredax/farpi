@@ -827,7 +827,7 @@ test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async
 test('un gasto fijo nuevo baja lo que queda para el mes', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'El mes tipo' }).click()
+  await page.getByRole('tab', { name: 'Cada mes' }).click()
 
   const sale = page.getByRole('region', { name: 'Sale al mes' })
   await expect(sale).toContainText('−935,90 €')
@@ -901,7 +901,7 @@ test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ pa
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
 
-  await page.getByRole('tab', { name: 'El mes tipo' }).click()
+  await page.getByRole('tab', { name: 'Cada mes' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
   await page.getByRole('button', { name: 'Guardar' }).click()
@@ -960,7 +960,7 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
   await expect(resumen).toContainText('Mes cerrado')
 
   // Y desde aquí, tocar la plantilla ya no mueve este mes.
-  await page.getByRole('tab', { name: 'El mes tipo' }).click()
+  await page.getByRole('tab', { name: 'Cada mes' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
   await page.getByRole('button', { name: 'Guardar' }).click()
@@ -983,6 +983,33 @@ test('un mes que ya terminó no se puede reabrir', async ({ page }) => {
   await retroceder(page, 1)
   await expect(page.getByRole('button', { name: /Volver a seguir la plantilla/ })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Dar el mes por cerrado/ })).toHaveCount(0)
+})
+
+// Hacia delante también se puede ir, pero lo que se ve ahí es una previsión, no
+// un mes: hasta el 02-09-2026 octubre se veía igual que septiembre, con su `+` y
+// su "quedan 2.194 €", y nada decía que ese mes no ha llegado.
+test('un mes que aún no ha empezado avisa, y no deja apuntar ni cerrar', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Mes siguiente' }).click()
+  await page.waitForTimeout(300)
+
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await expect(resumen).toContainText('aún no ha empezado')
+  // Las cifras son las de la plantilla de hoy, dichas en condicional.
+  await expect(resumen).toContainText('quedaría ese mes')
+  await expect(resumen).toContainText('2.194,10 €')
+
+  await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toHaveCount(0)
+  await expect(page.getByText('Ese mes aún no ha empezado')).toBeVisible()
+  await expect(page.getByRole('button', { name: /Dar el mes por cerrado/ })).toHaveCount(0)
+
+  // Y volviendo a este mes, todo lo de siempre.
+  await page.getByRole('button', { name: 'Volver a este mes' }).click()
+  await page.waitForTimeout(300)
+  await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toBeVisible()
 })
 
 // Agosto no está sembrado: si sale como cerrado es que el cierre automático se
@@ -1020,7 +1047,7 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
   // De ese mes no hay plan guardado, así que no puede salir en la serie.
   await expect(serie.getByRole('row', { name: /Mayo/ })).toHaveCount(0)
 
-  // Y el anillo del mes que se está mirando, que arranca en el actual y vacío.
+  // Y el desglose del mes que se está mirando, que arranca en el actual y vacío.
   await expect(page.getByRole('region', { name: /en qué se va/ })).toContainText('Nada gastado')
 })
 
@@ -1031,12 +1058,14 @@ test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
 
   await page.getByRole('tab', { name: 'Resumen' }).click()
   // Junio: 291,45 € de gastos, de los que 80,55 € son de la compra (28 %).
-  const anillo = page.getByRole('region', { name: /en qué se va/ })
-  await expect(anillo).toContainText('Junio 2026')
-  await expect(anillo).toContainText('Compra')
-  await expect(anillo).toContainText('28 %')
+  const enQueSeVa = page.getByRole('region', { name: /en qué se va/ })
+  await expect(enQueSeVa).toContainText('Junio 2026')
+  await expect(enQueSeVa).toContainText('Compra')
+  await expect(enQueSeVa).toContainText('28 %')
   // Y lo que no cae en ninguna partida sale igual.
-  await expect(anillo).toContainText('Sin partida')
+  await expect(enQueSeVa).toContainText('Sin partida')
+  // El total al que se refieren esos porcentajes va escrito encima del desglose.
+  await expect(enQueSeVa).toContainText('Se han ido 291,45 €')
 })
 
 test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {

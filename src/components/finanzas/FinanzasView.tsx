@@ -5,12 +5,12 @@ import { es } from 'date-fns/locale'
 import { Plus } from 'lucide-react'
 import { BudgetBar } from './BudgetBar'
 import { BudgetSheet } from './BudgetSheet'
+import { CadaMesPanel } from './CadaMesPanel'
 import { CierreDelMes } from './CierreDelMes'
 import { CuentaDelMes } from './CuentaDelMes'
 import { ExpenseRow } from './ExpenseRow'
 import { ExpenseSheet } from './ExpenseSheet'
 import { FixedEntrySheet } from './FixedEntrySheet'
-import { MesTipoPanel } from './MesTipoPanel'
 import { QuoteGroupCard } from './QuoteGroupCard'
 import { QuoteSheet } from './QuoteSheet'
 import { ResumenPanel } from './ResumenPanel'
@@ -44,6 +44,13 @@ import { capitalize } from '@/lib/text'
  * cerrarlo. Hasta el 02-09-2026 se leían siempre los fijos de hoy, así que mirar
  * mayo enseñaba el alquiler de septiembre.
  *
+ * **Hacia delante también se puede ir, pero avisando.** Un mes que no ha empezado
+ * enseña lo que quedaría con la plantilla de hoy —para eso sirve mirarlo, para
+ * ver si el mes que viene cuadra— y lo dice con esas palabras; lo que no hace es
+ * ofrecer apuntar ni cerrar. Hasta el 02-09-2026 octubre se veía exactamente
+ * igual que septiembre, con su `+` y su «quedan 2.194 €», y no había forma de
+ * saber que se estaba mirando un mes que aún no existe.
+ *
  * Nadie cierra nada a mano: lo hace la app al arrancar y el cron diario. Un botón
  * de «cerrar el mes» sería la tarea administrativa que Farpi existe para no pedir,
  * que es la misma razón por la que los fijos no se marcan como pagados.
@@ -71,7 +78,7 @@ const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => strin
  * Y qué crea el `+`. Uno solo que hace lo de la pestaña que se mira: tres botones,
  * dos de ellos siempre inactivos, sería peor.
  *
- * En «El mes tipo» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
+ * En «Cada mes» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
  * lo que se añade después son recibos—, y de todos modos el tipo es lo primero que
  * hay dentro del sheet. Las partidas tienen su propio «+» en su bloque.
  *
@@ -99,11 +106,17 @@ export function FinanzasView() {
       <ViewHeader
         resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
         buscador={null}
-        onAdd={() => {
-          if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
-          else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
-          else s.abrirApunte(null)
-        }}
+        // Mirando un mes que aún no ha empezado no hay `+`: las dos pestañas que
+        // hablan de un mes concreto —«El mes» y «Resumen»— apuntarían un gasto en
+        // octubre desde septiembre, y eso no es un gasto. Las otras dos no tienen
+        // mes, así que ahí el botón sigue.
+        onAdd={s.esPorVenir && (s.pestaña === 'mes' || s.pestaña === 'resumen')
+          ? undefined
+          : () => {
+            if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
+            else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
+            else s.abrirApunte(null)
+          }}
         addLabel={ETIQUETA_DE_ALTA[s.pestaña]}
       />
 
@@ -119,7 +132,7 @@ export function FinanzasView() {
         {([
           { key: 'mes', label: 'El mes' },
           { key: 'resumen', label: 'Resumen' },
-          { key: 'plantilla', label: 'El mes tipo' },
+          { key: 'plantilla', label: 'Cada mes' },
           { key: 'presupuestos', label: 'Presupuestos' },
         ] as { key: PestañaFinanzas; label: string }[]).map(p => (
           <button
@@ -156,7 +169,7 @@ export function FinanzasView() {
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
             {/* En un mes cerrado no se ofrece añadir: lo que se está mirando es la
                 copia de un mes que terminó. El enlace lleva a la plantilla y no
-                abre el sheet aquí, porque una partida es del mes tipo y no de un
+                abre el sheet aquí, porque una partida es de la plantilla y no de un
                 mes — abrirla desde enero haría creer que se está creando en enero.
 
                 `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
@@ -181,7 +194,7 @@ export function FinanzasView() {
               title="Sin partidas"
               description={s.planCongelado
                 ? 'Ese mes se cerró sin ninguna partida puesta.'
-                : 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «El mes tipo», y aquí verás cuánto llevas de cada una.'}
+                : 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Cada mes», y aquí verás cuánto llevas de cada una.'}
             />
           ) : (
             s.resumen.map(r => (
@@ -203,9 +216,13 @@ export function FinanzasView() {
 
           {s.delMes.length === 0 ? (
             <EmptyState
-              emoji="🧾"
-              title={s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
-              description="Apunta lo que se va gastando —y lo que entra sin ser fijo— y la cuenta de arriba se mueve sola."
+              emoji={s.esPorVenir ? '📆' : '🧾'}
+              title={s.esPorVenir
+                ? 'Ese mes aún no ha empezado'
+                : s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
+              description={s.esPorVenir
+                ? 'Aquí se apunta lo que ya ha pasado. Cuando llegue el mes, esto se llena.'
+                : 'Apunta lo que se va gastando —y lo que entra sin ser fijo— y la cuenta de arriba se mueve sola.'}
             />
           ) : (
             <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
@@ -253,7 +270,7 @@ export function FinanzasView() {
           mirando: esta pestaña no tiene mes. Mirando junio y saltando aquí, lo que
           hay que ver es el alquiler que se paga ahora. */}
       <div id="panel-plantilla" role="tabpanel" aria-labelledby="tab-plantilla" hidden={s.pestaña !== 'plantilla'}>
-        <MesTipoPanel
+        <CadaMesPanel
           ingresos={s.ingresosFijos}
           gastos={s.gastosFijos}
           partidas={s.partidasPlantilla}

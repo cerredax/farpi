@@ -350,11 +350,11 @@ Los nombres que puso la fase anterior duraron un día. El porqué está en
       `abrirPartida`, `guardarApunte`). Las tablas, el `check`
       `expenses_ingreso_sin_tope` y el tipo `MovementKind` **no** se tocan.
 
-## Fase 8h - Finanzas con historia: el mes tipo y los meses cerrados (02-09-2026)
+## Fase 8h - Finanzas con historia: la plantilla y los meses cerrados (02-09-2026)
 
 Lo que pedía el uso real: que la cuenta de un mes se cargue de los fijos y **quede
 guardada aunque luego los cambies**. El porqué y las alternativas descartadas, en
-`docs/architecture.md`, «El mes tipo y los meses cerrados».
+`docs/architecture.md`, «La plantilla («Cada mes») y los meses cerrados».
 
 - [x] La plantilla es cómo suele ser un mes; el mes en curso la refleja; el mes que
       termina se queda con una copia congelada. Sin ningún botón de cerrar nada.
@@ -365,7 +365,7 @@ guardada aunque luego los cambies**. El porqué y las alternativas descartadas, 
       `close_previous_month`, que sí comprueba la familia y es la que llama la app.
 - [x] El cierre lo intentan dos sitios idempotentes: el cron diario y la app al
       arrancar cuando ve que falta el mes pasado.
-- [x] Las **partidas se mudan a «El mes tipo»**: son una cifra del mes tipo, igual
+- [x] Las **partidas se mudan a la plantilla**: son una cifra de la plantilla, igual
       que un fijo. En «El mes» se siguen viendo con su barra.
 - [x] `plantillaDelMes` en `src/lib/budgets.ts` resuelve qué valía en cada mes;
       `cuentaDelMes` y `resumenPartidas` cuelgan de ella.
@@ -402,6 +402,29 @@ guardada aunque luego los cambies**. El porqué y las alternativas descartadas, 
 - [x] Tokens de gráfico en `globals.css`, **con el color validado y no elegido a
       ojo**: el verde y el salmón de marca están a ΔE 2,3 en protanopía.
 - [x] 12 unitarios nuevos y 2 flujos de navegador.
+
+## Fase 8j - Finanzas: los gráficos otra vez, «Cada mes» y el mes que no ha llegado (02-09-2026)
+
+Tres cosas que se vieron al usar la pantalla, no al escribirla. El porqué de cada
+una, en `docs/architecture.md`: «La segunda vuelta de los gráficos» y el cuarto
+estado, `por-venir`.
+
+- [x] **«El mes tipo» pasa a llamarse «Cada mes».** «Tipo» es una palabra de
+      formulario. Dentro del código el concepto sigue siendo **la plantilla**, y el
+      panel se renombró a `CadaMesPanel`.
+- [x] **Los tres gráficos, rehechos**: la serie de meses el doble de alta, estirada
+      a lo ancho de la tarjeta, con el mes que se mira señalado y la barra más alta
+      de cada lado etiquetada; cada bloque abriendo por una frase (la media de lo que
+      queda, el total que se ha ido); el anillo convertido en barras ordenadas de un
+      solo color; y «de dónde sale» con la leyenda una sola vez y la resta al pie.
+- [x] Fuera la rampa de seis verdes de `globals.css`: con las barras ordenadas, el
+      tono repetía lo que ya decía el tamaño.
+- [x] Arreglado un pie que decía «0 € apuntado nada» cuando no había nada apuntado.
+- [x] **Cuarto origen `por-venir`**: un mes que no ha empezado lo avisa, habla en
+      condicional y no ofrece apuntar ni cerrar. `onAdd` de `ViewHeader` pasa a ser
+      opcional, que es lo que permite que no haya `+`.
+- [x] 3 unitarios nuevos (`mediaQueQueda`, la serie sin futuro, el origen nuevo) y
+      1 flujo de navegador.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

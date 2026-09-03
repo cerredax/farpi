@@ -130,7 +130,7 @@ export const db: DB = {
 
   // El dinero de la casa. Los importes van en céntimos, como en la base.
   //
-  // El mes tipo de una familia normal: dos nóminas y cuatro recibos. Está
+  // La plantilla de una familia normal: dos nóminas y cuatro recibos. Está
   // sembrado porque la cuenta del mes —«para el mes 1.150 €»— no se entiende con
   // la pantalla vacía, y porque es lo primero que se ve al entrar en Finanzas.
   fixedEntries: [

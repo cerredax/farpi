@@ -119,8 +119,19 @@ export function useFinanzasState() {
      * horas el 02-09-2026, por confundir las dos cosas.
      */
     planCongelado: plantilla.origen === 'copia',
-    /** Se puede cerrar a mano lo que aún no está cerrado y ya ha empezado. */
-    sePuedeCerrarYa: plantilla.origen === 'plantilla' && mes <= mesActual,
+    /**
+     * Si el mes que se mira aún no ha empezado. Se puede entrar —ver qué va a
+     * quedar con la plantilla de hoy es justo para lo que sirve—, pero no se
+     * ofrece apuntar: un gasto con fecha de octubre apuntado en septiembre no es
+     * un gasto, es un recordatorio, y para eso están las tareas.
+     */
+    esPorVenir: plantilla.origen === 'por-venir',
+    /**
+     * Se puede cerrar a mano lo que aún no está cerrado y ya ha empezado, que
+     * desde que existe `por-venir` es exactamente lo que dice `origen`: un mes
+     * sin copia y que no está en el futuro solo puede ser el de hoy.
+     */
+    sePuedeCerrarYa: plantilla.origen === 'plantilla',
     /** Y deshacerlo, solo mientras el mes siga siendo el de hoy. */
     sePuedeReabrir: plantilla.origen === 'copia' && mes === mesActual,
     cerrarMesYa: () => closeMonthNow(mes),

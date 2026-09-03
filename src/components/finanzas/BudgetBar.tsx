@@ -8,7 +8,7 @@ interface BudgetBarProps {
   /**
    * Editar la partida. **Va sin él en un mes cerrado**, y entonces la fila deja
    * de ser un botón: lo que se está viendo es la copia de un mes que terminó y no
-   * hay nada que tocar ahí. Lo que se edita —la plantilla— está en «El mes tipo»,
+   * hay nada que tocar ahí. Lo que se edita —la plantilla— está en «Cada mes»,
    * y tocarlo no puede cambiar lo que dijo enero.
    */
   onEdit?: () => void

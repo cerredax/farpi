@@ -1275,8 +1275,8 @@ Ahora son **cuatro piezas y tres pestañas**, y cada pieza contesta una pregunta
 
 | Tabla | En pantalla | Dónde | Contesta |
 |---|---|---|---|
-| `fixed_entries` | **Fijos** | pestaña «El mes tipo» | ¿con cuánto contamos y qué está comprometido? |
-| `budgets` | **Partidas** | pestaña «El mes tipo», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
+| `fixed_entries` | **Fijos** | pestaña «Cada mes» | ¿con cuánto contamos y qué está comprometido? |
+| `budgets` | **Partidas** | pestaña «Cada mes», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
 | `expenses` | **El día a día** (una fila, un **apunte**) | pestaña «El mes» | ¿qué ha pasado este mes? |
 | `quotes` | **Presupuestos** | pestaña «Presupuestos» | ¿cuánto va a costar esto que aún no hemos hecho? |
 
@@ -1336,7 +1336,7 @@ cuenta, "12,50" acabaría valiendo distinto según el modo. El formato también 
 mano en vez de con `Intl.NumberFormat`, que mete un espacio duro cuya forma cambia con la
 versión de ICU: el mismo importe tiene que leerse igual en un test y en un móvil.
 
-#### El mes tipo y los meses cerrados (02-09-2026)
+#### La plantilla («Cada mes») y los meses cerrados (02-09-2026)
 
 La decisión más grande de Finanzas, y la que se comió una de las de la víspera.
 
@@ -1356,7 +1356,7 @@ terminado el mes?»— y entonces no había manera de cerrar un mes antes de tie
 copia quedaba guardada y la pantalla seguía enseñando el espejo.
 
 ```
-«El mes tipo» — LA PLANTILLA        «El mes» — UN MES CONCRETO
+«Cada mes» — LA PLANTILLA           «El mes» — UN MES CONCRETO
   ingresos fijos                      espejo, si es el mes en curso
   gastos fijos          ──copia──▶    copia congelada, si ya terminó
   partidas                            ──────────────────────────────
@@ -1364,7 +1364,7 @@ copia quedaba guardada y la pantalla seguía enseñando el espejo.
 ```
 
 **Las partidas se fueron a la plantilla.** Una partida es exactamente lo mismo que
-un fijo —una cifra del mes tipo— solo que en vez de gastarse sola se va llenando.
+un fijo —una cifra de la plantilla— solo que en vez de gastarse sola se va llenando.
 Tenerlas colgando de «El mes» obligaba a contestar qué significaba cambiar una a
 mitad de mes; en la plantilla no hay nada que contestar. En «El mes» se siguen
 viendo, con su barra, que es donde tienen sentido.
@@ -1419,6 +1419,26 @@ puede que en enero no fueran esos. Un mes sin cerrar se ve —la tarjeta lo dice
 puede arreglar; un mes cerrado con datos inventados, no. Por eso el tercer estado
 existe y se enseña: `sin-plan` no es un fallo, es la respuesta honesta.
 
+**Y hay un cuarto estado: `por-venir`.** Hacia delante también se puede navegar, y
+hasta que se separó, octubre se veía en septiembre **exactamente igual** que
+septiembre: su «quedan 2.194 €», su botón de apuntar y ni una palabra que dijera que
+ese mes no ha llegado. Las cifras son las mismas —la plantilla de hoy es lo único que
+se puede decir de un mes que no ha empezado, y es lo que va a heredar cuando
+empiece—, pero el mes se marca aparte y la pantalla cambia en tres cosas: lo avisa
+(«este mes aún no ha empezado: es lo que quedaría si nada cambia»), habla en
+condicional («quedaría ese mes») y **no ofrece apuntar ni cerrar**. Un gasto con fecha
+del mes que viene no es un gasto, es un recordatorio, y para eso están las tareas.
+
+Se valoró cerrar la puerta del todo —que la flecha no pasara del mes en curso— y se
+descartó: mirar si el mes que viene cuadra es justamente para lo que sirve tener una
+plantilla, y prohibirlo obligaría a hacer la cuenta de cabeza.
+
+**El nombre de la pestaña.** Se llamó «El mes tipo» hasta el 02-09-2026. «Tipo» es
+una palabra de formulario: hay que pararse a deducir que significa «un mes
+cualquiera». «Cada mes» dice lo mismo sin traducirlo y encaja al lado de «El mes»,
+que es un mes concreto. Dentro del código el concepto sigue llamándose **la
+plantilla**, que es lo que es.
+
 **La copia guarda el nombre y el emoji, no solo el importe.** Borrar la partida
 «Coche» en abril no puede dejar a enero con un hueco donde decía «Coche 150 €». Por
 eso `month_plan_lines.budget_id` es `on delete set null` y no `cascade`: el enlace
@@ -1458,7 +1478,7 @@ puso, porque Finanzas nació el 31-08-2026 y los fijos el 01-09-2026. La misma
 sentencia un mes más tarde habría escrito números inventados. Está en `schema.sql`
 como un `do $$ ... $$` idempotente y ahí se queda, como registro de lo que se hizo.
 
-**Los fijos son un dato, no una plantilla que genere apuntes.** El mes tipo —dos
+**Los fijos son un dato, no una plantilla que genere apuntes.** La plantilla —dos
 nóminas, alquiler, luz, suscripciones— se guarda como filas que **valen todos los meses**,
 igual que la partida de un `budget`. Se valoraron las otras dos formas y se descartaron: que
 cada fijo apareciera como pendiente y hubiera que marcarlo pagado, y que el día 1 se
@@ -1516,8 +1536,8 @@ ponerlos, que es además la única pista de que la cuenta existe.
 mes —permitiría "en diciembre gastamos más"— y se descartó: obliga a "abrir
 septiembre" cada treinta días, que es el trabajo administrativo que esta app existe
 para no pedir. Cambiarla vale desde ya para el mes en curso y no toca lo apuntado ni
-los meses cerrados, que se quedaron con el límite que tenían (ver "El mes tipo y los
-meses cerrados").
+los meses cerrados, que se quedaron con el límite que tenían (ver "La plantilla
+(«Cada mes») y los meses cerrados").
 
 **Una partida no tiene color, tiene emoji.** En Farpi el color dice **de quién** es algo
 (ver "Asignación de eventos, tareas y documentos"), y una partida no es de nadie:
@@ -1573,14 +1593,11 @@ De ahí salen las dos decisiones de forma:
   abajo desde una línea de cero. Entra y sale no son dos categorías: son los dos
   lados de una misma cosa, y la **posición** los separa sin depender de distinguir
   dos tonos. El color pasa a acompañar, que es donde tiene que estar.
-- **El anillo de «en qué se va» es de un solo tono en seis claridades**, no una
-  paleta de categorías. Dar un color a cada partida rompería la regla central —el
-  color dice de quién es algo, y una partida no es de nadie— y las haría
-  indistinguibles de una persona en la misma pantalla donde sí hay personas. Aquí el
-  verde solo ordena por cuánto, del más oscuro al más pequeño, y la identidad la
-  llevan el emoji y el nombre de la leyenda. Los seis pasos son monotónicos en L* y
-  todos pasan de 3:1 sobre blanco: con menos, habría porciones que no se ven. Que
-  sean seis es también por qué el reparto se corta en cinco partidas y «Otras».
+- **«En qué se va» son barras de un solo color**, no una paleta de categorías. Dar
+  un color a cada partida rompería la regla central —el color dice de quién es algo,
+  y una partida no es de nadie— y las haría indistinguibles de una persona en la
+  misma pantalla donde sí hay personas. La identidad la llevan el emoji y el nombre,
+  pegados a su barra.
 
 **La serie va siempre hasta hoy**, mires el mes que mires: la tendencia es de la casa
 y no del mes. Se hizo al revés primero —cortándola en el mes seleccionado— y mirando
@@ -1592,7 +1609,36 @@ honesto, y es la misma decisión que la del estado `sin-plan` de la tarjeta.
 
 **Debajo de las barras están los números, en una tabla plegada.** Es la regla de
 siempre del proyecto —el dibujo acompaña, nunca lleva el mensaje solo— y aquí además
-resuelve que un importe no cabe bajo una barra de 44 px sin partirse en dos líneas.
+resuelve que un importe no cabe bajo la columna de un mes sin partirse en dos líneas.
+
+##### La segunda vuelta de los gráficos (02-09-2026)
+
+Los tres se rehicieron el mismo día que nacieron, porque dibujaban bien y no decían
+nada. Lo que se cambió, y por qué:
+
+- **La serie de meses medía 46 px por lado y no llevaba una sola cifra.** Dos meses
+  parecidos salían idénticos y no había contra qué medir una barra. Ahora es el doble
+  de alta, las columnas se estiran hasta llenar la tarjeta —seis barras estrechas en
+  medio de un blanco enorme era la mitad del problema—, **la barra más grande de cada
+  lado lleva su importe escrito** (solo esas dos: un número sobre cada barra es ruido)
+  y el mes que se está mirando va sobre un fondo crema, porque encontrarlo en una fila
+  de seis barras iguales era una búsqueda.
+- **Cada bloque empieza por una frase.** Un gráfico contesta «¿cómo de distinto?» y no
+  contesta «¿cuánto?». Encima de la serie va la media de lo que queda al mes, y encima
+  del desglose, el total que se ha ido. Es lo primero que se quiere saber y no estaba
+  escrito en ninguna parte.
+- **El anillo pasó a barras ordenadas.** Un donut contesta bien «¿esto es la mitad o
+  una esquina?» y mal todo lo demás: dos partidas parecidas eran dos arcos parecidos,
+  la leyenda iba aparte —había que ir y venir entre el color y el nombre— y en un
+  móvil se comía un cuarto de la tarjeta. Con las barras se cayó también la rampa de
+  seis verdes, que era decir dos veces lo mismo: el tamaño ya ordenaba y el tono
+  repetía ese orden gastando el único canal libre. La barra se mide contra la partida
+  más grande y no contra el total —contra el total, seis partidas son seis rayas
+  cortas iguales— y el peso sobre el mes lo dice el porcentaje, escrito.
+- **«De dónde sale» dice qué es el trozo pálido y cierra con la resta.** La leyenda de
+  «de fijos» y «apuntado a mano» iba repetida en el pie de cada barra, y la conclusión
+  —lo que queda— la dibujaban las dos barras sin escribirla ninguna. De paso se
+  arregló un pie que decía «0 € apuntado nada» cuando no había nada apuntado.
 
 **Los presupuestos pedidos se agrupan por para qué son.** `title` es el trabajo ("Cambiar
 la caldera") y `provider` quién lo da ("Fontanería López"): la pantalla agrupa por el

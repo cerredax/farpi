@@ -15,6 +15,63 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-02
 
+### Los gráficos de Finanzas, otra vez; «Cada mes»; y el mes que aún no ha llegado (02-09-2026)
+
+Tres cosas que se vieron **usando** la pantalla, unas horas después de escribirla.
+
+**«El mes tipo» ya no se llama así.** «Tipo» es una palabra de formulario: nadie dice
+«mi mes tipo», y hay que pararse a deducir que significa «un mes cualquiera». Ahora es
+**«Cada mes»**, que dice lo mismo sin traducirlo y que además encaja al lado de «El
+mes», que es un mes concreto. Dentro del código el concepto sigue llamándose **la
+plantilla** —que es lo que es— y el panel se renombró a `CadaMesPanel`.
+
+**Los tres gráficos dibujaban bien y no decían nada.** La serie de meses medía 46 px
+por lado, sin una sola cifra: dos meses parecidos salían idénticos y no había contra
+qué medir una barra, así que el dibujo no contestaba nada que no contestara ya la
+tabla de debajo. Lo que se hizo:
+
+- **El doble de alta y estirada a lo ancho de la tarjeta.** Seis columnas estrechas en
+  medio de un blanco enorme era la mitad del problema; ahora la columna se calcula
+  para llenar los 318 px que quedan dentro y se para en 72, y la barra en 28.
+- **La barra más alta de cada lado lleva su importe escrito.** Solo esas dos: un
+  número sobre cada barra es ruido y no se lee. Con esas dos, el resto tiene escala.
+- **El mes que se está mirando va sobre un fondo crema.** En una fila de barras
+  iguales, encontrar cuál era septiembre era una búsqueda.
+- **Cada bloque abre por una frase.** Un gráfico contesta «¿cómo de distinto?» y no
+  contesta «¿cuánto?». Encima de la serie va la media de lo que queda al mes
+  (`mediaQueQueda`, pura y con test), y encima del desglose, el total que se ha ido.
+
+**El anillo se fue.** Un donut contesta bien «¿esto es la mitad o una esquina?» y mal
+todo lo demás: dos partidas parecidas eran dos arcos parecidos, la leyenda iba aparte
+—había que ir y venir entre el color y el nombre— y en un móvil se comía un cuarto de
+la tarjeta para decir menos que seis filas. Ahora son **barras ordenadas**, con el
+emoji y el nombre pegados a su barra, el importe y el porcentaje.
+
+Con el anillo se cayó **la rampa de seis verdes** que se había validado la víspera. No
+por mala: por redundante. Las barras ya están ordenadas de más a menos, así que pintar
+cada una de un tono distinto era decir dos veces lo mismo y gastar en ello el único
+canal libre que quedaba. Un solo color —el mismo «sale» de los otros dos gráficos,
+porque esto es exactamente el desglose de lo que sale— y la identidad la siguen
+llevando el emoji y el nombre, que es la regla del proyecto.
+
+De paso, «de dónde sale» explica una sola vez qué es el trozo pálido —la leyenda iba
+repetida en el pie de cada barra— y cierra con la resta, que las dos barras dibujaban
+sin escribirla ninguna. Y se arregló un pie que decía **«0 € apuntado nada»**: el
+«nada» se añadía detrás del importe en vez de sustituirlo.
+
+**Y el mes que viene ya no finge ser un mes.** Hacia delante siempre se pudo navegar,
+y hasta hoy octubre se veía en septiembre **exactamente igual** que septiembre: su
+«quedan 2.194 €», su botón de apuntar y ni una palabra que dijera que ese mes no ha
+llegado. Ahora hay un cuarto origen, `por-venir`: las cifras son las mismas —la
+plantilla de hoy es lo único que se puede decir de un mes que no ha empezado— pero la
+pantalla lo avisa, habla en condicional («quedaría ese mes») y **no ofrece apuntar ni
+cerrar**. Un gasto con fecha del mes que viene no es un gasto, es un recordatorio.
+
+Se valoró cerrar la puerta del todo —que la flecha no pasara del mes en curso— y se
+descartó: ver si el mes que viene cuadra es justamente para lo que sirve tener una
+plantilla. Para que no hubiera `+`, `onAdd` de `ViewHeader` pasó a ser opcional.
+
+
 ### Ajustes se pone de pie en escritorio (02-09-2026)
 
 Ajustes ya se había arreglado dos veces ese mes —de once secciones al mismo nivel a

@@ -6,7 +6,7 @@ import { resolveAssignee } from '@/lib/assignees'
 import { formatCentsCorto } from '@/lib/finanzas'
 import type { Budget, Child, FamilyMember, FixedEntry, MovementKind } from '@/types'
 
-interface MesTipoPanelProps {
+interface CadaMesPanelProps {
   ingresos: FixedEntry[]
   gastos: FixedEntry[]
   partidas: Budget[]
@@ -119,7 +119,14 @@ function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }
 }
 
 /**
- * El mes tipo: cómo suele ser un mes en esta casa.
+ * «Cada mes»: cómo suele ser un mes en esta casa.
+ *
+ * **El nombre.** Se llamó «El mes tipo» hasta el 02-09-2026 y se cambió porque
+ * «tipo» es una palabra de formulario: hay que pararse a deducir que significa
+ * «un mes cualquiera». «Cada mes» dice lo mismo sin traducirlo —lo que pasa cada
+ * mes: las nóminas, los recibos y lo que se le da a cada partida— y encaja al
+ * lado de «El mes», que es un mes concreto. Dentro del código el concepto sigue
+ * llamándose **la plantilla**, que es lo que es.
  *
  * **Es una plantilla, no un mes.** Lo que se pone aquí es lo que se copia a cada
  * mes que empieza: las nóminas, los recibos y cuánto se le da a cada partida.
@@ -128,7 +135,7 @@ function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }
  * entera de esta pantalla desde el 02-09-2026.
  *
  * **Las partidas viven aquí y no en «El mes».** Una partida es exactamente lo
- * mismo que un fijo —una cifra del mes tipo—, solo que en vez de gastarse sola se
+ * mismo que un fijo —una cifra de la plantilla—, solo que en vez de gastarse sola se
  * va llenando. Tenerlas en el mes obligaba a decidir qué significaba cambiarlas a
  * mitad de mes; aquí no hay nada que decidir.
  *
@@ -141,10 +148,10 @@ function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }
  * contabilidad. Si un mes la luz sale distinta, se cambia el fijo o se apunta la
  * diferencia en el día a día.
  */
-export function MesTipoPanel({
+export function CadaMesPanel({
   ingresos, gastos, partidas, totalIngresos, totalGastos, totalPartidas, paraElMes,
   members, kids, onNuevoFijo, onEditarFijo, onNuevaPartida, onEditarPartida,
-}: MesTipoPanelProps) {
+}: CadaMesPanelProps) {
   return (
     <div className="space-y-5">
       <p className="px-1 text-xs text-muted">
@@ -196,7 +203,7 @@ export function MesTipoPanel({
         )}
       </section>
 
-      <section aria-label="Partidas del mes tipo" className="space-y-2">
+      <section aria-label="Partidas de cada mes" className="space-y-2">
         <Cabecera
           titulo="Se reparte en"
           total={partidas.length > 0 ? formatCentsCorto(totalPartidas) : null}

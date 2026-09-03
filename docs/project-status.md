@@ -91,12 +91,15 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
 - **Finanzas** (31-08-2026, rehecha el 01-09-2026; vocabulario afinado el 02-09-2026): el dinero de la casa, en `/finanzas`,
   con **tres pestañas** y cuatro piezas de vocabulario que no se pisan.
-  **«Resumen»** (02-09-2026): los mismos datos, dibujados. Barras divergentes de lo que
-  entra y sale en los últimos seis meses —siempre hasta hoy, y los meses que no se
-  cerraron se caen en vez de salir a cero—, el desglose de fijos contra apuntado del mes
-  que se mire, y un anillo de en qué se va, con las partidas de mayor a menor y lo que no
-  cuelga de ninguna como «Sin partida». Todo SVG escrito a mano, sin librerías.
-  **«El mes tipo»**: la plantilla —lo que entra y lo que sale todos los meses sin apuntar
+  **«Resumen»** (02-09-2026): los mismos datos, dibujados, y cada bloque abriendo por la
+  frase que el dibujo no dice. Barras divergentes de lo que entra y sale en los últimos
+  seis meses —siempre hasta hoy, los meses que no se cerraron se caen en vez de salir a
+  cero, la barra más alta de cada lado lleva su importe y el mes que se mira va
+  señalado—, con la media de lo que queda al mes encima; el desglose de fijos contra
+  apuntado del mes que se mire, cerrado con la resta; y en qué se va, una barra por
+  partida de mayor a menor, todas del mismo color, con lo que no cuelga de ninguna como
+  «Sin partida». Todo SVG escrito a mano, sin librerías.
+  **«Cada mes»**: la plantilla —lo que entra y lo que sale todos los meses sin apuntar
   nada: las nóminas, el alquiler, la luz, las suscripciones— y **las partidas** en las que
   se reparte lo que varía, en tres bloques con su total y la cifra de «para el mes». No
   genera apuntes ni hay nada que marcar como pagado, y por eso no hay que abrir septiembre.
@@ -120,7 +123,9 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   preparado un cambio de plantilla para el mes que viene; mientras siga siendo el mes de hoy
   se puede deshacer, y un mes terminado no se reabre nunca. Un mes terminado que nunca llegó
   a cerrarse lo dice tal cual en vez de enseñar la plantilla de hoy, que es lo que hacía
-  antes.
+  antes. **Y un mes que aún no ha empezado avisa de que no ha empezado**: se puede entrar
+  —enseña lo que quedaría con la plantilla de hoy, que es para lo que sirve mirarlo— pero
+  habla en condicional y no ofrece ni apuntar ni cerrar.
   **«Presupuestos»**: ahora la palabra significa una sola cosa —lo que cuesta algo que aún
   no has hecho—: los que te pasan de fuera (el fontanero, el dentista), agrupados por para
   qué son y ordenados de más barato a más caro, con el barato marcado mientras el trabajo

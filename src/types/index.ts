@@ -161,7 +161,7 @@ export interface Note {
 export type MovementKind = 'gasto' | 'ingreso'
 
 /**
- * El mes tipo: lo que entra y lo que sale todos los meses sin apuntar nada. Las
+ * La plantilla: lo que entra y lo que sale todos los meses sin apuntar nada. Las
  * dos nóminas, el alquiler, la luz, la suscripción.
  *
  * **No genera apuntes.** Es una cifra que vale hasta que se cambie, igual que la

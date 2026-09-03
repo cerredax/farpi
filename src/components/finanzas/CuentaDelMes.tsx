@@ -12,7 +12,7 @@ interface CuentaDelMesProps {
   onSiguiente: () => void
   onVolverAHoy: () => void
   reparto: Aportacion[]
-  /** Lleva a «El mes tipo». Solo se ofrece cuando no hay ningún fijo puesto. */
+  /** Lleva a «Cada mes». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
 }
 
@@ -59,6 +59,11 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * error. Y en un mes que nunca llegó a cerrarse se dice tal cual: la alternativa
  * —enseñar la plantilla de hoy— es justo el error que este cambio vino a quitar.
  *
+ * **En un mes que aún no ha llegado se avisa y se habla en condicional.** Las
+ * cifras son las de la plantilla de hoy, que es lo único que se puede decir de
+ * octubre en septiembre; sin el aviso, un «quedan 2.194 €» sobre un mes que no ha
+ * empezado se lee como un saldo y no como una previsión.
+ *
  * **Cerrar el mes no se ofrece aquí.** Estuvo un rato y quedaba mal: esta tarjeta
  * es la conclusión de la pantalla —una cifra grande y su desglose— y colgarle
  * debajo dos acciones la convertía en un panel de mandos. Se fue al pie de «El
@@ -90,8 +95,15 @@ export function CuentaDelMes({
                 una doble negación para entender que se han gastado 120 de más. */}
             {formatCents(hayFijos ? Math.abs(queda) : gastosApuntados)}
           </p>
+          {/* En un mes que aún no ha llegado se habla en condicional: «queda
+              este mes» sobre octubre, leído en septiembre, suena a que octubre
+              ya está en marcha. */}
           <p className="text-[11px] text-muted">
-            {hayFijos ? (queda < 0 ? 'de más este mes' : 'queda este mes') : 'gastado este mes'}
+            {!hayFijos
+              ? 'gastado este mes'
+              : cuenta.origen === 'por-venir'
+                ? (queda < 0 ? 'de más ese mes' : 'quedaría ese mes')
+                : (queda < 0 ? 'de más este mes' : 'queda este mes')}
           </p>
         </div>
 
@@ -109,7 +121,9 @@ export function CuentaDelMes({
         <p className="mt-1 text-center text-[11px] text-faint">
           {cuenta.origen === 'copia'
             ? 'Mes cerrado: los fijos y las partidas son los que había entonces.'
-            : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
+            : cuenta.origen === 'por-venir'
+              ? 'Este mes aún no ha empezado: es lo que quedaría si nada cambia.'
+              : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
         </p>
       )}
       {!esMesActual && (
@@ -135,14 +149,14 @@ export function CuentaDelMes({
           )}
           <Linea etiqueta="Gastos apuntados" importe={gastosApuntados} tono="sale" />
         </dl>
-      ) : cuenta.origen === 'plantilla' ? (
+      ) : cuenta.origen === 'plantilla' || cuenta.origen === 'por-venir' ? (
         <button
           type="button"
           onClick={onPonerFijos}
           className="mt-2 min-h-6 w-full border-t border-hairline pt-2.5 text-left text-[11px] text-muted"
         >
           Pon tus ingresos y gastos de todos los meses en{' '}
-          <span className="font-semibold text-primary-strong">El mes tipo</span> y aquí
+          <span className="font-semibold text-primary-strong">Cada mes</span> y aquí
           verás cuánto queda.
         </button>
       ) : null}

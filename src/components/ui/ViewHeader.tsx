@@ -11,7 +11,13 @@ interface ViewHeaderProps {
     placeholder: string
     ariaLabel: string
   } | null
-  onAdd: () => void
+  /**
+   * Qué hace el `+`. **Sin él no hay botón**, y la cabecera se queda solo con el
+   * resumen. Lo usa Finanzas mirando un mes que aún no ha empezado: ahí no hay
+   * nada que apuntar, y un `+` que abriera un gasto con fecha del mes que viene
+   * sería un botón que hace lo que nadie ha pedido.
+   */
+  onAdd?: () => void
   /** Nombre del botón de alta: "Nueva lista", "Añadir documento"… */
   addLabel: string
 }
@@ -48,13 +54,15 @@ export function ViewHeader({ resumen, buscador, onAdd, addLabel }: ViewHeaderPro
         />
       )}
 
-      <button
-        onClick={onAdd}
-        aria-label={addLabel}
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-colors hover:bg-primary-hover"
-      >
-        <Plus size={20} />
-      </button>
+      {onAdd && (
+        <button
+          onClick={onAdd}
+          aria-label={addLabel}
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-colors hover:bg-primary-hover"
+        >
+          <Plus size={20} />
+        </button>
+      )}
     </div>
   )
 }

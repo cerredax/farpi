@@ -15,6 +15,56 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-03
 
+### Los textos de la portada dejan de sonar a folleto (03-09-2026)
+
+Seis cambios de texto y uno de color, todos pedidos mirando la página publicada.
+
+**El párrafo del titular era un inventario.** Decía «Farpi es un espacio privado para una
+familia: el calendario, las tareas, las listas, las comidas, el gasto de la casa, las notas
+y los documentos importantes, todo junto y a un vistazo». Siete sustantivos seguidos: quien
+llega no está comprando módulos, y la lista entera la cuenta después «En qué ayuda». Ahora
+dice qué se gana, no qué trae: «el espacio privado de tu familia: todos veis lo mismo sin
+tener que preguntar, y lo que hay que recordar deja de estar en la cabeza de uno solo».
+Cambia en los dos sitios donde vive, la portada y `LoginHero`, que dicen lo mismo a
+propósito desde el 02-09-2026.
+
+**Los pies de las capturas ahora son una frase.** Eran dos líneas cada uno explicando la
+pantalla, y al lado de la foto sobraban: la captura ya se ve. Se quedan en una frase corta
+—«Lo de hoy, sin buscarlo», «¿Qué comemos esta semana?», «Cuánto queda del mes»— que
+etiqueta la imagen en vez de sustituirla. La de Comidas es la única que pregunta, y es la
+que pidió Omar tal cual.
+
+**Comidas habla del comedor y Finanzas del dinero.** En «En qué ayuda», Comidas contaba solo
+el menú de la semana y se dejaba fuera la franja del comedor, que es media sección y lo que
+resuelve una casa con un niño en el colegio. Y Finanzas terminaba en «quién ha puesto qué»:
+eso es un detalle de dentro, y puesto en la portada suena a llevar la cuenta de la pareja,
+que no es de lo que va. Ahora dice control del dinero de la casa y para.
+
+**Las Preguntas hablan como una persona.** Contestaban bien y sonaban a página de soporte
+(«No hace falta», «Los que hagáis falta», «Sí, si lo activas desde Ajustes»). Mismos hechos,
+dicho de otra manera: «Vosotros y nadie más», «Los dos, o los dos y los abuelos», «Solo si
+tú quieres». Y **fuera la de la cobertura**: contaba que Farpi necesita conexión y que
+avisa cuando no la hay, que es verdad pero es una limitación explicada con cariño en un
+sitio donde nadie la había preguntado. Quedan cinco.
+
+**La carta pierde a Nido.** La app se llamó así hasta el 31-08-2026 y la carta contaba el
+cambio de nombre dos veces en el mismo párrafo. Esa vuelta solo le interesa a quien estuvo
+delante; de dónde sale «Farpi» —el juego de palabras con los apellidos de la hija— se queda,
+porque eso sí cuenta algo de la casa. Lo pidió Omar, que es la única forma de tocar ese
+texto: la nota del componente sigue diciendo que ahí no se «mejora la redacción».
+
+**Y el botón de Google se hunde al pulsarlo.** Tenía `hover:bg-surface` y nada más. En un
+móvil el hover se queda pegado después del toque, así que el botón se quedaba de otro color
+sin que pareciera que lo habías pulsado, solo distinto — y encima `surface` (#F0EDE8) está a
+un paso del blanco. Ahora se comporta como un `Button variant="secondary"`: el fondo se va a
+`line` y baja al 97 % mientras está pulsado.
+
+**Lo que no se cambió: «casa».** Se preguntó si no quedaba mejor «hogar». No: «hogar» es la
+palabra de los seguros y de los anuncios de sofás, «casa» es la que se usa en casa. La
+pregunta que da nombre a todo el proyecto —«¿Qué tenemos que saber hoy en casa?»— vive
+además en el titular, en las metaetiquetas, en el aviso de las notificaciones, en
+`gen-capturas.mjs` y en los papeles: cambiarla es cambiar la marca, no un texto.
+
 ### Los filtros de Documentos: solo las carpetas que tienen algo (03-09-2026)
 
 Se vio mirando la pantalla: doce pastillas con un icono distinto cada una, en cuatro filas

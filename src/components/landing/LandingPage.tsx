@@ -106,12 +106,12 @@ const SECCIONES = [
  * la ficha de Google Play cuando toque.
  */
 const CAPTURAS = [
-  { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy: lo que hay, lo que falta y lo que se come.' },
-  { archivo: 'calendario', titulo: 'El mes',      texto: 'Los días con algo apuntado, y el de hoy abierto debajo.' },
-  { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra y lo de casa, en marcha desde cualquier móvil.' },
-  { archivo: 'comidas',    titulo: 'Comidas',     texto: 'El menú de la semana, sin decidirlo cada día a las dos de la tarde.' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'Lo fijo del mes, cuánto queda, y los presupuestos que pedís fuera para compararlos.' },
-  { archivo: 'documentos', titulo: 'Documentos',  texto: 'El seguro, la cartilla, el libro de familia. Y qué caduca.' },
+  { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy, sin buscarlo.' },
+  { archivo: 'calendario', titulo: 'El mes',      texto: 'Todo el mes de un vistazo.' },
+  { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra, en el móvil de todos.' },
+  { archivo: 'comidas',    titulo: 'Comidas',     texto: '¿Qué comemos esta semana?' },
+  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: 'Cuánto queda del mes.' },
+  { archivo: 'documentos', titulo: 'Documentos',  texto: 'Los papeles, cuando hacen falta.' },
 ]
 
 const PASOS = [
@@ -143,12 +143,12 @@ const FUNCIONES = [
   {
     icon: UtensilsCrossed,
     titulo: 'Comidas',
-    texto: 'El menú de la semana, para no decidirlo cada día a las dos de la tarde.',
+    texto: 'Qué se cena esta semana y qué le han puesto hoy en el comedor.',
   },
   {
     icon: Euro,
     titulo: 'Finanzas',
-    texto: 'Las partidas que os repartís cada mes, cuánto lleváis y quién ha puesto qué.',
+    texto: 'El dinero de la casa bajo control: lo fijo del mes y cuánto queda.',
   },
   {
     icon: NotebookText,
@@ -166,32 +166,27 @@ const PREGUNTAS = [
   {
     pregunta: '¿Quién ve lo que apuntamos?',
     respuesta:
-      'Solo las personas de tu familia. Cada cosa que se guarda queda atada a una familia, y el servidor no deja salir nada fuera de ella.',
+      'Vosotros y nadie más. Todo lo que se guarda queda atado a vuestra familia, y el servidor no lo deja salir de ahí. Farpi no es un sitio donde publicar nada.',
   },
   {
     pregunta: '¿Cuántos podemos ser?',
     respuesta:
-      'Los que hagáis falta. Se invita por correo, y quien entra ve y puede apuntar lo mismo que el resto.',
+      'Los que seáis. Los dos, o los dos y los abuelos. Le mandas un correo a cada uno y quien entra ve y apunta lo mismo que el resto, desde el primer día.',
   },
   {
     pregunta: '¿Hay que instalar algo?',
     respuesta:
-      'No hace falta. Farpi se abre en el navegador y funciona igual en el móvil, en la tablet y en el ordenador, con la misma cuenta y con lo mismo apuntado en los tres. En el móvil puedes añadirla a la pantalla de inicio y se comporta como una app más, con su icono y sin la barra del navegador. La de Google Play llegará más adelante y no cambiará nada de lo que ya tengáis.',
-  },
-  {
-    pregunta: '¿Y si me quedo sin cobertura?',
-    respuesta:
-      'Farpi necesita conexión, como el correo o la app del banco. Si te quedas sin ella, te lo dice claramente en vez de enseñarte lo de ayer como si fuera de hoy, que es peor que no enseñar nada. En cuanto vuelve, sigues donde estabas.',
+      'No. Farpi se abre en el navegador y va igual en el móvil, en la tablet y en el ordenador, con la misma cuenta y lo mismo apuntado en los tres. Si te apetece, en el móvil la añades a la pantalla de inicio y se comporta como una app más, con su icono y sin la barra del navegador. La de Google Play llegará más adelante y no cambiará nada de lo que ya tengáis.',
   },
   {
     pregunta: '¿Me avisa de las cosas?',
     respuesta:
-      'Sí, si lo activas desde Ajustes: un aviso al móvil con lo que toca ese día.',
+      'Solo si tú quieres. Lo enciendes en Ajustes y te llega un aviso al móvil con lo que toca ese día. Si no lo enciendes, Farpi no te dice nada.',
   },
   {
     pregunta: '¿Dónde acaban mis documentos?',
     respuesta:
-      'En tu propio Google Drive. Farpi solo guarda la ficha (qué es, de quién, cuándo caduca) y se la enseña a tu familia. El archivo nunca sale de tu cuenta, y los demás no tienen que conectar nada para verlo.',
+      'En tu propio Google Drive, no en un cajón nuestro. Farpi guarda solo la ficha (qué es, de quién es, cuándo caduca) y se la enseña a tu familia. El archivo no sale de tu cuenta, y los demás no tienen que conectar nada para verlo.',
   },
 ]
 
@@ -286,9 +281,8 @@ export function LandingPage() {
 
             <div className="col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-                <Marca /> es un espacio privado para una familia: el calendario, las tareas, las
-                listas, las comidas, el gasto de la casa, las notas y los documentos importantes,
-                todo junto y a un vistazo.
+                <Marca /> es el espacio privado de tu familia: todos veis lo mismo sin tener que
+                preguntar, y lo que hay que recordar deja de estar en la cabeza de uno solo.
               </p>
 
               <Garantias className="mt-5" />
@@ -442,7 +436,15 @@ export function LandingPage() {
               Así que aquí no se "mejora la redacción". Si algún día hay que
               cambiar algo, se le pregunta a él y se vuelve a tocar lo mínimo: lo
               que hace que esto no parezca escrito por una máquina es justo lo que
-              un corrector querría arreglar. */}
+              un corrector querría arreglar.
+
+              El 03-09-2026 lo pidió él: **fuera Nido**. La app se llamó así hasta
+              el 31-08-2026 y la carta contaba el cambio de nombre ("lo que
+              pretendía con Nido, que así iba a llamarse... al final no se llama
+              Nido sino Farpi"), que es una vuelta que solo interesa a quien estuvo
+              delante. De dónde sale "Farpi" se queda, que eso sí cuenta algo de la
+              casa; el nombre viejo no. Se tocaron las dos frases que lo nombraban
+              y nada más. */}
           <section className={`border border-line bg-warm ${BLOQUE}`}>
             <TituloSeccion>Por qué existe Farpi</TituloSeccion>
 
@@ -454,10 +456,9 @@ export function LandingPage() {
                 antes.
               </p>
               <p>
-                Lo que pretendía con Nido, que así iba a llamarse, era tener un sitio de familia donde
-                los dos viéramos lo mismo sin tener que preguntárnoslo. Así surgió este proyecto
-                personal. Como ves, al final no se llama Nido sino <Marca />, en honor a un juego de
-                palabras con los apellidos de mi hija.
+                Lo que pretendía era tener un sitio de familia donde los dos viéramos lo mismo sin
+                tener que preguntárnoslo. Así surgió este proyecto personal, que se llama <Marca />{' '}
+                en honor a un juego de palabras con los apellidos de mi hija.
               </p>
             </div>
 

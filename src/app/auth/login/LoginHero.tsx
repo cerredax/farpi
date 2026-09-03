@@ -66,9 +66,9 @@ export function LoginHero() {
 
         <div className="col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-            <span className="font-bold text-ink">Farpi</span> es un espacio privado para una
-            familia: el calendario, las tareas, las listas, las comidas, el gasto de la casa, las
-            notas y los documentos importantes, todo junto y a un vistazo.
+            <span className="font-bold text-ink">Farpi</span> es el espacio privado de tu familia:
+            todos veis lo mismo sin tener que preguntar, y lo que hay que recordar deja de estar en
+            la cabeza de uno solo.
           </p>
 
           <Garantias className="mt-5" />

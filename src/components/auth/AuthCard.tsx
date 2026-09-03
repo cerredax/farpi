@@ -189,7 +189,13 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
               <button
                 type="button"
                 onClick={handleGoogle}
-                className="mb-4 flex w-full items-center justify-center gap-2.5 rounded-2xl border border-line bg-white py-3 text-sm font-bold text-ink transition-colors hover:bg-surface"
+                /* Al pulsarlo se hunde un poco y el fondo se va a `line`, igual
+                   que un `Button variant="secondary"`. Tenía solo `hover:bg-surface`,
+                   y en un móvil el hover se queda pegado después del toque: el
+                   botón se quedaba de otro color sin que pareciera que lo habías
+                   pulsado, solo distinto. El crema de `surface` está a un paso del
+                   blanco (#F0EDE8 sobre #FFF) y no se lee como una pulsación. */
+                className="mb-4 flex w-full select-none touch-manipulation items-center justify-center gap-2.5 rounded-2xl border border-line bg-white py-3 text-sm font-bold text-ink transition-[background-color,transform] duration-150 hover:bg-surface active:scale-[0.97] active:bg-line active:duration-0"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z" />

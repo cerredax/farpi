@@ -249,7 +249,22 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   veces y las dos sonaron a folleto: la primera demasiado redonda, la segunda demasiado
   cortada. La buena salió cuando la dictó él y la edición se limitó a ortografía, dos
   concordancias y partir una frase. Queda avisado en el propio componente: ahí no se
-  "mejora la redacción".
+  "mejora la redacción". Lo único que se le ha quitado, y lo pidió él (03-09-2026), es
+  **Nido**: contaba el cambio de nombre dos veces y esa vuelta solo interesa a quien
+  estuvo delante. De dónde sale "Farpi" se queda.
+- **Los textos de la portada dicen qué se gana, no qué trae** (03-09-2026). El párrafo del
+  titular era un inventario de siete secciones y ahora es una frase; los pies de las
+  capturas, una frase corta cada uno en vez de dos líneas explicando la pantalla que se
+  está viendo al lado (la de Comidas es la única que pregunta: «¿Qué comemos esta semana?»). En "En qué ayuda", Comidas nombra el **comedor** (media sección se
+  quedaba fuera) y Finanzas habla de controlar el dinero de la casa y no de "quién ha
+  puesto qué", que puesto en la portada suena a llevarle la cuenta a la pareja. Las
+  **Preguntas** son cinco y contestan como una persona; se fue la de la cobertura, que
+  explicaba una limitación con cariño en un sitio donde nadie la había preguntado. El
+  párrafo del titular se cambia **en los dos sitios**: portada y `LoginHero`.
+- **Se dice "casa" y no "hogar"**, y se preguntó (03-09-2026). "Hogar" es la palabra de los
+  seguros y de los anuncios de sofás. Además "¿Qué tenemos que saber hoy en casa?" está en
+  el titular, en las metaetiquetas, en el aviso de las notificaciones, en `gen-capturas.mjs`
+  y en los papeles: cambiarla no es cambiar un texto, es cambiar la marca.
 - **El enlace se ve al compartirlo** (01-09-2026): `openGraph` y `twitter` en
   `src/app/layout.tsx`, con `metadataBase` sacado de `SITE_URL`, y `public/og.png`
   (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la

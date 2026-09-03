@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
-import { selectDocumentMatches } from '@/lib/selectors'
+import { docCategoryOf, selectDocCategoryFilters, selectDocumentMatches } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import type { Document, DocumentDraft } from '@/types'
+import type { DocCategory, Document, DocumentDraft } from '@/types'
 
 /** Estado de la pantalla de documentos: búsqueda, filtro por categoría y sheet. */
 export function useDocsState() {
@@ -17,7 +17,7 @@ export function useDocsState() {
   const [sheetOpen,    setSheetOpen]    = useState(false)
   const [sheetMode,    setSheetMode]    = useState<'create' | 'edit'>('create')
   const [editingDoc,   setEditingDoc]   = useState<Document | null>(null)
-  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [activeFilter, setActiveFilter] = useState<DocCategory | null>(null)
   const [busqueda,     setBusqueda]     = useState('')
 
   const [avisoCerrado, setAvisoCerrado] = useState(false)
@@ -75,16 +75,25 @@ export function useDocsState() {
   // La búsqueda manda sobre el filtro: si buscas "seguro" y está en Personal,
   // encontrarlo no debería depender de qué pestaña tuvieras abierta.
   const porCategoria = activeFilter
-    ? documents.filter(d => d.category === activeFilter)
+    ? documents.filter(d => docCategoryOf(d) === activeFilter)
     : documents
   const filtered = selectDocumentMatches(porCategoria, busqueda)
 
   const puedeBuscar = documents.length >= MINIMO_PARA_BUSCAR
 
+  /**
+   * Las categorías que se ofrecen como filtro, y si merece la pena ofrecerlas.
+   * Con una sola clase de papel guardado, «Todos» y esa clase enseñan lo mismo:
+   * la tira no filtra nada y solo ocupa sitio, igual que el buscador por debajo
+   * de `MINIMO_PARA_BUSCAR`.
+   */
+  const categorias = selectDocCategoryFilters(documents, activeFilter)
+  const puedeFiltrar = categorias.length > 1
+
   return {
     documents, kids, members, filtered,
     busqueda, setBusqueda, puedeBuscar,
-    activeFilter, setActiveFilter,
+    activeFilter, setActiveFilter, categorias, puedeFiltrar,
     sheetOpen, setSheetOpen, sheetMode, sheetKey, editingDoc,
     openCreate, openEdit, handleSave,
     deleteDocument, getDocumentUrl,

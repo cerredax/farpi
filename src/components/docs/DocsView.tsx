@@ -5,15 +5,8 @@ import { CategoryIcon } from './CategoryIcon'
 import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
-import { DOC_CATEGORIES } from '@/lib/constants'
 import { resolveAssignee } from '@/lib/assignees'
 import { ViewHeader } from '@/components/ui/ViewHeader'
-import type { DocCategory } from '@/types'
-
-const ALL_FILTERS: { key: DocCategory | null; label: string }[] = [
-  { key: null, label: 'Todos' },
-  ...DOC_CATEGORIES,
-]
 
 export function DocsView() {
   const s = useDocsState()
@@ -58,30 +51,31 @@ export function DocsView() {
       )}
 
       {/* Filtros */}
-      {/* Son once categorías y «Todos», y **se ven las doce a la vez**, aquí y
-          en escritorio. Hasta el 02-09-2026 en móvil se arrastraban en una fila
-          sangrada hasta el borde (`-mx-4 px-4` + `overflow-x-auto`): a 390 px
-          entraban cuatro y las otras ocho quedaban fuera de pantalla, así que la
-          tira parecía un revoltijo cortado y las categorías del final —Mascotas,
-          Viajes, Otros— no existían para quien no supiera que aquello se
-          arrastraba. Envueltas ocupan cuatro líneas a 390 px y se leen de un golpe.
+      {/* Solo se ofrecen las categorías **que tienen algún papel dentro** (ver
+          `selectDocCategoryFilters`). Las once del catálogo siguen estando al
+          guardar un documento; como filtro, la mitad daban a una pantalla
+          vacía, y con un icono cada una la tira se leía como un muro antes de
+          llegar al primer documento: cuatro filas a 390 px, y en escritorio
+          once en una fila con «Otros» colgando solo en la segunda.
 
-          Es la misma lección que el catálogo de las listas y las tareas del día:
-          en esta app esconder contenido ha salido mal cada vez. El precio de que
-          cada papel de la casa tenga su carpeta se paga en alto, no en
-          desplazamiento lateral. */}
-      <div className="flex flex-wrap gap-2 pb-1">
-        {ALL_FILTERS.map(f => (
-          <button
-            key={String(f.key)}
-            onClick={() => s.setActiveFilter(f.key)}
-            className={`flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
-          >
-            {f.key && <CategoryIcon category={f.key} size={13} />}
-            {f.label}
-          </button>
-        ))}
-      </div>
+          Envueltas y no arrastrables, eso sigue igual desde el 02-09-2026: se
+          ven todas de un golpe. Lo que cambió el 03-09-2026 es cuántas hay que
+          ver. Esconder contenido en esta app ha salido mal cada vez, pero una
+          categoría vacía no es contenido, es un filtro muerto. */}
+      {s.puedeFiltrar && (
+        <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
+          {[{ key: null, label: 'Todos' }, ...s.categorias].map(f => (
+            <button
+              key={String(f.key)}
+              onClick={() => s.setActiveFilter(f.key)}
+              className={`flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
+            >
+              {f.key && <CategoryIcon category={f.key} size={13} />}
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Lista */}
       {s.filtered.length === 0 ? (

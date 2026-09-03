@@ -1,7 +1,7 @@
 // Constructores de datos de prueba para los tests unitarios.
 // Cada uno devuelve una entidad válida con valores por defecto razonables;
 // se sobrescribe solo lo que importe en cada test.
-import type { ListItem, MealPlan, Task, TaskPriority, TaskRecurrence, MealSlot, Event, List } from '@/types'
+import type { Document, ListItem, MealPlan, Task, TaskPriority, TaskRecurrence, MealSlot, Event, List } from '@/types'
 
 let n = 0
 const id = () => `id-${++n}`
@@ -91,6 +91,28 @@ export function event(over: Partial<Event> = {}): Event {
     birth_year: null,
     color: null,
     recurrence_group_id: null,
+    created_by: 'u1',
+    created_at: '2026-08-01T10:00:00Z',
+    updated_at: '2026-08-01T10:00:00Z',
+    ...over,
+  }
+}
+
+export function document(over: Partial<Document> = {}): Document {
+  return {
+    id: id(),
+    family_id: 'f1',
+    child_id: null,
+    member_id: null,
+    name: 'Documento',
+    description: null,
+    category: 'otros',
+    storage_path: 'drive-file-id',
+    storage_provider: 'google_drive',
+    storage_owner: 'u1',
+    mime_type: 'application/pdf',
+    size_bytes: 1024,
+    expires_on: null,
     created_by: 'u1',
     created_at: '2026-08-01T10:00:00Z',
     updated_at: '2026-08-01T10:00:00Z',

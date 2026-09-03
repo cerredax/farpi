@@ -476,6 +476,29 @@ test('un documento con caducidad lo dice en su tarjeta', async ({ page }) => {
   await expect(page.getByText(/Caduc[óa] el 20 ago\.? 2026/)).toBeVisible()
 })
 
+// Los filtros de Documentos son solo las categorías que tienen algún papel
+// dentro. En la demo hay documentos de Salud, Personal, Vivienda, Vehículo,
+// Seguros, Finanzas, Facturas y Viajes, pero ninguno de Colegio ni de Mascotas:
+// esas dos pastillas no pueden estar, porque llevarían a una pantalla vacía.
+test('en Documentos solo se filtran las categorías que tienen documentos', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  // Acotado a la tira: «Salud» también sale en la tarjeta de cada documento de
+  // esa categoría, y el formulario del sheet vive en el DOM aunque esté cerrado.
+  const filtros = page.getByRole('group', { name: 'Filtrar por categoría' })
+  await expect(filtros.getByRole('button', { name: 'Todos' })).toBeVisible()
+  await expect(filtros.getByRole('button', { name: 'Salud' })).toBeVisible()
+  await expect(filtros.getByRole('button', { name: 'Colegio' })).toHaveCount(0)
+  await expect(filtros.getByRole('button', { name: 'Mascotas' })).toHaveCount(0)
+
+  // Y el catálogo completo sigue estando donde hace falta: al guardar un papel.
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir documento' })
+  await expect(dialog.getByRole('button', { name: 'Colegio' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Mascotas' })).toBeVisible()
+})
+
 // La copia de seguridad de la familia. Se descarga de verdad y se lee: es lo único
 // que prueba el camino completo —store, JSON, blob y descarga—, y sobre todo lo
 // único que puede confirmar que dentro no hay tokens. El resto de la lógica está en

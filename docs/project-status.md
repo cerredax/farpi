@@ -75,11 +75,17 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   `personal` es identidad —DNI, pasaporte, libro de familia—, no el cajón de lo que no
   encaja; para eso está «Otros». Cada una lleva un icono de lucide
   (`docs/CategoryIcon.tsx`), no un emoji: el chip mide 10 px y ahí un emoji de color es
-  una mancha distinta en cada sistema. Con doce filtros la fila no cabe en una línea, así
-  que **envuelve en los dos tamaños** (02-09-2026): en móvil se arrastraba, y a 390 px
-  entraban cuatro y las otras ocho quedaban fuera de pantalla —Mascotas, Viajes y Otros
-  no existían para quien no supiera que aquello se arrastraba—. Envueltas ocupan cuatro
-  líneas a 390 px y se leen de un golpe. La categoría «Finanzas» lleva el símbolo € desde
+  una mancha distinta en cada sistema. La fila de filtros **envuelve en los dos tamaños**
+  (02-09-2026): en móvil se arrastraba, y a 390 px entraban cuatro y las otras ocho
+  quedaban fuera de pantalla. Y desde el 03-09-2026 **como filtro solo se ofrecen las
+  categorías que tienen algún documento** (`selectDocCategoryFilters`), más la que estés
+  mirando aunque te quedes sin papeles dentro: doce pastillas con un icono cada una eran
+  un muro antes del primer documento —cuatro filas a 390 px, y en escritorio once en una
+  fila con «Otros» colgando solo en la segunda— y la mitad llevaban a una pantalla vacía.
+  Con una sola categoría con papeles no sale la tira: no filtraría nada, igual que el
+  buscador por debajo de `MINIMO_PARA_BUSCAR`. Las once siguen estando al **guardar** un
+  documento; esconder contenido en esta app ha salido mal cada vez, pero una categoría
+  vacía no es contenido, es un filtro muerto. La categoría «Finanzas» lleva el símbolo € desde
   el 02-09-2026, el mismo que la sección: fue una tarjeta de crédito y luego una hucha,
   que de cerca es un cerdito y no dice «dinero» sino «ahorrar».
 - **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
@@ -346,13 +352,13 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **510 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **520 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 385 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 02-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno—). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 125 de navegador. La cifra sale de la pasada completa del 02-09-2026 (510 en total,
-    385 unitarios):
+  - 393 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 03-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 127 de navegador. La cifra sale de la pasada completa del 03-09-2026 (520 en total,
+    393 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 

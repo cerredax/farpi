@@ -391,8 +391,9 @@ test.describe('escritorio a 1440 px', () => {
     expect(await columnasDeTarjetas(page), 'los documentos no están en rejilla').toBe(3)
   })
 
-  // Son doce filtros y no caben en una fila ni en escritorio: lo que se prueba
-  // es que se reparten en varias líneas (`lg:flex-wrap`) en vez de arrastrarse.
+  // Los filtros son las categorías que tienen algo, así que cuántos hay depende
+  // de lo que la familia haya guardado. Lo que se prueba es que, sean los que
+  // sean, se reparten en varias líneas (`flex-wrap`) en vez de arrastrarse.
   test('los filtros de Documentos no se arrastran, se reparten en varias líneas', async ({ page }) => {
     await page.goto('/docs')
     await page.waitForTimeout(800)

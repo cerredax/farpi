@@ -13,6 +13,49 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-03
+
+### Los filtros de Documentos: solo las carpetas que tienen algo (03-09-2026)
+
+Se vio mirando la pantalla: doce pastillas con un icono distinto cada una, en cuatro filas
+a 390 px, antes de llegar al primer documento. Y en escritorio, once en una fila con
+«Otros» colgando solo en la segunda. El muro de iconos era el síntoma; el problema es que
+**la mitad de esas pastillas llevaban a una pantalla vacía**: con diez documentos, solo seis
+de las once carpetas tenían algo dentro.
+
+Once carpetas siguen siendo lo correcto para **guardar** —cada papel de la casa tiene su
+sitio y ninguno cae en «Otros» por descarte, que es la decisión del 02-09-2026—, pero no
+para **mirar**. Así que como filtro se ofrecen solo las que tienen algún documento
+(`selectDocCategoryFilters`), y la tira crece sola a medida que la familia guarda papeles de
+más clases. Las once siguen enteras en el sheet, que es donde hacen falta.
+
+No es esconder contenido, que en esta app ha salido mal cada vez —el catálogo de las listas,
+las tareas del día, esta misma tira arrastrándose hasta el 02-09-2026—: una carpeta vacía no
+es contenido, es un filtro muerto.
+
+Dos cosas salieron al escribirlo. **La carpeta que estás mirando no desaparece** aunque
+borres el último papel de dentro: quitarle la pastilla bajo el dedo dejaría la pantalla
+vacía sin decir por qué. Y **con una sola carpeta con papeles no sale la tira**, porque
+«Todos» y esa carpeta enseñan lo mismo; es la misma idea que el buscador por debajo de
+`MINIMO_PARA_BUSCAR`.
+
+Y una incoherencia de antes, que había que arreglar o el cambio la habría empeorado: un
+documento sin categoría se pintaba «Otros» en su tarjeta, pero el filtro «Otros» no lo
+encontraba, porque comparaba `d.category` con la clave y en esas filas es `null`. Ahora las
+dos preguntas pasan por `docCategoryOf`.
+
+Descartadas: el desplegable (esconde y cuesta dos toques), agrupar las once en cuatro grupos
+grandes (hay que inventar y explicar una jerarquía nueva) y dejar las doce bajando el tono
+del icono (no arregla que la mitad no lleven a ningún sitio).
+
+El test de navegador destapó además que la tira no era localizable por sí sola: «Salud»
+también sale en la tarjeta de cada documento de esa carpeta, y el formulario del sheet vive
+en el DOM aunque esté cerrado. Ahora la tira es un `role="group"` con nombre —que además la
+nombra para quien navega con lector de pantalla—.
+
+Cinco unitarios nuevos en `selectors.spec.ts` (con un constructor `document()` en
+`fixtures.ts`, que no había) y uno de navegador en `runtime.spec.ts`. Suite: **520**.
+
 ## Cerrado el 2026-09-02
 
 ### Los gráficos de Finanzas, otra vez; «Cada mes»; y el mes que aún no ha llegado (02-09-2026)

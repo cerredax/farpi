@@ -209,8 +209,14 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se puede editar documento.
 - [ ] Se puede borrar documento.
 - [ ] Se puede asociar documento a familia o hijo.
-- [ ] Filtros por categoría funcionan, las once.
-- [ ] La fila de filtros se arrastra en móvil y se reparte en varias líneas en escritorio.
+- [ ] Filtros por categoría funcionan.
+- [ ] **Solo se ofrecen las categorías que tienen algún documento**: guarda el primer
+      papel de Mascotas y comprueba que la pastilla aparece; bórralo y comprueba que se va.
+- [ ] Con documentos de una sola categoría no sale la tira de filtros: no filtraría nada.
+- [ ] Si borras el último documento de la categoría que estás mirando, su pastilla sigue
+      ahí (si no, la pantalla se queda vacía sin decir por qué).
+- [ ] Las once categorías siguen estando **al guardar un documento**, tengan papeles o no.
+- [ ] La fila de filtros se reparte en varias líneas y no se arrastra, ni en móvil ni en escritorio.
 - [ ] Cada categoría enseña su icono en el filtro, en el chip de la tarjeta y en el sheet.
 - [ ] El buscador filtra por nombre y descripción, y manda sobre la categoría abierta.
 - [ ] Un documento con caducidad la enseña en su tarjeta: ámbar dentro de 30 días, rojo si ya pasó.
@@ -512,7 +518,8 @@ cada uno hace a su manera:
 - [ ] En un monitor grande (2560 px) la rejilla de Comidas no queda desproporcionada.
 - [ ] En Tareas, dos columnas de pendientes y el recuento arriba ocupando el ancho.
 - [ ] En Listas, el índice en rejilla; al abrir una lista, más ancha pero aún en columna.
-- [ ] En Documentos, la rejilla de tarjetas y los cinco filtros sin arrastrar.
+- [ ] En Documentos, la rejilla de tarjetas y los filtros sin arrastrar y sin ninguno
+      colgando solo en una segunda línea.
 - [ ] En el calendario, las vistas Día y Semana enseñan el día entero sin cortarlo, y la
       rejilla del mes se ve con sus líneas.
 - [ ] Ajustes sigue con el ancho de móvil centrado (`SettingsView` no tiene ni una

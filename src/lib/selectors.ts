@@ -1,8 +1,8 @@
 import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
 import { eventCoversDay, isAbsence, isBirthday, isDigestPlan } from './events'
-import { DIAS_AVISO_CADUCIDAD, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
+import { DIAS_AVISO_CADUCIDAD, DOC_CATEGORIES, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { normalizaParaBuscar } from './text'
-import type { Document, Event, MealPlan, MealSlot, Note, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
+import type { DocCategory, Document, Event, MealPlan, MealSlot, Note, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
 const TASK_PRIORITY_WEIGHT = Object.fromEntries(
   TASK_PRIORITIES.map((priority, index) => [priority.value, index])
@@ -369,6 +369,42 @@ export function selectDocumentMatches(documents: Document[], query: string): Doc
   return documents.filter(d =>
     normalizaParaBuscar(`${d.name} ${d.description ?? ''}`).includes(consulta)
   )
+}
+
+/**
+ * La categoría con la que cuenta un documento. Sin categoría es «Otros», igual
+ * que en su tarjeta: el papel está guardado en algún sitio, y ese sitio se
+ * llama Otros.
+ */
+export function docCategoryOf(doc: Document): DocCategory {
+  return doc.category ?? 'otros'
+}
+
+/**
+ * Qué categorías se ofrecen como filtro en Documentos: **solo las que tienen
+ * algún papel dentro**, en el orden del catálogo.
+ *
+ * Las once existen siempre al guardar un documento, pero enseñarlas todas como
+ * filtro era ofrecer once puertas de las que la mitad daban a una pantalla
+ * vacía. Y con un icono cada una, la tira se leía como un muro antes de llegar
+ * al primer documento: cuatro filas a 390 px, y en escritorio once en una fila
+ * con «Otros» colgando solo en la segunda.
+ *
+ * Es lo contrario de esconder contenido —lo que en esta app ha salido mal cada
+ * vez—: una categoría vacía no es contenido, es un filtro muerto. Y la tira
+ * crece sola a medida que la familia guarda papeles de más clases.
+ *
+ * `activa` se mantiene aunque se quede sin documentos: si borras el último
+ * mientras la estás mirando, la pastilla no puede desaparecer bajo el dedo y
+ * dejar la pantalla vacía sin decir por qué.
+ */
+export function selectDocCategoryFilters(
+  documents: Document[],
+  activa: DocCategory | null = null,
+): { key: DocCategory; label: string }[] {
+  const conAlgo = new Set(documents.map(docCategoryOf))
+  if (activa) conAlgo.add(activa)
+  return DOC_CATEGORIES.filter(c => conAlgo.has(c.key))
 }
 
 /**

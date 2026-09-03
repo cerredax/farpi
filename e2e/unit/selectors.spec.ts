@@ -19,12 +19,13 @@ import {
   selectEventMatches,
   selectFamilySummary,
   selectExpiryState,
+  selectDocCategoryFilters,
   selectTodayEvents,
   selectTodayMeals,
   selectUpcomingEvents,
 } from '@/lib/selectors'
 import { getLocalDateString } from '@/lib/date-utils'
-import { event, list, listItem, meal, task } from './fixtures'
+import { document, event, list, listItem, meal, task } from './fixtures'
 
 test.describe('selectTaskGroups', () => {
   const HOY = '2026-08-03'
@@ -617,5 +618,39 @@ test.describe('selectVisibleBirthdays', () => {
       '2026-08-01', '2026-08-31',
     )
     expect(r.map(c => c.title)).toEqual(['antes', 'luego'])
+  })
+})
+
+test.describe('selectDocCategoryFilters', () => {
+  test('solo las categorías que tienen algún documento, en el orden del catálogo', () => {
+    const r = selectDocCategoryFilters([
+      document({ category: 'viajes' }),
+      document({ category: 'salud' }),
+      document({ category: 'salud' }),
+    ])
+    expect(r.map(c => c.key)).toEqual(['salud', 'viajes'])
+  })
+
+  test('sin documentos no hay ninguna categoría que ofrecer', () => {
+    expect(selectDocCategoryFilters([])).toEqual([])
+  })
+
+  // La tarjeta de un documento sin categoría dice «Otros»: el filtro tiene que
+  // decir lo mismo, o la pastilla llevaría a una pantalla vacía.
+  test('un documento sin categoría cuenta como Otros', () => {
+    const r = selectDocCategoryFilters([document({ category: null })])
+    expect(r.map(c => c.key)).toEqual(['otros'])
+  })
+
+  // Si borras el último documento de la categoría que estás mirando, la
+  // pastilla no puede desaparecer bajo el dedo.
+  test('la categoría activa se queda aunque se haya quedado vacía', () => {
+    const r = selectDocCategoryFilters([document({ category: 'salud' })], 'viajes')
+    expect(r.map(c => c.key)).toEqual(['salud', 'viajes'])
+  })
+
+  test('la activa no se duplica si además tiene documentos', () => {
+    const r = selectDocCategoryFilters([document({ category: 'salud' })], 'salud')
+    expect(r.map(c => c.key)).toEqual(['salud'])
   })
 })

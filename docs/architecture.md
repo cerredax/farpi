@@ -1697,10 +1697,35 @@ del chip y son los mismos que el resto de la app. `constants.ts` se queda sin el
 `emoji` y **sin icono**: ese archivo lo importa también el servidor y no puede arrastrar
 `lucide-react`.
 
-**Doce filtros no caben en una fila, y se acepta.** En móvil la fila se arrastra —ya lo
-hacía— y en escritorio se reparte en varias líneas con `lg:flex-wrap`. La alternativa era un
-desplegable, que esconde las carpetas y cuesta dos toques en vez de uno. `e2e/escritorio.spec.ts`
-comprueba lo que importa: que en escritorio no se arrastre.
+**Como filtro solo salen las carpetas que tienen algo dentro** (03-09-2026,
+`selectDocCategoryFilters`). Que haya once carpetas es bueno para guardar y era malo para
+mirar: doce pastillas con un icono cada una se leían como un muro antes del primer
+documento —cuatro filas a 390 px, y en escritorio once en una fila con «Otros» colgando
+solo en la segunda— y la mitad llevaban a una pantalla vacía. Ahora la tira crece sola con
+lo que la familia guarda.
+
+Esto **no contradice** la regla de no esconder contenido, que en esta app ha salido mal cada
+vez (el catálogo de las listas, las tareas del día, esta misma tira arrastrándose): una
+carpeta vacía no es contenido, es un filtro muerto. Las once siguen enteras donde hacen
+falta, que es **al guardar** un papel, en el sheet.
+
+Dos detalles que salieron al escribirlo:
+
+- **La categoría que estás mirando no desaparece**, aunque te quedes sin papeles dentro. Si
+  borras el último documento de Viajes con Viajes abierto, quitarle la pastilla dejaría la
+  pantalla vacía sin decir por qué.
+- **Con una sola carpeta con papeles no sale la tira.** «Todos» y esa carpeta enseñan lo
+  mismo: no filtraría nada. Es la misma idea que el buscador por debajo de
+  `MINIMO_PARA_BUSCAR`.
+
+Y una incoherencia que se arregló de paso: un documento sin categoría se pintaba como
+«Otros» en su tarjeta pero el filtro «Otros» no lo encontraba (`d.category === activeFilter`
+contra `null`). Ahora las dos preguntas pasan por `docCategoryOf`, o la pastilla llevaría a
+una pantalla vacía. Las descartadas fueron el desplegable —esconde y cuesta dos toques— y
+agrupar las once en cuatro grupos grandes, que obliga a inventar y explicar una jerarquía
+nueva. Envueltas y no arrastrables sigue igual desde el 02-09-2026; lo que cambió es cuántas
+hay que ver. `e2e/escritorio.spec.ts` comprueba que no se arrastren y `e2e/runtime.spec.ts`
+que Colegio y Mascotas —sin papeles en la demo— no estén en la tira y sí en el sheet.
 
 ## Tono de la interfaz
 

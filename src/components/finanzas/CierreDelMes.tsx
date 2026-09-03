@@ -1,7 +1,8 @@
 'use client'
 
 import { Eraser, Lock, LockOpen } from 'lucide-react'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { useState } from 'react'
+import { BottomSheet } from '@/components/ui/BottomSheet'
 
 interface CierreDelMesProps {
   /** Aún no está cerrado y ya ha empezado, así que se puede dar por cerrado. */
@@ -10,10 +11,15 @@ interface CierreDelMesProps {
   sePuedeReabrir: boolean
   /** Es un mes pasado con copia: se puede quitar y dejarlo en cero. */
   sePuedePonerACero: boolean
+  /** «Septiembre 2026». Va en el diálogo, que es donde hay que decir de qué mes se habla. */
+  nombreDelMes: string
   onCerrar: () => void
   onReabrir: () => void
   onPonerACero: () => void
 }
+
+/** Cuál de los dos diálogos está abierto. */
+type Pendiente = 'cerrar' | 'cero' | null
 
 /**
  * Qué se puede hacer con el mes que se está mirando: darlo por cerrado,
@@ -32,79 +38,118 @@ interface CierreDelMesProps {
  * 1. **Dar el mes por cerrado.** Un atajo, no una tarea: si nadie lo toca, el mes
  *    se cierra solo el día 1. Sirve para lo único que no se podía hacer de otra
  *    manera —preparar un cambio de la plantilla que valga a partir del mes que
- *    viene, porque el mes en curso es espejo de ella— y por eso el texto habla de
- *    eso y no de «cerrar el mes» a secas, que no explica para qué sirve.
+ *    viene, porque el mes en curso es espejo de ella—.
  * 2. **Volver a seguir la plantilla**, mientras el mes cerrado siga siendo el de
  *    hoy. No pide confirmación: no pierde nada.
  * 3. **Poner el mes a cero** (03-09-2026), en un mes pasado. Borra la copia y lo
  *    deja como el mes que nunca se cerró: en cero y diciéndolo. Existe porque el
  *    cierre automático llegó a guardar meses que no se vivieron —agosto, con unas
  *    nóminas creadas el 1 de septiembre— y no había forma de quitarlos. **Los
- *    apuntes no se borran**, y el texto lo dice antes de que nadie lo pregunte.
+ *    apuntes no se borran**, y el diálogo lo dice antes de que nadie lo pregunte.
  *
- * Cerrar y poner a cero piden confirmación con el patrón de siempre, y la de
- * poner a cero avisa de lo que se pierde: los fijos y las partidas guardados.
+ * **Las dos que cambian algo piden confirmación en un diálogo** (03-09-2026), no
+ * con el doble toque de `useConfirmAction` que usa el resto de la app. Es la
+ * excepción a la regla y tiene motivo: el doble toque vale para deshacer algo que
+ * se ve —borrar una fila que sigue ahí— y aquí lo que cambia es el mes entero,
+ * fuera de la vista, sin nada que enseñe qué acaba de pasar. Un renglón que se
+ * pone en rojo un segundo no es sitio para explicar que se van a congelar los
+ * fijos de hoy.
+ *
+ * **Y con el diálogo se fue el texto de debajo.** Explicaba lo mismo, a 10 px y
+ * todo el rato, a alguien que casi nunca va a pulsar ese botón; ahora lo cuenta el
+ * diálogo, que es cuando hace falta saberlo.
  */
 export function CierreDelMes({
-  sePuedeCerrar, sePuedeReabrir, sePuedePonerACero, onCerrar, onReabrir, onPonerACero,
+  sePuedeCerrar, sePuedeReabrir, sePuedePonerACero, nombreDelMes,
+  onCerrar, onReabrir, onPonerACero,
 }: CierreDelMesProps) {
-  const { confirming, requestConfirm } = useConfirmAction()
+  const [pendiente, setPendiente] = useState<Pendiente>(null)
 
   if (!sePuedeCerrar && !sePuedeReabrir && !sePuedePonerACero) return null
+
+  const confirmar = () => {
+    if (pendiente === 'cerrar') onCerrar()
+    if (pendiente === 'cero') onPonerACero()
+    setPendiente(null)
+  }
+
+  const enlace = 'flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-xs font-semibold text-primary-strong transition-colors'
 
   return (
     <section aria-label="Cierre del mes" className="border-t border-hairline pt-3">
       {sePuedePonerACero ? (
-        <>
-          <button
-            type="button"
-            onClick={() => requestConfirm(onPonerACero)}
-            className={`flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-xs font-semibold transition-colors ${
-              confirming ? 'text-danger-strong' : 'text-primary-strong'
-            }`}
-          >
-            <Eraser size={13} strokeWidth={2.4} aria-hidden />
-            {confirming ? '¿Seguro? Se borran los fijos y las partidas de ese mes' : 'Poner este mes a cero'}
-          </button>
-          <p className="mt-1 px-1 text-center text-[10px] leading-relaxed text-faint">
-            Para un mes que no llevasteis: quita los fijos y las partidas que se le
-            guardaron y lo deja como si no se hubiera cerrado. Lo apuntado no se toca.
-          </p>
-        </>
+        <button type="button" onClick={() => setPendiente('cero')} className={enlace}>
+          <Eraser size={13} strokeWidth={2.4} aria-hidden />
+          Poner este mes a cero
+        </button>
       ) : sePuedeCerrar ? (
-        <>
-          <button
-            type="button"
-            onClick={() => requestConfirm(onCerrar)}
-            className={`flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-xs font-semibold transition-colors ${
-              confirming ? 'text-danger-strong' : 'text-primary-strong'
-            }`}
-          >
-            <Lock size={13} strokeWidth={2.4} aria-hidden />
-            {confirming ? '¿Seguro? Se guardan los fijos y las partidas de hoy' : 'Dar el mes por cerrado'}
-          </button>
-          <p className="mt-1 px-1 text-center text-[10px] leading-relaxed text-faint">
-            Guarda los fijos y las partidas de ahora mismo en este mes, para que puedas
-            cambiarlos de cara al que viene sin que se muevan aquí. No hace falta: el
-            día 1 se cierra solo.
-          </p>
-        </>
+        <button type="button" onClick={() => setPendiente('cerrar')} className={enlace}>
+          <Lock size={13} strokeWidth={2.4} aria-hidden />
+          Dar el mes por cerrado
+        </button>
       ) : (
         <>
-          <button
-            type="button"
-            onClick={onReabrir}
-            className="flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-xs font-semibold text-primary-strong"
-          >
+          <button type="button" onClick={onReabrir} className={enlace}>
             <LockOpen size={13} strokeWidth={2.4} aria-hidden />
             Volver a seguir la plantilla este mes
           </button>
+          {/* Este sí se queda: no hay diálogo donde contarlo, porque deshacerlo
+              no pide confirmación —no pierde nada— y la pega es de tiempo, no de
+              lo que va a pasar al pulsar. */}
           <p className="mt-1 px-1 text-center text-[10px] leading-relaxed text-faint">
             Este mes está cerrado a mano. Solo se puede deshacer mientras siga siendo el
             mes en curso.
           </p>
         </>
       )}
+
+      <BottomSheet
+        open={pendiente !== null}
+        title={pendiente === 'cero' ? 'Poner el mes a cero' : 'Dar el mes por cerrado'}
+        onClose={() => setPendiente(null)}
+        footer={
+          <div className="space-y-2 px-5 py-4">
+            <button
+              type="button"
+              onClick={confirmar}
+              className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition-colors ${
+                pendiente === 'cero' ? 'bg-danger hover:opacity-90' : 'bg-primary hover:bg-primary-hover'
+              }`}
+            >
+              {pendiente === 'cero' ? 'Sí, ponerlo a cero' : 'Sí, darlo por cerrado'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPendiente(null)}
+              className="w-full rounded-2xl py-3 text-sm font-semibold text-muted transition-colors hover:bg-surface"
+            >
+              Cancelar
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-2 px-5 pb-4 text-sm text-muted">
+          {pendiente === 'cero' ? (
+            <>
+              <p>
+                Se quitan los fijos y las partidas que se le guardaron a{' '}
+                <strong className="text-ink">{nombreDelMes}</strong>, y el mes queda como
+                si no se hubiera cerrado: en cero, y diciéndolo.
+              </p>
+              <p>Lo que se apuntó ese mes <strong className="text-ink">no se toca</strong>.</p>
+            </>
+          ) : (
+            <>
+              <p>
+                Se guardan en <strong className="text-ink">{nombreDelMes}</strong> los
+                fijos y las partidas de ahora mismo. A partir de ahí este mes deja de
+                moverse cuando cambies la plantilla en «Lo fijo».
+              </p>
+              <p>No hace falta hacerlo: el día 1 se cierra solo.</p>
+            </>
+          )}
+        </div>
+      </BottomSheet>
     </section>
   )
 }

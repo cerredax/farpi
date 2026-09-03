@@ -355,8 +355,8 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       reparto de arriba. Sin elegir a nadie sale como «De casa».
 - [ ] Borrar una partida **no borra sus apuntes**: siguen en la lista, sin categoría.
       El sheet lo avisa antes.
-- [ ] Las flechas cambian de mes, el mes vacío lo dice, y «Volver a este mes» aparece
-      solo cuando no estás en el actual.
+- [ ] Las flechas cambian de mes y el mes vacío lo dice. **No hay ningún «Volver a este
+      mes»** (03-09-2026): se vuelve con la flecha, que es por donde se vino.
 - [ ] Un apunte nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
 
 **Ingresos apuntados**
@@ -384,11 +384,18 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
       dentro no ofrece «Editar la partida».
 - [ ] En un mes **pasado que nunca se cerró** tampoco hay «Nueva partida» (03-09-2026):
       crearla no le pondría nada a ese mes, nace en la plantilla de hoy.
-- [ ] En el mes en curso, «Dar el mes por cerrado…» pide confirmación con dos toques. Tras
-      cerrarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
+- [ ] En el mes en curso, «+ Nueva partida» **abre el sheet ahí mismo** y no salta a «Lo
+      fijo» (03-09-2026). Al crearla se ve en la lista de partidas sin cambiar de
+      pestaña, y también está en «Lo fijo», porque una partida es de la plantilla.
+- [ ] En el mes en curso, «Dar el mes por cerrado» abre un **diálogo** (03-09-2026) que
+      dice qué se guarda y que el día 1 se cierra solo; «Cancelar» y la ✕ no hacen nada.
+      Tras confirmarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
+- [ ] **Debajo de esos botones no hay letra pequeña**: lo que explicaban vive ahora en
+      el diálogo.
 - [ ] Los tres botones del mes —cerrar, deshacer, poner a cero— están **debajo de la
       tarjeta del mes**, no al final de la pantalla.
-- [ ] En un mes pasado cerrado sale **«Poner este mes a cero»**: dos toques, y después el
+- [ ] En un mes pasado cerrado sale **«Poner este mes a cero»**: su diálogo avisa de que
+      lo apuntado no se toca y su botón va en rojo. Después el
       mes dice «de este mes no se guardó ningún fijo ni ninguna partida», los apuntes que
       tuviera siguen ahí y **al recargar sigue a cero** (no lo vuelve a cerrar la app).
 - [ ] Un mes que aún no ha llegado sale **a cero** y sin partidas. El enlace «ver qué
@@ -399,7 +406,7 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] Agosto sale como cerrado aunque no esté sembrado: lo cierra la app al abrirse.
 - [ ] Ir al mes **siguiente**: la tarjeta avisa de que «aún no ha empezado», habla en
       condicional («quedaría ese mes») y **no hay `+` ni «Dar el mes por cerrado»**. El
-      día a día dice «Ese mes aún no ha empezado». Volviendo a este mes, todo vuelve.
+      día a día dice «Ese mes aún no ha empezado». Volviendo con la flecha, todo vuelve.
 - [ ] Borrar una partida y mirar un mes cerrado que la tenía: **sigue saliendo con su
       nombre y su límite**, y sus gastos pasan a contarse en «sin partida».
 

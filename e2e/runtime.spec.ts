@@ -845,6 +845,25 @@ test('una partida se abre y enseña en qué se ha ido', async ({ page }) => {
   await expect(page.locator('#expense-amount')).toHaveValue('24,90')
 })
 
+// «Nueva partida» abría «Lo fijo» y te dejaba allí, mirando otra pantalla, cuando
+// lo que querías era una partida más en la lista que tenías delante (03-09-2026).
+test('«Nueva partida» abre el sheet en «El mes», sin cambiar de pestaña', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  await page.getByRole('button', { name: 'Nueva partida' }).click()
+  await expect(page.getByRole('dialog', { name: 'Nueva partida' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'El mes', exact: true })).toHaveAttribute('aria-selected', 'true')
+
+  await page.locator('#budget-name').fill('Vuelta al cole')
+  await page.locator('#budget-limit').fill('200')
+  await page.getByRole('button', { name: 'Crear partida' }).click()
+  await page.waitForTimeout(500)
+
+  // Y se ve en el mes que se estaba mirando, sin ir a ninguna parte.
+  await expect(page.locator('section[aria-label="Partidas del mes"]')).toContainText('Vuelta al cole')
+})
+
 // La cuenta del mes es el número que esta pantalla existe para dar, y sale de
 // tres sitios a la vez: los fijos sembrados, lo que se gasta y lo que entra.
 test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async ({ page }) => {
@@ -1006,10 +1025,12 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
   await expect(resumen).not.toContainText('Mes cerrado')
 
-  // Dos toques: el segundo confirma.
+  // Un diálogo, no el doble toque del resto de la app: lo que cambia es el mes
+  // entero y fuera de la vista, así que hay que poder contarlo antes.
   const cerrar = page.getByRole('button', { name: /Dar el mes por cerrado/ })
   await cerrar.click()
-  await page.getByRole('button', { name: /¿Seguro\?/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Dar el mes por cerrado' })).toContainText('el día 1 se cierra solo')
+  await page.getByRole('button', { name: 'Sí, darlo por cerrado' }).click()
   await page.waitForTimeout(500)
   await expect(resumen).toContainText('Mes cerrado')
 
@@ -1052,9 +1073,10 @@ test('poner un mes pasado a cero le quita el plan y no toca lo apuntado', async 
   await expect(resumen).toContainText('Agosto 2026')
   await expect(resumen).toContainText('Mes cerrado')
 
-  // Dos toques, como todo lo que borra algo.
+  // Con diálogo, y el diálogo dice lo que **no** se toca.
   await page.getByRole('button', { name: /Poner este mes a cero/ }).click()
-  await page.getByRole('button', { name: /¿Seguro\?/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Poner el mes a cero' })).toContainText('no se toca')
+  await page.getByRole('button', { name: 'Sí, ponerlo a cero' }).click()
   await page.waitForTimeout(500)
 
   await expect(resumen).toContainText('no se guardó ningún fijo')
@@ -1103,8 +1125,8 @@ test('un mes que aún no ha empezado sale en cero, y la previsión se pide', asy
   // Y sigue sin dejar apuntar: es una previsión, no un mes.
   await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toHaveCount(0)
 
-  // Y volviendo a este mes, todo lo de siempre.
-  await page.getByRole('button', { name: 'Volver a este mes' }).click()
+  // Y volviendo con la flecha —que es por donde se vino—, todo lo de siempre.
+  await page.getByRole('button', { name: 'Mes anterior' }).click()
   await page.waitForTimeout(300)
   await expect(page.getByRole('button', { name: 'Nuevo apunte' })).toBeVisible()
 })

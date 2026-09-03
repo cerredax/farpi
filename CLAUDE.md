@@ -81,7 +81,7 @@ npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
 npm run test:unit      # 416 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 545 (416 unitarios + 129 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:e2e       # suite completa: 546 (416 unitarios + 130 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)

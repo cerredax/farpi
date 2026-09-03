@@ -7,10 +7,8 @@ import type { Aportacion, CuentaDelMes as Cuenta } from '@/lib/budgets'
 interface CuentaDelMesProps {
   cuenta: Cuenta
   nombreDelMes: string
-  esMesActual: boolean
   onAnterior: () => void
   onSiguiente: () => void
-  onVolverAHoy: () => void
   reparto: Aportacion[]
   /** Un mes cerrado del que no se guardó ningún fijo ni partida. */
   copiaVacia: boolean
@@ -74,13 +72,19 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * habla en condicional. Sigue habiendo respuesta a «¿cuadra el mes que viene?»,
  * pero hay que preguntarla.
  *
+ * **Y no hay atajo de vuelta al mes de hoy** (03-09-2026). Hubo un «Volver a este
+ * mes» debajo del nombre y no se entendía: puesto sobre «Junio 2026» parece que va
+ * a hacerle algo a junio, no que sea la puerta de salida, y la palabra «este»
+ * señala a dos meses a la vez —el que se mira y el de hoy—. Se vuelve con la
+ * flecha, que es por donde se vino.
+ *
  * **Cerrar el mes no se ofrece aquí.** Estuvo un rato y quedaba mal: esta tarjeta
  * es la conclusión de la pantalla —una cifra grande y su desglose— y colgarle
  * debajo dos acciones la convertía en un panel de mandos. Se fue al pie de «El
  * mes», que es donde se lee como «he terminado con esto» (ver `CierreDelMes`).
  */
 export function CuentaDelMes({
-  cuenta, nombreDelMes, esMesActual, onAnterior, onSiguiente, onVolverAHoy, reparto,
+  cuenta, nombreDelMes, onAnterior, onSiguiente, reparto,
   copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
@@ -159,15 +163,6 @@ export function CuentaDelMes({
           className="mt-1 min-h-6 w-full py-1 text-center text-[11px] font-semibold text-primary-strong"
         >
           {previsionAbierta ? 'Ocultar la previsión' : 'Ver qué quedaría con lo fijo de hoy'}
-        </button>
-      )}
-      {!esMesActual && (
-        <button
-          type="button"
-          onClick={onVolverAHoy}
-          className="mt-1 min-h-6 w-full py-1 text-center text-[11px] font-semibold text-primary-strong"
-        >
-          Volver a este mes
         </button>
       )}
 

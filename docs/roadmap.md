@@ -476,7 +476,15 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
 - [x] Un fallo que solo se vio abriendo la pantalla: **las barras salían negras**.
       Tailwind v4 solo emite las variables del tema que encuentra literales, y el
       `fill` se armaba con una plantilla.
-- [x] 2 unitarios nuevos y un flujo de navegador más: **545** en la pasada completa.
+- [x] **Cerrar el mes y ponerlo a cero piden confirmación en un diálogo**, no con el
+      doble toque del resto de la app: lo que cambia es el mes entero y fuera de la
+      vista. Con el diálogo se fue la letra pequeña que lo explicaba en pantalla.
+- [x] **«+ Nueva partida» abre el sheet en «El mes»** en vez de saltar a «Lo fijo».
+      Sigue naciendo en la plantilla; de que no se ofrezca en un mes pasado ya se
+      encarga `planVivo`.
+- [x] **Fuera «Volver a este mes»**: sobre «Junio 2026» parecía que iba a hacerle algo
+      a junio, y «este» señalaba a dos meses a la vez. Se vuelve con la flecha.
+- [x] 2 unitarios nuevos y dos flujos de navegador más: **546** en la pasada completa.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

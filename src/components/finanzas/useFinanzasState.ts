@@ -123,8 +123,6 @@ export function useFinanzasState() {
     hoy, mes, setMes,
     mesAnterior: () => irAlMes(m => mesVecino(m, -1)),
     mesSiguiente: () => irAlMes(m => mesVecino(m, 1)),
-    /** Volver al mes en curso. Se ofrece solo cuando se está mirando otro. */
-    volverAHoy: () => irAlMes(() => mesActual),
     esMesActual: mes === mesActual,
     /**
      * Si el plan de este mes está congelado: sus partidas no se editan desde aquí

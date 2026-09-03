@@ -15,6 +15,31 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-03
 
+### Finanzas: el cierre pregunta en condiciones, y tres cosas que sobraban (03-09-2026)
+
+De volver a usar la pantalla. Cuatro retoques y ninguno de fondo.
+
+**Cerrar el mes ya no se confirma con un doble toque.** Es el patrón del resto de la
+app y aquí no valía: el doble toque sirve para lo que se ve —borrar una fila que
+sigue delante y se nota al momento—, y cerrar un mes cambia el mes entero fuera de la
+vista, sin nada en pantalla que enseñe qué acaba de pasar. Ahora abre un diálogo —el
+mismo `BottomSheet` de siempre— que dice qué se guarda y que el día 1 se cierra solo.
+Ponerlo a cero, igual, con su botón en rojo y avisando de que lo apuntado no se toca.
+
+**Y con el diálogo se fue la letra pequeña.** Explicaba eso mismo a 10 px, todo el
+rato, a alguien que casi nunca va a pulsar ese botón. Ahora lo cuenta el diálogo, que
+es cuando hace falta saberlo.
+
+**«+ Nueva partida» abre el sheet ahí mismo.** Saltaba a «Lo fijo», por una razón de
+vocabulario que sigue siendo verdad —una partida es de la plantilla y no de un mes—
+pero que ya no hace falta defender mandando a nadie a otra pantalla: de que el botón
+no exista en enero se encarga `planVivo`. Lo que quedaba era sacar de sus partidas a
+quien estaba mirándolas y quería una más.
+
+**Fuera «Volver a este mes».** Puesto bajo «Junio 2026» parece que va a hacerle algo a
+junio, y la palabra «este» señala a la vez al mes que se mira y al de hoy. Se vuelve
+con la flecha, que es por donde se vino.
+
 ### Finanzas: las partidas se abren y el resumen adelgaza (03-09-2026)
 
 De mirar la pantalla y no entender los gráficos. Tres cosas.

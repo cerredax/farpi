@@ -156,10 +156,8 @@ export function FinanzasView() {
         <CuentaDelMes
           cuenta={s.cuenta}
           nombreDelMes={nombreDelMes}
-          esMesActual={s.esMesActual}
           onAnterior={s.mesAnterior}
           onSiguiente={s.mesSiguiente}
-          onVolverAHoy={s.volverAHoy}
           reparto={s.repartoPorPersona}
           copiaVacia={s.copiaVacia}
           previsionAbierta={s.previsionAbierta}
@@ -171,6 +169,7 @@ export function FinanzasView() {
             que se hace con el mes que la tarjeta acaba de resumir, y abajo había
             que pasar por las partidas y por todos los apuntes para encontrarlo. */}
         <CierreDelMes
+          nombreDelMes={nombreDelMes}
           sePuedeCerrar={s.sePuedeCerrarYa}
           sePuedeReabrir={s.sePuedeReabrir}
           sePuedePonerACero={s.sePuedePonerACero}
@@ -189,9 +188,15 @@ export function FinanzasView() {
               <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
               {/* Solo se ofrece añadir donde las partidas son las vivas: en un mes
                   pasado —cerrado o no— lo que se mira es lo que hubo, y no hay nada
-                  que tocar ahí. El enlace lleva a la plantilla y no abre el sheet
-                  aquí, porque una partida es de la plantilla y no de un mes —
-                  abrirla desde enero haría creer que se está creando en enero.
+                  que tocar ahí.
+
+                  **Abre el sheet aquí mismo** (03-09-2026). Hasta ese día mandaba a
+                  «Lo fijo», por una razón de vocabulario —una partida es de la
+                  plantilla y no de un mes, y crearla desde enero haría creer que se
+                  está creando en enero— que ya no hace falta defender con un salto de
+                  pestaña: de eso se encarga `planVivo`, que es lo que impide que este
+                  botón exista en enero. Lo que quedaba era mandar a otra pantalla a
+                  quien está mirando sus partidas y quiere una más.
 
                   `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
                   `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
@@ -200,7 +205,7 @@ export function FinanzasView() {
               {s.planVivo && (
                 <button
                   type="button"
-                  onClick={() => s.setPestaña('plantilla')}
+                  onClick={() => s.abrirPartida(null)}
                   className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
                 >
                   <Plus size={14} strokeWidth={2.6} aria-hidden />

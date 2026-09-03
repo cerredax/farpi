@@ -1729,6 +1729,44 @@ el texto ocupaba más alto que los dibujos. Se podó:
   restar de cabeza. Ahora es lo que quedó cada mes, y entra y sale siguen enteros y
   exactos en la tabla plegada, que es donde se leían de verdad.
 
+##### El cierre pide confirmación en un diálogo (03-09-2026)
+
+Cerrar el mes y ponerlo a cero dejan de usar el doble toque de `useConfirmAction`,
+que es el patrón del resto de la app, y abren un `BottomSheet` de confirmación —el
+mismo componente que todo lo demás; no hay overlays propios—.
+
+Es la excepción y tiene motivo: **el doble toque vale para lo que se ve**. Borrar una
+fila que sigue delante se entiende sin explicación y se nota al momento. Aquí lo que
+cambia es el mes entero, fuera de la vista, y no hay nada en pantalla que enseñe qué
+acaba de pasar; un renglón que se pone en rojo un segundo no es sitio para contar que
+se van a congelar los fijos de hoy.
+
+Y con el diálogo **se fue la letra pequeña de debajo**, que decía eso mismo a 10 px,
+todo el rato, a alguien que casi nunca va a pulsar ese botón. Ahora lo cuenta el
+diálogo, que es exactamente cuando hace falta saberlo. La única que se queda es la de
+«volver a seguir la plantilla», que no tiene diálogo —no pierde nada— y cuya pega es
+de plazo y no de consecuencia.
+
+##### «Nueva partida» abre el sheet, y no lleva a «Lo fijo» (03-09-2026)
+
+El enlace de «El mes» saltaba a la pestaña de la plantilla, por una razón de
+vocabulario: una partida es de la plantilla y no de un mes, y crearla desde enero
+haría creer que se está creando en enero. La razón sigue siendo verdad, pero ya no
+hace falta defenderla mandando a nadie a otra pantalla: de eso se encarga `planVivo`,
+que es lo que impide que ese botón exista en enero. Lo que quedaba era sacar de sus
+partidas a quien estaba mirándolas y quería una más.
+
+La partida sigue naciendo en la plantilla, así que se ve en el mes en curso al momento
+—es su espejo— y también el mes que viene. Una partida que existiera **solo** en un
+mes sería otro concepto y otra columna, y no lo vale.
+
+##### El atajo de vuelta al mes de hoy se fue (03-09-2026)
+
+Había un «Volver a este mes» bajo el nombre del mes cuando se miraba otro, y no se
+entendía: puesto sobre «Junio 2026» parece que va a hacerle algo a junio, y «este»
+señala a la vez al mes que se mira y al de hoy. Se vuelve con la flecha, que es por
+donde se vino.
+
 ##### Las partidas se abren (03-09-2026)
 
 «Llevas 412 de 350» deja siempre la misma pregunta detrás —«¿en qué?»— y contestarla

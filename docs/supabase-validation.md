@@ -1,17 +1,27 @@
 # Validación Supabase
 
-> **Pendiente (03-09-2026).** El esquema cambió en tres cosas —`close_month_copy` solo
-> copia lo que existía antes de que el mes acabara, `reopen_month` vuelve a ser solo del
-> mes en curso y nace `empty_month`— y `scripts/validate-rls.mjs` ya trae las
-> comprobaciones nuevas, **pero no se ha ejecutado**: hay que aplicar primero esa parte de
-> `supabase/schema.sql` en el SQL Editor, porque `empty_month` todavía no existe en el
-> proyecto real. Lo de abajo es de la ejecución anterior.
+Última ejecución: 2026-09-03, con **el cierre que no inventa meses y `empty_month`** ya
+aplicados en el proyecto real. **149/149 comprobaciones correctas.**
 
-Última ejecución: 2026-09-02, con **los meses cerrados** ya aplicados en el proyecto
-real. **139/139 comprobaciones correctas.**
+Son las 141 anteriores más las **ocho del mes que no se vivió**, todas en la §4 bis de los
+meses cerrados. Dos son de la guarda del cierre: que cerrar el mes pasado **no copia una
+plantilla creada después** —la familia de prueba siembra la suya un segundo antes de
+llamar, así que no estuvo en ese mes— y que ese mes **se queda sin plan** en vez de con uno
+inventado. Es el caso de agosto, cerrado el 1 de septiembre con unas nóminas creadas ese
+mismo día. La tercera es la de siempre pero afinada: con una plantilla sembrada con
+`created_at` viejo, el plan copia **solo lo que ya existía en aquel mes**.
 
-Son las 117 anteriores más las **veintidós de los meses cerrados**, que van juntas en una
-§4 bis propia. `month_plans` y `month_plan_lines` son las dos primeras tablas de contenido con
+Y seis son de `empty_month`: que A puede poner a cero un mes terminado, que se van sus
+líneas, que **la cabecera se queda** —si se borrara, `close_previous_month` vería «falta el
+mes pasado» en la siguiente carga y lo cerraría otra vez con la plantilla de hoy—, que
+volver a cerrarlo devuelve `false` y no lo revive, que **no** se puede poner a cero el mes
+en curso —para eso está `reopen_month`, que lo devuelve a espejo— y que B no puede ponerle
+a cero un mes a la familia de A.
+
+## Antes: 139/139 (02-09-2026, los meses cerrados)
+
+Eran las 117 de la víspera más las **veintidós de los meses cerrados**, que van juntas en
+una §4 bis propia. `month_plans` y `month_plan_lines` son las dos primeras tablas de contenido con
 policy de **solo `select`**, y eso es exactamente lo que había que ver funcionar: lo que
 hace que un mes cerrado signifique algo no es que esté guardado, es que la app no pueda
 reescribirlo.

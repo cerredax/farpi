@@ -450,9 +450,9 @@ Todo salió de usar la pantalla un día. El porqué de cada cosa, en
       llevan un saldo se lee como un saldo.
 - [x] 5 unitarios nuevos y 2 flujos de navegador; 6 comprobaciones nuevas en
       `scripts/validate-rls.mjs`.
-- [ ] **Aplicar en el SQL Editor** la parte nueva de `supabase/schema.sql`
-      (`close_month_copy`, `reopen_month`, `empty_month`) y ejecutar
-      `node scripts/validate-rls.mjs`.
+- [x] **Aplicado en el SQL Editor** (`close_month_copy` y `empty_month`;
+      `reopen_month` no cambió de cuerpo) y validado: **149/149** en
+      `node scripts/validate-rls.mjs`, ver `docs/supabase-validation.md`.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

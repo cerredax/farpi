@@ -7,9 +7,9 @@
 Farpi está conectado a Supabase de extremo a extremo: autenticación, repositorios reales, `StoreProvider` async, onboarding e invitaciones por magic link. Los archivos de los documentos ya no los guarda Farpi: viven en el Google Drive de quien los sube (27-08-2026), y la familia los ve igual sin conectar nada. La UI consume la frontera de repositorios y elige implementación real o mock según `IS_DEMO_MODE`. El modo demo/mock sigue funcionando como fallback y como entorno de pruebas (e2e).
 
 La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Las tablas de Finanzas se aplicaron en el proyecto real y se validaron el 01-09-2026: primero las tres iniciales (99/99) y, con la reforma de los fijos de esa misma tarde, `fixed_entries` y `expenses.kind` (**106/106**). La sección funciona entera con datos reales. El 02-09-2026 se
-aplicaron y validaron tres cambios más de esquema —la franja del comedor con los platos de
-una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**—:
-**139/139**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
+aplicaron y validaron cuatro cambios más de esquema —la franja del comedor con los platos
+de una comida, las once carpetas de documentos, **los meses cerrados de Finanzas** y, el
+03-09-2026, el cierre que ya no inventa meses con `empty_month`—: **149/149**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
@@ -439,11 +439,12 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **02-09-2026**, con
-`node scripts/validate-rls.mjs` contra la base real y ya con los meses cerrados de Finanzas
-aplicados: **139/139**. El detalle de las veintidós comprobaciones nuevas —y de por qué las
-que más importan son que nadie pueda llamar a `close_month_copy` directamente y que un mes
-terminado no se pueda reabrir— está en `docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
+Sin pendientes. La última pasada es del **03-09-2026**, con
+`node scripts/validate-rls.mjs` contra la base real y ya con el cierre que no inventa meses
+y `empty_month` aplicados: **149/149**. El detalle —y por qué las que más importan son que
+nadie pueda llamar a `close_month_copy` directamente, que un mes terminado no se pueda
+reabrir y que poner un mes a cero deje la cabecera del plan— está en
+`docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
 `supabase/aplicar-meses-cerrados.sql`.
 
 Antes de eso, la pasada del **01-09-2026 (tarde)** dio **106/106**. Las siete últimas son de la reforma de los fijos:

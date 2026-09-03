@@ -58,9 +58,9 @@ pequeña diga que no lo es. La previsión sigue estando —mirar si el mes que v
 es para lo que sirve una plantilla— pero se pide con un enlace, y se cierra al cambiar
 de mes.
 
-Cinco unitarios nuevos, dos flujos de navegador y seis comprobaciones más en
-`scripts/validate-rls.mjs`. Queda **aplicar el esquema a mano** en el SQL Editor y
-ejecutar la validación: `empty_month` todavía no existe en el proyecto real.
+Cinco unitarios nuevos, un flujo de navegador más y ocho comprobaciones en
+`scripts/validate-rls.mjs`. Aplicado en el proyecto real ese mismo día y revalidado:
+**149/149**.
 
 ### Los textos de la portada dejan de sonar a folleto (03-09-2026)
 

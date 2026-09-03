@@ -3,16 +3,21 @@
 Última ejecución: 2026-09-03, con **el cierre que no inventa meses y `empty_month`** ya
 aplicados en el proyecto real. **149/149 comprobaciones correctas.**
 
-Son las 141 anteriores más las **ocho del mes que no se vivió**, todas en la §4 bis de los
-meses cerrados. Dos son de la guarda del cierre: que cerrar el mes pasado **no copia una
+Son las 139 anteriores más diez. **Ocho son las del mes que no se vivió**, todas en la §4
+bis de los meses cerrados; las otras dos las dispara el propio arnés, porque esa sección
+siembra ahora dos filas más de plantilla —un fijo y una partida con `created_at` viejo— y
+cada `sembrar(...)` comprueba por su cuenta que A puede crear en su familia.
+
+Dos de las ocho son de la guarda del cierre: que cerrar el mes pasado **no copia una
 plantilla creada después** —la familia de prueba siembra la suya un segundo antes de
 llamar, así que no estuvo en ese mes— y que ese mes **se queda sin plan** en vez de con uno
 inventado. Es el caso de agosto, cerrado el 1 de septiembre con unas nóminas creadas ese
-mismo día. La tercera es la de siempre pero afinada: con una plantilla sembrada con
-`created_at` viejo, el plan copia **solo lo que ya existía en aquel mes**.
+mismo día. Y la que ya había sobre el cierre no es nueva pero sí más exigente: con una
+plantilla sembrada con `created_at` viejo, el plan copia **solo lo que ya existía en aquel
+mes**.
 
-Y seis son de `empty_month`: que A puede poner a cero un mes terminado, que se van sus
-líneas, que **la cabecera se queda** —si se borrara, `close_previous_month` vería «falta el
+Las otras seis son de `empty_month`: que A puede poner a cero un mes terminado, que
+se van sus líneas, que **la cabecera se queda** —si se borrara, `close_previous_month` vería «falta el
 mes pasado» en la siguiente carga y lo cerraría otra vez con la plantilla de hoy—, que
 volver a cerrarlo devuelve `false` y no lo revive, que **no** se puede poner a cero el mes
 en curso —para eso está `reopen_month`, que lo devuelve a espejo— y que B no puede ponerle

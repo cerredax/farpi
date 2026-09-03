@@ -448,11 +448,12 @@ Todo salió de usar la pantalla un día. El porqué de cada cosa, en
 - [x] **Un mes que no ha llegado sale en cero** y la previsión se pide con un
       enlace. El aviso del 02-09-2026 no bastaba: una cifra donde los demás meses
       llevan un saldo se lee como un saldo.
-- [x] 5 unitarios nuevos y 2 flujos de navegador; 6 comprobaciones nuevas en
-      `scripts/validate-rls.mjs`.
+- [x] 5 unitarios nuevos y un flujo de navegador más; ocho comprobaciones nuevas
+      en `scripts/validate-rls.mjs` (diez en total, con las dos del sembrado).
 - [x] **Aplicado en el SQL Editor** (`close_month_copy` y `empty_month`;
-      `reopen_month` no cambió de cuerpo) y validado: **149/149** en
-      `node scripts/validate-rls.mjs`, ver `docs/supabase-validation.md`.
+      `reopen_month` solo cambió de comentario) y validado: **149/149** en
+      `node scripts/validate-rls.mjs`, ver `docs/supabase-validation.md`. El delta,
+      reescrito entero, sigue en `supabase/aplicar-meses-cerrados.sql`.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

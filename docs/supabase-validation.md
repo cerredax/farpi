@@ -1,8 +1,36 @@
 # Validación Supabase
 
-Última ejecución: 2026-09-03, con **la llave prestada que solo se presta la de uno** y el
-índice de `family_members(user_id)` ya aplicados en el proyecto real. **152/152
-comprobaciones correctas.**
+Última ejecución: 2026-09-03, con **la invitación que caduca** y los tres índices por
+`family_id` que faltaban ya aplicados en el proyecto real. **154/154 comprobaciones
+correctas.**
+
+Son las 152 anteriores más dos, las dos en la §7. Una invitación no vale para siempre: el
+enlace del correo lo caduca Supabase a las pocas horas, pero lo que mete en la familia es el
+`invite_id` de la URL de vuelta, y esa URL se puede guardar — quien la tuviera apuntada
+entraba en casa un año después, con solo iniciar sesión y volver a visitarla. Ahora la RPC
+rechaza lo que lleve más de 30 días esperando, y la comprobación va **después** de la del
+email para que solo se entere de la caducidad quien de verdad estaba invitado.
+
+Las dos comprobaciones envejecen la fila 40 días con el service role, que es la única forma
+de probar el paso del tiempo sin esperarlo, e intentan aceptarla con C. El caso bueno no se
+monta aparte: es B aceptando la suya recién hecha, seis líneas más arriba en la misma
+sección, y eso es lo que impide que estas dos pasen con una RPC que rechazara **todas** las
+invitaciones.
+
+La segunda de las dos —«y quien la guardaba sigue fuera de la familia»— parece redundante y
+no lo es: es la que avisa del efecto en cascada. La primera pasada con la RPC sin aplicar dio
+**148/154**, y cuatro de los seis fallos eran de secciones muy posteriores («un ajeno NO ve
+el menú del comedor», el festivo, los cumpleaños, el documento). El motivo era uno solo: C
+había entrado en la familia y había dejado de ser el ajeno permanente que esas secciones
+necesitan. Si un día vuelven a caerse cuatro comprobaciones de «ajeno» a la vez, mirar aquí
+antes que allí.
+
+Los tres índices —`children`, `lists` y `list_items` por `family_id`— no se comprueban aquí
+porque no cambian ninguna respuesta, solo el tiempo. La app pide siempre `?family_id=eq.…`
+en esas tres tablas y `list_items` solo tenía el índice por lista: vale para pintar una
+cesta abierta, no para traerse las de la casa.
+
+## Antes: 152/152 (03-09-2026, la llave prestada que solo se presta la de uno)
 
 Son las 149 anteriores más tres, todas en la §12, y las tres van de la misma columna:
 `storage_owner`. Esa columna dice en el Drive de quién está el archivo, y

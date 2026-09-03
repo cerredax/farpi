@@ -388,6 +388,33 @@ async function main() {
   comprobar('Miembro NO admin no puede invitar',
     (await api('/rest/v1/family_invites', { metodo: 'POST', token: tokB, datos: { family_id: famA, email: 'otro2@test.invalid', invited_by: uidB } })).estado >= 400)
 
+  // Una invitación no vale para siempre (03-09-2026). El enlace del correo lo
+  // caduca Supabase a las pocas horas, pero lo que abre la familia es el
+  // `invite_id` de la URL de vuelta, y esa URL se puede guardar: quien la tuviera
+  // apuntada entraba en casa un año después. Se envejece la fila con el service
+  // role, que es la única forma de probar el paso del tiempo sin esperarlo.
+  //
+  // Se hace con C y no con B —que ya está dentro— y **tiene que ser rechazada**,
+  // así que C sigue siendo el ajeno permanente que las secciones de abajo
+  // necesitan. Si esta comprobación se pusiera en verde al revés, la §12 empezaría
+  // a fallar sola: eso es lo que la sostiene.
+  const invitacionVieja = (await api('/rest/v1/family_invites', {
+    metodo: 'POST', token: tokA, datos: { family_id: famA, email: emailC, invited_by: uidA }, cabeceras: REPRESENTACION,
+  })).cuerpo?.[0]?.id
+  await api(`/rest/v1/family_invites?id=eq.${invitacionVieja}`, {
+    metodo: 'PATCH',
+    datos: { created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString() },
+  })
+  comprobar('Una invitación de hace 40 días ya no se puede aceptar',
+    (await api('/rest/v1/rpc/accept_family_invite', { metodo: 'POST', token: tokC, datos: { p_invite_id: invitacionVieja } })).estado >= 400)
+  comprobar('Y quien la guardaba sigue fuera de la familia',
+    filas(await api(`/rest/v1/children?family_id=eq.${famA}&select=id`, { token: tokC })) === 0)
+  // El caso bueno no hace falta montarlo aquí: es B aceptando la suya recién
+  // hecha, seis líneas más arriba en esta misma sección. Eso es lo que impide que
+  // estas dos pasen con una RPC que rechazara **todas** las invitaciones — y sale
+  // gratis, sin meter a C en la familia para luego sacarlo y dejar las secciones
+  // de abajo colgando de que esa limpieza funcione.
+
   // La 019 guarda en `families` qué franjas de comida ve la casa. No trae policy
   // nueva —usa la de update de la 002— así que lo que hay que comprobar es que esa
   // policy sigue diciendo "solo admin" con una columna más, y que el `check`

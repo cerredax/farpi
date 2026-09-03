@@ -412,6 +412,13 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
   es el aviso del último administrador, que es una regla de negocio y hay que leerla.
 - Sin `SUPABASE_SERVICE_ROLE_KEY`, las rutas que usan el cliente admin responden 503 en
   vez de reventar con el «supabaseKey is required» de la librería.
+- Una invitación caduca a los 30 días (03-09-2026). El enlace del correo lo caduca Supabase
+  a las pocas horas, pero lo que mete en la familia es el `invite_id` de la URL de vuelta, y
+  esa URL se puede guardar: quien la tuviera apuntada entraba en casa un año después. La
+  comprobación va después de la del email, para que solo se entere de la caducidad quien de
+  verdad estaba invitado. Validado con la fila envejecida 40 días. **Ojo con la interfaz:**
+  una invitación caducada sigue apareciendo como «pendiente» en Ajustes; no bloquea nada
+  —el admin la cancela y vuelve a invitar— pero la pantalla dice algo que ya no es verdad.
 - `/api/push` solo acepta las direcciones de los cuatro servidores de push que existen
   (03-09-2026). Lo que se guardaba ahí no es un dato: es una URL que el cron **visita** todos
   los días, así que cualquier miembro podía dejar apuntado un destino cualquiera y usar el
@@ -451,8 +458,8 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 ## Validación Supabase
 
 Sin pendientes. La última pasada es del **03-09-2026**, con
-`node scripts/validate-rls.mjs` contra la base real y ya con el `with check` de
-`storage_owner` y el índice de `family_members(user_id)` aplicados: **152/152**. El detalle
+`node scripts/validate-rls.mjs` contra la base real y ya con la invitación que caduca y los
+cuatro índices que faltaban aplicados: **154/154**. El detalle
 —y por qué las que más importan son que nadie pueda llamar a `close_month_copy`
 directamente, que un mes terminado no se pueda reabrir, que poner un mes a cero deje la
 cabecera del plan y que nadie pueda apuntar una ficha al Drive de otro— está en

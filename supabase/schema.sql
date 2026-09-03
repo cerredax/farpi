@@ -613,6 +613,15 @@ create index if not exists idx_events_member           on public.events(member_i
 create index if not exists events_recurrence_group_idx on public.events(recurrence_group_id)
   where recurrence_group_id is not null;
 
+-- Estas tres se habían quedado fuera de la regla del párrafo de arriba. La app
+-- pide siempre `?family_id=eq.…` —`getKids`, `getLists`, `getListItems`— y
+-- `list_items` solo tenía el índice por lista, que sirve para pintar una cesta
+-- abierta pero no para traerse las de la casa. Con veinte filas se nota cero; es
+-- que la regla estaba escrita y estas no la cumplían.
+create index if not exists children_family_idx     on public.children(family_id);
+create index if not exists lists_family_idx        on public.lists(family_id);
+create index if not exists list_items_family_idx   on public.list_items(family_id);
+
 create index if not exists list_items_list_idx      on public.list_items(list_id, sort_order);
 -- Las fijadas primero y luego lo tocado hace menos, que es el orden en que se leen.
 create index if not exists notes_family_idx         on public.notes(family_id, pinned desc, updated_at desc);
@@ -1416,7 +1425,8 @@ grant execute on function public.update_family_member_role(uuid, text) to authen
 -- Aceptar una invitación. Quien la acepta todavía no es miembro, así que no hay
 -- policy que pueda dejarle escribir: tiene que ser una RPC. Comprueba que la
 -- invitación es para su email —si no, cualquiera con el id entraría en casa
--- ajena— y es idempotente si ya era miembro por otra vía.
+-- ajena—, que no lleve más de 30 días esperando, y es idempotente si ya era
+-- miembro por otra vía.
 create or replace function public.accept_family_invite(p_invite_id uuid)
 returns uuid
 language plpgsql
@@ -1448,6 +1458,25 @@ begin
 
   if lower(v_invite.email) != lower(v_caller_email) then
     raise exception 'Acceso denegado: la invitación no pertenece a este usuario';
+  end if;
+
+  -- Una invitación no vale para siempre.
+  --
+  -- El enlace del correo lo caduca Supabase a las pocas horas, pero eso no cierra
+  -- la puerta: lo que abre la familia es el `invite_id` de la URL de vuelta, y esa
+  -- URL se puede guardar. Quien la tenga apuntada podía entrar en casa un año
+  -- después, entrando con su cuenta y volviendo a visitarla. Una invitación es un
+  -- «pasa» dicho un día concreto, no una llave.
+  --
+  -- Treinta días porque el caso real es alguien que tarda en mirar el correo o en
+  -- crearse la cuenta, y eso se resuelve en días. Pasado el mes, el admin la
+  -- vuelve a mandar, que cuesta un botón.
+  --
+  -- Va **después** de la comprobación del email a propósito: así solo se entera de
+  -- que caducó quien de verdad estaba invitado. A un desconocido con el id en la
+  -- mano se le sigue contestando lo mismo que antes y nada más.
+  if v_invite.created_at < now() - interval '30 days' then
+    raise exception 'La invitación ha caducado. Pide que te la manden otra vez.';
   end if;
 
   if exists (

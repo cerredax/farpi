@@ -106,11 +106,15 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **¿Voy bien este mes?** — lo gastado acumulado día a día contra el ritmo de los meses
   cerrados, con las dos cifras escritas; solo en el mes en curso y habiendo con qué
   comparar.
-  **¿Cómo van los meses?** — una barra por mes con lo que quedó, la media dibujada, el
-  mejor y el peor etiquetados y los números en una tabla plegada.
-  **¿En qué se va?** — una barra por partida de mayor a menor, todas del mismo color,
-  cada una con **cuánto ha cambiado** desde el mes pasado y, al pie, las que se pasan a
-  menudo.
+  **¿Cómo van los meses?** — **dos barras por mes**, lo que entra y lo que sale, con lo
+  que quedó escrito encima de cada par; y los tres números de cada mes en una tabla
+  plegada.
+  **¿En qué se va?** — un **anillo** y, debajo, una fila por concepto de mayor a menor,
+  con **los gastos fijos dentro**: sin ellos el bloque decía «se han ido 291,45 €» en un
+  mes en el que se fueron 1.162,35, y el alquiler no salía. El anillo pinta el mismo tono
+  cada vez más claro según baja la lista, así que el color y el orden son el mismo dato y
+  no hace falta leyenda. Cada fila dice **cuánto ha cambiado** desde el mes pasado, con
+  palabras y en su renglón, y al pie salen las partidas que se pasan a menudo.
   **¿De cada 100 € que entran?** — una barra apilada con fijos, partidas, lo demás y lo
   que queda, con las cuatro cifras y sus porcentajes.
   Se descartaron el reparto por persona en el tiempo —sería una cuenta pendiente— y la

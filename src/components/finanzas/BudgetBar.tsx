@@ -37,7 +37,7 @@ function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
     <button
       type="button"
       onClick={onEdit}
-      className="flex w-full items-baseline gap-2 rounded-lg px-1 py-1.5 text-left text-[11px] transition-colors hover:bg-canvas active:bg-canvas"
+      className="flex w-full items-baseline gap-2 rounded-lg px-1 py-1.5 text-left text-[13px] transition-colors hover:bg-canvas active:bg-canvas"
     >
       <span className="w-12 flex-shrink-0 tabular-nums text-faint">
         {format(parseISO(apunte.date), 'd MMM', { locale: es })}
@@ -119,7 +119,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
   // `danger-strong` y no `danger` a secas: a 11 px esto es texto pequeño y le
   // toca el 4,5:1 de WCAG, que el rojo claro no alcanza sobre blanco.
   const pie = (
-    <span className={`text-[11px] ${pasado ? 'font-semibold text-danger-strong' : 'text-muted'}`}>
+    <span className={`text-[13px] ${pasado ? 'font-semibold text-danger-strong' : 'text-muted'}`}>
       {pasado
         ? `Te has pasado por ${formatCentsCorto(-restante)}`
         : `Quedan ${formatCentsCorto(restante)}`}
@@ -157,7 +157,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
       {abierta && (
         <div id={panelId} className="border-t border-hairline pt-1.5">
           {apuntes.length === 0 ? (
-            <p className="px-1 py-1.5 text-[11px] text-faint">Nada apuntado en esta partida.</p>
+            <p className="px-1 py-1.5 text-[13px] text-faint">Nada apuntado en esta partida.</p>
           ) : (
             <ul className="-mx-1">
               {apuntes.map(apunte => (
@@ -177,7 +177,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
             <button
               type="button"
               onClick={onEdit}
-              className="mt-1 min-h-6 px-1 py-1 text-[11px] font-semibold text-primary-strong"
+              className="mt-1 min-h-6 px-1 py-1 text-[13px] font-semibold text-primary-strong"
             >
               Editar partida
             </button>

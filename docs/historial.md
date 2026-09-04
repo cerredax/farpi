@@ -15,6 +15,45 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Finanzas: segunda vuelta a «Cómo vamos», y los fijos entran en el desglose (04-09-2026)
+
+Salió de mirar la pestaña recién entregada: «los porcentajes no se entienden nada». El
+diagnóstico era exacto y el fallo, mío: había dos cifras con el mismo símbolo pegadas en
+la misma fila —el «+24 %» de la variación y el «7 %» del peso— significando cosas
+distintas. Con eso vinieron tres cosas más.
+
+**Los gastos fijos entran en «en qué se va»**, y esta no es una preferencia: arregla algo
+que estaba mal. El bloque decía «se han ido 291,45 €» en un mes en el que se fueron
+1.162,35, porque solo contaba lo apuntado a mano; el alquiler, que es el mayor gasto de la
+casa, no salía en el desglose de en qué se va el dinero. Ahora junio dice la verdad: el
+alquiler se lleva el 65 % del mes y la compra baja al 7 %. No son partidas y da igual: lo
+que se pide de un trozo aquí es que tenga nombre y que haya salido este mes.
+
+**El anillo vuelve** —pedido— y con él se revisa la decisión que lo quitó el 02-09. Sus dos
+pegas eran reales, así que se arreglan en vez de repetirlas: el color va **ordenado** en
+vez de repartido, con el mismo tono cada vez más claro según baja la lista, así que dos
+porciones parecidas ya no se confunden; y no hay leyenda porque la lista de debajo, con su
+cuadradito al lado de cada nombre, es la leyenda. De paso respeta la paleta de gráficos,
+que tiene dos colores y no seis porque la claridad se distingue en protanopía y el tono no.
+
+**La serie vuelve a dos barras**, entra y sale, con lo que quedó escrito encima de cada
+par. La pega que las quitó el 03-09 era tener que restar de cabeza; escribir la resta lo
+resuelve sin renunciar a ver las tres cifras.
+
+**Y la letra sube de 11 a 13 px** en toda la pantalla. Era lo más pequeño de la app, en la
+pantalla con más cifras por centímetro, y explica buena parte del «no se entiende».
+
+Una cosa volvió atrás: **los fijos de «El mes» se vuelven a plegar**. Salieron abiertos por
+la mañana, a petición, y esa misma tarde se deshizo: con los cuatro recibos y las dos
+nóminas desplegados, la tarjeta se come media pantalla antes de llegar a las partidas.
+
+Y un tropiezo de los que enseñan algo del entorno: un bloque de test no había forma de
+reemplazarlo y las tres herramientas decían «no coincide». Resultó que en un mensaje
+anterior había escrito un **espacio duro** (U+00A0) en vez de un espacio normal dentro de
+una aserción, así que el texto del archivo no era el que yo leía. Se vio inspeccionando los
+bytes con `repr()`; la lección es que cuando un reemplazo exacto falla tres veces, el
+problema no es el reemplazo.
+
 ### Finanzas: «Cómo vamos», y cuatro arreglos de la pantalla del mes (04-09-2026)
 
 Cinco cosas pedidas tras usar la pantalla recién entregada. Cuatro eran de detalle y la

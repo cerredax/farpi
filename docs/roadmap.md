@@ -509,6 +509,21 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
       a junio, y «este» señalaba a dos meses a la vez. Se vuelve con la flecha.
 - [x] 2 unitarios nuevos y dos flujos de navegador más: **546** en la pasada completa.
 
+## Fase 8o - Finanzas: segunda vuelta a «Cómo vamos» (04-09-2026)
+
+Salió de mirar la pestaña recién hecha. El porqué, en `docs/architecture.md`.
+
+- [x] **Los gastos fijos entran en «en qué se va».** No era una preferencia: el bloque
+      decía «se han ido 291,45 €» en un mes en el que se fueron 1.162,35, y el alquiler
+      —el mayor gasto de la casa— no salía. El tope de trozos sube de 5 a 7.
+- [x] **La variación pasa a su renglón y con palabras** («24 % más que en junio»): dos
+      cifras con el mismo símbolo pegadas en la misma fila eran ilegibles.
+- [x] **El anillo vuelve**, con el color ordenado de mayor a menor por claridad —así dos
+      porciones parecidas no se confunden— y sin leyenda, porque la lista lo es.
+- [x] **La serie vuelve a dos barras**, entra y sale, con lo que quedó escrito encima.
+- [x] **La letra de Finanzas sube de 11 a 13 px.**
+- [x] Deshecho: los fijos de «El mes» vuelven a salir plegados.
+
 ## Fase 8ñ - Finanzas: «Cómo vamos», y cuatro arreglos del mes (04-09-2026)
 
 Cinco peticiones tras usar la pantalla recién entregada. El porqué de cada una, en

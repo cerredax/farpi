@@ -658,7 +658,18 @@ export interface TrozoDelReparto {
 }
 
 /**
- * En qué se ha ido el gasto de un mes, de más a menos.
+ * En qué se ha ido el dinero de un mes, de más a menos.
+ *
+ * **Los gastos fijos entran, uno por uno** (04-09-2026). Hasta ese día el bloque
+ * solo contaba lo apuntado a mano y por eso mentía por omisión: en junio decía «se
+ * han ido 291,45 €» cuando se fueron 1.162,35, y el alquiler —el mayor gasto de la
+ * casa con diferencia— no salía por ninguna parte. Un desglose de «en qué se va el
+ * dinero» sin el alquiler dentro no contesta la pregunta que dice contestar.
+ *
+ * No son partidas y no hacen falta que lo sean: aquí lo que se pide de cada trozo
+ * es que tenga nombre y un importe que salió este mes. Que el alquiler se pague
+ * solo y la compra se vaya llenando es una diferencia de cómo se apuntan, no de a
+ * dónde va el dinero.
  *
  * **Lo que no cuelga de ninguna partida entra igual**, como «Sin partida». Es la
  * mitad de lo que gasta una casa y esconderlo dejaría un desglose que no suma el
@@ -667,7 +678,8 @@ export interface TrozoDelReparto {
  *
  * **Se corta en `maximo` y el resto se junta en «Otras».** No es solo estética:
  * doce filas dejan de ser un gráfico y son una lista, y las últimas serían rayas
- * de dos píxeles que no dicen nada. Seis es lo que cabe leyéndose de un vistazo.
+ * de dos píxeles que no dicen nada. El tope subió de 5 a 7 al entrar los fijos:
+ * con los recibos dentro, cinco dejaba fuera media casa.
  *
  * Solo gastos: un ingreso no se «va» a ninguna parte.
  */
@@ -675,13 +687,23 @@ export function repartoPorPartida(
   plantilla: PlantillaDelMes,
   expenses: Expense[],
   mes: string,
-  maximo = 5,
+  maximo = 7,
 ): TrozoDelReparto[] {
   const gastos = soloGastos(apuntesDelMes(expenses, mes))
-  const total = sumaDe(gastos)
+  const fijos = plantilla.fijos.filter(f => f.kind === 'gasto')
+  const total = sumaDe(gastos) + fijos.reduce((suma, f) => suma + f.amountCents, 0)
   if (total === 0) return []
 
-  const trozos: TrozoDelReparto[] = plantilla.partidas
+  const trozos: TrozoDelReparto[] = fijos.map(fijo => ({
+    key: fijo.key,
+    nombre: fijo.name,
+    emoji: fijo.emoji,
+    total: fijo.amountCents,
+    porcentaje: 0,
+    variacion: null,
+  }))
+
+  trozos.push(...plantilla.partidas
     .map(partida => ({
       key: partida.key,
       nombre: partida.name,
@@ -692,7 +714,7 @@ export function repartoPorPartida(
       porcentaje: 0,
       variacion: null,
     }))
-    .filter(t => t.total > 0)
+    .filter(t => t.total > 0))
 
   const sinPartida = sumaDe(gastos.filter(g => !g.budget_id))
   if (sinPartida > 0) {

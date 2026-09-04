@@ -317,6 +317,9 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 
 **Cómo vamos** (se llamaba «Resumen» hasta el 04-09-2026)
 
+- [ ] **La letra se lee**: el texto de Finanzas va a 13 px, no a 11. Si algo se ve
+      diminuto es que se ha colado un `text-[11px]` nuevo.
+
 - [ ] La pestaña se llama **«Cómo vamos»** y tiene hasta **cuatro bloques**, en este
       orden: cómo va el mes, cómo van los meses, en qué se va y de cada 100 € que entran.
 - [ ] **«Cómo va el mes»** solo sale mirando el mes en curso: dice «A día N llevas X. A
@@ -330,9 +333,9 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] «Cómo van los meses» enseña jun, jul, ago y sep, **mires el mes que mires**: la
       serie no sigue al selector. El mes que se está mirando va en negrita.
 - [ ] «Ver los números» abre la tabla, y junio dice 3.250 € / −1.162,35 € / 2.087,65 €.
-- [ ] Encima de las barras se lee la media de lo que queda al mes, y **además está
-      dibujada** como una línea punteada (04-09-2026). Van etiquetados **el mejor y el
-      peor** mes, y el que se mira, que va sobre un fondo crema.
+- [ ] Encima de las barras se lee la media de lo que queda al mes. Hay **dos barras por
+      mes** —lo que entra en verde y lo que sale en salmón— con **lo que quedó escrito
+      encima** de cada par, su leyenda debajo y el mes que se mira sobre un fondo crema.
 - [ ] **Las barras se ven verdes**, no negras: si salen negras es que algún `var()` del
       SVG se armó con una plantilla y Tailwind se comió la variable (03-09-2026).
 - [ ] Con todos los meses en positivo **no queda medio dibujo en blanco** bajo la línea
@@ -341,16 +344,23 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       el desglose de la tarjeta de «El mes».
 - [ ] «En qué se va» y el desglose **sí** siguen al mes que se mira, y lo dicen en el
       título. Arriba se lee «Se han ido 291,45 €».
-- [ ] En junio, «en qué se va» enseña Casa, Compra, Coche y **Sin partida**, de mayor a
-      menor, cada una con su barra, su importe y su porcentaje.
-- [ ] Cada fila dice **cuánto ha cambiado** desde el mes pasado (04-09-2026). Apuntando
-      100 € en la Compra de julio sale «+24 %», porque en junio fueron 80,55 €. En junio
-      **no sale ninguna variación**: mayo no existe, y `null` no es «+100 %».
+- [ ] «En qué se va» enseña un **anillo** y debajo la lista. Los trozos van de mayor a
+      menor y el anillo los pinta del mismo tono **cada vez más claro**: si alguno sale de
+      otro color, se le ha vuelto a dar identidad propia a una partida.
+- [ ] **Los gastos fijos están dentro** (04-09-2026). En junio: Alquiler 760 € (65 %),
+      Casa, Compra, Coche, Luz y gas, Internet y **Sin partida**, y arriba «Se han ido
+      1.162,35 €». Si dice 291,45 €, los fijos han vuelto a quedarse fuera.
+- [ ] En septiembre, sin nada apuntado, **tampoco está vacío**: salen los cuatro recibos
+      y «Se han ido 935,90 €».
+- [ ] Cada fila dice **cuánto ha cambiado** en su propio renglón y con palabras: «24 % más
+      que en junio». Apuntando 100 € en la Compra de julio sale eso mismo, porque en junio
+      fueron 80,55 €. En junio **no sale ninguna variación**: mayo no existe, y `null` no
+      es «+100 %». **Nunca hay dos porcentajes seguidos en una fila.**
 - [ ] Si alguna partida se pasa más veces de las que no, al pie se lee «X se pasó 3 de
       los últimos 4 meses». Con un solo mes no se dice nada, por muy pasado que esté.
 - [ ] Todas las barras son del mismo color: si alguna sale de otro, algo ha vuelto a
       darle identidad a una partida.
-- [ ] **«Ingresos fijos» y «Gastos fijos» salen abiertos** (04-09-2026) y enseñan sus líneas
+- [ ] **«Ingresos fijos» y «Gastos fijos» salen plegados** y al tocarlos enseñan sus líneas
       con emoji, nombre e importe, con el mismo signo que el total y sumando exactamente
       lo que este dice. Los dos van por su lado, y los apuntados **no** se abren: sus
       líneas son «El día a día», que está más abajo en la misma pantalla.

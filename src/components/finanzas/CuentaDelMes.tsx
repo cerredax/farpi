@@ -48,7 +48,7 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
   tono?: Tono
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 text-[11px]">
+    <div className="flex items-baseline justify-between gap-3 text-[13px]">
       <span className="truncate text-muted">{etiqueta}</span>
       <span className={`flex-shrink-0 font-semibold tabular-nums ${CLASE_IMPORTE[tono]}`}>
         {formatCentsCorto(tono === 'sale' ? -importe : importe)}
@@ -79,11 +79,11 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
   tono: 'entra' | 'sale'
   fijos: FijoDelMes[]
 }) {
-  // **Abierto de mano** (04-09-2026). Entró plegado el mismo día y duró unas horas:
-  // lo que hay dentro es de lo primero que se quiere ver, así que pedirlo con un
-  // toque cada vez que se entra es un peaje. Se puede cerrar, y vuelve a abrirse al
-  // recargar: recordarlo pediría guardar una preferencia por algo que no molesta.
-  const [abierta, setAbierta] = useState(true)
+  // **Plegado**, que es como entró y como se ha quedado. Estuvo abierto de mano un
+  // rato el 04-09-2026 y se volvió atrás el mismo día: con los cuatro recibos y las
+  // dos nóminas desplegados, la tarjeta se come media pantalla antes de llegar a las
+  // partidas, y lo que la tarjeta tiene que dar de un vistazo es la cifra grande.
+  const [abierta, setAbierta] = useState(false)
   const panelId = useId()
   const signo = (centimos: number) => formatCentsCorto(tono === 'sale' ? -centimos : centimos)
 
@@ -97,7 +97,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
         onClick={() => setAbierta(v => !v)}
         aria-expanded={abierta}
         aria-controls={panelId}
-        className="-mx-1 flex min-h-6 w-full items-center justify-between gap-3 rounded-lg px-1 text-left text-[11px] transition-colors hover:bg-canvas active:bg-canvas"
+        className="-mx-1 flex min-h-6 w-full items-center justify-between gap-3 rounded-lg px-1 text-left text-[13px] transition-colors hover:bg-canvas active:bg-canvas"
       >
         <span className="flex min-w-0 items-center gap-1 text-muted">
           <span className="truncate">{etiqueta}</span>
@@ -119,7 +119,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
       {abierta && (
         <ul id={panelId} className="mb-1 mt-0.5 space-y-1 border-l border-line pl-3">
           {fijos.map(fijo => (
-            <li key={fijo.key} className="flex items-baseline gap-2 text-[11px]">
+            <li key={fijo.key} className="flex items-baseline gap-2 text-[13px]">
               {fijo.emoji && <span className="flex-shrink-0" aria-hidden>{fijo.emoji}</span>}
               <span className="min-w-0 flex-1 truncate text-muted">{fijo.name}</span>
               <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
@@ -230,7 +230,7 @@ export function CuentaDelMes({
         {/* En un mes que aún no ha llegado se habla en condicional: «queda
             este mes» sobre octubre, leído en septiembre, suena a que octubre
             ya está en marcha. */}
-        <p className="text-[11px] text-muted">
+        <p className="text-[13px] text-muted">
           {!hayFijos
             ? porVenirVacio
               ? 'aún no ha empezado'
@@ -246,7 +246,7 @@ export function CuentaDelMes({
       </div>
 
       {cuenta.origen !== 'plantilla' && !porVenirVacio && (
-        <p className="mt-1 text-center text-[11px] text-faint">
+        <p className="mt-1 text-center text-[13px] text-faint">
           {cuenta.origen === 'copia'
             ? copiaVacia
               ? 'De este mes no se guardó ningún fijo ni ninguna partida.'
@@ -268,7 +268,7 @@ export function CuentaDelMes({
         <button
           type="button"
           onClick={onVerPrevision}
-          className="mt-1 min-h-6 w-full py-1 text-center text-[11px] font-semibold text-primary-strong"
+          className="mt-1 min-h-6 w-full py-1 text-center text-[13px] font-semibold text-primary-strong"
         >
           {previsionAbierta ? 'Ocultar las cuentas' : `Ver las cuentas de ${nombreDelMes.split(' ')[0].toLowerCase()}`}
         </button>
@@ -292,7 +292,7 @@ export function CuentaDelMes({
           ) : (
             <Linea etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" />
           )}
-          <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-1 text-[11px]">
+          <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-1 text-[13px]">
             <span className="truncate font-semibold text-muted">Para el mes</span>
             <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(cuenta.paraElMes)}</span>
           </div>
@@ -305,7 +305,7 @@ export function CuentaDelMes({
         <button
           type="button"
           onClick={onPonerFijos}
-          className="mt-2 min-h-6 w-full border-t border-hairline pt-2.5 text-left text-[11px] text-muted"
+          className="mt-2 min-h-6 w-full border-t border-hairline pt-2.5 text-left text-[13px] text-muted"
         >
           Pon tus ingresos y gastos de todos los meses en{' '}
           <span className="font-semibold text-primary-strong">Lo fijo</span> y aquí
@@ -318,7 +318,7 @@ export function CuentaDelMes({
       {reparto.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-hairline pt-2.5">
           {reparto.map(a => (
-            <li key={a.key} className="flex items-center gap-1.5 text-[11px] text-muted">
+            <li key={a.key} className="flex items-center gap-1.5 text-[13px] text-muted">
               {a.color && (
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: a.color }} aria-hidden />
               )}

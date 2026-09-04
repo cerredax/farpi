@@ -17,6 +17,7 @@ import { ResumenPanel } from './ResumenPanel'
 import { useFinanzasState, type PestañaFinanzas } from './useFinanzasState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ViewHeader } from '@/components/ui/ViewHeader'
+import { mesVecino } from '@/lib/budgets'
 import { capitalize } from '@/lib/text'
 
 /**
@@ -302,6 +303,7 @@ export function FinanzasView() {
           esMesActual={s.esMesActual}
           sePasan={s.sePasan}
           entrada={s.entrada}
+          mesAnterior={format(parseISO(`${mesVecino(s.mes, -1)}-01`), 'MMMM', { locale: es })}
         />
       </div>
 

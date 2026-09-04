@@ -128,7 +128,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
                 {/* El de hoy, dicho con una palabra y no solo con un color: es el
                     sitio al que se vuelve y tiene que encontrarse de un vistazo en
                     una lista de nombres que se parecen todos. */}
-                {m === mesActual && <span className="flex-shrink-0 text-[10px] font-bold text-muted">hoy</span>}
+                {m === mesActual && <span className="flex-shrink-0 text-[11px] font-bold text-muted">hoy</span>}
               </button>
             ))}
           </div>

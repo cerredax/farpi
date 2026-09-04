@@ -111,7 +111,7 @@ export function CierreDelMes({
           {/* Este sí se queda: no hay diálogo donde contarlo, porque deshacerlo
               no pide confirmación —no pierde nada— y la pega es de tiempo, no de
               lo que va a pasar al pulsar. */}
-          <p className="mt-1 px-1 text-center text-[10px] leading-relaxed text-faint">
+          <p className="mt-1 px-1 text-center text-[11px] leading-relaxed text-faint">
             Este mes está cerrado a mano. Solo se puede deshacer mientras siga siendo el
             mes en curso.
           </p>

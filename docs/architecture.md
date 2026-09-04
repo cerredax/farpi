@@ -1682,6 +1682,56 @@ una barra llena de rojo y una llena de verde son la misma barra para quien no di
 los dos. La barra además se recorta al 100 %: pasarse un 300 % no dibuja una barra que se
 sale de la tarjeta; cuánto es exactamente lo dice el texto.
 
+#### Segunda vuelta a «Cómo vamos», el mismo día (04-09-2026)
+
+Salió de mirar la pestaña recién hecha: los porcentajes «no se entendían nada». Tenía
+razón y el diagnóstico era exacto —había **dos cifras con el mismo símbolo pegadas** en
+la misma fila, el «+24 %» de la variación y el «7 %» del peso, significando cosas
+distintas—. De ahí salieron cuatro cambios, y tres tocan decisiones anteriores.
+
+**Los gastos fijos entran en «en qué se va».** Es la más importante y arregla algo que
+estaba mal, no una preferencia: el bloque decía «se han ido 291,45 €» en un mes en el que
+se fueron 1.162,35, porque solo contaba lo apuntado a mano. El alquiler —el mayor gasto
+de la casa con diferencia— no aparecía en el desglose de en qué se va el dinero. No son
+partidas y no hace falta que lo sean: lo que se pide de un trozo aquí es que tenga nombre
+y que haya salido este mes. Que el alquiler se pague solo y la compra se vaya llenando es
+una diferencia de cómo se apuntan, no de a dónde va el dinero. El tope de trozos subió de
+5 a 7: con los recibos dentro, cinco dejaba fuera media casa.
+
+**La variación pasa a su propio renglón y con palabras**: «24 % más que en junio» debajo
+del nombre, en vez de un «+24 %» compitiendo con el porcentaje del mes. Ahora cada cifra
+está donde se la espera —el peso a la derecha con el importe, el cambio bajo el nombre— y
+ninguna necesita que la descifren.
+
+**El anillo vuelve**, y con él se revisa la decisión del 02-09 que lo quitó. Aquella tenía
+dos pegas reales y las dos se arreglan en vez de renunciar al dibujo:
+
+- *Dos porciones parecidas eran dos arcos parecidos.* Ahora **el color va ordenado, no
+  repartido**: los trozos vienen de mayor a menor y el anillo los pinta con el mismo tono
+  cada vez más claro, así que la posición en la lista y el tono son el mismo dato dicho
+  dos veces. Y de paso respeta la paleta —dos colores de gráfico y no seis— porque la
+  claridad se distingue en protanopía y el tono no.
+- *La leyenda iba aparte.* Ya no hay leyenda: la lista de debajo lleva su cuadradito al
+  lado del nombre y **es** la leyenda, con el importe y el porcentaje puestos.
+
+**La serie vuelve a tener dos barras**, entra y sale, con lo que quedó **escrito encima**
+de cada par. La pega que las quitó el 03-09 era que había que restar de cabeza para saber
+qué quedó; escribirlo lo resuelve sin renunciar a ver las tres cifras. Van juntas y hacia
+arriba, no divergentes: divergentes se comparan bien contra el cero y mal entre sí, y aquí
+lo que se mira es cuánto le saca la verde a la salmón.
+
+**Y la letra de Finanzas sube de 11 a 13 px** (y de 10 a 11). Era lo más pequeño de la
+app, en la pantalla con más cifras por centímetro, y explica buena parte del «no se
+entiende»: dos números mal separados a 11 px son un borrón.
+
+##### Lo que volvió atrás: los fijos, plegados otra vez
+
+Los dos totales de fijos de «El mes» salieron abiertos unas horas y se volvieron a plegar
+el mismo día. Con los cuatro recibos y las dos nóminas desplegados, la tarjeta se come
+media pantalla antes de llegar a las partidas, y lo que la tarjeta tiene que dar de un
+vistazo es la cifra grande. Se abren de un toque, que es lo que se pedía el 04-09 por la
+mañana; lo que no funcionaba era que vinieran abiertos.
+
 #### «Cómo vamos»: cuatro preguntas y no cuatro dibujos (04-09-2026)
 
 La pestaña se llamaba «Resumen» y el nombre sobraba por dos motivos: no resumía nada

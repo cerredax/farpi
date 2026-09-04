@@ -78,7 +78,7 @@ function FijoRow({ fijo, members, kids, onEdit }: {
         {/* Solo se pinta a quien es de alguien. Un recibo de la cuenta común es
             el caso normal y repetir "de casa" en cada fila sería ruido. */}
         {persona && (
-          <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-muted">
+          <p className="mt-0.5 flex items-center gap-1 truncate text-[13px] text-muted">
             <span
               className="h-2 w-2 flex-shrink-0 rounded-full"
               style={{ backgroundColor: persona.color }}
@@ -240,7 +240,7 @@ export function CadaMesPanel({
         <div className="flex items-baseline justify-between gap-3 rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
           <div className="min-w-0">
             <p className="text-sm font-bold text-ink">Para el mes</p>
-            <p className="mt-0.5 text-[11px] text-muted">Lo que queda antes de gastar nada.</p>
+            <p className="mt-0.5 text-[13px] text-muted">Lo que queda antes de gastar nada.</p>
           </div>
           <span className={`flex-shrink-0 text-lg font-extrabold tabular-nums ${paraElMes < 0 ? 'text-danger-strong' : 'text-ink'}`}>
             {formatCentsCorto(paraElMes)}

@@ -1000,19 +1000,16 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
   const gastos = resumen.getByRole('button', { name: 'Gastos fijos' })
+  await expect(gastos).toHaveAttribute('aria-expanded', 'false')
+  await expect(resumen).not.toContainText('Seguro del coche')
 
-  // Abiertos de mano desde el 04-09-2026: los cuatro recibos de la plantilla de
-  // hoy están a la vista sin tocar nada, con el signo del total que los suma.
+  // Los cuatro recibos de la plantilla de hoy, con el signo del total que los suma.
+  await gastos.click()
   await expect(gastos).toHaveAttribute('aria-expanded', 'true')
   await expect(resumen).toContainText('Seguro del coche')
   await expect(resumen).toContainText('−780 €')
   await expect(resumen).toContainText('−32 €')
 
-  // Y se pueden cerrar, que para eso siguen siendo un desplegable.
-  await gastos.click()
-  await expect(gastos).toHaveAttribute('aria-expanded', 'false')
-  await expect(resumen).not.toContainText('Seguro del coche')
-  await gastos.click()
 
   // Y en junio son los que hubo entonces, sin tocar nada más.
   await retroceder(page, 3)
@@ -1020,10 +1017,8 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
   await expect(resumen).toContainText('−760 €')
   await expect(resumen).not.toContainText('Seguro del coche')
 
-  // Los ingresos van por su lado, y en positivo. También abiertos de mano, y sin
-  // que cerrar los gastos les haya hecho nada: son dos desplegables, no uno.
-  await expect(resumen.getByRole('button', { name: 'Ingresos fijos' }))
-    .toHaveAttribute('aria-expanded', 'true')
+  // Los ingresos van por su lado, y en positivo.
+  await resumen.getByRole('button', { name: 'Ingresos fijos' }).click()
   await expect(resumen).toContainText('Nómina de Carlos')
   await expect(resumen).toContainText('1.650 €')
 })
@@ -1272,8 +1267,14 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
   // De ese mes no hay plan guardado, así que no puede salir en la serie.
   await expect(serie.getByRole('row', { name: /Mayo/ })).toHaveCount(0)
 
-  // Y el desglose del mes que se está mirando, que arranca en el actual y vacío.
-  await expect(page.getByRole('region', { name: /en qué se va/ })).toContainText('Nada gastado')
+  // Y el desglose del mes que se está mirando. **No está vacío aunque no se haya
+  // apuntado nada** (04-09-2026): los gastos fijos entran en el reparto, así que
+  // septiembre dice que se han ido los 935,90 € de recibos, con el alquiler
+  // llevándose el 83 % del mes.
+  const enQue = page.getByRole('region', { name: /en qué se va/ })
+  await expect(enQue).toContainText('Se han ido 935,90 €')
+  await expect(enQue).toContainText('Alquiler')
+  await expect(enQue).toContainText('83 %')
 })
 
 // Los dos bloques que entraron el 04-09-2026 con «Cómo vamos». El del ritmo es el
@@ -1323,14 +1324,16 @@ test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page 
 
   await page.getByRole('tab', { name: 'Cómo vamos' }).click()
   const enQue = page.getByRole('region', { name: /en qué se va/ })
-  await expect(enQue).toContainText('+24 %')
+  // Con palabras y en su renglón, no como un «+24 %» pegado al porcentaje del mes:
+  // eran dos cifras con el mismo símbolo significando cosas distintas, y era lo que
+  // hacía el bloque ilegible.
+  await expect(enQue).toContainText('24 % más que en junio')
 
   // Y en junio no hay con qué comparar —mayo no existe—, así que no se inventa un
   // «+100 %»: no se escribe nada.
   await irAMes(page, -3)
   await expect(enQue).toContainText('Compra')
-  await expect(enQue).not.toContainText('% que')
-  await expect(enQue.getByText(/^[+−-]\d+ %$/)).toHaveCount(0)
+  await expect(enQue).not.toContainText('que en mayo')
 })
 
 test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
@@ -1339,15 +1342,17 @@ test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
   await retroceder(page, 3)
 
   await page.getByRole('tab', { name: 'Cómo vamos' }).click()
-  // Junio: 291,45 € de gastos, de los que 80,55 € son de la compra (28 %).
+  // Junio: 870,90 € de fijos congelados más 291,45 € apuntados, 1.162,35 € en
+  // total. Los fijos entran desde el 04-09-2026, y por eso el alquiler se lleva el
+  // 65 % del mes; antes el bloque decía «291,45 €» y el alquiler no salía.
   const enQueSeVa = page.getByRole('region', { name: /en qué se va/ })
   await expect(enQueSeVa).toContainText('Junio 2026')
+  await expect(enQueSeVa).toContainText('Se han ido 1.162,35 €')
+  await expect(enQueSeVa).toContainText('Alquiler')
+  await expect(enQueSeVa).toContainText('65 %')
   await expect(enQueSeVa).toContainText('Compra')
-  await expect(enQueSeVa).toContainText('28 %')
   // Y lo que no cae en ninguna partida sale igual.
   await expect(enQueSeVa).toContainText('Sin partida')
-  // El total al que se refieren esos porcentajes va escrito encima del desglose.
-  await expect(enQueSeVa).toContainText('Se han ido 291,45 €')
 })
 
 test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {

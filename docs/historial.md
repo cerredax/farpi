@@ -15,6 +15,40 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Inicio: la compra se lee por cestas y un plan se abre desde ahí (04-09-2026)
+
+Dos cosas pedidas sobre la pantalla de Inicio, y las dos venían de usarla.
+
+**«Listas de casa», al desplegarse, va por cestas.** Los ítems salían todos seguidos en
+una sola lista y cada uno repetía debajo el nombre de la suya, en gris y a 10 px: la
+compra, la farmacia y las cosas de casa se leían como una cosa sola, y «Casa» aparecía
+tantas veces como ítems tuviera. Ahora el nombre de la cesta se dice **una vez**, como
+encabezado de su grupo —que es donde ya estaba cuando la sección está plegada—, y la fila
+se queda solo con lo que falta y sus unidades. El agrupado se hizo en el selector
+(`selectPendingItemsByList`, que ya devolvía las cestas y ahora las devuelve con lo suyo
+dentro) y no en la pantalla, que es donde vive el resto de la lógica de este tipo.
+
+Los grupos son un `div` con su `h3` y no una `section` con `aria-label`: una `section`
+nombrada es un landmark, y tres cestas habrían sido tres regiones anidadas dentro de la de
+«Listas de casa» para decir algo que un encabezado ya dice y que se navega igual.
+
+**Y tocar un plan en Inicio lo abre.** Se veía lo de hoy y lo de esta semana, y pulsar no
+hacía nada: cambiar la hora de una cita era ir al calendario y buscarla otra vez, sabiendo
+que estaba a un dedo de distancia. Ahora la fila entera es un botón y abre el **mismo**
+formulario del calendario, no una copia. En Inicio va solo en modo edición: aquí no hay día
+elegido ni franja pulsada que digan dónde caería algo nuevo, así que apuntar sigue siendo
+cosa del calendario, que es donde se ve dónde cae.
+
+En el calendario esto ya funcionaba desde antes por los cuatro sitios donde se pinta un
+evento —la fila de la agenda, el título de la celda del mes, el panel del día y el eje de
+horas—; el que se había quedado fuera era Inicio.
+
+Del test de navegador salió un detalle del entorno que conviene recordar: el evento se
+apunta dentro del propio test porque la demo trae los suyos en junio y esto habla de hoy, y
+`toBeHidden()` no vale para dar por cerrado un `BottomSheet` —se queda en el DOM, `inert` y
+desplazado, y Playwright lo sigue viendo visible—. Lo que se comprueba es lo que queda en
+pantalla después de guardar.
+
 ### Finanzas: segunda vuelta a «Cómo vamos», y los fijos entran en el desglose (04-09-2026)
 
 Salió de mirar la pestaña recién entregada: «los porcentajes no se entienden nada». El

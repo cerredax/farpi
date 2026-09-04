@@ -79,25 +79,32 @@ export function selectPendingItems(listItems: ListItem[], lists: List[]): Pendin
 }
 
 /**
- * Qué cestas tienen algo pendiente, con su icono. En Inicio no hace falta ver
- * los ítems uno a uno —para eso está la pantalla de listas—, sino saber dónde
- * queda algo por hacer.
+ * Qué cestas tienen algo pendiente, con su icono y **con lo suyo dentro**. En
+ * Inicio, plegado, no hace falta ver los ítems uno a uno —para eso está la
+ * pantalla de listas—, sino saber dónde queda algo por hacer; desplegado, cada
+ * cesta enseña sus ítems bajo su nombre.
+ *
+ * Cada ítem va **en su cesta y no en una lista corrida** (04-09-2026). Iban
+ * todos seguidos con el nombre de su lista repetido debajo de cada uno, así que
+ * la compra y la farmacia se leían como una sola cosa y el nombre de la lista
+ * salía tantas veces como ítems tuviera.
  *
  * Sin cuenta: el número decía poco (que falten dos cosas o siete no cambia lo
  * que haces) y pegado al nombre se leía como parte de él, "Casa 2".
  *
  * Por orden alfabético: la cesta se busca por su nombre, y un orden que baila
- * cada vez que se marca algo obliga a releerlas todas.
+ * cada vez que se marca algo obliga a releerlas todas. Dentro manda el orden en
+ * el que llegan, que es el de la lista.
  */
 export function selectPendingItemsByList(
   items: PendingItem[],
-): { id: string; name: string; emoji: string | null }[] {
-  const porLista = new Map<string, { id: string; name: string; emoji: string | null }>()
+): { id: string; name: string; emoji: string | null; items: PendingItem[] }[] {
+  const porLista = new Map<string, { id: string; name: string; emoji: string | null; items: PendingItem[] }>()
 
   for (const item of items) {
-    if (!porLista.has(item.list_id)) {
-      porLista.set(item.list_id, { id: item.list_id, name: item.list_name, emoji: item.list_emoji })
-    }
+    const cesta = porLista.get(item.list_id)
+    if (cesta) cesta.items.push(item)
+    else porLista.set(item.list_id, { id: item.list_id, name: item.list_name, emoji: item.list_emoji, items: [item] })
   }
 
   return [...porLista.values()].sort((a, b) => compararTexto(a.name, b.name))

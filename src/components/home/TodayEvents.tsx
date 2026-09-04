@@ -14,6 +14,8 @@ interface TodayEventsProps {
    * verdad —hay tareas que hacer— y decir que pinta tranquilo sería mentir.
    */
   calmMessage: string | null
+  /** Abrir lo apuntado. Tocar un plan lo abre, igual que en el calendario. */
+  onOpen: (event: Event) => void
 }
 
 function formatTime(dateStr: string) {
@@ -25,7 +27,7 @@ function formatTime(dateStr: string) {
  * —"¿qué tenemos hoy?"— y separarlos obligaba a leer dos bloques seguidos que
  * decían casi lo mismo: el saludo ya adelantaba el próximo evento.
  */
-export const TodayEvents = memo(function TodayEvents({ events, kids, members, calmMessage }: TodayEventsProps) {
+export const TodayEvents = memo(function TodayEvents({ events, kids, members, calmMessage, onOpen }: TodayEventsProps) {
   if (events.length === 0) {
     if (!calmMessage) return null
     return (
@@ -44,32 +46,43 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
         {events.map(event => {
           const asignado = resolveAssignee(event, members, kids)
           return (
-            <li key={event.id} className="flex items-start gap-3 px-4 py-3">
-              <div className="flex items-center gap-1.5 min-w-[52px] pt-0.5">
-                {/* Donde estaba el reloj, que no decía nada que no dijera ya la
-                    hora: el punto de color de quien tiene el plan, amarillo si
-                    es de toda la familia. Igual que en "Esta semana" y en la
-                    agenda del calendario. */}
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: eventColor(event, members, kids) }}
-                  aria-hidden
-                />
-                <span className="text-xs font-bold text-muted">
-                  {event.all_day ? 'Todo el día' : formatTime(event.start_at)}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
-                {asignado && (
+            <li key={event.id}>
+              {/* La fila entera es el botón que abre el plan (04-09-2026): en
+                  Inicio se veía lo de hoy y para cambiar la hora de una cita
+                  había que ir al calendario y buscarla. Es el mismo gesto que
+                  la fila de la agenda, y por eso abre el mismo formulario. */}
+              <button
+                type="button"
+                onClick={() => onOpen(event)}
+                title={event.title}
+                className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface"
+              >
+                <div className="flex items-center gap-1.5 min-w-[52px] pt-0.5">
+                  {/* Donde estaba el reloj, que no decía nada que no dijera ya la
+                      hora: el punto de color de quien tiene el plan, amarillo si
+                      es de toda la familia. Igual que en "Esta semana" y en la
+                      agenda del calendario. */}
                   <span
-                    className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: asignado.color, color: textColorOn(asignado.color) }}
-                  >
-                    {asignado.name}
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: eventColor(event, members, kids) }}
+                    aria-hidden
+                  />
+                  <span className="text-xs font-bold text-muted">
+                    {event.all_day ? 'Todo el día' : formatTime(event.start_at)}
                   </span>
-                )}
-              </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
+                  {asignado && (
+                    <span
+                      className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: asignado.color, color: textColorOn(asignado.color) }}
+                    >
+                      {asignado.name}
+                    </span>
+                  )}
+                </div>
+              </button>
             </li>
           )
         })}

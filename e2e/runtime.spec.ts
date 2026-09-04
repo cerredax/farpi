@@ -788,6 +788,53 @@ test('en Inicio, cada ítem dice sus unidades', async ({ page }) => {
   await expect(seccion.getByText('Café y leche', { exact: false }).first()).not.toContainText('×')
 })
 
+// Desplegado, cada ítem va bajo el nombre de su cesta y no en una lista corrida
+// (04-09-2026): iban todos seguidos repitiendo debajo de cada uno el nombre de su
+// lista, así que la compra y la farmacia se leían como una cosa sola.
+test('en Inicio, lo que falta va por cestas y el nombre de la lista se dice una vez', async ({ page }) => {
+  await page.goto('/home')
+  await page.waitForTimeout(1000)
+
+  await page.getByRole('button', { expanded: false }).filter({ hasText: 'Casa' }).first().click()
+
+  const seccion = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Listas de casa' }) })
+
+  // El nombre de la cesta, una vez y como encabezado de su grupo.
+  await expect(seccion.getByRole('heading', { name: 'Casa', exact: true })).toHaveCount(1)
+  await expect(seccion.getByRole('heading', { name: 'Compra', exact: true })).toHaveCount(1)
+
+  // Y la fila del ítem se queda con lo que falta: ya no repite su lista.
+  const fila = seccion.locator('li').filter({ hasText: 'Papel de cocina' })
+  await expect(fila).toHaveCount(1)
+  await expect(fila).not.toContainText('Casa')
+})
+
+// En Inicio, tocar un plan lo abre (04-09-2026). Antes solo se veía: cambiar la
+// hora de una cita era ir al calendario y buscarla otra vez. El evento se apunta
+// aquí porque la demo trae los suyos en junio y esto habla de hoy.
+test('en Inicio, tocar un plan de hoy lo abre para editarlo', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  await page.locator('#event-title').fill('Ecografía')
+  await page.getByRole('button', { name: 'Apuntar', exact: true }).click()
+  await page.waitForTimeout(600)
+
+  await page.goto('/home')
+  await page.waitForTimeout(1000)
+
+  await page.getByRole('button', { name: /Ecografía/ }).first().click()
+
+  const dialogo = page.getByRole('dialog', { name: 'Editar lo apuntado' })
+  await expect(dialogo).toBeVisible()
+  await expect(page.locator('#event-title')).toHaveValue('Ecografía')
+
+  // Y lo que se guarda desde aquí se queda guardado.
+  await page.locator('#event-title').fill('Ecografía de las 12')
+  await page.getByRole('button', { name: 'Guardar cambios' }).click()
+  await expect(page.getByRole('button', { name: /Ecografía de las 12/ }).first()).toBeVisible()
+})
+
 // ─── Finanzas ────────────────────────────────────────────────────────────────
 //
 // Los flujos que sostienen la pantalla, y todos son de cuenta: que apuntar un

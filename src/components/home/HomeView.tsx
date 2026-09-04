@@ -19,7 +19,8 @@ import { HomeTasks } from './HomeTasks'
 import { UpcomingEvents } from './UpcomingEvents'
 import { DayIllustration } from './DayIllustration'
 import { BottomSheet } from '@/components/ui/BottomSheet'
-import type { Task } from '@/types'
+import { EventSheet } from '@/components/calendar/EventSheet'
+import type { Event, Task } from '@/types'
 
 function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
   const dueLabel = task?.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
@@ -56,8 +57,18 @@ function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean
 }
 
 export function HomeView() {
-  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, toggleTask, toggleListItem } = useStore()
+  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, toggleTask, toggleListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [confirmTask, setConfirmTask] = useState<Task | null>(null)
+  /**
+   * El plan que se está mirando de cerca. Inicio **abre lo apuntado** desde el
+   * 04-09-2026: tocar un plan enseñaba y no hacía nada, así que cambiar la hora
+   * de la cita del dentista era ir al calendario y buscarla otra vez.
+   *
+   * Es el mismo formulario del calendario y solo en modo edición: aquí no hay
+   * día elegido ni franja pulsada, así que apuntar algo nuevo sigue siendo cosa
+   * del calendario, que es donde se ve dónde cae.
+   */
+  const [eventoAbierto, setEventoAbierto] = useState<Event | null>(null)
 
   function handleTaskToggle(id: string) {
     const task = pendingTasks.find(t => t.id === id)
@@ -132,7 +143,7 @@ export function HomeView() {
           {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
               entera para repetir nombres que ya salen en cada plan. */}
           <TodayBirthdays cumples={cumplesHoy} />
-          <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} />
+          <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} onOpen={setEventoAbierto} />
           <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
           <TodayMealsRow meals={todayMeals} />
         </div>
@@ -142,8 +153,26 @@ export function HomeView() {
           tareas. Lo que viene cierra. */}
       <PendingItems items={pendingItems} onToggle={toggleListItem} />
       <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
-      <UpcomingEvents events={upcoming} kids={kids} members={members} />
+      <UpcomingEvents events={upcoming} kids={kids} members={members} onOpen={setEventoAbierto} />
       <UpcomingBirthdays cumples={cumplesProximos} />
+
+      {/* La `key` cuelga del evento para que el formulario arranque con lo que
+          tiene ese plan y no con lo del anterior, igual que en el calendario.
+          `onCreate` es el del store por honestidad —el contrato lo pide—, pero
+          en modo edición no hay camino que llegue a él. */}
+      <EventSheet
+        key={eventoAbierto ? `edit-${eventoAbierto.id}` : 'sin-evento'}
+        open={!!eventoAbierto}
+        mode="edit"
+        initial={eventoAbierto}
+        kids={kids}
+        members={members}
+        onClose={() => setEventoAbierto(null)}
+        onCreate={createEvent}
+        onUpdate={updateEvent}
+        onDelete={deleteEvent}
+        onDeleteSeries={deleteEventSeries}
+      />
 
       <OffDayConfirmSheet
         open={!!confirmTask}

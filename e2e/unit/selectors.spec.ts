@@ -163,10 +163,18 @@ test.describe('selectPendingItemsByList', () => {
       pendiente('l1', 'Compra', 'leche'), pendiente('l1', 'Compra', 'pan'),
       pendiente('l2', 'Farmacia', 'gasas', '💊'),
     ])
-    expect(r).toEqual([
+    expect(r.map(({ id, name, emoji }) => ({ id, name, emoji }))).toEqual([
       { id: 'l1', name: 'Compra', emoji: '🛒' },
       { id: 'l2', name: 'Farmacia', emoji: '💊' },
     ])
+  })
+
+  test('cada ítem va en su cesta, y en el orden en que llega', () => {
+    const r = selectPendingItemsByList([
+      pendiente('l1', 'Compra', 'leche'), pendiente('l2', 'Farmacia', 'gasas', '💊'),
+      pendiente('l1', 'Compra', 'pan'),
+    ])
+    expect(r.map(c => c.items.map(i => i.text))).toEqual([['leche', 'pan'], ['gasas']])
   })
 
   test('orden alfabético: marcar algo no reordena las cestas', () => {

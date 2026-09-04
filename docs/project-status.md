@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-02.
+Última revisión: 2026-09-04.
 
 ## Resumen
 
@@ -22,7 +22,11 @@ que todavía no existen (ver "Siguiente paso recomendado").
   tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera y ya no,
   para no decir la hora dos veces en la misma pantalla— y dentro lleva cumpleaños,
   planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a "¿qué toca
-  hoy?" en un sitio, en vez del menú suelto al final de la columna.
+  hoy?" en un sitio, en vez del menú suelto al final de la columna. **Tocar un plan —de
+  hoy o de esta semana— lo abre** (04-09-2026), con el mismo formulario del calendario y
+  solo en edición: apuntar algo nuevo sigue siendo del calendario, que es donde se ve
+  dónde cae. Y "Listas de casa", al desplegarse, **va por cestas**: el nombre de la lista
+  se dice una vez como encabezado de su grupo, no debajo de cada ítem.
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
   vista de semana salen también las tareas que vencen, y se pueden marcar allí. La
   agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor que

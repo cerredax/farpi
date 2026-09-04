@@ -64,38 +64,52 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
       </button>
 
       {abierto && (
-        <ul className="divide-y divide-hairline border-t border-hairline">
-          {items.map(item => (
-            <li key={item.id} className="flex items-center gap-3 px-4 py-3">
-              <CircleCheck
-                checked={false}
-                onClick={() => onToggle(item.id)}
-                ariaLabel={`Ya tenéis "${item.text}", quitar de lo que falta`}
-                className="w-10"
-              />
-              <div className="flex-1 min-w-0">
-                {/* Las unidades pegadas al nombre y no como columna aparte: es
-                    "dos leches", no dos cosas distintas. Y solo cuando pasan de
-                    una, que "×1" es decir lo que ya dice la fila.
+        /* **Una cesta cada una, con su nombre encima** (04-09-2026). Los ítems
+           iban todos seguidos en una sola lista y cada uno repetía debajo el
+           nombre de la suya, así que la compra y la farmacia se leían como una
+           cosa sola y "Casa" salía cinco veces. Ahora el nombre se dice una vez
+           por cesta, que es donde ya estaba plegado, y las filas se quedan solo
+           con lo que falta. */
+        <div className="divide-y divide-hairline border-t border-hairline">
+          {cestas.map(cesta => (
+            /* Un `div` con su encabezado y no una `section` con nombre: una
+               `section` nombrada es un landmark, y tres cestas serían tres
+               regiones anidadas dentro de la de "Listas de casa". El `h3` ya
+               nombra el grupo y se navega igual. */
+            <div key={cesta.id}>
+              <h3 className="flex items-center gap-1.5 bg-surface px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
+                <span className="flex-shrink-0" aria-hidden>{cesta.emoji ?? '📋'}</span>
+                <span className="min-w-0 truncate">{cesta.name}</span>
+              </h3>
+              <ul className="divide-y divide-hairline">
+                {cesta.items.map(item => (
+                  <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                    <CircleCheck
+                      checked={false}
+                      onClick={() => onToggle(item.id)}
+                      ariaLabel={`Ya tenéis "${item.text}", quitar de lo que falta`}
+                      className="w-10"
+                    />
+                    {/* Las unidades pegadas al nombre y no como columna aparte: es
+                        "dos leches", no dos cosas distintas. Y solo cuando pasan de
+                        una, que "×1" es decir lo que ya dice la fila.
 
-                    Lo que no se pone es el total por cesta: se probó en agosto y
-                    se quitó el 04-08-2026 porque el número no decidía nada —que
-                    falten dos cosas o siete no cambia lo que haces— y pegado al
-                    nombre de la lista se leía como parte de él, "Casa 2". */}
-                <p className="font-medium text-ink text-sm leading-snug">
-                  {item.text}
-                  {item.quantity > 1 && (
-                    <span className="ml-1 font-bold text-muted tabular-nums">×{item.quantity}</span>
-                  )}
-                </p>
-                <span className="text-[10px] text-muted">
-                  <span aria-hidden className="mr-1">{item.list_emoji ?? '📋'}</span>
-                  {item.list_name}
-                </span>
-              </div>
-            </li>
+                        Lo que no se pone es el total por cesta: se probó en agosto y
+                        se quitó el 04-08-2026 porque el número no decidía nada —que
+                        falten dos cosas o siete no cambia lo que haces— y pegado al
+                        nombre de la lista se leía como parte de él, "Casa 2". */}
+                    <p className="min-w-0 flex-1 font-medium text-ink text-sm leading-snug">
+                      {item.text}
+                      {item.quantity > 1 && (
+                        <span className="ml-1 font-bold text-muted tabular-nums">×{item.quantity}</span>
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </HomeSection>
   )

@@ -12,6 +12,8 @@ interface UpcomingEventsProps {
   events: Event[]
   kids: Child[]
   members: FamilyMember[]
+  /** Abrir lo apuntado. Tocar un plan lo abre, igual que en el calendario. */
+  onOpen: (event: Event) => void
 }
 
 /**
@@ -24,7 +26,7 @@ function eventDayLabel(date: Date): string {
   return capitalize(format(date, 'EEE d', { locale: es }))
 }
 
-export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, members }: UpcomingEventsProps) {
+export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, members, onOpen }: UpcomingEventsProps) {
   // Sin nada que enseñar no se pinta el bloque: una tarjeta vacía diciendo
   // "semana tranquila" ocupa lo mismo que una con contenido.
   if (events.length === 0) return null
@@ -41,30 +43,39 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
           const fecha = new Date(event.start_at)
           const asignado = resolveAssignee(event, members, kids)
           return (
-            <li key={event.id} className="px-4 py-3">
-              <div className="flex items-baseline gap-2">
-                {/* El mismo punto que la agenda del calendario: lo de toda la
-                    familia también tiene color (el amarillo), y sin él estas
-                    filas eran las únicas de la app donde no se veía. */}
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0 self-center"
-                  style={{ backgroundColor: eventColor(event, members, kids) }}
-                  aria-hidden
-                />
-                <span className="text-xs font-bold text-primary">{eventDayLabel(fecha)}</span>
-                <span className="text-xs font-semibold text-muted">
-                  {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}
-                </span>
-                {/* De quién es, en su color y en la misma línea que la fecha.
-                    Como píldora debajo se comía una línea entera por evento
-                    para decir una palabra. Es el formato de la agenda. */}
-                {asignado && (
-                  <span className="min-w-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
-                    {asignado.name}
+            <li key={event.id}>
+              {/* La fila entera abre el plan, como en lo de hoy y en la agenda
+                  del calendario (04-09-2026). */}
+              <button
+                type="button"
+                onClick={() => onOpen(event)}
+                title={event.title}
+                className="block w-full px-4 py-3 text-left transition-colors hover:bg-surface"
+              >
+                <div className="flex items-baseline gap-2">
+                  {/* El mismo punto que la agenda del calendario: lo de toda la
+                      familia también tiene color (el amarillo), y sin él estas
+                      filas eran las únicas de la app donde no se veía. */}
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0 self-center"
+                    style={{ backgroundColor: eventColor(event, members, kids) }}
+                    aria-hidden
+                  />
+                  <span className="text-xs font-bold text-primary">{eventDayLabel(fecha)}</span>
+                  <span className="text-xs font-semibold text-muted">
+                    {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}
                   </span>
-                )}
-              </div>
-              <p className="font-semibold text-ink text-sm leading-snug mt-0.5">{event.title}</p>
+                  {/* De quién es, en su color y en la misma línea que la fecha.
+                      Como píldora debajo se comía una línea entera por evento
+                      para decir una palabra. Es el formato de la agenda. */}
+                  {asignado && (
+                    <span className="min-w-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
+                      {asignado.name}
+                    </span>
+                  )}
+                </div>
+                <p className="font-semibold text-ink text-sm leading-snug mt-0.5">{event.title}</p>
+              </button>
             </li>
           )
         })}

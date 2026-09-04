@@ -15,6 +15,39 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Finanzas: los fijos de la cuenta se abren (04-09-2026)
+
+Pedido tal cual: «en el resumen del mes, donde pone ingresos fijos y gastos fijos, me
+gustaría ver las líneas de cada gasto». Es la misma pregunta que se le hizo a las partidas
+el día antes, un nivel más arriba —un total siempre deja detrás un «¿de qué?»— y tenía
+además un agravante: la única forma de contestarla era irse a «Lo fijo», que enseña la
+plantilla de **hoy**, así que mirando junio la respuesta que se encontraba allí era la de
+otro mes.
+
+Ahora «Ingresos fijos» y «Gastos fijos» se abren, cada uno por su lado, y enseñan sus
+líneas con emoji, nombre e importe, con el mismo signo que el total. Salen de la misma
+plantilla resuelta que lo suma, así que en junio son los tres recibos de junio —760 € de
+alquiler, 61 de luz, 49,90 de internet— y no los cuatro de septiembre. Los apuntados no se
+abren: sus líneas son «El día a día», que está entero un poco más abajo en la misma
+pantalla, y enseñarlas dos veces en un mismo scroll no es enseñarlas mejor.
+
+Dentro no se edita nada. Un fijo de un mes cerrado es una copia que no se toca, y el del
+mes en curso es el espejo de la plantilla, que se edita en «Lo fijo»; poner ahí un enlace
+habría creado un segundo camino a lo mismo, y en el mes cerrado uno que no lleva a ningún
+sitio. Es la regla que ya seguía una partida de un mes pasado: se abre, pero no se toca.
+
+De paso, la tarjeta dejó de ser una `dl`. Desde que la fila entera es el botón que abre, un
+`button` no cabe entre un `dt` y un `dd` sin romper el modelo de contenido de una lista de
+definiciones, y la alternativa —hacer botón solo la etiqueta— dejaba media fila muerta para
+el dedo. Y el enlace de dentro de una partida pasó de «Editar la partida» a «Editar
+partida», que es como se llama el sheet que abre: dos nombres para la misma cosa a un toque
+de distancia.
+
+Un test nuevo en `runtime.spec.ts` lo fija por donde importa: abre los gastos en
+septiembre, comprueba que está el seguro del coche, retrocede a junio y comprueba que ya no
+está y que el alquiler dice 760 €. Si algún día vuelve a leerse la plantilla viva, ese test
+lo canta.
+
 ### Borrar la cuenta vuelve a funcionar, y dos archivos SQL dejan de ser una máquina del tiempo (04-09-2026)
 
 Salió de revisar el commit del día anterior. Lo que aquel commit *decía* era correcto —el

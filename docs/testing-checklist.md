@@ -335,13 +335,22 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       menor, cada una con su barra, su importe y su porcentaje.
 - [ ] Todas las barras son del mismo color: si alguna sale de otro, algo ha vuelto a
       darle identidad a una partida.
+- [ ] **«Ingresos fijos» y «Gastos fijos» se abren** (04-09-2026) y enseñan sus líneas
+      con emoji, nombre e importe, con el mismo signo que el total y sumando exactamente
+      lo que este dice. Los dos van por su lado, y los apuntados **no** se abren: sus
+      líneas son «El día a día», que está más abajo en la misma pantalla.
+- [ ] Las líneas son las **de ese mes**: en septiembre salen los cuatro recibos —con el
+      seguro del coche—, y en junio solo tres, con el alquiler a 760 € y sin seguro. Si
+      junio enseña los de hoy, se ha vuelto a leer la plantilla viva.
+- [ ] Dentro **no se edita nada**: los fijos se tocan en «Lo fijo», y los de un mes
+      cerrado no se tocan en ninguna parte.
 - [ ] Se ven las partidas de demo (Compra, Coche, Casa) con su límite, también las que no
       tienen ni un gasto ese mes.
 - [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su partida, y la cuenta de
       arriba, sin recargar.
 - [ ] **Tocar una partida la abre** y enseña sus líneas —fecha, concepto, quién y
       cuánto—, que suman exactamente lo que dice su cifra. Tocar una línea abre ese
-      apunte; «Editar la partida» abre la partida. Una partida sin gastos se abre y
+      apunte; «Editar partida» abre la partida. Una partida sin gastos se abre y
       dice «nada apuntado en esta partida».
 - [ ] El importe entiende `24,90`, `24.90`, `1.234,56` y `24,90 €`, y se guarda exacto:
       la fila y la partida dicen el mismo número.
@@ -381,7 +390,7 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] En un mes cerrado **sí se puede apuntar** —el botón está—, y lo apuntado cae en ese
       mes sin mover sus fijos congelados. Lo que no se puede es crear ni editar partidas:
       no hay enlace de «Nueva partida», y una partida se abre —enseña sus líneas— pero
-      dentro no ofrece «Editar la partida».
+      dentro no ofrece «Editar partida».
 - [ ] En un mes **pasado que nunca se cerró** tampoco hay «Nueva partida» (03-09-2026):
       crearla no le pondría nada a ese mes, nace en la plantilla de hoy.
 - [ ] En el mes en curso, «+ Nueva partida» **abre el sheet ahí mismo** y no salta a «Lo

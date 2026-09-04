@@ -1817,6 +1817,34 @@ entendía: puesto sobre «Junio 2026» parece que va a hacerle algo a junio, y �
 señala a la vez al mes que se mira y al de hoy. Se vuelve con la flecha, que es por
 donde se vino.
 
+##### Los fijos de la cuenta se abren, y el enlace de la partida pierde el artículo (04-09-2026)
+
+Lo mismo que les pasó a las partidas el día anterior, un nivel más arriba. El desglose de
+la tarjeta contesta «¿cuánto?» —«Gastos fijos −935,90 €»— y deja detrás «¿de qué?»; la
+única forma de contestarlo era irse a «Lo fijo», que enseña la plantilla de **hoy**, así
+que mirando junio la respuesta que se encontraba allí era la de otro mes. Ahora los dos
+totales de fijos se abren y enseñan sus líneas, que salen de la misma plantilla resuelta
+que los suma: un mes cerrado enseña los recibos que tuvo, con el alquiler de entonces.
+
+**Los apuntados no se abren**, y no es un olvido: sus líneas son «El día a día», que está
+entero y con todas las letras un poco más abajo en la misma pantalla. Abrirlos aquí sería
+enseñar dos veces lo mismo en un mismo scroll.
+
+**Dentro no se edita nada.** Un fijo de un mes cerrado es una copia que no se toca, y el
+del mes en curso es el espejo de la plantilla, que se edita en «Lo fijo»: poner ahí un
+enlace de editar habría creado un segundo camino a lo mismo, y en el mes cerrado uno que
+no puede llevar a ningún sitio. Es la misma regla que hace que una partida de un mes
+pasado se abra pero no ofrezca editarse.
+
+Con esto la tarjeta dejó de ser una `dl`: desde que la fila entera es el botón que abre,
+un `button` no cabe entre un `dt` y un `dd` sin romper el modelo de contenido de una lista
+de definiciones, y la alternativa —hacer botón solo la etiqueta— dejaba media fila muerta
+para el dedo.
+
+Y de paso, el enlace de dentro de una partida pasó de «Editar la partida» a **«Editar
+partida»**, que es como se llama el sheet que abre. Dos nombres para la misma cosa a un
+toque de distancia.
+
 ##### Las partidas se abren (03-09-2026)
 
 «Llevas 412 de 350» deja siempre la misma pregunta detrás —«¿en qué?»— y contestarla

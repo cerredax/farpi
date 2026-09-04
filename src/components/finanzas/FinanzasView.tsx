@@ -155,6 +155,7 @@ export function FinanzasView() {
       <div id="panel-mes" role="tabpanel" aria-labelledby="tab-mes" hidden={s.pestaña !== 'mes'} className="space-y-5">
         <CuentaDelMes
           cuenta={s.cuenta}
+          fijos={s.plantilla.fijos}
           nombreDelMes={nombreDelMes}
           onAnterior={s.mesAnterior}
           onSiguiente={s.mesSiguiente}

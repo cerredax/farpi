@@ -1,11 +1,19 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useId, useState } from 'react'
 import { formatCents, formatCentsCorto } from '@/lib/finanzas'
-import type { Aportacion, CuentaDelMes as Cuenta } from '@/lib/budgets'
+import type { Aportacion, CuentaDelMes as Cuenta, FijoDelMes } from '@/lib/budgets'
 
 interface CuentaDelMesProps {
   cuenta: Cuenta
+  /**
+   * Los fijos **de ese mes**, ya resueltos: la plantilla viva si el mes no ha
+   * terminado y la copia congelada si terminó. Son las líneas que hay detrás de
+   * los dos totales del desglose, y vienen de la misma `plantilla` que los suma
+   * justamente para que no puedan decir cosas distintas.
+   */
+  fijos: FijoDelMes[]
   nombreDelMes: string
   onAnterior: () => void
   onSiguiente: () => void
@@ -20,20 +28,99 @@ interface CuentaDelMesProps {
   onPonerFijos: () => void
 }
 
+type Tono = 'normal' | 'entra' | 'sale'
+
+/** El color de un importe del desglose. Lo comparten las líneas y sus totales. */
+const CLASE_IMPORTE: Record<Tono, string> = {
+  normal: 'text-ink',
+  entra: 'text-primary-strong',
+  sale: 'text-muted',
+}
+
 /** Una línea del desglose. El signo va en la etiqueta y en el importe. */
 function Linea({ etiqueta, importe, tono = 'normal' }: {
   etiqueta: string
   importe: number
-  tono?: 'normal' | 'entra' | 'sale'
+  tono?: Tono
 }) {
   return (
     <div className="flex items-baseline justify-between gap-3 text-[11px]">
-      <dt className="truncate text-muted">{etiqueta}</dt>
-      <dd className={`flex-shrink-0 font-semibold tabular-nums ${
-        tono === 'entra' ? 'text-primary-strong' : tono === 'sale' ? 'text-muted' : 'text-ink'
-      }`}>
+      <span className="truncate text-muted">{etiqueta}</span>
+      <span className={`flex-shrink-0 font-semibold tabular-nums ${CLASE_IMPORTE[tono]}`}>
         {formatCentsCorto(tono === 'sale' ? -importe : importe)}
-      </dd>
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Lo mismo, pero **se abre**: el total de arriba y, al tocarlo, de qué se compone.
+ *
+ * Es el patrón de `BudgetBar`, y por la misma razón: un total deja siempre la
+ * pregunta de qué hay dentro, y la respuesta tiene que estar donde se pregunta.
+ * Las líneas salen de la misma `plantilla` que suma el total, así que suman
+ * exactamente lo que dice la cifra de arriba.
+ *
+ * **No se editan.** Lo que se está viendo son los fijos de ese mes: en uno cerrado
+ * son una copia que no se toca, y en el mes en curso son el espejo de la
+ * plantilla, que se edita en «Lo fijo». Es la misma regla que hace que una partida
+ * de un mes pasado se abra pero no ofrezca editarse.
+ *
+ * El signo se hereda del total: si «Gastos fijos» va en negativo, sus líneas
+ * también, o parecería que se están sumando al revés.
+ */
+function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
+  etiqueta: string
+  importe: number
+  tono: 'entra' | 'sale'
+  fijos: FijoDelMes[]
+}) {
+  const [abierta, setAbierta] = useState(false)
+  const panelId = useId()
+  const signo = (centimos: number) => formatCentsCorto(tono === 'sale' ? -centimos : centimos)
+
+  return (
+    <div>
+      {/* `min-h-6`: es un control y le toca el mínimo de 24 px de la WCAG 2.5.8,
+          que `movil.spec.ts` vigila. El `-mx-1 px-1` saca el fondo del hover un
+          poco por fuera del texto sin mover la línea de su sitio. */}
+      <button
+        type="button"
+        onClick={() => setAbierta(v => !v)}
+        aria-expanded={abierta}
+        aria-controls={panelId}
+        className="-mx-1 flex min-h-6 w-full items-center justify-between gap-3 rounded-lg px-1 text-left text-[11px] transition-colors hover:bg-canvas active:bg-canvas"
+      >
+        <span className="flex min-w-0 items-center gap-1 text-muted">
+          <span className="truncate">{etiqueta}</span>
+          <ChevronDown
+            size={12}
+            strokeWidth={2.6}
+            aria-hidden
+            className={`flex-shrink-0 text-faint transition-transform ${abierta ? 'rotate-180' : ''}`}
+          />
+        </span>
+        <span className={`flex-shrink-0 font-semibold tabular-nums ${CLASE_IMPORTE[tono]}`}>
+          {signo(importe)}
+        </span>
+      </button>
+
+      {/* El filete de la izquierda va en `line` y no en `hairline`: sobre blanco,
+          el segundo no se ve, y sin nada que las agrupe cuatro recibos seguidos se
+          leen al mismo nivel que «Para el mes». */}
+      {abierta && (
+        <ul id={panelId} className="mb-1 mt-0.5 space-y-1 border-l border-line pl-3">
+          {fijos.map(fijo => (
+            <li key={fijo.key} className="flex items-baseline gap-2 text-[11px]">
+              {fijo.emoji && <span className="flex-shrink-0" aria-hidden>{fijo.emoji}</span>}
+              <span className="min-w-0 flex-1 truncate text-muted">{fijo.name}</span>
+              <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
+                {signo(fijo.amountCents)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -78,17 +165,31 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * señala a dos meses a la vez —el que se mira y el de hoy—. Se vuelve con la
  * flecha, que es por donde se vino.
  *
+ * **Los dos totales de fijos se abren** (04-09-2026). «Gastos fijos −935,90 €»
+ * dejaba detrás la misma pregunta que dejaba una partida antes de desplegarse
+ * —«¿de qué?»— y contestarla obligaba a irse a «Lo fijo», que enseña la plantilla
+ * de **hoy**: mirando junio, la respuesta que se encontraba allí era la de otro
+ * mes. Ahora las líneas están dentro de su total y salen de la misma plantilla
+ * resuelta que lo suma, así que un mes cerrado enseña los recibos que tuvo.
+ *
+ * Los apuntados no se abren, y no es un olvido: sus líneas son «El día a día», que
+ * está entero y con todas las letras en esta misma pantalla, un poco más abajo.
+ *
  * **Cerrar el mes no se ofrece aquí.** Estuvo un rato y quedaba mal: esta tarjeta
  * es la conclusión de la pantalla —una cifra grande y su desglose— y colgarle
  * debajo dos acciones la convertía en un panel de mandos. Se fue al pie de «El
  * mes», que es donde se lee como «he terminado con esto» (ver `CierreDelMes`).
  */
 export function CuentaDelMes({
-  cuenta, nombreDelMes, onAnterior, onSiguiente, reparto,
+  cuenta, fijos, nombreDelMes, onAnterior, onSiguiente, reparto,
   copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
+  // Ya vienen ordenados de `plantillaDelMes`, primero los que entran: filtrar
+  // conserva ese orden, que es el mismo con el que se leen en «Lo fijo».
+  const ingresos = fijos.filter(f => f.kind === 'ingreso')
+  const gastos = fijos.filter(f => f.kind === 'gasto')
   // Un mes por venir sin previsión: no hay fijos que enseñar, pero tampoco es el
   // caso de «no has puesto fijos» —que ofrece ponerlos—, así que se separa.
   const porVenirEnCero = cuenta.origen === 'por-venir' && !previsionAbierta
@@ -166,19 +267,33 @@ export function CuentaDelMes({
         </button>
       )}
 
+      {/* Un `div` y no la `dl` que fue hasta el 04-09-2026: desde que las dos
+          líneas de fijos se abren, la fila entera es el botón, y un `button` no
+          cabe entre un `dt` y un `dd` sin romper el modelo de contenido de una
+          lista de definiciones. La alternativa —hacer botón solo la etiqueta—
+          dejaba media fila muerta para el dedo. */}
       {hayFijos ? (
-        <dl className="mt-3 space-y-1 border-t border-hairline pt-2.5">
-          <Linea etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" />
-          <Linea etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" />
+        <div className="mt-3 space-y-1 border-t border-hairline pt-2.5">
+          {/* Un tipo sin ninguna línea no se hace desplegable: se abriría vacío. */}
+          {ingresos.length > 0 ? (
+            <LineaDeFijos etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} />
+          ) : (
+            <Linea etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" />
+          )}
+          {gastos.length > 0 ? (
+            <LineaDeFijos etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" fijos={gastos} />
+          ) : (
+            <Linea etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" />
+          )}
           <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-1 text-[11px]">
-            <dt className="truncate font-semibold text-muted">Para el mes</dt>
-            <dd className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(cuenta.paraElMes)}</dd>
+            <span className="truncate font-semibold text-muted">Para el mes</span>
+            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(cuenta.paraElMes)}</span>
           </div>
           {ingresosApuntados > 0 && (
             <Linea etiqueta="Ingresos apuntados" importe={ingresosApuntados} tono="entra" />
           )}
           <Linea etiqueta="Gastos apuntados" importe={gastosApuntados} tono="sale" />
-        </dl>
+        </div>
       ) : cuenta.origen === 'plantilla' ? (
         <button
           type="button"

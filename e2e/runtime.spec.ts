@@ -948,6 +948,38 @@ test('un mes cerrado enseña los fijos que tenía entonces, no los de hoy', asyn
   await expect(resumen).toContainText('2.259,10 €')
 })
 
+// El desglose de la tarjeta contestaba «¿cuánto?» y dejaba detrás «¿de qué?».
+// Desde el 04-09-2026 los dos totales de fijos se abren, y las líneas que enseñan
+// son las **de ese mes**: en junio el alquiler eran 760 € y no había seguro del
+// coche. Irse a «Lo fijo» a mirarlo daba la respuesta de otro mes.
+test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  const gastos = resumen.getByRole('button', { name: 'Gastos fijos' })
+  await expect(gastos).toHaveAttribute('aria-expanded', 'false')
+  await expect(resumen).not.toContainText('Seguro del coche')
+
+  // Los cuatro recibos de la plantilla de hoy, con el signo del total que los suma.
+  await gastos.click()
+  await expect(gastos).toHaveAttribute('aria-expanded', 'true')
+  await expect(resumen).toContainText('Seguro del coche')
+  await expect(resumen).toContainText('−780 €')
+  await expect(resumen).toContainText('−32 €')
+
+  // Y en junio son los que hubo entonces, sin tocar nada más.
+  await retroceder(page, 3)
+  await expect(resumen).toContainText('Junio 2026')
+  await expect(resumen).toContainText('−760 €')
+  await expect(resumen).not.toContainText('Seguro del coche')
+
+  // Los ingresos van por su lado, y en positivo.
+  await resumen.getByRole('button', { name: 'Ingresos fijos' }).click()
+  await expect(resumen).toContainText('Nómina de Carlos')
+  await expect(resumen).toContainText('1.650 €')
+})
+
 test('la partida de un mes cerrado se mide contra el límite de aquel mes', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
@@ -1001,7 +1033,7 @@ test('en un mes cerrado se sigue pudiendo apuntar, pero no tocar sus partidas', 
   const partidas = page.locator('section[aria-label="Partidas del mes"]')
   await partidas.getByRole('button').filter({ hasText: 'Compra' }).first().click()
   await expect(partidas).toContainText('Compra semanal')
-  await expect(partidas.getByRole('button', { name: 'Editar la partida' })).toHaveCount(0)
+  await expect(partidas.getByRole('button', { name: 'Editar partida' })).toHaveCount(0)
 
   // Pero el día a día sigue abierto, y lo apuntado cae en el mes que se mira.
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()

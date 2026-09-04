@@ -509,6 +509,25 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
       a junio, y «este» señalaba a dos meses a la vez. Se vuelve con la flecha.
 - [x] 2 unitarios nuevos y dos flujos de navegador más: **546** en la pasada completa.
 
+## Fase 8m - Finanzas: los fijos de la cuenta se abren (04-09-2026)
+
+Lo mismo que se le hizo a las partidas el día antes, un nivel más arriba. El porqué, en
+`docs/architecture.md`: «Los fijos de la cuenta se abren».
+
+- [x] **«Ingresos fijos» y «Gastos fijos» se despliegan** y enseñan sus líneas —emoji,
+      nombre e importe—, con el signo del total y sumando lo que este dice. Salen de la
+      misma plantilla resuelta que lo suma, así que un mes cerrado enseña los recibos
+      que tuvo y no los de hoy, que era lo que se veía yendo a «Lo fijo» a mirarlo.
+- [x] **Los apuntados no se abren**: sus líneas son «El día a día», que está entero un
+      poco más abajo en la misma pantalla.
+- [x] **Dentro no se edita nada**, como en una partida de un mes pasado: un fijo
+      congelado no se toca y el del mes en curso se toca en «Lo fijo».
+- [x] La tarjeta deja de ser una `dl`: desde que la fila entera es el botón, un `button`
+      no cabe entre un `dt` y un `dd`.
+- [x] «Editar la partida» pasa a **«Editar partida»**, que es como se llama el sheet que
+      abre.
+- [x] Un flujo de navegador más: **555** en la pasada completa.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

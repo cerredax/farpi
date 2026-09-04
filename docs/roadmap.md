@@ -509,6 +509,27 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
       a junio, y «este» señalaba a dos meses a la vez. Se vuelve con la flecha.
 - [x] 2 unitarios nuevos y dos flujos de navegador más: **546** en la pasada completa.
 
+## Fase 8n - Finanzas: apuntar lo que va a llegar y elegir mes de un toque (04-09-2026)
+
+Cinco cosas de la tarjeta de «El mes», salidas de mirarla con calma. El porqué de cada
+una, en `docs/architecture.md`.
+
+- [x] **En un mes que no ha llegado se puede apuntar.** Se levanta la regla del
+      03-09-2026: una tarea no suma en la cuenta del mes, así que no contestaba «¿cuadra
+      octubre con el IBI dentro?». El cero pasa a decidirlo el contenido y no el
+      calendario, y con algo dentro la tarjeta dice «apuntado para ese mes». Cerrar un
+      mes que no ha pasado sigue sin poderse.
+- [x] **Las flechas se van y entra una tira de meses** que se arrastra: cualquier mes a
+      un toque, el color diciendo cuáles tienen algo y el de hoy siempre señalado. El
+      rango lo decide `mesesNavegables`, con una regla: un mes que tiene algo siempre
+      está en la lista.
+- [x] **Los tres botones del cierre parecen botones** y se llaman en dos palabras:
+      «Cerrar mes», «Reabrir mes», «Poner el mes a cero».
+- [x] «Ver qué quedaría con lo fijo de hoy» pasa a **«Ver las cuentas de octubre»**:
+      «queda» ya nombra la cifra grande de esa misma tarjeta.
+- [x] El hueco del día a día de un mes por venir **invita en vez de explicar**.
+- [x] 6 unitarios nuevos y 1 flujo de navegador más: **562** en la pasada completa.
+
 ## Fase 8m - Finanzas: los fijos de la cuenta se abren (04-09-2026)
 
 Lo mismo que se le hizo a las partidas el día antes, un nivel más arriba. El porqué, en

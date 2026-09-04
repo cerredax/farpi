@@ -1,3 +1,5 @@
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { resolveAssignee } from './assignees'
 import { normalizaParaBuscar } from './text'
 import type {
@@ -33,6 +35,84 @@ export function mesVecino(mes: string, salto: 1 | -1): string {
   const [ano, m] = mes.split('-').map(Number)
   const total = ano * 12 + (m - 1) + salto
   return `${String(Math.floor(total / 12)).padStart(4, '0')}-${String((total % 12) + 1).padStart(2, '0')}`
+}
+
+/**
+ * El mes en tres letras: `jun`, `sep`. Lo que cabe bajo una barra a 390 px y en un
+ * chip de la tira de meses.
+ *
+ * Vive aquí y no en cada pantalla porque lo usan dos —el gráfico del resumen y el
+ * selector— y tienen que decir lo mismo, y porque los doce miden igual: eso es lo
+ * que deja alinearlos sin medir ninguno, y su test lo vigila.
+ *
+ * El `replace` es una red: **esta versión de date-fns no pone punto en ninguno de
+ * los doce**, pero otras locales suyas abrevian «sept.» y un punto suelto a 10 px
+ * es ruido que además roba una letra de mes.
+ */
+export function mesCorto(mes: string): string {
+  return format(parseISO(`${mes}-01`), 'LLL', { locale: es }).replace('.', '')
+}
+
+/**
+ * Cuántos meses por delante del de hoy se ofrecen siempre, aunque estén vacíos.
+ *
+ * Tres es el horizonte real de «lo que sé que me va a llegar» en una casa: el
+ * seguro que vence, la matrícula, el IBI. Más allá la tira se llena de meses en
+ * los que no hay nada y se convierte en un calendario, que es otra pantalla.
+ */
+const MESES_POR_DELANTE = 3
+
+/**
+ * Qué meses se ofrecen para moverse por Finanzas, del más viejo al más nuevo.
+ *
+ * Sustituye a las dos flechas (04-09-2026). Con ellas se llegaba a cualquier mes
+ * y a ninguno de un toque: ir a junio desde septiembre eran tres, y por el camino
+ * no se veía dónde estabas ni dónde había algo que mirar. Una lista finita se
+ * puede enseñar entera, y para eso hay que decidir dónde empieza y dónde acaba.
+ *
+ * **Por detrás llega hasta donde haya algo** —el primer mes con plan guardado o
+ * con un apunte— y nunca más allá: los meses anteriores a que la familia empezara
+ * a usar la app no tienen nada que contar, y ofrecerlos sería ofrecer el infinito.
+ *
+ * **Por delante, tres meses fijos y los que hagan falta.** Los tres son para poder
+ * apuntar lo que ya sabes que llega; el «los que hagan falta» es lo que impide que
+ * un apunte con fecha de marzo se quede en un mes al que no se puede llegar. La
+ * regla vale para los dos lados: **un mes que tiene algo siempre está en la lista**.
+ *
+ * `mesMirado` es el que se está viendo, y entra en la lista aunque se haya quedado
+ * sin nada. Cubre un solo camino y conviene que lo cubra: estando en marzo porque
+ * allí había un apunte, borrarlo encogería el rango y dejaría la tira **sin ningún
+ * mes marcado**, mirando un mes que ya no ofrece. No es un callejón —el mes de hoy
+ * sigue en la tira— pero es de las cosas que luego cuesta entender.
+ *
+ * Pura y sin reloj: `mesActual` entra por argumento, como en el resto del archivo.
+ */
+export function mesesNavegables(
+  mesActual: string,
+  planes: MonthPlan[],
+  expenses: Expense[],
+  mesMirado?: string,
+): string[] {
+  const conAlgo = [
+    ...planes.map(p => p.month),
+    ...expenses.map(e => mesDe(e.date)),
+    ...(mesMirado ? [mesMirado] : []),
+  ]
+
+  let desde = mesActual
+  let hasta = mesActual
+  for (let i = 0; i < MESES_POR_DELANTE; i++) hasta = mesVecino(hasta, 1)
+
+  // Comparar `YYYY-MM` como cadenas ordena igual que por fecha, que es la razón
+  // de que el mes se guarde en ese formato en toda la app.
+  for (const mes of conAlgo) {
+    if (mes < desde) desde = mes
+    if (mes > hasta) hasta = mes
+  }
+
+  const meses: string[] = []
+  for (let cursor = desde; cursor <= hasta; cursor = mesVecino(cursor, 1)) meses.push(cursor)
+  return meses
 }
 
 /**

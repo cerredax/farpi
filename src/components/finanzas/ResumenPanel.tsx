@@ -3,7 +3,7 @@
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { mediaQueQueda } from '@/lib/budgets'
+import { mediaQueQueda, mesCorto } from '@/lib/budgets'
 import { formatCentsCorto } from '@/lib/finanzas'
 import { capitalize } from '@/lib/text'
 import type { MesDeLaSerie, TrozoDelReparto } from '@/lib/budgets'
@@ -14,11 +14,6 @@ interface ResumenPanelProps {
   /** `YYYY-MM` del mes que se está mirando, para señalarlo en la serie. */
   mes: string
   nombreDelMes: string
-}
-
-/** El mes en tres letras, que es lo único que cabe bajo una barra a 390 px. */
-function mesCorto(mes: string): string {
-  return format(parseISO(`${mes}-01`), 'LLL', { locale: es }).replace('.', '')
 }
 
 /**

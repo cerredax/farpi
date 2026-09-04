@@ -137,10 +137,19 @@ que todavía no existen (ver "Siguiente paso recomendado").
   se puede deshacer, y un mes terminado no se reabre nunca. Un mes terminado que nunca llegó
   a cerrarse lo dice tal cual en vez de enseñar la plantilla de hoy, que es lo que hacía
   antes. Los tres botones —cerrar, deshacer, poner a cero— van **debajo de la tarjeta del
-  mes** (03-09-2026), no al pie de la pantalla.
-  **Un mes que aún no ha empezado sale en cero** (03-09-2026) y lo dice; la previsión
-  —lo que quedaría con lo fijo de hoy— se pide con un enlace, y entonces habla en
-  condicional. Apuntar no se ofrece en ningún caso.
+  mes** (03-09-2026), no al pie de la pantalla, y desde el 04-09-2026 son **botones** y
+  no texto verde: «Cerrar mes», «Reabrir mes» y «Poner el mes a cero».
+  **El mes se elige en una tira que se arrastra** (04-09-2026), no con dos flechas: los
+  meses a la vista y cualquiera a un toque, cada uno diciendo en el color si tiene algo, y
+  el de hoy señalado aunque estés mirando otro. Qué meses se ofrecen lo decide
+  `mesesNavegables`: hasta el más viejo con algo por detrás, y tres por delante más los
+  que hagan falta si hay un apunte más lejos.
+  **Un mes que aún no ha empezado sale en cero** (03-09-2026) **mientras esté vacío**
+  (04-09-2026); las cuentas —lo que quedaría con lo fijo de hoy— se piden con un enlace, y
+  entonces habla en condicional. **En él sí se apunta** (04-09-2026): lo que ya sabes que
+  va a llegar —el IBI, la matrícula— para poder ver si ese mes cuadra contándolo, y en
+  cuanto hay algo la tarjeta lo cuenta y dice «apuntado para ese mes». Lo que no se puede
+  es cerrarlo: no ha pasado.
   **Y un mes pasado se puede poner a cero** (03-09-2026), que es la salida para un mes
   que el cierre automático guardó con una plantilla que entonces no existía: agosto se
   cerró el 1 de septiembre con las nóminas creadas ese mismo día. Vacía el plan y deja la
@@ -394,13 +403,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **555 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **562 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 424 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 03-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 131 de navegador. La cifra sale de la pasada completa del 04-09-2026 (555 en total,
-    424 unitarios):
+  - 430 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 04-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, que es lo que deja alinear la tira y el gráfico sin medir ninguno). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 132 de navegador. La cifra sale de la pasada completa del 04-09-2026 (562 en total,
+    430 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 

@@ -1817,6 +1817,72 @@ entendía: puesto sobre «Junio 2026» parece que va a hacerle algo a junio, y �
 señala a la vez al mes que se mira y al de hoy. Se vuelve con la flecha, que es por
 donde se vino.
 
+##### En un mes que no ha llegado se puede apuntar (04-09-2026)
+
+**Se levanta la regla del 03-09-2026**, que decía: «un gasto con fecha de octubre
+apuntado en septiembre no es un gasto, es un recordatorio, y para eso están las
+tareas». Era razonable y no cubría el caso normal: sabes que en octubre llega el IBI y
+lo que quieres saber es si octubre cuadra **contándolo**. Una tarea no suma en la
+cuenta del mes, así que no contestaba la pregunta; y como la app no ofrecía dónde
+ponerlo, el dato se quedaba en la cabeza de alguien.
+
+Además la puerta ya estaba abierta y solo escondida: el campo de fecha del apunte es un
+`<input type="date">` sin tope, así que bastaba con editar la fecha desde septiembre
+para meter un gasto en octubre. Lo que faltaba era el `+` y que la tarjeta lo contara.
+
+**El cero pasa a decidirlo el contenido y no el calendario.** Un mes por venir sigue
+saliendo a cero mientras esté vacío —que es lo que hay en un mes en el que no ha pasado
+nada, y la razón por la que el 03-09 se escondió la previsión detrás de un enlace—, pero
+en cuanto tiene algo dentro la cifra grande lo cuenta y dice **«apuntado para ese mes»**.
+Ni «gastado», que hablaría de un mes que no ha llegado, ni un cero con trescientos euros
+listados justo debajo, que habría sido peor que no dejar apuntarlos.
+
+Lo que **sigue sin poderse** en un mes por venir es cerrarlo: no ha pasado.
+
+Las partidas siguen sin salir mientras no se pidan las cuentas, y no es un olvido: sin
+previsión no hay plantilla resuelta contra la que medir una barra. El gasto se ve en «El
+día a día» y en la cifra; pidiendo las cuentas aparece también su barra.
+
+##### El mes se elige en una tira, no con dos flechas (04-09-2026)
+
+Las flechas llevaban a cualquier mes y a ninguno de un toque —junio desde septiembre
+eran tres— y, peor, por el camino no se veía nada: ni dónde estabas dentro de la serie,
+ni en qué meses había algo que mirar. Una flecha contesta «uno más» y la pregunta era
+«¿cuál?».
+
+Ahora hay una fila de meses que se arrastra, y cada chip dice en el color si ese mes
+tiene algo: los que tienen plan o apuntes van en `muted`, los vacíos en `faint`. Es
+información que no cuesta un píxel y evita el paseo por meses en blanco.
+
+**El mes de hoy nunca sale apagado**, aunque no tenga plan cerrado ni un apunte: es el
+que siempre tiene cuenta —su plantilla viva— y el sitio al que se vuelve. Va en negrita
+sin fondo cuando se está mirando otro, y eso es además lo que hace innecesario el
+«Volver a este mes» que se quitó el 03-09-2026 por no saber dónde ponerlo.
+
+Qué meses se ofrecen lo decide `mesesNavegables`: por detrás, hasta el mes más viejo con
+algo, y nunca más allá —los meses anteriores a que la familia empezara no tienen nada
+que contar—; por delante, **tres fijos** —el horizonte real de «lo que sé que me va a
+llegar»— y los que hagan falta si alguien apuntó más lejos. La regla que sostiene las
+dos mitades es una: **un mes que tiene algo siempre está en la lista**, porque una lista
+finita no puede dejar fuera un mes al que no se podría llegar de ninguna otra forma.
+
+El activo no lleva la píldora verde de las pestañas de la pantalla, que están cuarenta
+píxeles más arriba: dos filas de píldoras verdes seguidas se leerían como dos niveles de
+lo mismo.
+
+##### «Cerrar mes» y sus dos hermanos son botones (04-09-2026)
+
+Eran texto verde centrado —«Dar el mes por cerrado», «Volver a seguir la plantilla este
+mes», «Poner este mes a cero»— y no parecían pulsables: en una pantalla donde casi todo
+lo verde y pequeño es una etiqueta, se leían como el pie de la tarjeta. Ahora son
+`Button variant="secondary"`, que es lo que la app usa para una acción que no es la
+principal, y los tres rótulos se acortaron a la vez —**Cerrar mes**, **Reabrir mes**,
+**Poner el mes a cero**—: dejar uno corto y dos largos habría sido peor que como
+estaban.
+
+Lo que **no** son es `fullWidth`. Una barra a todo lo ancho devolvería a la tarjeta el
+panel de mandos que se le quitó el 03-09.
+
 ##### Los fijos de la cuenta se abren, y el enlace de la partida pierde el artículo (04-09-2026)
 
 Lo mismo que les pasó a las partidas el día anterior, un nivel más arriba. El desglose de

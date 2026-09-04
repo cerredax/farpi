@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
 import {
   agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, existiaEnElMes,
-  fijosDe, gastosSinPartida, mediaQueQueda, mesDe, mesVecino, plantillaDelMes,
-  repartoDelMes, repartoPorPartida, resumenPartidas, serieDeMeses, sumaDeFijos,
-  titulosDePresupuestos,
+  fijosDe, gastosSinPartida, mediaQueQueda, mesCorto, mesDe, mesesNavegables,
+  mesVecino, plantillaDelMes, repartoDelMes, repartoPorPartida, resumenPartidas,
+  serieDeMeses, sumaDeFijos, titulosDePresupuestos,
 } from '@/lib/budgets'
 import type {
   Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MonthPlanLine, Quote,
@@ -133,6 +133,66 @@ test.describe('el mes', () => {
     expect(mesVecino('2026-08', 1)).toBe('2026-09')
     expect(mesVecino('2026-12', 1)).toBe('2027-01')
     expect(mesVecino('2026-01', -1)).toBe('2025-12')
+  })
+
+  test('mesCorto son tres letras, y las mismas todo el año', () => {
+    expect(mesCorto('2026-06')).toBe('jun')
+    expect(mesCorto('2026-09')).toBe('sep')
+    // Los doce miden lo mismo, que es lo que deja alinear la tira de meses y las
+    // etiquetas del gráfico sin medir cada una.
+    const todos = Array.from({ length: 12 }, (_, i) => mesCorto(`2026-${String(i + 1).padStart(2, '0')}`))
+    expect(new Set(todos.map(m => m.length))).toEqual(new Set([3]))
+    expect(todos.some(m => m.includes('.'))).toBe(false)
+  })
+})
+
+// La tira que sustituyó a las dos flechas (04-09-2026). Lo que hay que fijar es
+// dónde empieza y dónde acaba, porque una lista finita no puede dejar fuera un mes
+// que tenga algo dentro.
+test.describe('los meses que se pueden elegir', () => {
+  test('sin nada guardado, el mes de hoy y los tres siguientes', () => {
+    expect(mesesNavegables('2026-09', [], [])).toEqual([
+      '2026-09', '2026-10', '2026-11', '2026-12',
+    ])
+  })
+
+  test('se estira hacia atrás hasta el mes más viejo con algo', () => {
+    const meses = mesesNavegables(
+      '2026-09',
+      [plan('2026-07', [])],
+      [gasto({ date: '2026-05-14' })],
+    )
+    expect(meses[0]).toBe('2026-05')
+    expect(meses).toContain('2026-07')
+    // Y no se inventa nada por detrás de ahí.
+    expect(meses).not.toContain('2026-04')
+  })
+
+  test('y hacia delante más allá de los tres, si hay un apunte más lejos', () => {
+    const meses = mesesNavegables('2026-09', [], [gasto({ date: '2027-03-01' })])
+    expect(meses[meses.length - 1]).toBe('2027-03')
+    // El salto de año no deja huecos: de septiembre a marzo son siete meses.
+    expect(meses).toEqual([
+      '2026-09', '2026-10', '2026-11', '2026-12',
+      '2027-01', '2027-02', '2027-03',
+    ])
+  })
+
+  test('el mes que se está mirando entra aunque se haya quedado sin nada', () => {
+    // Estabas en marzo porque allí había un apunte y lo borras: sin esto, la tira
+    // se quedaría sin ningún mes marcado, enseñando uno que ya no ofrece.
+    const meses = mesesNavegables('2026-09', [], [], '2027-03')
+    expect(meses[meses.length - 1]).toBe('2027-03')
+  })
+
+  test('un mes con algo siempre está en la lista, y no hay repetidos', () => {
+    const meses = mesesNavegables(
+      '2026-09',
+      [plan('2026-06', []), plan('2026-07', [])],
+      [gasto({ date: '2026-06-10' }), gasto({ id: 'g2', date: '2026-06-11' })],
+    )
+    expect(new Set(meses).size).toBe(meses.length)
+    for (const mes of ['2026-06', '2026-07', '2026-09']) expect(meses).toContain(mes)
   })
 })
 

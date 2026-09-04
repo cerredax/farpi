@@ -3,6 +3,7 @@
 import { Eraser, Lock, LockOpen } from 'lucide-react'
 import { useState } from 'react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { Button } from '@/components/ui/Button'
 
 interface CierreDelMesProps {
   /** Aún no está cerrado y ya ha empezado, así que se puede dar por cerrado. */
@@ -35,17 +36,27 @@ type Pendiente = 'cerrar' | 'cero' | null
  *
  * Tres cosas, nunca dos a la vez:
  *
- * 1. **Dar el mes por cerrado.** Un atajo, no una tarea: si nadie lo toca, el mes
- *    se cierra solo el día 1. Sirve para lo único que no se podía hacer de otra
- *    manera —preparar un cambio de la plantilla que valga a partir del mes que
- *    viene, porque el mes en curso es espejo de ella—.
- * 2. **Volver a seguir la plantilla**, mientras el mes cerrado siga siendo el de
- *    hoy. No pide confirmación: no pierde nada.
+ * 1. **Cerrar mes.** Un atajo, no una tarea: si nadie lo toca, el mes se cierra
+ *    solo el día 1. Sirve para lo único que no se podía hacer de otra manera
+ *    —preparar un cambio de la plantilla que valga a partir del mes que viene,
+ *    porque el mes en curso es espejo de ella—.
+ * 2. **Reabrir mes**, mientras el mes cerrado siga siendo el de hoy. No pide
+ *    confirmación: no pierde nada.
  * 3. **Poner el mes a cero** (03-09-2026), en un mes pasado. Borra la copia y lo
  *    deja como el mes que nunca se cerró: en cero y diciéndolo. Existe porque el
  *    cierre automático llegó a guardar meses que no se vivieron —agosto, con unas
  *    nóminas creadas el 1 de septiembre— y no había forma de quitarlos. **Los
  *    apuntes no se borran**, y el diálogo lo dice antes de que nadie lo pregunte.
+ *
+ * **Son botones y no enlaces, y se llaman en dos palabras** (04-09-2026). Eran
+ * texto verde centrado —«Dar el mes por cerrado», «Volver a seguir la plantilla
+ * este mes»— y no parecían pulsables: en una pantalla donde casi todo lo verde y
+ * pequeño es una etiqueta, se leían como un pie de la tarjeta. Ahora son
+ * `Button variant="secondary"`, que es lo que la app usa para una acción que no es
+ * la principal, y los tres rótulos se acortaron a la vez: dejar uno corto y dos
+ * largos habría sido peor que como estaban. Lo que **no** son es `fullWidth`: una
+ * barra a todo lo ancho devolvería a la tarjeta el panel de mandos que se le quitó
+ * el 03-09.
  *
  * **Las dos que cambian algo piden confirmación en un diálogo** (03-09-2026), no
  * con el doble toque de `useConfirmAction` que usa el resto de la app. Es la
@@ -73,26 +84,24 @@ export function CierreDelMes({
     setPendiente(null)
   }
 
-  const enlace = 'flex min-h-6 w-full items-center justify-center gap-1.5 py-1 text-xs font-semibold text-primary-strong transition-colors'
-
   return (
-    <section aria-label="Cierre del mes" className="border-t border-hairline pt-3">
+    <section aria-label="Cierre del mes" className="flex flex-col items-center border-t border-hairline pt-3">
       {sePuedePonerACero ? (
-        <button type="button" onClick={() => setPendiente('cero')} className={enlace}>
+        <Button variant="secondary" size="sm" onClick={() => setPendiente('cero')} className="flex items-center gap-1.5">
           <Eraser size={13} strokeWidth={2.4} aria-hidden />
-          Poner este mes a cero
-        </button>
+          Poner el mes a cero
+        </Button>
       ) : sePuedeCerrar ? (
-        <button type="button" onClick={() => setPendiente('cerrar')} className={enlace}>
+        <Button variant="secondary" size="sm" onClick={() => setPendiente('cerrar')} className="flex items-center gap-1.5">
           <Lock size={13} strokeWidth={2.4} aria-hidden />
-          Dar el mes por cerrado
-        </button>
+          Cerrar mes
+        </Button>
       ) : (
         <>
-          <button type="button" onClick={onReabrir} className={enlace}>
+          <Button variant="secondary" size="sm" onClick={onReabrir} className="flex items-center gap-1.5">
             <LockOpen size={13} strokeWidth={2.4} aria-hidden />
-            Volver a seguir la plantilla este mes
-          </button>
+            Reabrir mes
+          </Button>
           {/* Este sí se queda: no hay diálogo donde contarlo, porque deshacerlo
               no pide confirmación —no pierde nada— y la pega es de tiempo, no de
               lo que va a pasar al pulsar. */}
@@ -105,7 +114,7 @@ export function CierreDelMes({
 
       <BottomSheet
         open={pendiente !== null}
-        title={pendiente === 'cero' ? 'Poner el mes a cero' : 'Dar el mes por cerrado'}
+        title={pendiente === 'cero' ? 'Poner el mes a cero' : 'Cerrar mes'}
         onClose={() => setPendiente(null)}
         footer={
           <div className="space-y-2 px-5 py-4">
@@ -116,7 +125,7 @@ export function CierreDelMes({
                 pendiente === 'cero' ? 'bg-danger hover:opacity-90' : 'bg-primary hover:bg-primary-hover'
               }`}
             >
-              {pendiente === 'cero' ? 'Sí, ponerlo a cero' : 'Sí, darlo por cerrado'}
+              {pendiente === 'cero' ? 'Sí, ponerlo a cero' : 'Sí, cerrar el mes'}
             </button>
             <button
               type="button"

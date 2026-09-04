@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
   agruparPresupuestos, apuntesDelMes, cuentaDelMes, fijosDe, gastosSinPartida,
-  mesDe, mesVecino, plantillaDelMes, repartoDelMes, repartoPorPartida,
+  mesDe, mesesNavegables, plantillaDelMes, repartoDelMes, repartoPorPartida,
   resumenPartidas, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
 } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -99,11 +99,17 @@ export function useFinanzasState() {
     && plantilla.fijos.length === 0
     && plantilla.partidas.length === 0
 
-  /** Cambiar de mes cierra la previsión: se pidió para el mes que se miraba. */
-  const irAlMes = (siguiente: (actual: string) => string) => {
-    setMes(siguiente)
-    setPrevisionAbierta(false)
-  }
+  // Los meses que ofrece la tira, y cuáles de ellos tienen algo guardado. El
+  // segundo es lo que deja que un chip diga, solo con el color, si hay algo que
+  // mirar ahí: se calcula una vez y no una por chip.
+  const meses = useMemo(
+    () => mesesNavegables(mesActual, monthPlans, expenses, mes),
+    [mesActual, monthPlans, expenses, mes],
+  )
+  const mesesConAlgo = useMemo(
+    () => new Set([...monthPlans.map(p => p.month), ...expenses.map(e => mesDe(e.date))]),
+    [monthPlans, expenses],
+  )
 
   // Los sheets se remontan al cambiar de cosa editada, como en el resto de la
   // app: sin esto, editar un apunte justo después de otro deja los valores del
@@ -120,9 +126,16 @@ export function useFinanzasState() {
   const quoteKey = editingQuote ? `pedido-${editingQuote.id}` : 'pedido-nuevo'
 
   return {
-    hoy, mes, setMes,
-    mesAnterior: () => irAlMes(m => mesVecino(m, -1)),
-    mesSiguiente: () => irAlMes(m => mesVecino(m, 1)),
+    hoy, mes, mesActual, meses, mesesConAlgo,
+    /**
+     * Ir a un mes de la tira. **Cierra la previsión**: se pidió para el mes que se
+     * estaba mirando, y dejarla abierta haría que el siguiente saliera con cifras
+     * que nadie ha pedido.
+     */
+    elegirMes: (destino: string) => {
+      setMes(destino)
+      setPrevisionAbierta(false)
+    },
     esMesActual: mes === mesActual,
     /**
      * Si el plan de este mes está congelado: sus partidas no se editan desde aquí
@@ -147,10 +160,18 @@ export function useFinanzasState() {
      */
     planVivo: plantilla.origen === 'plantilla' || plantilla.origen === 'por-venir',
     /**
-     * Si el mes que se mira aún no ha empezado. Sale en cero y no se ofrece
-     * apuntar: un gasto con fecha de octubre apuntado en septiembre no es un
-     * gasto, es un recordatorio, y para eso están las tareas. Lo que sí se puede
-     * pedir es la previsión, que es para lo que sirve entrar.
+     * Si el mes que se mira aún no ha empezado. Sale en cero **mientras no tenga
+     * nada dentro**, y sí se puede apuntar (04-09-2026).
+     *
+     * Hasta ese día no se podía: «un gasto con fecha de octubre no es un gasto, es
+     * un recordatorio, y para eso están las tareas». La regla se cayó con el caso
+     * que no cubría, que es el normal: sabes que en octubre llega el IBI y lo que
+     * quieres es ver si octubre cuadra **contándolo**. Una tarea no suma en la
+     * cuenta del mes, así que no contestaba la pregunta. Además la puerta ya estaba
+     * abierta y solo escondida: el campo de fecha del apunte no tiene tope, así que
+     * bastaba con editar la fecha desde septiembre.
+     *
+     * Lo que sigue sin poderse en un mes por venir es **cerrarlo**: no ha pasado.
      */
     esPorVenir: plantilla.origen === 'por-venir',
     previsionAbierta,

@@ -396,26 +396,48 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] En el mes en curso, «+ Nueva partida» **abre el sheet ahí mismo** y no salta a «Lo
       fijo» (03-09-2026). Al crearla se ve en la lista de partidas sin cambiar de
       pestaña, y también está en «Lo fijo», porque una partida es de la plantilla.
-- [ ] En el mes en curso, «Dar el mes por cerrado» abre un **diálogo** (03-09-2026) que
-      dice qué se guarda y que el día 1 se cierra solo; «Cancelar» y la ✕ no hacen nada.
-      Tras confirmarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
+- [ ] En el mes en curso, «Cerrar mes» abre un **diálogo** (03-09-2026) que dice qué se
+      guarda y que el día 1 se cierra solo; «Cancelar» y la ✕ no hacen nada. Tras
+      confirmarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
+- [ ] Los tres **parecen botones** (04-09-2026): fondo, borde y su icono, no texto verde
+      centrado. No van a todo lo ancho.
 - [ ] **Debajo de esos botones no hay letra pequeña**: lo que explicaban vive ahora en
       el diálogo.
 - [ ] Los tres botones del mes —cerrar, deshacer, poner a cero— están **debajo de la
       tarjeta del mes**, no al final de la pantalla.
-- [ ] En un mes pasado cerrado sale **«Poner este mes a cero»**: su diálogo avisa de que
+- [ ] En un mes pasado cerrado sale **«Poner el mes a cero»**: su diálogo avisa de que
       lo apuntado no se toca y su botón va en rojo. Después el
       mes dice «de este mes no se guardó ningún fijo ni ninguna partida», los apuntes que
       tuviera siguen ahí y **al recargar sigue a cero** (no lo vuelve a cerrar la app).
-- [ ] Un mes que aún no ha llegado sale **a cero** y sin partidas. El enlace «ver qué
-      quedaría con lo fijo de hoy» abre la previsión, que habla en condicional; al cambiar
-      de mes vuelve a estar cerrada. Apuntar no se ofrece en ninguno de los dos casos.
-- [ ] Y sale «Volver a seguir la plantilla este mes», que lo deshace. En un mes que ya
-      terminó **no aparece ninguno de los dos botones**.
+- [ ] Un mes que aún no ha llegado y **vacío** sale a cero y sin partidas. «Ver las
+      cuentas de octubre» abre la previsión, que habla en condicional («quedaría ese
+      mes»); al cambiar de mes vuelve a estar cerrada.
+- [ ] Y sale «Reabrir mes», que deshace el cierre. En un mes que ya terminó **no aparece
+      ninguno de los dos botones**.
 - [ ] Agosto sale como cerrado aunque no esté sembrado: lo cierra la app al abrirse.
-- [ ] Ir al mes **siguiente**: la tarjeta avisa de que «aún no ha empezado», habla en
-      condicional («quedaría ese mes») y **no hay `+` ni «Dar el mes por cerrado»**. El
-      día a día dice «Ese mes aún no ha empezado». Volviendo con la flecha, todo vuelve.
+
+**Apuntar lo que va a llegar** (04-09-2026)
+
+- [ ] En el mes que viene **hay `+`** y se puede apuntar un gasto. Al guardarlo, la
+      tarjeta deja de decir «aún no ha empezado» y pasa a «apuntado para ese mes» con el
+      importe; el día a día lo enseña. Lo que sigue sin salir es «Cerrar mes».
+- [ ] Con las cuentas pedidas, ese gasto **entra en lo que quedaría** (2.194,10 − lo
+      apuntado) y su partida, si tiene, mueve la barra.
+- [ ] El hueco del día a día en ese mes **invita**: «Nada apuntado todavía» y «Apunta lo
+      que ya sabes que va a llegar: el seguro, la matrícula, el IBI».
+
+**La tira de meses** (04-09-2026)
+
+- [ ] Encima de la cifra hay una **fila de meses** y no dos flechas. Tocar uno va a ese
+      mes de un solo toque.
+- [ ] El mes que se mira lleva **fondo crema**; el de hoy va en **negrita** aunque estés
+      mirando otro; los meses sin plan ni apuntes se ven **más claros**.
+- [ ] Se arrastra de lado si no caben, y **el mes elegido queda centrado** al entrar y al
+      cambiar. Arrastrarla **no mueve la página** hacia arriba o abajo.
+- [ ] Llega por detrás hasta junio (el mes más viejo con datos de la demo) y **no más**,
+      y por delante hasta tres meses después del de hoy.
+- [ ] Apuntando un gasto con fecha de dentro de seis meses (editando la fecha en el
+      sheet), ese mes **aparece en la tira**: ningún mes con algo se queda inalcanzable.
 - [ ] Borrar una partida y mirar un mes cerrado que la tenía: **sigue saliendo con su
       nombre y su límite**, y sus gastos pasan a contarse en «sin partida».
 

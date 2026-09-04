@@ -106,17 +106,17 @@ export function FinanzasView() {
       <ViewHeader
         resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
         buscador={null}
-        // Mirando un mes que aún no ha empezado no hay `+`: las dos pestañas que
-        // hablan de un mes concreto —«El mes» y «Resumen»— apuntarían un gasto en
-        // octubre desde septiembre, y eso no es un gasto. Las otras dos no tienen
-        // mes, así que ahí el botón sigue.
-        onAdd={s.esPorVenir && (s.pestaña === 'mes' || s.pestaña === 'resumen')
-          ? undefined
-          : () => {
-            if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
-            else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
-            else s.abrirApunte(null)
-          }}
+        // El `+` sale en todos los meses, también en los que no han llegado
+        // (04-09-2026). Antes no: se daba por hecho que un gasto con fecha de
+        // octubre apuntado en septiembre era un recordatorio y no un gasto. Pero
+        // el caso normal es el contrario —sabes que en octubre llega el IBI y
+        // quieres ver si octubre cuadra contándolo—, y una tarea no suma en la
+        // cuenta del mes, así que no contestaba la pregunta.
+        onAdd={() => {
+          if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
+          else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
+          else s.abrirApunte(null)
+        }}
         addLabel={ETIQUETA_DE_ALTA[s.pestaña]}
       />
 
@@ -157,8 +157,11 @@ export function FinanzasView() {
           cuenta={s.cuenta}
           fijos={s.plantilla.fijos}
           nombreDelMes={nombreDelMes}
-          onAnterior={s.mesAnterior}
-          onSiguiente={s.mesSiguiente}
+          meses={s.meses}
+          mes={s.mes}
+          mesActual={s.mesActual}
+          mesesConAlgo={s.mesesConAlgo}
+          onElegirMes={s.elegirMes}
           reparto={s.repartoPorPersona}
           copiaVacia={s.copiaVacia}
           previsionAbierta={s.previsionAbierta}
@@ -247,14 +250,19 @@ export function FinanzasView() {
             El día a día {s.delMes.length > 0 && <span className="text-faint">({s.delMes.length})</span>}
           </h2>
 
+          {/* En un mes que no ha llegado el hueco **invita**, no explica
+              (04-09-2026). Decía «Aquí se apunta lo que ya ha pasado. Cuando llegue
+              el mes, esto se llena», que además de largo ya no es verdad: desde ese
+              día se puede apuntar lo que sabes que va a llegar, y eso es justo para
+              lo que se entra en octubre. */}
           {s.delMes.length === 0 ? (
             <EmptyState
               emoji={s.esPorVenir ? '📆' : '🧾'}
               title={s.esPorVenir
-                ? 'Ese mes aún no ha empezado'
+                ? 'Nada apuntado todavía'
                 : s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
               description={s.esPorVenir
-                ? 'Aquí se apunta lo que ya ha pasado. Cuando llegue el mes, esto se llena.'
+                ? 'Apunta lo que ya sabes que va a llegar: el seguro, la matrícula, el IBI.'
                 : 'Apunta lo que se va gastando —y lo que entra sin ser fijo— y la cuenta de arriba se mueve sola.'}
             />
           ) : (

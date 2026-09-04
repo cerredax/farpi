@@ -15,6 +15,61 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Finanzas: se puede apuntar lo que va a llegar, y los meses se eligen de un toque (04-09-2026)
+
+Cinco cosas de la misma pantalla, «El mes», y todas de la tarjeta de arriba y de lo que
+se hace con el mes que enseña. Salieron de mirarla con calma, no de un fallo.
+
+**Lo que mandaba: apuntar un gasto que sabes que te va a llegar.** El 03-09-2026 se había
+decidido que no —«un gasto con fecha de octubre apuntado en septiembre no es un gasto, es
+un recordatorio, y para eso están las tareas»— y la regla era razonable pero dejaba fuera
+el caso normal: sabes que en octubre llega el IBI y lo que quieres saber es si octubre
+cuadra **contándolo**. Una tarea no suma en la cuenta del mes, así que no contestaba la
+pregunta, y el dato se quedaba en la cabeza de alguien. Además la puerta ya estaba
+abierta y solo escondida: el campo de fecha no tiene tope, así que bastaba con editar la
+fecha desde septiembre. Lo que faltaba era el `+` y que la tarjeta lo contara.
+
+Ahora el cero de un mes por venir lo decide el contenido y no el calendario: sigue en
+cero mientras esté vacío, y en cuanto tiene algo dice «420,00 € — apuntado para ese mes».
+Ni «gastado», que hablaría de un mes que no ha llegado, ni un cero con el gasto listado
+justo debajo, que habría sido peor que no dejar apuntarlo. Cerrar un mes que no ha pasado
+sigue sin poderse.
+
+**Las dos flechas se fueron y entró una tira de meses.** Llevaban a cualquier mes y a
+ninguno de un toque, y por el camino no se veía ni dónde estabas ni dónde había algo. La
+tira se arrastra, cada chip dice en el color si ese mes tiene algo, y el de hoy nunca
+sale apagado: va en negrita aunque estés mirando junio, que es lo que dice por dónde se
+vuelve. Eso cerró de paso el hueco que dejó quitar «Volver a este mes» el día anterior.
+
+Dónde empieza y dónde acaba la tira lo decide `mesesNavegables`, y la regla que sostiene
+las dos mitades es una sola: **un mes que tiene algo siempre está en la lista**. Por
+detrás llega hasta el más viejo con plan o apuntes y ni un mes más; por delante, tres
+fijos —el horizonte de «lo que sé que va a llegar»— y los que hagan falta si alguien
+apuntó en marzo. Una lista finita no puede dejar fuera un mes al que no se podría llegar
+de ninguna otra manera.
+
+**Y tres cosas de palabras.** «Dar el mes por cerrado» pasó a **«Cerrar mes»** y dejó de
+ser texto verde centrado: en una pantalla donde casi todo lo verde y pequeño es una
+etiqueta, no parecía pulsable. Ahora es un botón secundario de verdad, y sus dos hermanos
+se acortaron con él —«Reabrir mes», «Poner el mes a cero»—, porque dejar uno corto y dos
+largos habría sido peor que como estaban. El enlace de la previsión, que decía «Ver qué
+quedaría con lo fijo de hoy», pasó a **«Ver las cuentas de octubre»**: «queda» ya nombra
+la cifra grande de esa misma tarjeta y el enlace parecía preguntar por ella. Y el hueco
+del día a día en un mes por venir dejó de explicar —«Aquí se apunta lo que ya ha pasado.
+Cuando llegue el mes, esto se llena»— para invitar, que además es lo único cierto desde
+hoy: «Apunta lo que ya sabes que va a llegar: el seguro, la matrícula, el IBI».
+
+Dos tropiezos que merecen quedar escritos, los dos de dar algo por hecho en vez de
+mirarlo. El primero: el helper de los tests construía el nombre del mes con
+`toLocaleDateString('es-ES')`, que dice «junio de 2026», mientras la app lo pinta con
+`date-fns`, que dice «Junio 2026»; once tests en rojo por un «de». El segundo, peor
+porque el comentario mentía: escribí que `date-fns` abrevia septiembre como «sept.» y
+que por eso `mesCorto` le quita el punto. Lo comprobé al fallar el test: en esta versión
+ninguno de los doce lleva punto y todos miden tres letras. El `replace` se queda como red
+para otras locales, pero ahora el comentario dice lo que pasa de verdad y hay un test que
+fija que los doce miden igual — que es, además, lo que deja alinear la tira sin medir
+ninguno.
+
 ### Finanzas: los fijos de la cuenta se abren (04-09-2026)
 
 Pedido tal cual: «en el resumen del mes, donde pone ingresos fijos y gastos fijos, me

@@ -562,8 +562,7 @@ cada uno hace a su manera:
 > sesiones de usuario reales y crea y borra sus propios usuarios y familias de
 > prueba. Ejecutarlo (`node scripts/validate-rls.mjs`) es más fiable que ir a mano, y
 > es lo que pide `CLAUDE.md` después de tocar el esquema, una policy o una RPC. La
-> última pasada fue de **163/163** (03-09-2026), y queda por aplicar
-> `supabase/parche-2026-09-04.sql`, así que la siguiente no dará 163.
+> última pasada fue de **165/165** (04-09-2026).
 > Lo de abajo queda como referencia de qué cubre.
 
 - [ ] `supabase/schema.sql` aplicado (sustituye a las 21 migraciones desde el 26-08-2026).

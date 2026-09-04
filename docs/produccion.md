@@ -96,10 +96,9 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-El backend está **validado** (§4): **163/163** comprobaciones de RLS, RPCs e integridad
-(03-09-2026), con `supabase/parche-2026-09-04.sql` todavía por aplicar. La app está
-desplegada y operativa en https://nido-xi.vercel.app, que sigue sirviendo hasta que se
-apunte **`www.farpi.app`**, ya registrado (§0).
+El backend está **validado** (§4): **165/165** comprobaciones de RLS, RPCs e integridad
+(04-09-2026). La app está desplegada y operativa en https://nido-xi.vercel.app, que sigue
+sirviendo hasta que se apunte **`www.farpi.app`**, ya registrado (§0).
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 
@@ -160,10 +159,10 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
       Aplicado con `supabase/parche-2026-09-03.sql` y validado ese mismo día: **163/163**.
       La cuarta sección de ese parche, la RPC `accept_family_invite`, va anotada en §2.3
       por ser de Auth.
-- [ ] **`supabase/parche-2026-09-04.sql` — sin aplicar todavía.** Corrige el trigger de la
-      línea de arriba, que se pisa con el `on delete set null` de `documents.storage_owner`
-      y deja sin poder borrar su cuenta a quien haya subido un papel a una familia que le
-      sobrevive.
+- [x] **`supabase/parche-2026-09-04.sql` aplicado** el 04-09-2026 y validado ese mismo
+      día: **165/165**. Corrige el trigger de la línea de arriba, que se pisaba con el
+      `on delete set null` de `documents.storage_owner` y dejaba sin poder borrar su cuenta
+      a quien hubiera subido un papel a una familia que le sobrevive.
 - [x] RLS activo en todas las tablas privadas. `storage_connections` la lleva activada
       y **sin ninguna policy**, que es lo que la deja solo para el service role.
 
@@ -226,7 +225,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 163/163 comprobaciones correctas, con el esquema entero validado (última pasada, 03-09-2026). Repetible con `node scripts/validate-rls.mjs`. Queda por aplicar `supabase/parche-2026-09-04.sql`, y el arnés ya lleva sus dos comprobaciones, así que la próxima pasada no dará 163.
+Resultados en **`docs/supabase-validation.md`**: 165/165 comprobaciones correctas, con el esquema entero validado (última pasada, 04-09-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Cuatro usuarios y tres familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.

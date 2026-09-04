@@ -1,6 +1,43 @@
 # Validación Supabase
 
-## Última ejecución: 163/163 (03-09-2026, la revisión de seguridad a la contra)
+## Última ejecución: 165/165 (04-09-2026, borrar la cuenta vuelve a funcionar)
+
+Con `supabase/parche-2026-09-04.sql` aplicado en el proyecto real. **165/165
+comprobaciones correctas.**
+
+Son las 163 anteriores más dos, las dos en la §12, y las dos de las que dicen qué tiene
+que **seguir funcionando**: que se puede borrar la cuenta de quien subió un papel a una
+familia que le sobrevive, y que su ficha se queda en la casa, sin dueño.
+
+### El arreglo del día anterior se pisaba con el esquema
+
+`documents.storage_owner` es `on delete set null` contra `auth.users`, y Postgres ejecuta
+esa acción referencial como un **update** sobre `documents`: entra por
+`trg_document_storage_inmutable`, el trigger que se puso el 03-09-2026 para que nadie
+reescribiera el dueño de una ficha ajena. Las dos piezas se pisaban, y el caso es el
+normal de esta casa: dos adultos, los dos admin, uno ha subido papeles. Al borrar su
+cuenta la familia no se cierra —queda la otra persona—, así que las fichas siguen ahí
+cuando `/api/account/delete` llama a `deleteUser`; la acción referencial intenta poner el
+dueño a nulo, el trigger salta y se cae el borrado entero. Un 500 permanente, sin salida
+por la interfaz.
+
+Ahora el trigger deja pasar ese caso y **solo** ese, y lo reconoce por de dónde sale y no
+por quién lo pide: que el dueño anterior ya no exista en `auth.users`. Ese estado no lo
+puede fabricar nadie, porque nadie puede borrarle la cuenta a otro. Las cuatro
+comprobaciones del sabotaje siguen en verde, que era lo que no había que romper.
+
+**Las 163 no lo veían**, y el motivo merece quedar escrito: la limpieza del arnés borra
+las familias **antes** que los usuarios, y con la familia se van las fichas en cascada,
+así que cuando le tocaba el turno al usuario ya no quedaba nada apuntando a él. El arnés
+se probaba a sí mismo un orden que la app no recorre. Las dos nuevas usan al usuario D y
+una ficha que se queda en una familia viva, que es el orden de verdad.
+
+Y un límite de esta pasada, dicho para que nadie lo lea de más: **estas dos en verde
+prueban que ahora funciona, no que antes fallara**. Para lo segundo habría que volver a
+poner el trigger roto en la base real, y eso no se hace. Lo que sostiene el diagnóstico
+es la semántica de Postgres, no una ejecución.
+
+## Antes: 163/163 (03-09-2026, la revisión de seguridad a la contra)
 
 Con las cuatro secciones de `supabase/parche-2026-09-03.sql` aplicadas en el proyecto
 real. **163/163 comprobaciones correctas.**
@@ -374,9 +411,10 @@ scripts, así que no para un XSS en línea.
       de quien subió el papel (03-09-2026).
 - [x] **Pero renombrar la ficha lo sigue pudiendo cualquier miembro.** Es lo que hace la
       app, y es la comprobación que descubrió que la policy `for all` lo había roto.
-- [ ] Borrar la cuenta de quien subió un papel a una familia que le sobrevive, y que su
-      ficha se quede en la casa sin dueño. Escrita el 04-09-2026 y **sin pasar todavía**:
-      hace falta aplicar `supabase/parche-2026-09-04.sql`.
+- [x] Borrar la cuenta de quien subió un papel a una familia que le sobrevive **funciona**,
+      y su ficha se queda en la casa sin dueño (04-09-2026). Es la pareja de las cuatro de
+      arriba por el otro lado: aquellas dicen qué no se puede tocar, y esta, qué no se
+      puede romper por cerrarlo.
 
 ## Validación Integridad
 
@@ -411,28 +449,15 @@ por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fi
 el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
 que puede ver el documento del que cuelga el token.
 
-**La última pasada no dejó nada en rojo:** 163/163 el 03-09-2026, ya con las cuatro
-secciones de la revisión de seguridad aplicadas. El detalle está arriba del todo, y la
-cadena entera de pasadas anteriores en las secciones «Antes» que siguen.
+**La última pasada no dejó nada en rojo:** 165/165 el 04-09-2026, con el borrado de
+cuenta arreglado y las cuatro secciones de la revisión de seguridad ya dentro. El detalle
+está arriba del todo, y la cadena entera de pasadas anteriores en las secciones «Antes»
+que siguen.
 
 ## Pendiente
 
-**`supabase/parche-2026-09-04.sql`, sin aplicar todavía.** `documents.storage_owner` es
-`on delete set null` contra `auth.users`, y Postgres ejecuta esa acción referencial como un
-**update** sobre `documents`: choca de frente con el trigger de inmutabilidad que entró el
-03-09-2026. Quien haya subido un papel a una familia que le sobrevive no puede borrar su
-cuenta —Ajustes devuelve un 500 sin salida—, y el parche lo arregla dejando pasar ese caso
-y solo ese.
-
-Las 163 no lo veían porque la limpieza del arnés borra las familias **antes** que los
-usuarios, y con la familia se van las fichas en cascada: cuando le toca el turno al usuario
-ya no queda nada apuntando a él. Es otra vez la lección de arriba, por el otro lado — la
-comprobación que faltaba no era la del ataque, era la de lo que tiene que seguir
-funcionando. El arnés ya lleva las dos que lo miran, en la §12, así que **la próxima pasada
-no dará 163**: hay que aplicar el parche y anotar aquí el número que salga.
-
-Después, lo de siempre: volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este
-documento la próxima vez que se toque una migración, una policy o una RPC.
+Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
+próxima vez que se toque una migración, una policy o una RPC.
 
 ### Notas de la ejecución (02-09-2026)
 

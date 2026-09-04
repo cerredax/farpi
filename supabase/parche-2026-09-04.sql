@@ -1,9 +1,12 @@
 -- Farpi — parche del 04-09-2026: borrar la cuenta vuelve a funcionar
 --
--- **Pendiente de aplicar.** Se pega entero en el SQL Editor del proyecto real,
--- como todo el esquema (no hay CLI de Supabase enlazada: local y producción son
--- el mismo proyecto). Es una sola función, `create or replace`, así que pasarlo
--- dos veces no hace nada la segunda.
+-- **Aplicado y validado el 04-09-2026**: `node scripts/validate-rls.mjs` dio
+-- 165/165 contra la base real, con las dos comprobaciones nuevas de la §12 en
+-- verde. Anotado en docs/supabase-validation.md.
+--
+-- Se pega entero en el SQL Editor del proyecto real, como todo el esquema (no hay
+-- CLI de Supabase enlazada: local y producción son el mismo proyecto). Es una sola
+-- función, `create or replace`, así que pasarlo dos veces no hace nada la segunda.
 --
 -- Igual que `supabase/aplicar-meses-cerrados.sql`, este archivo **se reescribe
 -- entero** si el trigger vuelve a cambiar: no crece con parches encima. Lo que

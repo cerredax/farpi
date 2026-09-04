@@ -10,9 +10,9 @@ La app está en producción, en uso diario por la familia y probada en un móvil
 aplicaron y validaron tres cambios más de esquema —la franja del comedor con los platos de
 una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**—, y el
 03-09-2026 dos más: el cierre que ya no inventa meses, con `empty_month`, y la revisión de
-seguridad de esa tarde. **163/163**. Queda por aplicar `supabase/parche-2026-09-04.sql`, que
-devuelve el borrado de cuenta. Aparte de eso, lo que falta no es código de producto:
-funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
+seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisión había
+dejado roto sin verlo. **165/165**. Lo que queda no es código de producto: funcionalidades
+que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
@@ -563,14 +563,14 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Queda una cosa: **aplicar `supabase/parche-2026-09-04.sql`**, que devuelve el borrado de
-cuenta. El `on delete set null` de `documents.storage_owner` se pisa con el trigger de
-inmutabilidad que entró el 03-09-2026 —Postgres ejecuta la acción referencial como un
-update sobre `documents`— y deja un 500 sin salida a quien haya subido un papel a una
-familia que le sobrevive. El arnés ya lleva las dos comprobaciones que lo miran, así que la
-próxima pasada no dará 163.
+Sin pendientes. La última pasada es del **04-09-2026**: **165/165**, con
+`supabase/parche-2026-09-04.sql` aplicado —el `on delete set null` de
+`documents.storage_owner` se pisaba con el trigger de inmutabilidad del día anterior y
+dejaba un 500 sin salida a quien hubiera subido un papel a una familia que le sobrevive— y
+las dos comprobaciones nuevas, que son de las que dicen qué tiene que **seguir
+funcionando**.
 
-La última pasada es del **03-09-2026**, con
+Antes de esa, la del **03-09-2026**, con
 `node scripts/validate-rls.mjs` contra la base real y ya con las cuatro secciones de
 `supabase/parche-2026-09-03.sql` aplicadas: **163/163**. El detalle
 —y por qué las que más importan son que nadie pueda llamar a `close_month_copy`

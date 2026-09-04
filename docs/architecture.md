@@ -57,10 +57,9 @@ Estado:
   Storage a Google Drive el 27-08-2026.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 - Esquema al día y revalidado. La última pasada de `node scripts/validate-rls.mjs`
-  es del 03-09-2026: **163/163**, con la revisión de seguridad de ese día dentro. El
-  historial de cada pasada está en `docs/supabase-validation.md`, que es donde vive.
-  Queda por aplicar `supabase/parche-2026-09-04.sql`, así que la próxima pasada no dará
-  163.
+  es del 04-09-2026: **165/165**, con la revisión de seguridad del día anterior dentro y
+  el borrado de cuenta arreglado. El historial de cada pasada está en
+  `docs/supabase-validation.md`, que es donde vive.
 - `mapFamily` (`src/lib/supabase-repos/family.ts`) normaliza `meal_slots` ausente a "las
   cuatro franjas". Para producción ya no hace falta, pero es lo que permite desplegar
   código antes que SQL, que es el orden en el que pasan las cosas aquí.

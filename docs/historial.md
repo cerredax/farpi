@@ -13,6 +13,69 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-04
+
+### Borrar la cuenta vuelve a funcionar, y dos archivos SQL dejan de ser una máquina del tiempo (04-09-2026)
+
+Salió de revisar el commit del día anterior. Lo que aquel commit *decía* era correcto —el
+esquema estaba sincronizado con el parche, las cuentas cuadraban, las nueve comprobaciones
+eran las que decía—, pero el repositorio se había quedado con dos cosas que no lo eran, y
+una llevaba unas horas rompiendo producción sin que nadie lo supiera.
+
+**El arreglo de ayer se pisaba con el esquema.** `documents.storage_owner` es
+`on delete set null` contra `auth.users`, y Postgres ejecuta esa acción referencial como un
+**update** sobre `documents`: entra por el trigger de inmutabilidad que había entrado esa
+misma tarde para que nadie reescribiera el dueño de una ficha ajena. El caso es el normal
+de esta casa —dos adultos, los dos admin, uno ha subido papeles—: al borrar su cuenta la
+familia no se cierra, así que las fichas siguen ahí cuando `/api/account/delete` llama a
+`deleteUser`, el trigger salta y se cae el borrado entero. Un 500 permanente, sin salida
+por la interfaz.
+
+El trigger deja pasar ahora ese caso y **solo** ese, y lo reconoce por de dónde sale y no
+por quién lo pide: que el dueño anterior ya no exista en `auth.users`, estado que no puede
+fabricar nadie porque nadie puede borrarle la cuenta a otro. Se descartó arreglarlo en la
+ruta borrando las fichas: el archivo ya es ilegible de todos modos —la conexión de Drive se
+va en cascada con el usuario— y lo que la casa quiere conservar (nombre, carpeta,
+caducidad, de quién es) no tiene por qué irse con él. Quedarse sin dueño no es un estado
+raro: es el de las fichas de antes del 27-08-2026, y la policy de `insert` lo admite.
+
+**Y un archivo guardado era una máquina del tiempo.** `aplicar-invitacion-caduca.sql`
+llevaba un `create or replace` de `accept_family_invite` con la versión de por la mañana,
+sin la guarda de la edad de la cuenta que se le añadió unas horas después. Su cabecera
+invita a reejecutarlo por los tres índices, así que estaba a un pegado de reabrir el
+agujero de par en par —quien viera un `invite_id` podía registrarse con el correo ajeno y
+entrar en esa casa— y sin dejar rastro, porque la RPC habría seguido existiendo y
+respondiendo. Se resincronizó con `schema.sql` y adoptó la regla que ya tenía
+`aplicar-meses-cerrados.sql`: no crece con parches, se reescribe entero. La regla estaba
+inventada y sin escribir, y por eso no se aplicó.
+
+De ahí sale la línea que ahora separa las dos familias de archivos: los `aplicar-*` se
+mantienen al día porque están hechos para reejecutarse; los `parche-*` son el registro de
+lo que se pasó por el editor un día, no se tocan y **no se repiten**. `parche-2026-09-03.sql`
+lleva dentro el trigger viejo, así que se quedó como estaba con el aviso de no volver a
+pasarlo.
+
+**Y los papeles decían cosas que ya no eran verdad.** La que más: `architecture.md` y
+`project-status.md` describían como viva la policy `Admin inserta miembros`, que es
+exactamente la que se había borrado el día antes; quien reconstruyera las policies desde
+ahí reabría el agujero. Detrás iban tres totales distintos en `produccion.md` (89, 80 y
+163), la sección «Resultado» de `supabase-validation.md` dando por última la pasada de la
+víspera, el roadmap diciendo que el SQL estaba «a aplicar», y listas de referencia que
+contaban de menos: el arnés monta cuatro usuarios y tres familias, no tres y dos, y los
+triggers de integridad son diez, no ocho.
+
+Aplicado y validado el mismo día: **165/165**. Las dos comprobaciones nuevas son de las que
+dicen qué tiene que **seguir funcionando**, y ya van tres veces que esa clase de
+comprobación es la que encuentra algo. Con un matiz que conviene no perder: esas dos en
+verde prueban que ahora funciona, no que antes fallara — para lo segundo habría que volver
+a poner el trigger roto en la base real, y eso no se hace.
+
+La lección, que es la de ayer por el otro lado: **la limpieza del arnés borraba las familias
+antes que los usuarios**, y con la familia se iban las fichas en cascada, así que cuando le
+tocaba el turno al usuario ya no quedaba nada apuntando a él. El arnés se probaba a sí mismo
+un orden que la app no recorre. Una suite en verde dice que pasa lo que comprueba, no que la
+app funcione.
+
 ## Cerrado el 2026-09-03
 
 ### Revisión de seguridad a la contra, y seis cosas que arreglar (03-09-2026)

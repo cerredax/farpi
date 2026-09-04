@@ -51,12 +51,18 @@ type Pendiente = 'cerrar' | 'cero' | null
  * **Son botones y no enlaces, y se llaman en dos palabras** (04-09-2026). Eran
  * texto verde centrado —«Dar el mes por cerrado», «Volver a seguir la plantilla
  * este mes»— y no parecían pulsables: en una pantalla donde casi todo lo verde y
- * pequeño es una etiqueta, se leían como un pie de la tarjeta. Ahora son
- * `Button variant="secondary"`, que es lo que la app usa para una acción que no es
- * la principal, y los tres rótulos se acortaron a la vez: dejar uno corto y dos
- * largos habría sido peor que como estaban. Lo que **no** son es `fullWidth`: una
- * barra a todo lo ancho devolvería a la tarjeta el panel de mandos que se le quitó
- * el 03-09.
+ * pequeño es una etiqueta, se leían como un pie de la tarjeta. Ahora son botones de
+ * verdad y los tres rótulos se acortaron a la vez: dejar uno corto y dos largos
+ * habría sido peor que como estaban. Lo que **no** son es `fullWidth`: una barra a
+ * todo lo ancho devolvería a la tarjeta el panel de mandos que se le quitó el 03-09.
+ *
+ * **Solo «Cerrar mes» lleva color**, y es ámbar y no rojo. Se pidió «más rojo o algo
+ * así, para que se vea que es cerrar el mes», y el ámbar da esa presencia sin decir
+ * lo que no es: cerrar el mes **no destruye nada** y se deshace mientras siga siendo
+ * el mes en curso. El rojo se queda para «Poner el mes a cero», que sí borra —y que
+ * por eso lo lleva en su diálogo—: si los dos botones fueran rojos, el que de verdad
+ * hay que pensarse dos veces dejaría de distinguirse. «Reabrir mes» no lleva ninguno
+ * porque no cuesta nada equivocarse: se vuelve a pulsar el otro.
  *
  * **Las dos que cambian algo piden confirmación en un diálogo** (03-09-2026), no
  * con el doble toque de `useConfirmAction` que usa el resto de la app. Es la
@@ -92,7 +98,7 @@ export function CierreDelMes({
           Poner el mes a cero
         </Button>
       ) : sePuedeCerrar ? (
-        <Button variant="secondary" size="sm" onClick={() => setPendiente('cerrar')} className="flex items-center gap-1.5">
+        <Button variant="warn" size="sm" onClick={() => setPendiente('cerrar')} className="flex items-center gap-1.5">
           <Lock size={13} strokeWidth={2.4} aria-hidden />
           Cerrar mes
         </Button>

@@ -1682,6 +1682,76 @@ una barra llena de rojo y una llena de verde son la misma barra para quien no di
 los dos. La barra además se recorta al 100 %: pasarse un 300 % no dibuja una barra que se
 sale de la tarjeta; cuánto es exactamente lo dice el texto.
 
+#### «Cómo vamos»: cuatro preguntas y no cuatro dibujos (04-09-2026)
+
+La pestaña se llamaba «Resumen» y el nombre sobraba por dos motivos: no resumía nada
+que no estuviera ya en «El mes», y prometía un resumen donde lo que tiene que haber son
+respuestas. Ahora se llama **«Cómo vamos»**, que nombra lo que contesta y no cómo lo
+pinta — que además es lo honesto cuando parte de lo que hay ahí es una frase.
+
+El criterio para elegir los bloques **no fue «qué se puede dibujar» sino «qué se
+pregunta una casa y hoy no contesta nadie»**. Son cuatro:
+
+1. **¿Voy bien este mes?** — lo gastado acumulado día a día contra el ritmo de siempre.
+   Era el hueco grande: «El mes» da un saldo, y un saldo bueno el día 5 y el mismo el
+   día 25 son dos meses distintos. **Solo sale en el mes en curso** y habiendo meses
+   cerrados con los que compararse: en un mes que ya pasó la pregunta no tiene
+   respuesta útil, y sin referencia una línea sola no dice si vas rápido.
+2. **¿Estamos ahorrando más que antes?** — la serie de lo que quedó, ahora con la media
+   **dibujada** y con el mejor y el peor mes etiquetados. Antes se etiquetaba «el mayor
+   en magnitud», que con todos los meses en positivo señalaba siempre el mejor y nunca
+   el peor, que es justo el que se busca.
+3. **¿En qué se va, y qué ha cambiado?** — el desglose por partida, con la variación
+   frente al mes anterior y, al pie, las partidas que se pasan a menudo.
+4. **¿Cómo está montada esta casa?** — en qué se reparte lo que entra.
+
+**Se descartaron dos que parecían buenas.** El reparto por persona a lo largo del
+tiempo, porque en cuanto una app de casa acumula quién ha puesto más deja de ser una app
+de casa y empieza a ser una cuenta pendiente: es la misma decisión que ya impide los
+saldos en «El mes». Y la estacionalidad, que con cuatro meses de datos sería una línea
+entre dos puntos disfrazada de tendencia.
+
+##### Las decisiones de cada bloque
+
+**El ritmo lleva leyenda, y es la única de la pantalla que la lleva.** El resto de los
+gráficos no tiene porque no hay dos cosas que separar; aquí sí, y el color es lo que
+distingue este mes de lo habitual, así que hay que decir cuál es cuál con palabras. La
+línea de lo habitual va en gris punteado a propósito: no es un dato del mes, es una
+referencia, y con los dos trazos del mismo peso el ojo no sabe cuál mirar. La de este
+mes se corta en hoy —seguir hasta fin de mes la dejaría plana y parecería que se ha
+dejado de gastar—, y la escala la manda el mayor de los dos **al acabar el mes**: si se
+reescalara cada día, la línea de este mes tocaría siempre el techo y las dos parecerían
+iguales pasara lo que pasara.
+
+**La variación se casa por nombre y no por clave.** Las claves no sobreviven al cambio
+de mes —la de un mes en curso es el id de la partida y la de uno cerrado es el id de su
+línea del plan— así que serían dos claves para la misma compra. Renombrar una partida
+cuesta perder una variación, y es honesto: durante ese mes, «Comida» y «Compra» no son
+lo mismo para nadie que mire la pantalla. **«Otras» nunca la lleva**, porque agrupa lo
+que sobra y lo que sobra no es lo mismo cada mes. Y **`null` no es cero**: un trozo que
+no existía el mes pasado no ha subido un 100 %, es que no había nada de eso, así que no
+se escribe nada.
+
+**Las partidas que se pasan** son lo único de toda la pestaña que señala algo que se
+puede arreglar, y lo que se arregla está en «Lo fijo». Hace falta **más de la mitad de
+los meses y nunca con uno solo**: pasarse una vez de dos es un mes raro, no una
+costumbre, y decirlo sería regañar por una compra grande. Se escribe «3 de los últimos
+4» y no «casi siempre», para que quien lo lee juzgue por su cuenta.
+
+**«De cada 100 € que entran» es la única que cambia el denominador**, y en eso está su
+valor: el resto de la pantalla dice cuánto sale y en qué, y ninguna contesta «¿cuánto de
+lo que ganamos se lo lleva el alquiler?». Esa proporción no se deduce de las cifras
+sueltas y es la que apenas cambia de un mes a otro, así que es la que dice cómo está
+montada la casa.
+
+Sus **cuatro segmentos se pintan con dos colores**, que son los que hay: los tres de
+gasto son el mismo `sale` con la opacidad bajando y lo que queda es `entra`. La opacidad
+separa por claridad y no por tono, así que aguanta en protanopía —que es justo por lo
+que la paleta de gráficos tiene dos colores y no seis— y de todos modos las cuatro
+cifras van escritas con su porcentaje. Un mes que se fue de las manos **no se dibuja
+partido**: con lo que queda en negativo no hay proporción que repartir, así que la barra
+se llena de gasto y el exceso se dice con palabras.
+
 #### Los gráficos del «Resumen» (02-09-2026)
 
 Una cuarta pestaña con lo mismo de «El mes», dibujado. Es pestaña y no un trozo de
@@ -1817,6 +1887,29 @@ entendía: puesto sobre «Junio 2026» parece que va a hacerle algo a junio, y �
 señala a la vez al mes que se mira y al de hoy. Se vuelve con la flecha, que es por
 donde se vino.
 
+##### Tres arreglos de la pantalla del mes (04-09-2026)
+
+Los tres salieron de usar la pantalla el mismo día en que se entregó, y los tres revisan
+algo decidido sobre un diseño y no sobre la pantalla en la mano.
+
+**«Cerrar mes» va en ámbar, y no en rojo.** Se pidió «más rojo o algo así, para que se
+vea que es cerrar el mes», y el ámbar da esa presencia sin decir lo que no es: cerrar el
+mes **no destruye nada** y se deshace mientras siga siendo el mes en curso. El rojo se
+queda para «Poner el mes a cero», que sí borra; si lo llevaran los dos, el que de verdad
+hay que pensarse dos veces dejaría de distinguirse. El token es `sand`, que `globals.css`
+ya reservaba para «avisos suaves», y entró en `Button` como variante `warn`.
+
+**Los dos totales de fijos salen abiertos.** Entraron plegados esa misma mañana y
+duraron unas horas: lo que hay dentro es de lo primero que se quiere ver, así que pedirlo
+con un toque cada vez que se entra es un peaje. Se pueden cerrar y vuelven a abrirse al
+recargar; recordarlo pediría guardar una preferencia por algo que no molesta.
+
+**Se fue la nota de los gastos sin partida** («Hay 3 gastos sin partida: no cuentan para
+ninguna»). Contaba una consecuencia del sistema en vez de algo que pase en la casa, y
+estaba todo el rato aunque no hubiera nada que hacer con ella. Lo que decía sigue donde
+importa: en «en qué se va», «Sin partida» sale como un trozo más, con su importe y su
+porcentaje. Con la nota se fue `gastosSinPartida`, que se quedaba sin ningún consumidor.
+
 ##### En un mes que no ha llegado se puede apuntar (04-09-2026)
 
 **Se levanta la regla del 03-09-2026**, que decía: «un gasto con fecha de octubre
@@ -1843,34 +1936,42 @@ Las partidas siguen sin salir mientras no se pidan las cuentas, y no es un olvid
 previsión no hay plantilla resuelta contra la que medir una barra. El gasto se ve en «El
 día a día» y en la cifra; pidiendo las cuentas aparece también su barra.
 
-##### El mes se elige en una tira, no con dos flechas (04-09-2026)
+##### El mes se elige con las flechas y con el nombre (04-09-2026)
 
-Las flechas llevaban a cualquier mes y a ninguno de un toque —junio desde septiembre
-eran tres— y, peor, por el camino no se veía nada: ni dónde estabas dentro de la serie,
-ni en qué meses había algo que mirar. Una flecha contesta «uno más» y la pregunta era
-«¿cuál?».
+Como en el calendario, y por lo mismo: una flecha contesta «uno más» y deja sin
+contestar «¿cuál?». Con las dos cosas se recorre con las flechas —que es como se mira el
+mes de al lado— y se salta con la lista, que es como se va a junio sin dar tres toques.
 
-Ahora hay una fila de meses que se arrastra, y cada chip dice en el color si ese mes
-tiene algo: los que tienen plan o apuntes van en `muted`, los vacíos en `faint`. Es
-información que no cuesta un píxel y evita el paseo por meses en blanco.
+**Hubo una tira de meses unas horas ese mismo día**, en lugar de las flechas. Resolvía
+el salto y enseñaba de un vistazo en qué meses había algo, pero se comía una fila entera
+de una pantalla de 390 px para un control que se toca poco, y perdía lo que una flecha
+hace mejor que nada: pasar al mes de al lado sin apuntar a un objetivo pequeño. Queda
+escrito porque la idea era buena y puede volver a tentar.
 
-**El mes de hoy nunca sale apagado**, aunque no tenga plan cerrado ni un apunte: es el
-que siempre tiene cuenta —su plantilla viva— y el sitio al que se vuelve. Va en negrita
-sin fondo cuando se está mirando otro, y eso es además lo que hace innecesario el
-«Volver a este mes» que se quitó el 03-09-2026 por no saber dónde ponerlo.
+Dos cosas copiadas de `CalendarHeader`, cada una por su motivo. **Las flechas no se
+mueven**: el grupo ocupa el ancho libre y el nombre se estira dentro, así que la de
+siguiente cae siempre en el mismo píxel; si el grupo se encogiera al texto, «Septiembre
+2026» y «Junio 2026» no miden igual y la flecha bailaría a cada paso. Y **el menú se
+cierra con `pointerdown` y no con `click`**: esperando al clic, tocar una flecha con el
+menú abierto la activaría con el menú todavía encima.
 
-Qué meses se ofrecen lo decide `mesesNavegables`: por detrás, hasta el mes más viejo con
-algo, y nunca más allá —los meses anteriores a que la familia empezara no tienen nada
-que contar—; por delante, **tres fijos** —el horizonte real de «lo que sé que me va a
-llegar»— y los que hagan falta si alguien apuntó más lejos. La regla que sostiene las
-dos mitades es una: **un mes que tiene algo siempre está en la lista**, porque una lista
-finita no puede dejar fuera un mes al que no se podría llegar de ninguna otra forma.
+Qué meses ofrece **la lista** lo decide `mesesNavegables`: por detrás, hasta el mes más
+viejo con algo y nunca más allá —los meses anteriores a que la familia empezara no
+tienen nada que contar—; por delante, **tres fijos** —el horizonte real de «lo que sé
+que me va a llegar»— y los que hagan falta si alguien apuntó más lejos. La regla que
+sostiene las dos mitades es una: **un mes que tiene algo siempre está en la lista**.
 
-El activo no lleva la píldora verde de las pestañas de la pantalla, que están cuarenta
-píxeles más arriba: dos filas de píldoras verdes seguidas se leerían como dos niveles de
-lo mismo.
+**Las flechas no miran esa lista**, y ahí está el reparto: ellas siguen siendo «el de al
+lado» y llegan a donde haga falta. Es lo que permite que la lista sea finita sin
+encerrar a nadie. El mes de hoy va marcado en ella con un «hoy» escrito —no con un
+color—, porque es el sitio al que se vuelve y hay que encontrarlo de un vistazo en una
+lista de nombres que se parecen todos; eso es además lo que hace innecesario el «Volver
+a este mes» que se quitó el 03-09-2026 por no saber dónde ponerlo.
 
 ##### «Cerrar mes» y sus dos hermanos son botones (04-09-2026)
+
+*(El color de «Cerrar mes» se decidió unas horas después: ver «Tres arreglos de la
+pantalla del mes», más arriba.)*
 
 Eran texto verde centrado —«Dar el mes por cerrado», «Volver a seguir la plantilla este
 mes», «Poner este mes a cero»— y no parecían pulsables: en una pantalla donde casi todo

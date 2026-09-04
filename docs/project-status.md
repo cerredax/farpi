@@ -100,14 +100,22 @@ que todavía no existen (ver "Siguiente paso recomendado").
   plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
 - **Finanzas** (31-08-2026, rehecha el 01-09-2026; vocabulario afinado el 02-09-2026): el dinero de la casa, en `/finanzas`,
   con **tres pestañas** y cuatro piezas de vocabulario que no se pisan.
-  **«Resumen»** (02-09-2026, podada el 03-09-2026): los mismos datos, dibujados, en
-  **dos bloques y sin pies**. Una barra por mes con lo que quedó —arriba si sobró,
-  abajo si no— en los últimos seis meses, siempre hasta hoy, los que no se cerraron se
-  caen en vez de salir a cero, la más grande y el mes que se mira llevan su importe
-  escrito, y encima la media de lo que queda al mes; debajo, en qué se va: una barra
-  por partida de mayor a menor, todas del mismo color, con lo que no cuelga de ninguna
-  como «Sin partida». Entra y sale, que eran el otro gráfico, viven en la tabla
-  plegada. Todo SVG escrito a mano, sin librerías.
+  **«Cómo vamos»** (02-09-2026 como «Resumen», podada el 03-09 y replanteada el
+  04-09-2026): **cuatro bloques**, elegidos por lo que se pregunta una casa y no por lo
+  que se puede dibujar, cada uno con su cifra escrita y su dibujo detrás.
+  **¿Voy bien este mes?** — lo gastado acumulado día a día contra el ritmo de los meses
+  cerrados, con las dos cifras escritas; solo en el mes en curso y habiendo con qué
+  comparar.
+  **¿Cómo van los meses?** — una barra por mes con lo que quedó, la media dibujada, el
+  mejor y el peor etiquetados y los números en una tabla plegada.
+  **¿En qué se va?** — una barra por partida de mayor a menor, todas del mismo color,
+  cada una con **cuánto ha cambiado** desde el mes pasado y, al pie, las que se pasan a
+  menudo.
+  **¿De cada 100 € que entran?** — una barra apilada con fijos, partidas, lo demás y lo
+  que queda, con las cuatro cifras y sus porcentajes.
+  Se descartaron el reparto por persona en el tiempo —sería una cuenta pendiente— y la
+  estacionalidad, que con cuatro meses no es una tendencia. Todo SVG escrito a mano, sin
+  librerías, y con los dos únicos colores de gráfico de la paleta.
   **«Lo fijo»**: la plantilla —lo que entra y lo que sale todos los meses sin apuntar
   nada: las nóminas, el alquiler, la luz, las suscripciones— y **las partidas** en las que
   se reparte lo que varía, en tres bloques con su total y la cifra de «para el mes». No
@@ -139,11 +147,12 @@ que todavía no existen (ver "Siguiente paso recomendado").
   antes. Los tres botones —cerrar, deshacer, poner a cero— van **debajo de la tarjeta del
   mes** (03-09-2026), no al pie de la pantalla, y desde el 04-09-2026 son **botones** y
   no texto verde: «Cerrar mes», «Reabrir mes» y «Poner el mes a cero».
-  **El mes se elige en una tira que se arrastra** (04-09-2026), no con dos flechas: los
-  meses a la vista y cualquiera a un toque, cada uno diciendo en el color si tiene algo, y
-  el de hoy señalado aunque estés mirando otro. Qué meses se ofrecen lo decide
-  `mesesNavegables`: hasta el más viejo con algo por detrás, y tres por delante más los
-  que hagan falta si hay un apunte más lejos.
+  **El mes se elige con las flechas y con el nombre** (04-09-2026), como en el
+  calendario: las flechas para el de al lado y la lista para saltar a junio de un toque,
+  con el de hoy marcado. Qué meses ofrece **la lista** lo decide `mesesNavegables` —hasta
+  el más viejo con algo por detrás, y tres por delante más los que hagan falta si hay un
+  apunte más lejos—; las flechas no la miran y llegan a donde sea. **«Cerrar mes» va en
+  ámbar** y los dos totales de fijos salen abiertos.
   **Un mes que aún no ha empezado sale en cero** (03-09-2026) **mientras esté vacío**
   (04-09-2026); las cuentas —lo que quedaría con lo fijo de hoy— se piden con un enlace, y
   entonces habla en condicional. **En él sí se apunta** (04-09-2026): lo que ya sabes que
@@ -403,13 +412,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip` y `DotOption` en `src/components/ui/`.
-- **562 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **578 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 430 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 04-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, que es lo que deja alinear la tira y el gráfico sin medir ninguno). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 132 de navegador. La cifra sale de la pasada completa del 04-09-2026 (562 en total,
-    430 unitarios):
+  - 444 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 04-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 132 de navegador. La cifra sale de la pasada completa del 04-09-2026 (578 en total,
+    444 unitarios):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 

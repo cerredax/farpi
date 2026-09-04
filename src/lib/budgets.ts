@@ -467,21 +467,100 @@ export function resumenPartidas(
   })
 }
 
+// `gastosSinPartida` vivía aquí y se fue con su único consumidor el 04-09-2026: la
+// nota de «El mes» que decía «Hay 3 gastos sin partida: no cuentan para ninguna».
+// Lo que contaba sigue estando en `repartoPorPartida`, que junta esos gastos bajo
+// «Sin partida» y los cuenta con su porcentaje, que es donde el dato sirve para
+// algo. Está en el historial de git si vuelve a hacer falta.
+
+// ─── Lo que dibuja la pestaña «Cómo vamos» ────────────────────────────────────
+//
+// Cuatro preguntas, cuatro cálculos, todos puros: si el mes en curso va rápido o
+// lento, cómo ha ido cada uno de los últimos meses, en qué se ha ido el de uno
+// concreto y en qué se reparte lo que entra. Se calculan aquí y no en el
+// componente por lo de siempre —así se pueden probar sin navegador— y porque casi
+// todos tienen un caso raro que no se ve mirando la pantalla: un mes que nunca se
+// cerró, un mes sin nada con que compararse, una partida que no existía el mes
+// pasado.
+
+// ─── ¿Cómo va el mes? ─────────────────────────────────────────────────────────
+
 /**
- * Los gastos del mes que no cuelgan de ninguna partida. Los ingresos no cuentan:
- * nunca tienen partida y decir que hay "3 apuntes sin partida" cuando dos son
- * nóminas sería una alarma inventada.
+ * Lo gastado **acumulado día a día**, del 1 al último del mes.
+ *
+ * El array tiene un hueco por día —el índice 0 es el día 1— y cada uno lleva lo
+ * que se llevaba gastado al terminar ese día, así que **nunca baja**: es lo que
+ * hace que dos meses se puedan comparar por su forma y no por sus picos.
+ *
+ * Solo gastos. Un ingreso a mitad de mes haría bajar la línea y convertiría «lo
+ * que llevas gastado» en un saldo, que es otra pregunta y ya la contesta la
+ * tarjeta de «El mes».
  */
-export function gastosSinPartida(expenses: Expense[], mes: string): Expense[] {
-  return soloGastos(apuntesDelMes(expenses, mes)).filter(e => !e.budget_id)
+export function gastoAcumulado(expenses: Expense[], mes: string): number[] {
+  const dias = diasDelMes(mes)
+  const porDia = new Array<number>(dias).fill(0)
+
+  for (const gasto of soloGastos(apuntesDelMes(expenses, mes))) {
+    // `date` es `YYYY-MM-DD` y el día se corta de la cadena, como en `mesDe`: por
+    // aquí pasan fechas de calendario y `new Date()` las movería de día con el
+    // huso. Un día fuera de rango no puede pasar —el mes ya está filtrado— pero
+    // el `min` deja la función total y no una que revienta con un dato raro.
+    const dia = Math.min(Number(gasto.date.slice(8, 10)), dias)
+    porDia[dia - 1] += gasto.amount_cents
+  }
+
+  let llevado = 0
+  return porDia.map(delDia => (llevado += delDia))
 }
 
-// ─── Lo que dibuja la pestaña «Resumen» ───────────────────────────────────────
-//
-// Dos cosas, y las dos son puras: cómo ha ido cada uno de los últimos meses, y en
-// qué se ha ido el dinero de uno concreto. Se calculan aquí y no en el componente
-// por lo de siempre —así se pueden probar sin navegador— y porque las dos tienen
-// un caso raro que no se ve mirando la pantalla: un mes que nunca se cerró.
+/** Cuántos días tiene un `YYYY-MM`. El día 0 del siguiente es el último de este. */
+export function diasDelMes(mes: string): number {
+  const [ano, m] = mes.split('-').map(Number)
+  return new Date(ano, m, 0).getDate()
+}
+
+/**
+ * El ritmo al que **se suele** gastar: la media, día a día, de los meses cerrados.
+ *
+ * Es la mitad que le da sentido a la otra. Una línea sola dice cuánto llevas y no
+ * dice lo único que se quiere saber a día 15, que es si eso es mucho o poco para
+ * esta casa; con el ritmo de al lado, la respuesta se ve sin leer una cifra.
+ *
+ * **Solo meses cerrados**, y por eso pide los planes: un mes a medias arrastraría
+ * su media hacia abajo justamente en los días que aún no han pasado, y el mes en
+ * curso se compararía con algo que no es un mes entero. Con los meses cortos el
+ * último día se repite hasta rellenar los 31, que es lo correcto —en un mes de 30
+ * días, «lo que llevabas el 31» es lo que llevabas al acabar—.
+ *
+ * Devuelve `[]` si no hay ningún mes cerrado con gasto: sin nada con que comparar
+ * no hay ritmo, y la pantalla no dibuja el bloque en vez de inventarse una línea.
+ */
+export function ritmoHabitual(
+  planes: MonthPlan[],
+  expenses: Expense[],
+  mesActual: string,
+  dias = 31,
+): number[] {
+  const cerrados = planes
+    .map(p => p.month)
+    .filter(mes => mes < mesActual)
+    .map(mes => gastoAcumulado(expenses, mes))
+    .filter(acumulado => acumulado[acumulado.length - 1] > 0)
+
+  if (cerrados.length === 0) return []
+
+  return Array.from({ length: dias }, (_, i) => {
+    const suma = cerrados.reduce(
+      // El último día de un mes corto se estira: `Math.min` en vez de un cero, que
+      // hundiría la media de febrero los días 29, 30 y 31.
+      (total, acumulado) => total + acumulado[Math.min(i, acumulado.length - 1)],
+      0,
+    )
+    return Math.round(suma / cerrados.length)
+  })
+}
+
+// ─── Lo demás de la pestaña ───────────────────────────────────────────────────
 
 export interface MesDeLaSerie {
   /** `YYYY-MM`. */
@@ -570,6 +649,12 @@ export interface TrozoDelReparto {
   total: number
   /** De 0 a 100, sobre el gasto total del mes. Para el arco y para el texto. */
   porcentaje: number
+  /**
+   * Cuánto ha cambiado frente al mes anterior, en por ciento. **`null` cuando no
+   * hay con qué comparar**, que es la mitad de los casos y no es lo mismo que cero.
+   * Lo rellena `conVariacion`; `repartoPorPartida` siempre lo deja a `null`.
+   */
+  variacion: number | null
 }
 
 /**
@@ -605,12 +690,13 @@ export function repartoPorPartida(
         ? 0
         : sumaDe(gastos.filter(g => g.budget_id === partida.budgetId)),
       porcentaje: 0,
+      variacion: null,
     }))
     .filter(t => t.total > 0)
 
   const sinPartida = sumaDe(gastos.filter(g => !g.budget_id))
   if (sinPartida > 0) {
-    trozos.push({ key: 'sin-partida', nombre: 'Sin partida', emoji: null, total: sinPartida, porcentaje: 0 })
+    trozos.push({ key: 'sin-partida', nombre: 'Sin partida', emoji: null, total: sinPartida, porcentaje: 0, variacion: null })
   }
 
   trozos.sort((a, b) => b.total - a.total)
@@ -624,6 +710,7 @@ export function repartoPorPartida(
       emoji: resto.length === 1 ? resto[0].emoji : null,
       total: sumaDe2(resto),
       porcentaje: 0,
+      variacion: null,
     })
   }
 
@@ -633,6 +720,153 @@ export function repartoPorPartida(
 /** Suma de trozos. `sumaDe` es de `Expense[]` y aquí ya no hay gastos, hay trozos. */
 function sumaDe2(trozos: TrozoDelReparto[]): number {
   return trozos.reduce((total, t) => total + t.total, 0)
+}
+
+/**
+ * El mismo reparto, diciendo **cuánto ha cambiado cada trozo** frente al mes
+ * anterior.
+ *
+ * Es lo que convierte una foto en una señal: «Compra 291 €» no dice nada por sí
+ * solo, «Compra 291 €, +18% que en agosto» sí. Va aparte de `repartoPorPartida`
+ * porque esa función mira un mes y esta necesita dos, y porque así el cálculo de
+ * siempre no se paga cuando no hay con qué comparar.
+ *
+ * **Se casa por nombre y no por `key`.** Las claves no sobreviven al cambio de
+ * mes: la de un mes en curso es el id de la partida y la de un mes cerrado es el
+ * id de su línea del plan, así que serían dos claves para la misma compra. El
+ * nombre sí viaja —la copia guarda el de entonces— y es además lo que ve quien
+ * lee. Renombrar una partida cuesta perder una variación, que es honesto: durante
+ * ese mes, «Comida» y «Compra» no son lo mismo para nadie que mire la pantalla.
+ *
+ * **«Otras» nunca lleva variación.** Agrupa lo que sobra, y lo que sobra no es lo
+ * mismo cada mes: compararlo daría un número exacto y sin significado.
+ *
+ * Y `null` **no es cero**: un trozo que no existía el mes pasado no ha subido un
+ * 100 %, es que no había nada de eso. La pantalla no escribe nada en ese caso.
+ */
+export function conVariacion(
+  trozos: TrozoDelReparto[],
+  delMesAnterior: TrozoDelReparto[],
+): TrozoDelReparto[] {
+  return trozos.map(trozo => {
+    if (trozo.key === 'otras') return trozo
+    const antes = delMesAnterior.find(t => t.key !== 'otras' && t.nombre === trozo.nombre)
+    if (!antes || antes.total === 0) return trozo
+    return { ...trozo, variacion: Math.round(((trozo.total - antes.total) / antes.total) * 100) }
+  })
+}
+
+/** Una partida que se pasa de su límite más veces de las que no. */
+export interface PartidaQueSePasa {
+  nombre: string
+  /** En cuántos meses se pasó, de los `de` en los que existió y tuvo límite. */
+  veces: number
+  de: number
+}
+
+/**
+ * Las partidas que **se pasan a menudo**, de la que más a la que menos.
+ *
+ * Es lo único de toda la pestaña que señala algo que se puede arreglar, y por eso
+ * está: «la compra se pasó 3 de los últimos 4 meses» no habla del mes, habla de que
+ * el límite está mal puesto. Lo que se arregla está en «Lo fijo».
+ *
+ * **Más de la mitad, y nunca con un solo mes.** Pasarse una vez de dos es un mes
+ * raro, no una costumbre, y decirlo sería regañar por una compra grande; con `de`
+ * escrito al lado, además, quien lee juzga por su cuenta.
+ *
+ * Mira los mismos meses que la serie y con la misma regla —la plantilla que valía
+ * entonces—, así que un límite que se subió en julio no hace que junio parezca
+ * descontrolado. Los meses sin plan no cuentan para el denominador: de ellos no se
+ * sabe qué límite había.
+ */
+export function partidasQueSePasan(
+  mesFinal: string,
+  cuantos: number,
+  mesActual: string,
+  fixed: FixedEntry[],
+  budgets: Budget[],
+  planes: MonthPlan[],
+  expenses: Expense[],
+): PartidaQueSePasa[] {
+  const cuenta = new Map<string, { veces: number; de: number }>()
+
+  let cursor = mesFinal
+  for (let i = 0; i < cuantos; i++, cursor = mesVecino(cursor, -1)) {
+    const plantilla = plantillaDelMes(cursor, mesActual, fixed, budgets, planes)
+    if (plantilla.origen === 'sin-plan' || plantilla.origen === 'por-venir') continue
+
+    for (const resumen of resumenPartidas(plantilla, expenses, cursor)) {
+      // Una partida sin límite no se puede pasar de nada, y contarla en el
+      // denominador diluiría a las que sí lo tienen.
+      if (resumen.partida.limiteCents <= 0) continue
+      const previo = cuenta.get(resumen.partida.name) ?? { veces: 0, de: 0 }
+      cuenta.set(resumen.partida.name, {
+        veces: previo.veces + (resumen.pasado ? 1 : 0),
+        de: previo.de + 1,
+      })
+    }
+  }
+
+  return [...cuenta.entries()]
+    .map(([nombre, { veces, de }]) => ({ nombre, veces, de }))
+    .filter(p => p.de > 1 && p.veces * 2 > p.de)
+    .sort((a, b) => (b.veces / b.de) - (a.veces / a.de) || b.veces - a.veces)
+}
+
+// ─── En qué se reparte lo que entra ───────────────────────────────────────────
+
+export interface RepartoDeLoQueEntra {
+  /** Los ingresos fijos más lo que haya entrado a mano. El denominador. */
+  entra: number
+  gastosFijos: number
+  /** Lo gastado que cuelga de alguna partida del mes. */
+  enPartidas: number
+  /** Y lo gastado que no cuelga de ninguna. */
+  otrosGastos: number
+  /** Lo que sobra. **Negativo si el mes se fue de las manos.** */
+  queda: number
+}
+
+/**
+ * En qué se reparte **lo que entra**, no lo que sale.
+ *
+ * Es la única de las cuatro que cambia el denominador, y en eso está su valor: el
+ * resto de la pantalla dice cuánto sale y en qué, y ninguna contesta «¿cuánto de
+ * lo que ganamos se lo lleva el alquiler?». Esa proporción no se deduce de las
+ * cifras sueltas y es la que no cambia de un mes a otro, así que es la que dice
+ * cómo está montada esta casa.
+ *
+ * Las cuatro partes suman lo que entra por construcción: `queda` es el resto, así
+ * que la barra siempre cierra y no hay que cuadrarla en la pantalla.
+ *
+ * Devuelve `null` si no entra nada: sin denominador no hay proporción, y una barra
+ * de porcentajes sobre cero sería un dibujo inventado.
+ */
+export function repartoDeLoQueEntra(
+  plantilla: PlantillaDelMes,
+  expenses: Expense[],
+  mes: string,
+): RepartoDeLoQueEntra | null {
+  const delMes = apuntesDelMes(expenses, mes)
+  const entra = sumaDeLineas(plantilla.fijos, 'ingreso') + sumaDe(soloIngresos(delMes))
+  if (entra === 0) return null
+
+  const gastos = soloGastos(delMes)
+  const conPartida = new Set(
+    plantilla.partidas.map(p => p.budgetId).filter((id): id is string => id !== null),
+  )
+  const gastosFijos = sumaDeLineas(plantilla.fijos, 'gasto')
+  const enPartidas = sumaDe(gastos.filter(g => g.budget_id && conPartida.has(g.budget_id)))
+  const otrosGastos = sumaDe(gastos) - enPartidas
+
+  return {
+    entra,
+    gastosFijos,
+    enPartidas,
+    otrosGastos,
+    queda: entra - gastosFijos - enPartidas - otrosGastos,
+  }
 }
 
 // ─── Quién puso el dinero ─────────────────────────────────────────────────────

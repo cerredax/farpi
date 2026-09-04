@@ -509,6 +509,25 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
       a junio, y «este» señalaba a dos meses a la vez. Se vuelve con la flecha.
 - [x] 2 unitarios nuevos y dos flujos de navegador más: **546** en la pasada completa.
 
+## Fase 8ñ - Finanzas: «Cómo vamos», y cuatro arreglos del mes (04-09-2026)
+
+Cinco peticiones tras usar la pantalla recién entregada. El porqué de cada una, en
+`docs/architecture.md`.
+
+- [x] **«Cerrar mes» en ámbar** (variante `warn` de `Button`), no en rojo: cerrar no
+      destruye nada y el rojo se reserva para «Poner el mes a cero», que sí borra.
+- [x] **Los dos totales de fijos salen abiertos.**
+- [x] **La tira de meses se cambia por flechas + desplegable**, como el calendario.
+      `mesesNavegables` se queda: era lo bueno de la tira y no depende de cómo se pinte.
+- [x] **Fuera la nota** de «Hay 3 gastos sin partida», y con ella `gastosSinPartida`,
+      que se quedaba sin consumidor.
+- [x] **«Resumen» pasa a «Cómo vamos»** y a cuatro bloques, elegidos por lo que se
+      pregunta una casa: el ritmo del mes contra el de siempre (nuevo), la serie con la
+      media dibujada y el mejor y el peor marcados, el desglose con la variación frente
+      al mes pasado y las partidas que se pasan, y en qué se reparte lo que entra
+      (nuevo). Descartados el reparto por persona en el tiempo y la estacionalidad.
+- [x] 16 unitarios nuevos y 2 flujos de navegador más: **578** en la pasada completa.
+
 ## Fase 8n - Finanzas: apuntar lo que va a llegar y elegir mes de un toque (04-09-2026)
 
 Cinco cosas de la tarjeta de «El mes», salidas de mirarla con calma. El porqué de cada

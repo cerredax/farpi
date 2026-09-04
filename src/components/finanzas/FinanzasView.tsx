@@ -131,7 +131,11 @@ export function FinanzasView() {
       >
         {([
           { key: 'mes', label: 'El mes' },
-          { key: 'resumen', label: 'Resumen' },
+          // «Cómo vamos» y no «Resumen» (04-09-2026): nombra lo que contesta y no
+          // cómo lo pinta, que además es lo honesto cuando parte de lo que hay ahí
+          // es una frase y no un dibujo. La clave sigue siendo `resumen` porque
+          // renombrarla no le cambia nada a nadie.
+          { key: 'resumen', label: 'Cómo vamos' },
           { key: 'plantilla', label: 'Lo fijo' },
           { key: 'presupuestos', label: 'Presupuestos' },
         ] as { key: PestañaFinanzas; label: string }[]).map(p => (
@@ -160,7 +164,6 @@ export function FinanzasView() {
           meses={s.meses}
           mes={s.mes}
           mesActual={s.mesActual}
-          mesesConAlgo={s.mesesConAlgo}
           onElegirMes={s.elegirMes}
           reparto={s.repartoPorPersona}
           copiaVacia={s.copiaVacia}
@@ -279,14 +282,11 @@ export function FinanzasView() {
               ))}
             </div>
           )}
-
-          {s.sinPartida.length > 0 && (
-            <p className="px-1 text-[11px] text-faint">
-              {s.sinPartida.length === 1
-                ? 'Hay 1 gasto sin partida: no cuenta para ninguna.'
-                : `Hay ${s.sinPartida.length} gastos sin partida: no cuentan para ninguna.`}
-            </p>
-          )}
+          {/* Aquí había una nota —«Hay 3 gastos sin partida: no cuentan para
+              ninguna»— y se fue el 04-09-2026. Contaba una consecuencia del sistema
+              en vez de algo que pase en la casa, y estaba todo el rato aunque no
+              hubiera nada que hacer con ella. Lo que dice sigue estando donde
+              importa: en «en qué se va», «Sin partida» sale como un trozo más. */}
         </section>
       </div>
 
@@ -296,6 +296,12 @@ export function FinanzasView() {
           reparto={s.reparto}
           mes={s.mes}
           nombreDelMes={nombreDelMes}
+          acumulado={s.acumulado}
+          ritmo={s.ritmo}
+          diaDeHoy={s.diaDeHoy}
+          esMesActual={s.esMesActual}
+          sePasan={s.sePasan}
+          entrada={s.entrada}
         />
       </div>
 

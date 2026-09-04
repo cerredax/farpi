@@ -3,9 +3,10 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
-  agruparPresupuestos, apuntesDelMes, cuentaDelMes, fijosDe, gastosSinPartida,
-  mesDe, mesesNavegables, plantillaDelMes, repartoDelMes, repartoPorPartida,
-  resumenPartidas, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
+  agruparPresupuestos, apuntesDelMes, conVariacion, cuentaDelMes, fijosDe,
+  gastoAcumulado, mesDe, mesVecino, mesesNavegables, partidasQueSePasan,
+  plantillaDelMes, repartoDeLoQueEntra, repartoDelMes, repartoPorPartida,
+  resumenPartidas, ritmoHabitual, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
 } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
 import type {
@@ -69,7 +70,6 @@ export function useFinanzasState() {
 
   const resumen = useMemo(() => resumenPartidas(plantilla, expenses, mes), [plantilla, expenses, mes])
   const delMes = useMemo(() => apuntesDelMes(expenses, mes), [expenses, mes])
-  const sinPartida = useMemo(() => gastosSinPartida(expenses, mes), [expenses, mes])
   const cuenta = useMemo(() => cuentaDelMes(plantilla, expenses, mes), [plantilla, expenses, mes])
   const ingresosFijos = useMemo(() => fijosDe(fixedEntries, 'ingreso'), [fixedEntries])
   const gastosFijos = useMemo(() => fijosDe(fixedEntries, 'gasto'), [fixedEntries])
@@ -91,7 +91,35 @@ export function useFinanzasState() {
     () => serieDeMeses(mesActual, 6, mesActual, fixedEntries, budgets, monthPlans, expenses),
     [mesActual, fixedEntries, budgets, monthPlans, expenses],
   )
-  const reparto = useMemo(() => repartoPorPartida(plantilla, expenses, mes), [plantilla, expenses, mes])
+  // El reparto del mes, con **cuánto ha cambiado cada trozo** frente al anterior.
+  // El mes de al lado se resuelve con su propia plantilla —la que valía entonces—
+  // porque compararse con los límites de hoy sería comparar dos cosas distintas.
+  const reparto = useMemo(() => {
+    const anterior = mesVecino(mes, -1)
+    return conVariacion(
+      repartoPorPartida(plantilla, expenses, mes),
+      repartoPorPartida(
+        plantillaDelMes(anterior, mesActual, fixedEntries, budgets, monthPlans),
+        expenses,
+        anterior,
+      ),
+    )
+  }, [plantilla, expenses, mes, mesActual, fixedEntries, budgets, monthPlans])
+
+  // Los tres datos de «Cómo vamos» que no salen de la serie ni del reparto.
+  const acumulado = useMemo(() => gastoAcumulado(expenses, mes), [expenses, mes])
+  const ritmo = useMemo(
+    () => ritmoHabitual(monthPlans, expenses, mesActual),
+    [monthPlans, expenses, mesActual],
+  )
+  const sePasan = useMemo(
+    () => partidasQueSePasan(mesActual, 6, mesActual, fixedEntries, budgets, monthPlans, expenses),
+    [mesActual, fixedEntries, budgets, monthPlans, expenses],
+  )
+  const entrada = useMemo(
+    () => repartoDeLoQueEntra(plantilla, expenses, mes),
+    [plantilla, expenses, mes],
+  )
   const grupos = useMemo(() => agruparPresupuestos(quotes), [quotes])
   const titulos = useMemo(() => titulosDePresupuestos(quotes), [quotes])
 
@@ -99,16 +127,12 @@ export function useFinanzasState() {
     && plantilla.fijos.length === 0
     && plantilla.partidas.length === 0
 
-  // Los meses que ofrece la tira, y cuáles de ellos tienen algo guardado. El
-  // segundo es lo que deja que un chip diga, solo con el color, si hay algo que
-  // mirar ahí: se calcula una vez y no una por chip.
+  // Los meses que ofrece el desplegable del selector. Las flechas no los miran:
+  // ellas son «el de al lado» y llegan a donde haga falta, que es lo que deja que
+  // esta lista pueda ser finita sin encerrar a nadie.
   const meses = useMemo(
     () => mesesNavegables(mesActual, monthPlans, expenses, mes),
     [mesActual, monthPlans, expenses, mes],
-  )
-  const mesesConAlgo = useMemo(
-    () => new Set([...monthPlans.map(p => p.month), ...expenses.map(e => mesDe(e.date))]),
-    [monthPlans, expenses],
   )
 
   // Los sheets se remontan al cambiar de cosa editada, como en el resto de la
@@ -126,11 +150,11 @@ export function useFinanzasState() {
   const quoteKey = editingQuote ? `pedido-${editingQuote.id}` : 'pedido-nuevo'
 
   return {
-    hoy, mes, mesActual, meses, mesesConAlgo,
+    hoy, mes, mesActual, meses,
     /**
-     * Ir a un mes de la tira. **Cierra la previsión**: se pidió para el mes que se
-     * estaba mirando, y dejarla abierta haría que el siguiente saliera con cifras
-     * que nadie ha pedido.
+     * Ir a un mes, con las flechas o con la lista. **Cierra la previsión**: se pidió
+     * para el mes que se estaba mirando, y dejarla abierta haría que el siguiente
+     * saliera con cifras que nadie ha pedido.
      */
     elegirMes: (destino: string) => {
       setMes(destino)
@@ -205,8 +229,10 @@ export function useFinanzasState() {
     pestaña, setPestaña,
 
     budgets, members, kids,
-    resumen, delMes, sinPartida, cuenta, grupos, titulos,
-    repartoPorPersona, serie, reparto,
+    resumen, delMes, cuenta, grupos, titulos,
+    repartoPorPersona, serie, reparto, acumulado, ritmo, sePasan, entrada,
+    /** Qué día es hoy, para saber hasta dónde llega la línea del ritmo. */
+    diaDeHoy: Number(hoy.slice(8, 10)),
     ingresosFijos, gastosFijos, partidasPlantilla, totalPartidas,
     totalIngresosFijos: sumaDeFijos(fixedEntries, 'ingreso'),
     totalGastosFijos: sumaDeFijos(fixedEntries, 'gasto'),

@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test'
 import {
-  agruparPresupuestos, apuntesDelMes, cuentaDelMes, estaCaducado, existiaEnElMes,
-  fijosDe, gastosSinPartida, mediaQueQueda, mesCorto, mesDe, mesesNavegables,
-  mesVecino, plantillaDelMes, repartoDelMes, repartoPorPartida, resumenPartidas,
-  serieDeMeses, sumaDeFijos, titulosDePresupuestos,
+  agruparPresupuestos, apuntesDelMes, conVariacion, cuentaDelMes, diasDelMes,
+  estaCaducado, existiaEnElMes, fijosDe, gastoAcumulado, mediaQueQueda, mesCorto,
+  mesDe, mesesNavegables, mesVecino, partidasQueSePasan, plantillaDelMes,
+  repartoDeLoQueEntra, repartoDelMes, repartoPorPartida, resumenPartidas,
+  ritmoHabitual, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
 } from '@/lib/budgets'
+import type { TrozoDelReparto } from '@/lib/budgets'
 import type {
   Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MonthPlanLine, Quote,
 } from '@/types'
@@ -278,14 +280,6 @@ test.describe('resumenPartidas', () => {
     expect(r[0].gastado).toBe(0)
   })
 
-  test('gastosSinPartida son los del mes que no cuelgan de ninguna', () => {
-    const r = gastosSinPartida([
-      gasto({ id: 'con', budget_id: 'b1' }),
-      gasto({ id: 'sin', budget_id: null }),
-      gasto({ id: 'otro-mes', budget_id: null, date: '2026-07-01' }),
-    ], '2026-08')
-    expect(r.map(e => e.id)).toEqual(['sin'])
-  })
 })
 
 test.describe('los apuntes del mes', () => {
@@ -315,13 +309,6 @@ test.describe('los apuntes del mes', () => {
     expect(r[0].gastado).toBe(10000)
   })
 
-  test('«sin partida» cuenta gastos, no ingresos', () => {
-    const r = gastosSinPartida([
-      gasto({ id: 'sin', budget_id: null }),
-      ingreso({ id: 'entrada' }),
-    ], '2026-08')
-    expect(r.map(m => m.id)).toEqual(['sin'])
-  })
 })
 
 test.describe('los fijos y la cuenta del mes', () => {
@@ -561,6 +548,195 @@ test.describe('lo que ya existía en un mes', () => {
   test('el salto de año no la despista', () => {
     expect(existiaEnElMes('2026-12-31T23:00:00', '2026-12')).toBe(true)
     expect(existiaEnElMes('2027-01-01T00:00:00', '2026-12')).toBe(false)
+  })
+})
+
+// Lo que dibuja «Cómo vamos» (04-09-2026). Lo interesante de estas cuatro no es la
+// aritmética, es qué hacen cuando **no hay con qué comparar**: es la mitad de los
+// casos en una casa que lleva dos meses con la app.
+
+test.describe('el ritmo del mes', () => {
+  test('el acumulado no baja nunca y suma por días', () => {
+    const r = gastoAcumulado([
+      gasto({ id: 'a', date: '2026-08-03', amount_cents: 1000 }),
+      gasto({ id: 'b', date: '2026-08-03', amount_cents: 500 }),
+      gasto({ id: 'c', date: '2026-08-10', amount_cents: 2000 }),
+      gasto({ id: 'otro-mes', date: '2026-07-10', amount_cents: 9999 }),
+    ], '2026-08')
+
+    expect(r).toHaveLength(31)
+    expect(r[0]).toBe(0)          // día 1
+    expect(r[2]).toBe(1500)       // día 3, los dos juntos
+    expect(r[8]).toBe(1500)       // día 9, sin nada nuevo: se mantiene
+    expect(r[9]).toBe(3500)       // día 10
+    expect(r[30]).toBe(3500)      // y así hasta el final
+    // Nunca baja: es lo que deja comparar dos meses por su forma.
+    expect(r.every((v, i) => i === 0 || v >= r[i - 1])).toBe(true)
+  })
+
+  test('un ingreso no baja la línea: es lo gastado, no un saldo', () => {
+    const r = gastoAcumulado([
+      gasto({ id: 'g', date: '2026-08-05', amount_cents: 3000 }),
+      ingreso({ id: 'i', date: '2026-08-06', amount_cents: 5000 }),
+    ], '2026-08')
+    expect(r[30]).toBe(3000)
+  })
+
+  test('febrero tiene 28 días y un mes sin gasto son todo ceros', () => {
+    expect(gastoAcumulado([], '2026-02')).toHaveLength(28)
+    expect(gastoAcumulado([], '2026-08').every(v => v === 0)).toBe(true)
+    expect(diasDelMes('2026-02')).toBe(28)
+    expect(diasDelMes('2024-02')).toBe(29)
+    expect(diasDelMes('2026-04')).toBe(30)
+  })
+
+  test('el ritmo habitual promedia los meses cerrados y estira el último día', () => {
+    const r = ritmoHabitual(
+      [plan('2026-06', []), plan('2026-07', [])],
+      [
+        gasto({ id: 'a', date: '2026-06-01', amount_cents: 1000 }),
+        gasto({ id: 'b', date: '2026-07-01', amount_cents: 3000 }),
+      ],
+      '2026-08',
+    )
+    // Los dos gastan todo el día 1: la media es 2000 desde el primer día.
+    expect(r[0]).toBe(2000)
+    // Junio tiene 30 días; el 31 no se hunde a cero, se estira el último.
+    expect(r[30]).toBe(2000)
+  })
+
+  test('sin ningún mes cerrado con gasto no hay ritmo', () => {
+    expect(ritmoHabitual([], [], '2026-08')).toEqual([])
+    // Un mes cerrado pero sin gastar nada tampoco sirve de referencia.
+    expect(ritmoHabitual([plan('2026-07', [])], [], '2026-08')).toEqual([])
+    // Ni el mes en curso, que está a medias.
+    expect(ritmoHabitual(
+      [plan('2026-08', [])],
+      [gasto({ id: 'a', date: '2026-08-01', amount_cents: 1000 })],
+      '2026-08',
+    )).toEqual([])
+  })
+})
+
+test.describe('la variación de cada trozo', () => {
+  const trozo = (nombre: string, total: number, key = nombre): TrozoDelReparto =>
+    ({ key, nombre, emoji: null, total, porcentaje: 0, variacion: null })
+
+  test('compara por nombre, que es lo que sobrevive al cambio de mes', () => {
+    // Las claves son distintas a propósito: en un mes cerrado son ids de líneas
+    // del plan y en el actual son ids de partidas.
+    const r = conVariacion(
+      [trozo('Compra', 12000, 'b1')],
+      [trozo('Compra', 10000, 'linea-de-junio')],
+    )
+    expect(r[0].variacion).toBe(20)
+  })
+
+  test('baja, sube y redondea', () => {
+    const r = conVariacion(
+      [trozo('Compra', 8000), trozo('Coche', 10000)],
+      [trozo('Compra', 10000), trozo('Coche', 3000)],
+    )
+    expect(r[0].variacion).toBe(-20)
+    expect(r[1].variacion).toBe(233)
+  })
+
+  test('null cuando no hay con qué comparar, que no es cero', () => {
+    // Sin mes anterior, con un trozo que no existía, y con uno que estaba a cero.
+    expect(conVariacion([trozo('Compra', 100)], [])[0].variacion).toBeNull()
+    expect(conVariacion([trozo('Ocio', 100)], [trozo('Compra', 100)])[0].variacion).toBeNull()
+    expect(conVariacion([trozo('Compra', 100)], [trozo('Compra', 0)])[0].variacion).toBeNull()
+  })
+
+  test('«Otras» no se compara: no agrupa lo mismo cada mes', () => {
+    const r = conVariacion(
+      [{ ...trozo('Otras', 5000), key: 'otras' }],
+      [{ ...trozo('Otras', 1000), key: 'otras' }],
+    )
+    expect(r[0].variacion).toBeNull()
+  })
+})
+
+test.describe('las partidas que se pasan a menudo', () => {
+  const LIMITE = [budget({ id: 'b1', name: 'Compra', monthly_limit_cents: 10000 })]
+
+  /** Un plan cerrado con la compra a 100 € y lo gastado ese mes. */
+  const mesCerrado = (month: string) => plan(month, [
+    linea({ id: `l-${month}`, month, line: 'partida', budget_id: 'b1', name: 'Compra', amount_cents: 10000 }),
+  ])
+
+  test('sale la que se pasa más veces de las que no', () => {
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+      [mesCerrado('2026-06'), mesCerrado('2026-07'), mesCerrado('2026-08')],
+      [
+        gasto({ id: 'a', date: '2026-06-05', budget_id: 'b1', amount_cents: 15000 }),
+        gasto({ id: 'b', date: '2026-07-05', budget_id: 'b1', amount_cents: 12000 }),
+        gasto({ id: 'c', date: '2026-08-05', budget_id: 'b1', amount_cents: 4000 }),
+      ])
+    expect(r).toEqual([{ nombre: 'Compra', veces: 2, de: 3 }])
+  })
+
+  test('pasarse la mitad de las veces no es una costumbre', () => {
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+      [mesCerrado('2026-07'), mesCerrado('2026-08')],
+      [gasto({ id: 'a', date: '2026-07-05', budget_id: 'b1', amount_cents: 15000 })])
+    expect(r).toEqual([])
+  })
+
+  test('con un solo mes no se dice nada, por muy pasado que esté', () => {
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+      [mesCerrado('2026-08')],
+      [gasto({ id: 'a', date: '2026-08-05', budget_id: 'b1', amount_cents: 99000 })])
+    expect(r).toEqual([])
+  })
+
+  test('los meses sin plan no cuentan para el denominador', () => {
+    // Julio no se cerró nunca: de él no se sabe qué límite había.
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+      [mesCerrado('2026-06'), mesCerrado('2026-08')],
+      [
+        gasto({ id: 'a', date: '2026-06-05', budget_id: 'b1', amount_cents: 15000 }),
+        gasto({ id: 'b', date: '2026-08-05', budget_id: 'b1', amount_cents: 15000 }),
+      ])
+    expect(r).toEqual([{ nombre: 'Compra', veces: 2, de: 2 }])
+  })
+})
+
+test.describe('en qué se reparte lo que entra', () => {
+  const FIJOS = [
+    fijo({ id: 'in', kind: 'ingreso', name: 'Nómina', amount_cents: 200000 }),
+    fijo({ id: 'ga', kind: 'gasto', name: 'Alquiler', amount_cents: 80000 }),
+  ]
+
+  test('las cuatro partes suman lo que entra', () => {
+    const r = repartoDeLoQueEntra(
+      espejo(FIJOS, [budget({ id: 'b1', monthly_limit_cents: 30000 })]),
+      [
+        gasto({ id: 'a', budget_id: 'b1', amount_cents: 25000 }),
+        gasto({ id: 'b', budget_id: null, amount_cents: 5000 }),
+        ingreso({ id: 'i', amount_cents: 10000 }),
+      ],
+      '2026-08',
+    )!
+    expect(r.entra).toBe(210000)
+    expect(r.gastosFijos).toBe(80000)
+    expect(r.enPartidas).toBe(25000)
+    expect(r.otrosGastos).toBe(5000)
+    expect(r.queda).toBe(100000)
+    expect(r.gastosFijos + r.enPartidas + r.otrosGastos + r.queda).toBe(r.entra)
+  })
+
+  test('sin nada que entre no hay proporción que dar', () => {
+    expect(repartoDeLoQueEntra(espejo([], []), [gasto({ id: 'a' })], '2026-08')).toBeNull()
+  })
+
+  test('un mes que se fue de las manos deja «queda» en negativo', () => {
+    const r = repartoDeLoQueEntra(
+      espejo(FIJOS, []),
+      [gasto({ id: 'a', budget_id: null, amount_cents: 200000 })],
+      '2026-08',
+    )!
+    expect(r.queda).toBe(-80000)
   })
 })
 

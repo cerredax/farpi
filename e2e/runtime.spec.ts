@@ -944,14 +944,28 @@ function nombreDelMes(salto: number): string {
 }
 
 /**
- * Va del mes en curso a otro, tocando su chip en la tira.
+ * Va del mes en curso a otro, abriendo el desplegable del selector y eligiéndolo.
  *
- * **Era un bucle de flechas hasta el 04-09-2026.** Ahora es un solo toque, que es
- * justo lo que la tira vino a resolver; la firma se queda igual —«cuántos meses
- * atrás»— para que los diez tests que la llaman no tengan que cambiar.
+ * El desplegable y el rótulo dicen los dos «Junio 2026», así que hay que acotar a
+ * la lista (`role="menu"`) para no chocar con el botón que la abre.
  */
 async function irAMes(page: import('@playwright/test').Page, salto: number) {
-  await page.getByRole('button', { name: nombreDelMes(salto), exact: true }).click()
+  // El selector vive en la tarjeta de «El mes», así que desde otra pestaña su panel
+  // está oculto y no se puede tocar. Se va, se cambia el mes y se vuelve: el mes es
+  // de la pantalla entera, no de la pestaña, y así los tests de «Cómo vamos» piden
+  // el cambio igual que los demás.
+  const pestañas = page.getByRole('tablist', { name: 'Secciones de finanzas' })
+  const activa = await pestañas.getByRole('tab', { selected: true }).textContent()
+  if (activa !== 'El mes') await pestañas.getByRole('tab', { name: 'El mes', exact: true }).click()
+
+  // El botón que abre y el item de la lista dicen los dos «Junio 2026», así que se
+  // abre por `aria-haspopup` y se elige por el rol de dentro del menú. Sin `exact`:
+  // el mes de hoy lleva además un «hoy» en su nombre accesible.
+  await page.getByRole('region', { name: 'Resumen del mes' })
+    .locator('[aria-haspopup="menu"]').click()
+  await page.getByRole('menuitemradio', { name: nombreDelMes(salto) }).click()
+
+  if (activa && activa !== 'El mes') await pestañas.getByRole('tab', { name: activa }).click()
   await page.waitForTimeout(200)
 }
 
@@ -986,15 +1000,19 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
   const gastos = resumen.getByRole('button', { name: 'Gastos fijos' })
-  await expect(gastos).toHaveAttribute('aria-expanded', 'false')
-  await expect(resumen).not.toContainText('Seguro del coche')
 
-  // Los cuatro recibos de la plantilla de hoy, con el signo del total que los suma.
-  await gastos.click()
+  // Abiertos de mano desde el 04-09-2026: los cuatro recibos de la plantilla de
+  // hoy están a la vista sin tocar nada, con el signo del total que los suma.
   await expect(gastos).toHaveAttribute('aria-expanded', 'true')
   await expect(resumen).toContainText('Seguro del coche')
   await expect(resumen).toContainText('−780 €')
   await expect(resumen).toContainText('−32 €')
+
+  // Y se pueden cerrar, que para eso siguen siendo un desplegable.
+  await gastos.click()
+  await expect(gastos).toHaveAttribute('aria-expanded', 'false')
+  await expect(resumen).not.toContainText('Seguro del coche')
+  await gastos.click()
 
   // Y en junio son los que hubo entonces, sin tocar nada más.
   await retroceder(page, 3)
@@ -1002,8 +1020,10 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
   await expect(resumen).toContainText('−760 €')
   await expect(resumen).not.toContainText('Seguro del coche')
 
-  // Los ingresos van por su lado, y en positivo.
-  await resumen.getByRole('button', { name: 'Ingresos fijos' }).click()
+  // Los ingresos van por su lado, y en positivo. También abiertos de mano, y sin
+  // que cerrar los gastos les haya hecho nada: son dos desplegables, no uno.
+  await expect(resumen.getByRole('button', { name: 'Ingresos fijos' }))
+    .toHaveAttribute('aria-expanded', 'true')
   await expect(resumen).toContainText('Nómina de Carlos')
   await expect(resumen).toContainText('1.650 €')
 })
@@ -1235,7 +1255,7 @@ test('el mes pasado se cierra solo al abrir la app', async ({ page }) => {
 test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Resumen' }).click()
+  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
 
   // La serie: junio y julio vienen cerrados en la demo y agosto lo cierra la app
   // al arrancar. Los números viven en la tabla plegada, que es la que hace que el
@@ -1256,12 +1276,69 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
   await expect(page.getByRole('region', { name: /en qué se va/ })).toContainText('Nada gastado')
 })
 
+// Los dos bloques que entraron el 04-09-2026 con «Cómo vamos». El del ritmo es el
+// único de la pestaña que habla del mes en curso y no del que se esté mirando: la
+// pregunta «¿voy bien?» solo tiene respuesta mientras el mes está en marcha.
+test('«Cómo vamos» enseña el ritmo del mes y en qué se reparte lo que entra', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
+
+  // El ritmo compara con los meses cerrados, y la demo trae junio con gastos.
+  const ritmo = page.getByRole('region', { name: 'Cómo va el mes' })
+  await expect(ritmo).toContainText('sueles llevar')
+  await expect(ritmo).toContainText('Lo de siempre')
+
+  // De cada 100 € que entran: 3.130 de nóminas, 935,90 de recibos, 2.194,10 que
+  // quedan. Las partes van escritas, no solo dibujadas.
+  const entra = page.getByRole('region', { name: /de cada 100/ })
+  await expect(entra).toContainText('3.130 €')
+  await expect(entra).toContainText('Gastos fijos')
+  await expect(entra).toContainText('935,90 €')
+  await expect(entra).toContainText('2.194,10 €')
+  await expect(entra).toContainText('70 %')
+
+  // En un mes que ya pasó no hay ritmo que juzgar, y el bloque no se pinta.
+  await irAMes(page, -3)
+  await expect(page.getByRole('region', { name: 'Cómo va el mes' })).toHaveCount(0)
+  // Los otros sí siguen al mes que se mira.
+  await expect(page.getByRole('region', { name: /en qué se va/ })).toContainText('Junio 2026')
+})
+
+// La variación es lo que convierte el desglose en una señal: sin ella, «Compra
+// 100 €» no dice si eso es mucho para esta casa.
+test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  // En julio no hay nada y en junio la compra fueron 80,55 €. Cien en julio son
+  // un 24 % más, y es lo que tiene que decir la fila.
+  await irAMes(page, -2)
+  await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+  await page.locator('#expense-amount').fill('100')
+  await page.locator('#expense-description').fill('Compra del mes')
+  await page.getByRole('dialog').getByRole('button', { name: /Compra/ }).click()
+  await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+  await page.waitForTimeout(500)
+
+  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
+  const enQue = page.getByRole('region', { name: /en qué se va/ })
+  await expect(enQue).toContainText('+24 %')
+
+  // Y en junio no hay con qué comparar —mayo no existe—, así que no se inventa un
+  // «+100 %»: no se escribe nada.
+  await irAMes(page, -3)
+  await expect(enQue).toContainText('Compra')
+  await expect(enQue).not.toContainText('% que')
+  await expect(enQue.getByText(/^[+−-]\d+ %$/)).toHaveCount(0)
+})
+
 test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
   await retroceder(page, 3)
 
-  await page.getByRole('tab', { name: 'Resumen' }).click()
+  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
   // Junio: 291,45 € de gastos, de los que 80,55 € son de la compra (28 %).
   const enQueSeVa = page.getByRole('region', { name: /en qué se va/ })
   await expect(enQueSeVa).toContainText('Junio 2026')

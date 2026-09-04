@@ -315,27 +315,42 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       flotando abajo. Crea lo de la pestaña que se esté mirando.
 - [ ] Las cuatro pestañas se arrastran a 390 px sin desbordar.
 
-**Resumen**
+**Cómo vamos** (se llamaba «Resumen» hasta el 04-09-2026)
 
+- [ ] La pestaña se llama **«Cómo vamos»** y tiene hasta **cuatro bloques**, en este
+      orden: cómo va el mes, cómo van los meses, en qué se va y de cada 100 € que entran.
+- [ ] **«Cómo va el mes»** solo sale mirando el mes en curso: dice «A día N llevas X. A
+      estas alturas sueles llevar Y», dibuja dos líneas —la de este mes cortada en hoy,
+      con su punto, y la de siempre en gris punteado— y lleva leyenda, que es el único
+      gráfico de la app que la necesita porque es el único con dos series.
+      Yendo a un mes pasado, **el bloque desaparece**.
+- [ ] **«De cada 100 € que entran»**: en septiembre, «Entran 3.130 € y se queda el 70 %»,
+      la barra en dos trozos y debajo «Gastos fijos 935,90 € · 30 %» y «Queda 2.194,10 €
+      · 70 %». Los trozos de gasto se distinguen por **claridad**, no por tono.
 - [ ] «Cómo van los meses» enseña jun, jul, ago y sep, **mires el mes que mires**: la
       serie no sigue al selector. El mes que se está mirando va en negrita.
 - [ ] «Ver los números» abre la tabla, y junio dice 3.250 € / −1.162,35 € / 2.087,65 €.
-- [ ] Encima de las barras se lee la media de lo que queda al mes. Hay **una barra por
-      mes** —lo que quedó—, la más grande lleva su importe escrito y el mes que se
-      mira va sobre un fondo crema y con su cifra.
+- [ ] Encima de las barras se lee la media de lo que queda al mes, y **además está
+      dibujada** como una línea punteada (04-09-2026). Van etiquetados **el mejor y el
+      peor** mes, y el que se mira, que va sobre un fondo crema.
 - [ ] **Las barras se ven verdes**, no negras: si salen negras es que algún `var()` del
       SVG se armó con una plantilla y Tailwind se comió la variable (03-09-2026).
 - [ ] Con todos los meses en positivo **no queda medio dibujo en blanco** bajo la línea
       del cero.
-- [ ] La pestaña tiene **dos bloques y ninguno lleva pie**: «de dónde sale» se fue el
-      03-09-2026 porque repetía el desglose de la tarjeta de «El mes».
+- [ ] **Ningún bloque lleva pie**: «de dónde sale» se fue el 03-09-2026 porque repetía
+      el desglose de la tarjeta de «El mes».
 - [ ] «En qué se va» y el desglose **sí** siguen al mes que se mira, y lo dicen en el
       título. Arriba se lee «Se han ido 291,45 €».
 - [ ] En junio, «en qué se va» enseña Casa, Compra, Coche y **Sin partida**, de mayor a
       menor, cada una con su barra, su importe y su porcentaje.
+- [ ] Cada fila dice **cuánto ha cambiado** desde el mes pasado (04-09-2026). Apuntando
+      100 € en la Compra de julio sale «+24 %», porque en junio fueron 80,55 €. En junio
+      **no sale ninguna variación**: mayo no existe, y `null` no es «+100 %».
+- [ ] Si alguna partida se pasa más veces de las que no, al pie se lee «X se pasó 3 de
+      los últimos 4 meses». Con un solo mes no se dice nada, por muy pasado que esté.
 - [ ] Todas las barras son del mismo color: si alguna sale de otro, algo ha vuelto a
       darle identidad a una partida.
-- [ ] **«Ingresos fijos» y «Gastos fijos» se abren** (04-09-2026) y enseñan sus líneas
+- [ ] **«Ingresos fijos» y «Gastos fijos» salen abiertos** (04-09-2026) y enseñan sus líneas
       con emoji, nombre e importe, con el mismo signo que el total y sumando exactamente
       lo que este dice. Los dos van por su lado, y los apuntados **no** se abren: sus
       líneas son «El día a día», que está más abajo en la misma pantalla.
@@ -358,8 +373,9 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       distingue «no se entiende» de «como mucho un millón».
 - [ ] Pasarse de la partida lo dice **con palabras** («Te has pasado por 40 €»), no solo con
       el rojo, y la barra no se sale de la tarjeta.
-- [ ] Un gasto sin partida se puede apuntar, no cuenta para ninguna y la nota de debajo de
-      la lista lo dice.
+- [ ] Un gasto sin partida se puede apuntar y no cuenta para ninguna. **Debajo de la
+      lista ya no hay nota** que lo diga (04-09-2026): sale como «Sin partida» en «en qué
+      se va», que es donde el dato sirve para algo.
 - [ ] Elegir quién lo pagó pinta su punto de color y su nombre en la fila, y suma en el
       reparto de arriba. Sin elegir a nadie sale como «De casa».
 - [ ] Borrar una partida **no borra sus apuntes**: siguen en la lista, sin categoría.
@@ -400,7 +416,8 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
       guarda y que el día 1 se cierra solo; «Cancelar» y la ✕ no hacen nada. Tras
       confirmarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
 - [ ] Los tres **parecen botones** (04-09-2026): fondo, borde y su icono, no texto verde
-      centrado. No van a todo lo ancho.
+      centrado. No van a todo lo ancho. **«Cerrar mes» va en ámbar** y los otros dos en
+      crema: el rojo es solo del diálogo de «Poner el mes a cero», que es el que borra.
 - [ ] **Debajo de esos botones no hay letra pequeña**: lo que explicaban vive ahora en
       el diálogo.
 - [ ] Los tres botones del mes —cerrar, deshacer, poner a cero— están **debajo de la
@@ -426,18 +443,22 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] El hueco del día a día en ese mes **invita**: «Nada apuntado todavía» y «Apunta lo
       que ya sabes que va a llegar: el seguro, la matrícula, el IBI».
 
-**La tira de meses** (04-09-2026)
+**El selector de mes** (04-09-2026)
 
-- [ ] Encima de la cifra hay una **fila de meses** y no dos flechas. Tocar uno va a ese
-      mes de un solo toque.
-- [ ] El mes que se mira lleva **fondo crema**; el de hoy va en **negrita** aunque estés
-      mirando otro; los meses sin plan ni apuntes se ven **más claros**.
-- [ ] Se arrastra de lado si no caben, y **el mes elegido queda centrado** al entrar y al
-      cambiar. Arrastrarla **no mueve la página** hacia arriba o abajo.
-- [ ] Llega por detrás hasta junio (el mes más viejo con datos de la demo) y **no más**,
-      y por delante hasta tres meses después del de hoy.
+- [ ] Arriba de la tarjeta hay **dos flechas y el nombre del mes**, y el nombre **se toca
+      y despliega la lista**. Las dos cosas, como en el calendario.
+- [ ] Las flechas **no se mueven de sitio** al cambiar de mes, por largo que sea el
+      nombre: se puede dar cinco veces seguidas sin volver a buscarlas.
+- [ ] La lista se cierra tocando fuera y con Escape, y tocando una flecha con la lista
+      abierta **no se dispara la flecha**.
+- [ ] En la lista, el mes de hoy lleva un **«hoy»** escrito y el que se mira va en verde.
+      «Septiembre 2026 hoy» **cabe en un renglón**.
+- [ ] La lista llega por detrás hasta junio (el mes más viejo con datos de la demo) y
+      **no más**, y por delante hasta tres meses después del de hoy.
 - [ ] Apuntando un gasto con fecha de dentro de seis meses (editando la fecha en el
-      sheet), ese mes **aparece en la tira**: ningún mes con algo se queda inalcanzable.
+      sheet), ese mes **aparece en la lista**: ninguno con algo se queda inalcanzable.
+- [ ] **Las flechas sí pasan de ahí**: desde el último de la lista, la flecha sigue
+      llevando al siguiente. Son «el de al lado», no la lista.
 - [ ] Borrar una partida y mirar un mes cerrado que la tenía: **sigue saliendo con su
       nombre y su límite**, y sus gastos pasan a contarse en «sin partida».
 

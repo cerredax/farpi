@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
-import { TiraDeMeses } from './TiraDeMeses'
+import { SelectorDeMes } from './SelectorDeMes'
 import { formatCents, formatCentsCorto } from '@/lib/finanzas'
 import type { Aportacion, CuentaDelMes as Cuenta, FijoDelMes } from '@/lib/budgets'
 
@@ -16,11 +16,10 @@ interface CuentaDelMesProps {
    */
   fijos: FijoDelMes[]
   nombreDelMes: string
-  /** Los meses que ofrece la tira, el que se mira, el de hoy y los que tienen algo. */
+  /** Los meses que ofrece el desplegable, el que se mira y el de hoy. */
   meses: string[]
   mes: string
   mesActual: string
-  mesesConAlgo: Set<string>
   onElegirMes: (mes: string) => void
   reparto: Aportacion[]
   /** Un mes cerrado del que no se guardó ningún fijo ni partida. */
@@ -80,7 +79,11 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
   tono: 'entra' | 'sale'
   fijos: FijoDelMes[]
 }) {
-  const [abierta, setAbierta] = useState(false)
+  // **Abierto de mano** (04-09-2026). Entró plegado el mismo día y duró unas horas:
+  // lo que hay dentro es de lo primero que se quiere ver, así que pedirlo con un
+  // toque cada vez que se entra es un peaje. Se puede cerrar, y vuelve a abrirse al
+  // recargar: recordarlo pediría guardar una preferencia por algo que no molesta.
+  const [abierta, setAbierta] = useState(true)
   const panelId = useId()
   const signo = (centimos: number) => formatCentsCorto(tono === 'sale' ? -centimos : centimos)
 
@@ -168,11 +171,12 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
  * grande lo cuenta y dice «apuntado para ese mes». Un cero con trescientos euros
  * apuntados justo debajo sería peor que no dejar apuntarlos.
  *
- * **El mes se elige en una tira** (04-09-2026), no con dos flechas. Con las
- * flechas se llegaba a cualquier mes y a ninguno de un toque, y por el camino no
- * se veía ni dónde estabas ni dónde había algo. Se fueron con ellas los dos
- * botones de los lados, así que la cifra grande ocupa ahora la tarjeta entera.
- * El detalle, en `TiraDeMeses`.
+ * **El mes se elige con las flechas y con el nombre** (04-09-2026), como en el
+ * calendario: las flechas para el de al lado, y el nombre se toca y despliega la
+ * lista para saltar a junio sin dar tres toques. Hubo una tira de meses unas horas
+ * ese mismo día y se fue: resolvía el salto pero se comía una fila entera de una
+ * pantalla de 390 px para un control que se toca poco. El detalle, en
+ * `SelectorDeMes`.
  *
  * **Y no hay atajo de vuelta al mes de hoy** (03-09-2026). Hubo un «Volver a este
  * mes» debajo del nombre y no se entendía: puesto sobre «Junio 2026» parece que va
@@ -196,7 +200,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
  * mes», que es donde se lee como «he terminado con esto» (ver `CierreDelMes`).
  */
 export function CuentaDelMes({
-  cuenta, fijos, nombreDelMes, meses, mes, mesActual, mesesConAlgo, onElegirMes, reparto,
+  cuenta, fijos, nombreDelMes, meses, mes, mesActual, onElegirMes, reparto,
   copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
@@ -214,10 +218,9 @@ export function CuentaDelMes({
 
   return (
     <section aria-label="Resumen del mes" className="rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
-      <TiraDeMeses meses={meses} mes={mes} mesActual={mesActual} conAlgo={mesesConAlgo} onElegir={onElegirMes} />
+      <SelectorDeMes mes={mes} mesActual={mesActual} meses={meses} onElegir={onElegirMes} />
 
-      <div className="mt-1 text-center">
-        <p className="truncate text-xs font-bold uppercase tracking-widest text-muted">{nombreDelMes}</p>
+      <div className="text-center">
         <p className={`text-xl font-extrabold leading-tight ${enNumerosRojos ? 'text-danger-strong' : 'text-ink'}`}>
           {/* En rojo se enseña el importe **en positivo**: la etiqueta ya
               dice "de más este mes", y un "−120 € de más" obliga a deshacer

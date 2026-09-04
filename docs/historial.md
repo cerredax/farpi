@@ -15,6 +15,63 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Finanzas: «Cómo vamos», y cuatro arreglos de la pantalla del mes (04-09-2026)
+
+Cinco cosas pedidas tras usar la pantalla recién entregada. Cuatro eran de detalle y la
+quinta un encargo de fondo: la pestaña de gráficos no estaba a la altura y había que
+replantearla «como un analista de datos».
+
+**Los cuatro arreglos.** «Cerrar mes» pasó a ámbar —se pidió rojo, y el ámbar da la
+presencia sin decir lo que no es: cerrar no destruye nada, y el rojo se queda para
+«Poner el mes a cero», que sí borra—. Los dos totales de fijos salen abiertos, porque lo
+que hay dentro es de lo primero que se quiere ver y pedirlo con un toque cada vez es un
+peaje. La tira de meses, que había entrado esa misma mañana, se cambió por flechas más un
+desplegable en el nombre, como en el calendario; se fue por lo que costaba —una fila
+entera de una pantalla de 390 px para un control que se toca poco— y no por lo que
+resolvía, así que queda escrito por si vuelve a tentar. Y se fue la nota de «Hay 3 gastos
+sin partida: no cuentan para ninguna», que contaba una consecuencia del sistema y no algo
+que pase en una casa; con ella se fue `gastosSinPartida`, que se quedaba sin consumidor.
+
+**Y «Cómo vamos».** La pestaña se llamaba «Resumen» y el nombre sobraba: no resumía nada
+que no estuviera ya en «El mes», y prometía un resumen donde tiene que haber respuestas.
+Lo que costó de verdad no fue dibujar, fue elegir. El criterio no fue «qué se puede
+graficar» sino «qué se pregunta una casa y hoy no contesta nadie», y con ese filtro
+quedaron cuatro:
+
+- **¿Voy bien este mes?** Lo gastado acumulado día a día contra el ritmo de siempre. Era
+  el hueco grande: «El mes» da un saldo, y un saldo bueno el día 5 y el mismo el día 25
+  son dos meses distintos. Solo sale en el mes en curso y habiendo con qué comparar.
+- **¿Estamos ahorrando más que antes?** La serie de siempre, ahora con la media dibujada
+  y con el mejor y el peor mes etiquetados. Antes marcaba «el mayor en magnitud», que con
+  todos los meses en positivo señalaba siempre el mejor y nunca el peor, que es el que se
+  busca.
+- **¿En qué se va, y qué ha cambiado?** El desglose con la variación frente al mes
+  anterior —«Compra 291 €, +18 %»— y, al pie, las partidas que se pasan a menudo, que es
+  lo único de la pestaña que señala algo arreglable.
+- **¿Cómo está montada esta casa?** En qué se reparte lo que entra. La única que cambia
+  el denominador, y por eso la única que contesta «¿cuánto de lo que ganamos se lo lleva
+  el alquiler?».
+
+Se descartaron dos que parecían buenas. El reparto por persona en el tiempo, porque en
+cuanto una app de casa acumula quién ha puesto más deja de ser una app de casa y empieza
+a ser una cuenta pendiente — la misma decisión que ya impide los saldos en «El mes». Y la
+estacionalidad, que con cuatro meses de datos sería una línea entre dos puntos disfrazada
+de tendencia.
+
+Lo que más discusión interna costó fue el color de la barra de «de cada 100 €»: cuatro
+segmentos y una paleta de gráficos que dice, por escrito, que son dos colores y no hay
+más. Se resolvió sin romperla: los tres de gasto son el mismo tono con la opacidad
+bajando y lo que queda es el otro. La opacidad separa por claridad y no por tono, así que
+aguanta en protanopía, que es justo la razón por la que esa paleta tiene dos colores.
+
+Dos cosas que el navegador enseñó y los tests no. La primera, que el botón del nombre del
+mes medía 20 px de alto —lo cazó `movil.spec.ts`, que exige 24—. La segunda no la cazó
+nadie: «Septiembre 2026» con su «hoy» al lado se partía en dos renglones dentro del
+desplegable, y la lista dejaba de leerse como una lista. Van dieciséis unitarios nuevos
+para la lógica de los cuatro bloques, y lo que fijan casi todos no es la aritmética sino
+qué pasa **cuando no hay con qué comparar**: es la mitad de los casos en una casa que
+lleva dos meses con la app.
+
 ### Finanzas: se puede apuntar lo que va a llegar, y los meses se eligen de un toque (04-09-2026)
 
 Cinco cosas de la misma pantalla, «El mes», y todas de la tarjeta de arriba y de lo que

@@ -48,6 +48,7 @@
 
   --color-accent:         #D8A48F; /* salmón */
   --color-sand:           #E9C46A; /* amarillo de marca: avisos suaves */
+  --color-sand-hover:     #DDB652; /* hover del botón de aviso */
   --color-sand-strong:    #9A7D1A; /* texto legible sobre fondo sand */
   --color-warm:           #FFF8EF; /* fondo cálido de tarjeta destacada */
 

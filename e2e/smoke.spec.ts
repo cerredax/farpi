@@ -34,6 +34,10 @@ test('la pantalla de login muestra el modo demo', async ({ page }) => {
 test('home carga con datos demo y la navegación inferior', async ({ page }) => {
   await page.goto('/home')
 
+  // La cabecera dice en qué pantalla estás, y en Inicio también (04-09-2026):
+  // era la única de la app donde ponía "Farpi" en vez del nombre de la sección.
+  await expect(page.getByRole('heading', { level: 1, name: 'Inicio' })).toBeVisible()
+
   // La navegación inferior está presente con sus secciones.
   await expect(page.getByRole('link', { name: 'Inicio' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Comidas' })).toBeVisible()

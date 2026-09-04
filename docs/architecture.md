@@ -1182,6 +1182,12 @@ dos sitios donde tocar para salir de las cinco pantallas de siempre, y el de arr
 decía a dónde llevaba. Ahora la cabecera de móvil es solo el título, y la sexta pastilla
 de la barra es **"Más"** (`MoreMenu`): Documentos, Ajustes y cerrar sesión.
 
+Y el título es **el de la pantalla en todas**, Inicio incluida (04-09-2026). Inicio decía
+"Farpi": era la única donde la barra de arriba hablaba de otra cosa que de dónde estás.
+El nombre de la app lo dice la columna de escritorio, y en móvil no hace falta que lo diga
+nada —quien abre la app sabe cuál ha abierto—; lo que falta al llegar a una pantalla es
+saber en cuál estás. "Farpi" se queda como respaldo de una ruta sin nombre en `titles`.
+
 Documentos baja ahí porque es la sección a la que menos se entra —el DNI y el libro de
 familia se miran dos veces al año— y era la única cuya etiqueta no cabía a 390 px: se
 escribía "Docs" abajo y "Documentos" al lado. Dentro de "Más" se lee entero y las dos

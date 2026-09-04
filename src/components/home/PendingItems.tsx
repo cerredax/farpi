@@ -15,12 +15,16 @@ interface PendingItemsProps {
 }
 
 /**
- * Lo que falta por comprar, plegado y contado por cesta.
+ * Lo que falta por comprar, por cesta: plegado, en qué listas queda algo;
+ * desplegado, cada lista con lo suyo debajo de su nombre.
  *
  * Antes se listaban cinco ítems sueltos con el nombre de su lista repetido
  * debajo de cada uno: media pantalla de móvil para una compra que se hace en
  * otro sitio. En Inicio lo útil es cuánto queda y en qué lista; el detalle se
  * despliega si hace falta, y para trabajar de verdad está la pantalla de listas.
+ *
+ * Los nombres de las cestas se dicen **una vez y en un solo sitio**: arriba
+ * mientras está plegado, y encima de su grupo cuando se abre (04-09-2026).
  */
 export const PendingItems = memo(function PendingItems({ items, onToggle }: PendingItemsProps) {
   const [abierto, setAbierto] = useState(false)
@@ -38,28 +42,40 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
         <SectionLink href="/lists">Ver todas las listas</SectionLink>
       }
     >
+      {/* **Abierto, el botón se queda solo con la flecha** (04-09-2026). Los
+          nombres de las cestas son lo que hay que leer estando plegado, y
+          desplegado los dice cada grupo encima de lo suyo: tenerlos también aquí
+          era la lista de listas dos veces, una encima de la otra.
+
+          La flecha no se va con ellos porque es lo único que vuelve a plegar
+          esto, y se queda **donde estaba** —a la derecha— para que no salte al
+          abrir. Con el nombre fuera, el botón necesita uno a oídas: plegado lo
+          son las cestas, y abierto lo dice `aria-label`. */}
       <button
         type="button"
         onClick={() => setAbierto(a => !a)}
         aria-expanded={abierto}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface"
+        aria-label={abierto ? 'Plegar las listas' : undefined}
+        className={`flex w-full items-center gap-3 px-4 text-left transition-colors hover:bg-surface ${abierto ? 'py-2' : 'py-3'}`}
       >
         {/* Una cesta por línea. Iban en un `flex-wrap` y dos o tres compartían
             renglón sin nada que las separase: "Casa Compra Bricolaje" se
             leía como una sola cosa con un nombre larguísimo. Con nombres cortos
             el problema era peor, porque cabían más en la misma línea. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          {cestas.map(cesta => (
-            <span key={cesta.id} className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-ink">
-              <span className="flex-shrink-0" aria-hidden>{cesta.emoji ?? '📋'}</span>
-              <span className="min-w-0 truncate">{cesta.name}</span>
-            </span>
-          ))}
-        </div>
+        {!abierto && (
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            {cestas.map(cesta => (
+              <span key={cesta.id} className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-ink">
+                <span className="flex-shrink-0" aria-hidden>{cesta.emoji ?? '📋'}</span>
+                <span className="min-w-0 truncate">{cesta.name}</span>
+              </span>
+            ))}
+          </div>
+        )}
         <ChevronDown
           size={16}
           strokeWidth={2.4}
-          className={`flex-shrink-0 text-muted transition-transform ${abierto ? 'rotate-180' : ''}`}
+          className={`ml-auto flex-shrink-0 text-muted transition-transform ${abierto ? 'rotate-180' : ''}`}
         />
       </button>
 

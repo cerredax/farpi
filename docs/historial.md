@@ -15,6 +15,25 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Inicio: la cabecera dice «Inicio», y la lista de listas no se dice dos veces (04-09-2026)
+
+Repaso de lo entregado un rato antes, con dos cosas vistas al usarlo.
+
+**La cabecera de Inicio decía «Farpi»** y las demás dicen su nombre —«Calendario»,
+«Tareas»—, así que era la única pantalla de la app donde la barra de arriba hablaba de otra
+cosa que de dónde estás. Ahora dice «Inicio». Se preguntó antes de tocarlo porque había
+tres salidas razonables —el nombre de la sección en todas, «Farpi» en todas, o las dos
+juntas— y la elegida fue la primera. El nombre de la app sigue arriba de la columna de
+escritorio, y «Farpi» se queda en `TopBar` como respaldo de una ruta que no esté en
+`titles`.
+
+**Y «Listas de casa», al desplegarse, decía los nombres de las cestas dos veces**: arriba
+la lista de listas que se ve plegada, y debajo otra vez, uno encima de cada grupo. Era el
+efecto colateral del agrupado de esta misma mañana. Abierto, el botón se queda solo con la
+flecha, que es lo único que vuelve a plegarlo, y en el sitio donde ya estaba para que no
+salte al abrir; con el nombre fuera, a oídas lo pone un `aria-label` («Plegar las listas»),
+porque plegado el nombre del botón son las propias cestas.
+
 ### Inicio: la compra se lee por cestas y un plan se abre desde ahí (04-09-2026)
 
 Dos cosas pedidas sobre la pantalla de Inicio, y las dos venían de usarla.

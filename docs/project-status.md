@@ -26,7 +26,9 @@ que todavía no existen (ver "Siguiente paso recomendado").
   hoy o de esta semana— lo abre** (04-09-2026), con el mismo formulario del calendario y
   solo en edición: apuntar algo nuevo sigue siendo del calendario, que es donde se ve
   dónde cae. Y "Listas de casa", al desplegarse, **va por cestas**: el nombre de la lista
-  se dice una vez como encabezado de su grupo, no debajo de cada ítem.
+  se dice una vez como encabezado de su grupo, no debajo de cada ítem ni otra vez arriba
+  —abierto, el botón de plegar se queda solo con la flecha—. La cabecera de la pantalla
+  dice "Inicio", como las demás dicen la suya: decía "Farpi".
 - Calendario (eventos, series semanales y anuales, vacaciones como franja). En la
   vista de semana salen también las tareas que vencen, y se pueden marcar allí. La
   agenda se agrupa por días o **por persona** (27-08-2026), con un interruptor que

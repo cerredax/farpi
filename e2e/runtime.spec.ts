@@ -807,6 +807,16 @@ test('en Inicio, lo que falta va por cestas y el nombre de la lista se dice una 
   const fila = seccion.locator('li').filter({ hasText: 'Papel de cocina' })
   await expect(fila).toHaveCount(1)
   await expect(fila).not.toContainText('Casa')
+
+  // Abierto, el botón de plegar ya no repite los nombres de las cestas: los dice
+  // cada grupo encima de lo suyo, y arriba quedaría la lista de listas dos veces.
+  const plegar = seccion.getByRole('button', { name: 'Plegar las listas' })
+  await expect(plegar).toBeVisible()
+  await expect(plegar).toHaveText('')
+
+  // Y al plegarlo vuelven, que es lo único que se ve estando cerrado.
+  await plegar.click()
+  await expect(seccion.getByRole('button', { expanded: false })).toContainText('Casa')
 })
 
 // En Inicio, tocar un plan lo abre (04-09-2026). Antes solo se veía: cambiar la

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 
 const titles: Record<string, string> = {
+  '/home':     'Inicio',
   '/calendar': 'Calendario',
   '/tasks':    'Tareas',
   '/lists':    'Listas',
@@ -25,10 +26,18 @@ export function TopBar() {
   // salvia claro se queda en 2,44 sobre el crema. El oscuro da 4,48 y sigue
   // siendo el mismo verde.
   //
-  // En Inicio la cabecera dice "Farpi" y ya no el saludo con la fecha debajo:
-  // eso vive ahora en la tarjeta del día, donde se lee grande y cerca de lo que
-  // hay que hacer. Tenerlo en los dos sitios era repetir la misma hora dos
-  // veces en la misma pantalla.
+  // En Inicio la cabecera **dice "Inicio", como las demás dicen la suya**
+  // (04-09-2026). Decía "Farpi", que era la única pantalla de la app donde la
+  // barra de arriba hablaba de otra cosa que de dónde estás: el nombre de la app
+  // ya lo dice la columna de escritorio, y en móvil no hace falta que lo diga
+  // nada —quien abre la app sabe qué app ha abierto—. Lo que sí falta al llegar a
+  // una pantalla es saber en cuál estás, y en Inicio era la única que no lo
+  // decía. "Farpi" se queda como respaldo por si aparece una ruta sin nombre.
+  //
+  // Lo que se fue de aquí en su día, y no vuelve: el saludo con la fecha debajo.
+  // Vive en la tarjeta del día, donde se lee grande y cerca de lo que hay que
+  // hacer; tenerlo en los dos sitios era decir la misma hora dos veces en la
+  // misma pantalla.
 
   return (
     // `lg:pl-56` deja libre el ancho de `SideNav`, que se pinta encima de esta

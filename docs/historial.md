@@ -74,7 +74,7 @@ Los otros cuatro, en corto:
   toda la pinta de funcionar. Nadie mira una app que funciona. En un preview sigue
   valiendo: es como se enseña sin dar de alta a nadie.
 
-Y una que no buscaba nadie. La última de las siete comprobaciones nuevas se escribió para
+Y una que no buscaba nadie. La última de las nueve comprobaciones nuevas se escribió para
 vigilar que el trigger de arriba **no** rompiera lo que la app sí hace —renombrar una
 ficha— y salió en rojo: `42501`, la RLS. No la rompía el trigger; estaba roto desde esa
 misma mañana, cuando `documents` pasó a tener un `with check` sobre `storage_owner` dentro

@@ -1,11 +1,11 @@
-// Validación manual de RLS, RPCs, integridad y Storage contra el Supabase real.
+// Validación manual de RLS, RPCs e integridad contra el Supabase real.
 //
 // Uso:  node scripts/validate-rls.mjs
 //
 // Cuándo: después de tocar una migración, una policy o una RPC. NO es un test
 // de CI — necesita la service role key y escribe en el proyecto real.
 //
-// Qué hace: crea dos usuarios y dos familias de prueba, comprueba el
+// Qué hace: crea cuatro usuarios y tres familias de prueba, comprueba el
 // aislamiento con SESIONES DE USUARIO REALES (JWT contra PostgREST, el mismo
 // camino que recorre la app) y borra todo lo que ha creado al terminar. Los
 // datos reales de la familia no se tocan.
@@ -772,6 +772,32 @@ async function main() {
       datos: { family_id: famA, name: 'papel sin carpeta', storage_path: 'x4', storage_owner: uidA, mime_type: 'application/pdf', size_bytes: 10 },
     })) === 1)
 
+  // Y lo que **tiene que seguir funcionando**: borrar la cuenta de quien subió un
+  // papel a una familia que le sobrevive (04-09-2026).
+  //
+  // `storage_owner` es `on delete set null` contra `auth.users`, y Postgres ejecuta
+  // esa acción referencial como un **update** sobre `documents`, así que entra por el
+  // mismo trigger de inmutabilidad. Mientras el trigger no la dejó pasar, el borrado
+  // de cuenta se caía entero: bastaba con haber subido un papel y que quedara alguien
+  // más en la casa para que Ajustes devolviera un 500 sin ninguna salida.
+  //
+  // Se usa D, que ya no hace falta desde la §7, y se siembra con el service role
+  // porque D no es miembro de ninguna familia. La ficha se queda en famA, que sigue
+  // viva: es exactamente el caso que la limpieza del final no llega a provocar, porque
+  // borra las familias **antes** que los usuarios y para entonces ya no queda nada
+  // apuntando a ellos. Por eso esto no se veía con 163 comprobaciones en verde.
+  await api('/rest/v1/documents', {
+    metodo: 'POST',
+    datos: { family_id: famA, name: 'papel de D', storage_path: 'id-de-drive-de-d', storage_owner: uidD, mime_type: 'application/pdf', size_bytes: 10 },
+  })
+  const bajaDeD = await api(`/auth/v1/admin/users/${uidD}`, { metodo: 'DELETE' })
+  comprobar('Se puede borrar la cuenta de quien subió un papel a una familia que sigue viva',
+    bajaDeD.estado < 400,
+    bajaDeD.estado < 400 ? '' : `estado ${bajaDeD.estado}: ${JSON.stringify(bajaDeD.cuerpo)}`)
+  comprobar('Y su ficha se queda en la casa, sin dueño',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-de-d&select=storage_owner'))
+      .cuerpo?.[0]?.storage_owner === null)
+
   // ── 13. Cerrar una familia (delete_family) ──────────────────────────
   // `families` no tiene policy de `delete`, así que cerrar una casa va por RPC.
   // Lo que hay que comprobar es lo que la RPC añade y una policy no sabría: que
@@ -814,6 +840,8 @@ async function main() {
   // con el borrado del usuario (on delete cascade). Se borra igual por si el
   // script se corta antes de llegar ahí.
   for (const uid of [uidA, uidB, uidC, uidD]) await api(`/rest/v1/storage_connections?user_id=eq.${uid}`, { metodo: 'DELETE' })
+  // D ya se habrá borrado en la §12 si esa comprobación pasó; repetirlo da 404 y da
+  // igual. Se deja en la lista para que la limpieza siga completa cuando falle.
   for (const uid of [uidA, uidB, uidC, uidD]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })
   const familias = (await api('/rest/v1/families?select=name')).cuerpo
   console.log('   familias que quedan:', Array.isArray(familias) ? familias.map(f => f.name) : familias)

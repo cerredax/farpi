@@ -96,9 +96,10 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-El backend está **validado** (§4): **89/89** comprobaciones de RLS, RPCs e integridad
-(31-08-2026). La app está desplegada y operativa en https://nido-xi.vercel.app, que sigue
-sirviendo hasta que se apunte **`www.farpi.app`**, ya registrado (§0).
+El backend está **validado** (§4): **163/163** comprobaciones de RLS, RPCs e integridad
+(03-09-2026), con `supabase/parche-2026-09-04.sql` todavía por aplicar. La app está
+desplegada y operativa en https://nido-xi.vercel.app, que sigue sirviendo hasta que se
+apunte **`www.farpi.app`**, ya registrado (§0).
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 
@@ -153,6 +154,16 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
       `DOC_CATEGORIES` son dos listas que tienen que decir lo mismo: si una crece y la
       otra no, guardar ese papel falla en producción y no al desplegar.
 - [x] Las dos cosas juntas: **117/117**, con once comprobaciones nuevas en el arnés.
+- [x] **La revisión de seguridad del 03-09-2026**: el trigger
+      `trg_document_storage_inmutable` y las cuatro policies de `documents` —la regla del
+      dueño vive solo en el `insert`—, y `family_members` sin ninguna policy de escritura.
+      Aplicado con `supabase/parche-2026-09-03.sql` y validado ese mismo día: **163/163**.
+      La cuarta sección de ese parche, la RPC `accept_family_invite`, va anotada en §2.3
+      por ser de Auth.
+- [ ] **`supabase/parche-2026-09-04.sql` — sin aplicar todavía.** Corrige el trigger de la
+      línea de arriba, que se pisa con el `on delete set null` de `documents.storage_owner`
+      y deja sin poder borrar su cuenta a quien haya subido un papel a una familia que le
+      sobrevive.
 - [x] RLS activo en todas las tablas privadas. `storage_connections` la lleva activada
       y **sin ninguna policy**, que es lo que la deja solo para el service role.
 
@@ -161,10 +172,10 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 - [x] **Authentication → URL Configuration → Site URL**: el dominio de producción.
 - [x] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y `http://localhost:3000/auth/callback` para desarrollo).
 - [x] **Parche SQL del 03-09-2026 aplicado** (`supabase/parche-2026-09-03.sql`, cuatro
-      secciones): el trigger `trg_document_storage_inmutable`, la RPC
-      `accept_family_invite`, las cuatro policies de `documents` y el `insert` de
-      `family_members`, que se fue. Validado después con `node scripts/validate-rls.mjs`:
-      **163/163**.
+      secciones). De Auth es la RPC `accept_family_invite`, que ahora exige además que la
+      invitación no lleve más de 30 días esperando y que la cuenta no se haya creado
+      después de escribirse. Las otras tres son de base de datos y están anotadas en §2.2.
+      Validado después con `node scripts/validate-rls.mjs`: **163/163**.
 - [x] **Email**: proveedor SMTP configurado (Auth → Emails, en `.../auth/smtp`). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
 - [x] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
       Desde el 03-09-2026 **la seguridad de las invitaciones ya no depende de este ajuste**:
@@ -215,14 +226,17 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 80/80 comprobaciones correctas, con el esquema entero validado (última pasada, 27-08-2026). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 163/163 comprobaciones correctas, con el esquema entero validado (última pasada, 03-09-2026). Repetible con `node scripts/validate-rls.mjs`. Queda por aplicar `supabase/parche-2026-09-04.sql`, y el arnés ya lleva sus dos comprobaciones, así que la próxima pasada no dará 163.
 
-- [x] Dos usuarios y dos familias de prueba (creados y eliminados durante la ejecución).
+- [x] Cuatro usuarios y tres familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
 - [x] Las 5 RPCs, incluida la regla del último admin.
 - [x] Triggers de integridad cross-family.
-- [x] Bucket `documents` privado.
-- [x] Storage: subida real, signed URL y fuga cross-family (un ajeno no puede firmar, descargar, listar ni borrar).
+- [x] Los documentos en Drive: nadie puede apuntar una ficha al Drive de otra persona, ni
+      reescribir el dueño o la ruta de una que ya existe, y un ajeno no ve el documento
+      aunque conozca su identificador de archivo. El bucket `documents` se borró el
+      27-08-2026 y con él las diez comprobaciones de Storage; esto es lo que las
+      sustituye.
 - [x] Resultados registrados en `docs/supabase-validation.md`.
 
 ---

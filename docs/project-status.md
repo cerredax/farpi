@@ -9,7 +9,10 @@ Farpi está conectado a Supabase de extremo a extremo: autenticación, repositor
 La app está en producción, en uso diario por la familia y probada en un móvil real (05-08-2026). Las tablas de Finanzas se aplicaron en el proyecto real y se validaron el 01-09-2026: primero las tres iniciales (99/99) y, con la reforma de los fijos de esa misma tarde, `fixed_entries` y `expenses.kind` (**106/106**). La sección funciona entera con datos reales. El 02-09-2026 se
 aplicaron y validaron tres cambios más de esquema —la franja del comedor con los platos de
 una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**—, y el
-03-09-2026 un cuarto: el cierre que ya no inventa meses, con `empty_month`. **149/149**. Lo que queda no es código de producto: funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
+03-09-2026 dos más: el cierre que ya no inventa meses, con `empty_month`, y la revisión de
+seguridad de esa tarde. **163/163**. Queda por aplicar `supabase/parche-2026-09-04.sql`, que
+devuelve el borrado de cuenta. Aparte de eso, lo que falta no es código de producto:
+funcionalidades que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
@@ -502,8 +505,12 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
     —el proxy deja pasar todo en modo demo— sirviendo datos de mentira y aparentando
     funcionar, que es la avería que nadie mira.
 
-  Todo aplicado en el proyecto real el mismo día, en las cuatro secciones de
-  `supabase/parche-2026-09-03.sql`, y validado después: **163/163**.
+  Lo que de esto era SQL —el trigger de inmutabilidad y las cuatro policies de
+  `documents`— se aplicó en el proyecto real el mismo día, junto con la RPC de la
+  invitación y la retirada del `insert` de `family_members` que sale en la lista de abajo:
+  son las cuatro secciones de `supabase/parche-2026-09-03.sql`. Lo demás (`safeNextPath`,
+  HSTS, el corte del build) es código y viaja con el despliegue. Validado después:
+  **163/163**.
 
   Y los seis endurecimientos menores del informe, hechos en la misma sesión:
 
@@ -541,7 +548,7 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 **Aplicación en la UI:** `MemberSheet` bloquea degradar al único admin (calculado en `SettingsView`); el servidor es la validación autoritativa.
 
-**Nota sobre policies:** `Admin gestiona miembros` queda sustituida por `Admin inserta miembros`; UPDATE y DELETE de miembros pasan por RPCs.
+**Nota sobre policies:** `family_members` se quedó **solo con `select`** el 03-09-2026. No hay policy de `insert`, ni de `update`, ni de `delete`: entrar en una familia, cambiar un rol y echar a alguien pasan los tres por RPC.
 
 ## Estado Supabase
 
@@ -556,7 +563,14 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **03-09-2026**, con
+Queda una cosa: **aplicar `supabase/parche-2026-09-04.sql`**, que devuelve el borrado de
+cuenta. El `on delete set null` de `documents.storage_owner` se pisa con el trigger de
+inmutabilidad que entró el 03-09-2026 —Postgres ejecuta la acción referencial como un
+update sobre `documents`— y deja un 500 sin salida a quien haya subido un papel a una
+familia que le sobrevive. El arnés ya lleva las dos comprobaciones que lo miran, así que la
+próxima pasada no dará 163.
+
+La última pasada es del **03-09-2026**, con
 `node scripts/validate-rls.mjs` contra la base real y ya con las cuatro secciones de
 `supabase/parche-2026-09-03.sql` aplicadas: **163/163**. El detalle
 —y por qué las que más importan son que nadie pueda llamar a `close_month_copy`
@@ -567,7 +581,7 @@ pueda meter a nadie en su familia a mano— está en
 `supabase/aplicar-meses-cerrados.sql`, reescrito entero —como manda su cabecera— con las
 seis funciones tal y como están hoy en `supabase/schema.sql`.
 
-Antes de eso, la pasada del **01-09-2026 (tarde)** dio **106/106**. Las siete últimas son de la reforma de los fijos:
+Entre aquella y esta hubo cinco pasadas más —117/117 y 139/139 el 02-09-2026, y 149/149, 152/152 y 154/154 el 03-09-2026—, contadas una a una en `docs/supabase-validation.md`. Antes de todas ellas, la pasada del **01-09-2026 (tarde)** dio **106/106**. Las siete últimas son de la reforma de los fijos:
 tres de las de siempre sobre la tabla nueva —A crea, B no ve, B no puede escribir—, que
 pesan más que en otras porque ahí está lo que más dice de una casa, cuánto cobra cada uno;
 dos de los triggers de asignación entre familias, que un fijo tiene por llevar el mismo par

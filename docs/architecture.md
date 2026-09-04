@@ -57,8 +57,10 @@ Estado:
   Storage a Google Drive el 27-08-2026.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 - Esquema al día y revalidado. La última pasada de `node scripts/validate-rls.mjs`
-  es del 27-08-2026: **80/80**, con las conexiones de Google Drive dentro. El historial
-  de cada pasada está en `docs/supabase-validation.md`, que es donde vive.
+  es del 03-09-2026: **163/163**, con la revisión de seguridad de ese día dentro. El
+  historial de cada pasada está en `docs/supabase-validation.md`, que es donde vive.
+  Queda por aplicar `supabase/parche-2026-09-04.sql`, así que la próxima pasada no dará
+  163.
 - `mapFamily` (`src/lib/supabase-repos/family.ts`) normaliza `meal_slots` ausente a "las
   cuatro franjas". Para producción ya no hace falta, pero es lo que permite desplegar
   código antes que SQL, que es el orden en el que pasan las cosas aquí.
@@ -98,7 +100,7 @@ Regla central de RLS:
 Detalles de seguridad:
 
 - `my_family_ids()` es `security definer` con `set search_path = public`.
-- No existe policy de UPDATE directo sobre `family_members`. El perfil se edita con `update_family_member_profile` (RPC, `014`), que restringe los campos a `display_name` y `color`, y permite hacerlo a uno mismo o a un admin de esa familia. Sustituye a `update_my_family_profile`, que solo dejaba editarse a uno mismo.
+- `family_members` **solo tiene policy de `select`**: ni `insert`, ni `update`, ni `delete` (el `insert` se retiró el 03-09-2026). El perfil se edita con `update_family_member_profile` (RPC, `014`), que restringe los campos a `display_name` y `color`, y permite hacerlo a uno mismo o a un admin de esa familia. Sustituye a `update_my_family_profile`, que solo dejaba editarse a uno mismo.
 - Las policies de `family_invites` para UPDATE incluyen `using` y `with check`.
 
 ## Superficie de seguridad fuera de la base de datos
@@ -174,7 +176,7 @@ mentira y aparentando funcionar, que es la clase de avería que nadie mira.
 - `remove_family_member(p_member_id uuid)` — elimina un miembro; valida que el llamante es admin y que no es el único admin.
 - `update_family_member_role(p_member_id uuid, p_role text)` — cambia el rol; mismas validaciones.
 
-Ambas son `security definer` con `set search_path = public, auth`. La policy `Admin gestiona miembros` (`for all`) queda reemplazada por `Admin inserta miembros` (`for insert`) — UPDATE y DELETE deben hacerse vía RPC.
+Ambas son `security definer` con `set search_path = public, auth`. Sobre `family_members` no queda **ninguna** policy de escritura: `Admin gestiona miembros` (`for all`) se sustituyó primero por `Admin inserta miembros` (`for insert`), y esa se retiró el 03-09-2026 porque dejaba a un admin meter en su familia una fila con el `user_id` que quisiera, sin invitación y sin que la otra persona se enterase. Entrar, cambiar de rol y salir van los tres por RPC.
 
 ### Invitaciones
 
@@ -183,10 +185,17 @@ La migración `009_accept_invite_rpc.sql` añade `accept_family_invite(p_invite_
 Esta RPC:
 
 1. Verifica que el usuario está autenticado.
-2. Busca una invitación pendiente para el email del usuario.
-3. Crea el `family_member`.
-4. Marca la invitación como `accepted`.
-5. Devuelve el `family_id`.
+2. Busca la invitación y comprueba que es **para su email**.
+3. Comprueba que no lleva más de **30 días** esperando (03-09-2026). Lo que abre la
+   familia no es el enlace del correo —ese lo caduca Supabase en unas horas— sino el
+   `invite_id` de la URL de vuelta, y esa URL se puede guardar.
+4. Comprueba que la cuenta es **anterior a la invitación, o que nació de ella**
+   (`invited_at`, 03-09-2026). Cotejar el correo da por hecho que tener la cuenta prueba
+   tener el correo, y eso lo decide un interruptor del panel de Supabase: con «Confirm
+   email» apagado, quien viera un `invite_id` podía registrarse con el correo ajeno.
+5. Crea el `family_member`.
+6. Marca la invitación como `accepted`.
+7. Devuelve el `family_id`.
 
 Canal de entrega elegido: **magic link** vía `admin.auth.admin.inviteUserByEmail` en `/api/invite`, con `redirectTo` a `/auth/callback?invite_id=...`.
 
@@ -218,8 +227,9 @@ borrará todo". El resumen lo arma `selectFamilySummary` en `src/lib/selectors.t
 
 **Implementación:** RPC `delete_family(p_family_id uuid)`, `security definer`. No es un
 `delete` normal porque `families` **no tiene policy de `delete`** —igual que
-`family_members` no tiene de `update` ni `delete`—: las dos comprobaciones de arriba no
-caben en una policy. Lo demás se va solo, por el `on delete cascade` de todas las tablas
+`family_members`, que desde el 03-09-2026 no tiene ninguna de escritura—: las dos
+comprobaciones de arriba no caben en una policy. Lo demás se va solo, por el
+`on delete cascade` de todas las tablas
 que cuelgan de `families`; el mock lo imita a mano en `store/family.ts`.
 
 **Los archivos de los documentos no se tocan**, por lo mismo que en

@@ -5,13 +5,21 @@
 -- aplicaron antes que las otras dos: la §3 sale de ejecutar el validador con la §1 y la
 -- §2 puestas, y la §4 del repaso de los puntos menores del informe.
 --
--- Es idempotente: las funciones son `create or replace`, el trigger se borra antes de
--- crearse y las policies llevan su `drop ... if exists`, así que volver a pasarlo entero
--- no rompe nada.
---
 -- **Aplicado y validado el 03-09-2026**: `node scripts/validate-rls.mjs` dio 163/163
 -- contra la base real, anotado en docs/supabase-validation.md. Se queda en el repositorio
 -- como lo que se pasó por el editor, no como algo que quede por hacer.
+--
+-- ⚠ **Y por eso mismo: no lo vuelvas a pasar** (aviso del 04-09-2026). Es un registro de
+-- aquel día, no un archivo que se reaplique. La §1 lleva la versión del trigger de
+-- entonces, y esa se corrigió al día siguiente porque se pisaba con el `on delete set
+-- null` de `storage_owner` y dejaba la cuenta sin poder borrarse; volver a pasar esto
+-- reinstalaría la rota. Lo que vale siempre es `supabase/schema.sql`, y el arreglo suelto
+-- está en `supabase/parche-2026-09-04.sql`.
+--
+-- Es la misma trampa que se llevó por delante a `supabase/aplicar-invitacion-caduca.sql`:
+-- un `create or replace` guardado es una máquina del tiempo esperando a que alguien la
+-- ejecute. Los archivos que sí se reaplican —los `aplicar-*.sql`— se reescriben enteros
+-- cada vez que cambia lo suyo; los `parche-*.sql` no se tocan y no se repiten.
 
 -- ============================================================================
 -- 1. El dueño y la ruta del archivo de un documento no se reescriben
@@ -192,7 +200,9 @@ grant execute on function public.accept_family_invite(uuid) to authenticated;
 -- lo rompía la policy `for all` con el `with check` de `storage_owner`, que Postgres
 -- aplica también a los `update`. Detalle completo en el comentario de abajo.
 --
--- Si ya has pasado las secciones 1 y 2, con esta basta.
+-- Cuando se escribió esta línea el parche tenía tres secciones, y decía que con esta
+-- bastaba si ya se habían pasado la §1 y la §2. Dejó de ser verdad el mismo día, en
+-- cuanto se le añadió la §4: con §1+§2+§3 el validador da 161, no 163.
 
 -- Los documentos son la única tabla de contenido con **cuatro policies** en vez de
 -- una, y no es simetría rota: es la única cuyas columnas alimentan una decisión

@@ -222,7 +222,17 @@ Objetivo: preparar uso diario.
   menores —guarda de CSRF propia, el `ref` de una subida atado a su familia,
   `family_members` solo con `select`, `/api/salud` sin amplificar, el `Origin` de la
   subida desde `SITE_URL` y el `CRON_SECRET` en tiempo constante—. El relato en
-  `docs/historial.md`; el SQL a aplicar, en `supabase/parche-2026-09-03.sql`.
+  `docs/historial.md`; el SQL, **aplicado y validado el mismo día** (163/163), en
+  `supabase/parche-2026-09-03.sql`.
+- [ ] **Borrar la cuenta vuelve a funcionar** (04-09-2026, *falta aplicar el SQL*). El
+  arreglo del día anterior se pisaba con el esquema: `documents.storage_owner` es
+  `on delete set null` contra `auth.users`, y Postgres ejecuta esa acción referencial como
+  un update sobre `documents`, así que entra por el trigger de inmutabilidad y salta. Quien
+  hubiera subido un papel a una familia que le sobrevive no podía borrar su cuenta: un 500
+  sin salida. El trigger deja pasar ahora ese caso y solo ese —se reconoce en que el dueño
+  anterior ya no existe en `auth.users`, que no lo puede fabricar nadie—, y el arnés lleva
+  las dos comprobaciones que faltaban, las de lo que **tiene que seguir funcionando**. El
+  SQL, en `supabase/parche-2026-09-04.sql`.
 - ✅ **Copia de seguridad de la familia** (27-08-2026): un botón en Ajustes descarga
   un `.json` con todo. Sin ruta API ni tabla nueva —el store ya lo tenía todo en
   memoria— y sin tokens dentro. Nació de una incoherencia: los papeles ya prometían

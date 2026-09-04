@@ -238,13 +238,13 @@ los datos reales no se tocaron.
 
 ## Estado
 
-Backend validado contra el proyecto real con tres usuarios y dos familias de prueba, creados y eliminados durante la ejecución. Los datos reales de la familia no se tocaron.
+Backend validado contra el proyecto real con cuatro usuarios y tres familias de prueba, creados y eliminados durante la ejecución. Los datos reales de la familia no se tocaron.
 
 **Método.** En lugar de `set role` desde el SQL Editor, las pruebas se ejecutaron con **sesiones de usuario reales**: se autentican los usuarios, se obtiene su JWT y se ataca la API REST y la de Storage con él. Es el mismo trayecto que recorre la app (JWT → PostgREST → RLS), así que valida también que las policies se aplican con el token del usuario y no solo a nivel de rol de base de datos.
 
 Repetible con `node scripts/validate-rls.mjs`. Conviene ejecutarlo después de tocar una migración, una policy o una RPC.
 
-**Tres usuarios, no dos.** A y B empiezan en familias distintas, pero en la sección de invitaciones B acepta unirse a la familia de A y deja de ser ajeno. Por eso existe un tercer usuario C que nunca entra en ninguna familia: es el que prueba el aislamiento a partir de ese punto. Sin él, las comprobaciones de Storage pasaban por el motivo equivocado.
+**Cuatro usuarios, no dos.** A y B empiezan en familias distintas, pero en la sección de invitaciones B acepta unirse a la familia de A y deja de ser ajeno. Por eso existe un tercer usuario C que nunca entra en ninguna familia: es el que prueba el aislamiento a partir de ese punto, y sin él media suite pasaría por el motivo equivocado. Desde el 03-09-2026 hay un cuarto, D, que nace **después** de escribirse una invitación: es el que prueba que registrarse con el correo de otra persona al ver su `invite_id` no abre ninguna puerta. Y desde el 04-09-2026 sirve además para lo contrario —borrar su cuenta teniendo un papel suyo en una familia que sigue viva—, que es el caso que tiene que **funcionar**.
 
 No se incluyen aquí URLs privadas, claves ni datos personales.
 
@@ -286,7 +286,10 @@ Verificadas por la existencia de sus objetos (tablas, funciones, columnas y buck
 Tablas cubiertas, comprobando que B recibe 0 filas de la familia de A:
 
 - [x] `families` — B no la ve; su UPDATE afecta a 0 filas
-- [x] `family_members` — B no puede auto-insertarse (error de la BD)
+- [x] `family_members` — **no inserta nadie**: ni B a sí mismo, ni un admin metiendo a un
+      tercero a mano en su propia familia (03-09-2026). La tabla se quedó solo con `select`;
+      las altas de verdad las escriben `create_family_with_admin` y `accept_family_invite`,
+      que son `security definer` y comprueban lo suyo antes
 - [x] `family_invites` — B recibe 403 al intentar invitar en la familia de A
 - [x] `children`
 - [x] `events`
@@ -296,6 +299,7 @@ Tablas cubiertas, comprobando que B recibe 0 filas de la familia de A:
 - [x] `meal_plans`
 - [x] `documents`
 - [x] `notes`
+- [x] `fixed_entries` — la tabla con lo que cobra cada uno, así que pesa más que las otras
 - [x] `budgets`
 - [x] `expenses` — además, el POST de B en la familia de A se rechaza
 - [x] `quotes`
@@ -317,6 +321,10 @@ Casos obligatorios:
 - [x] No se puede degradar al último admin (400).
 - [x] Un usuario ajeno no puede eliminar ni cambiar el rol de miembros de otra familia.
 - [x] Una invitación pendiente solo la puede aceptar el email invitado.
+- [x] Una invitación de más de **30 días** ya no vale, aunque el correo cuadre (03-09-2026).
+- [x] Y una cuenta creada **después** de escribirse la invitación tampoco puede aceptarla,
+      aunque el correo cuadre: es el registro oportunista de quien ve el `invite_id` en la URL
+      de vuelta y se apunta con el correo ajeno (03-09-2026).
 - [x] Aceptar invitación crea `family_member` y marca la invitación como `accepted`.
 - [x] Tras aceptar, el nuevo miembro **sí** ve los datos de la familia, y como no-admin no puede eliminar miembros ni invitar.
 
@@ -359,6 +367,16 @@ scripts, así que no para un XSS en línea.
 - [x] Un ajeno **no** ve el documento aunque conozca su identificador de archivo de Drive.
       Es lo que sostiene el modelo proxy: el identificador no es un secreto, el acceso lo
       decide la RLS.
+- [x] Un miembro de la casa **no** puede crear una ficha que apunte al Drive de otro.
+- [x] Ni cambiarle el dueño a una ficha que ya existe, ni ponérselo a nulo, ni reclamarla
+      para sí, ni mover la ficha a otro archivo: las cuatro fallan contra el trigger
+      `trg_document_storage_inmutable`, y al terminar el dueño y la ruta siguen siendo los
+      de quien subió el papel (03-09-2026).
+- [x] **Pero renombrar la ficha lo sigue pudiendo cualquier miembro.** Es lo que hace la
+      app, y es la comprobación que descubrió que la policy `for all` lo había roto.
+- [ ] Borrar la cuenta de quien subió un papel a una familia que le sobrevive, y que su
+      ficha se quede en la casa sin dueño. Escrita el 04-09-2026 y **sin pasar todavía**:
+      hace falta aplicar `supabase/parche-2026-09-04.sql`.
 
 ## Validación Integridad
 
@@ -370,11 +388,14 @@ scripts, así que no para un XSS en línea.
 - [x] No se puede crear `expense` con `budget_id` de otra familia.
 - [x] No se puede crear `expense` con `child_id` de otra familia.
 - [x] No se puede crear `expense` con `member_id` de otra familia.
+- [x] No se puede crear `fixed_entry` con `child_id` de otra familia.
+- [x] No se puede crear `fixed_entry` con `member_id` de otra familia.
 
-Los ocho devuelven 400 desde el trigger. Los tres primeros vienen de
+Los diez devuelven 400 desde el trigger. Los tres primeros vienen de
 `007_cross_family_integrity.sql`; los dos de `tasks`, de `015_task_assignment.sql`; los
-tres de `expenses` entraron con Finanzas el 01-09-2026 y son el mismo patrón repetido, que
-es justo lo que se quería: un gasto no puede señalar a nada que no sea de su casa.
+tres de `expenses` entraron con Finanzas el 01-09-2026 y los dos de `fixed_entries`, con la
+reforma de los fijos de esa misma tarde. Son el mismo patrón repetido, que es justo lo que
+se quería: nada puede señalar a nada que no sea de su casa.
 
 ## Resultado
 
@@ -390,14 +411,28 @@ por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fi
 el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
 que puede ver el documento del que cuelga el token.
 
-**No queda nada pendiente.** El esquema está validado y la pasada del 02-09-2026 no dejó
-ninguna comprobación en rojo: 117/117, ya con el comedor, los platos de una comida y las
-once carpetas de documentos.
+**La última pasada no dejó nada en rojo:** 163/163 el 03-09-2026, ya con las cuatro
+secciones de la revisión de seguridad aplicadas. El detalle está arriba del todo, y la
+cadena entera de pasadas anteriores en las secciones «Antes» que siguen.
 
 ## Pendiente
 
-Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
-próxima vez que se toque una migración, una policy o una RPC.
+**`supabase/parche-2026-09-04.sql`, sin aplicar todavía.** `documents.storage_owner` es
+`on delete set null` contra `auth.users`, y Postgres ejecuta esa acción referencial como un
+**update** sobre `documents`: choca de frente con el trigger de inmutabilidad que entró el
+03-09-2026. Quien haya subido un papel a una familia que le sobrevive no puede borrar su
+cuenta —Ajustes devuelve un 500 sin salida—, y el parche lo arregla dejando pasar ese caso
+y solo ese.
+
+Las 163 no lo veían porque la limpieza del arnés borra las familias **antes** que los
+usuarios, y con la familia se van las fichas en cascada: cuando le toca el turno al usuario
+ya no queda nada apuntando a él. Es otra vez la lección de arriba, por el otro lado — la
+comprobación que faltaba no era la del ataque, era la de lo que tiene que seguir
+funcionando. El arnés ya lleva las dos que lo miran, en la §12, así que **la próxima pasada
+no dará 163**: hay que aplicar el parche y anotar aquí el número que salga.
+
+Después, lo de siempre: volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este
+documento la próxima vez que se toque una migración, una policy o una RPC.
 
 ### Notas de la ejecución (02-09-2026)
 

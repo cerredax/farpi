@@ -26,13 +26,16 @@ type Pendiente = 'cerrar' | 'cero' | null
  * Qué se puede hacer con el mes que se está mirando: darlo por cerrado,
  * deshacerlo o ponerlo a cero.
  *
- * **Va justo debajo de la tarjeta del mes** (03-09-2026), no al pie de la
- * pantalla. Estuvo abajo desde el 02-09-2026 y la razón era buena —después del
- * día a día se lee como «he terminado con este mes»—, pero en la práctica había
- * que recorrer las partidas y todos los apuntes del mes para encontrarlo, y lo
- * que hay aquí no es un remate: es lo que se hace **con** el mes que la tarjeta
- * acaba de resumir. Sigue **fuera** de la tarjeta y separado por su línea, que es
- * lo que la salvó de convertirse en un panel de mandos.
+ * **Va al pie de la pestaña, lo último de todo** (04-09-2026, pedido). Estuvo
+ * ahí desde el 02-09, subió a debajo de la tarjeta el 03-09 —porque abajo había
+ * que recorrer las partidas y todos los apuntes para encontrarlo— y vuelve
+ * abajo: puesto arriba se cruza en el camino cada vez que se entra a mirar el
+ * mes, y cerrar es lo que se hace **cuando has terminado de mirarlo**. Que cueste
+ * un poco llegar no es un defecto en un botón que se pulsa una vez al mes, y que
+ * además casi nunca hace falta pulsar —el mes se cierra solo—.
+ *
+ * Está **fuera** de la tarjeta y separado por su línea, que es lo que la salvó de
+ * convertirse en un panel de mandos.
  *
  * Tres cosas, nunca dos a la vez:
  *

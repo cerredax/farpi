@@ -8,9 +8,16 @@ import { centsToInput } from '@/lib/finanzas'
 import { validateBudgetDraft } from '@/lib/validators'
 import type { Budget, BudgetDraft } from '@/types'
 
-// Dieciséis iconos, dos filas de ocho, en la línea de `ListSheet` y `NoteSheet`.
-// Son las cosas en las que gasta una casa; el 💶 va al final por ser el que
-// viene puesto y valer para cualquiera.
+// Veinticuatro iconos, tres filas de ocho, en la línea de `ListSheet` y
+// `NoteSheet`. Son las cosas en las que gasta una casa; el 💶 va al final por ser
+// el que viene puesto y valer para cualquiera.
+//
+// **Eran dieciséis hasta el 04-09-2026** y se pidió más variedad, «incluido uno de
+// limpieza». La fila que entra son gastos de casa que no tenían dónde caer y que
+// además son de los que **varían**, que es la regla de esta pestaña: la limpieza,
+// la peluquería, los libros del cole, el café, los arreglos, las plantas, los
+// juguetes y la farmacia. Ocho y no los que fueran, para que la rejilla siga
+// cuadrando a ocho por fila.
 //
 // La bombilla se fue el 02-09-2026 y entraron las cañas. No es capricho: la luz
 // es un **fijo**, se paga clavada y no se le pone partida —colgarla de una la
@@ -19,7 +26,8 @@ import type { Budget, BudgetDraft } from '@/types'
 // una casa se pasa, y no tenía icono. La 💡 sigue, donde sí toca, en los fijos.
 const EMOJIS = [
   '🛒', '🏠', '🚗', '🎒', '🏥', '👶', '🍽️', '👕',
-  '🐾', '✈️', '🎁', '📱', '🍺', '🎬', '🏋️', '💶',
+  '🐾', '✈️', '🎁', '📱', '🍺', '🎬', '🏋️', '🧽',
+  '💊', '💇', '🧸', '📚', '☕', '🪴', '🔧', '💶',
 ]
 
 interface BudgetSheetProps {

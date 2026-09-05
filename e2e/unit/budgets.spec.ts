@@ -397,6 +397,18 @@ test.describe('qué plantilla valía en un mes', () => {
     expect(p.partidas[0].limiteCents).toBe(40000)
   })
 
+  // Y por eso sus líneas se pueden abrir desde «El mes»: llevan el id del fijo
+  // vivo. Las de un mes cerrado no —son una copia que no sabe de dónde salió—, y
+  // es lo que impide editar lo que ya se cerró.
+  test('el espejo lleva el fijo vivo detrás; la copia, no', () => {
+    const enCurso = plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    expect(enCurso.fijos.map(f => f.fixedId)).toEqual(['in1', 'ga1'])
+
+    const junio = plantillaDelMes('2026-06', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    expect(junio.origen).toBe('copia')
+    expect(junio.fijos.map(f => f.fixedId)).toEqual([null, null])
+  })
+
   // Un mes que aún no ha llegado sale **vacío** (03-09-2026): en un mes en el que
   // no ha pasado nada no hay nada que enseñar, y una cifra donde los demás meses
   // llevan un saldo se lee como un saldo.

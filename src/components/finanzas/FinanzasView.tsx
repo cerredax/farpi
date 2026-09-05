@@ -171,19 +171,9 @@ export function FinanzasView() {
           previsionAbierta={s.previsionAbierta}
           onVerPrevision={s.alternarPrevision}
           onPonerFijos={() => s.setPestaña('plantilla')}
-        />
-
-        {/* Debajo de la tarjeta y no al pie de la pantalla (03-09-2026): es lo
-            que se hace con el mes que la tarjeta acaba de resumir, y abajo había
-            que pasar por las partidas y por todos los apuntes para encontrarlo. */}
-        <CierreDelMes
-          nombreDelMes={nombreDelMes}
-          sePuedeCerrar={s.sePuedeCerrarYa}
-          sePuedeReabrir={s.sePuedeReabrir}
-          sePuedePonerACero={s.sePuedePonerACero}
-          onCerrar={s.cerrarMesYa}
-          onReabrir={s.reabrirMes}
-          onPonerACero={s.ponerMesACero}
+          // Quién se puede editar lo dice la propia línea: solo las que son el
+          // espejo de la plantilla llevan `fixedId`, y las de un mes cerrado no.
+          onEditarFijo={s.abrirFijoPorId}
         />
 
         {/* En un mes que no ha llegado y sin previsión pedida no se pintan las
@@ -289,6 +279,23 @@ export function FinanzasView() {
               hubiera nada que hacer con ella. Lo que dice sigue estando donde
               importa: en «en qué se va», «Sin partida» sale como un trozo más. */}
         </section>
+
+        {/* **Al pie de la pestaña, lo último de todo** (04-09-2026, pedido).
+            Estuvo pegado debajo de la tarjeta desde el 03-09 con el argumento de
+            que era lo que se hace con el mes que la tarjeta acaba de resumir; la
+            pega de tenerlo ahí es que se cruza en el camino cada vez que se entra
+            a mirar el mes, y cerrar es lo que se hace **cuando has terminado de
+            mirarlo**. Aquí abajo se lee como «he acabado con esto», que es lo que
+            es, y no compite con las partidas ni con el día a día. */}
+        <CierreDelMes
+          nombreDelMes={nombreDelMes}
+          sePuedeCerrar={s.sePuedeCerrarYa}
+          sePuedeReabrir={s.sePuedeReabrir}
+          sePuedePonerACero={s.sePuedePonerACero}
+          onCerrar={s.cerrarMesYa}
+          onReabrir={s.reabrirMes}
+          onPonerACero={s.ponerMesACero}
+        />
       </div>
 
       <div id="panel-resumen" role="tabpanel" aria-labelledby="tab-resumen" hidden={s.pestaña !== 'resumen'}>

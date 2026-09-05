@@ -2053,11 +2053,27 @@ que los suma: un mes cerrado enseña los recibos que tuvo, con el alquiler de en
 entero y con todas las letras un poco más abajo en la misma pantalla. Abrirlos aquí sería
 enseñar dos veces lo mismo en un mismo scroll.
 
-**Dentro no se edita nada.** Un fijo de un mes cerrado es una copia que no se toca, y el
-del mes en curso es el espejo de la plantilla, que se edita en «Lo fijo»: poner ahí un
-enlace de editar habría creado un segundo camino a lo mismo, y en el mes cerrado uno que
-no puede llevar a ningún sitio. Es la misma regla que hace que una partida de un mes
-pasado se abra pero no ofrezca editarse.
+**Dentro no se editaba nada, y ahora sí** (04-09-2026, pedido). El argumento de origen
+—el mes en curso es el espejo de la plantilla, y la plantilla se edita en «Lo fijo»— era
+cierto y no bastaba: el desglose es **donde se descubre** que el alquiler está mal, y
+sostenerlo obligaba a cambiar de pestaña para arreglarlo y volver al mes. La línea abre
+ahora el mismo sheet de «Lo fijo» —no una copia— y la cuenta de arriba se mueve al
+guardar, porque es el espejo.
+
+En un mes cerrado siguen sin editarse, y ahí no es una decisión de pantalla: la línea de
+la copia **no sabe de qué fijo salió**. Es la pieza que resuelve las dos cosas a la vez:
+`FijoDelMes.fixedId` lleva el id del fijo vivo cuando la línea es el espejo y `null`
+cuando viene de la copia, igual que `budgetId` en `PartidaDelMes`, así que quién se puede
+tocar lo dice el dato y no un `if` de la vista. Es la misma regla que hace que una partida
+de un mes pasado se abra pero no ofrezca editarse.
+
+##### Y el cierre vuelve al pie de «El mes» (04-09-2026)
+
+Pedido, y deshace el movimiento del 03-09. Los dos sitios tienen su razón y la de abajo
+gana por lo que se hace con ese botón: cerrar es lo que se hace **cuando has terminado de
+mirar el mes**, no de camino a mirarlo. Debajo de la tarjeta se cruzaba en el camino cada
+vez que se entraba, y que cueste un poco llegar no es un defecto en algo que se pulsa una
+vez al mes —y que casi nunca hace falta pulsar, porque el mes se cierra solo—.
 
 Con esto la tarjeta dejó de ser una `dl`: desde que la fila entera es el botón que abre,
 un `button` no cabe entre un `dt` y un `dd` sin romper el modelo de contenido de una lista

@@ -1080,6 +1080,36 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
   await expect(resumen).toContainText('1.650 €')
 })
 
+// Y desde el 04-09-2026 esas líneas se editan sin salir del mes: el desglose es
+// donde se descubre que el alquiler está mal, e irse a «Lo fijo» a arreglarlo era
+// cambiar de pestaña y volver. En un mes cerrado no se ofrece: la línea es una
+// copia que no sabe de qué fijo salió, y lo cerrado no se toca.
+test('un gasto fijo se edita desde el desglose de «El mes»', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await resumen.getByRole('button', { name: 'Gastos fijos' }).click()
+
+  await resumen.getByRole('button', { name: 'Editar Alquiler' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Editar fijo' })
+  await expect(sheet).toBeVisible()
+  await expect(page.locator('#fixed-entry-amount')).toHaveValue('780')
+
+  // Y al guardar, la cuenta de arriba se mueve: el mes en curso es el espejo de
+  // la plantilla que se acaba de tocar.
+  await page.locator('#fixed-entry-amount').fill('800')
+  await page.getByRole('button', { name: 'Guardar', exact: true }).click()
+  await expect(resumen).toContainText('−955,90 €')
+
+  // En junio, cerrado, las líneas se leen y no se tocan. El desglose sigue
+  // abierto de antes: cambiar de mes no lo pliega.
+  await retroceder(page, 3)
+  await expect(resumen).toContainText('Junio 2026')
+  await expect(resumen).toContainText('−760 €')
+  await expect(resumen.getByRole('button', { name: 'Editar Alquiler' })).toHaveCount(0)
+})
+
 test('la partida de un mes cerrado se mide contra el límite de aquel mes', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)

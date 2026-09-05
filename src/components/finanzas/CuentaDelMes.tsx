@@ -30,6 +30,11 @@ interface CuentaDelMesProps {
   onVerPrevision: () => void
   /** Lleva a «Lo fijo». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
+  /**
+   * Abrir un fijo del desglose para editarlo. Solo llega en un mes cuyo plan
+   * está vivo; en uno cerrado las líneas son la copia y no se tocan.
+   */
+  onEditarFijo?: (id: string) => void
 }
 
 type Tono = 'normal' | 'entra' | 'sale'
@@ -65,19 +70,27 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * Las líneas salen de la misma `plantilla` que suma el total, así que suman
  * exactamente lo que dice la cifra de arriba.
  *
- * **No se editan.** Lo que se está viendo son los fijos de ese mes: en uno cerrado
- * son una copia que no se toca, y en el mes en curso son el espejo de la
- * plantilla, que se edita en «Lo fijo». Es la misma regla que hace que una partida
- * de un mes pasado se abra pero no ofrezca editarse.
+ * **Y se editan, cuando son los vivos** (04-09-2026). Nacieron sin editar, con el
+ * argumento de que lo que se ve es el espejo de la plantilla y la plantilla se
+ * edita en «Lo fijo». Sostenerlo obligaba a cambiar de pestaña para subir el
+ * alquiler que acabas de ver mal escrito, y a volver luego al mes: el desglose ya
+ * es el sitio donde se descubre. Ahora la línea abre el mismo sheet de «Lo fijo»
+ * y el mes de arriba se mueve al guardar, porque es el espejo.
+ *
+ * En un mes cerrado siguen sin editarse, y ahí no es una decisión de pantalla: la
+ * línea es una copia que no sabe de qué fijo salió (`fixedId` es `null`), y lo
+ * que se cerró no se toca. Es la misma regla que hace que una partida de un mes
+ * pasado se abra pero no ofrezca editarse.
  *
  * El signo se hereda del total: si «Gastos fijos» va en negativo, sus líneas
  * también, o parecería que se están sumando al revés.
  */
-function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
+function LineaDeFijos({ etiqueta, importe, tono, fijos, onEditar }: {
   etiqueta: string
   importe: number
   tono: 'entra' | 'sale'
   fijos: FijoDelMes[]
+  onEditar?: (id: string) => void
 }) {
   // **Plegado**, que es como entró y como se ha quedado. Estuvo abierto de mano un
   // rato el 04-09-2026 y se volvió atrás el mismo día: con los cuatro recibos y las
@@ -118,15 +131,40 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
           leen al mismo nivel que «Para el mes». */}
       {abierta && (
         <ul id={panelId} className="mb-1 mt-0.5 space-y-1 border-l border-line pl-3">
-          {fijos.map(fijo => (
-            <li key={fijo.key} className="flex items-baseline gap-2 text-[13px]">
-              {fijo.emoji && <span className="flex-shrink-0" aria-hidden>{fijo.emoji}</span>}
-              <span className="min-w-0 flex-1 truncate text-muted">{fijo.name}</span>
-              <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
-                {signo(fijo.amountCents)}
-              </span>
-            </li>
-          ))}
+          {fijos.map(fijo => {
+            // El icono, el nombre y el importe: la fila es la misma se pueda
+            // tocar o no, para que un mes cerrado no se lea como otra cosa.
+            const contenido = (
+              <>
+                {fijo.emoji && <span className="flex-shrink-0" aria-hidden>{fijo.emoji}</span>}
+                <span className="min-w-0 flex-1 truncate text-muted">{fijo.name}</span>
+                <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
+                  {signo(fijo.amountCents)}
+                </span>
+              </>
+            )
+
+            return (
+              <li key={fijo.key} className="text-[13px]">
+                {/* La fila entera es el botón, como en la agenda y en Inicio, y
+                    no un lápiz al lado: en 320 px de ancho un icono de tocar es
+                    lo único que no cabe. `min-h-6` por el mínimo de toque de
+                    24 px (WCAG 2.5.8), que `movil.spec.ts` vigila. */}
+                {fijo.fixedId && onEditar ? (
+                  <button
+                    type="button"
+                    onClick={() => onEditar(fijo.fixedId as string)}
+                    aria-label={`Editar ${fijo.name}`}
+                    className="-mx-1 flex min-h-6 w-full items-baseline gap-2 rounded-lg px-1 text-left transition-colors hover:bg-canvas active:bg-canvas"
+                  >
+                    {contenido}
+                  </button>
+                ) : (
+                  <div className="flex items-baseline gap-2">{contenido}</div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
@@ -201,7 +239,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos }: {
  */
 export function CuentaDelMes({
   cuenta, fijos, nombreDelMes, meses, mes, mesActual, onElegirMes, reparto,
-  copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos,
+  copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos, onEditarFijo,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
@@ -283,12 +321,12 @@ export function CuentaDelMes({
         <div className="mt-3 space-y-1 border-t border-hairline pt-2.5">
           {/* Un tipo sin ninguna línea no se hace desplegable: se abriría vacío. */}
           {ingresos.length > 0 ? (
-            <LineaDeFijos etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} />
+            <LineaDeFijos etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} onEditar={onEditarFijo} />
           ) : (
             <Linea etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" />
           )}
           {gastos.length > 0 ? (
-            <LineaDeFijos etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" fijos={gastos} />
+            <LineaDeFijos etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" fijos={gastos} onEditar={onEditarFijo} />
           ) : (
             <Linea etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" />
           )}

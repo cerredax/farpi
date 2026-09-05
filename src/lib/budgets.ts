@@ -174,6 +174,15 @@ export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): numb
 /** Un fijo tal y como valía en un mes. Viene de la plantilla o de la copia. */
 export interface FijoDelMes {
   key: string
+  /**
+   * El fijo **vivo** del que salió, cuando la línea es el espejo de la plantilla,
+   * y `null` cuando viene de la copia de un mes cerrado (04-09-2026). Es lo que
+   * deja abrirlo desde «El mes» sin irse a «Lo fijo», y es la misma pieza que
+   * `budgetId` en `PartidaDelMes`: la copia no tiene a quién apuntar —las líneas
+   * del plan guardan el nombre y el importe, no de qué fijo salieron— y tampoco
+   * debe tenerlo, porque lo que se cerró no se toca.
+   */
+  fixedId: string | null
   kind: MovementKind
   name: string
   emoji: string | null
@@ -297,6 +306,7 @@ export function plantillaDelMes(
       origen: mes > mesActual ? 'por-venir' : 'plantilla',
       fijos: ordenarFijos(fixed.map(f => ({
         key: f.id,
+        fixedId: f.id,
         kind: f.kind,
         name: f.name,
         emoji: f.emoji,
@@ -320,6 +330,9 @@ export function plantillaDelMes(
     origen: 'copia',
     fijos: ordenarFijos(plan.lines.filter(l => l.line !== 'partida').map(l => ({
       key: l.id,
+      // La copia no dice de qué fijo salió, y no hace falta: un mes cerrado
+      // enseña lo que tuvo y no se edita desde ahí.
+      fixedId: null,
       kind: l.line as MovementKind,
       name: l.name,
       emoji: l.emoji,

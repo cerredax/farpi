@@ -15,6 +15,40 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-04
 
+### Finanzas: los fijos se editan desde el mes, más iconos y el cierre al pie (04-09-2026)
+
+Tres cosas pedidas del uso de la pantalla del mes.
+
+**Un gasto fijo se edita desde el desglose de «El mes».** Los dos totales se abrían desde
+esa misma mañana y las líneas se leían pero no se tocaban, con un argumento que era cierto
+y no bastaba: lo que se ve en el mes en curso es el espejo de la plantilla, y la plantilla
+se edita en «Lo fijo». El desglose es, sin embargo, **donde se descubre** que el alquiler
+está mal escrito, y sostener la regla obligaba a cambiar de pestaña para arreglarlo y
+volver. Ahora la línea abre el mismo sheet de «Lo fijo» —no una copia— y la cuenta de
+arriba se mueve al guardar.
+
+En un mes cerrado sigue sin editarse, y no hace falta un `if` de la vista para eso: la
+pieza es `FijoDelMes.fixedId`, que lleva el id del fijo vivo cuando la línea es el espejo y
+`null` cuando viene de la copia. Es exactamente lo que ya hacía `budgetId` en
+`PartidaDelMes`, y por la misma razón: una línea guardada no sabe de qué salió, ni debe.
+
+**Más iconos, «incluido uno de limpieza».** Las partidas pasan de dieciséis a
+veinticuatro, con la fila que faltaba de gastos que varían —limpieza, farmacia,
+peluquería, juguetes, libros, café, plantas y arreglos—; y los fijos de gasto, también a
+veinticuatro: limpieza, internet (que se colaba en el 📱 del móvil sin serlo), colegio,
+comedor, cuotas, comunidad, combustible y música. Los de ingreso se quedan en dieciséis:
+de dónde entra el dinero hay menos variedad, y no había nada pedido. Ocho más cada vez para
+que la rejilla siga cuadrando a ocho por fila.
+
+**Y el botón de cerrar el mes vuelve al pie.** Deshace el movimiento del 03-09, que lo
+había subido a debajo de la tarjeta porque abajo costaba encontrarlo. Los dos sitios tienen
+su razón y gana la de abajo por lo que se hace con ese botón: cerrar es lo que se hace
+cuando has terminado de mirar el mes, no de camino a mirarlo. Que cueste un poco llegar no
+es un defecto en algo que se pulsa una vez al mes y que casi nunca hace falta pulsar.
+
+De paso se corrigió una línea del estado que se había quedado mintiendo: decía que los
+totales de fijos «salen abiertos», y eso duró unas horas la mañana del 04-09.
+
 ### Inicio: la cabecera dice «Inicio», y la lista de listas no se dice dos veces (04-09-2026)
 
 Repaso de lo entregado un rato antes, con dos cosas vistas al usarlo.

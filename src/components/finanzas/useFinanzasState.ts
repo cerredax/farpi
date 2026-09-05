@@ -251,6 +251,18 @@ export function useFinanzasState() {
       setEditingFixed(fijo)
       setFixedSheetOpen(true)
     },
+    /**
+     * Editar un fijo desde el desglose de «El mes» (04-09-2026). La línea solo
+     * lleva el id del fijo vivo —lo demás lo tiene copiado, para poder pintar el
+     * recibo de un mes cerrado—, así que hay que ir a buscarlo. Si no está, no
+     * se abre nada: es la misma cautela que `abrirPartidaPorId`.
+     */
+    abrirFijoPorId(id: string) {
+      const fijo = fixedEntries.find(f => f.id === id)
+      if (!fijo) return
+      setEditingFixed(fijo)
+      setFixedSheetOpen(true)
+    },
     abrirApunte(expense: Expense | null) {
       setEditingExpense(expense)
       setExpenseSheetOpen(true)

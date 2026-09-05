@@ -133,8 +133,9 @@ que todavía no existen (ver "Siguiente paso recomendado").
   Se copia a cada mes que empieza.
   **«El mes»**: arriba **la cuenta** —ingresos fijos, gastos fijos, «para el mes», lo
   apuntado y **cuánto queda**—, que es el número que la sección existe para dar; los dos
-  totales de fijos **se abren** (04-09-2026) y enseñan sus líneas, las de ese mes, sin
-  ofrecer editarlas —eso es de «Lo fijo»—; debajo las
+  totales de fijos **se abren** (04-09-2026) y enseñan sus líneas, las de ese mes, y en un
+  mes cuyo plan está vivo **cada línea se edita ahí mismo** —abre el sheet de «Lo fijo» y
+  la cuenta se mueve al guardar—; en un mes cerrado no, que es una copia; debajo las
   **partidas** de ese mes con su barra —que **se abren** (03-09-2026) y enseñan sus
   líneas, con lo que hay dentro de cada una y quién lo puso—, y debajo **el día a día**: los
   **apuntes** que se van poniendo, un gasto o un **ingreso** —una devolución, un trabajo
@@ -154,15 +155,17 @@ que todavía no existen (ver "Siguiente paso recomendado").
   preparado un cambio de plantilla para el mes que viene; mientras siga siendo el mes de hoy
   se puede deshacer, y un mes terminado no se reabre nunca. Un mes terminado que nunca llegó
   a cerrarse lo dice tal cual en vez de enseñar la plantilla de hoy, que es lo que hacía
-  antes. Los tres botones —cerrar, deshacer, poner a cero— van **debajo de la tarjeta del
-  mes** (03-09-2026), no al pie de la pantalla, y desde el 04-09-2026 son **botones** y
-  no texto verde: «Cerrar mes», «Reabrir mes» y «Poner el mes a cero».
+  antes. Los tres botones —cerrar, deshacer, poner a cero— van **al pie de «El mes»**, lo
+  último de todo (04-09-2026; estuvieron debajo de la tarjeta desde el 03-09), y son
+  **botones** y no texto verde: «Cerrar mes», «Reabrir mes» y «Poner el mes a cero».
   **El mes se elige con las flechas y con el nombre** (04-09-2026), como en el
   calendario: las flechas para el de al lado y la lista para saltar a junio de un toque,
   con el de hoy marcado. Qué meses ofrece **la lista** lo decide `mesesNavegables` —hasta
   el más viejo con algo por detrás, y tres por delante más los que hagan falta si hay un
   apunte más lejos—; las flechas no la miran y llegan a donde sea. **«Cerrar mes» va en
-  ámbar** y los dos totales de fijos salen abiertos.
+  ámbar**, y los dos totales de fijos nacen **plegados** (salieron abiertos unas horas el
+  04-09-2026 y se volvió atrás: con los cuatro recibos y las dos nóminas desplegados, la
+  tarjeta se come media pantalla antes de llegar a las partidas).
   **Un mes que aún no ha empezado sale en cero** (03-09-2026) **mientras esté vacío**
   (04-09-2026); las cuentas —lo que quedaría con lo fijo de hoy— se piden con un enlace, y
   entonces habla en condicional. **En él sí se apunta** (04-09-2026): lo que ya sabes que

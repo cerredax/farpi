@@ -11,9 +11,20 @@ import { centsToInput } from '@/lib/finanzas'
 import { validateFixedEntryDraft } from '@/lib/validators'
 import type { FixedEntry, FixedEntryDraft, MovementKind } from '@/types'
 
-// Dos juegos de dieciséis, uno por tipo, en la línea de `BudgetSheet`. Los de
-// ingreso son de dónde viene el dinero; los de gasto, los recibos de una casa.
-// El último de cada fila es el que viene puesto y vale para cualquier cosa.
+// Un juego por tipo, en la línea de `BudgetSheet`. Los de ingreso son de dónde
+// viene el dinero; los de gasto, los recibos de una casa. El último de cada juego
+// es el que viene puesto y vale para cualquier cosa.
+//
+// **Los de gasto pasan de dieciséis a veinticuatro el 04-09-2026**, pedido, «con
+// uno de limpieza»: entran la limpieza (🧽), internet (🌐) —que se colaba en el
+// 📱 del móvil sin serlo—, el colegio o la guardería (🏫), el comedor (🍽️), las
+// cuotas y suscripciones (💳), la comunidad (🧱), el combustible (⛽) y la música
+// (🎵). Todos son recibos que una casa paga clavados y no tenían dónde caer. Ocho
+// y no los que fueran, para que la rejilla siga cuadrando a ocho por fila.
+//
+// Los de ingreso se quedan en dieciséis: de dónde entra el dinero en una casa hay
+// menos variedad que de dónde sale, y no había ninguno pedido. Los dos juegos no
+// tienen por qué medir lo mismo — se enseñan de uno en uno, según el tipo.
 const EMOJIS: Record<MovementKind, string[]> = {
   ingreso: [
     '💼', '🏢', '🧾', '🎓', '🏥', '👶', '🏦', '📈',
@@ -21,7 +32,8 @@ const EMOJIS: Record<MovementKind, string[]> = {
   ],
   gasto: [
     '🏠', '💡', '💧', '🔥', '📱', '📺', '🚗', '🚌',
-    '🎒', '🏥', '🐾', '🏋️', '🛡️', '🏦', '🎬', '💶',
+    '🎒', '🏥', '🐾', '🏋️', '🛡️', '🏦', '🎬', '🧽',
+    '🌐', '🏫', '🍽️', '💳', '🧱', '⛽', '🎵', '💶',
   ],
 }
 

@@ -1,10 +1,12 @@
 import { parseISO, isBefore, isToday, startOfDay, format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Repeat2, Trash2 } from 'lucide-react'
+import { Repeat2 } from 'lucide-react'
 import type { Child, FamilyMember, Task, TaskPriority } from '@/types'
-import { TASK_RECURRENCES } from '@/lib/constants'
+import { MS_CONFIRMAR_BORRADO, TASK_RECURRENCES } from '@/lib/constants'
 import { resolveAssignee } from '@/lib/assignees'
+import { useConfirmAction } from '@/hooks/useConfirmAction'
 import { CircleCheck } from '@/components/ui/CircleCheck'
+import { DeleteButton } from '@/components/ui/DeleteButton'
 
 interface TaskItemProps {
   task: Task
@@ -29,9 +31,19 @@ function formatDue(dateStr: string): { label: string; overdue: boolean } {
   return { label: format(d, 'd MMM', { locale: es }), overdue: false }
 }
 
+/**
+ * Una tarea en la lista.
+ *
+ * **Borrar pide confirmación**, igual que en las filas de las listas y en los
+ * sheets: la papelera vive en el borde derecho de la tarjeta, que es donde
+ * aterriza el pulgar al pasar la pantalla, y borrar era un toque sin vuelta
+ * atrás —el `undo` del store solo cubre marcar—. Se desarma sola pasados
+ * `MS_CONFIRMAR_BORRADO`.
+ */
 export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: TaskItemProps) {
   const due = task.due_date ? formatDue(task.due_date) : null
   const asignado = resolveAssignee(task, members, kids)
+  const { confirming, requestConfirm } = useConfirmAction(MS_CONFIRMAR_BORRADO)
 
   return (
     <div
@@ -93,14 +105,20 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
         )}
       </button>
 
-      {/* Delete */}
-      <button
-        onClick={() => onDelete(task.id)}
-        aria-label="Eliminar tarea"
-        className="flex-shrink-0 flex items-center justify-center w-10 text-faint hover:text-danger hover:bg-danger-soft transition-colors"
-      >
-        <Trash2 size={14} />
-      </button>
+      {/* Borrar. El hueco mide lo mismo que la columna de antes (28 px de botón
+          más los 12 del padding), así que el título de la tarea no se mueve; al
+          confirmar, la píldora crece y el título se encoge con su `min-w-0`. */}
+      <div className="flex flex-shrink-0 items-center pl-1 pr-2">
+        <DeleteButton
+          variant="inline"
+          confirming={confirming}
+          onClick={() => requestConfirm(() => onDelete(task.id))}
+          idleLabel="Eliminar"
+          confirmLabel="Borrar"
+          ariaLabel={`Eliminar la tarea ${task.title}`}
+          confirmAriaLabel={`Confirmar que se elimina la tarea ${task.title}`}
+        />
+      </div>
     </div>
   )
 }

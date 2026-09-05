@@ -1,7 +1,9 @@
-import { FolderInput, Minus, Plus, Trash2 } from 'lucide-react'
-import { MAX_UNIDADES } from '@/lib/constants'
+import { FolderInput, Minus, Plus } from 'lucide-react'
+import { MAX_UNIDADES, MS_CONFIRMAR_BORRADO } from '@/lib/constants'
+import { useConfirmAction } from '@/hooks/useConfirmAction'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { CirclePlus } from '@/components/ui/CirclePlus'
+import { DeleteButton } from '@/components/ui/DeleteButton'
 import type { ListItem } from '@/types'
 
 interface ListItemRowProps {
@@ -31,9 +33,17 @@ interface ListItemRowProps {
  * El nombre parte por palabras en vez de recortarse: en una lista de casa el
  * texto **es** el dato, y "Leche entera sin lac…" no sirve de nada. Con
  * `min-w-0` no puede empujar la fila a lo ancho por larga que sea.
+ *
+ * **Borrar pide confirmación**, como en los sheets. Aquí la papelera de 28 px va
+ * pegada al `+` de las unidades, que es el botón que se pulsa a una mano en el
+ * súper; un dedo desviado se llevaba el ítem sin avisar y sin manera de
+ * recuperarlo. Se desarma sola a los `MS_CONFIRMAR_BORRADO`: la fila no se
+ * cierra como un sheet, y una papelera armada para siempre es la misma trampa
+ * por el otro lado.
  */
 export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, onMove, onDelete }: ListItemRowProps) {
   const enCatalogo = item.completed
+  const { confirming, requestConfirm } = useConfirmAction(MS_CONFIRMAR_BORRADO)
 
   return (
     <div className={`flex items-center gap-2 rounded-2xl border px-2 py-2 transition-colors ${
@@ -105,13 +115,15 @@ export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, on
           <FolderInput size={14} />
         </button>
       )}
-      <button
-        onClick={onDelete}
-        aria-label={`Eliminar ${item.text} de la lista`}
-        className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft flex-shrink-0 transition-colors"
-      >
-        <Trash2 size={14} />
-      </button>
+      <DeleteButton
+        variant="inline"
+        confirming={confirming}
+        onClick={() => requestConfirm(onDelete)}
+        idleLabel="Eliminar"
+        confirmLabel="Borrar"
+        ariaLabel={`Eliminar ${item.text} de la lista`}
+        confirmAriaLabel={`Confirmar que se elimina ${item.text} de la lista`}
+      />
     </div>
   )
 }

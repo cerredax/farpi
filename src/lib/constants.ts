@@ -197,6 +197,15 @@ export const TAREAS_PARA_PLEGAR = 3
  */
 export const MAX_UNIDADES = 99
 
+/**
+ * Cuánto aguanta armada la confirmación de borrar una fila —un ítem de la lista,
+ * una tarea— antes de volverse a desarmar sola. En un sheet no hace falta, que
+ * al cerrarlo se lleva el estado; una fila se queda ahí. Cuatro segundos son los
+ * que se tarda en leer «Borrar» y decidir, y poco para que a nadie se le olvide
+ * que lo dejó pulsado.
+ */
+export const MS_CONFIRMAR_BORRADO = 4000
+
 // ─── Agenda por horas ─────────────────────────────────────────────────────────
 
 /**

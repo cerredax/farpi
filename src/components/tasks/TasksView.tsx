@@ -24,7 +24,14 @@ export function TasksView() {
 
   // Con cuatro tareas no hay nada que buscar: se ven de un vistazo.
   const puedeBuscar = tasks.length >= MINIMO_PARA_BUSCAR
+  const buscando = busqueda.trim().length > 0
   const { pending, completed } = selectTaskGroups(selectTaskMatches(tasks, busqueda))
+
+  // Buscando se enseña todo, lo mismo que hace el catálogo de una lista: si lo
+  // único que coincide es una tarea ya hecha, dejarla debajo del pliegue sería
+  // contestar "sin coincidencias" a una búsqueda que sí encontró algo. Y
+  // mientras se busca no se ofrece plegar, que volvería a esconderla.
+  const hechasVisibles = showCompleted || buscando
 
   function openCreate() { setEditingTask(null); setSheetOpen(true) }
   function openEdit(task: Task) { setEditingTask(task); setSheetOpen(true) }
@@ -36,6 +43,13 @@ export function TasksView() {
   }
 
   const sheetKey = editingTask ? `edit-${editingTask.id}` : 'create'
+
+  const tituloCompletadas = (
+    <>
+      <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Completadas</h2>
+      <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{completed.length}</span>
+    </>
+  )
 
   return (
     <>
@@ -79,9 +93,19 @@ export function TasksView() {
             )}
           </div>
           {pending.length === 0 ? (
+            /* Tres estados y no dos: "no queda nada por hacer" y "aquí no ha
+               habido nunca nada" no son lo mismo. Una familia que estrena la app
+               se encontraba un "Todo al día" felicitándola por lo que no había
+               hecho, y sin una palabra de para qué sirve la pantalla. */
             <div className="bg-white rounded-2xl border border-surface shadow-sm lg:col-span-2">
-              {busqueda.trim() ? (
+              {buscando ? (
                 <EmptyState emoji="🔍" title="Sin coincidencias" description={`Ninguna tarea pendiente con «${busqueda.trim()}»`} />
+              ) : tasks.length === 0 ? (
+                <EmptyState
+                  emoji="🗒️"
+                  title="Sin tareas todavía"
+                  description="Apunta lo que hay que hacer en casa: llamar al fontanero, renovar el DNI, sacar la basura los martes."
+                />
               ) : (
                 <EmptyState emoji="✅" title="Todo al día" description="No hay tareas pendientes" />
               )}
@@ -93,12 +117,17 @@ export function TasksView() {
 
         {completed.length > 0 && (
           <section className="mt-6 space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
-            <button onClick={() => setShowCompleted(v => !v)} className="flex items-center gap-2 px-1 py-1.5 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors lg:col-span-2 lg:mb-0">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Completadas</h2>
-              <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{completed.length}</span>
-              <span className="ml-auto text-muted">{showCompleted ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
-            </button>
-            {showCompleted && completed.map(task => <TaskItem key={task.id} task={task} kids={kids} members={members} onToggle={() => handleToggle(task)} onEdit={openEdit} onDelete={deleteTask} />)}
+            {buscando ? (
+              <div className="flex items-center gap-2 px-1 py-1.5 mb-2 lg:col-span-2 lg:mb-0">
+                {tituloCompletadas}
+              </div>
+            ) : (
+              <button onClick={() => setShowCompleted(v => !v)} aria-expanded={showCompleted} className="flex items-center gap-2 px-1 py-1.5 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors lg:col-span-2 lg:mb-0">
+                {tituloCompletadas}
+                <span className="ml-auto text-muted">{showCompleted ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
+              </button>
+            )}
+            {hechasVisibles && completed.map(task => <TaskItem key={task.id} task={task} kids={kids} members={members} onToggle={() => handleToggle(task)} onEdit={openEdit} onDelete={deleteTask} />)}
           </section>
         )}
       </div>

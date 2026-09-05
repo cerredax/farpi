@@ -13,6 +13,145 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-05
+
+### Auditadas Listas, Tareas y Notas: dos fallos, y borrar deja de ser un toque (05-09-2026)
+
+Una revisión pedida de las tres pantallas «que parecían correctas», mirando en especial
+qué pasa con las listas largas, cómo se busca y si el vacío inicial enseña lo que tiene
+que enseñar. **Notas salió sin nada que arreglar** y Listas con un detalle de
+reutilización; los dos fallos de verdad estaban en Tareas.
+
+**Buscar contestaba que no a lo que sí había encontrado.** «Completadas» arranca plegada
+y el pliegue seguía puesto mientras se buscaba: si la única coincidencia estaba marcada,
+la pantalla enseñaba un «Sin coincidencias» a toda página con un «Completadas · 1»
+plegado debajo. El catálogo de una lista tenía ese mismo caso resuelto desde hacía
+tiempo, con la regla escrita en su propio comentario. Ahora la comparten: buscando se
+enseña todo, y buscando no se ofrece plegar.
+
+**El vacío inicial felicitaba a quien acababa de entrar.** Con cero tareas, Tareas decía
+«✅ Todo al día», que es lo que hay que decir cuando se ha terminado todo y lo contrario
+de lo que necesita quien estrena la app. Son tres estados y el código contemplaba dos.
+
+**Y lo que no se había pedido pero era lo más caro de los tres:** la papelera de un ítem
+y la de una tarea borraban a un toque, sin confirmación y sin deshacer. Las dos únicas
+puertas de la app por las que se perdía algo de golpe, y las dos justo debajo del dedo
+—pegada al `+` de las unidades en el súper, y en el borde de la tarjeta por donde se pasa
+la pantalla—. Ahora piden confirmación con el mismo `DeleteButton` de los sheets, en una
+variante `inline` que en reposo es el icono de siempre y al armarse crece hasta llevar la
+palabra dentro. Se desarma sola a los 4 s: una fila no se cierra como un sheet, y dejarla
+armada para siempre reintroduce el problema por el otro lado. Para eso `useConfirmAction`
+acepta un `resetMs` opcional que los sheets no pasan, así que se comportan igual que
+antes.
+
+De arrastre: Listas dejó de escribir su vacío a mano y pasa por `EmptyState`, y la
+chincheta de una nota fijada lleva `role="img"` —sin él, un `<svg>` con `aria-label` no
+tiene por qué anunciarse, y la nota fijada no se oía distinta de las demás—.
+
+Dos tests de navegador nuevos en `runtime.spec.ts` (615 en total): que buscar enseñe las
+tareas ya hechas y que la papelera pida confirmación y se desarme sola. El vacío de
+estreno **no** queda cubierto: montarlo pide vaciar el seed de la demo, y sembrar
+`localStorage` a mano acoplaría el test al formato de persistencia.
+
+El porqué de las tres decisiones, en `architecture.md`.
+
+
+### Inicio dice qué queda del día, y un sheet cerrado deja de tapar la barra (05-09-2026)
+
+Cinco cosas pedidas sobre Inicio, y un fallo que apareció mientras se miraba la primera.
+
+**El bug de la barra de navegación.** El aviso llegó como "el ítem de Inicio no se ve
+igual que el de Calendario, le falta el texto". Medido en el navegador, a las **seis**
+etiquetas les faltaba la mitad de abajo, y la causa no estaba en `BottomNav`: era el
+`BottomSheet` del plan, **cerrado**, asomando 24 px por encima de la barra. Los sheets
+eran hijos del contenedor de Inicio, que lleva `space-y-6`; ese margen entre hermanos, en
+una caja `fixed bottom-0`, corre el ancla hacia arriba y `translate-y-full` ya no la saca
+de la pantalla. El otro sheet —al que `space-y` no le pone margen— asomaba 0 px, que es lo
+que confirmó el diagnóstico. Detalle completo en `architecture.md`.
+
+Se arregla moviendo los sheets fuera del contenedor —la pantalla envuelta en un
+fragmento—, que es lo que ya hacían las demás pantallas. Y se deja una comprobación en
+`e2e/movil.spec.ts`: en cada ruta, ningún `[role="dialog"][inert]` puede invadir el
+viewport. Encontró el **mismo fallo en Finanzas** —`space-y-5`, cuatro sheets asomando
+20 px— que se arregló igual. No lo veía nada de lo que ya había: ni desborda a lo ancho ni
+es un control pequeño, simplemente está encima de las letras.
+
+De paso, un espejismo que conviene recordar: en `npm run dev` el indicador de Next.js cae
+justo encima del ítem de Inicio y lo tapa entero. Eso no existe en producción.
+
+**"Esta semana" pasa a ser "Próximos días".** El selector devuelve desde mañana hasta hoy
++ 7 días, no la semana natural: un sábado, "esta semana" llegaba hasta el sábado
+siguiente. Y el nombre ya significaba otra cosa en la agenda del calendario, donde sí es
+`endOfWeek`. Ningún test dependía del rótulo —los `getByRole('button', { name: 'Esta
+semana' })` de `runtime.spec.ts` son la pestaña de Comidas—.
+
+**Lo que ya pasó se atenúa y lo siguiente se marca**, con `planYaPasado` y `siguientePlan`
+en `events.ts`. Manda la hora de fin cuando la hay, para no apagar lo que está ocurriendo,
+y lo de todo el día queda fuera de las dos preguntas. Siete unitarios.
+
+**Las tareas de hoy tienen tope** —cuatro y "Y N más"—, porque seis atrasadas echaban la
+compra y los planes fuera de la primera pantalla, **y la píldora dice desde cuándo**
+("Atrasada · 17 jun"): seis idénticas no dejaban ver cuál llevaba un día y cuál un mes.
+
+**Y un aviso nuevo: los papeles que caducan.** El dato lo tenía el recordatorio diario
+desde hacía tiempo, pero en pantalla había que entrar en Documentos. No es una sección
+—no usa `HomeSection`— y los días normales no está: `selectExpiringDocs` devuelve dos
+grupos vacíos y el bloque no pinta nada. Cuatro unitarios.
+
+Se descartó el saludo con el nombre de la familia que venía en la petición: el saludo
+contextual ya estaba, y el nombre no distingue nada en una app de una sola familia.
+
+Suite completa: **613** (465 unitarios y 148 de navegador).
+
+### Finanzas: un fijo puede salir distinto un mes sin perder su referencia (05-09-2026)
+
+Pedido, y deshace a medias lo de la víspera. Desde el 04-09 tocar un gasto fijo en el
+desglose de «El mes» abría el fijo entero, y en cuanto se usó se vio para qué no servía:
+la limpieza son 120 € al mes, hay meses de 150 y meses de 90, y corregir el mes desde ahí
+subía la referencia a 150 **para siempre**. La casa perdía el «esto suele costar 120»,
+que es el dato entero por el que se pone un fijo.
+
+Las dos salidas que había tampoco valían. Cambiar el fijo mueve todos los meses abiertos
+—el pasado ya estaba a salvo desde el 02-09, pero el presente no—. Y apuntar la
+diferencia en el día a día mezcla un recibo con la compra y deja «Gastos fijos» diciendo
+lo que no fue: un desglose que no cuadra con lo que se pagó no sirve para nada.
+
+**Así que son dos cifras y dos sitios.** La referencia sigue en `fixed_entries` y se toca
+en «Lo fijo»; lo que costó un mes concreto vive en la tabla nueva
+`fixed_entry_overrides` y se toca en «El mes». La tabla guarda **solo lo que se sale de
+lo normal** —un mes sin fila vale lo que diga la plantilla—, que es la misma forma que
+tienen las excepciones de una recurrencia, y por eso sigue sin haber que «abrir
+septiembre»: septiembre existe cuando alguien lo ajusta y no antes.
+
+**Es un ajuste de un mes y no una vigencia.** Poner 150 en septiembre no toca octubre. Se
+ofreció el «de aquí en adelante» y se descartó: el caso de la casa es justo el que le da
+nombre a esto —un mes sale más y el siguiente menos, sin que la referencia cambie— y una
+vigencia obliga además a decidir qué pasa hacia atrás, que es una pregunta que aquí no
+hay que contestar.
+
+**La pantalla.** La línea del desglose abre `AjusteDelMesSheet`, un sheet de un solo
+campo titulado «Alquiler en septiembre», con «Volver a los 780 €» si ya hay ajuste y un
+enlace a «Lo fijo» para cuando lo que ha cambiado es lo de todos los meses. Se descartó
+meter un selector de «solo este mes / siempre» arriba del sheet del fijo: convierte un
+formulario en dos y quien se equivoca de opción no se entera hasta un mes después.
+
+Y un fijo ajustado **lo dice en su fila**: debajo del nombre, «suele ser 780 €». Sin eso,
+el desglose de un mes retocado se lee exactamente igual que el de uno normal.
+
+**Dónde se aplica: en un solo sitio.** `plantillaDelMes` es por donde pasan todas las
+cifras de un mes, así que la cuenta, el desglose, la serie y el reparto lo heredan sin
+saber que existe. Un mes cerrado no lo mira —`close_month_copy` copia el `coalesce`, así
+que la foto guarda el importe que tuvo, ajuste incluido— y por eso un ajuste puesto hoy
+no puede mover un mes que ya terminó.
+
+Nueve tests unitarios nuevos y dos de navegador (el del 04-09 se reescribió: lo que
+comprueba ahora es que la referencia **no** se mueve). `validate-rls.mjs` cubre la tabla
+nueva con cuatro comprobaciones más.
+
+**Aplicado y validado el mismo día** con `supabase/aplicar-ajustes-de-fijos.sql`, un
+archivo con la misma regla que el de los meses cerrados: entero, idempotente, y se
+reescribe en vez de crecer con parches. `validate-rls.mjs`, **169/169**.
+
 ## Cerrado el 2026-09-04
 
 ### Finanzas: los fijos se editan desde el mes, más iconos y el cierre al pie (04-09-2026)

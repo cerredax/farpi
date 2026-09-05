@@ -1332,6 +1332,7 @@ Ahora son **cuatro piezas y tres pestañas**, y cada pieza contesta una pregunta
 | Tabla | En pantalla | Dónde | Contesta |
 |---|---|---|---|
 | `fixed_entries` | **Fijos** | pestaña «Lo fijo» | ¿con cuánto contamos y qué está comprometido? |
+| `fixed_entry_overrides` | El importe de un fijo **en un mes** | pestaña «El mes» | ¿y el mes que salió distinto? |
 | `budgets` | **Partidas** | pestaña «Lo fijo», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
 | `expenses` | **El día a día** (una fila, un **apunte**) | pestaña «El mes» | ¿qué ha pasado este mes? |
 | `quotes` | **Presupuestos** | pestaña «Presupuestos» | ¿cuánto va a costar esto que aún no hemos hecho? |
@@ -1381,7 +1382,9 @@ habría exigido migrar la base real a cambio de nada. En `docs/historial.md` sig
 «Dinero» donde cuenta lo que pasó entonces, que es como debe ser.
 
 **Cuatro tablas: `fixed_entries`, `budgets`, `expenses`, `quotes`.** No se tocan entre
-ellas salvo `expenses.budget_id`, que es opcional. Comparten pantalla, no modelo.
+ellas salvo `expenses.budget_id`, que es opcional. Comparten pantalla, no modelo. La
+quinta, `fixed_entry_overrides`, no es una pieza más: cuelga de `fixed_entries` y solo
+guarda los meses en que un fijo se salió de su referencia (ver más abajo).
 
 **Todo el dinero va en céntimos, en `integer`.** Ni coma flotante —0,1 + 0,2 da
 0,30000000000000004, y un céntimo de más convierte "llevas 300,01 de 300" en un
@@ -1438,6 +1441,43 @@ también el botón de apuntar, así que el 2 de octubre no había dónde meter l
 del 29 de septiembre. La vida llega tarde y los apuntes tienen que caber en el mes
 en que se gastaron. En un mes cerrado no se editan los fijos ni las partidas —eso es
 el plan— y sí se apunta, siempre.
+
+**Un fijo puede valer otra cosa en un mes suelto** (05-09-2026, pedido). La regla de
+arriba resolvía el pasado y dejaba abierto el presente: la limpieza son 120 € al mes,
+pero hay meses de 150 y meses de 90, y ninguna de las dos salidas que había servía.
+Cambiar el fijo sube la referencia y con ella **todos** los meses abiertos, así que la
+casa pierde el «esto suele costar 120», que es el dato entero por el que se pone un
+fijo. Y apuntar la diferencia en el día a día mezcla un recibo con la compra y deja
+«Gastos fijos» diciendo lo que no fue.
+
+Así que son dos cifras y dos sitios: **la referencia vive en `fixed_entries` y se toca
+en «Lo fijo»; el mes vive en `fixed_entry_overrides` y se toca en «El mes»**. La tabla
+guarda **solo lo que se sale de lo normal** —un mes sin fila vale lo que diga la
+plantilla—, que es la misma forma que tienen las excepciones de una recurrencia, y por
+eso no hace falta «abrir septiembre»: septiembre existe cuando alguien lo ajusta y no
+antes.
+
+```
+fixed_entries          Limpieza · 120 €/mes          ← la referencia, no se mueve
+fixed_entry_overrides  Limpieza · 2026-09 · 150 €    ← solo los meses que se salen
+                       Limpieza · 2026-11 ·  90 €
+```
+
+**Es un ajuste de un mes y no una vigencia.** Poner 150 en septiembre no toca octubre:
+octubre vuelve solo a los 120. Se valoró el «de aquí en adelante» —que además arreglaría
+de otra manera lo de que subir el alquiler reescriba los meses abiertos— y se descartó
+por dos cosas: el caso de la casa es justo el que le da nombre a esto (un mes sale más y
+el siguiente menos, sin que la referencia cambie nunca), y una vigencia obliga a decidir
+qué pasa hacia atrás, que es una pregunta que aquí no hay que contestar.
+
+**Se aplica en un solo sitio**, `plantillaDelMes`, que es por donde pasan todas las
+cifras de un mes: la cuenta, el desglose, la serie y el reparto lo heredan sin saber que
+existe. Un mes cerrado **no los mira** —su copia ya guardó el importe que tuvo, ajuste
+incluido, porque `close_month_copy` copia el `coalesce`— y ahí está la razón de que un
+ajuste puesto hoy no pueda mover un mes que ya terminó. Cuando un mes lleva ajuste,
+`FijoDelMes.referenciaCents` trae la cifra de la plantilla y la pantalla escribe «suele
+ser 120 €» debajo del nombre; el resto de las veces va a `null`, porque sin ajuste no
+hay dos cifras que contar.
 
 **El cierre a mano existe, y es un atajo, no una tarea.** Como el mes en curso es
 espejo, no se puede dejar preparado un cambio «para el mes que viene»: subir el
@@ -2056,9 +2096,19 @@ enseñar dos veces lo mismo en un mismo scroll.
 **Dentro no se editaba nada, y ahora sí** (04-09-2026, pedido). El argumento de origen
 —el mes en curso es el espejo de la plantilla, y la plantilla se edita en «Lo fijo»— era
 cierto y no bastaba: el desglose es **donde se descubre** que el alquiler está mal, y
-sostenerlo obligaba a cambiar de pestaña para arreglarlo y volver al mes. La línea abre
-ahora el mismo sheet de «Lo fijo» —no una copia— y la cuenta de arriba se mueve al
-guardar, porque es el espejo.
+sostenerlo obligaba a cambiar de pestaña para arreglarlo y volver al mes.
+
+**Y lo que se edita ahí es el mes, no la referencia** (05-09-2026). El 04-09 la línea
+abría el sheet de «Lo fijo» tal cual, y eso hacía que corregir «la limpieza este mes han
+sido 150» dejara la limpieza en 150 para siempre —el error que la sección de arriba
+cuenta entero—. Ahora abre `AjusteDelMesSheet`, un sheet de un solo campo que pregunta
+por **este** mes, ofrece volver a la referencia si ya hay ajuste y lleva a «Lo fijo» de
+un toque para cuando lo que ha cambiado es lo de todos los meses.
+
+Se descartó meter un selector de «solo este mes / siempre» arriba del sheet del fijo:
+convierte un formulario en dos, y quien se equivoca de opción no se entera hasta un mes
+después. Con dos sheets no hay nada que elegir, y cada uno dice en su título de qué
+habla.
 
 En un mes cerrado siguen sin editarse, y ahí no es una decisión de pantalla: la línea de
 la copia **no sabe de qué fijo salió**. Es la pieza que resuelve las dos cosas a la vez:
@@ -2186,6 +2236,142 @@ agrupar las once en cuatro grupos grandes, que obliga a inventar y explicar una 
 nueva. Envueltas y no arrastrables sigue igual desde el 02-09-2026; lo que cambió es cuántas
 hay que ver. `e2e/escritorio.spec.ts` comprueba que no se arrastren y `e2e/runtime.spec.ts`
 que Colegio y Mascotas —sin papeles en la demo— no estén en la tira y sí en el sheet.
+
+### Inicio contesta "qué queda", no "qué había" (05-09-2026)
+
+Cuatro cambios pedidos sobre la pantalla de Inicio y un arreglo que salió de ellos. Todos
+vienen de lo mismo: la pantalla enseñaba bien el día pero no lo **ordenaba**, así que a
+media tarde había que leerlo entero y comparar con el reloj.
+
+**"Esta semana" pasa a llamarse "Próximos días".** El bloque nunca fue la semana:
+`selectUpcomingEvents` devuelve desde mañana hasta hoy + 7 días, una ventana móvil. Un
+sábado, "esta semana" llegaba hasta el sábado siguiente, que es la de después. Y el nombre
+ya estaba cogido: "Esta semana" es un tramo de la agenda del calendario (`agenda.ts`) y
+allí sí es la semana natural, con `endOfWeek`. La misma etiqueta decía dos cosas distintas
+en dos pantallas.
+
+**Los planes que ya han pasado se atenúan, y el siguiente lleva la hora en verde.** El
+desayuno de las 8:00 y la cena de las 21:00 se leían igual a las 20:00. Manda la hora de
+fin cuando la hay, así que una comida de 14:00 a 16:00 no se apaga a las 15:00: apagar lo
+que está pasando es justo lo contrario de lo que se busca. Lo de todo el día no se atenúa
+nunca —no tiene hora— y tampoco puede ser "el siguiente". Y no se marca nada antes de
+hidratar: /home se prerenderiza y el HTML servido llevaría la hora del build.
+
+Se descartó una etiqueta "Ahora" en la fila: puede faltar hora y media para el dentista, y
+además añade un elemento a una tarjeta que ya lleva cuatro bloques. Un cambio de color no
+ocupa sitio.
+
+**Las tareas de hoy tienen tope, y la píldora dice desde cuándo.** Seis atrasadas —que no
+es un caso raro, es lo que pasa en cuanto una semana se tuerce— empujaban la compra y los
+planes fuera de la primera pantalla: lo urgente tapaba lo de hoy. Cuatro y "Y N más", que
+es el mismo tratamiento que ya tenían "Lo demás por hacer" y "Próximos días". Como
+`selectTodayTasks` respeta el orden de `selectTasks` —primero lo atrasado, después por
+fecha y por prioridad—, cortar por arriba deja fuera lo menos urgente. Y "Atrasada · 17
+jun" en vez de seis "Atrasada" idénticas, que no dejaban ver cuál llevaba un día y cuál un
+mes: es lo que decide por dónde empezar.
+
+**El aviso de los papeles que caducan.** Es lo único de la casa que se estropea solo y sin
+avisar: el DNI vale hasta que un día no vale. El dato estaba —`selectExpiryState`— y el
+recordatorio diario ya lo mandaba por push, pero en pantalla había que entrar en
+Documentos para verlo.
+
+No es una sección de Inicio y por eso **no usa `HomeSection`**. Las secciones son el ritmo
+de lo que se mira a diario; esto no está casi nunca, y cuando está no se navega, se
+atiende. Una tarjeta con su rótulo en mayúsculas y su "ver todos" al pie prometería una
+lista que se consulta, y habría gastado además el quinto color de acento en una paleta de
+marca que solo tiene cuatro. Los días normales devuelve `null` y no ocupa nada: Inicio no
+se vuelve un panel de control porque este bloque no vive ahí, aparece.
+
+Con un solo papel se dice **cuál** y **cuándo** —«"DNI de Carlos" caducó el 20 de
+agosto»—, que es la diferencia entre un aviso que se atiende desde la cama y uno que
+obliga a entrar a ver de qué habla. Con varios ya no cabe y se cuentan. Dos tonos: lo
+vencido en rojo porque ya está mal, lo que va a vencer en el amarillo de los avisos, que
+dice "hay tiempo, pero ponte".
+
+**Y se descartó el saludo con el nombre de la familia.** El saludo contextual ya estaba
+desde antes (`getGreeting`); lo nuevo habría sido el nombre, y hay una familia por sesión,
+no se confunde con ninguna y el dato ya vive en el selector de familia. Un nombre que
+nunca cambia, en el renglón más caro de la pantalla, deja de leerse a la semana.
+
+#### Un sheet cerrado no va dentro de un `space-y-*` (05-09-2026)
+
+Salió de mirar la barra de navegación en móvil: a las seis etiquetas les faltaba la mitad
+de abajo. No era la barra. Un `BottomSheet` cerrado es `fixed bottom-0` con
+`translate-y-full`, y en Inicio los sheets eran hijos del contenedor con `space-y-6`, que
+separa a sus hijos con 24 px de margen. En una caja fija ese margen entra en la ecuación
+del `bottom`: corre el ancla 24 px hacia arriba y el desplazamiento —el 100 % de su propia
+altura— ya no basta para sacarla de la pantalla. El sheet del plan asomaba por encima de
+la barra, con su asa y todo.
+
+Cuadra exactamente: panel de 651 px de alto en un viewport de 839, `839 − 651 − 24 = 164`,
+`164 + 651 = 815`, y ahí estaba. Y el otro sheet de Inicio —al que `space-y` no le pone
+margen, por ser el que cierra la lista— asomaba 0 px: eso es lo que lo delató. Solo en
+móvil: en `lg` el espaciado se apaga y el sheet es modal centrado.
+
+El arreglo es dónde vive el sheet, no una clase: la pantalla se envuelve en un fragmento y
+los sheets quedan fuera del contenedor, que es lo que ya hacían Tareas y las demás. La
+comprobación que lo detectó —ningún `[role="dialog"][inert]` invade el viewport, en cada
+ruta, en `e2e/movil.spec.ts`— encontró de paso el mismo fallo en Finanzas, con `space-y-5`
+y cuatro sheets asomando 20 px. No lo veía nada de lo que ya había: ni desborda a lo ancho
+ni es un control pequeño, simplemente está encima.
+
+### Borrar una fila también pide confirmación (05-09-2026)
+
+La papelera de un ítem de la lista y la de una tarea eran **un toque, sin
+confirmación y sin deshacer**, las dos únicas puertas de la app por las que se
+perdía algo de golpe: los borrados de los sheets pasan por el doble toque de
+`DeleteButton`, y el único `undo` que sirve el store es el de marcar una tarea.
+
+Los dos sitios son además los peores posibles. En una lista, la papelera de 28 px
+va pegada al `+` de las unidades, que es justo el botón que se pulsa a una mano y
+sin mirar, en el súper. En una tarea ocupaba el borde derecho de la tarjeta, que
+es donde aterriza el pulgar al pasar la pantalla. Un dedo desviado se llevaba el
+ítem, y no había manera de recuperarlo.
+
+Se resuelve con lo que ya había —el mismo `DeleteButton` de los sheets, en una
+variante `inline`— y no con un componente nuevo. Y encaja con lo que ya decía la
+excepción del cierre del mes: *el doble toque vale para lo que se ve*. Borrar una
+fila que sigue delante es exactamente ese caso, así que no necesita diálogo.
+
+**Dos detalles que no son adorno.** El primero: en reposo es la papelera de
+siempre, y al pedir confirmación **crece** hasta llevar la palabra «Borrar»
+dentro, en rojo relleno. Que cambie de forma es lo que avisa; un icono que solo se
+pone rojo sin moverse se confunde con el estado normal de una papelera. En Tareas
+el hueco mide lo mismo que la columna que había (28 px de botón más 12 de
+padding), así que el título no se mueve de sitio.
+
+El segundo: **la confirmación se desarma sola** a los `MS_CONFIRMAR_BORRADO`
+(4 s), y para eso `useConfirmAction` acepta un `resetMs` opcional que los sheets
+no pasan. En un sheet no hace falta —al cerrarlo se lleva el estado con él—, pero
+una fila se queda ahí: una papelera armada para siempre reintroduce el problema
+por el otro lado, porque el toque de dentro de un rato borraría creyendo que solo
+estaba pidiendo confirmación.
+
+### Buscar enseña también lo ya hecho (05-09-2026)
+
+En Tareas, «Completadas» arranca plegada —lo hecho no es lo que se viene a
+mirar—, y el pliegue seguía puesto mientras se buscaba. Buscar «bombillas»,
+con la única coincidencia marcada, daba un «Sin coincidencias» a toda página y,
+debajo, un contador plegado que decía «Completadas · 1». La búsqueda había
+encontrado la tarea y la pantalla contestaba que no.
+
+Es literalmente el mismo caso que el catálogo de una lista ya tenía resuelto
+(«Lo de siempre»), con la misma regla en las dos mitades: **buscando se enseña
+todo, y buscando no se ofrece plegar**. Lo segundo importa tanto como lo primero;
+sin ello el pliegue vuelve a esconder lo que la búsqueda acaba de encontrar.
+
+### Un vacío dice cuál de los tres vacíos es (05-09-2026)
+
+«No hay nada que hacer» y «aquí no ha habido nunca nada» no son el mismo mensaje.
+Tareas los contaba igual: con cero tareas, una familia que estrenaba la app se
+encontraba un «✅ Todo al día» felicitándola por lo que no había hecho, y sin una
+palabra de para qué sirve la pantalla. Ahora son tres estados —sin coincidencias,
+sin tareas todavía, todo al día— y el de estreno pone ejemplos, como ya hacía
+Notas, que es la que mejor lo tenía.
+
+De paso, Listas dejó de escribir su vacío a mano y pasa por `EmptyState` como las
+demás; y su emoji era un ✅, que en una pantalla donde marcar significa «ya lo
+tenéis» decía lo contrario de lo que cuenta una lista.
 
 ## Tono de la interfaz
 

@@ -419,6 +419,49 @@ test('las tareas se buscan por texto', async ({ page }) => {
   await expect(page.getByText('Llamar al seguro del coche')).toHaveCount(0)
 })
 
+// Buscar tiene que enseñar también lo ya hecho. "Completadas" arranca plegada
+// —lo hecho no es lo que se viene a mirar—, pero si lo único que coincide está
+// ahí dentro, dejarlo debajo del pliegue contesta "sin coincidencias" a una
+// búsqueda que sí encontró algo. En la demo, "Cambiar las bombillas del pasillo"
+// está marcada.
+test('buscar enseña también las tareas ya hechas', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+
+  // De partida no se ve: está detrás del pliegue de "Completadas".
+  await expect(page.getByText('Cambiar las bombillas del pasillo')).toHaveCount(0)
+
+  await page.getByLabel('Buscar tareas').fill('bombillas')
+  await expect(page.getByText('Cambiar las bombillas del pasillo')).toBeVisible()
+})
+
+// Borrar una tarea era un toque, sin vuelta atrás: la papelera vive en el borde
+// derecho de la tarjeta, que es donde aterriza el pulgar al pasar la pantalla, y
+// el `undo` del store solo cubre marcar. Ahora pide confirmación como los
+// sheets, y se desarma sola: una fila no se cierra, y una papelera armada para
+// siempre borraría al toque de dentro de un rato.
+test('borrar una tarea pide confirmación y se desarma sola', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+
+  const papelera = page.getByRole('button', { name: 'Eliminar la tarea Sacar la basura' })
+  const confirmar = page.getByRole('button', { name: 'Confirmar que se elimina la tarea Sacar la basura' })
+
+  // Un toque no borra: pide confirmación y la tarea sigue donde estaba.
+  await papelera.click()
+  await expect(confirmar).toBeVisible()
+  await expect(page.getByText('Sacar la basura')).toBeVisible()
+
+  // Y si nadie vuelve, se desarma. Se espera por el estado y no por reloj.
+  await expect(confirmar).toHaveCount(0, { timeout: 8000 })
+  await expect(page.getByText('Sacar la basura')).toBeVisible()
+
+  // Dos toques seguidos sí borran.
+  await papelera.click()
+  await confirmar.click()
+  await expect(page.getByText('Sacar la basura')).toHaveCount(0)
+})
+
 // Las notas: el ciclo entero en la pantalla más simple de la app. Se prueba aquí
 // y no solo en unitarios porque lo que puede romperse es la vuelta al store —una
 // nota nueva tiene que aparecer sin recargar— y el orden, que es lo único que
@@ -1080,34 +1123,75 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
   await expect(resumen).toContainText('1.650 €')
 })
 
-// Y desde el 04-09-2026 esas líneas se editan sin salir del mes: el desglose es
+// Y desde el 04-09-2026 esas líneas se tocan sin salir del mes: el desglose es
 // donde se descubre que el alquiler está mal, e irse a «Lo fijo» a arreglarlo era
-// cambiar de pestaña y volver. En un mes cerrado no se ofrece: la línea es una
-// copia que no sabe de qué fijo salió, y lo cerrado no se toca.
-test('un gasto fijo se edita desde el desglose de «El mes»', async ({ page }) => {
+// cambiar de pestaña y volver.
+//
+// **Lo que se toca es el mes, no la referencia** (05-09-2026). El primer día
+// abría el fijo entero, y así corregir «este mes han sido 800» dejaba el alquiler
+// en 800 para siempre. En un mes cerrado no se ofrece nada: la línea es una copia
+// que no sabe de qué fijo salió, y lo cerrado no se toca.
+test('un gasto fijo se ajusta en el mes sin mover su referencia', async ({ page }) => {
   await page.goto('/finanzas')
   await page.waitForTimeout(800)
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
   await resumen.getByRole('button', { name: 'Gastos fijos' }).click()
 
-  await resumen.getByRole('button', { name: 'Editar Alquiler' }).click()
-  const sheet = page.getByRole('dialog', { name: 'Editar fijo' })
+  await resumen.getByRole('button', { name: 'Ajustar Alquiler en este mes' }).click()
+  const sheet = page.getByRole('dialog', { name: /^Alquiler en / })
   await expect(sheet).toBeVisible()
-  await expect(page.locator('#fixed-entry-amount')).toHaveValue('780')
+  await expect(page.locator('#ajuste-mes-amount')).toHaveValue('780')
 
-  // Y al guardar, la cuenta de arriba se mueve: el mes en curso es el espejo de
-  // la plantilla que se acaba de tocar.
-  await page.locator('#fixed-entry-amount').fill('800')
-  await page.getByRole('button', { name: 'Guardar', exact: true }).click()
+  // Al guardar, la cuenta de arriba se mueve: 935,90 − 780 + 800 = 955,90.
+  await page.locator('#ajuste-mes-amount').fill('800')
+  await sheet.getByRole('button', { name: 'Guardar', exact: true }).click()
   await expect(resumen).toContainText('−955,90 €')
+  // Y la fila cuenta las dos cifras, que es lo que distingue este mes de un mes
+  // en el que el alquiler haya subido de verdad.
+  await expect(resumen).toContainText('suele ser −780 €')
+
+  // La referencia no se ha movido: en «Lo fijo» el alquiler sigue en 780.
+  await page.getByRole('tab', { name: 'Lo fijo' }).click()
+  await expect(page.getByRole('region', { name: 'Sale al mes' })).toContainText('780 €')
+
+  // Y el ajuste se deshace desde donde se puso.
+  await page.getByRole('tab', { name: 'El mes', exact: true }).click()
+  await resumen.getByRole('button', { name: 'Ajustar Alquiler en este mes' }).click()
+  await sheet.getByRole('button', { name: 'Volver a los 780 €' }).click()
+  await expect(resumen).toContainText('−935,90 €')
+  await expect(resumen).not.toContainText('suele ser')
 
   // En junio, cerrado, las líneas se leen y no se tocan. El desglose sigue
   // abierto de antes: cambiar de mes no lo pliega.
   await retroceder(page, 3)
   await expect(resumen).toContainText('Junio 2026')
   await expect(resumen).toContainText('−760 €')
-  await expect(resumen.getByRole('button', { name: 'Editar Alquiler' })).toHaveCount(0)
+  await expect(resumen.getByRole('button', { name: /^Ajustar Alquiler/ })).toHaveCount(0)
+})
+
+// El otro camino del mismo sheet: cuando lo que ha cambiado no es un mes sino lo
+// de todos los meses, se llega a la referencia de un toque y sin cambiar de
+// pestaña. Es lo que sostiene que el sheet corto no sea un callejón.
+test('desde el ajuste del mes se llega a cambiar la referencia', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  const resumen = page.getByRole('region', { name: 'Resumen del mes' })
+  await resumen.getByRole('button', { name: 'Gastos fijos' }).click()
+  await resumen.getByRole('button', { name: 'Ajustar Alquiler en este mes' }).click()
+  await page.getByRole('button', { name: 'Cambiar cuánto es cada mes' }).click()
+
+  const fijo = page.getByRole('dialog', { name: 'Editar fijo' })
+  await expect(fijo).toBeVisible()
+  await expect(page.locator('#fixed-entry-amount')).toHaveValue('780')
+  await page.locator('#fixed-entry-amount').fill('900')
+  await fijo.getByRole('button', { name: 'Guardar', exact: true }).click()
+
+  // Ahora sí se ha movido la referencia: 935,90 − 780 + 900 = 1.055,90, y sin
+  // ninguna línea de «suele ser», porque este mes no lleva ajuste.
+  await expect(resumen).toContainText('−1.055,90 €')
+  await expect(resumen).not.toContainText('suele ser')
 })
 
 test('la partida de un mes cerrado se mide contra el límite de aquel mes', async ({ page }) => {
@@ -1135,7 +1219,9 @@ test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ pa
   await page.getByRole('tab', { name: 'Lo fijo' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
-  await page.getByRole('button', { name: 'Guardar' }).click()
+  // Acotado al sheet: el del ajuste de mes vive montado al lado y su botón se
+  // llama igual (`inert` no lo saca de las consultas por rol de Playwright).
+  await page.getByRole('dialog', { name: 'Editar fijo' }).getByRole('button', { name: 'Guardar' }).click()
   await page.waitForTimeout(500)
 
   // Este mes lo nota al momento: 935,90 − 780 + 900 = 1.055,90.
@@ -1200,7 +1286,9 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
   await page.getByRole('tab', { name: 'Lo fijo' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
-  await page.getByRole('button', { name: 'Guardar' }).click()
+  // Acotado al sheet: el del ajuste de mes vive montado al lado y su botón se
+  // llama igual (`inert` no lo saca de las consultas por rol de Playwright).
+  await page.getByRole('dialog', { name: 'Editar fijo' }).getByRole('button', { name: 'Guardar' }).click()
   await page.waitForTimeout(500)
   await page.getByRole('tab', { name: 'El mes', exact: true }).click()
   await expect(resumen).toContainText('−935,90 €')

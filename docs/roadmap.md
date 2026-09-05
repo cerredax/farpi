@@ -583,6 +583,52 @@ Lo mismo que se le hizo a las partidas el día antes, un nivel más arriba. El p
       abre.
 - [x] Un flujo de navegador más: **555** en la pasada completa.
 
+## Fase 8p - Finanzas: un fijo que sale distinto un mes (05-09-2026)
+
+Pedido del uso, y deshace a medias la 8m: la limpieza son 120 € al mes y hay meses de
+150 y meses de 90, y editar el fijo desde el mes subía la referencia para siempre. El
+porqué, en `docs/architecture.md`: «Un fijo puede valer otra cosa en un mes suelto».
+
+- [x] Tabla **`fixed_entry_overrides`**: lo que un fijo costó en un mes concreto. Guarda
+      **solo lo que se sale de lo normal**; un mes sin fila vale lo que diga la
+      plantilla, así que sigue sin haber que «abrir septiembre».
+- [x] **Es un ajuste de un mes y no una vigencia.** Septiembre a 150 no toca octubre. Se
+      descartó el «de aquí en adelante»: obliga a decidir qué pasa hacia atrás y no es el
+      caso de la casa.
+- [x] Se aplica en un solo sitio, `plantillaDelMes`, así que la cuenta, el desglose, la
+      serie y el reparto lo heredan sin saber que existe.
+- [x] **`close_month_copy` copia el importe del mes** (`coalesce`), no la referencia: sin
+      eso, cerrar el mes deshacía el ajuste sin avisar.
+- [x] `AjusteDelMesSheet`: un solo campo, «Volver a los 120 €» si ya hay ajuste y enlace
+      a «Lo fijo». Se descartó el selector «solo este mes / siempre» dentro del sheet del
+      fijo — quien se equivoca de opción no se entera hasta un mes después.
+- [x] Un fijo ajustado lo dice en su fila: **«suele ser 120 €»**.
+- [x] Nueve unitarios y dos de navegador: **592** en la pasada completa. Y cuatro
+      comprobaciones más en `validate-rls.mjs`, aplicado y validado el mismo día:
+      **169/169**, con `supabase/aplicar-ajustes-de-fijos.sql`.
+
+## Fase 8q - Auditadas Listas, Tareas y Notas (05-09-2026)
+
+Revisión pedida de las tres, mirando listas largas, búsqueda y vacío inicial. **Notas
+salió sin nada que arreglar**; los dos fallos estaban en Tareas. El porqué de cada
+decisión, en `docs/architecture.md`.
+
+- [x] **Buscar enseña también las tareas ya hechas**, y mientras se busca «Completadas»
+      no se pliega. Con la única coincidencia marcada, la pantalla decía «Sin
+      coincidencias» y escondía debajo un «Completadas · 1». Es la regla que el catálogo
+      de una lista ya tenía escrita; ahora la comparten.
+- [x] **Tres vacíos y no dos** en Tareas: «sin tareas todavía» —con ejemplos, como
+      Notas— dejó de confundirse con «todo al día», que felicitaba a quien estrenaba la
+      app por lo que no había hecho.
+- [x] **Borrar desde una fila pide confirmación.** La papelera de un ítem y la de una
+      tarea eran un toque sin vuelta atrás, y las dos caen justo debajo del dedo. Mismo
+      `DeleteButton` de los sheets en variante `inline`, y `useConfirmAction` acepta un
+      `resetMs` opcional (4 s) para desarmarse sola: una fila no se cierra como un sheet.
+- [x] Listas pasa su vacío por `EmptyState` en vez de escribirlo a mano, y la chincheta
+      de una nota fijada lleva `role="img"`.
+- [x] Dos de navegador: **615** en la pasada completa. El vacío de estreno queda sin
+      cubrir a propósito —montarlo pide vaciar el seed de la demo—.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

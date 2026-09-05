@@ -80,8 +80,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 446 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 583 (446 unitarios + 137 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 465 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 615 (465 unitarios + 150 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -246,6 +246,14 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
 - Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts`, `agenda.ts` (los tramos de la agenda) y `text.ts`: mírala antes de reescribirla.
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
+- **Un sheet no va dentro de un contenedor con `space-y-*`**: va fuera, como hermano suyo,
+  con la pantalla envuelta en un fragmento. Un `BottomSheet` cerrado es `fixed bottom-0`
+  con `translate-y-full`, y el margen que `space-y` mete entre hermanos entra en la cuenta
+  del `bottom` de una caja fija: corre el ancla hacia arriba, el desplazamiento ya no
+  basta y el sheet asoma tapando las etiquetas de `BottomNav`. Le pasaba a Inicio (24 px)
+  y a Finanzas (20 px) hasta el 05-09-2026; el resto de las pantallas ya los dejaban
+  fuera. Lo vigila `e2e/movil.spec.ts`, que en cada ruta comprueba que ningún
+  `[role="dialog"][inert]` invade el viewport.
 - Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, AssigneePicker, SelectChip, DeleteButton, SectionLink, Suggestions y algunos más.
 - **El botón de alta va arriba, en `ViewHeader`**, nunca flotando sobre el contenido.
   Lo usan las seis pantallas de contenido y existe justamente porque habían

@@ -1,5 +1,6 @@
 'use client'
 
+import { EmptyState } from '@/components/ui/EmptyState'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { ItemMatchCard } from './ItemMatchCard'
@@ -88,9 +89,11 @@ export function ListsView() {
 
       {buscando ? (
         s.coincidencias.length === 0 ? (
-          <p className="text-center text-muted text-sm py-12">
-            Ningún ítem coincide con «{s.busqueda.trim()}».
-          </p>
+          <EmptyState
+            emoji="🔍"
+            title="Sin coincidencias"
+            description={`Ningún ítem coincide con «${s.busqueda.trim()}»`}
+          />
         ) : (
           <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
             <p className="field-label px-1 lg:col-span-2 xl:col-span-3">
@@ -107,11 +110,14 @@ export function ListsView() {
           </div>
         )
       ) : s.lists.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-4xl mb-3">✅</p>
-          <p className="font-bold text-ink">Sin listas todavía</p>
-          <p className="text-sm text-muted mt-1">Crea la primera lista de la familia</p>
-        </div>
+        /* El emoji es el mismo 📋 con el que nace una lista sin el suyo, no el ✅
+           que había: un tic aquí dice "hecho", que es justo lo contrario de lo
+           que cuenta una lista. */
+        <EmptyState
+          emoji="📋"
+          title="Sin listas todavía"
+          description="Una lista por cesta: la compra, la farmacia, lo que hay que llevar al pueblo."
+        />
       ) : (
         <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
           {s.lists.map(list => (

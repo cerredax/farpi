@@ -42,9 +42,12 @@ export function NoteCard({ note, onEdit }: NoteCardProps) {
         <p className="min-w-0 flex-1 text-sm font-bold leading-tight text-ink">{note.title}</p>
         {/* La chincheta y no una etiqueta con la palabra: es la única marca de
             la tarjeta, así que no compite con nada y no hace falta explicarla.
-            El nombre accesible lo pone el `title` del icono. */}
+            El `role="img"` va con el `aria-label` y no sobra: un `<svg>` suelto
+            no tiene rol de imagen en todos los lectores de pantalla, y sin rol
+            hay quien se salta el nombre y la nota fijada no se oye distinta de
+            las demás. */}
         {note.pinned && (
-          <Pin size={14} strokeWidth={2.4} className="mt-0.5 flex-shrink-0 text-primary" aria-label="Fijada" />
+          <Pin size={14} strokeWidth={2.4} className="mt-0.5 flex-shrink-0 text-primary" role="img" aria-label="Fijada" />
         )}
       </div>
 

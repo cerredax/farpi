@@ -115,9 +115,11 @@ export function ListDetailView({
             description="Apunta lo primero que haga falta"
           />
         ) : visibles.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted">
-            Ningún ítem coincide con «{busqueda.trim()}».
-          </p>
+          <EmptyState
+            emoji="🔍"
+            title="Sin coincidencias"
+            description={`Ningún ítem coincide con «${busqueda.trim()}»`}
+          />
         ) : (
           <>
             {verPendientes && (

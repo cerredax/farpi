@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-04.
+Última revisión: 2026-09-05.
 
 ## Resumen
 
@@ -11,18 +11,29 @@ aplicaron y validaron tres cambios más de esquema —la franja del comedor con 
 una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**—, y el
 03-09-2026 dos más: el cierre que ya no inventa meses, con `empty_month`, y la revisión de
 seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisión había
-dejado roto sin verlo. **165/165**. Lo que queda no es código de producto: funcionalidades
+dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —el ajuste
+de un fijo en un mes suelto— con `supabase/aplicar-ajustes-de-fijos.sql`: tabla, índice,
+policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Lo que queda no es código de producto: funcionalidades
 que todavía no existen (ver "Siguiente paso recomendado").
 
 ## Implementado
 
 ### Pantallas / producto
 
-- Inicio / Hoy, con "Esta semana" y lo que va atrasado arrastrado al día de hoy. La
-  tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera y ya no,
-  para no decir la hora dos veces en la misma pantalla— y dentro lleva cumpleaños,
-  planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a "¿qué toca
-  hoy?" en un sitio, en vez del menú suelto al final de la columna. **Tocar un plan —de
+- Inicio / Hoy, con "Próximos días" —los siete siguientes, no la semana natural, y por
+  eso ya no se llama "Esta semana" (05-09-2026)— y lo que va atrasado arrastrado al día
+  de hoy. La tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera
+  y ya no, para no decir la hora dos veces en la misma pantalla— y dentro lleva
+  cumpleaños, planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a
+  "¿qué toca hoy?" en un sitio, en vez del menú suelto al final de la columna. **Los
+  planes que ya han pasado se atenúan y el siguiente lleva su hora en verde**
+  (05-09-2026): a media tarde la pregunta es qué queda, y hasta entonces el desayuno y la
+  cena se leían igual a cualquier hora. Las tareas de hoy **tienen tope** —cuatro, y "Y N
+  más" al pie— porque seis atrasadas echaban la compra y los planes fuera de la primera
+  pantalla, y cada una dice **desde cuándo** ("Atrasada · 17 jun"): seis píldoras iguales
+  no dejaban ver cuál llevaba un día y cuál un mes. Y debajo de la tarjeta, **el aviso de
+  los papeles que caducan** (05-09-2026), que los días normales no está: el dato lo tenía
+  el recordatorio diario, pero en pantalla había que entrar en Documentos para verlo. **Tocar un plan —de
   hoy o de esta semana— lo abre** (04-09-2026), con el mismo formulario del calendario y
   solo en edición: apuntar algo nuevo sigue siendo del calendario, que es donde se ve
   dónde cae. Y "Listas de casa", al desplegarse, **va por cestas**: el nombre de la lista
@@ -65,10 +76,15 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **doble clic** abre el alta de ese día; el clic simple sigue haciendo lo que hacía
   —elegir el día, o nada en la agenda—, así que no se pierde nada ni cambia lo que
   anuncia un lector de pantalla.
-- Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó.
+- Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó. Buscar
+  enseña también las completadas —y mientras se busca no se pliegan—, y el vacío
+  distingue «sin tareas todavía» de «todo al día».
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
 - Búsqueda en listas, tareas, notas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
+- **Borrar desde una fila pide confirmación** (05-09-2026): la papelera de un ítem y la
+  de una tarea eran un toque sin vuelta atrás. Mismo `DeleteButton` que los sheets, en
+  variante `inline`, y se desarma sola a los 4 s (`MS_CONFIRMAR_BORRADO`).
 - Comidas (día/semana, copiar día). Las **cinco** franjas se activan y desactivan por
   familia desde Ajustes; apagar una no borra lo apuntado en ella. `Comedor` (02-09-2026)
   es lo que le ponen a los niños fuera de casa: va detrás de `Comida` porque el mismo día
@@ -134,8 +150,12 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **«El mes»**: arriba **la cuenta** —ingresos fijos, gastos fijos, «para el mes», lo
   apuntado y **cuánto queda**—, que es el número que la sección existe para dar; los dos
   totales de fijos **se abren** (04-09-2026) y enseñan sus líneas, las de ese mes, y en un
-  mes cuyo plan está vivo **cada línea se edita ahí mismo** —abre el sheet de «Lo fijo» y
-  la cuenta se mueve al guardar—; en un mes cerrado no, que es una copia; debajo las
+  mes cuyo plan está vivo **cada línea se ajusta ahí mismo para ese mes** (05-09-2026):
+  un sheet corto pregunta cuánto ha sido **este mes** y la referencia de «Lo fijo» no se
+  mueve —«la limpieza son 120 € al mes, pero en septiembre fueron 150»—, con un «Volver a
+  los 120 €» para deshacerlo y un enlace a «Lo fijo» para cuando lo que ha cambiado es lo
+  de todos los meses. Un fijo ajustado lo dice en su fila: «suele ser 120 €». En un mes
+  cerrado no se toca nada, que es una copia; debajo las
   **partidas** de ese mes con su barra —que **se abren** (03-09-2026) y enseñan sus
   líneas, con lo que hay dentro de cada una y quién lo puso—, y debajo **el día a día**: los
   **apuntes** que se van poniendo, un gasto o un **ingreso** —una devolución, un trabajo
@@ -145,8 +165,9 @@ que todavía no existen (ver "Siguiente paso recomendado").
   palabras si te has pasado y por cuánto, no solo con el color. Sin ningún fijo puesto, la
   tarjeta enseña lo gastado, como antes, y ofrece ponerlos.
   **Cada mes enseña lo que valía entonces** (02-09-2026): el mes en curso refleja la
-  plantilla —cambias un fijo y se ve al momento— y el mes que terminó enseña la copia
-  congelada que se guardó al cerrarlo, con sus fijos y los límites que tenían sus partidas.
+  plantilla —cambias un fijo y se ve al momento, con el ajuste de ese mes si lo tiene— y
+  el mes que terminó enseña la copia congelada que se guardó al cerrarlo, con sus fijos
+  —el importe que tuvieron, ajuste incluido— y los límites que tenían sus partidas.
   **Lo congelado es el plan, no el día a día**: en un mes cerrado no se editan los fijos ni
   las partidas, y sí se apunta —la vida llega tarde y los 40 € del 29 de septiembre tienen
   que caber en septiembre—. El cierre lo hacen solos el cron diario y la app al arrancar. Y
@@ -372,7 +393,7 @@ que todavía no existen (ver "Siguiente paso recomendado").
 
 - **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
   con la base como está, aplicado en el proyecto real y validado. Última pasada:
-  **99/99** (01-09-2026, con las tres tablas de Finanzas). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
+  **169/169** (05-09-2026, con los ajustes de un fijo en un mes). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
   veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
@@ -429,10 +450,11 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 444 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 04-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 132 de navegador. La cifra sale de la pasada completa del 04-09-2026 (578 en total,
-    444 unitarios):
-    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes y tamaño mínimo de los controles) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+  - 465 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 05-09-2026 (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 150 de navegador. La cifra sale de la pasada completa del 05-09-2026 (615 en total,
+    465 unitarios; las dos últimas, de la auditoría de Listas, Tareas y Notas: que buscar
+    enseñe las tareas ya hechas y que borrar una fila pida confirmación y se desarme sola):
+    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes, tamaño mínimo de los controles y que ningún sheet cerrado asome por abajo) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - `scripts/validate-rls.mjs`: validación manual de RLS/RPCs/integridad contra el Supabase real, repetible tras cambios de esquema.
 
 ## Rendimiento
@@ -596,7 +618,14 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **04-09-2026**: **165/165**, con
+Sin pendientes. La última pasada es del **05-09-2026**: **169/169**, con
+`supabase/aplicar-ajustes-de-fijos.sql` aplicado —la tabla `fixed_entry_overrides`, lo
+que un fijo costó en un mes suelto cuando no fue lo de siempre— y cuatro comprobaciones
+nuevas. La que había que escribir sí o sí es la del trigger: la fila lleva `family_id`
+propio para que su policy sea barata, así que la RLS sola dejaría insertar un ajuste
+**de tu familia** apuntando al fijo de otra; lo para `trg_fixed_entry_override_family`.
+
+Antes de esa, la del **04-09-2026**: **165/165**, con
 `supabase/parche-2026-09-04.sql` aplicado —el `on delete set null` de
 `documents.storage_owner` se pisaba con el trigger de inmutabilidad del día anterior y
 dejaba un 500 sin salida a quien hubiera subido un papel a una familia que le sobrevive— y

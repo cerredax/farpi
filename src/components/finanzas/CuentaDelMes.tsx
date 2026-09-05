@@ -31,10 +31,10 @@ interface CuentaDelMesProps {
   /** Lleva a «Lo fijo». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
   /**
-   * Abrir un fijo del desglose para editarlo. Solo llega en un mes cuyo plan
+   * Ajustar lo que un fijo vale **en este mes**. Solo llega en un mes cuyo plan
    * está vivo; en uno cerrado las líneas son la copia y no se tocan.
    */
-  onEditarFijo?: (id: string) => void
+  onAjustarFijo?: (fijo: FijoDelMes) => void
 }
 
 type Tono = 'normal' | 'entra' | 'sale'
@@ -74,8 +74,18 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * argumento de que lo que se ve es el espejo de la plantilla y la plantilla se
  * edita en «Lo fijo». Sostenerlo obligaba a cambiar de pestaña para subir el
  * alquiler que acabas de ver mal escrito, y a volver luego al mes: el desglose ya
- * es el sitio donde se descubre. Ahora la línea abre el mismo sheet de «Lo fijo»
- * y el mes de arriba se mueve al guardar, porque es el espejo.
+ * es el sitio donde se descubre.
+ *
+ * **Lo que se edita es el mes, no la referencia** (05-09-2026). El primer día la
+ * línea abría el fijo entero, y eso hacía que corregir «la limpieza este mes han
+ * sido 150» subiera la referencia a 150 para siempre. Ahora abre un sheet corto
+ * que pregunta por este mes y deja la referencia donde estaba; desde ahí se llega
+ * a «Lo fijo» de un toque, para cuando lo que ha cambiado es lo de todos los
+ * meses. El detalle, en `AjusteDelMesSheet`.
+ *
+ * Un fijo ajustado se lee en la propia fila: debajo del nombre dice cuál es la
+ * referencia. Sin eso, el desglose de un mes cualquiera no se distingue del de un
+ * mes retocado, y la cifra de arriba tampoco lo cuenta.
  *
  * En un mes cerrado siguen sin editarse, y ahí no es una decisión de pantalla: la
  * línea es una copia que no sabe de qué fijo salió (`fixedId` es `null`), y lo
@@ -85,12 +95,12 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * El signo se hereda del total: si «Gastos fijos» va en negativo, sus líneas
  * también, o parecería que se están sumando al revés.
  */
-function LineaDeFijos({ etiqueta, importe, tono, fijos, onEditar }: {
+function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
   etiqueta: string
   importe: number
   tono: 'entra' | 'sale'
   fijos: FijoDelMes[]
-  onEditar?: (id: string) => void
+  onAjustar?: (fijo: FijoDelMes) => void
 }) {
   // **Plegado**, que es como entró y como se ha quedado. Estuvo abierto de mano un
   // rato el 04-09-2026 y se volvió atrás el mismo día: con los cuatro recibos y las
@@ -137,7 +147,18 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onEditar }: {
             const contenido = (
               <>
                 {fijo.emoji && <span className="flex-shrink-0" aria-hidden>{fijo.emoji}</span>}
-                <span className="min-w-0 flex-1 truncate text-muted">{fijo.name}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-muted">{fijo.name}</span>
+                  {/* Solo cuando este mes lleva ajuste. Es lo que distingue «este
+                      mes han sido 150» de «ahora son 150»: sin esta línea, un mes
+                      retocado se lee igual que uno normal y la referencia solo se
+                      ve yéndose a «Lo fijo». */}
+                  {fijo.referenciaCents !== null && (
+                    <span className="block truncate text-[11px] text-faint">
+                      suele ser {signo(fijo.referenciaCents)}
+                    </span>
+                  )}
+                </span>
                 <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
                   {signo(fijo.amountCents)}
                 </span>
@@ -150,11 +171,11 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onEditar }: {
                     no un lápiz al lado: en 320 px de ancho un icono de tocar es
                     lo único que no cabe. `min-h-6` por el mínimo de toque de
                     24 px (WCAG 2.5.8), que `movil.spec.ts` vigila. */}
-                {fijo.fixedId && onEditar ? (
+                {fijo.fixedId && onAjustar ? (
                   <button
                     type="button"
-                    onClick={() => onEditar(fijo.fixedId as string)}
-                    aria-label={`Editar ${fijo.name}`}
+                    onClick={() => onAjustar(fijo)}
+                    aria-label={`Ajustar ${fijo.name} en este mes`}
                     className="-mx-1 flex min-h-6 w-full items-baseline gap-2 rounded-lg px-1 text-left transition-colors hover:bg-canvas active:bg-canvas"
                   >
                     {contenido}
@@ -239,7 +260,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onEditar }: {
  */
 export function CuentaDelMes({
   cuenta, fijos, nombreDelMes, meses, mes, mesActual, onElegirMes, reparto,
-  copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos, onEditarFijo,
+  copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos, onAjustarFijo,
 }: CuentaDelMesProps) {
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
@@ -321,12 +342,12 @@ export function CuentaDelMes({
         <div className="mt-3 space-y-1 border-t border-hairline pt-2.5">
           {/* Un tipo sin ninguna línea no se hace desplegable: se abriría vacío. */}
           {ingresos.length > 0 ? (
-            <LineaDeFijos etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} onEditar={onEditarFijo} />
+            <LineaDeFijos etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} onAjustar={onAjustarFijo} />
           ) : (
             <Linea etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" />
           )}
           {gastos.length > 0 ? (
-            <LineaDeFijos etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" fijos={gastos} onEditar={onEditarFijo} />
+            <LineaDeFijos etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" fijos={gastos} onAjustar={onAjustarFijo} />
           ) : (
             <Linea etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" />
           )}

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, vacationEdges, vacationLength } from '@/lib/events'
+import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
 import { event } from './fixtures'
 
 // Antes de las vacaciones, el calendario daba por hecho que un evento vivía en
@@ -231,5 +231,56 @@ test.describe('isPlan', () => {
     for (const kind of ['evento', 'vacaciones', 'descanso', 'festivo'] as const) {
       expect(isPlan(event({ kind }))).toBe(!isRangeKind(kind))
     }
+  })
+})
+
+// Lo que permite que la tarjeta de Inicio distinga lo que ya pasó de lo que
+// queda del día. Antes todo se leía igual a cualquier hora.
+test.describe('planYaPasado', () => {
+  const ahora = new Date('2026-08-10T15:00:00')
+
+  test('lo de esta mañana ha pasado y lo de esta noche no', () => {
+    expect(planYaPasado(event({ start_at: '2026-08-10T09:00:00' }), ahora)).toBe(true)
+    expect(planYaPasado(event({ start_at: '2026-08-10T21:00:00' }), ahora)).toBe(false)
+  })
+
+  test('lo que está ocurriendo no ha pasado: manda la hora de fin', () => {
+    const comida = event({ start_at: '2026-08-10T14:00:00', end_at: '2026-08-10T16:00:00' })
+    expect(planYaPasado(comida, ahora)).toBe(false)
+  })
+
+  test('lo de todo el día nunca ha pasado: no tiene hora que comparar', () => {
+    const e = event({ all_day: true, start_at: '2026-08-10T00:00:00' })
+    expect(planYaPasado(e, ahora)).toBe(false)
+  })
+})
+
+test.describe('siguientePlan', () => {
+  const ahora = new Date('2026-08-10T15:00:00')
+
+  test('el más cercano de los que quedan, venga como venga la lista', () => {
+    const planes = [
+      event({ title: 'cena',     start_at: '2026-08-10T21:00:00' }),
+      event({ title: 'desayuno', start_at: '2026-08-10T09:00:00' }),
+      event({ title: 'dentista', start_at: '2026-08-10T17:00:00' }),
+    ]
+    expect(siguientePlan(planes, ahora)?.title).toBe('dentista')
+  })
+
+  test('a última hora ya no queda ninguno, y eso también se dice', () => {
+    const planes = [event({ start_at: '2026-08-10T09:00:00' })]
+    expect(siguientePlan(planes, ahora)).toBeNull()
+  })
+
+  test('lo de todo el día no es el siguiente de nada', () => {
+    const planes = [
+      event({ title: 'huelga', all_day: true, start_at: '2026-08-10T00:00:00' }),
+      event({ title: 'cena',   start_at: '2026-08-10T21:00:00' }),
+    ]
+    expect(siguientePlan(planes, ahora)?.title).toBe('cena')
+  })
+
+  test('sin planes, nada', () => {
+    expect(siguientePlan([], ahora)).toBeNull()
   })
 })

@@ -190,6 +190,29 @@ export interface FixedEntry {
 }
 
 /**
+ * Lo que un fijo costó **en un mes concreto**, cuando no fue lo de siempre.
+ *
+ * La limpieza son 120 € al mes y en septiembre fueron 150: la referencia sigue
+ * siendo 120 y el mes dice 150. **Un mes sin fila vale lo que diga la plantilla**,
+ * así que aquí solo se guarda lo que se sale de lo normal — la misma forma que
+ * tienen las excepciones de una recurrencia.
+ *
+ * **Es de un mes y no una vigencia.** Ajustar septiembre no toca octubre.
+ */
+export interface FixedEntryOverride {
+  id: string
+  family_id: string
+  fixed_entry_id: string
+  /** `YYYY-MM`. */
+  month: string
+  /** En céntimos, siempre positivo. El signo lo pone el `kind` del fijo. */
+  amount_cents: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+/**
  * Una partida de gasto al mes para algo: la compra, el colegio, el ocio.
  *
  * La partida **no es por mes**: es una cifra que vale hasta que se cambie. Una fila
@@ -502,6 +525,15 @@ export interface FixedEntryDraft {
   amount: string
   child_id: string | null
   member_id: string | null
+}
+
+/**
+ * Lo que se teclea al ajustar un fijo en un mes. Un solo campo: el mes y el fijo
+ * ya los sabe la pantalla desde la que se abre, y el nombre, el icono y de quién
+ * es siguen siendo de la referencia — un ajuste dice **cuánto**, nada más.
+ */
+export interface FixedOverrideDraft {
+  amount: string
 }
 
 export interface QuoteDraft {

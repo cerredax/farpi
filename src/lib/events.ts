@@ -214,3 +214,38 @@ export function vacationEdges(event: Event, day: Date | string): { primero: bool
     ultimo: dia === extractDate(event.end_at ?? event.start_at),
   }
 }
+
+/**
+ * Si un plan de hoy ya ha pasado.
+ *
+ * Cuenta el final cuando lo hay: una comida de 14:00 a 16:00 no ha pasado a las
+ * 15:00, y decir que sí sería apagar justo lo que está ocurriendo. Sin `end_at`
+ * manda la hora de inicio.
+ *
+ * Un evento de todo el día **nunca** ha pasado. No tiene hora, así que la
+ * pregunta no le aplica: dura hasta que se acaba el día.
+ */
+export function planYaPasado(event: Event, ahora: Date): boolean {
+  if (event.all_day) return false
+  const fin = new Date(event.end_at ?? event.start_at)
+  return fin.getTime() < ahora.getTime()
+}
+
+/**
+ * Cuál de los planes de hoy es el siguiente: el que hay que mirar ahora.
+ *
+ * Se busca por hora y no por posición en la lista, para no depender de que
+ * quien llame los traiga ordenados. Los de todo el día quedan fuera por lo
+ * mismo que en `planYaPasado`: sin hora no son "el siguiente" de nada.
+ *
+ * Devuelve `null` cuando ya no queda nada, que es lo normal a última hora y es
+ * información: el día está hecho.
+ */
+export function siguientePlan(events: Event[], ahora: Date): Event | null {
+  let siguiente: Event | null = null
+  for (const event of events) {
+    if (event.all_day || planYaPasado(event, ahora)) continue
+    if (!siguiente || event.start_at < siguiente.start_at) siguiente = event
+  }
+  return siguiente
+}

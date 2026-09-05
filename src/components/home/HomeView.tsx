@@ -7,7 +7,7 @@ import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
 import { getDayPeriod, getGreeting } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
-import { selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
+import { selectExpiringDocs, selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
 import { cumplesDeLaCasa } from '@/lib/birthdays'
 import { TodayEvents } from './TodayEvents'
 import { TodayBirthdays } from './TodayBirthdays'
@@ -16,6 +16,7 @@ import { TodayTasks } from './TodayTasks'
 import { TodayMealsRow } from './TodayMealsRow'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
+import { ExpiringDocs } from './ExpiringDocs'
 import { UpcomingEvents } from './UpcomingEvents'
 import { DayIllustration } from './DayIllustration'
 import { BottomSheet } from '@/components/ui/BottomSheet'
@@ -57,7 +58,7 @@ function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean
 }
 
 export function HomeView() {
-  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, toggleTask, toggleListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
+  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, documents, toggleTask, toggleListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [confirmTask, setConfirmTask] = useState<Task | null>(null)
   /**
    * El plan que se está mirando de cerca. Inicio **abre lo apuntado** desde el
@@ -82,6 +83,10 @@ export function HomeView() {
   const todayEvents = useMemo(() => selectTodayEvents(allEvents), [allEvents])
   const upcoming    = useMemo(() => selectUpcomingEvents(allEvents), [allEvents])
 
+  // Lo único de la casa que se estropea solo y sin avisar. Los días en que no
+  // hay nada que renovar, esto no pinta nada.
+  const papeles     = useMemo(() => selectExpiringDocs(documents), [documents])
+
   // Los cumpleaños de casa no se guardan: salen de la fecha de nacimiento que ya
   // está en Ajustes. Los de fuera —la abuela, el amigo del cole— sí están
   // apuntados, como evento del calendario. Aquí se juntan, porque en la tarjeta
@@ -102,12 +107,20 @@ export function HomeView() {
 
   // El mensaje de calma solo cuando el día está vacío de verdad: si hay tareas
   // para hoy, la tarjeta ya tiene algo que enseñar.
+  //
+  // Son dos frases porque no es lo mismo un día vacío con la casa al día que uno
+  // sin nada a una hora **pero con cosas pendientes** debajo. La segunda decía
+  // «Hoy no hay nada señalado. Lo demás puede esperar.» y se cambió el 05-09-2026:
+  // salía justo cuando sí quedaba algo —tareas sin fecha, la compra— y encima
+  // pegada a los bloques que las enseñan, así que la app decidía por la casa que
+  // eso podía esperar. Ahora dice lo que pasa y se calla el resto, que está ahí
+  // debajo con sus propios títulos.
   const diaVacio = todayEvents.length === 0 && tareasHoy.length === 0 && cumplesHoy.length === 0
   const calmMessage = !diaVacio
     ? null
     : pendingTasks.length === 0 && pendingItems.length === 0
       ? 'Hoy pinta tranquilo. La casa respira un poco.'
-      : 'Hoy no hay nada señalado. Lo demás puede esperar.'
+      : 'Un día sin agenda.'
 
   // Saludo y fecha abren la tarjeta del día en lugar del rótulo en mayúsculas
   // que había ("Lo que hay que hacer hoy"): dicen lo mismo y son cercanos.
@@ -120,41 +133,60 @@ export function HomeView() {
   const ahora = useIsClient() ? new Date() : null
 
   return (
-    // En escritorio Inicio deja de ser una columna larga: la tarjeta de hoy
-    // ocupa el ancho —es el titular de la pantalla— y debajo las cuatro
-    // secciones se reparten en dos columnas, para que "qué hay que saber hoy"
-    // entre de una vez sin bajar. La rejilla va en este mismo div y cada hijo
-    // dice si ocupa una o dos, así que por debajo de `lg` el DOM no cambia.
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
-      <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
-        {ahora && <DayIllustration period={getDayPeriod(ahora)} />}
-        <div className="relative space-y-3">
-          <div className="min-h-[3.25rem]">
-            {ahora && (
-              <>
-                <p className="text-2xl font-bold text-ink leading-tight">{getGreeting(ahora)}</p>
-                <p className="text-sm font-semibold text-muted">
-                  {capitalize(format(ahora, "EEEE, d 'de' MMMM", { locale: es }))}
-                </p>
-              </>
-            )}
+    // Los sheets van **fuera** del contenedor de abajo, y no es cosmética: ese
+    // div lleva `space-y-6`, que separa a sus hijos con un margen. Un
+    // `BottomSheet` cerrado es `fixed bottom-0` con `translate-y-full`, y en una
+    // caja fija ese margen entra en la cuenta del `bottom`: corre el ancla 24 px
+    // hacia arriba y el desplazamiento —el 100 % de su propia altura— ya no
+    // basta para sacarla de la pantalla.
+    //
+    // El resultado era el sheet del plan asomando por abajo y tapando media
+    // etiqueta de la barra de navegación. El otro sheet, al que `space-y` no le
+    // pone margen, asomaba 0 px: eso fue lo que lo delató. Solo en móvil,
+    // porque en `lg` el espaciado se apaga y el sheet es modal centrado. Lo
+    // vigila `e2e/movil.spec.ts` en todas las rutas.
+    <>
+      {/* En escritorio Inicio deja de ser una columna larga: la tarjeta de hoy
+          ocupa el ancho —es el titular de la pantalla— y debajo las secciones
+          se reparten en dos columnas, para que "qué hay que saber hoy" entre de
+          una vez sin bajar. La rejilla va en este mismo div y cada hijo dice si
+          ocupa una o dos, así que por debajo de `lg` el DOM no cambia. */}
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+        <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
+          {ahora && <DayIllustration period={getDayPeriod(ahora)} />}
+          <div className="relative space-y-3">
+            <div className="min-h-[3.25rem]">
+              {ahora && (
+                <>
+                  <p className="text-2xl font-bold text-ink leading-tight">{getGreeting(ahora)}</p>
+                  <p className="text-sm font-semibold text-muted">
+                    {capitalize(format(ahora, "EEEE, d 'de' MMMM", { locale: es }))}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
+                entera para repetir nombres que ya salen en cada plan. */}
+            <TodayBirthdays cumples={cumplesHoy} />
+            <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} onOpen={setEventoAbierto} ahora={ahora} />
+            <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
+            <TodayMealsRow meals={todayMeals} />
           </div>
-
-          {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
-              entera para repetir nombres que ya salen en cada plan. */}
-          <TodayBirthdays cumples={cumplesHoy} />
-          <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} onOpen={setEventoAbierto} />
-          <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
-          <TodayMealsRow meals={todayMeals} />
         </div>
-      </div>
 
-      {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
-          tareas. Lo que viene cierra. */}
-      <PendingItems items={pendingItems} onToggle={toggleListItem} />
-      <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
-      <UpcomingEvents events={upcoming} kids={kids} members={members} onOpen={setEventoAbierto} />
-      <UpcomingBirthdays cumples={cumplesProximos} />
+        {/* Pegado a la tarjeta del día porque es lo que más caduca —valga la
+            palabra— de todo lo que hay debajo: un DNI vencido estropea el
+            viaje del mes que viene, y la compra puede esperar al scroll. */}
+        <ExpiringDocs docs={papeles} />
+
+        {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
+            tareas. Lo que viene cierra. */}
+        <PendingItems items={pendingItems} onToggle={toggleListItem} />
+        <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
+        <UpcomingEvents events={upcoming} kids={kids} members={members} onOpen={setEventoAbierto} />
+        <UpcomingBirthdays cumples={cumplesProximos} />
+      </div>
 
       {/* La `key` cuelga del evento para que el formulario arranque con lo que
           tiene ese plan y no con lo del anterior, igual que en el calendario.
@@ -180,6 +212,6 @@ export function HomeView() {
         onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}
         onCancel={() => setConfirmTask(null)}
       />
-    </div>
+    </>
   )
 }

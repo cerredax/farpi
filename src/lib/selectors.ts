@@ -312,9 +312,16 @@ export function selectTodayEvents(events: Event[]): Event[] {
  * Lo que viene en los próximos días, sin contar hoy.
  *
  * La ventana existe para que el bloque cumpla su título: antes devolvía los
- * cinco siguientes sin mirar la fecha, así que bajo "Esta semana" podía salir
- * algo de dentro de un mes. Las vacaciones se quedan fuera, como en el resto de
- * la pantalla de inicio: son del calendario.
+ * cinco siguientes sin mirar la fecha, así que podía salir algo de dentro de un
+ * mes. Las vacaciones se quedan fuera, como en el resto de la pantalla de
+ * inicio: son del calendario.
+ *
+ * El bloque se llama **"Próximos días"** y no "Esta semana" (05-09-2026). Esto
+ * es una ventana móvil de siete días desde mañana, no la semana natural: un
+ * sábado, "esta semana" llegaba hasta el sábado siguiente, que es la de
+ * después. Y "Esta semana" ya significa otra cosa —la semana de verdad,
+ * `endOfWeek`— en los tramos de la agenda del calendario (`agenda.ts`), así que
+ * la misma etiqueta decía dos cosas distintas en dos pantallas.
  */
 export function selectUpcomingEvents(events: Event[], limit = 5, dias = 7): Event[] {
   const now = new Date()
@@ -352,6 +359,46 @@ export function selectExpiryState(
     (parseLocalDate(expiresOn).getTime() - parseLocalDate(today).getTime()) / 86_400_000
   )
   return dias <= DIAS_AVISO_CADUCIDAD ? 'pronto' : 'vigente'
+}
+
+/** Los papeles que piden algo: los que ya vencieron y los que están a punto. */
+export interface DocsQueCaducan {
+  /** Ya vencidos, del más viejo al más reciente: el que más tiempo lleva mal. */
+  caducados: Document[]
+  /** Dentro de `DIAS_AVISO_CADUCIDAD`, del más cercano al más lejano. */
+  pronto: Document[]
+}
+
+/**
+ * Qué papeles hay que renovar, para el aviso de Inicio.
+ *
+ * El dato estaba y el recordatorio diario ya lo mandaba por push, pero en
+ * pantalla había que entrar en Documentos para verlo: el DNI caducado es
+ * exactamente "qué tenemos que saber hoy en casa" y era lo único de la app que
+ * se estropea solo sin que nada lo diga (05-09-2026).
+ *
+ * Se devuelven en dos grupos y no en una lista con su estado porque el aviso
+ * los cuenta por separado —"2 han caducado y 1 caduca pronto"— y porque lo
+ * vencido manda sobre lo que aún da tiempo.
+ */
+export function selectExpiringDocs(
+  documents: Document[],
+  today = getLocalDateString(),
+): DocsQueCaducan {
+  const caducados: Document[] = []
+  const pronto: Document[] = []
+
+  for (const doc of documents) {
+    const estado = selectExpiryState(doc.expires_on, today)
+    if (estado === 'caducado') caducados.push(doc)
+    else if (estado === 'pronto') pronto.push(doc)
+  }
+
+  const porFecha = (a: Document, b: Document) => (a.expires_on ?? '').localeCompare(b.expires_on ?? '')
+  caducados.sort(porFecha)
+  pronto.sort(porFecha)
+
+  return { caducados, pronto }
 }
 
 /**

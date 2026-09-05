@@ -140,12 +140,15 @@ async function main() {
   await sembrar('list_items', { family_id: famA, list_id: listaA, text: 'Item A', sort_order: 0 })
   await sembrar('meal_plans', { family_id: famA, date: '2026-08-10', slot: 'lunch', name: 'Comida A' })
   await sembrar('notes', { family_id: famA, title: 'Nota A', body: 'Clave del wifi de A' })
-  await sembrar('fixed_entries', { family_id: famA, kind: 'ingreso', name: 'Nómina A', amount_cents: 165000 })
+  const fijoA = await sembrar('fixed_entries', { family_id: famA, kind: 'ingreso', name: 'Nómina A', amount_cents: 165000 })
+  // Lo que un fijo costó en un mes suelto. Cuelga del fijo y lleva `family_id`
+  // propio, así que tiene policy y trigger propios que probar.
+  await sembrar('fixed_entry_overrides', { family_id: famA, fixed_entry_id: fijoA, month: '2026-08', amount_cents: 170000 })
   const presuA = await sembrar('budgets', { family_id: famA, name: 'Compra A', monthly_limit_cents: 30000 })
   await sembrar('expenses', { family_id: famA, budget_id: presuA, amount_cents: 1250, date: '2026-08-10' })
   await sembrar('quotes', { family_id: famA, title: 'Caldera A', provider: 'Clima A', amount_cents: 120000 })
 
-  for (const tabla of ['children', 'events', 'tasks', 'lists', 'list_items', 'meal_plans', 'notes', 'fixed_entries', 'budgets', 'expenses', 'quotes']) {
+  for (const tabla of ['children', 'events', 'tasks', 'lists', 'list_items', 'meal_plans', 'notes', 'fixed_entries', 'fixed_entry_overrides', 'budgets', 'expenses', 'quotes']) {
     comprobar(`B NO ve ${tabla} de la familia de A`,
       filas(await api(`/rest/v1/${tabla}?family_id=eq.${famA}&select=id`, { token: tokB })) === 0)
   }
@@ -162,6 +165,8 @@ async function main() {
   // Un fijo es lo que más dice de una casa: cuánto cobra cada uno.
   comprobar('B NO puede crear fijos en la familia de A',
     (await api('/rest/v1/fixed_entries', { metodo: 'POST', token: tokB, datos: { family_id: famA, kind: 'ingreso', name: 'Intruso', amount_cents: 100 } })).estado >= 400)
+  comprobar('B NO puede ajustar un fijo de la familia de A',
+    (await api('/rest/v1/fixed_entry_overrides', { metodo: 'POST', token: tokB, datos: { family_id: famA, fixed_entry_id: fijoA, month: '2026-09', amount_cents: 100 } })).estado >= 400)
   comprobar('B NO puede auto-añadirse como miembro de A',
     (await api('/rest/v1/family_members', { metodo: 'POST', token: tokB, datos: { family_id: famA, user_id: uidB, display_name: 'Intruso', role: 'admin' } })).estado >= 400)
   // Y un admin tampoco puede meter a nadie a mano, que **sí se podía** hasta el
@@ -218,6 +223,14 @@ async function main() {
     (await api('/rest/v1/fixed_entries', { metodo: 'POST', token: tokA, datos: { family_id: famA, kind: 'gasto', name: 'cross', amount_cents: 500, child_id: hijoB } })).estado >= 400)
   comprobar('Rechaza fijo con member_id de otra familia',
     (await api('/rest/v1/fixed_entries', { metodo: 'POST', token: tokA, datos: { family_id: famA, kind: 'ingreso', name: 'cross', amount_cents: 500, member_id: miembroB } })).estado >= 400)
+  // Y el ajuste de mes: lleva `family_id` propio para que su policy sea barata,
+  // así que hay que comprobar que no se puede colar uno que apunte al fijo de
+  // otra familia con el `family_id` propio puesto.
+  const fijoB = (await api('/rest/v1/fixed_entries', {
+    metodo: 'POST', token: tokB, datos: { family_id: famB, kind: 'gasto', name: 'Recibo B', amount_cents: 5000 }, cabeceras: REPRESENTACION,
+  })).cuerpo?.[0]?.id
+  comprobar('Rechaza ajuste de mes sobre un fijo de otra familia',
+    (await api('/rest/v1/fixed_entry_overrides', { metodo: 'POST', token: tokA, datos: { family_id: famA, fixed_entry_id: fijoB, month: '2026-08', amount_cents: 500 } })).estado >= 400)
   // Los dos `check` que sostienen el vocabulario: un tipo que no existe, y un
   // ingreso que descontaría de una partida.
   comprobar('Rechaza un apunte con un tipo que no existe',

@@ -17,7 +17,7 @@ interface UpcomingEventsProps {
 }
 
 /**
- * Día dentro de la próxima semana. Se abrevia ("Mié 6") porque compite por el
+ * Día dentro de los próximos siete. Se abrevia ("Mié 6") porque compite por el
  * ancho con la hora en la misma línea, y el mes sobra: nada de lo que sale aquí
  * está a más de siete días.
  */
@@ -33,7 +33,7 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
 
   return (
     <HomeSection
-      label="Esta semana"
+      label="Próximos días"
       icon={CalendarDays}
       accentColor="#E9C46A"
       footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}

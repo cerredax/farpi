@@ -1,8 +1,9 @@
-import { existiaEnElMes, mesDe, mesVecino } from '../budgets'
+import { ajusteDelMes, existiaEnElMes, mesDe, mesVecino } from '../budgets'
 import { getLocalDateString } from '../date-utils'
 import { parseAmountToCents } from '../finanzas'
 import type {
   Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
+  FixedEntryOverride, FixedOverrideDraft,
   MonthPlan, MonthPlanLine, Quote, QuoteDraft, QuoteStatus,
 } from '@/types'
 import { db } from './db'
@@ -69,6 +70,57 @@ export function updateFixedEntry(id: string, draft: FixedEntryDraft): void {
 
 export function deleteFixedEntry(id: string): void {
   db.fixedEntries = db.fixedEntries.filter(f => f.id !== id)
+  // El `on delete cascade` de la base: sin el fijo, un ajuste suyo no significa
+  // nada y dejarlo aquí lo resucitaría si otro fijo reutilizara el id.
+  db.fixedOverrides = db.fixedOverrides.filter(o => o.fixed_entry_id !== id)
+}
+
+// ─── Ajustes de un fijo en un mes ─────────────────────────────────────────────
+
+export function getFixedOverrides(familyId: string): FixedEntryOverride[] {
+  return db.fixedOverrides.filter(o => o.family_id === familyId)
+}
+
+/**
+ * Poner el importe de un fijo en un mes. **Upsert por fijo y mes**, como el
+ * `unique` de la base: ajustar dos veces el mismo mes cambia la fila, no añade
+ * otra.
+ */
+export function setFixedOverride(
+  familyId: string,
+  fixedEntryId: string,
+  month: string,
+  draft: FixedOverrideDraft,
+): void {
+  const now = new Date().toISOString()
+  const previo = db.fixedOverrides.find(
+    o => o.fixed_entry_id === fixedEntryId && o.month === month,
+  )
+
+  if (previo) {
+    db.fixedOverrides = db.fixedOverrides.map(o =>
+      o !== previo ? o : { ...o, amount_cents: centimos(draft.amount), updated_at: now }
+    )
+    return
+  }
+
+  db.fixedOverrides = [...db.fixedOverrides, {
+    id: crypto.randomUUID(),
+    family_id: familyId,
+    fixed_entry_id: fixedEntryId,
+    month,
+    amount_cents: centimos(draft.amount),
+    created_by: 'u1',
+    created_at: now,
+    updated_at: now,
+  }]
+}
+
+/** Quitar el ajuste: el mes vuelve a valer lo que diga la plantilla. */
+export function clearFixedOverride(fixedEntryId: string, month: string): void {
+  db.fixedOverrides = db.fixedOverrides.filter(
+    o => !(o.fixed_entry_id === fixedEntryId && o.month === month),
+  )
 }
 
 // ─── Partidas ─────────────────────────────────────────────────────────────────
@@ -314,13 +366,17 @@ function copiarPlantillaAlMes(familyId: string, mes: string): boolean {
     ...parcial,
   })
 
+  const ajustes = getFixedOverrides(familyId)
+
   const lines: MonthPlanLine[] = [
     ...fijosDelMes.map(f => linea({
       line: f.kind,
       budget_id: null,
       name: f.name,
       emoji: f.emoji,
-      amount_cents: f.amount_cents,
+      // El importe **de ese mes**, como el `coalesce` de `close_month_copy`: si
+      // la limpieza se ajustó a 150 en septiembre, septiembre se cierra con 150.
+      amount_cents: ajusteDelMes(ajustes, f.id, mes)?.amount_cents ?? f.amount_cents,
       child_id: f.child_id,
       member_id: f.member_id,
       sort_order: f.sort_order,

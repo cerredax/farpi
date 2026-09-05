@@ -40,6 +40,32 @@ for (const ruta of RUTAS) {
       .toBeLessThanOrEqual(desborde.ancho + 1)
   })
 
+  // Un `BottomSheet` cerrado es `fixed bottom-0` con `translate-y-full`, así
+  // que tiene que quedar **entero** por debajo del borde. Si algo le mete un
+  // margen —estar dentro de un contenedor con `space-y-*`, que es lo que les
+  // pasaba a Inicio y a Finanzas hasta el 05-09-2026— el ancla se corre hacia
+  // arriba, el desplazamiento ya no basta y el sheet asoma tapando las
+  // etiquetas de la barra de navegación. No lo veía ninguna de las dos
+  // comprobaciones de arriba: ni desborda a lo ancho ni es un control pequeño,
+  // simplemente está encima.
+  test(`ningún sheet cerrado asoma por abajo en ${ruta}`, async ({ page }) => {
+    await page.goto(ruta)
+    await page.waitForTimeout(900)
+
+    const asoman = await page.evaluate(() => {
+      const alto = window.innerHeight
+      return [...document.querySelectorAll('[role="dialog"][inert]')]
+        .map(el => ({
+          titulo: el.querySelector('h3')?.textContent ?? el.tagName,
+          asoma: Math.round(alto - el.getBoundingClientRect().top),
+        }))
+        .filter(x => x.asoma > 0)
+    })
+
+    expect(asoman, `Sheets cerrados asomando en ${ruta}: ${asoman.map(x => `${x.titulo} (${x.asoma}px)`).join(', ')}`)
+      .toEqual([])
+  })
+
   test(`los controles se pueden tocar con el dedo en ${ruta}`, async ({ page }) => {
     await page.goto(ruta)
     await page.waitForTimeout(900)

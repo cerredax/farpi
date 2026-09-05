@@ -4,7 +4,10 @@ import { familyRepo, invitesRepo, membersRepo } from './family'
 import { childrenRepo } from './kids'
 import { listItemsRepo, listsRepo } from './lists'
 import { mealsRepo } from './meals'
-import { budgetsRepo, expensesRepo, fixedEntriesRepo, monthPlansRepo, quotesRepo } from './finanzas'
+import {
+  budgetsRepo, expensesRepo, fixedEntriesRepo, fixedOverridesRepo, monthPlansRepo,
+  quotesRepo,
+} from './finanzas'
 import { notesRepo } from './notes'
 import { storageProvidersRepo } from './storage-providers'
 import { tasksRepo } from './tasks'
@@ -27,6 +30,7 @@ export const supabaseRepos: Repos = {
   meals: mealsRepo,
   notes: notesRepo,
   fixedEntries: fixedEntriesRepo,
+  fixedOverrides: fixedOverridesRepo,
   budgets: budgetsRepo,
   expenses: expensesRepo,
   quotes: quotesRepo,

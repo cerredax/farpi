@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react'
 import { memo } from 'react'
 import type { Event, Child, FamilyMember } from '@/types'
 import { eventColor, resolveAssignee, textColorOn } from '@/lib/assignees'
+import { planYaPasado, siguientePlan } from '@/lib/events'
 import { format } from 'date-fns'
 
 interface TodayEventsProps {
@@ -16,6 +17,12 @@ interface TodayEventsProps {
   calmMessage: string | null
   /** Abrir lo apuntado. Tocar un plan lo abre, igual que en el calendario. */
   onOpen: (event: Event) => void
+  /**
+   * La hora a la que se está mirando la pantalla, o `null` hasta que hidrata.
+   * Viene de arriba, que es donde ya se calcula para el saludo: dos relojes en
+   * la misma tarjeta pueden dar dos respuestas distintas al cambiar de minuto.
+   */
+  ahora: Date | null
 }
 
 function formatTime(dateStr: string) {
@@ -27,7 +34,7 @@ function formatTime(dateStr: string) {
  * —"¿qué tenemos hoy?"— y separarlos obligaba a leer dos bloques seguidos que
  * decían casi lo mismo: el saludo ya adelantaba el próximo evento.
  */
-export const TodayEvents = memo(function TodayEvents({ events, kids, members, calmMessage, onOpen }: TodayEventsProps) {
+export const TodayEvents = memo(function TodayEvents({ events, kids, members, calmMessage, onOpen, ahora }: TodayEventsProps) {
   if (events.length === 0) {
     if (!calmMessage) return null
     return (
@@ -40,11 +47,23 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
     )
   }
 
+  // A media tarde, "¿qué tenemos hoy?" es sobre todo "¿qué queda?". Hasta el
+  // 05-09-2026 el desayuno de las 8:00 y la cena de las 21:00 se leían igual a
+  // cualquier hora, así que la tarjeta obligaba a mirar el reloj y comparar. Lo
+  // que ya pasó se atenúa y lo siguiente se marca con su hora en verde: es un
+  // cambio de color, no una fila ni una etiqueta más.
+  //
+  // Sin `ahora` —el HTML de antes de hidratar— no se atenúa nada: /home se
+  // prerenderiza y marcar ahí lo pasado sería marcarlo con la hora del build.
+  const proximo = ahora ? siguientePlan(events, ahora) : null
+
   return (
     <div className="rounded-3xl bg-white/80 border border-white shadow-sm overflow-hidden">
       <ul className="divide-y divide-hairline">
         {events.map(event => {
           const asignado = resolveAssignee(event, members, kids)
+          const pasado = !!ahora && planYaPasado(event, ahora)
+          const esProximo = event.id === proximo?.id
           return (
             <li key={event.id}>
               {/* La fila entera es el botón que abre el plan (04-09-2026): en
@@ -55,19 +74,19 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
                 type="button"
                 onClick={() => onOpen(event)}
                 title={event.title}
-                className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface"
+                className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface ${pasado ? 'opacity-55' : ''}`}
               >
                 <div className="flex items-center gap-1.5 min-w-[52px] pt-0.5">
                   {/* Donde estaba el reloj, que no decía nada que no dijera ya la
                       hora: el punto de color de quien tiene el plan, amarillo si
-                      es de toda la familia. Igual que en "Esta semana" y en la
+                      es de toda la familia. Igual que en "Próximos días" y en la
                       agenda del calendario. */}
                   <span
                     className="w-2 h-2 rounded-full flex-shrink-0"
                     style={{ backgroundColor: eventColor(event, members, kids) }}
                     aria-hidden
                   />
-                  <span className="text-xs font-bold text-muted">
+                  <span className={`text-xs font-bold ${esProximo ? 'text-primary-strong' : 'text-muted'}`}>
                     {event.all_day ? 'Todo el día' : formatTime(event.start_at)}
                   </span>
                 </div>

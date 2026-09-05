@@ -7,11 +7,12 @@ import {
   gastoAcumulado, mesDe, mesVecino, mesesNavegables, partidasQueSePasan,
   plantillaDelMes, repartoDeLoQueEntra, repartoDelMes, repartoPorPartida,
   resumenPartidas, ritmoHabitual, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
+  type FijoDelMes,
 } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
 import type {
   Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
-  MovementKind, Quote, QuoteDraft,
+  FixedOverrideDraft, MovementKind, Quote, QuoteDraft,
 } from '@/types'
 
 export type PestañaFinanzas = 'mes' | 'resumen' | 'plantilla' | 'presupuestos'
@@ -28,9 +29,10 @@ export type PestañaFinanzas = 'mes' | 'resumen' | 'plantilla' | 'presupuestos'
  */
 export function useFinanzasState() {
   const {
-    fixedEntries, budgets, expenses, quotes, monthPlans, members, kids,
+    fixedEntries, fixedOverrides, budgets, expenses, quotes, monthPlans, members, kids,
     closeMonthNow, reopenMonth, emptyMonth,
     createFixedEntry, updateFixedEntry, deleteFixedEntry,
+    setFixedOverride, clearFixedOverride,
     createBudget, updateBudget, deleteBudget,
     createExpense, updateExpense, deleteExpense,
     createQuote, updateQuote, deleteQuote, setQuoteStatus,
@@ -51,6 +53,14 @@ export function useFinanzasState() {
   const [fixedSheetOpen, setFixedSheetOpen] = useState(false)
   const [editingFixed, setEditingFixed] = useState<FixedEntry | null>(null)
   const [kindNuevoFijo, setKindNuevoFijo] = useState<MovementKind>('ingreso')
+  /**
+   * El fijo que se está ajustando **en el mes que se mira**, ya resuelto: lleva
+   * el importe de ese mes y la referencia si difiere. Es una foto y no un id
+   * porque el sheet necesita las dos cifras, y la de referencia no está en el mes
+   * sino en la plantilla.
+   */
+  const [ajustando, setAjustando] = useState<FijoDelMes | null>(null)
+  const [ajusteSheetOpen, setAjusteSheetOpen] = useState(false)
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [budgetSheetOpen, setBudgetSheetOpen] = useState(false)
@@ -64,8 +74,8 @@ export function useFinanzasState() {
   // terminado, la copia congelada si terminó. Todo lo de «El mes» cuelga de aquí,
   // y por eso se calcula una sola vez y no en cada selector.
   const plantilla = useMemo(
-    () => plantillaDelMes(mes, mesActual, fixedEntries, budgets, monthPlans, previsionAbierta),
-    [mes, mesActual, fixedEntries, budgets, monthPlans, previsionAbierta],
+    () => plantillaDelMes(mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, previsionAbierta),
+    [mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, previsionAbierta],
   )
 
   const resumen = useMemo(() => resumenPartidas(plantilla, expenses, mes), [plantilla, expenses, mes])
@@ -88,8 +98,8 @@ export function useFinanzasState() {
   // es de la casa, no del mes: mirando junio, cortarla en junio escondía julio,
   // agosto y septiembre y dejaba una sola barra, que no es una tendencia.
   const serie = useMemo(
-    () => serieDeMeses(mesActual, 6, mesActual, fixedEntries, budgets, monthPlans, expenses),
-    [mesActual, fixedEntries, budgets, monthPlans, expenses],
+    () => serieDeMeses(mesActual, 6, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses),
+    [mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses],
   )
   // El reparto del mes, con **cuánto ha cambiado cada trozo** frente al anterior.
   // El mes de al lado se resuelve con su propia plantilla —la que valía entonces—
@@ -99,12 +109,12 @@ export function useFinanzasState() {
     return conVariacion(
       repartoPorPartida(plantilla, expenses, mes),
       repartoPorPartida(
-        plantillaDelMes(anterior, mesActual, fixedEntries, budgets, monthPlans),
+        plantillaDelMes(anterior, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans),
         expenses,
         anterior,
       ),
     )
-  }, [plantilla, expenses, mes, mesActual, fixedEntries, budgets, monthPlans])
+  }, [plantilla, expenses, mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans])
 
   // Los tres datos de «Cómo vamos» que no salen de la serie ni del reparto.
   const acumulado = useMemo(() => gastoAcumulado(expenses, mes), [expenses, mes])
@@ -113,8 +123,8 @@ export function useFinanzasState() {
     [monthPlans, expenses, mesActual],
   )
   const sePasan = useMemo(
-    () => partidasQueSePasan(mesActual, 6, mesActual, fixedEntries, budgets, monthPlans, expenses),
-    [mesActual, fixedEntries, budgets, monthPlans, expenses],
+    () => partidasQueSePasan(mesActual, 6, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses),
+    [mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses],
   )
   const entrada = useMemo(
     () => repartoDeLoQueEntra(plantilla, expenses, mes),
@@ -145,6 +155,10 @@ export function useFinanzasState() {
   // React lo cantaba por consola. Lo pilló `runtime.spec.ts`, que tumba la suite
   // ante cualquier `console.error`.
   const fixedKey = editingFixed ? `fijo-${editingFixed.id}` : `fijo-nuevo-${kindNuevoFijo}`
+  // El mes entra en la clave: el mismo fijo ajustado en septiembre y en octubre
+  // son dos formularios distintos, y sin esto el segundo abriría con el importe
+  // del primero escrito.
+  const ajusteKey = ajustando ? `ajuste-${ajustando.fixedId}-${mes}` : 'ajuste-ninguno'
   const expenseKey = editingExpense ? `apunte-${editingExpense.id}` : `apunte-nuevo-${mes}`
   const budgetKey = editingBudget ? `partida-${editingBudget.id}` : 'partida-nueva'
   const quoteKey = editingQuote ? `pedido-${editingQuote.id}` : 'pedido-nuevo'
@@ -238,6 +252,7 @@ export function useFinanzasState() {
     totalGastosFijos: sumaDeFijos(fixedEntries, 'gasto'),
 
     fixedSheetOpen, setFixedSheetOpen, editingFixed, kindNuevoFijo, fixedKey,
+    ajusteSheetOpen, setAjusteSheetOpen, ajustando, ajusteKey,
     expenseSheetOpen, setExpenseSheetOpen, editingExpense, expenseKey,
     budgetSheetOpen, setBudgetSheetOpen, editingBudget, budgetKey,
     quoteSheetOpen, setQuoteSheetOpen, editingQuote, quoteKey,
@@ -252,14 +267,30 @@ export function useFinanzasState() {
       setFixedSheetOpen(true)
     },
     /**
-     * Editar un fijo desde el desglose de «El mes» (04-09-2026). La línea solo
-     * lleva el id del fijo vivo —lo demás lo tiene copiado, para poder pintar el
-     * recibo de un mes cerrado—, así que hay que ir a buscarlo. Si no está, no
-     * se abre nada: es la misma cautela que `abrirPartidaPorId`.
+     * Tocar un fijo en el desglose de «El mes» **ajusta ese mes**, no la
+     * referencia (05-09-2026).
+     *
+     * Del 04 al 05-09 abría el fijo entero, y estaba mal: la limpieza son 120 € al
+     * mes y en septiembre fueron 150, así que corregir el mes desde aquí subía la
+     * referencia a 150 y con ella todos los meses abiertos —la casa perdía el
+     * «esto suele costar 120», que es justo el dato por el que se pone un fijo—.
+     * Ahora el sheet corto pregunta por el mes y la referencia se sigue tocando en
+     * «Lo fijo», a donde ese mismo sheet lleva de un toque.
+     */
+    abrirAjusteDelMes(fijo: FijoDelMes) {
+      if (!fijo.fixedId) return
+      setAjustando(fijo)
+      setAjusteSheetOpen(true)
+    },
+    /**
+     * Y de ahí a la referencia: el sheet del ajuste ofrece «Editar el fijo». La
+     * línea solo lleva el id del fijo vivo, así que hay que ir a buscarlo; si no
+     * está, no se abre nada, que es la misma cautela que `abrirPartidaPorId`.
      */
     abrirFijoPorId(id: string) {
       const fijo = fixedEntries.find(f => f.id === id)
       if (!fijo) return
+      setAjusteSheetOpen(false)
       setEditingFixed(fijo)
       setFixedSheetOpen(true)
     },
@@ -290,6 +321,21 @@ export function useFinanzasState() {
     guardarFijo(draft: FixedEntryDraft) {
       if (editingFixed) updateFixedEntry(editingFixed.id, draft)
       else createFixedEntry(draft)
+    },
+    /**
+     * Guardar el ajuste del mes que se está mirando. Si lo tecleado coincide con
+     * la referencia se guarda igual: `plantillaDelMes` ya se encarga de no
+     * contarlo como ajuste, y borrarlo aquí en silencio haría que el sheet
+     * volviera a abrirse sin lo que se acaba de escribir.
+     */
+    guardarAjuste(draft: FixedOverrideDraft) {
+      if (!ajustando?.fixedId) return
+      setFixedOverride(ajustando.fixedId, mes, draft)
+    },
+    /** Quitar el ajuste: ese mes vuelve a valer lo que diga la plantilla. */
+    quitarAjuste() {
+      if (!ajustando?.fixedId) return
+      clearFixedOverride(ajustando.fixedId, mes)
     },
     guardarApunte(draft: ExpenseDraft) {
       if (editingExpense) updateExpense(editingExpense.id, draft)

@@ -23,6 +23,8 @@ import type {
   ExpenseDraft,
   FixedEntry,
   FixedEntryDraft,
+  FixedEntryOverride,
+  FixedOverrideDraft,
   Family,
   FamilyInvite,
   FamilyMember,
@@ -87,6 +89,11 @@ interface StoreValue {
   meals: MealPlan[]
   notes: Note[]
   fixedEntries: FixedEntry[]
+  /**
+   * Los meses en que un fijo valió otra cosa. Solo hay fila donde se salió de lo
+   * normal; el resto de los meses valen lo que diga `fixedEntries`.
+   */
+  fixedOverrides: FixedEntryOverride[]
   budgets: Budget[]
   expenses: Expense[]
   quotes: Quote[]
@@ -147,7 +154,15 @@ interface StoreValue {
   deleteNote: (id: string) => Promise<void>
   createFixedEntry: (draft: FixedEntryDraft) => Promise<void>
   updateFixedEntry: (id: string, draft: FixedEntryDraft) => Promise<void>
+  /** Se lleva con él sus ajustes de mes, como el `on delete cascade` de la base. */
   deleteFixedEntry: (id: string) => Promise<void>
+  /**
+   * Ajustar lo que un fijo vale **en un mes suelto**, sin tocar la referencia.
+   * Es lo que deja decir «la limpieza son 120, pero en septiembre fueron 150».
+   */
+  setFixedOverride: (fixedEntryId: string, month: string, draft: FixedOverrideDraft) => Promise<void>
+  /** Quitar el ajuste: ese mes vuelve a valer lo que diga la plantilla. */
+  clearFixedOverride: (fixedEntryId: string, month: string) => Promise<void>
   createBudget: (draft: BudgetDraft) => Promise<void>
   updateBudget: (id: string, draft: BudgetDraft) => Promise<void>
   /** Borra la partida. Sus gastos se quedan, sin partida. */
@@ -204,6 +219,8 @@ interface StoreProviderProps {
  *   - borrar una cesta se lleva sus ítems (`list_items.list_id`, cascade);
  *   - borrar una partida deja a `null` el `budget_id` de los gastos **y** el de
  *     las líneas de los meses ya cerrados —dos tablas, no una—;
+ *   - borrar un fijo se lleva sus ajustes de mes
+ *     (`fixed_entry_overrides.fixed_entry_id`, cascade);
  *   - borrar un hijo o echar a un miembro pone su asignación a `null` en las
  *     **seis** tablas que la tienen, y por eso esas dos no declaran nada.
  *
@@ -214,8 +231,8 @@ interface StoreProviderProps {
  */
 export type Porcion =
   | 'family' | 'families' | 'members' | 'invites' | 'kids' | 'events' | 'tasks'
-  | 'lists' | 'listItems' | 'meals' | 'notes' | 'fixedEntries' | 'budgets'
-  | 'expenses' | 'quotes' | 'monthPlans' | 'documents' | 'currentUserId'
+  | 'lists' | 'listItems' | 'meals' | 'notes' | 'fixedEntries' | 'fixedOverrides'
+  | 'budgets' | 'expenses' | 'quotes' | 'monthPlans' | 'documents' | 'currentUserId'
 
 const EMPTY_SLICES = {
   families: [] as Family[],
@@ -229,6 +246,7 @@ const EMPTY_SLICES = {
   meals: [] as MealPlan[],
   notes: [] as Note[],
   fixedEntries: [] as FixedEntry[],
+  fixedOverrides: [] as FixedEntryOverride[],
   budgets: [] as Budget[],
   expenses: [] as Expense[],
   quotes: [] as Quote[],
@@ -288,6 +306,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const [meals, setMeals] = useState<MealPlan[]>(EMPTY_SLICES.meals)
   const [notes, setNotes] = useState<Note[]>(EMPTY_SLICES.notes)
   const [fixedEntries, setFixedEntries] = useState<FixedEntry[]>(EMPTY_SLICES.fixedEntries)
+  const [fixedOverrides, setFixedOverrides] = useState<FixedEntryOverride[]>(EMPTY_SLICES.fixedOverrides)
   const [budgets, setBudgets] = useState<Budget[]>(EMPTY_SLICES.budgets)
   const [expenses, setExpenses] = useState<Expense[]>(EMPTY_SLICES.expenses)
   const [quotes, setQuotes] = useState<Quote[]>(EMPTY_SLICES.quotes)
@@ -328,6 +347,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     meals:         async () => { const v = await repos.meals.getMeals(familyId);           setMeals(v);        return v },
     notes:         async () => { const v = await repos.notes.getNotes(familyId);           setNotes(v);        return v },
     fixedEntries:  async () => { const v = await repos.fixedEntries.getFixedEntries(familyId); setFixedEntries(v); return v },
+    fixedOverrides: async () => { const v = await repos.fixedOverrides.getFixedOverrides(familyId); setFixedOverrides(v); return v },
     budgets:       async () => { const v = await repos.budgets.getBudgets(familyId);       setBudgets(v);      return v },
     expenses:      async () => { const v = await repos.expenses.getExpenses(familyId);     setExpenses(v);     return v },
     quotes:        async () => { const v = await repos.quotes.getQuotes(familyId);         setQuotes(v);       return v },
@@ -536,6 +556,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       meals,
       notes,
       fixedEntries,
+      fixedOverrides,
       budgets,
       expenses,
       quotes,
@@ -677,8 +698,21 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         runMutation(() => repos.fixedEntries.createFixedEntry(familyId, draft), ['fixedEntries']),
       updateFixedEntry: (id: string, draft: FixedEntryDraft) =>
         runMutation(() => repos.fixedEntries.updateFixedEntry(id, draft), ['fixedEntries']),
+      // Dos porciones y no una: el fijo se lleva por delante sus ajustes de mes
+      // (`on delete cascade`), y sin declararlos la pantalla seguiría con un
+      // ajuste huérfano en memoria.
       deleteFixedEntry: (id: string) =>
-        runMutation(() => repos.fixedEntries.deleteFixedEntry(id), ['fixedEntries']),
+        runMutation(() => repos.fixedEntries.deleteFixedEntry(id), ['fixedEntries', 'fixedOverrides']),
+      setFixedOverride: (fixedEntryId: string, month: string, draft: FixedOverrideDraft) =>
+        runMutation(
+          () => repos.fixedOverrides.setFixedOverride(familyId, fixedEntryId, month, draft),
+          ['fixedOverrides'],
+        ),
+      clearFixedOverride: (fixedEntryId: string, month: string) =>
+        runMutation(
+          () => repos.fixedOverrides.clearFixedOverride(fixedEntryId, month),
+          ['fixedOverrides'],
+        ),
       createBudget: (draft: BudgetDraft) => runMutation(() => repos.budgets.createBudget(familyId, draft), ['budgets']),
       updateBudget: (id: string, draft: BudgetDraft) => runMutation(() => repos.budgets.updateBudget(id, draft), ['budgets']),
       // Borrar una partida deja sus gastos **sin partida**, no los borra: la fila de
@@ -735,6 +769,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     meals,
     notes,
     fixedEntries,
+    fixedOverrides,
     budgets,
     expenses,
     quotes,

@@ -3,6 +3,7 @@
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Plus } from 'lucide-react'
+import { AjusteDelMesSheet } from './AjusteDelMesSheet'
 import { BudgetBar } from './BudgetBar'
 import { BudgetSheet } from './BudgetSheet'
 import { CadaMesPanel } from './CadaMesPanel'
@@ -99,271 +100,279 @@ export function FinanzasView() {
   const nombreDelMes = capitalize(format(parseISO(`${s.mes}-01`), 'MMMM yyyy', { locale: es }))
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-4xl lg:px-6">
-      {/* El `+` va arriba y no flotando abajo, como en Listas, Tareas, Comidas,
-          Notas y Documentos. Finanzas era la única que se había quedado con el
-          botón flotante, que es justo la divergencia que `ViewHeader` vino a
-          cerrar. El resumen cambia con la pestaña porque el `+` también. */}
-      <ViewHeader
-        resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
-        buscador={null}
-        // El `+` sale en todos los meses, también en los que no han llegado
-        // (04-09-2026). Antes no: se daba por hecho que un gasto con fecha de
-        // octubre apuntado en septiembre era un recordatorio y no un gasto. Pero
-        // el caso normal es el contrario —sabes que en octubre llega el IBI y
-        // quieres ver si octubre cuadra contándolo—, y una tarea no suma en la
-        // cuenta del mes, así que no contestaba la pregunta.
-        onAdd={() => {
-          if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
-          else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
-          else s.abrirApunte(null)
-        }}
-        addLabel={ETIQUETA_DE_ALTA[s.pestaña]}
-      />
-
-      {/* Mismo patrón de pestañas que Ajustes: se arrastran en móvil y caben
-          enteras en escritorio. Con la cuarta ya no caben a 390 px, así que el
-          `overflow-x-auto` dejó de ser precaución y es lo que evita el desborde
-          que `movil.spec.ts` vigila. */}
-      <div
-        role="tablist"
-        aria-label="Secciones de finanzas"
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0"
-      >
-        {([
-          { key: 'mes', label: 'El mes' },
-          // «Cómo vamos» y no «Resumen» (04-09-2026): nombra lo que contesta y no
-          // cómo lo pinta, que además es lo honesto cuando parte de lo que hay ahí
-          // es una frase y no un dibujo. La clave sigue siendo `resumen` porque
-          // renombrarla no le cambia nada a nadie.
-          { key: 'resumen', label: 'Cómo vamos' },
-          { key: 'plantilla', label: 'Lo fijo' },
-          { key: 'presupuestos', label: 'Presupuestos' },
-        ] as { key: PestañaFinanzas; label: string }[]).map(p => (
-          <button
-            key={p.key}
-            type="button"
-            role="tab"
-            id={`tab-${p.key}`}
-            aria-selected={s.pestaña === p.key}
-            aria-controls={`panel-${p.key}`}
-            onClick={() => s.setPestaña(p.key)}
-            className={`flex-shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
-              s.pestaña === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      <div id="panel-mes" role="tabpanel" aria-labelledby="tab-mes" hidden={s.pestaña !== 'mes'} className="space-y-5">
-        <CuentaDelMes
-          cuenta={s.cuenta}
-          fijos={s.plantilla.fijos}
-          nombreDelMes={nombreDelMes}
-          meses={s.meses}
-          mes={s.mes}
-          mesActual={s.mesActual}
-          onElegirMes={s.elegirMes}
-          reparto={s.repartoPorPersona}
-          copiaVacia={s.copiaVacia}
-          previsionAbierta={s.previsionAbierta}
-          onVerPrevision={s.alternarPrevision}
-          onPonerFijos={() => s.setPestaña('plantilla')}
-          // Quién se puede editar lo dice la propia línea: solo las que son el
-          // espejo de la plantilla llevan `fixedId`, y las de un mes cerrado no.
-          onEditarFijo={s.abrirFijoPorId}
+    // Los sheets van fuera del div de la pantalla: lleva `space-y-5`, y ese
+    // margen entre hermanos corre hacia arriba el ancla de un `BottomSheet`
+    // cerrado —`fixed bottom-0` con `translate-y-full`—, que se queda asomando
+    // 20 px por encima de la barra de navegación. Mismo fallo y mismo arreglo
+    // que en Inicio (05-09-2026).
+    <>
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-4xl lg:px-6">
+        {/* El `+` va arriba y no flotando abajo, como en Listas, Tareas, Comidas,
+            Notas y Documentos. Finanzas era la única que se había quedado con el
+            botón flotante, que es justo la divergencia que `ViewHeader` vino a
+            cerrar. El resumen cambia con la pestaña porque el `+` también. */}
+        <ViewHeader
+          resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
+          buscador={null}
+          // El `+` sale en todos los meses, también en los que no han llegado
+          // (04-09-2026). Antes no: se daba por hecho que un gasto con fecha de
+          // octubre apuntado en septiembre era un recordatorio y no un gasto. Pero
+          // el caso normal es el contrario —sabes que en octubre llega el IBI y
+          // quieres ver si octubre cuadra contándolo—, y una tarea no suma en la
+          // cuenta del mes, así que no contestaba la pregunta.
+          onAdd={() => {
+            if (s.pestaña === 'plantilla') s.abrirFijoNuevo('gasto')
+            else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
+            else s.abrirApunte(null)
+          }}
+          addLabel={ETIQUETA_DE_ALTA[s.pestaña]}
         />
 
-        {/* En un mes que no ha llegado y sin previsión pedida no se pintan las
-            partidas: no hay nada que medir, y un «Sin partidas» invitando a
-            repartir un mes que no existe es ruido. Con la previsión abierta
-            vuelven, que es lo que se ha ido a ver. */}
-        {(!s.esPorVenir || s.previsionAbierta) && (
-          <section aria-label="Partidas del mes" className="space-y-2">
-            <div className="flex items-center justify-between gap-3 px-1">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
-              {/* Solo se ofrece añadir donde las partidas son las vivas: en un mes
-                  pasado —cerrado o no— lo que se mira es lo que hubo, y no hay nada
-                  que tocar ahí.
+        {/* Mismo patrón de pestañas que Ajustes: se arrastran en móvil y caben
+            enteras en escritorio. Con la cuarta ya no caben a 390 px, así que el
+            `overflow-x-auto` dejó de ser precaución y es lo que evita el desborde
+            que `movil.spec.ts` vigila. */}
+        <div
+          role="tablist"
+          aria-label="Secciones de finanzas"
+          className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:overflow-x-visible lg:px-0"
+        >
+          {([
+            { key: 'mes', label: 'El mes' },
+            // «Cómo vamos» y no «Resumen» (04-09-2026): nombra lo que contesta y no
+            // cómo lo pinta, que además es lo honesto cuando parte de lo que hay ahí
+            // es una frase y no un dibujo. La clave sigue siendo `resumen` porque
+            // renombrarla no le cambia nada a nadie.
+            { key: 'resumen', label: 'Cómo vamos' },
+            { key: 'plantilla', label: 'Lo fijo' },
+            { key: 'presupuestos', label: 'Presupuestos' },
+          ] as { key: PestañaFinanzas; label: string }[]).map(p => (
+            <button
+              key={p.key}
+              type="button"
+              role="tab"
+              id={`tab-${p.key}`}
+              aria-selected={s.pestaña === p.key}
+              aria-controls={`panel-${p.key}`}
+              onClick={() => s.setPestaña(p.key)}
+              className={`flex-shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
+                s.pestaña === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
 
-                  **Abre el sheet aquí mismo** (03-09-2026). Hasta ese día mandaba a
-                  «Lo fijo», por una razón de vocabulario —una partida es de la
-                  plantilla y no de un mes, y crearla desde enero haría creer que se
-                  está creando en enero— que ya no hace falta defender con un salto de
-                  pestaña: de eso se encarga `planVivo`, que es lo que impide que este
-                  botón exista en enero. Lo que quedaba era mandar a otra pantalla a
-                  quien está mirando sus partidas y quiere una más.
+        <div id="panel-mes" role="tabpanel" aria-labelledby="tab-mes" hidden={s.pestaña !== 'mes'} className="space-y-5">
+          <CuentaDelMes
+            cuenta={s.cuenta}
+            fijos={s.plantilla.fijos}
+            nombreDelMes={nombreDelMes}
+            meses={s.meses}
+            mes={s.mes}
+            mesActual={s.mesActual}
+            onElegirMes={s.elegirMes}
+            reparto={s.repartoPorPersona}
+            copiaVacia={s.copiaVacia}
+            previsionAbierta={s.previsionAbierta}
+            onVerPrevision={s.alternarPrevision}
+            onPonerFijos={() => s.setPestaña('plantilla')}
+            // Quién se puede tocar lo dice la propia línea: solo las que son el
+            // espejo de la plantilla llevan `fixedId`, y las de un mes cerrado no.
+            // Lo que abre es el ajuste **de este mes**, no la referencia.
+            onAjustarFijo={s.abrirAjusteDelMes}
+          />
 
-                  `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
-                  `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
-                  negativo devuelve el texto a la línea del título para que la
-                  zona de toque crezca sin que se note. */}
-              {s.planVivo && (
-                <button
-                  type="button"
-                  onClick={() => s.abrirPartida(null)}
-                  className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
-                >
-                  <Plus size={14} strokeWidth={2.6} aria-hidden />
-                  Nueva partida
-                </button>
+          {/* En un mes que no ha llegado y sin previsión pedida no se pintan las
+              partidas: no hay nada que medir, y un «Sin partidas» invitando a
+              repartir un mes que no existe es ruido. Con la previsión abierta
+              vuelven, que es lo que se ha ido a ver. */}
+          {(!s.esPorVenir || s.previsionAbierta) && (
+            <section aria-label="Partidas del mes" className="space-y-2">
+              <div className="flex items-center justify-between gap-3 px-1">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
+                {/* Solo se ofrece añadir donde las partidas son las vivas: en un mes
+                    pasado —cerrado o no— lo que se mira es lo que hubo, y no hay nada
+                    que tocar ahí.
+
+                    **Abre el sheet aquí mismo** (03-09-2026). Hasta ese día mandaba a
+                    «Lo fijo», por una razón de vocabulario —una partida es de la
+                    plantilla y no de un mes, y crearla desde enero haría creer que se
+                    está creando en enero— que ya no hace falta defender con un salto de
+                    pestaña: de eso se encarga `planVivo`, que es lo que impide que este
+                    botón exista en enero. Lo que quedaba era mandar a otra pantalla a
+                    quien está mirando sus partidas y quiere una más.
+
+                    `-mr-2` y el relleno vertical: el enlace tenía 16 px de alto y
+                    `movil.spec.ts` lo cazó, que exige 24 (WCAG 2.5.8). El margen
+                    negativo devuelve el texto a la línea del título para que la
+                    zona de toque crezca sin que se note. */}
+                {s.planVivo && (
+                  <button
+                    type="button"
+                    onClick={() => s.abrirPartida(null)}
+                    className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
+                  >
+                    <Plus size={14} strokeWidth={2.6} aria-hidden />
+                    Nueva partida
+                  </button>
+                )}
+              </div>
+
+              {s.resumen.length === 0 ? (
+                <EmptyState
+                  emoji="🎯"
+                  title="Sin partidas"
+                  description={s.planVivo
+                    ? 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Lo fijo», y aquí verás cuánto llevas de cada una.'
+                    : s.planCongelado
+                      ? 'Ese mes se cerró sin ninguna partida puesta.'
+                      : 'De ese mes no se guardó el plan, así que no se sabe qué partidas había.'}
+                />
+              ) : (
+                s.resumen.map(r => (
+                  <BudgetBar
+                    key={r.partida.key}
+                    resumen={r}
+                    members={s.members}
+                    kids={s.kids}
+                    onEdit={s.planVivo && r.partida.budgetId
+                      ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
+                      : undefined}
+                    onEditApunte={s.abrirApunte}
+                  />
+                ))
               )}
-            </div>
+            </section>
+          )}
 
-            {s.resumen.length === 0 ? (
+          <section aria-label="El día a día" className="space-y-2">
+            <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
+              El día a día {s.delMes.length > 0 && <span className="text-faint">({s.delMes.length})</span>}
+            </h2>
+
+            {/* En un mes que no ha llegado el hueco **invita**, no explica
+                (04-09-2026). Decía «Aquí se apunta lo que ya ha pasado. Cuando llegue
+                el mes, esto se llena», que además de largo ya no es verdad: desde ese
+                día se puede apuntar lo que sabes que va a llegar, y eso es justo para
+                lo que se entra en octubre. */}
+            {s.delMes.length === 0 ? (
               <EmptyState
-                emoji="🎯"
-                title="Sin partidas"
-                description={s.planVivo
-                  ? 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Lo fijo», y aquí verás cuánto llevas de cada una.'
-                  : s.planCongelado
-                    ? 'Ese mes se cerró sin ninguna partida puesta.'
-                    : 'De ese mes no se guardó el plan, así que no se sabe qué partidas había.'}
+                emoji={s.esPorVenir ? '📆' : '🧾'}
+                title={s.esPorVenir
+                  ? 'Nada apuntado todavía'
+                  : s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
+                description={s.esPorVenir
+                  ? 'Apunta lo que ya sabes que va a llegar: el seguro, la matrícula, el IBI.'
+                  : 'Apunta lo que se va gastando —y lo que entra sin ser fijo— y la cuenta de arriba se mueve sola.'}
               />
             ) : (
-              s.resumen.map(r => (
-                <BudgetBar
-                  key={r.partida.key}
-                  resumen={r}
-                  members={s.members}
-                  kids={s.kids}
-                  onEdit={s.planVivo && r.partida.budgetId
-                    ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
-                    : undefined}
-                  onEditApunte={s.abrirApunte}
-                />
-              ))
+              <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
+                {s.delMes.map(apunte => (
+                  <ExpenseRow
+                    key={apunte.id}
+                    expense={apunte}
+                    budgets={s.budgets}
+                    members={s.members}
+                    kids={s.kids}
+                    onEdit={() => s.abrirApunte(apunte)}
+                  />
+                ))}
+              </div>
             )}
+            {/* Aquí había una nota —«Hay 3 gastos sin partida: no cuentan para
+                ninguna»— y se fue el 04-09-2026. Contaba una consecuencia del sistema
+                en vez de algo que pase en la casa, y estaba todo el rato aunque no
+                hubiera nada que hacer con ella. Lo que dice sigue estando donde
+                importa: en «en qué se va», «Sin partida» sale como un trozo más. */}
           </section>
-        )}
 
-        <section aria-label="El día a día" className="space-y-2">
-          <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
-            El día a día {s.delMes.length > 0 && <span className="text-faint">({s.delMes.length})</span>}
-          </h2>
+          {/* **Al pie de la pestaña, lo último de todo** (04-09-2026, pedido).
+              Estuvo pegado debajo de la tarjeta desde el 03-09 con el argumento de
+              que era lo que se hace con el mes que la tarjeta acaba de resumir; la
+              pega de tenerlo ahí es que se cruza en el camino cada vez que se entra
+              a mirar el mes, y cerrar es lo que se hace **cuando has terminado de
+              mirarlo**. Aquí abajo se lee como «he acabado con esto», que es lo que
+              es, y no compite con las partidas ni con el día a día. */}
+          <CierreDelMes
+            nombreDelMes={nombreDelMes}
+            sePuedeCerrar={s.sePuedeCerrarYa}
+            sePuedeReabrir={s.sePuedeReabrir}
+            sePuedePonerACero={s.sePuedePonerACero}
+            onCerrar={s.cerrarMesYa}
+            onReabrir={s.reabrirMes}
+            onPonerACero={s.ponerMesACero}
+          />
+        </div>
 
-          {/* En un mes que no ha llegado el hueco **invita**, no explica
-              (04-09-2026). Decía «Aquí se apunta lo que ya ha pasado. Cuando llegue
-              el mes, esto se llena», que además de largo ya no es verdad: desde ese
-              día se puede apuntar lo que sabes que va a llegar, y eso es justo para
-              lo que se entra en octubre. */}
-          {s.delMes.length === 0 ? (
+        <div id="panel-resumen" role="tabpanel" aria-labelledby="tab-resumen" hidden={s.pestaña !== 'resumen'}>
+          <ResumenPanel
+            serie={s.serie}
+            reparto={s.reparto}
+            mes={s.mes}
+            nombreDelMes={nombreDelMes}
+            acumulado={s.acumulado}
+            ritmo={s.ritmo}
+            diaDeHoy={s.diaDeHoy}
+            esMesActual={s.esMesActual}
+            sePasan={s.sePasan}
+            entrada={s.entrada}
+            mesAnterior={format(parseISO(`${mesVecino(s.mes, -1)}-01`), 'MMMM', { locale: es })}
+          />
+        </div>
+
+        {/* Los totales salen de la **plantilla de hoy**, no del mes que se esté
+            mirando: esta pestaña no tiene mes. Mirando junio y saltando aquí, lo que
+            hay que ver es el alquiler que se paga ahora. */}
+        <div id="panel-plantilla" role="tabpanel" aria-labelledby="tab-plantilla" hidden={s.pestaña !== 'plantilla'}>
+          <CadaMesPanel
+            ingresos={s.ingresosFijos}
+            gastos={s.gastosFijos}
+            partidas={s.partidasPlantilla}
+            totalIngresos={s.totalIngresosFijos}
+            totalGastos={s.totalGastosFijos}
+            totalPartidas={s.totalPartidas}
+            paraElMes={s.totalIngresosFijos - s.totalGastosFijos}
+            members={s.members}
+            kids={s.kids}
+            onNuevoFijo={s.abrirFijoNuevo}
+            onEditarFijo={s.abrirFijo}
+            onNuevaPartida={() => s.abrirPartida(null)}
+            onEditarPartida={s.abrirPartida}
+          />
+        </div>
+
+        <div
+          id="panel-presupuestos"
+          role="tabpanel"
+          aria-labelledby="tab-presupuestos"
+          hidden={s.pestaña !== 'presupuestos'}
+          className="space-y-3"
+        >
+          <p className="px-1 text-xs text-muted">
+            Lo que cuesta algo que aún no has hecho: el fontanero, el dentista, la
+            reforma. Apunta varios para lo mismo y se comparan solos.
+          </p>
+
+          {s.grupos.length === 0 ? (
             <EmptyState
-              emoji={s.esPorVenir ? '📆' : '🧾'}
-              title={s.esPorVenir
-                ? 'Nada apuntado todavía'
-                : s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
-              description={s.esPorVenir
-                ? 'Apunta lo que ya sabes que va a llegar: el seguro, la matrícula, el IBI.'
-                : 'Apunta lo que se va gastando —y lo que entra sin ser fijo— y la cuenta de arriba se mueve sola.'}
+              emoji="📄"
+              title="Sin presupuestos pedidos"
+              description="Apunta lo que te pasen y, si pides otro para lo mismo, saldrán juntos con el más barato marcado."
             />
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
-              {s.delMes.map(apunte => (
-                <ExpenseRow
-                  key={apunte.id}
-                  expense={apunte}
-                  budgets={s.budgets}
-                  members={s.members}
-                  kids={s.kids}
-                  onEdit={() => s.abrirApunte(apunte)}
-                />
-              ))}
-            </div>
+            s.grupos.map(grupo => (
+              <QuoteGroupCard
+                key={grupo.titulo}
+                grupo={grupo}
+                hoy={s.hoy}
+                onEdit={quote => s.abrirPedido(quote)}
+                onStatus={(id, estado) => s.setQuoteStatus(id, estado)}
+              />
+            ))
           )}
-          {/* Aquí había una nota —«Hay 3 gastos sin partida: no cuentan para
-              ninguna»— y se fue el 04-09-2026. Contaba una consecuencia del sistema
-              en vez de algo que pase en la casa, y estaba todo el rato aunque no
-              hubiera nada que hacer con ella. Lo que dice sigue estando donde
-              importa: en «en qué se va», «Sin partida» sale como un trozo más. */}
-        </section>
-
-        {/* **Al pie de la pestaña, lo último de todo** (04-09-2026, pedido).
-            Estuvo pegado debajo de la tarjeta desde el 03-09 con el argumento de
-            que era lo que se hace con el mes que la tarjeta acaba de resumir; la
-            pega de tenerlo ahí es que se cruza en el camino cada vez que se entra
-            a mirar el mes, y cerrar es lo que se hace **cuando has terminado de
-            mirarlo**. Aquí abajo se lee como «he acabado con esto», que es lo que
-            es, y no compite con las partidas ni con el día a día. */}
-        <CierreDelMes
-          nombreDelMes={nombreDelMes}
-          sePuedeCerrar={s.sePuedeCerrarYa}
-          sePuedeReabrir={s.sePuedeReabrir}
-          sePuedePonerACero={s.sePuedePonerACero}
-          onCerrar={s.cerrarMesYa}
-          onReabrir={s.reabrirMes}
-          onPonerACero={s.ponerMesACero}
-        />
-      </div>
-
-      <div id="panel-resumen" role="tabpanel" aria-labelledby="tab-resumen" hidden={s.pestaña !== 'resumen'}>
-        <ResumenPanel
-          serie={s.serie}
-          reparto={s.reparto}
-          mes={s.mes}
-          nombreDelMes={nombreDelMes}
-          acumulado={s.acumulado}
-          ritmo={s.ritmo}
-          diaDeHoy={s.diaDeHoy}
-          esMesActual={s.esMesActual}
-          sePasan={s.sePasan}
-          entrada={s.entrada}
-          mesAnterior={format(parseISO(`${mesVecino(s.mes, -1)}-01`), 'MMMM', { locale: es })}
-        />
-      </div>
-
-      {/* Los totales salen de la **plantilla de hoy**, no del mes que se esté
-          mirando: esta pestaña no tiene mes. Mirando junio y saltando aquí, lo que
-          hay que ver es el alquiler que se paga ahora. */}
-      <div id="panel-plantilla" role="tabpanel" aria-labelledby="tab-plantilla" hidden={s.pestaña !== 'plantilla'}>
-        <CadaMesPanel
-          ingresos={s.ingresosFijos}
-          gastos={s.gastosFijos}
-          partidas={s.partidasPlantilla}
-          totalIngresos={s.totalIngresosFijos}
-          totalGastos={s.totalGastosFijos}
-          totalPartidas={s.totalPartidas}
-          paraElMes={s.totalIngresosFijos - s.totalGastosFijos}
-          members={s.members}
-          kids={s.kids}
-          onNuevoFijo={s.abrirFijoNuevo}
-          onEditarFijo={s.abrirFijo}
-          onNuevaPartida={() => s.abrirPartida(null)}
-          onEditarPartida={s.abrirPartida}
-        />
-      </div>
-
-      <div
-        id="panel-presupuestos"
-        role="tabpanel"
-        aria-labelledby="tab-presupuestos"
-        hidden={s.pestaña !== 'presupuestos'}
-        className="space-y-3"
-      >
-        <p className="px-1 text-xs text-muted">
-          Lo que cuesta algo que aún no has hecho: el fontanero, el dentista, la
-          reforma. Apunta varios para lo mismo y se comparan solos.
-        </p>
-
-        {s.grupos.length === 0 ? (
-          <EmptyState
-            emoji="📄"
-            title="Sin presupuestos pedidos"
-            description="Apunta lo que te pasen y, si pides otro para lo mismo, saldrán juntos con el más barato marcado."
-          />
-        ) : (
-          s.grupos.map(grupo => (
-            <QuoteGroupCard
-              key={grupo.titulo}
-              grupo={grupo}
-              hoy={s.hoy}
-              onEdit={quote => s.abrirPedido(quote)}
-              onStatus={(id, estado) => s.setQuoteStatus(id, estado)}
-            />
-          ))
-        )}
+        </div>
       </div>
 
       <FixedEntrySheet
@@ -374,6 +383,20 @@ export function FinanzasView() {
         onClose={() => s.setFixedSheetOpen(false)}
         onSave={s.guardarFijo}
         onDelete={s.deleteFixedEntry}
+      />
+
+      {/* Lo que un fijo costó **en este mes**. Solo se abre desde el desglose de
+          «El mes», y por eso el mes que ajusta es siempre el que se está mirando:
+          no hay selector de mes dentro, sería otra pantalla. */}
+      <AjusteDelMesSheet
+        key={s.ajusteKey}
+        open={s.ajusteSheetOpen}
+        fijo={s.ajustando}
+        nombreDelMes={nombreDelMes}
+        onClose={() => s.setAjusteSheetOpen(false)}
+        onSave={s.guardarAjuste}
+        onQuitar={s.quitarAjuste}
+        onEditarFijo={() => s.ajustando?.fixedId && s.abrirFijoPorId(s.ajustando.fixedId)}
       />
 
       <ExpenseSheet
@@ -409,6 +432,6 @@ export function FinanzasView() {
         onSave={s.guardarPedido}
         onDelete={s.deleteQuote}
       />
-    </div>
+    </>
   )
 }

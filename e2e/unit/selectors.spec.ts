@@ -19,6 +19,7 @@ import {
   selectEventMatches,
   selectFamilySummary,
   selectExpiryState,
+  selectExpiringDocs,
   invitacionCaducada,
   selectDocCategoryFilters,
   selectTodayEvents,
@@ -539,6 +540,48 @@ test.describe('selectExpiryState', () => {
 
   test('lo que caduca en años no molesta', () => {
     expect(selectExpiryState('2030-01-01', hoy)).toBe('vigente')
+  })
+})
+
+// El aviso de Inicio. Lo que se comprueba aquí es que separa bien los dos
+// grupos y que los ordena por urgencia: la frase que se escribe arriba coge el
+// primero de cada uno cuando solo hay uno.
+test.describe('selectExpiringDocs', () => {
+  const hoy = '2026-08-05'
+
+  test('los días normales no hay nada que avisar', () => {
+    const docs = [document({ expires_on: null }), document({ expires_on: '2030-01-01' })]
+    expect(selectExpiringDocs(docs, hoy)).toEqual({ caducados: [], pronto: [] })
+  })
+
+  test('separa lo vencido de lo que está a punto', () => {
+    const docs = [
+      document({ name: 'DNI', expires_on: '2026-07-01' }),
+      document({ name: 'Seguro', expires_on: '2026-08-20' }),
+      document({ name: 'Libro de familia', expires_on: null }),
+      document({ name: 'Pasaporte', expires_on: '2031-01-01' }),
+    ]
+    const { caducados, pronto } = selectExpiringDocs(docs, hoy)
+    expect(caducados.map(d => d.name)).toEqual(['DNI'])
+    expect(pronto.map(d => d.name)).toEqual(['Seguro'])
+  })
+
+  test('dentro de cada grupo manda la fecha: primero lo que lleva más tiempo mal', () => {
+    const docs = [
+      document({ name: 'reciente', expires_on: '2026-08-01' }),
+      document({ name: 'antiguo',  expires_on: '2026-02-01' }),
+      document({ name: 'lejano',   expires_on: '2026-09-01' }),
+      document({ name: 'cercano',  expires_on: '2026-08-06' }),
+    ]
+    const { caducados, pronto } = selectExpiringDocs(docs, hoy)
+    expect(caducados.map(d => d.name)).toEqual(['antiguo', 'reciente'])
+    expect(pronto.map(d => d.name)).toEqual(['cercano', 'lejano'])
+  })
+
+  test('lo que caduca hoy todavía no ha caducado', () => {
+    const { caducados, pronto } = selectExpiringDocs([document({ expires_on: hoy })], hoy)
+    expect(caducados).toHaveLength(0)
+    expect(pronto).toHaveLength(1)
   })
 })
 

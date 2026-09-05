@@ -108,6 +108,14 @@ export const mockRepos: Repos = {
     deleteFixedEntry:  (id) => Promise.resolve(store.deleteFixedEntry(id)),
   },
 
+  fixedOverrides: {
+    getFixedOverrides:   (familyId) => Promise.resolve(store.getFixedOverrides(familyId)),
+    setFixedOverride:    (familyId, fixedEntryId, month, draft) =>
+      Promise.resolve(store.setFixedOverride(familyId, fixedEntryId, month, draft)),
+    clearFixedOverride:  (fixedEntryId, month) =>
+      Promise.resolve(store.clearFixedOverride(fixedEntryId, month)),
+  },
+
   budgets: {
     getBudgets:   (familyId) => Promise.resolve(store.getBudgets(familyId)),
     createBudget: (familyId, draft) => Promise.resolve(store.createBudget(familyId, draft)),

@@ -1,8 +1,8 @@
 import { ALL_MEAL_SLOTS } from '../meal-slots'
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
-  MealPlan, List, ListItem, Document, Note, Budget, Expense, FixedEntry, Quote,
-  MonthPlan,
+  MealPlan, List, ListItem, Document, Note, Budget, Expense, FixedEntry,
+  FixedEntryOverride, Quote, MonthPlan,
 } from '@/types'
 
 interface DB {
@@ -17,6 +17,7 @@ interface DB {
   mealPlans: MealPlan[]
   notes:     Note[]
   fixedEntries: FixedEntry[]
+  fixedOverrides: FixedEntryOverride[]
   budgets:   Budget[]
   expenses:  Expense[]
   quotes:    Quote[]
@@ -141,6 +142,12 @@ export const db: DB = {
     { id: 'fx5', family_id: 'f1', kind: 'gasto'   as const, name: 'Internet y móvil', emoji: '📱', amount_cents: 4990,   child_id: null, member_id: null, sort_order: 2, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
     { id: 'fx6', family_id: 'f1', kind: 'gasto'   as const, name: 'Seguro del coche', emoji: '🚗', amount_cents: 3200,   child_id: null, member_id: null, sort_order: 3, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
   ],
+
+  // Los meses en que un fijo salió distinto de su referencia. **Vacío en la
+  // demo**, y no por descuido: un ajuste solo se ve en un mes abierto, y el único
+  // que lo está es el de hoy, que cambia con el reloj. Sembrarlo obligaría a
+  // clavar un `YYYY-MM` que dejaría de ser el mes en curso al día siguiente.
+  fixedOverrides: [],
 
   budgets: [
     { id: 'b1', family_id: 'f1', name: 'Compra',     emoji: '🛒', monthly_limit_cents: 40000, sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },

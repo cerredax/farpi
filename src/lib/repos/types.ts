@@ -1,10 +1,10 @@
 import type {
   Family, FamilyMember, FamilyInvite, Child, Event, Task,
   MealPlan, MealSlot, List, ListItem, Document, Note,
-  Budget, Expense, FixedEntry, Quote, MonthPlan,
+  Budget, Expense, FixedEntry, FixedEntryOverride, Quote, MonthPlan,
   ChildDraft, EventDraft, TaskDraft, MealDraft,
   ListDraft, ListItemDraft, DocumentDraft, NoteDraft, StorageConnection,
-  BudgetDraft, ExpenseDraft, FixedEntryDraft, QuoteDraft,
+  BudgetDraft, ExpenseDraft, FixedEntryDraft, FixedOverrideDraft, QuoteDraft,
 } from '@/types'
 
 // ─── Contratos de repositorios ─────────────────────────────────────────────────
@@ -109,7 +109,32 @@ export interface FixedEntriesRepo {
   getFixedEntries(familyId: string): Promise<FixedEntry[]>
   createFixedEntry(familyId: string, draft: FixedEntryDraft): Promise<FixedEntry>
   updateFixedEntry(id: string, draft: FixedEntryDraft): Promise<void>
+  /** Se lleva por delante los ajustes de mes del fijo (`on delete cascade`). */
   deleteFixedEntry(id: string): Promise<void>
+}
+
+/**
+ * Los ajustes de un fijo en un mes suelto: la limpieza que en septiembre fueron
+ * 150 y no los 120 de siempre.
+ *
+ * **Solo se guarda lo que se sale de lo normal.** Un mes sin fila vale lo que
+ * diga la plantilla, así que quitar el ajuste es borrar la fila y no escribir la
+ * referencia otra vez: son dos cosas distintas y la segunda dejaría el mes
+ * congelado en el importe de hoy.
+ *
+ * `setFixedOverride` es un **upsert por fijo y mes** —la base lo garantiza con un
+ * `unique`—, así que quien llama no tiene que preguntar antes si ya había uno. Y
+ * `clearFixedOverride` es idempotente: quitar lo que no está no es un error.
+ */
+export interface FixedOverridesRepo {
+  getFixedOverrides(familyId: string): Promise<FixedEntryOverride[]>
+  setFixedOverride(
+    familyId: string,
+    fixedEntryId: string,
+    month: string,
+    draft: FixedOverrideDraft,
+  ): Promise<void>
+  clearFixedOverride(fixedEntryId: string, month: string): Promise<void>
 }
 
 /**
@@ -239,6 +264,7 @@ export interface Repos {
   meals: MealsRepo
   notes: NotesRepo
   fixedEntries: FixedEntriesRepo
+  fixedOverrides: FixedOverridesRepo
   budgets: BudgetsRepo
   expenses: ExpensesRepo
   quotes: QuotesRepo

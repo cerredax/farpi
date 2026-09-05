@@ -3,7 +3,8 @@ import { es } from 'date-fns/locale'
 import { resolveAssignee } from './assignees'
 import { normalizaParaBuscar } from './text'
 import type {
-  Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MovementKind, Quote,
+  Budget, Child, Expense, FamilyMember, FixedEntry, FixedEntryOverride, MonthPlan,
+  MovementKind, Quote,
 } from '@/types'
 
 /**
@@ -155,6 +156,20 @@ export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): numb
   return fixed.filter(f => f.kind === kind).reduce((total, f) => total + f.amount_cents, 0)
 }
 
+/**
+ * El ajuste de un fijo en un mes, si lo hay.
+ *
+ * Se busca sobre la lista entera y no por un índice: son unos pocos ajustes por
+ * familia —los meses en que algo salió distinto—, no una fila por fijo y mes.
+ */
+export function ajusteDelMes(
+  overrides: FixedEntryOverride[],
+  fixedId: string,
+  mes: string,
+): FixedEntryOverride | undefined {
+  return overrides.find(o => o.fixed_entry_id === fixedId && o.month === mes)
+}
+
 // ─── Qué plantilla valía en un mes ────────────────────────────────────────────
 //
 // La pieza que le da historia a Finanzas (02-09-2026). `fixed_entries` y
@@ -163,8 +178,9 @@ export function sumaDeFijos(fixed: FixedEntry[], kind: FixedEntry['kind']): numb
 // subir el alquiler en marzo hacía que enero también lo dijera.
 //
 // La regla es de una línea: **si el mes tiene copia, manda la copia; si no y el
-// mes no ha terminado, refleja la plantilla.** Todo lo que la pantalla de «El mes»
-// necesita saber pasa antes por aquí.
+// mes no ha terminado, refleja la plantilla —con el ajuste de ese mes, si lo
+// tiene—.** Todo lo que la pantalla de «El mes» necesita saber pasa antes por
+// aquí.
 //
 // El orden importa y no es el obvio. Se escribió al revés —primero «¿ha terminado
 // el mes?»— y no dejaba cerrar un mes antes de tiempo: la copia estaba guardada y
@@ -186,7 +202,19 @@ export interface FijoDelMes {
   kind: MovementKind
   name: string
   emoji: string | null
+  /** Lo que valió **ese mes**: el ajuste si lo hay, y si no la referencia. */
   amountCents: number
+  /**
+   * La referencia de la plantilla, **solo cuando ese mes lleva ajuste** y por
+   * tanto no coincide con `amountCents` (05-09-2026). `null` el resto de las
+   * veces, que son casi todas: sin ajuste no hay dos cifras que contar, y en un
+   * mes cerrado la copia ni siquiera sabe cuál era la referencia de entonces.
+   *
+   * Es lo que deja que el sheet del mes diga «la referencia son 120 €» sin ir a
+   * buscar el fijo vivo, y lo que distingue «este mes son 150» de «ahora son
+   * 150», que es la distinción entera de esta pieza.
+   */
+  referenciaCents: number | null
   childId: string | null
   memberId: string | null
   sortOrder: number
@@ -286,11 +314,19 @@ export function existiaEnElMes(createdAt: string, mes: string): boolean {
  * apagado: octubre sale vacío hasta que alguien pide ver qué quedaría con la
  * plantilla de hoy. Los meses que ya son no lo miran, porque para ellos no hay
  * nada que prever.
+ *
+ * **Los ajustes de mes se aplican aquí y en ningún otro sitio** (05-09-2026).
+ * Es el único punto por el que pasan las cifras de un mes, así que basta con
+ * mirarlos una vez: la cuenta, el desglose, la serie y el reparto los heredan sin
+ * saber que existen. Un mes cerrado no los mira —su copia ya guardó el importe
+ * que tuvo, ajuste incluido— y ahí está la razón de que un ajuste puesto hoy no
+ * pueda mover un mes que ya terminó.
  */
 export function plantillaDelMes(
   mes: string,
   mesActual: string,
   fixed: FixedEntry[],
+  overrides: FixedEntryOverride[],
   budgets: Budget[],
   planes: MonthPlan[],
   conPrevision = false,
@@ -304,17 +340,24 @@ export function plantillaDelMes(
       // Un mes por venir enseña lo mismo que el de hoy —la plantilla— pero se
       // marca aparte: quien lo mira está viendo una previsión, no un mes.
       origen: mes > mesActual ? 'por-venir' : 'plantilla',
-      fijos: ordenarFijos(fixed.map(f => ({
-        key: f.id,
-        fixedId: f.id,
-        kind: f.kind,
-        name: f.name,
-        emoji: f.emoji,
-        amountCents: f.amount_cents,
-        childId: f.child_id,
-        memberId: f.member_id,
-        sortOrder: f.sort_order,
-      }))),
+      fijos: ordenarFijos(fixed.map(f => {
+        const ajuste = ajusteDelMes(overrides, f.id, mes)
+        return {
+          key: f.id,
+          fixedId: f.id,
+          kind: f.kind,
+          name: f.name,
+          emoji: f.emoji,
+          amountCents: ajuste?.amount_cents ?? f.amount_cents,
+          // Un ajuste que cae justo en la referencia no es un ajuste para quien
+          // mira: enseñar «la referencia son 120 €» debajo de un 120 € sería
+          // ruido. Se guarda igual —es lo que se tecleó— pero no se cuenta.
+          referenciaCents: ajuste && ajuste.amount_cents !== f.amount_cents ? f.amount_cents : null,
+          childId: f.child_id,
+          memberId: f.member_id,
+          sortOrder: f.sort_order,
+        }
+      })),
       partidas: ordenar(budgets.map(b => ({
         budgetId: b.id,
         key: b.id,
@@ -337,6 +380,9 @@ export function plantillaDelMes(
       name: l.name,
       emoji: l.emoji,
       amountCents: l.amount_cents,
+      // Y tampoco sabe cuál era la referencia entonces: la línea guarda el
+      // importe que tuvo, viniera de un ajuste o de la plantilla.
+      referenciaCents: null,
       childId: l.child_id,
       memberId: l.member_id,
       sortOrder: l.sort_order,
@@ -605,6 +651,7 @@ export function serieDeMeses(
   cuantos: number,
   mesActual: string,
   fixed: FixedEntry[],
+  overrides: FixedEntryOverride[],
   budgets: Budget[],
   planes: MonthPlan[],
   expenses: Expense[],
@@ -622,7 +669,7 @@ export function serieDeMeses(
   const meses: MesDeLaSerie[] = []
 
   for (const mes of haciaAtras.reverse()) {
-    const plantilla = plantillaDelMes(mes, mesActual, fixed, budgets, planes)
+    const plantilla = plantillaDelMes(mes, mesActual, fixed, overrides, budgets, planes)
     // Fuera los meses de los que no se puede contar nada: el que nunca se cerró
     // —no se sabe qué había puesto— y el que aún no ha llegado, que solo tendría
     // la previsión de la plantilla y una serie no compara lo que pasó con lo que
@@ -820,6 +867,7 @@ export function partidasQueSePasan(
   cuantos: number,
   mesActual: string,
   fixed: FixedEntry[],
+  overrides: FixedEntryOverride[],
   budgets: Budget[],
   planes: MonthPlan[],
   expenses: Expense[],
@@ -828,7 +876,7 @@ export function partidasQueSePasan(
 
   let cursor = mesFinal
   for (let i = 0; i < cuantos; i++, cursor = mesVecino(cursor, -1)) {
-    const plantilla = plantillaDelMes(cursor, mesActual, fixed, budgets, planes)
+    const plantilla = plantillaDelMes(cursor, mesActual, fixed, overrides, budgets, planes)
     if (plantilla.origen === 'sin-plan' || plantilla.origen === 'por-venir') continue
 
     for (const resumen of resumenPartidas(plantilla, expenses, cursor)) {

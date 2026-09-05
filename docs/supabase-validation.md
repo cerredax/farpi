@@ -1,6 +1,30 @@
 # Validación Supabase
 
-## Última ejecución: 165/165 (04-09-2026, borrar la cuenta vuelve a funcionar)
+## Última ejecución: 169/169 (05-09-2026, los ajustes de un fijo en un mes)
+
+Con `supabase/aplicar-ajustes-de-fijos.sql` aplicado en el proyecto real. **169/169
+comprobaciones correctas.**
+
+Son las 165 anteriores más cuatro, todas de `fixed_entry_overrides`, la tabla que guarda
+lo que un fijo costó en un mes suelto cuando no fue lo de siempre:
+
+- **A crea un ajuste en su familia** y **B no lo ve**: la tabla entra en el barrido de
+  §2, que recorre todas las tablas de contenido comprobando que nadie ve lo de otra casa.
+  No es una tabla menor para esto — un ajuste dice cuánto se pagó de algo y en qué mes.
+- **B no puede ajustar un fijo de la familia de A.** El equivalente al «B NO puede crear
+  fijos en la familia de A» que ya había: la escritura, no solo la lectura.
+- **Rechaza un ajuste sobre un fijo de otra familia** (§4, triggers de integridad). Es la
+  que había que escribir sí o sí: la fila lleva `family_id` propio —para que su policy
+  sea `family_id in (select my_family_ids())` y no un `exists` contra `fixed_entries`—, y
+  eso abre la puerta a insertar un `family_id` propio apuntando al fijo de otro. La RLS
+  sola lo dejaría pasar: la fila **es** de tu familia. Lo para
+  `trg_fixed_entry_override_family`, mismo patrón que los pares de asignación.
+
+El `coalesce` de `close_month_copy` —que un mes se cierre con el importe ajustado y no
+con la referencia— no lo cubre el arnés: es comportamiento, no permisos, y lo prueban los
+tests unitarios de `plantillaDelMes` y del mock.
+
+## Antes: 165/165 (04-09-2026, borrar la cuenta vuelve a funcionar)
 
 Con `supabase/parche-2026-09-04.sql` aplicado en el proyecto real. **165/165
 comprobaciones correctas.**

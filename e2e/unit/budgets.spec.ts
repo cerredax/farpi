@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import {
-  agruparPresupuestos, apuntesDelMes, conVariacion, cuentaDelMes, diasDelMes,
+  agruparPresupuestos, ajusteDelMes, apuntesDelMes, conVariacion, cuentaDelMes, diasDelMes,
   estaCaducado, existiaEnElMes, fijosDe, gastoAcumulado, mediaQueQueda, mesCorto,
   mesDe, mesesNavegables, mesVecino, partidasQueSePasan, plantillaDelMes,
   repartoDeLoQueEntra, repartoDelMes, repartoPorPartida, resumenPartidas,
@@ -8,7 +8,8 @@ import {
 } from '@/lib/budgets'
 import type { TrozoDelReparto } from '@/lib/budgets'
 import type {
-  Budget, Child, Expense, FamilyMember, FixedEntry, MonthPlan, MonthPlanLine, Quote,
+  Budget, Child, Expense, FamilyMember, FixedEntry, FixedEntryOverride, MonthPlan,
+  MonthPlanLine, Quote,
 } from '@/types'
 
 // Lo que la pantalla de Finanzas calcula y no está guardado en ninguna fila.
@@ -114,7 +115,7 @@ function plan(month: string, lines: MonthPlanLine[]): MonthPlan {
  * actual se pasa `'2026-08'`, así que agosto sale espejo de lo que se le dé.
  */
 function espejo(fixed: FixedEntry[] = [], budgets: Budget[] = []) {
-  return plantillaDelMes('2026-08', '2026-08', fixed, budgets, [])
+  return plantillaDelMes('2026-08', '2026-08', fixed, [], budgets, [])
 }
 
 const MIEMBROS: FamilyMember[] = [
@@ -391,7 +392,7 @@ test.describe('qué plantilla valía en un mes', () => {
   ])
 
   test('el mes en curso es espejo de la plantilla', () => {
-    const p = plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    const p = plantillaDelMes('2026-08', '2026-08', FIJOS, [], PARTIDAS, [JUNIO])
     expect(p.origen).toBe('plantilla')
     expect(p.fijos.map(f => f.amountCents)).toEqual([200000, 80000])
     expect(p.partidas[0].limiteCents).toBe(40000)
@@ -401,10 +402,10 @@ test.describe('qué plantilla valía en un mes', () => {
   // vivo. Las de un mes cerrado no —son una copia que no sabe de dónde salió—, y
   // es lo que impide editar lo que ya se cerró.
   test('el espejo lleva el fijo vivo detrás; la copia, no', () => {
-    const enCurso = plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    const enCurso = plantillaDelMes('2026-08', '2026-08', FIJOS, [], PARTIDAS, [JUNIO])
     expect(enCurso.fijos.map(f => f.fixedId)).toEqual(['in1', 'ga1'])
 
-    const junio = plantillaDelMes('2026-06', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    const junio = plantillaDelMes('2026-06', '2026-08', FIJOS, [], PARTIDAS, [JUNIO])
     expect(junio.origen).toBe('copia')
     expect(junio.fijos.map(f => f.fixedId)).toEqual([null, null])
   })
@@ -413,7 +414,7 @@ test.describe('qué plantilla valía en un mes', () => {
   // no ha pasado nada no hay nada que enseñar, y una cifra donde los demás meses
   // llevan un saldo se lee como un saldo.
   test('un mes por venir sale en cero', () => {
-    const p = plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, [])
+    const p = plantillaDelMes('2026-12', '2026-08', FIJOS, [], PARTIDAS, [])
     expect(p.origen).toBe('por-venir')
     expect(p.fijos).toEqual([])
     expect(p.partidas).toEqual([])
@@ -422,7 +423,7 @@ test.describe('qué plantilla valía en un mes', () => {
   // Y la previsión se pide: entonces sí enseña las cifras de la plantilla, que es
   // lo único que se puede decir de diciembre en agosto y lo que va a heredar.
   test('con la previsión pedida, un mes por venir refleja la plantilla', () => {
-    const p = plantillaDelMes('2026-12', '2026-08', FIJOS, PARTIDAS, [], true)
+    const p = plantillaDelMes('2026-12', '2026-08', FIJOS, [], PARTIDAS, [], true)
     expect(p.origen).toBe('por-venir')
     expect(p.fijos.map(f => f.amountCents)).toEqual([200000, 80000])
     expect(p.partidas[0].limiteCents).toBe(40000)
@@ -431,15 +432,15 @@ test.describe('qué plantilla valía en un mes', () => {
   // La previsión es cosa del futuro: pedirla no puede reescribir un mes cerrado
   // ni cambiar el mes en curso, que ya es espejo de la plantilla.
   test('la previsión no toca ni el mes en curso ni uno cerrado', () => {
-    expect(plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [JUNIO], true).origen).toBe('plantilla')
-    const junio = plantillaDelMes('2026-06', '2026-08', FIJOS, PARTIDAS, [JUNIO], true)
+    expect(plantillaDelMes('2026-08', '2026-08', FIJOS, [], PARTIDAS, [JUNIO], true).origen).toBe('plantilla')
+    const junio = plantillaDelMes('2026-06', '2026-08', FIJOS, [], PARTIDAS, [JUNIO], true)
     expect(junio.origen).toBe('copia')
     expect(junio.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
   })
 
   // El caso entero: esto es lo que el cambio del 02-09-2026 vino a arreglar.
   test('un mes cerrado enseña lo que valía entonces, no lo de hoy', () => {
-    const p = plantillaDelMes('2026-06', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    const p = plantillaDelMes('2026-06', '2026-08', FIJOS, [], PARTIDAS, [JUNIO])
     expect(p.origen).toBe('copia')
     expect(p.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
     expect(p.partidas[0].limiteCents).toBe(35000)
@@ -447,14 +448,14 @@ test.describe('qué plantilla valía en un mes', () => {
 
   test('cambiar la plantilla no toca un mes ya cerrado', () => {
     const subido = [fijo({ id: 'ga1', kind: 'gasto', name: 'Alquiler', amount_cents: 99000 })]
-    const p = plantillaDelMes('2026-06', '2026-08', subido, [], [JUNIO])
+    const p = plantillaDelMes('2026-06', '2026-08', subido, [], [], [JUNIO])
     expect(p.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
   })
 
   // No inventarse el pasado es la mitad de la decisión. Enseñar la plantilla de
   // hoy en un mes que nunca se cerró es exactamente el error de antes.
   test('un mes terminado y sin cerrar no se rellena con la plantilla de hoy', () => {
-    const p = plantillaDelMes('2026-07', '2026-08', FIJOS, PARTIDAS, [JUNIO])
+    const p = plantillaDelMes('2026-07', '2026-08', FIJOS, [], PARTIDAS, [JUNIO])
     expect(p.origen).toBe('sin-plan')
     expect(p.fijos).toEqual([])
     expect(p.partidas).toEqual([])
@@ -468,7 +469,7 @@ test.describe('qué plantilla valía en un mes', () => {
     const AGOSTO = plan('2026-08', [
       linea({ id: 'l1', month: '2026-08', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
     ])
-    const p = plantillaDelMes('2026-08', '2026-08', FIJOS, PARTIDAS, [AGOSTO])
+    const p = plantillaDelMes('2026-08', '2026-08', FIJOS, [], PARTIDAS, [AGOSTO])
     expect(p.origen).toBe('copia')
     expect(p.fijos.find(f => f.name === 'Alquiler')?.amountCents).toBe(76000)
     // Y la plantilla, que dice 80000, ya no lo toca.
@@ -481,8 +482,91 @@ test.describe('qué plantilla valía en un mes', () => {
       linea({ id: 'a', month: '2026-06', line: 'gasto', name: 'Agua', sort_order: 1 }),
       linea({ id: 'p', month: '2026-06', line: 'gasto', name: 'Primero', sort_order: 0 }),
     ])
-    const p = plantillaDelMes('2026-06', '2026-08', [], [], [desordenado])
+    const p = plantillaDelMes('2026-06', '2026-08', [], [], [], [desordenado])
     expect(p.fijos.map(f => f.name)).toEqual(['Primero', 'Agua', 'Zumba'])
+  })
+})
+
+// Un fijo que un mes sale distinto: la limpieza son 120 € y en agosto fueron 150.
+// La referencia no se mueve y el mes dice 150 — que es la diferencia entre «este
+// mes han sido 150» y «ahora son 150», y la razón entera de que esto exista.
+test.describe('los ajustes de un fijo en un mes', () => {
+  const LIMPIEZA = fijo({ id: 'fx1', kind: 'gasto', name: 'Limpieza', amount_cents: 12000 })
+  const NOMINA = fijo({ id: 'fx2', kind: 'ingreso', name: 'Nómina', amount_cents: 200000 })
+
+  function ajuste(over: Partial<FixedEntryOverride> = {}): FixedEntryOverride {
+    return {
+      id: 'o1',
+      family_id: 'f1',
+      fixed_entry_id: 'fx1',
+      month: '2026-08',
+      amount_cents: 15000,
+      created_by: 'u1',
+      created_at: '2026-08-20T10:00:00',
+      updated_at: '2026-08-20T10:00:00',
+      ...over,
+    }
+  }
+
+  const agosto = (overrides: FixedEntryOverride[]) =>
+    plantillaDelMes('2026-08', '2026-08', [LIMPIEZA, NOMINA], overrides, [], [])
+
+  test('el mes ajustado vale el ajuste y guarda la referencia al lado', () => {
+    const limpieza = agosto([ajuste()]).fijos.find(f => f.name === 'Limpieza')
+    expect(limpieza?.amountCents).toBe(15000)
+    expect(limpieza?.referenciaCents).toBe(12000)
+  })
+
+  test('sin ajuste no hay dos cifras que contar', () => {
+    const limpieza = agosto([]).fijos.find(f => f.name === 'Limpieza')
+    expect(limpieza?.amountCents).toBe(12000)
+    expect(limpieza?.referenciaCents).toBeNull()
+  })
+
+  // Lo que pide la casa: unos meses más y otros menos, sin tocar la referencia.
+  test('el ajuste es de su mes y no se contagia al siguiente', () => {
+    const septiembre = plantillaDelMes('2026-09', '2026-09', [LIMPIEZA], [ajuste()], [], [])
+    expect(septiembre.fijos[0].amountCents).toBe(12000)
+    expect(septiembre.fijos[0].referenciaCents).toBeNull()
+  })
+
+  test('el ajuste de un fijo no toca a los demás', () => {
+    const nomina = agosto([ajuste()]).fijos.find(f => f.name === 'Nómina')
+    expect(nomina?.amountCents).toBe(200000)
+    expect(nomina?.referenciaCents).toBeNull()
+  })
+
+  // Se guarda igual —es lo que se tecleó— pero no se cuenta como ajuste: enseñar
+  // «la referencia son 120 €» debajo de un 120 € sería ruido.
+  test('un ajuste que cae en la referencia no se enseña como ajuste', () => {
+    const limpieza = agosto([ajuste({ amount_cents: 12000 })]).fijos.find(f => f.name === 'Limpieza')
+    expect(limpieza?.amountCents).toBe(12000)
+    expect(limpieza?.referenciaCents).toBeNull()
+  })
+
+  test('la cuenta del mes cuenta el ajuste, no la referencia', () => {
+    const c = cuentaDelMes(agosto([ajuste()]), [], '2026-08')
+    expect(c.gastosFijos).toBe(15000)
+    expect(c.paraElMes).toBe(200000 - 15000)
+  })
+
+  // Un mes cerrado copió el importe que tuvo, así que un ajuste puesto hoy no
+  // puede moverlo. Y su línea no sabe cuál era la referencia entonces.
+  test('un mes cerrado no mira los ajustes', () => {
+    const AGOSTO = plan('2026-08', [
+      linea({ id: 'l1', month: '2026-08', line: 'gasto', name: 'Limpieza', amount_cents: 12000 }),
+    ])
+    const p = plantillaDelMes('2026-08', '2026-08', [LIMPIEZA], [ajuste()], [], [AGOSTO])
+    expect(p.origen).toBe('copia')
+    expect(p.fijos[0].amountCents).toBe(12000)
+    expect(p.fijos[0].referenciaCents).toBeNull()
+  })
+
+  test('ajusteDelMes encuentra el del fijo y el mes, y solo ese', () => {
+    const ajustes = [ajuste(), ajuste({ id: 'o2', month: '2026-09', amount_cents: 9000 })]
+    expect(ajusteDelMes(ajustes, 'fx1', '2026-09')?.amount_cents).toBe(9000)
+    expect(ajusteDelMes(ajustes, 'fx1', '2026-10')).toBeUndefined()
+    expect(ajusteDelMes(ajustes, 'fx2', '2026-08')).toBeUndefined()
   })
 })
 
@@ -492,7 +576,7 @@ test.describe('la cuenta y las partidas de un mes cerrado', () => {
     linea({ id: 'l2', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
     linea({ id: 'l3', month: '2026-06', line: 'partida', budget_id: 'b1', name: 'Compra', amount_cents: 35000 }),
   ])
-  const junio = () => plantillaDelMes('2026-06', '2026-08', [], [], [JUNIO])
+  const junio = () => plantillaDelMes('2026-06', '2026-08', [], [], [], [JUNIO])
 
   test('la cuenta sale de la copia y dice de dónde sale', () => {
     const c = cuentaDelMes(junio(), [gasto({ id: 'g', amount_cents: 5000, date: '2026-06-10' })], '2026-06')
@@ -520,7 +604,7 @@ test.describe('la cuenta y las partidas de un mes cerrado', () => {
     const sinEnlace = plan('2026-06', [
       linea({ id: 'l3', month: '2026-06', line: 'partida', budget_id: null, name: 'Compra', amount_cents: 35000 }),
     ])
-    const r = resumenPartidas(plantillaDelMes('2026-06', '2026-08', [], [], [sinEnlace]), [], '2026-06')
+    const r = resumenPartidas(plantillaDelMes('2026-06', '2026-08', [], [], [], [sinEnlace]), [], '2026-06')
     expect(r[0].partida.name).toBe('Compra')
     expect(r[0].partida.budgetId).toBeNull()
     // Sus gastos perdieron el `budget_id` con ella, así que ya no cuentan aquí:
@@ -531,7 +615,7 @@ test.describe('la cuenta y las partidas de un mes cerrado', () => {
   // Sin plan no se puede decir qué quedó, y decir cero sería mentir distinto.
   test('un mes sin plan no da cuenta, solo lo apuntado', () => {
     const c = cuentaDelMes(
-      plantillaDelMes('2026-07', '2026-08', [], [], []),
+      plantillaDelMes('2026-07', '2026-08', [], [], [], []),
       [gasto({ id: 'g', amount_cents: 4200, date: '2026-07-10' })],
       '2026-07',
     )
@@ -678,7 +762,7 @@ test.describe('las partidas que se pasan a menudo', () => {
   ])
 
   test('sale la que se pasa más veces de las que no', () => {
-    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], [], LIMITE,
       [mesCerrado('2026-06'), mesCerrado('2026-07'), mesCerrado('2026-08')],
       [
         gasto({ id: 'a', date: '2026-06-05', budget_id: 'b1', amount_cents: 15000 }),
@@ -689,14 +773,14 @@ test.describe('las partidas que se pasan a menudo', () => {
   })
 
   test('pasarse la mitad de las veces no es una costumbre', () => {
-    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], [], LIMITE,
       [mesCerrado('2026-07'), mesCerrado('2026-08')],
       [gasto({ id: 'a', date: '2026-07-05', budget_id: 'b1', amount_cents: 15000 })])
     expect(r).toEqual([])
   })
 
   test('con un solo mes no se dice nada, por muy pasado que esté', () => {
-    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], [], LIMITE,
       [mesCerrado('2026-08')],
       [gasto({ id: 'a', date: '2026-08-05', budget_id: 'b1', amount_cents: 99000 })])
     expect(r).toEqual([])
@@ -704,7 +788,7 @@ test.describe('las partidas que se pasan a menudo', () => {
 
   test('los meses sin plan no cuentan para el denominador', () => {
     // Julio no se cerró nunca: de él no se sabe qué límite había.
-    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], LIMITE,
+    const r = partidasQueSePasan('2026-08', 3, '2026-09', [], [], LIMITE,
       [mesCerrado('2026-06'), mesCerrado('2026-08')],
       [
         gasto({ id: 'a', date: '2026-06-05', budget_id: 'b1', amount_cents: 15000 }),
@@ -763,20 +847,20 @@ test.describe('la serie de meses del resumen', () => {
   ])
 
   test('va del más viejo al más nuevo, que es como se leen las barras', () => {
-    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO, plan('2026-07', [])], [])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
     expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-07', '2026-08'])
   })
 
   // Cada mes con **sus** fijos: junio se cerró con 150.000 de nómina y agosto,
   // que está en curso, tira de la plantilla, que dice 200.000.
   test('cada mes cuenta con los fijos que tenía entonces', () => {
-    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO, plan('2026-07', [])], [])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
     expect(r[0]).toMatchObject({ mes: '2026-06', entra: 150000, sale: 76000, queda: 74000 })
     expect(r[2]).toMatchObject({ mes: '2026-08', entra: 200000, sale: 80000, queda: 120000 })
   })
 
   test('lo apuntado a mano suma a los fijos de su mes', () => {
-    const r = serieDeMeses('2026-08', 1, '2026-08', FIJOS, [], [], [
+    const r = serieDeMeses('2026-08', 1, '2026-08', FIJOS, [], [], [], [
       gasto({ id: 'g', amount_cents: 5000, date: '2026-08-10' }),
       ingreso({ id: 'i', amount_cents: 3000, date: '2026-08-11' }),
       gasto({ id: 'otro-mes', amount_cents: 99900, date: '2026-07-01' }),
@@ -787,24 +871,24 @@ test.describe('la serie de meses del resumen', () => {
   // Una barra a cero diría «ese mes no gastasteis nada», que es distinto de «de
   // ese mes no sabemos». El hueco es lo honesto.
   test('un mes sin plan se cae de la serie en vez de salir a cero', () => {
-    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO], [])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO], [])
     expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-08'])
   })
 
   test('sin nada que enseñar, la serie viene vacía', () => {
-    expect(serieDeMeses('2026-08', 3, '2026-09', [], [], [], [])).toEqual([])
+    expect(serieDeMeses('2026-08', 3, '2026-09', [], [], [], [], [])).toEqual([])
   })
 
   // La pantalla nunca pide un tramo que llegue al futuro, pero la función es
   // pura y se le puede pedir: una previsión de la plantilla al lado de meses que
   // ya pasaron no es una tendencia, es dos cosas distintas en el mismo dibujo.
   test('un mes que aún no ha llegado tampoco entra en la serie', () => {
-    const r = serieDeMeses('2026-10', 3, '2026-08', FIJOS, [], [], [])
+    const r = serieDeMeses('2026-10', 3, '2026-08', FIJOS, [], [], [], [])
     expect(r.map(m => m.mes)).toEqual(['2026-08'])
   })
 
   test('la media de lo que queda sale de los meses que hay', () => {
-    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [JUNIO, plan('2026-07', [])], [])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
     // Junio 74.000, julio 0 (se cerró sin líneas) y agosto 120.000.
     expect(mediaQueQueda(r)).toBe(64667)
   })
@@ -819,7 +903,7 @@ test.describe('el reparto por partida de «en qué se va»', () => {
     budget({ id: 'b1', name: 'Compra', monthly_limit_cents: 40000 }),
     budget({ id: 'b2', name: 'Coche', sort_order: 1, monthly_limit_cents: 15000 }),
   ]
-  const agosto = () => plantillaDelMes('2026-08', '2026-08', [], PARTIDAS, [])
+  const agosto = () => plantillaDelMes('2026-08', '2026-08', [], [], PARTIDAS, [])
 
   test('ordena de más a menos y calcula el porcentaje sobre el gasto del mes', () => {
     const r = repartoPorPartida(agosto(), [
@@ -865,7 +949,7 @@ test.describe('el reparto por partida de «en qué se va»', () => {
       budget({ id: `b${n}`, name: `P${n}`, sort_order: n }))
     const gastos = [1, 2, 3, 4, 5, 6, 7].map(n =>
       gasto({ id: `g${n}`, budget_id: `b${n}`, amount_cents: (8 - n) * 1000 }))
-    const r = repartoPorPartida(plantillaDelMes('2026-08', '2026-08', [], muchas, []), gastos, '2026-08', 5)
+    const r = repartoPorPartida(plantillaDelMes('2026-08', '2026-08', [], [], muchas, []), gastos, '2026-08', 5)
     expect(r).toHaveLength(6)
     expect(r[5].nombre).toBe('Otras')
     // 2.000 + 1.000 de las dos que se quedaron fuera.
@@ -878,7 +962,7 @@ test.describe('el reparto por partida de «en qué se va»', () => {
     const seis = [1, 2, 3, 4, 5, 6].map(n => budget({ id: `b${n}`, name: `P${n}`, sort_order: n }))
     const gastos = [1, 2, 3, 4, 5, 6].map(n =>
       gasto({ id: `g${n}`, budget_id: `b${n}`, amount_cents: (7 - n) * 1000 }))
-    const r = repartoPorPartida(plantillaDelMes('2026-08', '2026-08', [], seis, []), gastos, '2026-08', 5)
+    const r = repartoPorPartida(plantillaDelMes('2026-08', '2026-08', [], [], seis, []), gastos, '2026-08', 5)
     expect(r[5].nombre).toBe('P6')
   })
 

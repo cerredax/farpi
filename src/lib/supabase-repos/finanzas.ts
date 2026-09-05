@@ -3,10 +3,12 @@ import { parseAmountToCents } from '../finanzas'
 import { assertNoError, currentUserId } from './shared'
 import type {
   Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
+  FixedEntryOverride, FixedOverrideDraft,
   MonthPlan, MonthPlanLine, Quote, QuoteDraft, QuoteStatus,
 } from '@/types'
 import type {
-  BudgetsRepo, ExpensesRepo, FixedEntriesRepo, MonthPlansRepo, QuotesRepo,
+  BudgetsRepo, ExpensesRepo, FixedEntriesRepo, FixedOverridesRepo, MonthPlansRepo,
+  QuotesRepo,
 } from '../repos/types'
 
 /**
@@ -90,6 +92,51 @@ export const fixedEntriesRepo: FixedEntriesRepo = {
   async deleteFixedEntry(id: string): Promise<void> {
     const supabase = createClient()
     const { error } = await supabase.from('fixed_entries').delete().eq('id', id)
+    assertNoError(error)
+  },
+}
+
+export const fixedOverridesRepo: FixedOverridesRepo = {
+  async getFixedOverrides(familyId: string): Promise<FixedEntryOverride[]> {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('fixed_entry_overrides')
+      .select('*')
+      .eq('family_id', familyId)
+    assertNoError(error)
+    return data ?? []
+  },
+
+  async setFixedOverride(
+    familyId: string,
+    fixedEntryId: string,
+    month: string,
+    draft: FixedOverrideDraft,
+  ): Promise<void> {
+    const supabase = createClient()
+    const userId = await currentUserId()
+    // `upsert` sobre el `unique (fixed_entry_id, month)`: ajustar un mes dos
+    // veces es lo normal —se teclea 150, luego 148— y preguntar antes si ya
+    // había fila sería un viaje de más y una carrera entre dos móviles.
+    const { error } = await supabase
+      .from('fixed_entry_overrides')
+      .upsert({
+        family_id: familyId,
+        fixed_entry_id: fixedEntryId,
+        month,
+        amount_cents: centimos(draft.amount),
+        created_by: userId,
+      }, { onConflict: 'fixed_entry_id,month' })
+    assertNoError(error)
+  },
+
+  async clearFixedOverride(fixedEntryId: string, month: string): Promise<void> {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('fixed_entry_overrides')
+      .delete()
+      .eq('fixed_entry_id', fixedEntryId)
+      .eq('month', month)
     assertNoError(error)
   },
 }

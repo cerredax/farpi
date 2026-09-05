@@ -270,6 +270,47 @@ create table if not exists public.fixed_entries (
   constraint fixed_entries_una_sola_asignacion check (child_id is null or member_id is null)
 );
 
+-- Lo que un fijo costó **en un mes concreto**, cuando no fue lo de siempre.
+--
+-- **Por qué existe** (05-09-2026). La limpieza son 120 € al mes, pero hay meses
+-- de 150 y meses de 90. Hasta hoy había dos salidas y ninguna servía: cambiar el
+-- fijo reescribe la referencia y con ella todos los meses abiertos —la casa
+-- pierde el «esto suele costar 120»—, y apuntar la diferencia en el día a día
+-- mezcla un recibo con la compra y deja el desglose de «Gastos fijos» diciendo lo
+-- que no fue.
+--
+-- **Es un ajuste de un mes y no una vigencia.** Poner 150 en septiembre no toca
+-- octubre: octubre vuelve solo a los 120. Se descartó la vigencia —«de aquí en
+-- adelante»— porque el caso de la casa es el que da nombre a esto: un mes sale
+-- más y el siguiente menos, sin que la referencia cambie nunca. Y porque una
+-- vigencia obliga a decidir qué pasa hacia atrás, que es una pregunta que aquí no
+-- hay que contestar.
+--
+-- La referencia sigue viviendo en `fixed_entries.amount_cents` y no se mueve: un
+-- mes sin fila aquí vale lo que diga la plantilla. Es la misma forma que tienen
+-- las excepciones de la recurrencia en `events`: no se copia lo normal, se guarda
+-- solo lo que se sale.
+--
+-- `on delete cascade` desde el fijo: sin el fijo, un ajuste suyo no significa
+-- nada. Los meses ya cerrados no se ven afectados, porque copiaron el importe.
+create table if not exists public.fixed_entry_overrides (
+  id             uuid primary key default uuid_generate_v4(),
+  family_id      uuid not null references public.families(id) on delete cascade,
+  fixed_entry_id uuid not null references public.fixed_entries(id) on delete cascade,
+  -- `YYYY-MM`, texto y no `date`, por lo mismo que en `month_plans`: un mes no es
+  -- un día y guardarlo como el día 1 invita a compararlo con una fecha de gasto.
+  month          text not null,
+  amount_cents   integer not null,
+  created_by     uuid references auth.users(id) on delete set null,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  -- Un fijo tiene un solo importe en un mes. El `unique` es lo que deja que la
+  -- pantalla escriba con un `upsert` sin preguntar antes si ya había ajuste.
+  constraint fixed_entry_overrides_uno_por_mes unique (fixed_entry_id, month),
+  constraint fixed_entry_overrides_mes_valido check (month ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
+  constraint fixed_entry_overrides_importe_valido check (amount_cents between 1 and 100000000)
+);
+
 -- Cuánto se quiere gastar al mes en algo. La partida es **fija y no por mes**:
 -- una fila por categoría, no una por categoría y mes. Poner la de septiembre
 -- sería una tarea administrativa cada treinta días, que es justo lo que esta app
@@ -632,6 +673,9 @@ create index if not exists meal_plans_family_date_idx on public.meal_plans(famil
 create index if not exists fixed_entries_family_idx  on public.fixed_entries(family_id, kind, sort_order);
 create index if not exists idx_fixed_entries_member  on public.fixed_entries(member_id);
 create index if not exists idx_fixed_entries_child   on public.fixed_entries(child_id);
+-- Los ajustes de mes se leen igual: enteros y de una vez, para poder resolver
+-- cualquier mes sin volver a la base. Son unos pocos por familia y año.
+create index if not exists fixed_entry_overrides_family_idx on public.fixed_entry_overrides(family_id, month);
 
 -- El gasto se lee siempre por mes y de lo más reciente a lo más viejo, que es
 -- justo este orden. Las partidas, por su orden de la pantalla.
@@ -687,6 +731,7 @@ drop trigger if exists set_events_updated_at     on public.events;
 drop trigger if exists set_lists_updated_at      on public.lists;
 drop trigger if exists set_notes_updated_at      on public.notes;
 drop trigger if exists set_fixed_entries_updated_at on public.fixed_entries;
+drop trigger if exists set_fixed_entry_overrides_updated_at on public.fixed_entry_overrides;
 drop trigger if exists set_budgets_updated_at    on public.budgets;
 drop trigger if exists set_expenses_updated_at   on public.expenses;
 drop trigger if exists set_quotes_updated_at     on public.quotes;
@@ -700,6 +745,7 @@ create trigger set_events_updated_at     before update on public.events     for 
 create trigger set_lists_updated_at      before update on public.lists      for each row execute function public.set_updated_at();
 create trigger set_notes_updated_at      before update on public.notes      for each row execute function public.set_updated_at();
 create trigger set_fixed_entries_updated_at before update on public.fixed_entries for each row execute function public.set_updated_at();
+create trigger set_fixed_entry_overrides_updated_at before update on public.fixed_entry_overrides for each row execute function public.set_updated_at();
 create trigger set_budgets_updated_at    before update on public.budgets    for each row execute function public.set_updated_at();
 create trigger set_expenses_updated_at   before update on public.expenses   for each row execute function public.set_updated_at();
 create trigger set_quotes_updated_at     before update on public.quotes     for each row execute function public.set_updated_at();
@@ -946,6 +992,22 @@ begin
 end;
 $$;
 
+-- El ajuste lleva `family_id` propio para que su policy sea barata, y eso abre
+-- la puerta a que no case con el del fijo. Es la misma cautela que en los pares
+-- de arriba: sin ella, colar un `family_id` ajeno en el insert dejaría una fila
+-- que la RLS deja leer a quien no toca.
+create or replace function public.check_fixed_entry_override_family()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (
+    select 1 from public.fixed_entries where id = new.fixed_entry_id and family_id = new.family_id
+  ) then
+    raise exception 'fixed_entry_overrides: fixed_entry_id no pertenece a la misma family_id';
+  end if;
+  return new;
+end;
+$$;
+
 drop trigger if exists trg_list_item_family      on public.list_items;
 drop trigger if exists trg_event_child_family    on public.events;
 drop trigger if exists trg_event_member_family   on public.events;
@@ -956,6 +1018,7 @@ drop trigger if exists trg_task_child_family     on public.tasks;
 drop trigger if exists trg_task_member_family    on public.tasks;
 drop trigger if exists trg_fixed_entry_child_family  on public.fixed_entries;
 drop trigger if exists trg_fixed_entry_member_family on public.fixed_entries;
+drop trigger if exists trg_fixed_entry_override_family on public.fixed_entry_overrides;
 drop trigger if exists trg_expense_budget_family on public.expenses;
 drop trigger if exists trg_expense_child_family  on public.expenses;
 drop trigger if exists trg_expense_member_family on public.expenses;
@@ -970,6 +1033,7 @@ create trigger trg_task_child_family      before insert or update on public.task
 create trigger trg_task_member_family     before insert or update on public.tasks      for each row execute function public.check_task_member_family();
 create trigger trg_fixed_entry_child_family  before insert or update on public.fixed_entries for each row execute function public.check_fixed_entry_child_family();
 create trigger trg_fixed_entry_member_family before insert or update on public.fixed_entries for each row execute function public.check_fixed_entry_member_family();
+create trigger trg_fixed_entry_override_family before insert or update on public.fixed_entry_overrides for each row execute function public.check_fixed_entry_override_family();
 create trigger trg_expense_budget_family  before insert or update on public.expenses  for each row execute function public.check_expense_budget_family();
 create trigger trg_expense_child_family   before insert or update on public.expenses  for each row execute function public.check_expense_child_family();
 create trigger trg_expense_member_family  before insert or update on public.expenses  for each row execute function public.check_expense_member_family();
@@ -1004,6 +1068,7 @@ alter table public.lists              enable row level security;
 alter table public.list_items         enable row level security;
 alter table public.notes              enable row level security;
 alter table public.fixed_entries      enable row level security;
+alter table public.fixed_entry_overrides enable row level security;
 alter table public.budgets            enable row level security;
 alter table public.expenses           enable row level security;
 alter table public.quotes             enable row level security;
@@ -1098,6 +1163,14 @@ create policy "Miembros CRUD notas de su familia"
 drop policy if exists "Miembros CRUD fijos de su familia" on public.fixed_entries;
 create policy "Miembros CRUD fijos de su familia"
   on public.fixed_entries for all
+  using (family_id in (select public.my_family_ids()));
+
+-- Los ajustes de mes son de la familia como cualquier otro dato suyo. La fila
+-- lleva `family_id` propio —no se deduce del fijo— justamente para que la policy
+-- sea esta y no un `exists` contra `fixed_entries`, que es lo que la haría cara.
+drop policy if exists "Miembros CRUD ajustes de fijos de su familia" on public.fixed_entry_overrides;
+create policy "Miembros CRUD ajustes de fijos de su familia"
+  on public.fixed_entry_overrides for all
   using (family_id in (select public.my_family_ids()));
 
 drop policy if exists "Miembros CRUD presupuestos de su familia" on public.budgets;
@@ -1696,11 +1769,20 @@ begin
   -- acabó diciendo que entraron 3.130 € que nadie vio. El relleno de meses
   -- pasados del final de este archivo ya llevaba la cautela —solo tocó los meses
   -- con apuntes—; el cierre automático, no.
+  --
+  -- **Y el importe que se copia es el de ese mes**, no el de la plantilla
+  -- (05-09-2026): si la limpieza se ajustó a 150 € en septiembre, septiembre se
+  -- cierra con 150. Sin el `coalesce`, cerrar el mes deshacía el ajuste sin
+  -- avisar y la foto contaba lo que no pasó, que es justo lo que el cierre
+  -- existe para evitar.
   insert into public.month_plan_lines
     (family_id, month, line, name, emoji, amount_cents, child_id, member_id, sort_order)
-  select f.family_id, p_month, f.kind, f.name, f.emoji, f.amount_cents,
+  select f.family_id, p_month, f.kind, f.name, f.emoji,
+         coalesce(o.amount_cents, f.amount_cents),
          f.child_id, f.member_id, f.sort_order
   from public.fixed_entries f
+  left join public.fixed_entry_overrides o
+    on o.fixed_entry_id = f.id and o.month = p_month
   where f.family_id = p_family_id
     and f.created_at < v_fin;
 

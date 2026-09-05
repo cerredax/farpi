@@ -19,9 +19,11 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 ## 2. Navegación
 
 > Lo de esta lista que se puede comprobar sin teléfono ya está automatizado:
-> `e2e/movil.spec.ts` corre las ocho pantallas a 390×844 y falla si algo
-> desborda a lo ancho o si aparece un control por debajo de 24×24 px. Lo que
-> queda aquí es lo que hay que mirar con el móvil en la mano.
+> `e2e/movil.spec.ts` corre las pantallas a 390×844 y falla si algo desborda a
+> lo ancho, si aparece un control por debajo de 24×24 px o si un sheet cerrado
+> asoma por abajo y se come las etiquetas de la barra (05-09-2026: le pasaba a
+> Inicio y a Finanzas). Lo que queda aquí es lo que hay que mirar con el móvil
+> en la mano.
 
 - [ ] La barra de abajo muestra seis pastillas: Inicio, Calendario, Listas, Tareas,
       Comidas y «Más». Documentos ya no es una de ellas (28-08-2026) y Notas nunca lo
@@ -367,8 +369,16 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] Las líneas son las **de ese mes**: en septiembre salen los cuatro recibos —con el
       seguro del coche—, y en junio solo tres, con el alquiler a 760 € y sin seguro. Si
       junio enseña los de hoy, se ha vuelto a leer la plantilla viva.
-- [ ] Dentro **no se edita nada**: los fijos se tocan en «Lo fijo», y los de un mes
-      cerrado no se tocan en ninguna parte.
+- [ ] **Ajustar un fijo en un mes** (05-09-2026): en el mes en curso, tocar «Alquiler»
+      dentro del desglose abre «Alquiler en septiembre» con 780 escrito. Poner 800 y
+      guardar baja la cuenta a **−955,90 €** y la fila pasa a decir **«suele ser −780 €»**.
+      En «Lo fijo» el alquiler **sigue en 780 €**: si ha subido a 800, se ha vuelto a
+      editar la referencia desde el mes.
+- [ ] Volver a abrirlo y pulsar **«Volver a los 780 €»** deja la cuenta en −935,90 € y
+      quita el «suele ser». Y el ajuste es **de su mes**: el mes siguiente no lo hereda.
+- [ ] Desde ese mismo sheet, **«Cambiar cuánto es cada mes»** abre el sheet del fijo con
+      780 escrito; guardarlo con 900 sí mueve la referencia y todos los meses abiertos.
+- [ ] En un mes **cerrado** no se toca nada: las líneas se leen y no abren ningún sheet.
 - [ ] Se ven las partidas de demo (Compra, Coche, Casa) con su límite, también las que no
       tienen ni un gasto ese mes.
 - [ ] Apuntar un gasto mueve la barra y el «Quedan X» de su partida, y la cuenta de

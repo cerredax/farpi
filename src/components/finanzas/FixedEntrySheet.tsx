@@ -153,6 +153,7 @@ export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave
           <p className="text-[10px] leading-relaxed text-faint">
             Cuenta todos los meses hasta que lo cambies, sin tener que apuntarlo.
             Si lo cambias, los meses ya pasados también dirán el importe nuevo.
+            Para un mes suelto que salga distinto, tócalo en «El mes».
           </p>
         </Field>
 

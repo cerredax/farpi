@@ -13,7 +13,7 @@ interface UpcomingBirthdaysProps {
   cumples: CumpleEnCasa[]
 }
 
-/** "Mañana", "Jue 4 sept". Lo mismo que hace "Esta semana" con los planes. */
+/** "Mañana", "Jue 4 sept". Lo mismo que hace "Próximos días" con los planes. */
 function diaDeCumple(fecha: string, dias: number): string {
   if (dias === 1) return 'Mañana'
   return capitalize(format(parseLocalDate(fecha), 'EEE d MMM', { locale: es }))

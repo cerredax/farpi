@@ -23,7 +23,7 @@ function migrarClaveVieja(): void {
     localStorage.removeItem(STORAGE_KEY_NIDO)
   } catch { /* ignore */ }
 }
-const SCHEMA_VER  = 16 // v16: los meses cerrados (`monthPlans`)
+const SCHEMA_VER  = 17 // v17: los ajustes de un fijo en un mes (`fixedOverrides`)
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return
@@ -49,6 +49,7 @@ export function loadFromStorage(): void {
     if (Array.isArray(d.mealPlans)) db.mealPlans = d.mealPlans
     if (Array.isArray(d.notes))     db.notes     = d.notes
     if (Array.isArray(d.fixedEntries)) db.fixedEntries = d.fixedEntries
+    if (Array.isArray(d.fixedOverrides)) db.fixedOverrides = d.fixedOverrides
     if (Array.isArray(d.budgets))   db.budgets   = d.budgets
     if (Array.isArray(d.expenses))  db.expenses  = d.expenses
     if (Array.isArray(d.quotes))    db.quotes    = d.quotes
@@ -75,6 +76,7 @@ export function persistAll(): void {
       mealPlans: db.mealPlans,
       notes:     db.notes,
       fixedEntries: db.fixedEntries,
+      fixedOverrides: db.fixedOverrides,
       budgets:   db.budgets,
       expenses:  db.expenses,
       quotes:    db.quotes,

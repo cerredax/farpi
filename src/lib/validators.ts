@@ -2,7 +2,8 @@ import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
 import { isRangeKind } from './events'
 import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './finanzas'
 import type {
-  BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, FixedEntryDraft, TaskDraft,
+  BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, FixedEntryDraft,
+  FixedOverrideDraft, TaskDraft,
   MealDraft, ListDraft, ListItemDraft, NoteDraft, QuoteDraft,
 } from '@/types'
 
@@ -149,6 +150,15 @@ export function validateFixedEntryDraft(draft: FixedEntryDraft): string | null {
     return draft.kind === 'ingreso' ? 'Di de qué es el ingreso.' : 'Di de qué es el gasto.'
   }
   return validateImporte(draft.amount, 'cuánto es al mes')
+}
+
+/**
+ * Un ajuste de mes solo lleva importe: el nombre, el icono y de quién es siguen
+ * siendo los de la referencia, porque lo que cambia un mes es **cuánto** y no qué
+ * es.
+ */
+export function validateFixedOverrideDraft(draft: FixedOverrideDraft): string | null {
+  return validateImporte(draft.amount, 'cuánto ha sido este mes')
 }
 
 export function validateBudgetDraft(draft: BudgetDraft): string | null {

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { daysBetween, eventCoversDay, eventTitleOr, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
+import { daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
+import type { FamilyMember } from '@/types'
 import { event } from './fixtures'
 
 // Antes de las vacaciones, el calendario daba por hecho que un evento vivía en
@@ -282,5 +283,102 @@ test.describe('siguientePlan', () => {
 
   test('sin planes, nada', () => {
     expect(siguientePlan([], ahora)).toBeNull()
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cuando no queda nadie: la celda del mes deja de pintar una franja por persona
+// y pinta una sola en el amarillo de la casa. Estas son las reglas que deciden
+// cuándo, y son de las que más fácil se rompen al tocar la pantalla.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function miembro(id: string): FamilyMember {
+  return { id, family_id: 'f1', user_id: id, display_name: id, avatar_url: null, color: null, role: 'member', created_at: '' }
+}
+
+const DOS = [miembro('m1'), miembro('m2')]
+const TRES = [...DOS, miembro('m3')]
+
+function ausencia(member_id: string, desde: string, hasta: string, kind: 'vacaciones' | 'descanso' = 'vacaciones') {
+  return event({ kind, all_day: true, member_id, start_at: `${desde}T00:00:00`, end_at: `${hasta}T23:59:00` })
+}
+
+test.describe('familyAbsenceKind', () => {
+  test('con todos los adultos fuera por lo mismo, el día es de la familia', () => {
+    const events = [ausencia('m1', '2026-08-10', '2026-08-14'), ausencia('m2', '2026-08-10', '2026-08-14')]
+    expect(familyAbsenceKind(events, DOS, '2026-08-12')).toBe('vacaciones')
+  })
+
+  test('con uno solo fuera, no', () => {
+    const events = [ausencia('m1', '2026-08-10', '2026-08-14')]
+    expect(familyAbsenceKind(events, DOS, '2026-08-12')).toBeNull()
+  })
+
+  // El caso que motivó todo esto: con tres adultos la celda solo pinta dos
+  // franjas, así que la tercera persona no se veía. Ahora es una sola.
+  test('con tres adultos también, que es donde la celda se quedaba corta', () => {
+    const events = TRES.map(m => ausencia(m.id, '2026-08-10', '2026-08-14'))
+    expect(familyAbsenceKind(events, TRES, '2026-08-12')).toBe('vacaciones')
+  })
+
+  test('mezclar vacaciones y descanso no es una ausencia de la familia', () => {
+    const events = [
+      ausencia('m1', '2026-08-10', '2026-08-14', 'vacaciones'),
+      ausencia('m2', '2026-08-10', '2026-08-14', 'descanso'),
+    ]
+    expect(familyAbsenceKind(events, DOS, '2026-08-12')).toBeNull()
+  })
+
+  test('un descanso de todos sí lo es, y se dice que es descanso', () => {
+    const events = DOS.map(m => ausencia(m.id, '2026-08-12', '2026-08-12', 'descanso'))
+    expect(familyAbsenceKind(events, DOS, '2026-08-12')).toBe('descanso')
+  })
+
+  // Con un solo adulto, "todos los adultos" es él: el amarillo diría "de la
+  // casa" cuando sigue siendo de una persona.
+  test('una familia de un solo adulto nunca tiene ausencia familiar', () => {
+    const uno = [miembro('m1')]
+    expect(familyAbsenceKind([ausencia('m1', '2026-08-10', '2026-08-14')], uno, '2026-08-12')).toBeNull()
+  })
+
+  // Los adultos sin cuenta y los hijos no entran en la cuenta: la regla mira
+  // `members`, que es la lista de quien tiene acceso a la app.
+  test('las vacaciones de un hijo no cuentan ni estorban', () => {
+    const events = [
+      ...DOS.map(m => ausencia(m.id, '2026-08-10', '2026-08-14')),
+      event({ kind: 'vacaciones', all_day: true, child_id: 'c1', start_at: '2026-08-12T00:00:00', end_at: '2026-08-12T23:59:00' }),
+    ]
+    expect(familyAbsenceKind(events, DOS, '2026-08-12')).toBe('vacaciones')
+  })
+
+  test('fuera del solape de los dos tramos, no', () => {
+    const events = [ausencia('m1', '2026-08-10', '2026-08-14'), ausencia('m2', '2026-08-12', '2026-08-20')]
+    expect(familyAbsenceKind(events, DOS, '2026-08-11')).toBeNull()
+    expect(familyAbsenceKind(events, DOS, '2026-08-13')).toBe('vacaciones')
+    expect(familyAbsenceKind(events, DOS, '2026-08-15')).toBeNull()
+  })
+})
+
+test.describe('familyAbsenceEdges', () => {
+  // El tramo lo forman las vacaciones de varias personas, que empiezan y acaban
+  // cada una por su lado: los extremos son los del solape, no los de un evento.
+  test('redondea solo donde el solape empieza y acaba', () => {
+    const events = [ausencia('m1', '2026-08-10', '2026-08-14'), ausencia('m2', '2026-08-12', '2026-08-20')]
+    expect(familyAbsenceEdges(events, DOS, '2026-08-12')).toEqual({ primero: true, ultimo: false })
+    expect(familyAbsenceEdges(events, DOS, '2026-08-13')).toEqual({ primero: false, ultimo: false })
+    expect(familyAbsenceEdges(events, DOS, '2026-08-14')).toEqual({ primero: false, ultimo: true })
+  })
+
+  test('un solo día se cierra por los dos lados', () => {
+    const events = DOS.map(m => ausencia(m.id, '2026-08-12', '2026-08-12'))
+    expect(familyAbsenceEdges(events, DOS, '2026-08-12')).toEqual({ primero: true, ultimo: true })
+  })
+
+  // La razón por la que los huecos de fuera de mes también colapsan: si el 31 y
+  // el 1 son los dos de la casa, el tramo no se puede partir en la frontera.
+  test('el tramo cruza el cambio de mes sin partirse', () => {
+    const events = DOS.map(m => ausencia(m.id, '2026-08-28', '2026-09-04'))
+    expect(familyAbsenceEdges(events, DOS, '2026-08-31')).toEqual({ primero: false, ultimo: false })
+    expect(familyAbsenceEdges(events, DOS, '2026-09-01')).toEqual({ primero: false, ultimo: false })
   })
 })

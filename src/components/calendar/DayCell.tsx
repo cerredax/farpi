@@ -1,7 +1,8 @@
 import { isWeekend } from 'date-fns'
 import { eventColor, fondoDePersona } from '@/lib/assignees'
 import { holidayName, isHoliday, isPlan, isRestDay, isVacation, vacationEdges } from '@/lib/events'
-import type { Child, Event, FamilyMember, Task } from '@/types'
+import { FAMILY_COLOR } from '@/lib/constants'
+import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
 /**
@@ -54,6 +55,16 @@ interface DayCellProps {
   kids: Child[]
   members: FamilyMember[]
   onSelect: (day: Date) => void
+  /**
+   * Que ese día **no hay nadie**: todos los adultos con cuenta fuera y por lo
+   * mismo. Lo calcula `MonthGrid`, que es quien tiene el calendario entero: para
+   * saber dónde empieza y acaba el tramo hay que mirar el día de al lado, y la
+   * celda solo conoce el suyo.
+   *
+   * Cuando llega, sustituye a las franjas de cada persona: una sola en el
+   * amarillo de la casa. El porqué está en `familyAbsenceKind`.
+   */
+  ausenciaFamiliar?: { kind: EventKind; primero: boolean; ultimo: boolean } | null
   /**
    * Apuntar algo ese día, con **doble clic** en la celda (28-08-2026). El clic
    * simple sigue siendo elegir el día: son dos gestos distintos para dos cosas
@@ -116,6 +127,7 @@ export function DayCell({
   kids,
   members,
   onSelect,
+  ausenciaFamiliar,
   onCreate,
   onOpenEvent,
 }: DayCellProps) {
@@ -153,9 +165,32 @@ export function DayCell({
    * mismo día la raya no se pintaba y el descanso se quedaba sin señal. Ahora
    * caben dos etiquetas por celda.
    */
+  /**
+   * **Relleno contra contorno, no verde contra salmón** (05-09-2026).
+   *
+   * Eran dos discos macizos que solo se diferenciaban en el tono, y los dos
+   * tonos eran el verde y el salmón de marca: los mismos que `globals.css`
+   * documenta a **ΔE 2,3 en protanopía** en el bloque de los gráficos. Para
+   * quien no distingue rojos de verdes, hoy y el día elegido eran literalmente
+   * el mismo círculo, que es tanto como no marcar ninguno de los dos.
+   *
+   * Y el texto encima tampoco salía: blanco sobre `primary` da 2,61:1 y sobre
+   * `accent` 2,18:1, cuando el mínimo de WCAG para texto normal es 4,5:1. Es la
+   * misma regla que `fondoDePersona` ya tenía escrita —"encima de la mitad de la
+   * paleta el blanco no se lee"— y que aquí no se había aplicado.
+   *
+   * Ahora la diferencia es de **forma**: el día elegido es un disco relleno y hoy
+   * es un anillo. Eso sobrevive a cualquier dicromacia y a una impresión en gris,
+   * que es lo que el tono no hacía. Los dos en `primary-strong`, que con blanco
+   * da 4,79:1 y sí pasa, y el mismo tono en las dos a propósito: son la misma
+   * clase de señal —"dónde estás"— y no dos cosas distintas.
+   *
+   * Con hoy elegido gana el disco y el anillo no se pinta: no hay ambigüedad
+   * posible, porque el círculo relleno es único en la pantalla.
+   */
   const numberClass = (() => {
-    if (isSelected) return 'bg-primary text-white'
-    if (isToday)    return 'bg-accent text-white'
+    if (isSelected) return 'bg-primary-strong text-white'
+    if (isToday)    return 'text-primary-strong ring-2 ring-inset ring-primary-strong'
     return 'text-ink'
   })()
 
@@ -165,6 +200,7 @@ export function DayCell({
     tareas: tasks.length,
     vacaciones: vacaciones.length,
     descansos: descansos.length,
+    familia: ausenciaFamiliar?.kind ?? null,
   })
 
   return (
@@ -218,7 +254,29 @@ export function DayCell({
         * Decorativas, como lo era la raya: a 7 px de alto nunca llegarían al
         * mínimo de toque de 24×24, y las ausencias se editan desde `Availability`.
         */}
-      {ausencias.map(event => {
+      {/**
+        * Cuando no hay nadie, **una sola franja amarilla** y no una por persona
+        * (05-09-2026).
+        *
+        * Vino de un fallo: la celda pinta dos franjas como mucho, así que con tres
+        * adultos de vacaciones el mismo día la tercera no se pintaba. El día en el
+        * que la respuesta es la más simple —"aquí no hay nadie"— era el que peor se
+        * leía, y encima tres franjas de tres colores hacen leer tres cosas para
+        * enterarse de una.
+        *
+        * El amarillo es `FAMILY_COLOR`, el que ya significa "de toda la casa" en
+        * el resto de la app, y viaja en `style` como el resto de colores de
+        * persona. Quién es cada uno y hasta cuándo lo sigue diciendo
+        * `Availability`: aquí se contesta qué día es este, allí quién está fuera.
+        */}
+      {ausenciaFamiliar ? (() => {
+        const redondeo = `${ausenciaFamiliar.primero ? 'rounded-l-full' : ''} ${ausenciaFamiliar.ultimo ? 'rounded-r-full' : ''}`
+        return (
+          <span className={`franja-ausencia ${redondeo}`} aria-hidden>
+            <span className={`block h-full w-full ${redondeo}`} style={{ backgroundColor: FAMILY_COLOR }} />
+          </span>
+        )
+      })() : ausencias.map(event => {
         const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
         const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
         return (
@@ -302,10 +360,22 @@ export function DayCell({
             {event.title}
           </button>
         ))}
+        {/* **Pulsable** (05-09-2026). Era un `span` con `aria-hidden`: un día con
+            cinco planes te decía que había tres que no veías y no ofrecía verlos,
+            y había que acordarse de que elegir el día abre `DayPanel` debajo de la
+            rejilla. Lo que hace es exactamente eso —elegir el día—, así que no es
+            un camino nuevo: es el que ya había, dicho donde surge la pregunta.
+            Con `min-h-4` no llega al mínimo de toque, y no le hace falta: es
+            escritorio, hay ratón, y la mitad de abajo de la celda hace lo mismo. */}
         {planes.length > MAX_TITULOS && (
-          <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted" aria-hidden>
+          <button
+            type="button"
+            onClick={() => onSelect(day)}
+            onDoubleClick={e => e.stopPropagation()}
+            className="min-h-4 rounded pl-2.5 text-left text-[10px] font-bold leading-tight text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
             +{planes.length - MAX_TITULOS} más
-          </span>
+          </button>
         )}
         {tasks.length > 0 && (
           <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted" aria-hidden>

@@ -1,8 +1,9 @@
 import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
 import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
-import { eventCoversDay, isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { eventCoversDay, familyAbsenceEdges, familyAbsenceKind, isRestDay, isVacation, vacationEdges } from '@/lib/events'
 import { eventColor } from '@/lib/assignees'
+import { FAMILY_COLOR } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
 
 /**
@@ -131,6 +132,12 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
             // el tramo se partiría en dos alturas.
             const ausenciasHueco = [...delHueco.filter(isVacation), ...delHueco.filter(isRestDay)]
               .slice(0, MAX_AUSENCIAS)
+            // El hueco colapsa igual que la celda: si el 31 de agosto no hay
+            // nadie y el 1 de septiembre tampoco, el tramo amarillo tiene que
+            // cruzar la frontera del mes entero. Pintar aquí las franjas de cada
+            // uno lo partiría en dos idiomas a mitad de fila.
+            const familiaHueco = familyAbsenceKind(events, members, day)
+            const bordesHueco = familyAbsenceEdges(events, members, day)
             return (
               <span
                 key={day.toISOString()}
@@ -145,7 +152,14 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >
-                {ausenciasHueco.map(event => {
+                {familiaHueco ? (() => {
+                  const redondeo = `${bordesHueco.primero ? 'rounded-l-full' : ''} ${bordesHueco.ultimo ? 'rounded-r-full' : ''}`
+                  return (
+                    <span className={`franja-ausencia ${redondeo}`}>
+                      <span className={`block h-full w-full ${redondeo}`} style={{ backgroundColor: FAMILY_COLOR }} />
+                    </span>
+                  )
+                })() : ausenciasHueco.map(event => {
                   const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
                   const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
                   return (
@@ -168,6 +182,14 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
 
           const diaStr = getLocalDateString(day)
           const delDia = events.filter(e => eventCoversDay(e, day))
+          /**
+           * Si ese día no hay nadie, y dónde empieza y acaba el tramo. Se calcula
+           * **aquí y no en la celda** porque saber si la franja se redondea exige
+           * mirar el día anterior y el siguiente, y la celda solo conoce el suyo:
+           * `events` entero vive en este componente.
+           */
+          const familia = familyAbsenceKind(events, members, day)
+          const bordes = familia ? familyAbsenceEdges(events, members, day) : null
           return (
             <DayCell
               key={day.toISOString()}
@@ -180,6 +202,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               kids={kids}
               members={members}
               onSelect={onSelectDay}
+              ausenciaFamiliar={familia && bordes ? { kind: familia, ...bordes } : null}
               onCreate={onCreateDay}
               onOpenEvent={onOpenEvent}
             />

@@ -1,5 +1,5 @@
 import { extractDate } from './date-utils'
-import type { Event, EventKind } from '@/types'
+import type { Event, EventKind, FamilyMember } from '@/types'
 
 /**
  * Qué días ocupa un evento.
@@ -124,6 +124,90 @@ export function holidayName(event: Event): string {
  */
 export function isAbsence(event: Event): boolean {
   return isVacation(event) || isRestDay(event)
+}
+
+/**
+ * Si un día es de ausencia **de la familia entera**: los adultos con cuenta,
+ * todos fuera y todos por lo mismo.
+ *
+ * Nace de un fallo, no de una idea bonita: la celda pinta como mucho dos
+ * franjas (`MAX_AUSENCIAS`), así que en una casa de tres adultos de vacaciones
+ * el mismo día **la tercera no se pintaba**. Justo el día en el que la respuesta
+ * es la más simple de todas —"aquí no hay nadie"— era cuando peor se leía.
+ *
+ * Colapsadas en una sola franja amarilla el día lo dice de un vistazo, y de paso
+ * deja de perder información. El amarillo es `FAMILY_COLOR`, el mismo que ya
+ * significa "de toda la casa" en el resto de la app: no hace falta aprender nada
+ * nuevo.
+ *
+ * Las reglas, y el porqué de cada una:
+ *
+ * - **Solo los adultos con cuenta** (`members`), no los adultos sin ella ni los
+ *   hijos. Es quien tiene un trabajo del que librar, y es la lista que la
+ *   familia mantiene al día porque es la que da acceso a la app. Contar a los
+ *   hijos haría que el día dejara de ser "de la familia" en cuanto uno tuviera
+ *   colegio, que es casi siempre.
+ * - **Hacen falta dos.** Con un solo adulto en la familia, "todos los adultos"
+ *   es él, y cada vacación suya se volvería amarilla: el color pasaría a decir
+ *   "de la casa" cuando sigue siendo de una persona.
+ * - **Del mismo tipo.** Uno de vacaciones y otro descansando no son lo mismo y
+ *   no se resumen en una palabra; ese día se queda con sus franjas de siempre.
+ *
+ * Devuelve el tipo para que quien llame pueda nombrarlo —"la familia de
+ * vacaciones"— y `null` cuando no se cumple, que es lo normal.
+ *
+ * Lo que **no** cambia: el bloque "Vacaciones y descansos" sigue listando a cada
+ * uno con su nombre y sus fechas. La rejilla contesta "¿qué día es este?" y el
+ * bloque "¿quién y hasta cuándo?", que son dos preguntas distintas.
+ */
+export function familyAbsenceKind(
+  events: Event[],
+  members: FamilyMember[],
+  day: Date | string,
+): EventKind | null {
+  if (members.length < 2) return null
+
+  const delDia = events.filter(e => isAbsence(e) && eventCoversDay(e, day))
+  // Vacaciones antes que descanso, el mismo orden que la celda usa para apilar
+  // las franjas. Solo importa si toda la casa tiene las dos cosas a la vez, que
+  // no debería pasar, pero entonces manda la que se pinta arriba.
+  for (const kind of ['vacaciones', 'descanso'] as const) {
+    const fuera = new Set(
+      delDia.filter(e => e.kind === kind && e.member_id).map(e => e.member_id),
+    )
+    if (members.every(m => fuera.has(m.id))) return kind
+  }
+  return null
+}
+
+/**
+ * Dónde empieza y dónde acaba un tramo de ausencia familiar, para redondear la
+ * franja solo por fuera.
+ *
+ * No sirve `vacationEdges`: aquel mira los extremos **de un evento**, y aquí el
+ * tramo no es de nadie en concreto —lo forman las vacaciones de varias personas,
+ * que empiezan y acaban cada una por su lado—. Lo que hay que preguntar es si el
+ * día de al lado también es de la casa entera. Sin esto, dos semanas de familia
+ * saldrían como catorce píldoras sueltas en vez de una barra.
+ */
+export function familyAbsenceEdges(
+  events: Event[],
+  members: FamilyMember[],
+  day: Date | string,
+): { primero: boolean; ultimo: boolean } {
+  const dia = typeof day === 'string' ? day.slice(0, 10) : localDay(day)
+  const vecino = (pasos: number) => {
+    // Mediodía, como en `daysBetween`: a las 00:00 un cambio de hora puede
+    // devolver el mismo día o saltarse uno.
+    const d = new Date(dia + 'T12:00:00')
+    d.setDate(d.getDate() + pasos)
+    return familyAbsenceKind(events, members, localDay(d))
+  }
+  const kind = familyAbsenceKind(events, members, dia)
+  return {
+    primero: vecino(-1) !== kind,
+    ultimo:  vecino(1)  !== kind,
+  }
 }
 
 /**

@@ -1,4 +1,4 @@
-import { format, isToday, isTomorrow, parseISO } from 'date-fns'
+import { format, isPast, isToday, isTomorrow, parseISO, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Cake } from 'lucide-react'
 import { extractDate } from '@/lib/date-utils'
@@ -67,13 +67,37 @@ export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
             ? `, ${edadEnPalabras(fecha.getFullYear() - cumple.birth_year)}`
             : ''
 
+          /**
+           * Un cumpleaños que ya fue **se atenúa, no se esconde** (05-09-2026).
+           *
+           * Esconderlo rompía tres cosas. El recuento del título es
+           * `cumples.length`, así que "Cumpleaños 5" el día 1 pasaba a "Cumpleaños
+           * 2" el día 20 sin que nadie tocara nada, como si se hubieran borrado.
+           * El bloque habla del **mes que se está mirando** —mismo tramo que
+           * "Vacaciones y descansos"— y filtrando por pasado dejaba de decir la
+           * verdad sobre ese mes. Y el calendario también se navega hacia atrás:
+           * en agosto el bloque se habría quedado vacío, y con `cumples.length
+           * === 0` desaparece entero, cuando "¿cuándo fue el cumple de la abuela?"
+           * es una pregunta legítima.
+           *
+           * Atenuar no cuesta nada porque el bloque nace plegado: el ruido de un
+           * cumpleaños pasado ya es cero hasta que lo abres. Y **no se reordena**:
+           * el orden por fecha es lo que hace legible la lista.
+           */
+          const yaFue = isPast(startOfDay(fecha)) && !isToday(fecha)
+
           return (
             <li key={cumple.id}>
               <button
                 type="button"
                 onClick={() => onEdit(cumple)}
                 aria-label={`Editar el cumpleaños de ${cumple.title}: ${cuando(fecha)}${edad}`}
-                className="flex min-h-8 w-full items-center gap-2 rounded-xl px-1 text-left transition-colors hover:bg-surface"
+                className={`flex min-h-8 w-full items-center gap-2 rounded-xl px-1 text-left transition-colors hover:bg-surface ${
+                  // El fondo de color de la etiqueta se queda: es lo que dice que
+                  // el lila es un cumpleaños y no una persona. Lo que baja es el
+                  // conjunto, que es lo que se lee como "esto ya pasó".
+                  yaFue ? 'opacity-55' : ''
+                }`}
               >
                 <Cake size={13} strokeWidth={2.2} className="flex-shrink-0 text-muted" aria-hidden />
                 {/* El nombre sobre el lila de los cumpleaños, y no sobre el

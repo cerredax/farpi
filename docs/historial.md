@@ -15,6 +15,91 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-05
 
+### El calendario, revisado: hoy deja de confundirse con el día elegido y la casa vacía se dice una vez (05-09-2026)
+
+Una revisión pedida de la pantalla de calendario, mirando en concreto por qué la celda
+escribe dos títulos y no tres, cómo se marcan hoy y el día elegido, qué hacer con los
+cumpleaños ya pasados y qué pasa con un día en el que no queda nadie en casa. De lo
+mirado salieron tres fallos y dos huecos.
+
+**Hoy y el día elegido eran el mismo círculo para quien no distingue rojos de verdes.**
+Eran dos discos macizos que solo cambiaban de tono, y los tonos eran el verde y el salmón
+de marca: los mismos que `globals.css` ya documentaba a **ΔE 2,3 en protanopía** en el
+bloque de los gráficos de Finanzas. La regla estaba escrita en el proyecto y esta pantalla
+no la había leído. Encima el texto blanco de los dos círculos daba **2,61:1** y **2,18:1**,
+cuando WCAG pide 4,5:1 para texto normal — y eso también estaba ya escrito, en
+`fondoDePersona`: «encima de la mitad de la paleta el blanco no se lee». Ahora la
+diferencia es de **forma** y no de tono: el día elegido es un disco relleno y hoy un
+anillo, los dos en `primary-strong` (4,79:1 con blanco). Sobrevive a cualquier dicromacia
+y a una impresión en gris, que es lo que el tono no hacía. Con hoy elegido gana el disco:
+el círculo relleno es único en la pantalla, así que no hay nada que confundir.
+
+**No había forma de volver a hoy.** Te ibas tres meses adelante con las flechas o con el
+dedo —y el desliz hace muy barato alejarse— y solo se volvía dando tres pasos atrás,
+contando. Entra un botón **«Hoy»** pegado a las flechas, que es su grupo: es navegación,
+no una acción. Solo aparece cuando lo que se mira no contiene hoy, y esa es la segunda
+mitad de la idea: mirando el mes de hoy no hay nada que deshacer, y un botón que no hace
+nada es ruido en una fila que a 390 px ya va justa. Que aparezca es además la señal de que
+te has ido lejos, que es información que antes no daba nadie. Se pregunta por la vista y
+no por el mes a secas: mirando la semana del 20 estás fuera de hoy aunque sea el mismo mes.
+
+**`+N más` no llevaba a ninguna parte.** Era un `span` con `aria-hidden`: un día con cinco
+planes te decía que había tres que no veías y no ofrecía verlos, y había que acordarse de
+que elegir el día abre el detalle debajo de la rejilla. Ahora es un botón, y lo que hace es
+exactamente eso —elegir el día—, así que no es un camino nuevo: es el que ya había, dicho
+donde surge la pregunta. Se pudo hacer porque la celda dejó de ser un botón el 26-08-2026.
+
+**Un cumpleaños que ya pasó se atenúa, y no se esconde.** Esconderlo rompía tres cosas: el
+recuento del título es `cumples.length`, así que «Cumpleaños 5» el día 1 pasaba a
+«Cumpleaños 2» el día 20 como si se hubieran borrado; el bloque habla del **mes que se
+mira** —mismo tramo que «Vacaciones y descansos»— y filtrando por pasado dejaba de decir la
+verdad sobre ese mes; y el calendario también se navega hacia atrás, donde el bloque se
+habría quedado vacío y con él desaparece entero. Atenuar no cuesta nada porque el bloque
+nace plegado: el ruido ya era cero hasta abrirlo. Y **no se reordena**, que el orden por
+fecha es lo que hace legible la lista.
+
+**Si no queda nadie, una sola franja amarilla.** Pedido, y de paso arregla un fallo que
+nadie había visto: la celda pinta dos franjas como mucho (`MAX_AUSENCIAS`), así que con
+tres adultos de vacaciones el mismo día **la tercera no se pintaba**. El día en el que la
+respuesta es la más simple de todas —«aquí no hay nadie»— era el que peor se leía, y encima
+tres colores obligan a leer tres cosas para enterarse de una. El amarillo es `FAMILY_COLOR`,
+el que ya significa «de toda la casa» en el resto de la app.
+
+Las reglas, en `familyAbsenceKind`: cuentan **solo los adultos con cuenta** (`members`),
+que es quien tiene un trabajo del que librar y la lista que la familia mantiene al día;
+hacen falta **dos** —con un solo adulto, «todos los adultos» es él y el amarillo diría «de
+la casa» cuando sigue siendo de una persona—; y **del mismo tipo**, porque uno de vacaciones
+y otro descansando no se resumen en una palabra. Los extremos del tramo no los puede dar
+`vacationEdges`: aquel mira los de **un evento**, y este tramo lo forman las vacaciones de
+varias personas, que empiezan y acaban cada una por su lado. Hay que preguntar si el día de
+al lado también es de la casa, y por eso se calcula en `MonthGrid`, que tiene el calendario
+entero, y no en la celda, que solo conoce su día. Los huecos de fuera de mes colapsan igual,
+o un tramo del 28 de agosto al 4 de septiembre se partiría en dos idiomas a mitad de fila.
+
+**El bloque «Vacaciones y descansos» no se toca**, y se consideró: la rejilla contesta «¿qué
+día es este?» y el bloque «¿quién y hasta cuándo?». Son dos preguntas distintas, no una
+contradicción, y el bloque ya era la fuente de los nombres desde el 26-08-2026.
+
+De propina, el recuento de móvil de un día con tres o más cosas pasa a `primary-deep`: a
+9 px es el texto más pequeño de la rejilla y `primary-strong` sobre el crema se quedaba en
+4,48:1, contra 5,56:1 del nuevo.
+
+Once tests unitarios nuevos en `events.spec.ts` para la ausencia familiar (**627** en la
+suite completa, 476 unitarios y 151 de navegador, con el de móvil del botón «Hoy»): quién cuenta y quién no, el mínimo de dos adultos, la
+mezcla de tipos, el solape de dos tramos distintos y el cruce del cambio de mes.
+
+**Lo que se miró y se dejó como estaba.** Los **dos títulos por celda** son
+`MAX_TITULOS = 2`, un número fijo y no una altura ni un `line-clamp`; subirlo a tres cabe
+justo en los 104 px de la celda, pero cualquier día que además tenga `+N más` o la línea de
+tareas se pasa, y como es una rejilla **crece la fila entera de la semana**. No se toca sin
+decidir a la vez si se pone techo duro. Y queda apuntado un desajuste: los comentarios de
+`DayCell` hablan de celdas de 120 y 150 px de ancho en escritorio, pero con
+`lg:max-w-5xl` y la agenda de 380 px la columna real es de **~81 px**, donde un título a
+10 px entra en unos doce caracteres. La premisa que puso títulos en las celdas no se cumple
+al ancho actual; arreglarlo es ensanchar el contenedor, que es un cambio de maquetación de
+escritorio y va aparte.
+
+
 ### Auditadas Listas, Tareas y Notas: dos fallos, y borrar deja de ser un toque (05-09-2026)
 
 Una revisión pedida de las tres pantallas «que parecían correctas», mirando en especial

@@ -2373,6 +2373,54 @@ De paso, Listas dejó de escribir su vacío a mano y pasa por `EmptyState` como 
 demás; y su emoji era un ✅, que en una pantalla donde marcar significa «ya lo
 tenéis» decía lo contrario de lo que cuenta una lista.
 
+### Cuando no queda nadie, se dice una vez y en amarillo (05-09-2026)
+
+Un día en el que **todos los adultos con cuenta** están fuera y por lo mismo lleva
+una sola franja en `FAMILY_COLOR`, no una por persona. La lógica está en
+`familyAbsenceKind` (`src/lib/events.ts`) y las tres reglas son deliberadas:
+
+- **Solo `members`**, los adultos con cuenta. No los adultos sin ella ni los hijos.
+  Es quien tiene un trabajo del que librar, y es la lista que la familia mantiene
+  al día porque da acceso a la app. Contando a los hijos, el día dejaría de ser de
+  la familia en cuanto uno tuviera colegio, que es casi siempre.
+- **Dos como mínimo.** Con un solo adulto, «todos los adultos» es él y cada
+  vacación suya se volvería amarilla: el color pasaría a decir «de la casa» cuando
+  sigue siendo de una persona.
+- **Del mismo tipo.** Uno de vacaciones y otro descansando no se resumen en una
+  palabra; ese día se queda con sus franjas de siempre.
+
+No nace de una idea estética sino de un fallo: la celda pinta dos franjas como
+mucho, así que con tres adultos de vacaciones el mismo día la tercera no se
+pintaba. El día cuya respuesta es la más simple —«aquí no hay nadie»— era el que
+peor se leía.
+
+**El bloque «Vacaciones y descansos» no colapsa**, y se consideró. La rejilla
+contesta «¿qué día es este?» y el bloque «¿quién y hasta cuándo?»: son dos
+preguntas distintas, y el bloque ya era la fuente de los nombres desde el
+26-08-2026. Que la rejilla diga «la casa» y la lista siga nombrando a cada uno no
+es una contradicción, es el reparto de siempre.
+
+Los extremos del tramo no salen de `vacationEdges`, que mira los de **un evento**:
+aquí el tramo lo forman las vacaciones de varias personas, que empiezan y acaban
+cada una por su lado, así que hay que preguntar si el día de al lado también es de
+la casa (`familyAbsenceEdges`). Por eso se calcula en `MonthGrid`, que tiene el
+calendario entero, y no en la celda, que solo conoce su día.
+
+### Hoy y el día elegido se distinguen por la forma (05-09-2026)
+
+El día elegido es un **disco relleno** y hoy un **anillo**, los dos en
+`primary-strong`. Eran dos discos macizos que solo cambiaban de tono, y los tonos
+eran el verde y el salmón de marca: los mismos que el bloque de gráficos de
+`globals.css` documenta a **ΔE 2,3 en protanopía**. Para quien no distingue rojos
+de verdes eran el mismo círculo, que es tanto como no marcar ninguno de los dos.
+El texto blanco encima tampoco salía: 2,61:1 sobre `primary` y 2,18:1 sobre
+`accent`, contra el 4,5:1 que pide WCAG.
+
+Es la regla general de la app, aplicada a un sitio que se la había saltado: **el
+color nunca puede ser la única forma de saber algo**. Aquí lo que distingue es la
+forma; el tono es el mismo en las dos a propósito, porque son la misma clase de
+señal —«dónde estás»— y no dos cosas distintas.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

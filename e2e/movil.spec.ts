@@ -128,3 +128,35 @@ test('el mes del calendario cabe y se puede tocar a 390 px', async ({ page }) =>
   expect(medidas.scroll, 'El mes del calendario se sale del ancho').toBeLessThanOrEqual(medidas.ancho + 1)
   expect(medidas.pequenos, `Controles por debajo de ${MINIMO_TOQUE}px en el mes`).toEqual([])
 })
+
+// El botón "Hoy" solo existe cuando lo que se mira no contiene hoy, así que el
+// test de arriba —que abre el calendario en el mes actual— no llega a verlo
+// nunca. Y entra en la fila más apretada de la app: a 390 px comparte línea con
+// dos flechas, el título, el selector de vista y el `+`.
+test('con el botón «Hoy» puesto, la cabecera del calendario sigue cabiendo a 390 px', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(900)
+  await elegirVista(page, 'Mes')
+
+  // Un mes adelante: es lo que hace aparecer el botón.
+  await page.getByRole('button', { name: 'Mes siguiente' }).click()
+  await page.waitForTimeout(400)
+
+  const hoy = page.getByRole('button', { name: 'Hoy', exact: true })
+  await expect(hoy).toBeVisible()
+
+  const caja = await hoy.boundingBox()
+  expect(caja!.width, 'El botón «Hoy» es más estrecho que el mínimo de toque').toBeGreaterThanOrEqual(MINIMO_TOQUE)
+  expect(caja!.height, 'El botón «Hoy» es más bajo que el mínimo de toque').toBeGreaterThanOrEqual(MINIMO_TOQUE)
+
+  const desborde = await page.evaluate(() => ({
+    scroll: document.documentElement.scrollWidth,
+    ancho: document.documentElement.clientWidth,
+  }))
+  expect(desborde.scroll, 'La cabecera con «Hoy» se sale del ancho').toBeLessThanOrEqual(desborde.ancho + 1)
+
+  // Y hace lo que dice: vuelve al mes de hoy, con lo que el botón se va solo.
+  await hoy.click()
+  await page.waitForTimeout(400)
+  await expect(hoy).toHaveCount(0)
+})

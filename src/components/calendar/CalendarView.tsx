@@ -290,6 +290,29 @@ export function CalendarView() {
     return [capitalize(`${desde} – ${hasta}`), 'Semana']
   })()
 
+  /**
+   * Si lo que se está mirando **contiene hoy**, para decidir si hace falta el
+   * botón de volver. Se pregunta por la vista y no por el mes a secas: mirando
+   * la semana del 20 estás fuera de hoy aunque sea el mismo mes, y el botón
+   * tiene que aparecer.
+   *
+   * En la agenda de móvil no aplica: la lista arranca siempre en hoy y no se
+   * navega, así que nunca hay nada de lo que volver.
+   */
+  const fueraDeHoy = (() => {
+    if (vista === 'agenda') return false
+    if (vista === 'dia') return !isSameDay(selectedDay, today)
+    if (vista === 'semana') return !isSameDay(startOfWeek(selectedDay, { weekStartsOn: 1 }), startOfWeek(today, { weekStartsOn: 1 }))
+    return !isSameMonth(currentMonth, today)
+  })()
+
+  /**
+   * Volver al presente: elige hoy y coloca el mes. Es `enfocarDia(today)`, y se
+   * escribe así en vez de pasar `enfocarDia` directamente porque el botón no
+   * recibe fecha: lo que pide es "hoy", no un día cualquiera.
+   */
+  function irAHoy() { enfocarDia(today) }
+
   const sheetKey = editingEvent
     ? `edit-${editingEvent.id}`
     : `create-${format(selectedDay, 'yyyyMMdd')}-${horaInicial ?? ''}`
@@ -305,6 +328,8 @@ export function CalendarView() {
           vistas={vistas}
           onPrev={irAnterior}
           onNext={irSiguiente}
+          onHoy={irAHoy}
+          fueraDeHoy={fueraDeHoy}
           onAdd={() => openCreate(selectedDay)}
         />
 

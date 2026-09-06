@@ -133,10 +133,20 @@ interface CalendarHeaderProps {
   unidad: string
   onPrev: () => void
   onNext: () => void
+  /**
+   * Volver al presente. Solo se pinta cuando hace falta, y de eso decide
+   * `fueraDeHoy`.
+   */
+  onHoy: () => void
+  /**
+   * Si lo que se está mirando **no contiene hoy**. Lo sabe `CalendarView`, que es
+   * quien conoce la vista: en Mes es el mes, en Semana la semana y en Día el día.
+   */
+  fueraDeHoy: boolean
   onAdd: () => void
 }
 
-export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev, onNext, onAdd }: CalendarHeaderProps) {
+export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev, onNext, onHoy, fueraDeHoy, onAdd }: CalendarHeaderProps) {
 
   const FLECHA = 'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
 
@@ -175,6 +185,33 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
           <h2 className="min-w-0 flex-1 truncate px-1 text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
           {siguiente}
         </div>
+
+        {/**
+          * **Volver a hoy** (05-09-2026). No había ninguna: te ibas tres meses
+          * adelante con las flechas o con el dedo y solo se volvía dando tres
+          * pasos atrás, contando. Es lo primero que echa en falta cualquiera que
+          * haya usado un calendario, y aquí se notaba más porque el desliz hace
+          * muy barato alejarse.
+          *
+          * **Solo aparece cuando sirve de algo**: mirando el mes de hoy no hay
+          * nada que deshacer y un botón que no hace nada es ruido en una fila que
+          * ya va justa a 390 px. Que aparezca es además la señal de que te has ido
+          * lejos, que es información que antes no daba nadie.
+          *
+          * Va pegado a las flechas y no junto al `+`: es navegación, del mismo
+          * grupo que ellas. Y entra ocupando su sitio, no encima de nada: el resto
+          * de la fila se corre, y el título ya venía preparado para encogerse
+          * porque es `min-w-0 truncate`.
+          */}
+        {fueraDeHoy && (
+          <button
+            type="button"
+            onClick={onHoy}
+            className="h-9 flex-shrink-0 rounded-full bg-surface px-3 text-xs font-bold text-ink transition-colors hover:bg-line active:bg-grip"
+          >
+            Hoy
+          </button>
+        )}
 
         {/* En escritorio el selector va en esta misma fila, a la derecha, que es
             donde estaba y donde cabe: tres pestañas y sitio de sobra. */}

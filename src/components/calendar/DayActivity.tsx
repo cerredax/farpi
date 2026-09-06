@@ -1,7 +1,7 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
 import { isPlan } from '@/lib/events'
-import type { Child, Event, FamilyMember, Task } from '@/types'
+import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
 
 /**
  * El indicador mínimo de qué hay un día. Lo comparten la tira de siete días y
@@ -58,21 +58,34 @@ export function marcasDelDia(
  * Separa planes de tareas en vez de sumarlos: "2 planes, 1 tarea" dice más que
  * "3 cosas", y son dos clases distintas —una pasa, la otra se hace—.
  */
-export function resumenDelDia({ planes, tareas, vacaciones, descansos }: {
+export function resumenDelDia({ planes, tareas, vacaciones, descansos, familia }: {
   planes: number
   tareas: number
   /** Cuántas personas están de vacaciones ese día. */
   vacaciones: number
   /** Cuántas descansan ese día. */
   descansos: number
+  /**
+   * El tipo de ausencia cuando **no queda nadie**: todos los adultos con cuenta
+   * fuera y por lo mismo. Lo decide `familyAbsenceKind`.
+   */
+  familia?: EventKind | null
 }): string {
   const partes: string[] = []
   if (planes > 0) partes.push(`${planes} plan${planes === 1 ? '' : 'es'}`)
   if (tareas > 0) partes.push(`${tareas} tarea${tareas === 1 ? '' : 's'}`)
-  // Las ausencias se dicen con número: el tinte avisa de que hay alguien fuera,
-  // pero no de cuántos, y el color de la celda ya no es de nadie en concreto.
-  if (vacaciones > 0) partes.push(`${vacaciones} de vacaciones`)
-  if (descansos > 0) partes.push(`${descansos} descansando`)
+  if (familia) {
+    // Sin nadie en casa se dice una vez y en palabras, no contando cabezas:
+    // "3 de vacaciones" obliga a saberse cuántos adultos hay para entender que
+    // están todos, que es justo lo que hay que decir. Es lo mismo que hace la
+    // franja amarilla, dicho para quien no la ve.
+    partes.push(familia === 'vacaciones' ? 'la familia de vacaciones' : 'la familia descansando')
+  } else {
+    // Las ausencias se dicen con número: el tinte avisa de que hay alguien fuera,
+    // pero no de cuántos, y el color de la celda ya no es de nadie en concreto.
+    if (vacaciones > 0) partes.push(`${vacaciones} de vacaciones`)
+    if (descansos > 0) partes.push(`${descansos} descansando`)
+  }
   return partes.length > 0 ? partes.join(', ') : 'sin planes'
 }
 
@@ -83,7 +96,11 @@ export function DayActivity({ marcas }: { marcas: string[] }) {
 
   if (marcas.length > MAX_MARCAS) {
     return (
-      <span className="flex h-3 items-center justify-center text-[9px] font-black leading-none text-primary-strong" aria-hidden>
+      // `primary-deep` y no `primary-strong` (05-09-2026): a 9 px este número es
+      // el texto más pequeño de la rejilla, y `primary-strong` sobre el crema da
+      // 4,48:1 mientras que `primary-deep` llega a 5,56:1. No cuesta nada y es el
+      // único sitio de la celda donde el tamaño no deja margen.
+      <span className="flex h-3 items-center justify-center text-[9px] font-black leading-none text-primary-deep" aria-hidden>
         {marcas.length}
       </span>
     )

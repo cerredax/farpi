@@ -1,7 +1,5 @@
 'use client'
 
-import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Pin } from 'lucide-react'
 import type { Note } from '@/types'
 
@@ -22,6 +20,12 @@ interface NoteCardProps {
  *
  * El corte a seis líneas es el tope para que una nota larga no empuje a las
  * demás fuera de la pantalla. La mayoría no llega, y la que llega se abre.
+ *
+ * **Sin fecha.** La tarjeta llevaba el `updated_at` al pie y no contestaba nada:
+ * una nota no vence ni llega tarde, y «8 sept 2026» debajo de la clave del wifi
+ * es una línea más en un índice que se lee de un vistazo. Si algún día hace
+ * falta decir que una nota está vieja, se dirá cuando lo esté —«sin tocar desde
+ * junio»— y no en todas.
  *
  * Toda la tarjeta es un botón y lleva a editarla. No hay un segundo botón para
  * fijar: un botón no puede llevar botones dentro —es la misma piedra con la que
@@ -56,10 +60,6 @@ export function NoteCard({ note, onEdit }: NoteCardProps) {
           {note.body}
         </p>
       )}
-
-      <span className="text-[10px] text-faint">
-        {format(parseISO(note.updated_at), "d MMM yyyy", { locale: es })}
-      </span>
     </button>
   )
 }

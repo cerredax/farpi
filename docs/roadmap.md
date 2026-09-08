@@ -671,6 +671,8 @@ sheet lo manda lo que más se contesta».
       segundo que se contesta y estaba detrás de las dos rejillas de chips.
 - [x] **Atajos «Hoy» y «Mañana»** delante del campo de fecha, que se vuelven a tocar para
       quitarla. Antes, poner la tarea de hoy pedía abrir el calendario del móvil.
+- [x] **La tarjeta de una nota pierde la fecha.** El `updated_at` al pie no contesta
+      nada: una nota no vence. Si hace falta decir que está vieja, se dirá cuando lo esté.
 - [x] Uno de navegador: **636** en la pasada completa (484 unitarios y 152 de navegador).
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)

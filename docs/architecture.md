@@ -1254,6 +1254,11 @@ diferencia con `DocCard`, a la que se parece: un documento es un archivo que hay
 abrir, una nota **es** su contenido, y obligar a tocar para ver el teléfono del pediatra
 convierte en dos gestos lo que tiene que ser cero.
 
+**La tarjeta no lleva fecha** (08-09-2026). Llevaba el `updated_at` al pie y no
+contestaba nada: una nota no vence ni llega tarde, y «8 sept 2026» debajo de la clave del
+wifi es una línea más en un índice que se lee de un vistazo. Si algún día hace falta decir
+que una nota está vieja, se dirá cuando lo esté —«sin tocar desde junio»— y no en todas.
+
 **Fijar es lo único que ordena por encima del tiempo.** Ordenar solo por `updated_at` no
 vale: la clave del wifi se consulta todo el año y no se edita nunca, así que cualquier
 nota escrita ayer la hundiría. Se marca en el sheet y no en la tarjeta, porque un botón no

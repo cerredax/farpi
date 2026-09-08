@@ -38,6 +38,9 @@ El porqué de las dos, en `architecture.md`, «El orden de un sheet lo manda lo 
 contesta». Un test nuevo de navegador cubre los atajos: que ponen la fecha, que la quitan
 al segundo toque y que la tarea sale con su «Hoy» en la lista.
 
+Y con ellas se fue la fecha del pie de la tarjeta de una nota, que era la duda que quedaba
+abierta: el `updated_at` no contesta nada en una pantalla donde nada vence.
+
 ### Un documento sin dueño lo dice, el archivo sale con su extensión y el sheet no cierra antes de tiempo (08-09-2026)
 
 Cuatro cosas de Documentos, todas del mismo sitio: en la base ya no hay archivo, solo la

@@ -1,10 +1,13 @@
 'use client'
 
+import { addDays } from 'date-fns'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
+import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
+import { getLocalDateString } from '@/lib/date-utils'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateTaskDraft } from '@/lib/validators'
 import type { Child, FamilyMember, Task, TaskDraft } from '@/types'
@@ -60,6 +63,11 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
 
   const hasRecurrence = draft.recurrence !== 'none'
 
+  // En cada render y no en una constante del módulo: la app se queda abierta
+  // días en un móvil, y una fecha calculada al importar ofrecería anteayer.
+  const hoy = getLocalDateString()
+  const manana = getLocalDateString(addDays(new Date(), 1))
+
   return (
     <BottomSheet
       open={open}
@@ -92,14 +100,30 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
           />
         </Field>
 
-        <Field label="Notas" htmlFor="task-notes">
-          <textarea
-            id="task-notes"
-            value={draft.notes}
-            onChange={e => patch({ notes: e.target.value })}
-            placeholder="Detalles opcionales…"
-            rows={2}
-            className="field-input resize-none"
+        {/* Cuándo es lo segundo que se contesta de una tarea, así que va lo
+            segundo. Estaba al fondo, detrás de las dos rejillas de chips, con
+            las notas —que casi nunca se escriben— ocupando este sitio.
+
+            «Hoy» y «Mañana» delante del campo porque son casi todas las fechas
+            que se ponen en casa: sacar la basura, llamar al fontanero. Sin ellos
+            había que abrir el calendario del móvil para elegir el día de hoy.
+            Vuelven a tocarse para quitar la fecha, como el chip de fijar una
+            nota: no hace falta un tercer botón para vaciarla. */}
+        <Field label={hasRecurrence ? 'Empieza el' : 'Vencimiento'} htmlFor="task-due" spacing="group">
+          <div className="flex gap-1.5">
+            <SelectChip selected={draft.due_date === hoy} onClick={() => patch({ due_date: draft.due_date === hoy ? '' : hoy })}>
+              Hoy
+            </SelectChip>
+            <SelectChip selected={draft.due_date === manana} onClick={() => patch({ due_date: draft.due_date === manana ? '' : manana })}>
+              Mañana
+            </SelectChip>
+          </div>
+          <input
+            id="task-due"
+            type="date"
+            value={draft.due_date}
+            onChange={e => patch({ due_date: e.target.value })}
+            className="field-input"
           />
         </Field>
 
@@ -151,16 +175,6 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
           </div>
         </Field>
 
-        <Field label={hasRecurrence ? 'Empieza el' : 'Vencimiento'} htmlFor="task-due">
-          <input
-            id="task-due"
-            type="date"
-            value={draft.due_date}
-            onChange={e => patch({ due_date: e.target.value })}
-            className="field-input"
-          />
-        </Field>
-
         {hasRecurrence && (
           <Field label="Termina el" htmlFor="task-rec-end" hint="(opcional)">
             <input
@@ -173,6 +187,19 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
             />
           </Field>
         )}
+
+        {/* Las notas cierran el sheet: son el campo que menos se rellena, y
+            ocupaban el segundo sitio, que es de la fecha. */}
+        <Field label="Notas" htmlFor="task-notes">
+          <textarea
+            id="task-notes"
+            value={draft.notes}
+            onChange={e => patch({ notes: e.target.value })}
+            placeholder="Detalles opcionales…"
+            rows={2}
+            className="field-input resize-none"
+          />
+        </Field>
 
       </form>
     </BottomSheet>

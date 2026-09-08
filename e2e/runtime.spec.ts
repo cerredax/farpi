@@ -406,6 +406,36 @@ test('una tarea se puede asignar a alguien y se ve de quién es', async ({ page 
   await expect(fila).toContainText('María')
 })
 
+// «Hoy» y «Mañana» son casi todas las fechas que se ponen en una casa, y hasta
+// ahora la de hoy costaba abrir el calendario del móvil y buscar el día en la
+// rejilla. El atajo la pone de un toque y la quita con otro.
+test('la fecha de una tarea se pone con los atajos, y se quita', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Nueva tarea' })
+  await page.locator('#task-title').fill('Cambiar el filtro del agua')
+
+  const atajoHoy = sheet.getByRole('button', { name: 'Hoy', exact: true })
+  await atajoHoy.click()
+  await expect(page.locator('#task-due')).toHaveValue(iso)
+
+  // El mismo chip la quita: no hace falta un botón de vaciar.
+  await atajoHoy.click()
+  await expect(page.locator('#task-due')).toHaveValue('')
+
+  await atajoHoy.click()
+  await page.getByRole('button', { name: 'Crear tarea' }).click()
+  await page.waitForTimeout(400)
+
+  const fila = page.locator('div').filter({ hasText: /^Cambiar el filtro del agua/ }).first()
+  await expect(fila).toContainText('Hoy')
+})
+
 // Con el tiempo la lista se hace larga y "¿apunté lo de la vitamina?" solo se
 // contesta a base de scroll.
 test('las tareas se buscan por texto', async ({ page }) => {

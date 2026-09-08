@@ -2455,6 +2455,37 @@ no se distingue de un rótulo; el subrayado del hover se queda en el texto y no 
 palabras. La otra —«Hoy pinta tranquilo. La casa respira un poco.»— sí son dos frases y
 los conserva.
 
+### El orden de un sheet lo manda lo que más se contesta (08-09-2026)
+
+Los campos de un sheet no van en el orden en que se pensaron, sino en el que se
+contestan. Dos que llevaban el suyo desde el primer día:
+
+**En una nota, «Fijar» sube por delante del icono.** Estaba al fondo, detrás de un
+textarea de seis filas, del aviso de las contraseñas y de tres filas de emoji: en un móvil
+de 390 px, un chip de un toque quedaba fuera de la pantalla. Fijar decide **dónde se lee**
+la nota —es lo único que ordena por encima del tiempo— y el icono solo la nombra, así que
+el icono es lo que puede ir el último. Con él se fue el párrafo que lo explicaba: la
+etiqueta dice «Fijar» y el chip dice «Arriba del todo», y ya está dicho. El aviso de las
+claves **no** se toca: ese sigue pegado al campo donde se escriben, que es el único sitio
+donde se lee.
+
+**En una tarea, la fecha sube al segundo puesto y las notas bajan al último.** «¿Cuándo?»
+es lo segundo que se contesta de una tarea y estaba al final, detrás de las dos rejillas
+de chips; el sitio lo ocupaban unas notas que casi nunca se escriben y que solo son un
+detalle de más. Es el mismo criterio con el que «quién la hace» ya iba antes que la
+prioridad. Prioridad y Repetición siguen juntas, que son el mismo control repetido.
+
+Lo que cuesta el cambio: la etiqueta del campo cambia a «Empieza el» cuando la tarea se
+repite, y ahora eso pasa dos campos más arriba de donde se toca la repetición. Se acepta
+—la etiqueta sigue siendo correcta se mire cuando se mire—, y a cambio la fecha del 95 %
+de las tareas, que no repiten, se pone sin bajar.
+
+**Y la fecha lleva «Hoy» y «Mañana» delante del campo.** Son casi todas las fechas que se
+ponen en una casa —sacar la basura, llamar al fontanero— y hasta ahora la de hoy costaba
+abrir el calendario del móvil y buscar el día en una rejilla. Los dos chips se vuelven a
+tocar para quitar la fecha, como el de fijar una nota: no hace falta un tercer botón para
+vaciarla. El campo de fecha se queda debajo para todo lo demás.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

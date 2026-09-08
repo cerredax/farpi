@@ -15,6 +15,29 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-08
 
+### El orden de los sheets de Notas y Tareas (08-09-2026)
+
+Segunda vuelta a la auditoría de Listas, Tareas y Notas, esta vez leyendo los sheets como
+quien los rellena. Las tres pantallas estaban bien; los formularios tenían el orden en que
+se fueron escribiendo, que no es el orden en que se contestan.
+
+En **Notas**, «Fijar» era el último campo del sheet: detrás del textarea de seis filas,
+del aviso de las contraseñas y de las tres filas de emoji. Un chip de un toque, a un
+scroll de distancia en un móvil de 390 px. Sube por delante del icono —decide dónde se lee
+la nota, mientras que el icono solo la nombra— y pierde el párrafo que tenía debajo, que
+repetía lo que ya dicen la etiqueta y el propio chip.
+
+En **Tareas**, «Notas» era el segundo campo y «Vencimiento» el penúltimo, detrás de las
+rejillas de prioridad y repetición. Se cambian el sitio: la fecha es lo segundo que se
+contesta de una tarea y las notas, un detalle que casi nunca se escribe. Y la fecha estrena
+dos atajos, «Hoy» y «Mañana», que son casi todas las fechas de una casa y hasta ahora
+obligaban a abrir el calendario del móvil para buscar el día en una rejilla; se vuelven a
+tocar para quitarla.
+
+El porqué de las dos, en `architecture.md`, «El orden de un sheet lo manda lo que más se
+contesta». Un test nuevo de navegador cubre los atajos: que ponen la fecha, que la quitan
+al segundo toque y que la tarea sale con su «Hoy» en la lista.
+
 ### Un documento sin dueño lo dice, el archivo sale con su extensión y el sheet no cierra antes de tiempo (08-09-2026)
 
 Cuatro cosas de Documentos, todas del mismo sitio: en la base ya no hay archivo, solo la

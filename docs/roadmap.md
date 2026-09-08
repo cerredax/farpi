@@ -657,6 +657,22 @@ Tres tandas pequeñas y sin relación entre ellas. El porqué de cada decisión,
       navegador). El test de escritorio a 1023 px se da la vuelta, que comprobaba justo
       la rejilla que ya no está ahí.
 
+## Fase 8s - El orden de los sheets de Notas y Tareas (08-09-2026)
+
+Segunda vuelta a Listas, Tareas y Notas, ahora leyendo los formularios como quien los
+rellena. Listas se queda como está. El porqué, en `docs/architecture.md`, «El orden de un
+sheet lo manda lo que más se contesta».
+
+- [x] **«Fijar» sube por delante del icono** en el sheet de una nota: estaba el último,
+      detrás del textarea, del aviso de las claves y de tres filas de emoji, y en un móvil
+      de 390 px se salía de la pantalla. Sin el párrafo de debajo, que repetía lo que ya
+      dicen la etiqueta y el chip.
+- [x] **La fecha de una tarea sube al segundo puesto y las notas bajan al último.** Es lo
+      segundo que se contesta y estaba detrás de las dos rejillas de chips.
+- [x] **Atajos «Hoy» y «Mañana»** delante del campo de fecha, que se vuelven a tocar para
+      quitarla. Antes, poner la tarea de hoy pedía abrir el calendario del móvil.
+- [x] Uno de navegador: **636** en la pasada completa (484 unitarios y 152 de navegador).
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

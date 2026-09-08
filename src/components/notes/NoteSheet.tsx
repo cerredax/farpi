@@ -117,6 +117,22 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
           </p>
         </Field>
 
+        {/* Fijar se marca aquí y no en la tarjeta: es un gesto que se hace una
+            vez, al escribir la nota, y ponerlo en el índice obligaría a partir
+            la tarjeta en dos zonas pulsables.
+
+            Va delante del icono, y no al fondo del sheet, porque decide dónde se
+            lee la nota y el icono solo la nombra. Detrás del textarea, del aviso
+            de las claves y de tres filas de emoji, un chip de un toque se queda
+            fuera de la pantalla en un móvil de 390 px. Y sin párrafo debajo:
+            «Fijar» y «Arriba del todo» ya lo dicen. */}
+        <Field label="Fijar" spacing="group">
+          <SelectChip selected={draft.pinned} onClick={() => patch({ pinned: !draft.pinned })}>
+            <Pin size={13} strokeWidth={2.4} aria-hidden />
+            Arriba del todo
+          </SelectChip>
+        </Field>
+
         <Field label="Icono" spacing="group">
           <div className="grid grid-cols-8 gap-2">
             {EMOJIS.map(emoji => (
@@ -130,20 +146,6 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
               </button>
             ))}
           </div>
-        </Field>
-
-        {/* Fijar se marca aquí y no en la tarjeta: es un gesto que se hace una
-            vez, al escribir la nota, y ponerlo en el índice obligaría a partir
-            la tarjeta en dos zonas pulsables. */}
-        <Field label="Fijar" spacing="group">
-          <SelectChip selected={draft.pinned} onClick={() => patch({ pinned: !draft.pinned })}>
-            <Pin size={13} strokeWidth={2.4} aria-hidden />
-            Arriba del todo
-          </SelectChip>
-          <p className="text-[10px] leading-relaxed text-faint">
-            Las fijadas se quedan las primeras. Para lo que se consulta siempre y
-            no se toca nunca, como la clave del wifi.
-          </p>
         </Field>
       </form>
     </BottomSheet>

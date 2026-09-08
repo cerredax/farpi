@@ -22,20 +22,18 @@ interface WeekGridProps {
 }
 
 /**
- * Las columnas, en clases y no en `style`, para poder apretarlas en escritorio:
- * un `style` en línea gana a cualquier clase y no se puede sobreescribir por
- * ancho de pantalla.
+ * Las columnas, en clases y no en `style`: un `style` en línea gana a cualquier
+ * clase y no se puede sobreescribir por ancho de pantalla.
  *
- * El valor base es exactamente el de antes —132 px de etiqueta y siete columnas
- * de 104 mínimo, o sea 860 en total—, así que de `md` a `lg` esto se ve igual
- * que siempre y sigue arrastrándose en horizontal. Desde `lg` aparece
- * `SideNav`, que se lleva 224 px del ancho: con el mínimo de antes la rejilla
- * pasaba a tener scroll justo donde hay sitio de sobra, así que ahí las
- * columnas se aprietan a 112 + 7×84 = 700 y entran enteras.
+ * Un solo juego de valores, porque la rejilla **solo se pinta desde `lg`**: por
+ * debajo manda `WeekList`, la semana en vertical. Y desde `lg` siempre está
+ * `SideNav` llevándose 224 px del ancho, así que con los 132 + 7×104 = 860 de
+ * la versión ancha la rejilla arrastraba en horizontal justo donde sobra sitio.
+ * Apretadas a 112 + 7×84 = 700 entran enteras ya a 1024 px.
  */
-const COLUMNAS = 'grid-cols-[132px_repeat(7,minmax(104px,1fr))] lg:grid-cols-[112px_repeat(7,minmax(84px,1fr))]'
+const COLUMNAS = 'grid-cols-[112px_repeat(7,minmax(84px,1fr))]'
 
-/** Rejilla semanal de comidas (franjas × días), con scroll horizontal en móvil. */
+/** Rejilla semanal de comidas (franjas × días). Solo se pinta desde `lg`. */
 export function WeekGrid({
   weekDays,
   slots,
@@ -51,7 +49,7 @@ export function WeekGrid({
   return (
     <Card padded={false} className="overflow-hidden">
       <div className="overflow-x-auto">
-        <div className="min-w-[860px] lg:min-w-0">
+        <div className="min-w-0">
           <div className={`grid border-b border-surface bg-canvas ${COLUMNAS}`}>
             <div className="sticky left-0 z-20 bg-canvas border-r border-surface px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Franja</p>

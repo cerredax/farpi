@@ -46,7 +46,8 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
   cambio de escritorio necesita tocar un valor que ya se usa en móvil, no se toca: se
   mueve a una clase con el mismo valor base y se le añade la variante `lg:` (así se
   hizo con las columnas de `WeekGrid`, que estaban en un `style` en línea imposible de
-  sobreescribir). `e2e/escritorio.spec.ts` lo vigila desde los dos lados: a 1440 px y a
+  sobreescribir; hoy son un solo juego de valores, porque esa rejilla ya no existe por
+  debajo de `lg`). `e2e/escritorio.spec.ts` lo vigila desde los dos lados: a 1440 px y a
   **1023 px**, un píxel por debajo del corte, donde todo tiene que seguir igual.
 - No introducir backend complejo, Docker, NestJS, librerías pesadas de validación ni
   arquitectura grande. No sobrerrefactorizar.
@@ -80,8 +81,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 476 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 627 (476 unitarios + 151 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 484 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 635 (484 unitarios + 151 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)

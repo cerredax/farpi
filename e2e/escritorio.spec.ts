@@ -494,14 +494,24 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
     expect(secciones.y + secciones.height, 'la columna de Ajustes se ha colado por debajo de lg').toBeLessThanOrEqual(panel.y)
   })
 
-  test('la rejilla de comidas conserva las columnas de siempre', async ({ page }) => {
+  test('en Comidas sigue la semana en vertical y no la rejilla', async ({ page }) => {
     await page.goto('/meals')
     await page.waitForTimeout(800)
 
-    // 132 px de columna de etiqueta: el valor de siempre, sin apretar. Si esto
-    // se rompe, el cambio de escritorio se ha colado por debajo del corte.
-    const medidas = await medirRejilla(page)
-    expect(medidas, 'no se encontró la rejilla de ocho columnas').not.toBeNull()
-    expect(medidas!.primeraColumna).toBe('132px')
+    // Comidas cambiaba en `md` y era la única pantalla que se adelantaba al
+    // corte: de 768 a 1023 px se ponía la rejilla ancha con la barra de abajo
+    // todavía puesta, sin `ViewHeader` y sin la pestaña "Hoy". Aquí se
+    // comprueba por los dos lados, cada uno con algo que solo existe en su
+    // bloque: las pestañas son del de móvil y la navegación de semana, del de
+    // escritorio, que es el que envuelve la rejilla.
+    //
+    // "Hoy" va con `exact`: la tarjeta del día de `WeekList` también lo dice.
+    await expect(page.getByRole('button', { name: 'Hoy', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Semana anterior' })).toBeHidden()
+
+    expect(
+      await medirRejilla(page),
+      'la rejilla de comidas se ha colado por debajo de lg',
+    ).toBeNull()
   })
 })

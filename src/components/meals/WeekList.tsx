@@ -23,10 +23,11 @@ interface WeekListProps {
 /**
  * La semana en vertical, un día detrás de otro.
  *
- * Es la versión de móvil de `WeekGrid`: la rejilla necesita 860 px de ancho, así
- * que en un teléfono solo se veían dos días de siete y había que arrastrar en
- * horizontal sin ninguna pista de que se podía. Aquí caben los siete, y las
- * acciones son las mismas: tocar una comida la edita, tocar un hueco la añade.
+ * Es lo que se ve por debajo de `lg`, donde `WeekGrid` no cabe: la rejilla pide
+ * 700 px de ancho, así que en un teléfono solo se veían dos días de siete y había
+ * que arrastrar en horizontal sin ninguna pista de que se podía. Aquí caben los
+ * siete, y las acciones son las mismas: tocar una comida la edita, tocar un hueco
+ * la añade.
  */
 export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCopyDay, hasMealsForDate }: WeekListProps) {
   const today = new Date()

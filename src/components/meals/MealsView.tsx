@@ -47,7 +47,7 @@ export function MealsView() {
   return (
     <>
       {/* ── Mobile layout ───────────────────────────────────────────── */}
-      <div className="md:hidden max-w-lg mx-auto px-4 py-6 space-y-5">
+      <div className="lg:hidden max-w-lg mx-auto px-4 py-6 space-y-5">
         {/* Sin buscador: el menú es de esta semana y cabe entero en la
             pantalla, así que no hay nada que buscar. La fila es la misma que la
             de Listas, Tareas y Documentos. */}
@@ -111,7 +111,7 @@ export function MealsView() {
       </div>
 
       {/* ── Desktop layout ──────────────────────────────────────────── */}
-      <div className="hidden md:block px-6 lg:px-10 py-6 space-y-4">
+      <div className="hidden lg:block px-10 py-6 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>

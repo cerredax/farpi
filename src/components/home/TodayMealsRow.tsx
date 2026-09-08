@@ -1,15 +1,8 @@
 import { memo } from 'react'
 import { SectionLink } from '@/components/ui/SectionLink'
+import { MEAL_SLOT_META } from '@/lib/constants'
 import { mealCourses } from '@/lib/meal-slots'
-import type { MealPlan, MealSlot } from '@/types'
-
-const SLOT_LABELS: Record<MealSlot, { label: string; emoji: string }> = {
-  breakfast: { label: 'Desayuno', emoji: '☀️' },
-  lunch:     { label: 'Comida',   emoji: '🍽' },
-  school:    { label: 'Comedor',  emoji: '🎒' },
-  dinner:    { label: 'Cena',     emoji: '🌙' },
-  snack:     { label: 'Merienda', emoji: '🍎' },
-}
+import type { MealPlan } from '@/types'
 
 interface TodayMealsRowProps {
   meals: MealPlan[]
@@ -27,7 +20,7 @@ export const TodayMealsRow = memo(function TodayMealsRow({ meals }: TodayMealsRo
     <div className="rounded-3xl bg-white/80 border border-white shadow-sm overflow-hidden">
       <ul className="divide-y divide-hairline">
         {meals.map(meal => {
-          const { label, emoji } = SLOT_LABELS[meal.slot]
+          const { label, emoji } = MEAL_SLOT_META[meal.slot]
           const [primero, ...siguientes] = mealCourses(meal)
           return (
             <li key={meal.id} className="flex items-center gap-3 px-4 py-3">

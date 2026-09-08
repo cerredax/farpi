@@ -489,8 +489,10 @@ abrirse.
 Cada vista aprovecha el ancho como le conviene, no todas con la misma plantilla:
 
 - `CalendarView`: dos columnas desde `lg`.
-- `MealsView`: rejilla semanal de siete días desde `md` (`WeekGrid`), con la lista
-  vertical (`WeekList`) para el teléfono.
+- `MealsView`: rejilla semanal de siete días desde `lg` (`WeekGrid`), con la lista
+  vertical (`WeekList`) por debajo. Cambiaba en `md` y era la única pantalla que se
+  adelantaba al corte (arreglado el 08-09-2026): de 768 a 1023 px se ponía la rejilla
+  ancha con la barra de abajo todavía puesta, sin `ViewHeader` y sin la pestaña "Hoy".
 - `TasksView`: las pendientes en dos columnas desde `lg`, y las completadas igual al
   desplegarse.
 - `ListsView`: el índice en rejilla (dos desde `lg`, tres desde `xl`) y la lista abierta
@@ -535,7 +537,9 @@ el `gap` de la rejilla se suman y descuadran las filas.
 Una trampa que ya costó una vez: un `style` en línea gana a cualquier clase, así que no
 se puede sobreescribir por ancho de pantalla. Las columnas de `WeekGrid` estaban ahí y
 hubo que moverlas a clases —con el valor base idéntico— para poder apretarlas en `lg`,
-donde `SideNav` se lleva 224 px del ancho.
+donde `SideNav` se lleva 224 px del ancho. Desde el 08-09-2026 son **un solo juego de
+valores** (112 + 7×84 = 700) y sin variante: la rejilla solo se pinta desde `lg`, y allí
+`SideNav` está siempre, así que los 860 px de la versión ancha no tenían a quién servir.
 
 Todos los sheets usan el `BottomSheet` compartido (patrón `form` + `footer`), que ya resuelve el comportamiento en móvil pequeño y aporta modal centrado en escritorio:
 

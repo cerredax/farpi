@@ -53,6 +53,28 @@ tira de caracteres donde antes se leía «cartilla-vacunas.pdf». «Documento PD
 lo que de verdad se sabe del archivo, y cómo se llama el papel ya se lee en el campo de
 al lado.
 
+### La rejilla de comidas dejaba de esperar al escritorio (08-09-2026)
+
+Comidas era la única pantalla que cambiaba en `md` y no en `lg`, y por eso de 768 a
+1023 px enseñaba un híbrido que no era ninguna de las dos versiones: la rejilla ancha de
+escritorio —pensada para cuando `SideNav` ya está— con la barra de navegación de abajo
+todavía puesta, sin `ViewHeader` y sin la pestaña «Hoy». En una tablet en vertical, que
+es justo ese ancho, se veía eso.
+
+La regla del proyecto es que el escritorio se hace en `lg:` y no toca nada por debajo, así
+que el arreglo es mover el corte: `md:hidden` pasa a `lg:hidden` y `hidden md:block` a
+`hidden lg:block`. Con eso `WeekGrid` se queda con un solo juego de columnas —112 + 7×84 =
+700— en vez de dos: los 132 + 7×104 = 860 de la versión ancha existían para el tramo que
+acaba de desaparecer, y arrastraban en horizontal justo donde sobra sitio.
+
+El test de escritorio a 1023 px comprobaba lo contrario —que la rejilla estuviera ahí con
+sus columnas de siempre—, así que se da la vuelta: a un píxel por debajo del corte tiene
+que estar la pestaña «Hoy» (que es del bloque de móvil) y **no** la navegación de semana
+ni la rejilla. Cada lado se busca por algo que solo existe en él.
+
+De paso, `TodayMealsRow` deja de llevar su propia tabla de nombres y emojis de las franjas:
+es la misma que `MEAL_SLOT_META`, y dos copias de las cinco franjas es una de más.
+
 ## Cerrado el 2026-09-05
 
 ### El calendario, revisado: hoy deja de confundirse con el día elegido y la casa vacía se dice una vez (05-09-2026)

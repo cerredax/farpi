@@ -20,9 +20,12 @@ que todavía no existen (ver "Siguiente paso recomendado").
 
 ### Pantallas / producto
 
-- Inicio / Hoy, con "Próximos días" —los siete siguientes, no la semana natural, y por
-  eso ya no se llama "Esta semana" (05-09-2026)— y lo que va atrasado arrastrado al día
-  de hoy. La tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera
+- Inicio / Hoy, con lo que viene en **dos cajas** —"Próximos días" (mañana y pasado
+  mañana, en el amarillo de la sección) y "Resto de semana" (en gris), partidas por
+  `partirPlanesProximos` el 08-09-2026: en una sola lista, lo de mañana y lo del sábado
+  se leían con el mismo peso pese a no pedir lo mismo. Son los siete días siguientes y no
+  la semana natural, y por eso ya no se llaman "Esta semana" (05-09-2026)— y lo que va
+  atrasado arrastrado al día de hoy. La tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera
   y ya no, para no decir la hora dos veces en la misma pantalla— y dentro lleva
   cumpleaños, planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a
   "¿qué toca hoy?" en un sitio, en vez del menú suelto al final de la columna. **Los
@@ -260,6 +263,11 @@ que todavía no existen (ver "Siguiente paso recomendado").
 - Listas, Tareas, Comidas, Notas y Documentos abren con la misma fila (`ViewHeader.tsx`,
   28-08-2026): resumen, buscador y el `+` de alta, bajo el título de la cabecera. El `+`
   de Tareas estaba flotando abajo a la derecha y era el único fuera de sitio.
+- **El enlace del pie de cada sección de Inicio se lee** (08-09-2026): «Ver calendario»,
+  «Ver todas las listas» y los demás van en `primary-strong` (4,81:1) y con un chevron.
+  Estaban en el verde de marca sobre blanco, 2,61:1 en el texto más pequeño de la
+  pantalla, así que el único sitio pulsable de cada tarjeta era el que peor se leía. Es un
+  solo `SectionLink` y arregla los seis pies de una vez.
 - Páginas legales públicas `/privacidad` y `/terminos`.
 - **Página de inicio pública** (`/`, `LandingPage.tsx`), en una sola página con la
   barra de arriba pegada y **"Entrar" y "Crear cuenta" siempre a la vista** —el segundo

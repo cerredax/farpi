@@ -2425,6 +2425,36 @@ color nunca puede ser la única forma de saber algo**. Aquí lo que distingue es
 forma; el tono es el mismo en las dos a propósito, porque son la misma clase de
 señal —«dónde estás»— y no dos cosas distintas.
 
+### Lo que viene se parte en dos, y el enlace del pie se lee (08-09-2026)
+
+**«Próximos días» pasa a ser dos cajas: «Próximos días» y «Resto de semana».** El bloque
+son los siete días siguientes (`selectUpcomingEvents`), y en una sola lista «Mañana a las
+nueve» y «Sáb 12» se leían con el mismo peso pese a no pedir lo mismo: lo de mañana se
+prepara esta noche y lo del sábado solo hay que saberlo. El corte está en dos días
+(`partirPlanesProximos`) porque es lo que cabe en «prepararlo la noche de antes»; a partir
+del tercero la respuesta útil ya no es «prepara esto» sino «esta semana hay esto». Se mide
+por día natural y no por horas: un plan de pasado mañana a las 21:00 es de pasado mañana
+aunque falten más de 48 horas.
+
+Lo inmediato se queda con el amarillo de la sección y lo de más allá va en gris. Es el
+gris que la app ya usa para lo que no es de nadie en concreto —el festivo—, no un color
+nuevo, y aquí dice cuál de las dos cajas pide algo hoy. Cada una desaparece si no tiene
+nada, así que una semana con todo en los dos primeros días se sigue viendo como un solo
+bloque, y una con todo lejos no enseña una caja vacía.
+
+**El enlace del pie de cada sección deja de ser el sitio menos visible de la tarjeta.**
+«Ver calendario», «Ver todas las listas» y los demás iban en el verde de marca sobre
+blanco: **2,61:1**, muy por debajo del 4,5:1 que WCAG pide para texto normal, y encima es
+el texto más pequeño de la pantalla (12 px). El único sitio pulsable de la tarjeta era el
+que peor se leía. Pasan a `primary-strong` (**4,81:1**), que es exactamente lo que ya
+decía la nota de la paleta de aquí abajo: el texto pequeño tira de `primary-strong`. Y
+llevan un chevron, porque en una tarjeta sin bordes ni fondo propio un texto suelto al pie
+no se distingue de un rótulo; el subrayado del hover se queda en el texto y no lo toca.
+
+**«Un día sin agenda» pierde el punto final.** No es una frase, es una etiqueta de tres
+palabras. La otra —«Hoy pinta tranquilo. La casa respira un poco.»— sí son dos frases y
+los conserva.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

@@ -120,7 +120,7 @@ export function HomeView() {
     ? null
     : pendingTasks.length === 0 && pendingItems.length === 0
       ? 'Hoy pinta tranquilo. La casa respira un poco.'
-      : 'Un día sin agenda.'
+      : 'Un día sin agenda'
 
   // Saludo y fecha abren la tarjeta del día en lugar del rótulo en mayúsculas
   // que había ("Lo que hay que hacer hoy"): dicen lo mismo y son cercanos.

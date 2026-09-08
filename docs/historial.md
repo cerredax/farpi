@@ -75,6 +75,32 @@ ni la rejilla. Cada lado se busca por algo que solo existe en él.
 De paso, `TodayMealsRow` deja de llevar su propia tabla de nombres y emojis de las franjas:
 es la misma que `MEAL_SLOT_META`, y dos copias de las cinco franjas es una de más.
 
+### Lo que viene se parte en dos, y el enlace del pie se lee (08-09-2026)
+
+Tres cosas pedidas sobre Inicio.
+
+**«Próximos días» eran siete días en una sola lista.** Ahora son dos cajas: «Próximos
+días» —mañana y pasado mañana— y «Resto de semana». En una sola lista, «Mañana a las
+nueve» y «Sáb 12» se leían con el mismo peso pese a no pedir lo mismo. El corte, en
+`partirPlanesProximos`, con cuatro tests unitarios: por día natural y no por horas, y
+cruzando el cambio de mes. Lo inmediato mantiene el amarillo de la sección y lo lejano va
+en gris, el que la app ya usa para lo que no es de nadie; cada caja desaparece si no tiene
+nada.
+
+**El enlace del pie de las secciones no se veía.** El verde de marca sobre blanco da
+**2,61:1** —el mínimo de WCAG para texto normal es 4,5:1— y es el texto más pequeño de la
+pantalla, así que el único sitio pulsable de cada tarjeta era el que peor se leía. Pasa a
+`primary-strong` (**4,81:1**), que es lo que la nota de la paleta de `architecture.md` ya
+mandaba para el texto pequeño, y se le añade un chevron: en una tarjeta sin bordes ni
+fondo propio, un texto suelto al pie no se distingue de un rótulo. Un solo cambio en
+`SectionLink` arregla los seis pies de Inicio, «Y N más» de las tareas incluido.
+
+**«Un día sin agenda» pierde el punto final.** No es una frase, es una etiqueta de tres
+palabras.
+
+Comprobado con capturas reales a 390 px y a 1440 px sembrando planes en el mock: la demo
+trae fechas de junio, así que con los datos de fábrica los dos bloques no salen.
+
 ## Cerrado el 2026-09-05
 
 ### El calendario, revisado: hoy deja de confundirse con el día elegido y la casa vacía se dice una vez (05-09-2026)

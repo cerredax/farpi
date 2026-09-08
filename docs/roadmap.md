@@ -629,6 +629,34 @@ decisión, en `docs/architecture.md`.
 - [x] Dos de navegador: **615** en la pasada completa. El vacío de estreno queda sin
       cubrir a propósito —montarlo pide vaciar el seed de la demo—.
 
+## Fase 8r - Documentos, Comidas e Inicio: tres repasos (08-09-2026)
+
+Tres tandas pequeñas y sin relación entre ellas. El porqué de cada decisión, en
+`docs/architecture.md`; el relato, en `docs/historial.md`.
+
+- [x] **Documentos: una ficha sin dueño lo dice.** Las rutas resolvían el
+      `storage_owner` nulo con el Drive de quien mira, así que salía «conecta tu
+      almacenamiento» para algo que conectando no se arregla. Causa `sin_dueno`, cortada
+      en `contextoDeAlmacen` y no en cada ruta.
+- [x] **El archivo sale con su extensión** (`nombreDeDescarga`): en la base está el
+      nombre del documento, no el del archivo, y sin extensión el «guardar como» del
+      visor dejaba algo que el móvil no abre.
+- [x] **El sheet de un documento no se cierra hasta que el archivo ha subido.** Cerraba
+      al instante y el error de una subida de 20 MB cortada llegaba a una pantalla sin
+      borrador. `createDocument` y `updateDocument` devuelven si salieron bien.
+- [x] **Al editar, el tipo del archivo en vez de su nombre**, que con Drive era el
+      identificador que le pone Google.
+- [x] **Comidas cambia en `lg` y no en `md`.** Era la única pantalla que se adelantaba al
+      corte: de 768 a 1023 px se ponía la rejilla ancha con la barra de abajo puesta.
+      `WeekGrid` se queda con un solo juego de columnas.
+- [x] **Inicio parte lo que viene en dos cajas**: «Próximos días» (mañana y pasado
+      mañana) y «Resto de semana», por `partirPlanesProximos`.
+- [x] **El enlace del pie de cada sección se lee**: `primary-strong` (4,81:1) y un
+      chevron, donde había 2,61:1 en el texto más pequeño de la pantalla.
+- [x] Ocho unitarios nuevos: **635** en la pasada completa (484 unitarios y 151 de
+      navegador). El test de escritorio a 1023 px se da la vuelta, que comprobaba justo
+      la rejilla que ya no está ahí.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

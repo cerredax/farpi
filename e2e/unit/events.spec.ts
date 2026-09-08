@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
+import { daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
 import type { FamilyMember } from '@/types'
 import { event } from './fixtures'
 
@@ -380,5 +380,50 @@ test.describe('familyAbsenceEdges', () => {
     const events = DOS.map(m => ausencia(m.id, '2026-08-28', '2026-09-04'))
     expect(familyAbsenceEdges(events, DOS, '2026-08-31')).toEqual({ primero: false, ultimo: false })
     expect(familyAbsenceEdges(events, DOS, '2026-09-01')).toEqual({ primero: false, ultimo: false })
+  })
+})
+
+// Inicio parte lo que viene en dos cajas: lo que hay que preparar y lo que solo
+// hay que saber. El corte es por día natural, no por horas.
+test.describe('partirPlanesProximos', () => {
+  const HOY = new Date(2026, 8, 8, 18, 0) // 8 de septiembre de 2026, por la tarde
+
+  test('mañana y pasado mañana van juntos, el resto de la semana aparte', () => {
+    const { proximos, resto } = partirPlanesProximos([
+      event({ title: 'manana', start_at: '2026-09-09T09:00:00' }),
+      event({ title: 'pasado', start_at: '2026-09-10T21:00:00' }),
+      event({ title: 'en-tres', start_at: '2026-09-11T09:00:00' }),
+      event({ title: 'en-seis', start_at: '2026-09-14T09:00:00' }),
+    ], HOY)
+    expect(proximos.map(e => e.title)).toEqual(['manana', 'pasado'])
+    expect(resto.map(e => e.title)).toEqual(['en-tres', 'en-seis'])
+  })
+
+  test('un plan de pasado mañana a última hora sigue siendo de pasado mañana', () => {
+    const { proximos, resto } = partirPlanesProximos(
+      [event({ start_at: '2026-09-10T23:30:00' })], HOY,
+    )
+    expect(proximos).toHaveLength(1)
+    expect(resto).toHaveLength(0)
+  })
+
+  test('el límite cruza el cambio de mes', () => {
+    const finDeMes = new Date(2026, 8, 30, 10, 0)
+    const { proximos, resto } = partirPlanesProximos([
+      event({ title: 'uno-de-octubre', start_at: '2026-10-01T09:00:00' }),
+      event({ title: 'dos-de-octubre', start_at: '2026-10-02T09:00:00' }),
+      event({ title: 'tres-de-octubre', start_at: '2026-10-03T09:00:00' }),
+    ], finDeMes)
+    expect(proximos.map(e => e.title)).toEqual(['uno-de-octubre', 'dos-de-octubre'])
+    expect(resto.map(e => e.title)).toEqual(['tres-de-octubre'])
+  })
+
+  test('una semana entera en los dos primeros días deja la otra caja vacía', () => {
+    const { proximos, resto } = partirPlanesProximos([
+      event({ start_at: '2026-09-09T09:00:00' }),
+      event({ start_at: '2026-09-10T09:00:00' }),
+    ], HOY)
+    expect(proximos).toHaveLength(2)
+    expect(resto).toEqual([])
   })
 })

@@ -333,3 +333,32 @@ export function siguientePlan(events: Event[], ahora: Date): Event | null {
   }
   return siguiente
 }
+
+/**
+ * Parte los planes que vienen en dos: lo inmediato —mañana y pasado mañana— y
+ * el resto de la semana.
+ *
+ * Inicio los enseñaba en un solo bloque de siete días, y ahí "Mañana a las
+ * nueve" y "Sáb 12" se leían con el mismo peso: hay que preparar lo primero y
+ * solo saber lo segundo. Dos días es el corte porque es lo que se prepara la
+ * noche de antes; a partir del tercero la respuesta útil ya no es "prepara
+ * esto" sino "esta semana hay esto".
+ *
+ * El límite se calcula por día natural, no por horas: un plan de pasado mañana
+ * a las 21:00 es de pasado mañana aunque falten más de 48 horas.
+ */
+export function partirPlanesProximos(
+  events: Event[],
+  hoy: Date = new Date(),
+): { proximos: Event[]; resto: Event[] } {
+  // Con el constructor de tres partes, para que el 30 de un mes más dos días
+  // caiga en el siguiente sin hacer cuentas con milisegundos.
+  const limite = localDay(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 2))
+  const proximos: Event[] = []
+  const resto: Event[] = []
+  for (const event of events) {
+    if (extractDate(event.start_at) <= limite) proximos.push(event)
+    else resto.push(event)
+  }
+  return { proximos, resto }
+}

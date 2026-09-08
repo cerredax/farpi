@@ -30,6 +30,20 @@ export const DOC_CATEGORIES: { key: DocCategory; label: string }[] = [
 
 export const VALID_MIME_TYPES: DocMimeType[] = ['application/pdf', 'image/jpeg', 'image/png']
 
+/**
+ * La extensión que le toca a cada tipo, para nombrar el archivo cuando se sirve.
+ *
+ * Existe porque en la base no se guarda el nombre del archivo original —solo el
+ * nombre del documento, que lo pone la familia— y sin extensión, «guardar como»
+ * deja en el móvil un archivo que ningún visor sabe abrir. El tipo sí lo sabemos,
+ * y lo dice el proveedor al subir, no el navegador.
+ */
+export const EXTENSION_POR_MIME: Record<DocMimeType, string> = {
+  'application/pdf': 'pdf',
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+}
+
 export const MAX_DOC_SIZE = 20 * 1024 * 1024 // 20 MB
 
 /**

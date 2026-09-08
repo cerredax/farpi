@@ -3,7 +3,7 @@ import { requiereSesion } from '@/lib/supabase/guard'
 import { getProvider } from '@/lib/document-storage'
 import { documentoVisible, nombreDelDueno, origenDe, respuestaDeError } from '@/lib/document-storage/api'
 import { contextoDeAlmacen, FALTA_CONFIG_DRIVE, respuestaSinConfigDrive } from '@/lib/document-storage/tokens'
-import { safeFileName } from '@/lib/text'
+import { nombreDeDescarga } from '@/lib/text'
 
 /**
  * El documento, servido por Farpi.
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   try {
     const ctx = await contextoDeAlmacen({
-      ownerId: doc.storage_owner ?? user.id,
+      ownerId: doc.storage_owner,
       familyId: doc.family_id,
       origen: origenDe(req),
     })
@@ -54,12 +54,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const contenido = await proveedor.obtener(ctx, doc.storage_path)
-    const nombreArchivo = safeFileName(doc.name)
+    const nombreArchivo = nombreDeDescarga(doc.name, doc.mime_type)
     return new NextResponse(contenido.cuerpo, {
       headers: {
         'Content-Type': doc.mime_type,
         // `inline` para que el PDF o la foto se vean en la pestaña en vez de
         // descargarse: casi siempre se abre un documento para mirarlo un momento.
+        // El nombre lleva extensión (`nombreDeDescarga`) porque de aquí sale
+        // también el «guardar como» del visor, y un archivo sin extensión no lo
+        // abre nada en un móvil.
         'Content-Disposition': `inline; filename="${nombreArchivo}"`,
         // Un informe médico no se queda en ninguna caché intermedia. El service
         // worker tampoco toca `/api`, pero eso no se le pide a él por escrito.

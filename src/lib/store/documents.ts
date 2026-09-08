@@ -1,4 +1,5 @@
 import type { Document, DocumentDraft } from '@/types'
+import { EXTENSION_POR_MIME } from '../constants'
 import { db } from './db'
 
 export function getDocuments(familyId: string): Document[] {
@@ -8,7 +9,7 @@ export function getDocuments(familyId: string): Document[] {
 export function createDocument(familyId: string, draft: DocumentDraft): Document {
   const now     = new Date().toISOString()
   const safeName = draft.name.trim().toLowerCase().replace(/\s+/g, '-')
-  const ext      = draft.mime_type === 'image/jpeg' ? 'jpg' : draft.mime_type === 'image/png' ? 'png' : 'pdf'
+  const ext      = EXTENSION_POR_MIME[draft.mime_type] ?? 'pdf'
   const doc: Document = {
     id: crypto.randomUUID(),
     family_id: familyId,

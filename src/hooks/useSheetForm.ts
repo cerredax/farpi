@@ -48,8 +48,15 @@ export function useSheetForm<D>({ open, initialDraft, validate, autoFocus = true
     setDraft(d => ({ ...d, ...changes }))
   }
 
-  /** Envuelve el onSubmit del form: valida y solo llama a `onValid` si pasa. */
-  function submitHandler(onValid: (draft: D) => void) {
+  /**
+   * Envuelve el onSubmit del form: valida y solo llama a `onValid` si pasa.
+   *
+   * `onValid` puede ser asíncrono —lo es en Documentos, que espera a que el
+   * archivo termine de subir antes de cerrar el sheet— y entonces la promesa se
+   * suelta a propósito: quien la devuelve es el que sabe qué hacer con el fallo,
+   * y un `submit` no puede esperarla.
+   */
+  function submitHandler(onValid: (draft: D) => void | Promise<void>) {
     return (e: React.FormEvent) => {
       e.preventDefault()
       const message = validate?.(draft) ?? null
@@ -58,7 +65,7 @@ export function useSheetForm<D>({ open, initialDraft, validate, autoFocus = true
         return
       }
       setFormError(null)
-      onValid(draft)
+      void onValid(draft)
     }
   }
 

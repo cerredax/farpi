@@ -215,14 +215,27 @@ export async function revocarEnGoogle(refreshToken: string): Promise<void> {
  * son de tipo `ErrorAlmacen`: `sin_conexion` cuando esa persona no ha conectado
  * nunca, `conexion_revocada` cuando conectó y ya no vale. Los dos acaban en un
  * mensaje distinto, y el segundo se arregla volviendo a conectar.
+ *
+ * **`ownerId` admite nulo y se corta aquí** (07-09-2026). Es lo que vale en
+ * `documents.storage_owner`, que es `on delete set null`: si quien subió el
+ * papel borra su cuenta, la ficha se queda sin dueño. Las rutas resolvían ese
+ * nulo con `?? user.id` —el Drive de quien está mirando—, y eso no puede salir
+ * bien: con `drive.file` el token de quien mira no ve un archivo que no subió
+ * él, así que la respuesta era «el archivo ya no está en su Drive» o, peor,
+ * «conecta tu Drive», que suena a que conectando se arregla. No se arregla.
+ * Cortarlo aquí y no en cada ruta es lo que cierra la puerta para la siguiente
+ * que se escriba.
  */
 export async function contextoDeAlmacen(opciones: {
-  ownerId: string
+  ownerId: string | null
   familyId: string
   origen: string
   provider?: StorageProviderId
 }): Promise<ContextoAlmacen> {
   const provider = opciones.provider ?? 'google_drive'
+  if (!opciones.ownerId) {
+    throw new ErrorAlmacen('sin_dueno', 'La ficha no tiene dueño: no hay almacenamiento al que preguntar')
+  }
   const conexion = await leerConexion(opciones.ownerId, provider)
   if (!conexion) throw new ErrorAlmacen('sin_conexion', 'No hay almacenamiento conectado')
   if (conexion.revocada) throw new ErrorAlmacen('conexion_revocada', 'El almacenamiento ya no está conectado')

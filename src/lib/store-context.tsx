@@ -174,8 +174,16 @@ interface StoreValue {
   updateQuote: (id: string, draft: QuoteDraft) => Promise<void>
   deleteQuote: (id: string) => Promise<void>
   setQuoteStatus: (id: string, status: QuoteStatus) => Promise<void>
-  createDocument: (draft: DocumentDraft) => Promise<void>
-  updateDocument: (id: string, draft: DocumentDraft) => Promise<void>
+  /**
+   * Las dos únicas escrituras que **dicen si salieron bien**, porque el sheet de
+   * Documentos no se cierra hasta saberlo: subir un archivo de 20 MB puede
+   * tardar y puede fallar, y cerrar el sheet antes de tiempo tira el borrador
+   * —nombre, categoría, de quién, caducidad— justo cuando hay que reintentar.
+   * El resto sigue con `Promise<void>`: escriben una fila y el aviso global de
+   * `SaveStatus` basta.
+   */
+  createDocument: (draft: DocumentDraft) => Promise<boolean>
+  updateDocument: (id: string, draft: DocumentDraft) => Promise<boolean>
   deleteDocument: (id: string) => Promise<void>
   getDocumentUrl: (document: Document) => Promise<string>
   /**
@@ -736,9 +744,19 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       reopenMonth: (month: string) => runMutation(() => repos.monthPlans.reopenMonth(familyId, month), ['monthPlans']),
       emptyMonth: (month: string) => runMutation(() => repos.monthPlans.emptyMonth(familyId, month), ['monthPlans']),
       createDocument: (draft: DocumentDraft) =>
-        runMutation(() => repos.documents.createDocument(familyId, draft), ['documents']),
+        runMutationWith(
+          async () => { await repos.documents.createDocument(familyId, draft); return true },
+          false,
+          'No se pudo guardar el documento',
+          ['documents'],
+        ),
       updateDocument: (id: string, draft: DocumentDraft) =>
-        runMutation(() => repos.documents.updateDocument(id, draft), ['documents']),
+        runMutationWith(
+          async () => { await repos.documents.updateDocument(id, draft); return true },
+          false,
+          'No se pudo guardar el documento',
+          ['documents'],
+        ),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id), ['documents']),
       getDocumentUrl: (document: Document) => repos.documents.getDownloadUrl(document),
       storageConnection,

@@ -67,9 +67,16 @@ export function useDocsState() {
     setSheetOpen(true)
   }
 
-  function handleSave(draft: DocumentDraft) {
-    if (sheetMode === 'edit' && editingDoc) updateDocument(editingDoc.id, draft)
-    else createDocument(draft)
+  /**
+   * Guardar, **devolviendo si salió bien**. Lo espera el sheet, que no se cierra
+   * hasta que el archivo ha terminado de subir: si falla a mitad —20 MB por
+   * datos móviles se cortan— el borrador tiene que seguir en pantalla para poder
+   * reintentar sin volver a teclearlo todo.
+   */
+  function handleSave(draft: DocumentDraft): Promise<boolean> {
+    return sheetMode === 'edit' && editingDoc
+      ? updateDocument(editingDoc.id, draft)
+      : createDocument(draft)
   }
 
   // La búsqueda manda sobre el filtro: si buscas "seguro" y está en Personal,

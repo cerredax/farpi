@@ -13,6 +13,46 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-08
+
+### Un documento sin dueño lo dice, el archivo sale con su extensión y el sheet no cierra antes de tiempo (08-09-2026)
+
+Cuatro cosas de Documentos, todas del mismo sitio: en la base ya no hay archivo, solo la
+ficha, y quedaban rincones escritos como si lo hubiera.
+
+**Una ficha sin dueño mandaba a conectar un Drive que no arregla nada.**
+`documents.storage_owner` es `on delete set null`: si quien subió el papel borra su
+cuenta, la ficha se queda en la casa sin dueño, que es lo que se decidió el 03-09-2026.
+Pero las rutas resolvían ese nulo con `?? user.id` —el Drive de quien está mirando—, y con
+el scope `drive.file` el token de quien mira no ve un archivo que no subió él: la
+respuesta era «el archivo ya no está en su Drive» o, peor, «conecta tu almacenamiento»,
+que suena a que conectando se recupera. No se recupera. Entra la causa `sin_dueno` con su
+mensaje —«de este documento solo queda la ficha»— y se corta en `contextoDeAlmacen`, no en
+cada ruta: así lo hereda la siguiente que se escriba. Vale igual para las fichas de antes
+del 27-08-2026, cuando el archivo lo guardaba Farpi.
+
+**El archivo salía sin extensión.** En la base se guarda el nombre del documento («DNI de
+Carlos»), no el del archivo, que se queda en el Drive de su dueño. Verlo en la pestaña
+funcionaba —eso lo decide el `Content-Type`—, pero el «guardar como» del visor dejaba un
+archivo pelado que en un móvil no abre nada. `nombreDeDescarga` le pone la que le toca por
+tipo, sin repetirla si el nombre ya la lleva y contando `.jpeg` como `.jpg`. La tabla
+(`EXTENSION_POR_MIME`) es la misma que usaba el mock con un `if` de tres ramas.
+
+**El sheet se cerraba antes de que el archivo hubiera subido.** Se llamaba a `onSave` y se
+cerraba en la misma línea, sin esperar: hasta 20 MB seguían subiendo en segundo plano y,
+si se cortaba, el aviso de error llegaba a una pantalla donde ya no había ni borrador ni
+archivo elegido. Había que teclear otra vez el nombre, la categoría, de quién es y la
+caducidad, y volver a buscar el archivo. Ahora `createDocument` y `updateDocument`
+devuelven **si salieron bien** —las dos únicas escrituras del store que lo hacen— y el
+sheet espera: el botón dice «Subiendo el archivo…» y se apaga, con guarda contra el doble
+envío del Enter. Si falla, el borrador sigue en pantalla y reintentar es pulsar otra vez.
+
+**Y al editar, donde iba el nombre del archivo va su tipo.** Ese nombre se sacaba de
+`storage_path`, que con los archivos en Drive es el identificador que les pone Google: una
+tira de caracteres donde antes se leía «cartilla-vacunas.pdf». «Documento PDF · 350 KB» es
+lo que de verdad se sabe del archivo, y cómo se llama el papel ya se lee en el campo de
+al lado.
+
 ## Cerrado el 2026-09-05
 
 ### El calendario, revisado: hoy deja de confundirse con el día elegido y la casa vacía se dice una vez (05-09-2026)

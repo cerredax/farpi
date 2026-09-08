@@ -22,7 +22,7 @@ import { contextoDeAlmacen, FALTA_CONFIG_DRIVE, respuestaSinConfigDrive } from '
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guardia = await requiereSesion(req)
   if (guardia.fallo) return guardia.fallo
-  const { supabase, user } = guardia
+  const { supabase } = guardia
   if (FALTA_CONFIG_DRIVE) return respuestaSinConfigDrive('documents/[id]')
 
   const { id } = await params
@@ -37,7 +37,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   try {
     const ctx = await contextoDeAlmacen({
-      ownerId: doc.storage_owner ?? user.id,
+      ownerId: doc.storage_owner,
       familyId: doc.family_id,
       origen: origenDe(req),
     })
@@ -45,7 +45,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   } catch (err) {
     // Se registra y se sigue: la ficha ya no está, que es lo que se pidió. No se
     // devuelve el error —de ahí que no se use `respuestaDeError`— porque quien
-    // borra no puede hacer nada con él: el archivo está en el disco de otro.
+    // borra no puede hacer nada con él: el archivo está en el disco de otro. Y
+    // si la ficha no tenía dueño, aquí cae `sin_dueno` y es lo correcto: no hay
+    // disco al que pedir el borrado.
     console.error(
       '[documents/[id]] el archivo se queda en el proveedor:',
       err instanceof Error ? err.message : err,

@@ -133,10 +133,16 @@ export interface ContenidoArchivo {
  * significa un 403 de Drive. Los dos que de verdad importan son
  * `conexion_revocada` (el dueño quitó el permiso: se puede arreglar volviendo a
  * conectar) y `archivo_no_esta` (lo borró de su Drive: no se puede arreglar).
+ *
+ * `sin_dueno` es la ficha que no tiene disco al que preguntar: quien la subió
+ * borró su cuenta (`storage_owner` queda a nulo por el `on delete set null`) o
+ * es de antes del 27-08-2026, cuando el archivo vivía en el bucket de Farpi.
+ * Las dos acaban igual —solo queda la ficha— y por eso comparten causa.
  */
 export type CausaAlmacen =
   | 'sin_conexion'
   | 'conexion_revocada'
+  | 'sin_dueno'
   | 'archivo_no_esta'
   | 'archivo_rechazado'
   | 'cuota'

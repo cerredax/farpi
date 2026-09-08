@@ -8,7 +8,7 @@ import {
   SCOPE_DRIVE,
 } from '@/lib/document-storage/oauth'
 import { cifrar, descifrar, leerClave } from '@/lib/document-storage/crypto'
-import { safeFileName } from '@/lib/text'
+import { nombreDeDescarga, safeFileName } from '@/lib/text'
 
 // Los documentos viven en el Google Drive de quien los sube, y estas son las
 // piezas de ese camino que se pueden probar sin red ni secretos. Son justo las
@@ -138,6 +138,16 @@ test.describe('mensajes que lee la familia', () => {
   })
 
   // Son dos situaciones distintas: una se arregla reconectando y la otra no.
+  // Ni «conecta tu Drive» ni «no está en el Drive de X»: no hay Drive al que
+  // preguntar, y decir cualquiera de las dos manda a arreglar algo que no se
+  // arregla. Pasa con el dueño que borró su cuenta (`storage_owner` a nulo).
+  test('la ficha sin dueño no manda a conectar nada', () => {
+    const mensaje = mensajeDeCausa('sin_dueno', null)
+    expect(mensaje).toContain('solo queda la ficha')
+    expect(mensaje).not.toContain('conecta')
+    expect(mensaje).toContain('subirlo otra vez')
+  })
+
   test('el archivo borrado y la conexión caída no dicen lo mismo', () => {
     expect(mensajeDeCausa('archivo_no_esta', 'Marta')).not.toBe(mensajeDeCausa('conexion_revocada', 'Marta'))
   })
@@ -188,5 +198,24 @@ test.describe('nombre de archivo para servir el documento', () => {
 
   test('un nombre que se queda en nada tiene respaldo', () => {
     expect(safeFileName('¿¡!?')).toBe('documento')
+  })
+
+  // La extensión no puede salir del nombre porque ahí no está: en la base se
+  // guarda el del documento («DNI de Carlos»), no el del archivo. Sin ella el
+  // «guardar como» del visor deja algo que el móvil no abre.
+  test('el nombre de descarga lleva la extensión del tipo', () => {
+    expect(nombreDeDescarga('DNI de Carlos', 'image/jpeg')).toBe('dni-de-carlos.jpg')
+    expect(nombreDeDescarga('Contrato de alquiler', 'application/pdf')).toBe('contrato-de-alquiler.pdf')
+    expect(nombreDeDescarga('Recibo', 'image/png')).toBe('recibo.png')
+  })
+
+  test('si el nombre ya la lleva, no se repite', () => {
+    expect(nombreDeDescarga('DNI.pdf', 'application/pdf')).toBe('dni.pdf')
+    // `.jpeg` y `.jpg` son el mismo archivo con dos nombres.
+    expect(nombreDeDescarga('foto.jpeg', 'image/jpeg')).toBe('foto.jpeg')
+  })
+
+  test('un tipo que no conocemos no inventa extensión', () => {
+    expect(nombreDeDescarga('Algo raro', 'application/octet-stream')).toBe('algo-raro')
   })
 })

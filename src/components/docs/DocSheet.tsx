@@ -9,7 +9,7 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember, StorageConnection } from '@/types'
 import { CategoryIcon } from './CategoryIcon'
 import { ConnectStorage } from './ConnectStorage'
-import { FileTypeIcon } from './FileTypeIcon'
+import { FileTypeIcon, etiquetaDeTipo } from './FileTypeIcon'
 import { DOC_CATEGORIES } from '@/lib/constants'
 import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import { formatFileSize } from '@/lib/text'
@@ -50,7 +50,8 @@ interface DocSheetProps {
   kids: Child[]
   members: FamilyMember[]
   onClose: () => void
-  onSave: (draft: DocumentDraft) => void
+  /** Devuelve si se guardó. El sheet no se cierra hasta saberlo. */
+  onSave: (draft: DocumentDraft) => Promise<boolean>
   onDelete?: (id: string) => void
   onOpenFile?: (doc: Document) => Promise<string>
   /** `null` mientras no se sabe: se da por conectada y no se estorba. */
@@ -74,6 +75,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
   const [fileError, setFileError] = useState('')
   const [opening, setOpening] = useState(false)
   const [openError, setOpenError] = useState('')
+  const [guardando, setGuardando] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -92,12 +94,35 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     }))
   }
 
-  const handleSubmit = submitHandler(valid => {
+  /**
+   * Guardar, y **no cerrar hasta que esté guardado de verdad**.
+   *
+   * Antes se llamaba a `onSave` y se cerraba en la misma línea, sin esperar. Con
+   * los archivos en Drive eso dejaba lo peor de los dos mundos: el sheet
+   * desaparecía al instante, el archivo seguía subiendo en segundo plano —hasta
+   * 20 MB, que por datos móviles no es un parpadeo— y si se cortaba, el aviso de
+   * error llegaba a una pantalla donde ya no había ni borrador ni archivo
+   * elegido. Había que volver a teclear el nombre, la categoría, de quién es y
+   * la caducidad, y volver a buscar el archivo.
+   *
+   * Esperando, el fallo llega donde se puede resolver: el sheet sigue abierto
+   * tal cual estaba y reintentar es pulsar otra vez. El aviso lo pone
+   * `SaveStatus`, que es el único sitio que cuenta lo que no se ha guardado.
+   */
+  const handleSubmit = submitHandler(async valid => {
+    // El botón está deshabilitado mientras se guarda, pero un Enter en un campo
+    // envía el formulario igual: sin esta guarda se subiría el archivo dos veces.
+    if (guardando) return
     if (mode === 'create' && !selectedFile) {
       setFileError('Selecciona un archivo.')
       return
     }
-    onSave({ ...valid, file: selectedFile ?? undefined })
+
+    setGuardando(true)
+    const guardado = await onSave({ ...valid, file: selectedFile ?? undefined })
+    setGuardando(false)
+    if (!guardado) return
+
     if (mode === 'create') {
       // La vista reutiliza la misma `key` al crear, así que el sheet no se
       // remonta entre altas y hay que limpiarlo a mano.
@@ -138,10 +163,6 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
    */
   const faltaConectar = !!conexion && !conexion.conectada && !conexion.demo && !!connectUrl
 
-  const fileName_display = mode === 'edit' && initial
-    ? initial.storage_path.split('/').pop() ?? initial.name
-    : fileName
-
   return (
     <BottomSheet
       open={open}
@@ -150,8 +171,14 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
       footer={
         <SheetFooter
           form="doc-form"
-          submitLabel={mode === 'create' ? 'Guardar documento' : 'Guardar cambios'}
-          disabled={!draft.name.trim() || !!fileError || faltaConectar || (mode === 'create' && !selectedFile)}
+          submitLabel={
+            guardando
+              // Al crear se está subiendo el archivo y puede tardar; al editar
+              // solo se cambia la ficha, que es una fila.
+              ? (mode === 'create' ? 'Subiendo el archivo…' : 'Guardando…')
+              : (mode === 'create' ? 'Guardar documento' : 'Guardar cambios')
+          }
+          disabled={guardando || !draft.name.trim() || !!fileError || faltaConectar || (mode === 'create' && !selectedFile)}
           onDelete={mode === 'edit' && onDelete
             ? { confirming: confirmDelete, onClick: handleDelete, idleLabel: 'Eliminar documento', confirmLabel: 'Confirmar eliminación' }
             : undefined}
@@ -185,8 +212,14 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
             <>
               <div className="flex items-center gap-3 bg-canvas border border-line rounded-xl px-4 py-3">
                 <FileTypeIcon mime={draft.mime_type} />
+                {/* El tipo y el tamaño, que es lo que se sabe del archivo. Aquí
+                    iba su nombre, sacado de `storage_path`, y con los archivos en
+                    Drive eso pasó a ser el id que le puso Google: una tira de
+                    caracteres donde antes se leía «cartilla-vacunas.pdf». El
+                    nombre del archivo no está en la base —se queda en el Drive de
+                    su dueño— y el del documento ya se lee en el campo de abajo. */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-ink font-medium truncate">{fileName_display}</p>
+                  <p className="text-sm text-ink font-medium truncate">{etiquetaDeTipo(draft.mime_type)}</p>
                   <p className="text-xs text-muted">{formatFileSize(draft.size_bytes)}</p>
                 </div>
               </div>

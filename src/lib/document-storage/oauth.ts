@@ -112,6 +112,11 @@ export function mensajeDeCausa(causa: CausaAlmacen, nombreDueno: string | null):
       return `Este documento lo subió ${dueno} y todavía no ha conectado su almacenamiento.`
     case 'conexion_revocada':
       return `Este documento lo subió ${dueno} y su almacenamiento ya no está conectado. Pídele que vuelva a entrar en Documentos y lo conecte otra vez.`
+    // Ni «conecta tu Drive» ni «ya no está en el Drive de alguien»: no hay Drive
+    // al que preguntar. Vale igual para el dueño que borró su cuenta y para las
+    // fichas de cuando el archivo lo guardaba Farpi.
+    case 'sin_dueno':
+      return 'De este documento solo queda la ficha: su archivo no está en el Google Drive de nadie. Para volver a tenerlo, hay que subirlo otra vez.'
     case 'archivo_no_esta':
       return `El archivo ya no está en el Google Drive de ${dueno}. La ficha se queda, pero el documento no se puede abrir.`
     case 'archivo_rechazado':

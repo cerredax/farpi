@@ -22,6 +22,8 @@ function estadoDeCausa(causa: CausaAlmacen): number {
     case 'sin_conexion':
     case 'conexion_revocada':
       return 409
+    // No hay nada que arreglar ni a quien avisar: solo queda la ficha.
+    case 'sin_dueno':
     case 'archivo_no_esta':
       return 404
     case 'archivo_rechazado':

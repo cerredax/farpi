@@ -8,8 +8,12 @@ interface SheetFooterProps {
   disabled?: boolean
   /** Mensaje de validación, encima del botón principal. */
   error?: string | null
-  /** Botón de borrado al pie. Omitir en modo crear o cuando va en la cabecera. */
-  onDelete?: { confirming: boolean; onClick: () => void; idleLabel: string; confirmLabel: string }
+  /**
+   * Botón de borrado al pie. Omitir en modo crear o cuando va en la cabecera.
+   * `confirming` y `confirmLabel` son del doble toque; los borrados que
+   * preguntan en el paso de `ConfirmDelete` mandan solo `onClick` e `idleLabel`.
+   */
+  onDelete?: { confirming?: boolean; onClick: () => void; idleLabel: string; confirmLabel?: string }
 }
 
 /** Pie fijo de los sheets: error de validación, acción principal y borrado opcional. */

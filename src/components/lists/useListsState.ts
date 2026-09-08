@@ -58,6 +58,11 @@ export function useListsState() {
 
   const pendingByListId = useMemo(() => selectPendingTextsByList(allListItems), [allListItems])
 
+  // Cuántos ítems se lleva por delante borrar la lista que se está editando.
+  // Aquí el número no es adorno —en las tarjetas se quitó a propósito—: es
+  // justo la consecuencia que el sheet tiene que decir antes de preguntar.
+  const itemsDeListaEditada = editingList ? listItemsByListId.get(editingList.id)?.length ?? 0 : 0
+
   const selectedList  = selectedListId ? lists.find(l => l.id === selectedListId) ?? null : null
   const selectedItems = selectedListId ? listItemsByListId.get(selectedListId) ?? [] : []
 
@@ -80,7 +85,7 @@ export function useListsState() {
     busqueda, setBusqueda, coincidencias, abrirLista, historialItems,
     listSheetOpen, setListSheetOpen,
     itemSheetOpen, setItemSheetOpen,
-    editingList, editingItem,
+    editingList, editingItem, itemsDeListaEditada,
     listMode, itemMode,
     listSheetKey, itemSheetKey,
     movingItem, moveSheetOpen, openMoveItem, closeMoveItem, handleMoveItem,

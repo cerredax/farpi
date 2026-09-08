@@ -92,3 +92,47 @@ export function useSheetDelete({ initial, onDelete, onClose }: UseSheetDeleteOpt
 
   return { confirming, handleDelete }
 }
+
+interface UseSheetDeleteDialogOptions extends UseSheetDeleteOptions {
+  open: boolean
+}
+
+/**
+ * Borrado que pregunta en el propio sheet, para lo que se lleva por delante datos
+ * que no están en pantalla (una lista con sus ítems, una partida, una persona,
+ * una familia). El resto sigue con el doble toque de `useSheetDelete`.
+ *
+ * `preguntar` cambia el sheet a la pregunta y `cancelar` lo devuelve al
+ * formulario, con lo escrito donde estaba. El porqué de que sea el mismo sheet y
+ * no otro encima está en `ConfirmDelete`.
+ */
+export function useSheetDeleteDialog({ open, initial, onDelete, onClose }: UseSheetDeleteDialogOptions) {
+  const [preguntando, setPreguntando] = useState(false)
+
+  // El mismo ajuste en render que el draft de `useSheetForm`, y por lo mismo: si
+  // el sheet se cierra con la pregunta puesta —por Escape, por el overlay o
+  // porque lo cierra la pantalla—, la próxima vez tiene que abrirse por el
+  // formulario y no por una pregunta que ya nadie hizo.
+  const [abiertoAntes, setAbiertoAntes] = useState(open)
+  if (open !== abiertoAntes) {
+    setAbiertoAntes(open)
+    if (preguntando) setPreguntando(false)
+  }
+
+  function preguntar(): void {
+    if (initial) setPreguntando(true)
+  }
+
+  function cancelar(): void {
+    setPreguntando(false)
+  }
+
+  function confirmar(): void {
+    if (!initial) return
+    onDelete(initial.id)
+    setPreguntando(false)
+    onClose()
+  }
+
+  return { preguntando, preguntar, cancelar, confirmar }
+}

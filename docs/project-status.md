@@ -105,6 +105,15 @@ que todavía no existen (ver "Siguiente paso recomendado").
 - **Borrar desde una fila pide confirmación** (05-09-2026): la papelera de un ítem y la
   de una tarea eran un toque sin vuelta atrás. Mismo `DeleteButton` que los sheets, en
   variante `inline`, y se desarma sola a los 4 s (`MS_CONFIRMAR_BORRADO`).
+- **Cuatro borrados preguntan en un diálogo** (08-09-2026): eliminar una lista, una
+  partida, una persona y una familia no usan el doble toque, porque lo que se llevan no
+  está en pantalla y cada uno se lleva algo distinto (la lista, sus ítems en cascada; la
+  partida, solo el enlace de sus gastos). El sheet se convierte en la pregunta —no hay un
+  segundo `BottomSheet` encima— con `ConfirmDeleteBody`/`ConfirmDeleteFooter` y
+  `useSheetDeleteDialog`. El resto de los borrados siguen con el doble toque.
+- **El rojo de `DeleteButton` es `danger-strong`** (08-09-2026): `danger` sobre blanco da
+  3,33:1 y ahí todo es texto de 12 y 14 px, por debajo del 4,5:1 de AA. `danger-strong`
+  da 5,17:1. `danger` se queda para bordes, fondos y gráficos, que solo piden 3:1.
 - Comidas (día/semana, copiar día). Las **cinco** franjas se activan y desactivan por
   familia desde Ajustes; apagar una no borra lo apuntado en ella. `Comedor` (02-09-2026)
   es lo que le ponen a los niños fuera de casa: va detrás de `Comida` porque el mismo día
@@ -748,7 +757,11 @@ Las dos que había aquí se cerraron el 06-08-2026:
 ### Después
 
 4. Medir el contraste de la paleta (el resto de la revisión de accesibilidad —roles,
-   labels, foco, `inert` en los sheets— está hecha, Fase 8 del roadmap).
+   labels, foco, `inert` en los sheets— está hecha, Fase 8 del roadmap). Lo medido hasta
+   hoy es el rojo: `danger` como **texto** no llega (3,33:1 sobre blanco, 2,83:1 sobre
+   `danger-soft`) y `DeleteButton` ya usa `danger-strong`. Siguen en `danger` y sin repasar
+   los avisos de validación de los sheets (10 y 11 px), la variante `danger` de `Button` y
+   el botón del diálogo de poner un mes a cero.
 
 ## Historial
 

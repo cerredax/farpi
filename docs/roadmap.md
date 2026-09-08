@@ -680,6 +680,39 @@ sheet lo manda lo que más se contesta».
       cuatro, y lo que sí es común (🏥, 🎒, 🐾, ✈️) ya se repite hoy entre ellos.
 - [x] Uno de navegador: **636** en la pasada completa (484 unitarios y 152 de navegador).
 
+## Fase 8t - Los borrados que se llevan lo que no se ve (08-09-2026)
+
+Dos preguntas sobre el botón de eliminar: el rojo y el doble toque. El porqué, en
+`docs/architecture.md` («Cuatro borrados preguntan en vez de armarse» y «El rojo de borrar
+sube de contraste»); el relato, en `docs/historial.md`.
+
+- [x] **Cuatro borrados preguntan en un diálogo**: lista, partida, persona (hijo, adulto o
+      miembro) y familia. Es la misma excepción que el cierre del mes —*el doble toque vale
+      para lo que se ve*— y aquí lo que cambia está detrás: una lista se lleva sus ítems en
+      cascada, una partida suelta los suyos, quitar a alguien deja seis tablas sin dueño y
+      los papeles de su Drive sin abrir. El resto de los borrados siguen con el doble toque:
+      un diálogo por cada ítem de la compra sería un peaje.
+- [x] **En el mismo sheet, no en uno encima.** Dos `BottomSheet` a la vez dejan el de debajo
+      a la vista y pulsable (overlay `z-50`, panel `z-[60]`) y en escritorio los centran en
+      el mismo punto. `ConfirmDeleteBody`/`ConfirmDeleteFooter` y `useSheetDeleteDialog`;
+      ningún overlay propio ni un `z-index` nuevo.
+- [x] **Con la pregunta se fue la letra pequeña**, como en el cierre del mes: la de la
+      partida y la caja roja de los documentos del miembro, que la veía hasta quien solo
+      venía a cambiarle el color. Se queda la de «esta es tu única familia», que explica por
+      qué no hay botón.
+- [x] **`DeleteButton` pasa a `danger-strong`**: `danger` sobre blanco da 3,33:1 y ahí todo
+      es texto de 12 y 14 px (AA pide 4,5:1; sobre el hover eran 2,83:1). `danger-strong`
+      da 5,17:1, ya existía en la paleta y ya se usaba para los números rojos de Finanzas.
+      Sin tocar el tono ni añadir tokens.
+- [x] El lápiz de editar una lista tenía nombre accesible ninguno: ahora dice «Editar la
+      lista X».
+- [x] Uno de navegador nuevo (el diálogo de la lista) y el de la familia reescrito para el
+      flujo nuevo, que ahora comprueba también el cancelar: **637** en la pasada completa
+      (484 unitarios y 153 de navegador).
+- [ ] Pendiente del mismo repaso de contraste, medido y sin tocar porque no era de este
+      trabajo: los avisos de validación de los sheets (`text-danger` a 10 y 11 px), la
+      variante `danger` de `Button` y el botón rojo del diálogo de poner un mes a cero.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

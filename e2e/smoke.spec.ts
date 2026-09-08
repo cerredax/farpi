@@ -92,11 +92,20 @@ test('una familia creada se puede eliminar y la app vuelve a la anterior', async
   await expect(page.getByText('Familia de prueba')).toHaveCount(2)
 
   await page.getByRole('button', { name: 'Editar familia' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Editar familia' })
-  await dialog.getByRole('button', { name: 'Eliminar familia' }).click()
-  // El aviso de lo que se lleva por delante solo aparece al pedir el borrado.
-  await expect(dialog.getByText(/No se puede deshacer/)).toBeVisible()
-  await dialog.getByRole('button', { name: 'Confirmar: se borra todo' }).click()
+  const edicion = page.getByRole('dialog', { name: 'Editar familia' })
+  await edicion.getByRole('button', { name: 'Eliminar familia' }).click()
+
+  // El sheet se convierte en la pregunta: cambia de título y dice lo que se
+  // lleva por delante, que es lo que un doble toque no puede contar.
+  const pregunta = page.getByRole('dialog', { name: 'Eliminar familia' })
+  await expect(pregunta.getByText(/No se puede deshacer/)).toBeVisible()
+
+  // Y cancelar devuelve el formulario tal como estaba, con el nombre puesto.
+  await pregunta.getByRole('button', { name: 'Cancelar' }).click()
+  await expect(edicion.getByLabel('Nombre')).toHaveValue('Familia de prueba')
+
+  await edicion.getByRole('button', { name: 'Eliminar familia' }).click()
+  await pregunta.getByRole('button', { name: 'Sí, borrarla con todo' }).click()
 
   await expect(page.getByText('Familia de prueba')).toHaveCount(0)
   await expect(page.getByText('Familia de Carlos, María y Cris')).toBeVisible()

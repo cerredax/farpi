@@ -4,11 +4,12 @@ import { useState, useTransition } from 'react'
 import { ShieldCheck, User } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { ColorPicker } from '@/components/ui/ColorPicker'
+import { ConfirmDeleteBody, ConfirmDeleteFooter } from '@/components/ui/ConfirmDelete'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { PERSON_COLORS } from '@/lib/constants'
 import { isValidEmail } from '@/lib/validators'
-import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import type { FamilyMember } from '@/types'
 
 type Mode = 'invite' | 'edit'
@@ -57,7 +58,11 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
       ? (isValidEmail(d.email) ? null : 'Introduce un email válido.')
       : (d.name.trim() ? null : 'El nombre no puede estar vacío.'),
   })
-  const { confirming: confirmRemove, handleDelete: handleRemove } = useSheetDelete({
+  // Quitar a alguien no borra contenido, pero le cierra la puerta de la familia
+  // y deja sin abrir los papeles que estén en su Drive. Nada de eso se ve desde
+  // el formulario, así que se pregunta antes en vez de armar un doble toque.
+  const { preguntando, preguntar, cancelar, confirmar } = useSheetDeleteDialog({
+    open,
     initial,
     onDelete: onRemove,
     onClose,
@@ -103,107 +108,118 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
   return (
     <BottomSheet
       open={open}
-      title={mode === 'invite' ? 'Invitar persona' : 'Editar miembro'}
-      onClose={onClose}
-      footer={
+      title={preguntando ? 'Quitar miembro' : mode === 'invite' ? 'Invitar persona' : 'Editar miembro'}
+      onClose={preguntando ? cancelar : onClose}
+      footer={preguntando ? (
+        <ConfirmDeleteFooter confirmLabel="Sí, quitar de la familia" onConfirm={confirmar} onCancel={cancelar} />
+      ) : (
         <SheetFooter
           form="member-form"
           submitLabel={isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
           disabled={isPending || (mode === 'invite' ? !isValidEmail(draft.email) : !draft.name.trim())}
-          onDelete={mode === 'edit'
-            ? { confirming: confirmRemove, onClick: handleRemove, idleLabel: 'Quitar miembro', confirmLabel: 'Confirmar eliminación' }
-            : undefined}
+          onDelete={mode === 'edit' ? { onClick: preguntar, idleLabel: 'Quitar miembro' } : undefined}
         />
-      }
+      )}
     >
-      <form id="member-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
-        {mode === 'invite' ? (
-          <Field label="Email" htmlFor="member-email">
-            <input
-              id="member-email"
-              ref={firstFieldRef}
-              type="email"
-              value={draft.email}
-              onChange={e => { patch({ email: e.target.value }); setFormError(null) }}
-              placeholder="correo@ejemplo.com"
-              required
-              className="field-input"
-            />
-            {formError ? (
-              <p className="text-[11px] text-danger font-medium">{formError}</p>
-            ) : (
-              <p className="text-[10px] text-faint">
-                En modo demo, la invitación no se envía. El email queda guardado como referencia.
-              </p>
-            )}
-          </Field>
-        ) : (
-          <Field label="Nombre" htmlFor="member-name">
-            <input
-              id="member-name"
-              ref={firstFieldRef}
-              type="text"
-              value={draft.name}
-              onChange={e => patch({ name: e.target.value })}
-              placeholder="Nombre visible"
-              required
-              className="field-input"
-            />
+      {preguntando ? (
+        <ConfirmDeleteBody>
+          <p>
+            <strong className="text-ink">{initial?.display_name}</strong> deja de tener acceso a
+            esta familia. Su cuenta no se toca: puedes volver a invitarla cuando quieras.
+          </p>
+          <p>
+            Lo que tuviera asignado <strong className="text-ink">no se borra</strong>: se queda en
+            su sitio, sin nadie asignado.
+          </p>
+          {/* Los documentos que subió están en **su** Google Drive, y Farpi los
+              sirve con un permiso que le pide prestado. Si sale, ese permiso deja
+              de valer y los papeles no se abren aunque su ficha siga en la lista.
+              Estaba escrito en el formulario y todo el rato, hasta a quien solo
+              venía a cambiarle el color; su sitio es la pregunta, que es cuando
+              hace falta saberlo y aún se puede no hacerlo. */}
+          {documentosSubidos > 0 && (
+            <p>
+              {documentosSubidos === 1
+                ? 'El documento que subió está'
+                : `Los ${documentosSubidos} documentos que subió están`} en su Google Drive, así que{' '}
+              <strong className="text-ink">dejarán de abrirse en Farpi</strong>. La ficha se queda
+              en Documentos, pero el archivo ya no se puede servir.
+            </p>
+          )}
+        </ConfirmDeleteBody>
+      ) : (
+        <form id="member-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
+          {mode === 'invite' ? (
+            <Field label="Email" htmlFor="member-email">
+              <input
+                id="member-email"
+                ref={firstFieldRef}
+                type="email"
+                value={draft.email}
+                onChange={e => { patch({ email: e.target.value }); setFormError(null) }}
+                placeholder="correo@ejemplo.com"
+                required
+                className="field-input"
+              />
+              {formError ? (
+                <p className="text-[11px] text-danger font-medium">{formError}</p>
+              ) : (
+                <p className="text-[10px] text-faint">
+                  En modo demo, la invitación no se envía. El email queda guardado como referencia.
+                </p>
+              )}
+            </Field>
+          ) : (
+            <Field label="Nombre" htmlFor="member-name">
+              <input
+                id="member-name"
+                ref={firstFieldRef}
+                type="text"
+                value={draft.name}
+                onChange={e => patch({ name: e.target.value })}
+                placeholder="Nombre visible"
+                required
+                className="field-input"
+              />
 
-            <div className="space-y-1.5 pt-2">
-              <label className="field-label">Color</label>
-              <ColorPicker value={draft.color} onChange={color => patch({ color })} />
-              <p className="text-[10px] text-faint">
-                Identifica a esta persona en el calendario y en los documentos.
-              </p>
-            </div>
-
-            {onChangeRole && (
               <div className="space-y-1.5 pt-2">
-                <label className="field-label">Rol</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { value: 'admin' as Role, label: 'Administrador', icon: ShieldCheck },
-                    { value: 'member' as Role, label: 'Miembro', icon: User },
-                  ]).map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => handleRoleChange(value)}
-                      aria-pressed={role === value}
-                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${role === value ? 'border-primary bg-primary-tint text-primary-strong' : 'border-line bg-canvas text-muted hover:bg-surface'}`}
-                    >
-                      <Icon size={15} strokeWidth={2.3} />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {roleError
-                  ? <p className="text-[11px] text-danger font-medium">{roleError}</p>
-                  : <p className="text-[10px] text-faint">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
-                }
-              </div>
-            )}
-
-            {/* Quitar a alguien de la familia tiene una consecuencia que no se ve
-                desde aquí: los documentos que subió están en **su** Google Drive,
-                y Farpi los sirve con un permiso que le pide prestado. Si sale, ese
-                permiso deja de valer y los papeles dejan de abrirse aunque su
-                ficha siga en la lista. Se avisa antes y no después, porque después
-                no tiene arreglo desde la app. */}
-            {documentosSubidos > 0 && (
-              <div className="mt-2 rounded-xl border border-danger-line bg-danger-soft px-3 py-2.5">
-                <p className="text-[11px] font-semibold leading-relaxed text-ink">
-                  {documentosSubidos === 1
-                    ? 'Hay 1 documento guardado en el Google Drive de esta persona.'
-                    : `Hay ${documentosSubidos} documentos guardados en el Google Drive de esta persona.`}{' '}
-                  Si la quitas de la familia, dejarán de poder abrirse en Farpi.
+                <label className="field-label">Color</label>
+                <ColorPicker value={draft.color} onChange={color => patch({ color })} />
+                <p className="text-[10px] text-faint">
+                  Identifica a esta persona en el calendario y en los documentos.
                 </p>
               </div>
-            )}
-          </Field>
-        )}
-      </form>
+
+              {onChangeRole && (
+                <div className="space-y-1.5 pt-2">
+                  <label className="field-label">Rol</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { value: 'admin' as Role, label: 'Administrador', icon: ShieldCheck },
+                      { value: 'member' as Role, label: 'Miembro', icon: User },
+                    ]).map(({ value, label, icon: Icon }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => handleRoleChange(value)}
+                        aria-pressed={role === value}
+                        className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${role === value ? 'border-primary bg-primary-tint text-primary-strong' : 'border-line bg-canvas text-muted hover:bg-surface'}`}
+                      >
+                        <Icon size={15} strokeWidth={2.3} />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {roleError
+                    ? <p className="text-[11px] text-danger font-medium">{roleError}</p>
+                    : <p className="text-[10px] text-faint">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
+                  }
+                </div>
+              )}
+            </Field>
+          )}
+        </form>
+      )}
     </BottomSheet>
   )
 }

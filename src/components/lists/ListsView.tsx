@@ -20,6 +20,7 @@ export function ListsView() {
       open={s.listSheetOpen}
       mode={s.listMode}
       initial={s.editingList}
+      itemsCount={s.itemsDeListaEditada}
       onClose={() => s.setListSheetOpen(false)}
       onCreate={s.createList}
       onUpdate={s.updateList}

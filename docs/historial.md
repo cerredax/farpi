@@ -15,6 +15,45 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-08
 
+### Cuatro borrados preguntan, y el rojo de borrar sube de contraste (08-09-2026)
+
+Dos preguntas sobre el botón de eliminar: si el rojo se ve bien, y si el doble toque no
+estaría mejor como diálogo. Las dos tenían respuesta y no era la misma.
+
+**El rojo.** El tono encaja con la paleta, pero medido no llega: `danger` (#D96C6C) sobre
+blanco da 3,33:1 y el botón entero es texto de 12 y 14 px, que no entra en la excepción de
+«texto grande» de WCAG. Sobre el fondo del hover, 2,83:1. Y donde peor está es en el
+segundo toque, el «Borrar» blanco sobre rojo relleno: 3,33:1 para el único rótulo que hay
+que leer antes de tocar. La solución ya estaba en la paleta —`danger-strong` (#B24D4D),
+5,17:1, anotado como «texto de error» y ya usado para los números rojos de Finanzas— y con
+el mismo argumento que `BudgetBar` llevaba escrito desde el 04-09. Así que `DeleteButton`
+cambia de rojo y `danger` se queda para lo que no es texto, donde 3,33:1 sí cumple.
+
+**El doble toque.** No se cambia en general: un diálogo por cada ítem de la compra sería
+un peaje absurdo en el sitio donde se usa la app —una mano, en el súper—, y el aviso real
+no es el color sino que el botón cambie de forma. Pero cuatro borrados incumplían su propia
+regla, la que ya escribió el cierre del mes: *el doble toque vale para lo que se ve*. Una
+lista se lleva sus ítems, una partida suelta sus gastos y toca los meses cerrados, quitar a
+una persona deja seis tablas sin dueño y los papeles de su Drive sin abrir, y una familia
+se lo lleva todo. Nada de eso está en pantalla, y cada uno pasa una cosa distinta: hay algo
+que contar, y eso es lo que justifica el diálogo. Un «¿Seguro?» genérico no lo habría
+justificado.
+
+Se hace **en el mismo sheet**, no en uno encima: dos `BottomSheet` a la vez dejan el de
+debajo a la vista y pulsable —overlay a `z-50`, panel a `z-[60]`— y en escritorio los pone
+centrados en el mismo punto. El sheet se convierte en la pregunta y al cancelar vuelve al
+formulario con lo escrito. Con la pregunta se fueron dos letras pequeñas que contaban todo
+el rato lo que solo importa al pulsar: la de la partida y la caja roja de los documentos en
+el Drive del miembro, que recibía a quien solo venía a cambiarle el color.
+
+De paso, el lápiz de editar una lista tenía nombre accesible ninguno; ahora dice «Editar la
+lista X», que además es por donde entra el test nuevo. La suite gana la prueba del diálogo
+de la lista —dice cuántos ítems se lleva, cancelar devuelve el formulario, confirmar borra—
+y la de la familia, que ya existía, se reescribe para el flujo nuevo y comprueba también el
+cancelar. Quedan medidos y sin tocar, porque no eran de este trabajo: los avisos de
+validación a 10 y 11 px, la variante `danger` de `Button` y el rojo del diálogo de poner un
+mes a cero.
+
 ### El orden de los sheets de Notas y Tareas (08-09-2026)
 
 Segunda vuelta a la auditoría de Listas, Tareas y Notas, esta vez leyendo los sheets como

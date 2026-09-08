@@ -1,10 +1,11 @@
 'use client'
 
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { ConfirmDeleteBody, ConfirmDeleteFooter } from '@/components/ui/ConfirmDelete'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
-import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import { validateListDraft } from '@/lib/validators'
 import type { List, ListDraft } from '@/types'
 
@@ -25,6 +26,8 @@ interface ListSheetProps {
   open: boolean
   mode: 'create' | 'edit'
   initial?: List | null
+  /** Cuántos ítems tiene la lista que se edita: es lo que se lleva por delante borrarla. */
+  itemsCount?: number
   onClose: () => void
   onCreate: (draft: ListDraft) => void
   onUpdate: (id: string, draft: ListDraft) => void
@@ -36,13 +39,16 @@ function initDraft(mode: 'create' | 'edit', initial: List | null | undefined): L
   return { name: '', emoji: '📋' }
 }
 
-export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, onDelete }: ListSheetProps) {
+export function ListSheet({ open, mode, initial, itemsCount = 0, onClose, onCreate, onUpdate, onDelete }: ListSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
     validate: validateListDraft,
   })
-  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
+  // Borrar una lista se lleva sus ítems (`list_items` cuelga de ella con
+  // `on delete cascade`) y desde el sheet no se ve ni uno, así que pregunta en
+  // vez de armarse al primer toque.
+  const { preguntando, preguntar, cancelar, confirmar } = useSheetDeleteDialog({ open, initial, onDelete, onClose })
 
   const handleSubmit = submitHandler(valid => {
     if (mode === 'create') onCreate(valid)
@@ -53,38 +59,57 @@ export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Nueva lista' : 'Editar lista'}
-      onClose={onClose}
-      footer={
+      title={preguntando ? 'Eliminar lista' : mode === 'create' ? 'Nueva lista' : 'Editar lista'}
+      // Con la pregunta puesta, cerrar es volver al formulario: la X, Escape y el
+      // overlay hacen lo mismo que «Cancelar», y lo escrito sigue donde estaba.
+      onClose={preguntando ? cancelar : onClose}
+      footer={preguntando ? (
+        <ConfirmDeleteFooter confirmLabel="Sí, eliminar la lista" onConfirm={confirmar} onCancel={cancelar} />
+      ) : (
         <SheetFooter
           form="list-form"
           submitLabel={mode === 'create' ? 'Crear lista' : 'Guardar'}
           disabled={!draft.name.trim()}
           error={formError}
-          onDelete={mode === 'edit'
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar lista', confirmLabel: 'Confirmar eliminación' }
-            : undefined}
+          onDelete={mode === 'edit' ? { onClick: preguntar, idleLabel: 'Eliminar lista' } : undefined}
         />
-      }
+      )}
     >
-      <form id="list-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Nombre" htmlFor="list-name">
-          <input
-            id="list-name"
-            ref={firstFieldRef}
-            type="text"
-            value={draft.name}
-            onChange={e => patch({ name: e.target.value })}
-            placeholder="Ej: Compra del fin de semana"
-            required
-            className="field-input"
-          />
-        </Field>
+      {preguntando ? (
+        <ConfirmDeleteBody>
+          <p>
+            Se borra la lista <strong className="text-ink">«{initial?.name}»</strong>. No se puede
+            deshacer.
+          </p>
+          {itemsCount > 0 && (
+            <p>
+              {itemsCount === 1
+                ? 'Con ella se va el ítem que tiene apuntado'
+                : `Con ella se van sus ${itemsCount} ítems`}, tanto lo que hace falta ahora como lo
+              de siempre.
+            </p>
+          )}
+        </ConfirmDeleteBody>
+      ) : (
+        <form id="list-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
+          <Field label="Nombre" htmlFor="list-name">
+            <input
+              id="list-name"
+              ref={firstFieldRef}
+              type="text"
+              value={draft.name}
+              onChange={e => patch({ name: e.target.value })}
+              placeholder="Ej: Compra del fin de semana"
+              required
+              className="field-input"
+            />
+          </Field>
 
-        <Field label="Icono" spacing="group">
-          <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
-        </Field>
-      </form>
+          <Field label="Icono" spacing="group">
+            <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
+          </Field>
+        </form>
+      )}
     </BottomSheet>
   )
 }

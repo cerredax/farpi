@@ -162,7 +162,10 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Se muestran listas iniciales.
 - [ ] Se puede crear lista.
 - [ ] Se puede editar lista.
-- [ ] Se puede borrar lista.
+- [x] Se puede borrar lista: **pregunta en el propio sheet** y dice cuántos ítems se lleva
+      —que se van con ella—; cancelar devuelve el formulario con el nombre puesto
+      (automatizado en `e2e/runtime.spec.ts`: «borrar una lista pregunta cuánto se lleva
+      por delante»).
 - [ ] Se puede abrir detalle.
 - [ ] Se puede crear ítem.
 - [ ] Se puede editar ítem.
@@ -399,7 +402,8 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] Elegir quién lo pagó pinta su punto de color y su nombre en la fila, y suma en el
       reparto de arriba. Sin elegir a nadie sale como «De casa».
 - [ ] Borrar una partida **no borra sus apuntes**: siguen en la lista, sin categoría.
-      El sheet lo avisa antes.
+      Lo avisa el diálogo de confirmación (08-09-2026), no la letra pequeña del
+      formulario, que se fue con él.
 - [ ] Las flechas cambian de mes y el mes vacío lo dice. **No hay ningún «Volver a este
       mes»** (03-09-2026): se vuelve con la flecha, que es por donde se vino.
 - [ ] Un apunte nuevo mirando un mes pasado nace el día 1 de ese mes, no hoy.
@@ -507,7 +511,8 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] Recargar conserva familia activa.
 - [ ] Datos de una familia no aparecen en otra.
 - [x] Se puede eliminar una familia creada de más (automatizado en `e2e/smoke.spec.ts`:
-      se crea, se borra y la app salta sola a la que queda).
+      se crea, se borra y la app salta sola a la que queda). El sheet **pregunta**: dice
+      lo que se lleva por delante, y cancelar devuelve el formulario.
 - [ ] Con una sola familia, el sheet no ofrece eliminar y explica por qué.
 - [ ] Con credenciales reales: quien no es admin de esa familia no puede cerrarla.
 
@@ -528,7 +533,8 @@ comprueba en los dos.
 - [ ] Se puede añadir hijo.
 - [ ] Fecha de nacimiento puede quedar vacía si el modelo lo permite.
 - [ ] Se puede editar hijo.
-- [ ] Se puede borrar hijo.
+- [ ] Se puede borrar hijo: la píldora «Eliminar» de la cabecera **pregunta** en el sheet
+      —y desaparece mientras pregunta— y el diálogo dice que lo suyo no se borra.
 - [ ] Al borrar hijo, eventos relacionados pasan a sin hijo.
 - [ ] Al borrar hijo, documentos relacionados pasan a sin hijo.
 
@@ -642,6 +648,10 @@ cada uno hace a su manera:
 - [ ] RLS está activado en tablas privadas.
 - [ ] RPC `create_family_with_admin` crea familia y miembro admin.
 - [ ] RPC `update_family_member_profile`: uno mismo edita su nombre y color; un admin edita a otro de su familia; alguien de fuera no puede.
+- [ ] Quitar a un miembro **pregunta** en el sheet: dice que pierde el acceso, que su
+      cuenta no se toca y que lo suyo queda sin asignar. Si subió documentos, el diálogo
+      cuenta cuántos y avisa de que dejarán de abrirse (ese aviso ya no vive en el
+      formulario).
 - [ ] RPC `remove_family_member` no permite borrar al último admin.
 - [ ] RPC `update_family_member_role` no permite degradar al último admin.
 - [ ] RPC `accept_family_invite` acepta una invitación pendiente del email autenticado.

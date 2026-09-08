@@ -296,6 +296,36 @@ test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Jabón neutro', exact: true })).toBeVisible()
 })
 
+// Borrar una lista se lleva sus ítems, y desde el sheet de la lista no se ve
+// ninguno: es lo que el doble toque no puede contar, así que aquí pregunta. Se
+// comprueba lo que hace distinto a un diálogo: que diga cuántos ítems se van, y
+// que cancelar devuelva el formulario en vez de dejar la papelera armada.
+test('borrar una lista pregunta cuánto se lleva por delante', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+
+  await page.getByText('Bricolaje').first().click()
+  await page.getByRole('button', { name: 'Editar la lista Bricolaje' }).click()
+
+  const edicion = page.getByRole('dialog', { name: 'Editar lista' })
+  await edicion.getByRole('button', { name: 'Eliminar lista' }).click()
+
+  // El sheet pasa a ser la pregunta, con la cuenta de lo que se va. El número
+  // no se fija: lo que se prueba es que lo diga, no cuántos trae la demo.
+  const pregunta = page.getByRole('dialog', { name: 'Eliminar lista' })
+  await expect(pregunta.getByText(/Con ella se van sus \d+ ítems/)).toBeVisible()
+
+  await pregunta.getByRole('button', { name: 'Cancelar' }).click()
+  await expect(edicion.getByLabel('Nombre')).toHaveValue('Bricolaje')
+
+  await edicion.getByRole('button', { name: 'Eliminar lista' }).click()
+  await pregunta.getByRole('button', { name: 'Sí, eliminar la lista' }).click()
+  await page.waitForTimeout(300)
+
+  // Se cierra el sheet, se vuelve al índice y la lista ya no está.
+  await expect(page.getByText('Bricolaje')).toHaveCount(0)
+})
+
 // Las listas van al revés que una lista de tareas: marcar no archiva, devuelve
 // el ítem al catálogo de lo que se compra siempre, y desde ahí se vuelve a
 // apuntar que hace falta sin reescribirlo.

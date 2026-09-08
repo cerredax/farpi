@@ -2492,6 +2492,77 @@ abrir el calendario del móvil y buscar el día en una rejilla. Los dos chips se
 tocar para quitar la fecha, como el de fijar una nota: no hace falta un tercer botón para
 vaciarla. El campo de fecha se queda debajo para todo lo demás.
 
+### Cuatro borrados preguntan en vez de armarse (08-09-2026)
+
+El doble toque de `DeleteButton` sigue siendo el borrado de la app —una nota, una tarea,
+un evento, una comida, un apunte, un documento, una fila de la compra—, pero cuatro se
+salen de él y preguntan en el sheet: **eliminar una lista, una partida, una persona
+(hijo, adulto o miembro) y una familia**.
+
+El criterio no es nuevo, es el que ya escribió el cierre del mes: *el doble toque vale
+para lo que se ve*. Borrar una fila que sigue delante se entiende sin explicación y se
+nota al momento. Estos cuatro no tocan lo que hay en pantalla, tocan lo que hay detrás, y
+cada uno de una forma distinta que **solo se puede decir con palabras**:
+
+- Una **lista** se lleva sus ítems (`list_items` cuelga de ella con `on delete cascade`),
+  y desde el sheet no se ve ni uno. Es el único de los cuatro que destruye algo, y por eso
+  es el único que cuenta cuántos: aquí el número no es adorno —en las tarjetas de lista se
+  quitó a propósito— sino la consecuencia.
+- Una **partida** no borra nada: suelta sus gastos, que se quedan apuntados en «Sin
+  partida», y los meses ya cerrados siguen enseñándola tal como estaba (`budget_id` es
+  `on delete set null` en `expenses` y en `month_plan_lines`). Eso era exactamente la duda
+  que frenaba, y estaba contestada en letra pequeña.
+- Una **persona** suelta su `child_id` o su `member_id` en seis tablas. Tampoco se borra
+  nada, pero lo que llevaba se queda sin dueño; y si es un miembro con documentos, los
+  papeles que están en **su** Drive dejan de abrirse, porque el permiso prestado se va con
+  ella.
+- Una **familia** sí se lo lleva todo, en cascada, y es lo único de Ajustes que no tiene
+  vuelta atrás.
+
+**Es el mismo sheet y no uno encima.** Dos `BottomSheet` a la vez no se sostienen: el
+overlay del segundo va a `z-50` y el panel del primero a `z-[60]`, así que el sheet de
+debajo se quedaría a la vista y pulsable alrededor de la pregunta, con dos `aria-modal`
+abiertos y, en escritorio, dos modales centrados en el mismo punto. Así que el sheet se
+convierte en la pregunta: cambia el título, el formulario deja el sitio a lo que se va a
+perder y el pie pasa a «Sí, eliminar…» y «Cancelar». Cancelar —y la X, y Escape, y el
+overlay— devuelve el formulario con lo escrito donde estaba. Las piezas son
+`ConfirmDeleteBody`/`ConfirmDeleteFooter` y el hook `useSheetDeleteDialog`; no hay overlay
+propio ni un `z-index` nuevo.
+
+**Y con la pregunta se fue la letra pequeña**, como ya pasó en el cierre del mes. Dos
+avisos vivían en el formulario contando todo el rato, a 10 y a 11 px, algo que solo importa
+en el momento de pulsar: el de la partida («los gastos se quedan y pasan a Sin partida»),
+que lo leía hasta quien solo venía a cambiarle el tope, y el de los documentos en el Drive
+del miembro, que recibía con una caja roja a quien solo venía a cambiarle el color. El de
+la familia ya aparecía solo al armarse el doble toque y ahora es la pregunta entera. El
+único que se queda en el formulario es el de «esta es tu única familia, no se puede
+eliminar»: ese explica por qué **no hay** botón, y sin botón no hay pregunta donde contarlo.
+
+Lo que no se hizo: llevar los cuatro a un diálogo genérico de «¿Seguro?». Un diálogo que no
+dice nada más que el botón se pulsa igual de rápido y solo añade un toque; lo que justifica
+sacarlos del doble toque es que **hay algo que contar**, y cada uno cuenta lo suyo.
+
+### El rojo de borrar sube de contraste (08-09-2026)
+
+`DeleteButton` pasa de `danger` (#D96C6C) a `danger-strong` (#B24D4D) en el texto, el icono
+y el relleno del segundo toque. Es la misma razón que ya llevaba escrita `BudgetBar`, ahora
+medida: todo lo que hay en ese botón es texto pequeño —12 y 14 px, que no entra en la
+excepción de «texto grande» de WCAG, que empieza en 18,66 px en negrita—, y `danger` sobre
+blanco da **3,33:1**, por debajo del 4,5:1 de AA; sobre el fondo del hover, 2,83:1. Falla
+justo donde más importa: en el «Borrar» blanco sobre rojo relleno, que es el rótulo que hay
+que leer **antes** de tocar. `danger-strong` da 5,17:1 en las dos direcciones, y es el rojo
+del botón que confirma en los cuatro diálogos nuevos.
+
+El tono no se toca y la paleta no crece: `danger-strong` ya existía —estaba anotado como
+«texto de error sobre danger-soft»— y ya se usaba para números en rojo en Finanzas.
+`danger` se queda para lo que **no** es texto, donde 3,33:1 cumple el 3:1 de 1.4.11:
+bordes (`danger-line`), fondos suaves (`danger-soft`, `danger-tint`), la barra de una
+partida pasada y el punto de la hora en la agenda.
+
+Queda pendiente el mismo repaso en los avisos de validación de los sheets (`text-danger` a
+10 y 11 px), en la variante `danger` de `Button` y en el botón rojo del diálogo de poner un
+mes a cero, que son la misma clase de defecto en sitios que este trabajo no tocaba.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

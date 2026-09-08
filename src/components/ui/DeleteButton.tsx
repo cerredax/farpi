@@ -3,10 +3,16 @@
 import { Trash2 } from 'lucide-react'
 
 interface DeleteButtonProps {
-  confirming: boolean
+  /**
+   * Si está pidiendo confirmación, en los borrados de doble toque. Los que
+   * preguntan en un diálogo no lo pasan: ahí el botón es de un toque y quien
+   * confirma es el sheet, que se convierte en la pregunta.
+   */
+  confirming?: boolean
   onClick: () => void
   idleLabel: string
-  confirmLabel: string
+  /** Rótulo del segundo toque. Solo hace falta si el botón usa `confirming`. */
+  confirmLabel?: string
   /**
    * `footer`: botón ancho al pie del sheet. `header`: píldora en la cabecera.
    * `inline`: la papelera de una fila, que en reposo es solo el icono.
@@ -23,11 +29,22 @@ interface DeleteButtonProps {
 }
 
 /**
- * Botón de borrado con confirmación en dos pasos, compartido por los sheets.
- * El estado `confirming` lo gestiona el sheet con `useConfirmAction`.
+ * Botón de borrado, compartido por los sheets y por las filas que se pueden
+ * borrar. Con `confirming` es el de dos toques —el estado lo lleva el sheet con
+ * `useConfirmAction`—; sin él es de un toque, y la confirmación la da el paso de
+ * `ConfirmDelete`.
+ *
+ * **El rojo es `danger-strong` y no `danger` a secas** (08-09-2026). Es la misma
+ * razón que ya llevaba escrita `BudgetBar`: aquí todo es texto pequeño —12 y 14
+ * px— y `danger` sobre blanco se queda en 3,3:1, por debajo del 4,5:1 que pide
+ * WCAG AA; sobre el fondo del hover, en 2,8:1. Y falla justo donde más importa,
+ * en el «Borrar» blanco sobre rojo relleno del segundo toque, que es el rótulo
+ * que hay que leer **antes** de tocar. `danger-strong` da 5,2:1 en las dos
+ * direcciones. `danger` se queda para lo que no es texto: bordes, fondos suaves,
+ * barras y puntos.
  */
-export function DeleteButton({ confirming, onClick, idleLabel, confirmLabel, variant = 'footer', ariaLabel, confirmAriaLabel }: DeleteButtonProps) {
-  const danger = confirming ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'
+export function DeleteButton({ confirming = false, onClick, idleLabel, confirmLabel, variant = 'footer', ariaLabel, confirmAriaLabel }: DeleteButtonProps) {
+  const danger = confirming ? 'bg-danger-strong text-white' : 'text-danger-strong hover:bg-danger-soft'
 
   /**
    * En una fila el borrado no puede ocupar sitio hasta que hace falta: en reposo
@@ -43,7 +60,7 @@ export function DeleteButton({ confirming, onClick, idleLabel, confirmLabel, var
         onClick={onClick}
         aria-label={confirming ? confirmAriaLabel ?? confirmLabel : ariaLabel ?? idleLabel}
         className={`flex h-7 flex-shrink-0 items-center justify-center gap-1 rounded-full text-xs font-bold transition-colors ${
-          confirming ? 'bg-danger px-2 text-white' : 'w-7 text-faint hover:bg-danger-soft hover:text-danger'
+          confirming ? 'bg-danger-strong px-2 text-white' : 'w-7 text-faint hover:bg-danger-soft hover:text-danger-strong'
         }`}
       >
         <Trash2 size={14} />

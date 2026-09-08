@@ -90,7 +90,9 @@ export function ListDetailView({
         </button>
         <span className="text-xl">{list.emoji ?? '📋'}</span>
         <h1 className="flex-1 font-extrabold text-ink text-lg leading-tight truncate">{list.name}</h1>
-        <button onClick={onOpenEdit} className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0">
+        {/* Con nombre: es un lápiz a secas, y sin él un lector de pantalla
+            anuncia un botón sin decir de qué. */}
+        <button onClick={onOpenEdit} aria-label={`Editar la lista ${list.name}`} className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0">
           <Pencil size={15} />
         </button>
       </div>

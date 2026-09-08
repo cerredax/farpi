@@ -1,10 +1,11 @@
 'use client'
 
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { ConfirmDeleteBody, ConfirmDeleteFooter } from '@/components/ui/ConfirmDelete'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
-import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import { centsToInput } from '@/lib/finanzas'
 import { validateBudgetDraft } from '@/lib/validators'
 import type { Budget, BudgetDraft } from '@/types'
@@ -65,6 +66,12 @@ function initDraft(initial: Budget | null | undefined): BudgetDraft {
  * El aviso de borrado dice qué pasa con los apuntes, porque no es evidente y es
  * la duda que frena: se quedan, sin partida. Nadie pierde el mes de agosto por
  * reorganizar las categorías en septiembre.
+ *
+ * **Ese aviso se mudó al diálogo de confirmación** (08-09-2026) y con él se fue la
+ * letra pequeña del formulario, igual que pasó en el cierre del mes: contaba a 10
+ * px, todo el rato, lo que solo importa en el momento de pulsar. Y borrar una
+ * partida es de lo que no se ve —toca los gastos y las líneas de los meses ya
+ * cerrados—, así que pregunta en vez de armarse al primer toque.
  */
 export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: BudgetSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<BudgetDraft>({
@@ -72,7 +79,7 @@ export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: Budget
     initialDraft: () => initDraft(initial),
     validate: validateBudgetDraft,
   })
-  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
+  const { preguntando, preguntar, cancelar, confirmar } = useSheetDeleteDialog({ open, initial, onDelete, onClose })
 
   const handleSubmit = submitHandler(valid => {
     onSave(valid)
@@ -82,62 +89,68 @@ export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: Budget
   return (
     <BottomSheet
       open={open}
-      title={initial ? 'Editar partida' : 'Nueva partida'}
-      onClose={onClose}
-      footer={
+      title={preguntando ? 'Eliminar partida' : initial ? 'Editar partida' : 'Nueva partida'}
+      onClose={preguntando ? cancelar : onClose}
+      footer={preguntando ? (
+        <ConfirmDeleteFooter confirmLabel="Sí, eliminar la partida" onConfirm={confirmar} onCancel={cancelar} />
+      ) : (
         <SheetFooter
           form="budget-form"
           submitLabel={initial ? 'Guardar' : 'Crear partida'}
           disabled={!draft.name.trim() || !draft.monthly_limit.trim()}
           error={formError}
-          onDelete={initial
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar partida', confirmLabel: 'Confirmar eliminación' }
-            : undefined}
+          onDelete={initial ? { onClick: preguntar, idleLabel: 'Eliminar partida' } : undefined}
         />
-      }
+      )}
     >
-      <form id="budget-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Nombre" htmlFor="budget-name">
-          <input
-            id="budget-name"
-            ref={firstFieldRef}
-            type="text"
-            value={draft.name}
-            onChange={e => patch({ name: e.target.value })}
-            placeholder="Ej: Compra"
-            required
-            className="field-input"
-          />
-        </Field>
-
-        <Field label="Al mes" htmlFor="budget-limit">
-          <input
-            id="budget-limit"
-            type="text"
-            inputMode="decimal"
-            value={draft.monthly_limit}
-            onChange={e => patch({ monthly_limit: e.target.value })}
-            placeholder="Ej: 300"
-            required
-            className="field-input"
-          />
-          <p className="text-[10px] leading-relaxed text-faint">
-            Vale todos los meses hasta que lo cambies. Cambiarlo no toca lo ya
-            apuntado.
+      {preguntando ? (
+        <ConfirmDeleteBody>
+          <p>
+            Se quita la partida <strong className="text-ink">«{initial?.name}»</strong> y su tope al
+            mes.
           </p>
-        </Field>
-
-        <Field label="Icono" spacing="group">
-          <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
-        </Field>
-
-        {initial && (
-          <p className="text-[10px] leading-relaxed text-faint">
-            Si la eliminas, los gastos que tenía se quedan apuntados y pasan a
-            «Sin partida».
+          <p>
+            Los gastos que tenía <strong className="text-ink">se quedan apuntados</strong> y pasan a
+            «Sin partida»; los meses ya cerrados siguen enseñándola tal como estaba.
           </p>
-        )}
-      </form>
+        </ConfirmDeleteBody>
+      ) : (
+        <form id="budget-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
+          <Field label="Nombre" htmlFor="budget-name">
+            <input
+              id="budget-name"
+              ref={firstFieldRef}
+              type="text"
+              value={draft.name}
+              onChange={e => patch({ name: e.target.value })}
+              placeholder="Ej: Compra"
+              required
+              className="field-input"
+            />
+          </Field>
+
+          <Field label="Al mes" htmlFor="budget-limit">
+            <input
+              id="budget-limit"
+              type="text"
+              inputMode="decimal"
+              value={draft.monthly_limit}
+              onChange={e => patch({ monthly_limit: e.target.value })}
+              placeholder="Ej: 300"
+              required
+              className="field-input"
+            />
+            <p className="text-[10px] leading-relaxed text-faint">
+              Vale todos los meses hasta que lo cambies. Cambiarlo no toca lo ya
+              apuntado.
+            </p>
+          </Field>
+
+          <Field label="Icono" spacing="group">
+            <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
+          </Field>
+        </form>
+      )}
     </BottomSheet>
   )
 }

@@ -673,6 +673,11 @@ sheet lo manda lo que más se contesta».
       quitarla. Antes, poner la tarea de hoy pedía abrir el calendario del móvil.
 - [x] **La tarjeta de una nota pierde la fecha.** El `updated_at` al pie no contesta
       nada: una nota no vence. Si hace falta decir que está vieja, se dirá cuando lo esté.
+- [x] **`EmojiPicker` en `src/components/ui/`**: la rejilla estaba copiada en los cuatro
+      sheets que dejan elegir icono. Se unifica el control y **no** el vocabulario —cada
+      pantalla sigue trayendo su juego—, y de paso los botones dicen cuál está puesto
+      (`aria-pressed`). Se descartó unificar los juegos: uno común serviría mal a los
+      cuatro, y lo que sí es común (🏥, 🎒, 🐾, ✈️) ya se repite hoy entre ellos.
 - [x] Uno de navegador: **636** en la pasada completa (484 unitarios y 152 de navegador).
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)

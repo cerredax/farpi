@@ -41,6 +41,12 @@ al segundo toque y que la tarea sale con su «Hoy» en la lista.
 Y con ellas se fue la fecha del pie de la tarjeta de una nota, que era la duda que quedaba
 abierta: el `updated_at` no contesta nada en una pantalla donde nada vence.
 
+Y de la pregunta de si convenía unificar los iconos de la app salió media respuesta: el
+vocabulario no —un juego común para listas, notas, partidas y fijos serviría mal a los
+cuatro—, pero el control sí, que era la misma rejilla copiada cuatro veces. Ahora es
+`EmojiPicker`. Documentos se queda con sus once carpetas en lucide, que a 10 px es lo que
+se lee, y Tareas sin icono: su marca es el color de quien la hace.
+
 ### Un documento sin dueño lo dice, el archivo sale con su extensión y el sheet no cierra antes de tiempo (08-09-2026)
 
 Cuatro cosas de Documentos, todas del mismo sitio: en la base ya no hay archivo, solo la

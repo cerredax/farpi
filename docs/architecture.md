@@ -460,6 +460,7 @@ Componentes clave:
 - `src/components/ui/Field.tsx` — etiqueta + control con el espaciado estándar
 - `src/components/ui/SheetFooter.tsx` — pie con error, acción principal y borrado
 - `src/components/ui/SelectChip.tsx` y `src/components/ui/DotOption.tsx` — opciones seleccionables
+- `src/components/ui/EmojiPicker.tsx` y `src/components/ui/ColorPicker.tsx` — las dos rejillas de «con qué se reconoce esto»: el emoji de una lista, una nota, una partida o un fijo, y el color de una persona. **El vocabulario no vive en el componente**: cada pantalla trae su juego de emoji y lo razona en su archivo, porque una lista se nombra con el súper y una nota con lo que se consulta (📶, 🔐). Lo que se comparte es el control, que estaba copiado en los cuatro sheets
 - `src/components/ui/CircleCheck.tsx` y `src/components/ui/CirclePlus.tsx` — el círculo de marcar y su hermano de sumar, con las mismas medidas y área de toque. El `+` es para lo que no está pendiente sino esperando a volver a hacer falta (el catálogo de las listas), donde un tic diría "hecho"
 - `src/hooks/useSheetForm.ts` — `useSheetForm` (draft, error, foco, submit validado) y `useSheetDelete`
 - `src/hooks/useConfirmAction.ts`

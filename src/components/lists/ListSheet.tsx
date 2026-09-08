@@ -1,6 +1,7 @@
 'use client'
 
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
@@ -81,18 +82,7 @@ export function ListSheet({ open, mode, initial, onClose, onCreate, onUpdate, on
         </Field>
 
         <Field label="Icono" spacing="group">
-          <div className="grid grid-cols-8 gap-2">
-            {EMOJIS.map(emoji => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => patch({ emoji })}
-                className={`w-9 h-9 rounded-xl text-xl flex items-center justify-center transition-colors ${draft.emoji === emoji ? 'bg-primary/20 ring-2 ring-primary' : 'bg-canvas hover:bg-surface'}`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+          <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
         </Field>
       </form>
     </BottomSheet>

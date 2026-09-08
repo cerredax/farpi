@@ -2,6 +2,7 @@
 
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
+import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
@@ -158,18 +159,7 @@ export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave
         </Field>
 
         <Field label="Icono" spacing="group">
-          <div className="grid grid-cols-8 gap-2">
-            {EMOJIS[draft.kind].map(emoji => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => patch({ emoji })}
-                className={`flex h-9 w-9 items-center justify-center rounded-xl text-xl transition-colors ${draft.emoji === emoji ? 'bg-primary/20 ring-2 ring-primary' : 'bg-canvas hover:bg-surface'}`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+          <EmojiPicker opciones={EMOJIS[draft.kind]} value={draft.emoji} onChange={emoji => patch({ emoji })} />
         </Field>
 
         <div className="space-y-2">

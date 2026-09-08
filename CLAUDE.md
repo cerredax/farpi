@@ -255,7 +255,7 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
   y a Finanzas (20 px) hasta el 05-09-2026; el resto de las pantallas ya los dejaban
   fuera. Lo vigila `e2e/movil.spec.ts`, que en cada ruta comprueba que ningún
   `[role="dialog"][inert]` invade el viewport.
-- Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, AssigneePicker, SelectChip, DeleteButton, SectionLink, Suggestions y algunos más.
+- Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, EmojiPicker, AssigneePicker, SelectChip, DeleteButton, SectionLink, Suggestions y algunos más.
 - **El botón de alta va arriba, en `ViewHeader`**, nunca flotando sobre el contenido.
   Lo usan las seis pantallas de contenido y existe justamente porque habían
   divergido. Finanzas volvió al redil el 02-09-2026.

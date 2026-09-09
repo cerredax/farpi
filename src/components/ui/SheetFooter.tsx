@@ -20,7 +20,11 @@ interface SheetFooterProps {
 export function SheetFooter({ form, submitLabel, disabled, error, onDelete }: SheetFooterProps) {
   return (
     <div className="px-5 pb-8 pt-3 space-y-2">
-      {error && <p className="text-[10px] text-danger font-semibold">{error}</p>}
+      {/* `role="alert"` porque aparece **después** de pulsar Guardar: sin él, un
+          lector de pantalla deja a quien lo usa esperando a un formulario que
+          no se ha enviado y no dice por qué. Y a 12 px y no a 10: es lo único
+          que hay que leer en ese momento, y era el texto más pequeño del sheet. */}
+      {error && <p role="alert" className="text-xs font-semibold text-danger-strong">{error}</p>}
       <Button type="submit" form={form} fullWidth size="lg" disabled={disabled}>
         {submitLabel}
       </Button>

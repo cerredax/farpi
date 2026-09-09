@@ -68,7 +68,7 @@ export function StorageCard() {
         {connectStorageUrl && (
           <a
             href={connectStorageUrl}
-            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+            className="flex w-full items-center justify-center rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
           >
             Conectar Google Drive
           </a>
@@ -98,7 +98,7 @@ export function StorageCard() {
       {storageConnection.revocada && connectStorageUrl ? (
         <a
           href={connectStorageUrl}
-          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+          className="flex w-full items-center justify-center rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
         >
           Volver a conectar
         </a>
@@ -109,21 +109,21 @@ export function StorageCard() {
             disabled={ocupado}
             onClick={() => requestConfirm(() => { void desconectar() })}
             onBlur={resetConfirm}
-            className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirming ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
+            className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirming ? 'bg-danger-strong text-white' : 'border border-line text-muted hover:bg-surface'}`}
           >
             {ocupado && <Loader2 size={14} className="animate-spin" />}
             {confirming ? 'Confirmar: los demás dejarán de ver tus documentos' : 'Desconectar Google Drive'}
           </button>
           {/* Desconectar no borra nada de nadie, y hay que decirlo: lo que se
               pierde no es el archivo, es que Farpi pueda enseñárselo a la familia. */}
-          <p className="text-[10px] leading-relaxed text-faint">
+          <p className="text-[10px] leading-relaxed text-muted">
             No se borra ningún archivo de tu Drive. Los documentos que subiste dejarán de poder abrirse en Farpi
             hasta que vuelvas a conectarlo.
           </p>
         </>
       )}
 
-      {error && <p className="text-[11px] font-medium text-danger">{error}</p>}
+      {error && <p className="text-[11px] font-medium text-danger-strong">{error}</p>}
     </Card>
   )
 }

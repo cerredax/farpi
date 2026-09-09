@@ -31,7 +31,7 @@ export const TodayBirthdays = memo(function TodayBirthdays({ cumples }: TodayBir
           className="flex items-center gap-2.5 rounded-3xl border border-white bg-white/80 px-4 py-2.5 shadow-sm"
         >
           <span
-            className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl ${color ? '' : 'bg-primary text-white'}`}
+            className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl ${color ? '' : 'bg-primary-strong text-white'}`}
             style={color ? { backgroundColor: color, color: textColorOn(color) } : undefined}
           >
             <Cake size={16} strokeWidth={2.4} aria-hidden />

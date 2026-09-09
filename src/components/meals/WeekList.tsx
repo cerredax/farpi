@@ -44,7 +44,7 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
             <div className={`flex items-center justify-between px-4 py-2.5 border-b border-hairline ${esHoy ? 'bg-primary-tint' : ''}`}>
               <p className={`text-sm font-extrabold ${esHoy ? 'text-primary-strong' : 'text-ink'}`}>
                 {capitalize(format(day, "EEEE d", { locale: es }))}
-                {esHoy && <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-primary">Hoy</span>}
+                {esHoy && <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-primary-strong">Hoy</span>}
               </p>
               <button
                 type="button"
@@ -52,7 +52,7 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
                 disabled={!tieneComidas}
                 aria-label={`Copiar menú del ${format(day, 'd MMM', { locale: es })}`}
                 className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                  tieneComidas ? 'text-primary hover:bg-primary-tint' : 'text-faint cursor-not-allowed'
+                  tieneComidas ? 'text-primary-strong hover:bg-primary-tint' : 'text-faint cursor-not-allowed'
                 }`}
               >
                 <Copy size={11} strokeWidth={2.4} />
@@ -85,7 +85,7 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
                             <span className="block truncate text-xs text-muted">{siguientes.join(' · ')}</span>
                           )}
                         </span>
-                        <Pencil size={13} className="flex-shrink-0 text-faint transition-colors group-hover:text-primary" strokeWidth={1.9} />
+                        <Pencil size={13} className="flex-shrink-0 text-muted transition-colors group-hover:text-primary-strong" strokeWidth={1.9} />
                       </button>
                     ) : (
                       <button
@@ -95,10 +95,10 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
                         className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-primary-tint"
                       >
                         <span className="w-6 flex-shrink-0 text-center text-base opacity-40">{slot.emoji}</span>
-                        <span className="min-w-0 flex-1 text-sm text-faint transition-colors group-hover:text-primary">
+                        <span className="min-w-0 flex-1 text-sm text-muted transition-colors group-hover:text-primary-strong">
                           {slot.label}
                         </span>
-                        <Plus size={14} className="flex-shrink-0 text-faint transition-colors group-hover:text-primary" strokeWidth={2.4} />
+                        <Plus size={14} className="flex-shrink-0 text-muted transition-colors group-hover:text-primary-strong" strokeWidth={2.4} />
                       </button>
                     )}
                   </li>

@@ -8,6 +8,15 @@ interface MembersListProps {
   invites: FamilyInvite[]
   /** Para no repartir a un adulto un color que ya lleva un hijo. */
   kids: Child[]
+  /**
+   * Si quien mira es administrador. Invitar, cancelar una invitación y editar a
+   * otro son suyos: lo dicen las policies de `family_invites` y la RPC
+   * `update_family_member_profile`. Sin esto, la lista los ofrecía a todo el
+   * mundo y quien no podía se enteraba al pulsar Guardar.
+   */
+  puedeGestionar: boolean
+  /** Tu propia fila: tu nombre y tu color los cambias seas lo que seas. */
+  miMemberId: string | null
   onEdit: (member: FamilyMember) => void
   onInvite: () => void
   onCancelInvite: (id: string) => void
@@ -18,7 +27,7 @@ function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function MembersList({ members, invites, kids, onEdit, onInvite, onCancelInvite }: MembersListProps) {
+export function MembersList({ members, invites, kids, puedeGestionar, miMemberId, onEdit, onInvite, onCancelInvite }: MembersListProps) {
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
       {members.map((member, i) => {
@@ -37,13 +46,17 @@ export function MembersList({ members, invites, kids, onEdit, onInvite, onCancel
                 {member.role === 'admin' ? 'Administrador' : 'Miembro'}
               </p>
             </div>
-            <button
-              onClick={() => onEdit(member)}
-              aria-label={`Editar ${member.display_name}`}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0"
-            >
-              <Pencil size={15} strokeWidth={1.8} />
-            </button>
+            {/* A ti siempre; a los demás, solo un administrador. Es lo mismo
+                que comprueba `update_family_member_profile`. */}
+            {(puedeGestionar || member.id === miMemberId) && (
+              <button
+                onClick={() => onEdit(member)}
+                aria-label={`Editar ${member.display_name}`}
+                className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0"
+              >
+                <Pencil size={15} strokeWidth={1.8} />
+              </button>
+            )}
           </div>
         )
       })}
@@ -67,7 +80,7 @@ export function MembersList({ members, invites, kids, onEdit, onInvite, onCancel
               <p className="font-semibold text-ink text-sm leading-tight truncate">{invite.email}</p>
               <span
                 className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                  caducada ? 'bg-danger-soft text-danger' : 'bg-sand/30 text-sand-strong'
+                  caducada ? 'bg-danger-soft text-danger-strong' : 'bg-sand/30 text-sand-strong'
                 }`}
               >
                 {caducada ? 'Caducada' : 'Pendiente'}
@@ -77,28 +90,32 @@ export function MembersList({ members, invites, kids, onEdit, onInvite, onCancel
               {caducada ? 'Ya no se puede aceptar: vuelve a invitar' : 'Invitación enviada'}
             </p>
           </div>
-          <button
-            onClick={() => onCancelInvite(invite.id)}
-            aria-label={`Cancelar invitación a ${invite.email}`}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-danger hover:bg-danger-soft transition-colors flex-shrink-0"
-          >
-            <X size={15} strokeWidth={1.8} />
-          </button>
+          {puedeGestionar && (
+            <button
+              onClick={() => onCancelInvite(invite.id)}
+              aria-label={`Cancelar invitación a ${invite.email}`}
+              className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-danger-strong hover:bg-danger-soft transition-colors flex-shrink-0"
+            >
+              <X size={15} strokeWidth={1.8} />
+            </button>
+          )}
         </div>
         )
       })}
 
+      {puedeGestionar && (
       <div className="border-t border-hairline">
         <button
           onClick={onInvite}
-          className="w-full flex items-center gap-3 px-4 py-3.5 text-primary hover:bg-primary-tint active:bg-primary-tint transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3.5 text-primary-strong hover:bg-primary-tint active:bg-primary-tint transition-colors"
         >
-          <span className="w-9 h-9 rounded-full border-2 border-dashed border-primary flex items-center justify-center flex-shrink-0">
+          <span className="w-9 h-9 rounded-full border-2 border-dashed border-primary-strong flex items-center justify-center flex-shrink-0">
             <UserPlus size={16} strokeWidth={1.8} />
           </span>
           <span className="text-sm font-semibold">Invitar persona</span>
         </button>
       </div>
+      )}
     </div>
   )
 }

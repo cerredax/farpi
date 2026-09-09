@@ -98,7 +98,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
             size={13}
             strokeWidth={2.6}
             aria-hidden
-            className={`flex-shrink-0 text-faint transition-transform ${abierto ? 'rotate-180' : ''}`}
+            className={`flex-shrink-0 text-muted transition-transform ${abierto ? 'rotate-180' : ''}`}
           />
         </button>
 

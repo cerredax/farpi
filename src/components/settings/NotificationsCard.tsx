@@ -70,7 +70,7 @@ export function NotificationsCard() {
       ) : !configured ? (
         <p className="text-xs text-muted">Estarán disponibles próximamente.</p>
       ) : denied ? (
-        <p className="text-xs text-danger">
+        <p className="text-xs text-danger-strong">
           Has bloqueado las notificaciones. Actívalas desde los ajustes del navegador para este sitio.
         </p>
       ) : (
@@ -81,7 +81,7 @@ export function NotificationsCard() {
             className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 ${
               subscribed
                 ? 'border border-line text-muted hover:bg-surface'
-                : 'bg-primary text-white hover:bg-primary-hover'
+                : 'bg-primary-strong text-white hover:bg-primary-deep'
             }`}
           >
             {busy ? (
@@ -94,7 +94,7 @@ export function NotificationsCard() {
               'Activar notificaciones'
             )}
           </button>
-          {error && <p className="text-xs text-danger font-medium">{error}</p>}
+          {error && <p className="text-xs text-danger-strong font-medium">{error}</p>}
         </>
       )}
     </Card>

@@ -304,7 +304,7 @@ export function DayCell({
       // El alto mínimo es de escritorio: sin él la rejilla se queda en una
       // franja estrecha arriba de una pantalla de 900 px, que es lo que la hacía
       // parecer a medio hacer. En móvil manda el contenido, como siempre.
-      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong ${
         isSelected ? '' : 'hover:bg-canvas'
       }`}
     >
@@ -372,7 +372,7 @@ export function DayCell({
             type="button"
             onClick={() => onSelect(day)}
             onDoubleClick={e => e.stopPropagation()}
-            className="min-h-4 rounded pl-2.5 text-left text-[10px] font-bold leading-tight text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="min-h-4 rounded pl-2.5 text-left text-[10px] font-bold leading-tight text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
           >
             +{planes.length - MAX_TITULOS} más
           </button>

@@ -104,7 +104,6 @@ export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave
         <SheetFooter
           form="fixed-entry-form"
           submitLabel={initial ? 'Guardar' : esIngreso ? 'Añadir ingreso fijo' : 'Añadir gasto fijo'}
-          disabled={!draft.name.trim() || !draft.amount.trim()}
           error={formError}
           onDelete={initial
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar fijo', confirmLabel: 'Confirmar eliminación' }
@@ -151,7 +150,7 @@ export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave
             required
             className="field-input"
           />
-          <p className="text-[10px] leading-relaxed text-faint">
+          <p className="text-[10px] leading-relaxed text-muted">
             Cuenta todos los meses hasta que lo cambies, sin tener que apuntarlo.
             Si lo cambias, los meses ya pasados también dirán el importe nuevo.
             Para un mes suelto que salga distinto, tócalo en «El mes».
@@ -169,7 +168,7 @@ export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave
             members={members}
             kids={kids}
           />
-          <p className="text-[10px] leading-relaxed text-faint">
+          <p className="text-[10px] leading-relaxed text-muted">
             {esIngreso
               ? 'De quién es el ingreso. Con «Familia» queda como algo que entra a la cuenta común.'
               : 'Quién lo paga. Con «Familia» queda como un recibo de la cuenta común, que es lo normal.'}

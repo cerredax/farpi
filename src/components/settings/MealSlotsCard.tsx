@@ -8,6 +8,13 @@ import type { MealSlot } from '@/types'
 interface MealSlotsCardProps {
   slots: MealSlot[]
   onChange: (slots: MealSlot[]) => void
+  /**
+   * Si quien mira puede tocarlas. Las franjas viven en `families.meal_slots`,
+   * así que cambiarlas es actualizar la familia y la policy solo deja hacerlo a
+   * un administrador. Apagadas se siguen viendo —son las de la casa y hay que
+   * saber cuáles son—, pero no se pulsan.
+   */
+  puedeCambiar?: boolean
 }
 
 /**
@@ -21,7 +28,7 @@ interface MealSlotsCardProps {
  * Se guarda al toque, sin botón de guardar: es un interruptor, y la familia
  * entera lo comparte, así que el cambio va a la base igual que el nombre.
  */
-export function MealSlotsCard({ slots, onChange }: MealSlotsCardProps) {
+export function MealSlotsCard({ slots, onChange, puedeCambiar = true }: MealSlotsCardProps) {
   return (
     <Card padded={false}>
       {/* Solo la parte que no es obvia: que son las de Comidas ya lo dice el
@@ -34,6 +41,7 @@ export function MealSlotsCard({ slots, onChange }: MealSlotsCardProps) {
         {MEAL_SLOTS.map(slot => {
           const activa = slots.includes(slot.key)
           const esLaUltima = activa && !canHideMealSlot(slots, slot.key)
+          const bloqueada = esLaUltima || !puedeCambiar
 
           return (
             <li key={slot.key}>
@@ -42,7 +50,7 @@ export function MealSlotsCard({ slots, onChange }: MealSlotsCardProps) {
                 role="switch"
                 aria-checked={activa}
                 aria-label={slot.label}
-                disabled={esLaUltima}
+                disabled={bloqueada}
                 onClick={() => onChange(toggleMealSlot(slots, slot.key))}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:hover:bg-transparent"
               >
@@ -55,7 +63,7 @@ export function MealSlotsCard({ slots, onChange }: MealSlotsCardProps) {
                     {slot.label}
                   </span>
                   {esLaUltima && (
-                    <span className="mt-0.5 block text-[11px] leading-snug text-faint">
+                    <span className="mt-0.5 block text-[11px] leading-snug text-muted">
                       Tiene que quedar al menos una franja
                     </span>
                   )}
@@ -65,7 +73,7 @@ export function MealSlotsCard({ slots, onChange }: MealSlotsCardProps) {
                     del botón, y el lector de pantalla lo lee de ahí. */}
                 <span
                   aria-hidden="true"
-                  className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors ${activa ? 'bg-primary' : 'bg-line-strong'}`}
+                  className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors ${activa ? 'bg-primary-strong' : 'bg-line-strong'}`}
                 >
                   <span
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${activa ? 'left-[1.375rem]' : 'left-0.5'}`}

@@ -17,7 +17,7 @@ interface SearchFieldProps {
 export function SearchField({ value, onChange, placeholder, ariaLabel, className }: SearchFieldProps) {
   return (
     <div className={`relative${className ? ` ${className}` : ''}`}>
-      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint" />
+      <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
       <input
         type="search"
         value={value}

@@ -86,7 +86,7 @@ export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, on
               <button
                 onClick={() => onQuantity(item.quantity - 1)}
                 aria-label={`Quitar una unidad de ${item.text}`}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-faint transition-colors hover:bg-surface hover:text-ink"
+                className="area-de-toque flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
               >
                 <Minus size={14} strokeWidth={2.6} />
               </button>
@@ -99,7 +99,7 @@ export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, on
             onClick={() => onQuantity(item.quantity + 1)}
             disabled={item.quantity >= MAX_UNIDADES}
             aria-label={`Añadir una unidad de ${item.text}`}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-faint transition-colors hover:bg-primary-tint hover:text-primary disabled:opacity-40"
+            className="area-de-toque flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-tint hover:text-primary-strong disabled:opacity-40"
           >
             <Plus size={14} strokeWidth={2.6} />
           </button>
@@ -110,7 +110,7 @@ export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, on
         <button
           onClick={onMove}
           aria-label={`Mover ${item.text} a otra lista`}
-          className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-primary hover:bg-primary-tint flex-shrink-0 transition-colors"
+          className="area-de-toque w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-primary-strong hover:bg-primary-tint flex-shrink-0 transition-colors"
         >
           <FolderInput size={14} />
         </button>

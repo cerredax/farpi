@@ -15,6 +15,13 @@ interface ItemSheetProps {
   initial?: ListItem | null
   /** Ítems ya apuntados por la familia; de aquí salen las sugerencias. */
   historial?: string[]
+  /**
+   * El título del sheet, cuando hay que decir **en qué lista** cae lo que se
+   * apunta. Dentro de una lista sobra —ya se está mirando—, pero desde Inicio
+   * el sheet aparece encima de la pantalla de hoy y "Añadir ítem" no dice a
+   * dónde va.
+   */
+  titulo?: string
   onClose: () => void
   onCreate: (draft: ListItemDraft) => void
   onUpdate: (id: string, draft: ListItemDraft) => void
@@ -28,7 +35,7 @@ function initDraft(mode: 'create' | 'edit', initial: ListItem | null | undefined
   return { text: mode === 'edit' && initial ? initial.text : '' }
 }
 
-export function ItemSheet({ open, mode, initial, historial = [], onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
+export function ItemSheet({ open, mode, initial, historial = [], titulo, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListItemDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -47,13 +54,12 @@ export function ItemSheet({ open, mode, initial, historial = [], onClose, onCrea
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Añadir ítem' : 'Editar ítem'}
+      title={titulo ?? (mode === 'create' ? 'Añadir ítem' : 'Editar ítem')}
       onClose={onClose}
       footer={
         <SheetFooter
           form="item-form"
           submitLabel={mode === 'create' ? 'Añadir' : 'Guardar'}
-          disabled={!draft.text.trim()}
           error={formError}
           onDelete={mode === 'edit'
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar ítem', confirmLabel: 'Confirmar' }

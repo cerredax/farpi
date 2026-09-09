@@ -19,47 +19,16 @@ import { HomeTasks } from './HomeTasks'
 import { ExpiringDocs } from './ExpiringDocs'
 import { UpcomingEvents } from './UpcomingEvents'
 import { DayIllustration } from './DayIllustration'
-import { BottomSheet } from '@/components/ui/BottomSheet'
 import { EventSheet } from '@/components/calendar/EventSheet'
+import { OffDayConfirmDialog } from '@/components/tasks/OffDayConfirmDialog'
+import { ItemSheet } from '@/components/lists/ItemSheet'
 import type { Event, Task } from '@/types'
 
-function OffDayConfirmSheet({ open, task, onConfirm, onCancel }: { open: boolean; task: Task | null; onConfirm: () => void; onCancel: () => void }) {
-  const dueLabel = task?.due_date ? format(parseISO(task.due_date), "d 'de' MMMM", { locale: es }) : ''
-  return (
-    <BottomSheet
-      open={open}
-      title="Confirmar tarea"
-      onClose={onCancel}
-      footer={
-        <div className="px-5 py-4 space-y-2">
-          <button
-            onClick={onConfirm}
-            className="w-full py-3 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors"
-          >
-            Sí, marcar como hecha
-          </button>
-          <button
-            onClick={onCancel}
-            className="w-full py-3 rounded-2xl text-sm font-semibold text-muted hover:bg-surface transition-colors"
-          >
-            Cancelar
-          </button>
-        </div>
-      }
-    >
-      <div className="px-5 pb-4">
-        <p className="text-sm text-muted mb-1">
-          Esta tarea es para el <strong>{dueLabel}</strong>, no para hoy.
-        </p>
-        <p className="text-sm text-muted">¿Marcarla como hecha hoy igualmente?</p>
-      </div>
-    </BottomSheet>
-  )
-}
-
 export function HomeView() {
-  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, documents, toggleTask, toggleListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
+  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, documents, lists, allListItems, toggleTask, toggleListItem, createListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [confirmTask, setConfirmTask] = useState<Task | null>(null)
+  /** Si está abierto el sheet de apuntar algo en la cesta. */
+  const [apuntandoEnCesta, setApuntandoEnCesta] = useState(false)
   /**
    * El plan que se está mirando de cerca. Inicio **abre lo apuntado** desde el
    * 04-09-2026: tocar un plan enseñaba y no hacía nada, así que cambiar la hora
@@ -96,6 +65,35 @@ export function HomeView() {
   const cumples     = useMemo(() => cumplesDeLaCasa(kids, allEvents), [kids, allEvents])
   const cumplesHoy  = cumples.filter(c => c.dias === 0)
   const cumplesProximos = cumples.filter(c => c.dias > 0)
+
+  /**
+   * A qué cesta va lo que se apunte desde Inicio.
+   *
+   * La que más cosas tiene pendientes, que en una casa es la de la compra
+   * prácticamente siempre; si no falta nada en ninguna, la primera. **Se elige
+   * una y se dice cuál** —el sheet se titula "Añadir a Compra"— en vez de
+   * ofrecer un selector de listas: apuntar desde aquí existe para que "se ha
+   * acabado el café" cueste dos toques, y un desplegable delante lo devuelve a
+   * cuatro. Para elegir cesta ya está la pantalla de listas, a un toque de aquí.
+   *
+   * `null` sin ninguna lista creada: entonces no hay botón.
+   */
+  const cestaDestino = useMemo(() => {
+    if (lists.length === 0) return null
+    const pendientesPorLista = new Map<string, number>()
+    for (const item of pendingItems) {
+      pendientesPorLista.set(item.list_id, (pendientesPorLista.get(item.list_id) ?? 0) + 1)
+    }
+    return lists.reduce(
+      (mejor, lista) =>
+        (pendientesPorLista.get(lista.id) ?? 0) > (pendientesPorLista.get(mejor.id) ?? 0) ? lista : mejor,
+      lists[0],
+    )
+  }, [lists, pendingItems])
+
+  // Las sugerencias del sheet salen de todo lo que la familia ha apuntado alguna
+  // vez, igual que en la pantalla de listas.
+  const historialItems = useMemo(() => allListItems.map(item => item.text), [allListItems])
 
   // Lo de hoy sube a la tarjeta; lo demás baja a "Cosas por hacer". Antes esa
   // lista mezclaba lo de esta tarde con lo de dentro de tres semanas, y hoy no
@@ -182,7 +180,12 @@ export function HomeView() {
 
         {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
             tareas. Lo que viene cierra. */}
-        <PendingItems items={pendingItems} onToggle={toggleListItem} />
+        <PendingItems
+          items={pendingItems}
+          onToggle={toggleListItem}
+          onAdd={cestaDestino ? () => setApuntandoEnCesta(true) : undefined}
+          cestaLabel={cestaDestino?.name}
+        />
         <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
         <UpcomingEvents events={upcoming} kids={kids} members={members} onOpen={setEventoAbierto} />
         <UpcomingBirthdays cumples={cumplesProximos} />
@@ -206,7 +209,29 @@ export function HomeView() {
         onDeleteSeries={deleteEventSeries}
       />
 
-      <OffDayConfirmSheet
+      {/* El mismo sheet de la pantalla de listas, en modo crear y con la cesta
+          dicha en el título. `onUpdate` y `onDelete` son de mentira porque el
+          contrato los pide, pero en modo crear no hay camino que llegue a
+          ellos. Fuera del contenedor de arriba por lo del `space-y`, como los
+          otros dos. */}
+      <ItemSheet
+        open={apuntandoEnCesta}
+        mode="create"
+        titulo={cestaDestino ? `Añadir a ${cestaDestino.name}` : undefined}
+        historial={historialItems}
+        onClose={() => setApuntandoEnCesta(false)}
+        onCreate={draft => { if (cestaDestino) createListItem(cestaDestino.id, draft) }}
+        onUpdate={() => {}}
+        onDelete={() => {}}
+      />
+
+      {/* El mismo diálogo que la pantalla de Tareas. Inicio tenía una copia con
+          los botones escritos a mano —y con el verde flojo, blanco sobre
+          `primary` a 2,6:1— que además **no sabía de tareas que se repiten**: a
+          una tarea diaria le decía "es para el 17 de junio, no para hoy" en vez
+          de "es diaria y toca el 17". La misma pregunta desde dos archivos, y la
+          copia se había quedado atrás. */}
+      <OffDayConfirmDialog
         open={!!confirmTask}
         task={confirmTask}
         onConfirm={() => { if (confirmTask) toggleTask(confirmTask.id); setConfirmTask(null) }}

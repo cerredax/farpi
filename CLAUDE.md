@@ -259,6 +259,22 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
 - **El botón de alta va arriba, en `ViewHeader`**, nunca flotando sobre el contenido.
   Lo usan las seis pantallas de contenido y existe justamente porque habían
   divergido. Finanzas volvió al redil el 02-09-2026.
+- **El color de marca no es color de texto.** `primary` (#8BA888) da 2,61:1 sobre blanco,
+  y `faint`/`muted-soft` menos todavía: los tres son para fondos, decoración y lo que está
+  apagado a propósito. Todo lo que hay que leer o pulsar va en su versión `-strong`
+  (`primary-strong`, `danger-strong`, `accent-strong`, `sand-strong`) o en `muted`/`ink`.
+  Lo mismo por el otro lado: **el color de una persona va de fondo y el nombre en tinta**
+  (`.etiqueta-persona` + `fondoDePersona`), porque los seis colores de hijo están en
+  L\* 71-88 justamente para llevar tinta encima. Se midió la app entera el 09-09-2026 y
+  salieron 83 fallos; el detalle y las excepciones, en `docs/project-status.md`.
+- **Un botón primario se hace con `Button`.** Once estaban escritos a mano con
+  `bg-primary text-white` y por eso se quedaron atrás cuando la paleta cambió.
+- **Un botón de guardar no se deshabilita porque falte un campo**: se deja pulsable y que
+  hable el `required` del campo o `formError`. Apagado sin explicación no dice qué falta, y
+  el mensaje del validador no llega a verse nunca. `disabled` es para «hay algo en curso».
+- **Si una acción la limita la RLS o una RPC, la interfaz no la ofrece a quien no puede.**
+  Ajustes lo hace con `currentMember.role`, y dice por qué en una línea en vez de dejar un
+  hueco. En duda se enseña: solo se cierra cuando consta que no.
 - **Los gráficos se dibujan a mano, con SVG en línea**: ninguna librería de
   visualización. Y el color se **calcula, no se elige**: la paleta de marca es de
   baja saturación y dos tonos que parecen distintos pueden no serlo (el verde y el

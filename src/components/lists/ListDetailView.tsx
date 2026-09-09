@@ -92,7 +92,7 @@ export function ListDetailView({
         <h1 className="flex-1 font-extrabold text-ink text-lg leading-tight truncate">{list.name}</h1>
         {/* Con nombre: es un lápiz a secas, y sin él un lector de pantalla
             anuncia un botón sin decir de qué. */}
-        <button onClick={onOpenEdit} aria-label={`Editar la lista ${list.name}`} className="w-8 h-8 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0">
+        <button onClick={onOpenEdit} aria-label={`Editar la lista ${list.name}`} className="area-de-toque w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0">
           <Pencil size={15} />
         </button>
       </div>
@@ -189,7 +189,7 @@ export function ListDetailView({
       <div className="px-4 pb-6 pt-2 border-t border-hairline">
         <button
           onClick={onOpenAddItem}
-          className="w-full flex items-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-line-strong text-primary hover:border-primary hover:bg-primary-tint transition-colors text-sm font-semibold"
+          className="w-full flex items-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-line-strong text-primary-strong hover:border-primary-strong hover:bg-primary-tint transition-colors text-sm font-semibold"
         >
           <Plus size={16} />
           Añadir ítem

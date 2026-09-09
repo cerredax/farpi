@@ -280,7 +280,7 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
           <span className="h-2.5 w-2.5 rounded-sm bg-chart-sale" aria-hidden />
           Sale
         </span>
-        <span className="text-faint">y encima, lo que quedó</span>
+        <span className="text-muted">y encima, lo que quedó</span>
       </div>
 
       <details className="mt-3">
@@ -512,7 +512,7 @@ function DeCadaCien({ entrada }: { entrada: RepartoDeLoQueEntra }) {
             />
             <span className="min-w-0 flex-1 truncate text-muted">{t.nombre}</span>
             <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(t.valor)}</span>
-            <span className="w-9 flex-shrink-0 text-right tabular-nums text-faint">
+            <span className="w-9 flex-shrink-0 text-right tabular-nums text-muted">
               {Math.round((t.valor / entra) * 100)} %
             </span>
           </li>

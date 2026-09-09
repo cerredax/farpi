@@ -11,13 +11,15 @@ interface HomeSectionProps {
    *  sección que preferiría desaparecer no los pasa: devuelve `null` y ya. */
   isEmpty?: boolean
   emptyState?: React.ReactNode
+  /** Lo que se puede hacer aquí mismo, en el rótulo de la sección. */
+  accion?: React.ReactNode
   footer: React.ReactNode
   children: React.ReactNode
 }
 
-export function HomeSection({ label, icon, accentColor, isEmpty = false, emptyState = null, footer, children }: HomeSectionProps) {
+export function HomeSection({ label, icon, accentColor, isEmpty = false, emptyState = null, accion, footer, children }: HomeSectionProps) {
   return (
-    <CardSection label={label} icon={icon} accentColor={accentColor}>
+    <CardSection label={label} icon={icon} accentColor={accentColor} accion={accion}>
       <div
         className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden"
         style={accentColor ? { borderLeft: `3px solid ${accentColor}` } : undefined}

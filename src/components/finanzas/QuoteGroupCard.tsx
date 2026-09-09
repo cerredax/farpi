@@ -91,7 +91,7 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus }: QuoteGroupCardP
                     aria-label={quote.status === 'aceptado' ? `Deshacer aceptar ${quote.provider}` : `Aceptar ${quote.provider}`}
                     aria-pressed={quote.status === 'aceptado'}
                     className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
-                      quote.status === 'aceptado' ? 'bg-primary text-white' : 'bg-canvas text-muted hover:bg-surface'
+                      quote.status === 'aceptado' ? 'bg-primary-strong text-white' : 'bg-canvas text-muted hover:bg-surface'
                     }`}
                   >
                     <Check size={16} strokeWidth={2.6} />

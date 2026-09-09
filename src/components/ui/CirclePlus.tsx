@@ -28,14 +28,14 @@ export function CirclePlus({ onClick, ariaLabel, size = 'md', className = '' }: 
       className={`flex-shrink-0 flex items-center justify-center w-12 min-h-[44px] active:bg-primary-tint transition-colors group ${className}`}
     >
       <span
-        className={`rounded-full border-2 border-faint flex items-center justify-center transition-all duration-200 group-hover:border-primary group-active:border-primary ${
+        className={`rounded-full border-2 border-muted flex items-center justify-center transition-all duration-200 group-hover:border-primary-strong group-active:border-primary-strong ${
           size === 'sm' ? 'w-5 h-5' : 'w-6 h-6'
         }`}
       >
         <Plus
           size={iconSize}
           strokeWidth={3}
-          className="text-faint group-hover:text-primary transition-colors"
+          className="text-muted group-hover:text-primary-strong transition-colors"
         />
       </span>
     </button>

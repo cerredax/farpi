@@ -52,7 +52,7 @@ export function EventSheet({
       type="button"
       onClick={() => s.setSeriesDeleteOpen(v => !v)}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
-        s.seriesDeleteOpen ? 'bg-danger text-white' : 'text-danger hover:bg-danger-soft'
+        s.seriesDeleteOpen ? 'bg-danger-strong text-white' : 'text-danger-strong hover:bg-danger-soft'
       }`}
     >
       Eliminar
@@ -196,7 +196,7 @@ export function EventSheet({
             </div>
             <div className="flex flex-col items-center gap-1.5 pb-0.5">
               <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
-              <button type="button" role="switch" aria-checked={s.draft.all_day} onClick={() => s.patch({ all_day: !s.draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${s.draft.all_day ? 'bg-primary' : 'bg-line-strong'}`}>
+              <button type="button" role="switch" aria-checked={s.draft.all_day} onClick={() => s.patch({ all_day: !s.draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${s.draft.all_day ? 'bg-primary-strong' : 'bg-line-strong'}`}>
                 <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${s.draft.all_day ? 'left-6' : 'left-1'}`} />
               </button>
             </div>

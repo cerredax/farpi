@@ -32,7 +32,7 @@ export function SaveStatus() {
         role="alert"
         className="fixed inset-x-4 bottom-20 z-[70] mx-auto flex max-w-md items-start gap-3 rounded-2xl border border-danger-line bg-danger-soft px-4 py-3 shadow-lg"
       >
-        <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-danger" strokeWidth={2.3} />
+        <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-danger-strong" strokeWidth={2.3} />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-ink">No se ha guardado el cambio</p>
           <p className="mt-0.5 text-xs leading-relaxed text-muted break-words">{error}</p>

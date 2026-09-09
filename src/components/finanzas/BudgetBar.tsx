@@ -39,7 +39,7 @@ function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
       onClick={onEdit}
       className="flex w-full items-baseline gap-2 rounded-lg px-1 py-1.5 text-left text-[13px] transition-colors hover:bg-canvas active:bg-canvas"
     >
-      <span className="w-12 flex-shrink-0 tabular-nums text-faint">
+      <span className="w-12 flex-shrink-0 tabular-nums text-muted">
         {format(parseISO(apunte.date), 'd MMM', { locale: es })}
       </span>
       <span className="min-w-0 flex-1 truncate text-muted">
@@ -149,7 +149,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
             size={14}
             strokeWidth={2.6}
             aria-hidden
-            className={`flex-shrink-0 text-faint transition-transform ${abierta ? 'rotate-180' : ''}`}
+            className={`flex-shrink-0 text-muted transition-transform ${abierta ? 'rotate-180' : ''}`}
           />
         </span>
       </button>
@@ -157,7 +157,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
       {abierta && (
         <div id={panelId} className="border-t border-hairline pt-1.5">
           {apuntes.length === 0 ? (
-            <p className="px-1 py-1.5 text-[13px] text-faint">Nada apuntado en esta partida.</p>
+            <p className="px-1 py-1.5 text-[13px] text-muted">Nada apuntado en esta partida.</p>
           ) : (
             <ul className="-mx-1">
               {apuntes.map(apunte => (

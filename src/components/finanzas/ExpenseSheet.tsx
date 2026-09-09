@@ -86,7 +86,6 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
         <SheetFooter
           form="expense-form"
           submitLabel={initial ? 'Guardar' : esIngreso ? 'Apuntar ingreso' : 'Apuntar gasto'}
-          disabled={!draft.amount.trim()}
           error={formError}
           onDelete={initial
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar apunte', confirmLabel: 'Confirmar eliminación' }
@@ -181,7 +180,7 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
             members={members}
             kids={kids}
           />
-          <p className="text-[10px] leading-relaxed text-faint">
+          <p className="text-[10px] leading-relaxed text-muted">
             {esIngreso
               ? 'Quién lo ha traído. Con «Familia» queda como algo que entra a la cuenta común. Los ingresos no cuentan en el reparto de abajo, que es solo de gastos.'
               : 'Quién puso el dinero. Con «Familia» queda como gasto de la cuenta común. Farpi no lleva cuentas de quién debe qué a quién: solo enseña el reparto.'}

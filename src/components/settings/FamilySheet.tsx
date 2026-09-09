@@ -55,7 +55,6 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
         <SheetFooter
           form="family-form"
           submitLabel="Guardar"
-          disabled={!draft.name.trim()}
           onDelete={puedeEliminar ? { onClick: preguntar, idleLabel: 'Eliminar familia' } : undefined}
         />
       )}
@@ -94,13 +93,13 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
               required
               className="field-input"
             />
-            {formError && <p className="text-[10px] text-danger font-semibold">{formError}</p>}
+            {formError && <p className="text-[10px] text-danger-strong font-semibold">{formError}</p>}
           </Field>
 
           {/* Y si no se puede, se dice por qué. La ausencia del botón sin más era
               justo lo que no se entendía. */}
           {!puedeEliminar && (
-            <p className="text-[10px] leading-relaxed text-faint">
+            <p className="text-[10px] leading-relaxed text-muted">
               Esta es tu única familia, así que no se puede eliminar: Farpi siempre trabaja dentro de
               una. Crea otra antes, o borra tu cuenta para dejarlo todo.
             </p>

@@ -26,14 +26,14 @@ export function CircleCheck({ checked, onClick, ariaLabel, size = 'md', classNam
           size === 'sm' ? 'w-5 h-5' : 'w-6 h-6'
         } ${
           checked
-            ? 'bg-primary border-primary'
-            : 'border-faint group-hover:border-primary group-active:border-primary'
+            ? 'bg-primary-strong border-primary-strong'
+            : 'border-muted group-hover:border-primary-strong group-active:border-primary-strong'
         }`}
       >
         <Check
           size={iconSize}
           strokeWidth={3}
-          className={checked ? 'text-white' : 'text-faint group-hover:text-primary transition-colors'}
+          className={checked ? 'text-white' : 'text-muted group-hover:text-primary-strong transition-colors'}
         />
       </span>
     </button>

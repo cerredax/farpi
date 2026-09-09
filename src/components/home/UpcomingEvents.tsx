@@ -5,7 +5,7 @@ import { SectionLink } from '@/components/ui/SectionLink'
 import type { Event, Child, FamilyMember } from '@/types'
 import { format, isTomorrow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { eventColor, resolveAssignee } from '@/lib/assignees'
+import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { partirPlanesProximos } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 
@@ -53,15 +53,21 @@ function ListaDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
                   style={{ backgroundColor: eventColor(event, members, kids) }}
                   aria-hidden
                 />
-                <span className="text-xs font-bold text-primary">{eventDayLabel(fecha)}</span>
+                <span className="text-xs font-bold text-primary-strong">{eventDayLabel(fecha)}</span>
                 <span className="text-xs font-semibold text-muted">
                   {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}
                 </span>
                 {/* De quién es, en su color y en la misma línea que la fecha.
                     Como píldora debajo se comía una línea entera por evento
-                    para decir una palabra. Es el formato de la agenda. */}
+                    para decir una palabra. Es el formato de la agenda —y ahora
+                    también su etiqueta: el color va de fondo y el nombre en
+                    tinta, porque los colores de hijo son claros a propósito y
+                    como color de texto sobre blanco no se leían. */}
                 {asignado && (
-                  <span className="min-w-0 truncate text-[11px] font-bold" style={{ color: asignado.color }}>
+                  <span
+                    className="etiqueta-persona min-w-0 max-w-[6rem] px-1.5 py-0.5 text-[11px]"
+                    style={{ backgroundColor: fondoDePersona(asignado.color) }}
+                  >
                     {asignado.name}
                   </span>
                 )}

@@ -28,7 +28,14 @@ que corre el resto de la suite): capturas de las nueve pantallas revisadas una a
 una, más comprobaciones automáticas que quedan fijas en `e2e/movil.spec.ts`.
 
 - ✅ Ninguna pantalla desborda a lo ancho.
-- ✅ Ningún control por debajo de 24×24 px (mínimo WCAG 2.5.8).
+- ✅ Ningún control por debajo de 24×24 px (mínimo WCAG 2.5.8). Y desde el 09-09-2026 los
+  iconos de 28 px de las filas llegan a 44 px de alto de área de toque (`.area-de-toque`),
+  que es lo que recomiendan Apple y Material; a lo ancho no, y el porqué está en el token.
+- ✅ **Contraste AA medido en el navegador** (09-09-2026), nodo a nodo contra su fondo
+  real en las diez rutas: de 83 avisos a 6, y los 6 son deliberados (los días fuera de mes
+  y un separador `aria-hidden`). Las reglas de la paleta, en `project-status.md`.
+- ✅ Foco de teclado con anillo propio (`:focus-visible` en `globals.css`), en vez del que
+  ponga cada navegador.
 - ✅ Revisadas Inicio, Calendario (semana y mes), Tareas, sheet de tarea, Listas,
   detalle de lista, Comidas, Documentos, Ajustes y login.
 - ✅ Flujos CRUD y persistencia en `localStorage`, cubiertos por la suite e2e.

@@ -64,7 +64,7 @@ export default function OnboardingPage() {
               value={familyName}
               onChange={e => setFamilyName(e.target.value)}
               placeholder="Ej: Familia Garcia"
-              className="w-full rounded-xl border border-line bg-canvas px-3 py-3 text-sm font-medium text-ink outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/25"
+              className="w-full rounded-xl border border-line bg-canvas px-3 py-3 text-sm font-medium text-ink outline-none transition focus:border-primary-strong focus:ring-2 focus:ring-primary-strong/40"
             />
           </div>
 

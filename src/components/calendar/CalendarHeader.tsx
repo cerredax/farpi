@@ -237,7 +237,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
           type="button"
           onClick={onAdd}
           aria-label="Apuntar algo"
-          className="ml-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-all hover:bg-primary-hover active:scale-95 lg:ml-2"
+          className="ml-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-all hover:bg-primary-deep active:scale-95 lg:ml-2"
         >
           <Plus size={20} strokeWidth={2.5} />
         </button>

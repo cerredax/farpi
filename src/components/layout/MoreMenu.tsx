@@ -30,7 +30,7 @@ function Fila({ href, label, icon: Icon, separada, onIr }: {
         <Icon size={16} strokeWidth={2} className="flex-shrink-0 text-muted" aria-hidden />
         <span className="min-w-0 truncate">{label}</span>
       </span>
-      <span aria-hidden className="text-faint">›</span>
+      <span aria-hidden className="text-muted">›</span>
     </Link>
   )
 }

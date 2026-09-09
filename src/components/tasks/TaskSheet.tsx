@@ -77,7 +77,6 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
         <SheetFooter
           form="task-form"
           submitLabel={mode === 'create' ? 'Crear tarea' : 'Guardar cambios'}
-          disabled={!draft.title.trim()}
           error={formError}
           onDelete={mode === 'edit'
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar tarea', confirmLabel: 'Confirmar eliminación' }
@@ -146,7 +145,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
                 onClick={() => patch({ priority: opt.value })}
                 className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
                   draft.priority === opt.value
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary-strong text-white'
                     : 'bg-canvas text-muted border border-line'
                 }`}
               >
@@ -165,7 +164,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
                 onClick={() => patch({ recurrence: opt.value, recurrence_end: '' })}
                 className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
                   draft.recurrence === opt.value
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary-strong text-white'
                     : 'bg-canvas text-muted border border-line'
                 }`}
               >

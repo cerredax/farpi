@@ -302,8 +302,8 @@ export function LandingPage() {
                 pulsarla, y todavía no hay ficha a la que ir. Cuando la haya,
                 este bloque se cambia por la insignia y su enlace. */}
             <div className="mt-5 flex items-center justify-center gap-2.5 border-t border-hairline pt-5">
-              <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted-soft" />
-              <p className="text-xs font-semibold text-muted-soft">Próximamente en Google Play</p>
+              <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted" />
+              <p className="text-xs font-semibold text-muted">Próximamente en Google Play</p>
             </div>
           </div>
         </div>
@@ -409,7 +409,7 @@ export function LandingPage() {
                     {pregunta}
                     <span
                       aria-hidden
-                      className="flex-shrink-0 text-lg font-normal leading-none text-muted-soft transition-transform group-open:rotate-45"
+                      className="flex-shrink-0 text-lg font-normal leading-none text-muted transition-transform group-open:rotate-45"
                     >
                       +
                     </span>
@@ -491,7 +491,7 @@ export function LandingPage() {
             </div>
           </section>
 
-          <footer className="flex flex-wrap gap-x-5 border-t border-line px-1 pt-6 text-xs font-medium text-muted-soft">
+          <footer className="flex flex-wrap gap-x-5 border-t border-line px-1 pt-6 text-xs font-medium text-muted">
             <Link href="/privacidad" className="py-2 hover:text-muted">Privacidad</Link>
             <Link href="/terminos" className="py-2 hover:text-muted">Términos</Link>
           </footer>

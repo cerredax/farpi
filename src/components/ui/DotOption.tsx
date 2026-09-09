@@ -27,7 +27,12 @@ export function DotOption({ selected, onClick, color, label }: DotOptionProps) {
           transform: selected ? 'scale(1.15)' : 'scale(1)',
         }}
       />
-      <span className="text-[11px] font-bold transition-colors" style={{ color: selected ? color : 'var(--color-muted)' }}>
+      {/* El nombre no va del color de la persona ni estando elegido: los seis
+          colores de hijo de `PERSON_COLORS` viven en L* 71-88 a propósito —para
+          llevar tinta encima, no para ser tinta— y sobre blanco daban 1,5:1. Que
+          está elegido lo dicen ya el círculo crecido, su anillo y el fondo; el
+          nombre solo tiene que leerse, y por eso pasa a tinta. */}
+      <span className={`text-[11px] font-bold transition-colors ${selected ? 'text-ink' : 'text-muted'}`}>
         {label}
       </span>
     </button>

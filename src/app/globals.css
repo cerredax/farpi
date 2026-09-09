@@ -33,28 +33,54 @@
 @theme {
   --color-canvas:         #FAF7F2; /* fondo crema principal */
   --color-ink:            #252525; /* texto fuerte */
-  --color-muted:          #77716A; /* texto secundario */
-  --color-faint:          #C4BFB9; /* placeholder / muy tenue */
+  /* Un pelo más oscuro que el #77716A de siempre, y por una décima: sobre
+     `surface` daba 4,13:1 y sobre `line` 3,99, por debajo del 4,5 de AA, y ahí
+     es donde vive medio texto secundario de la app —la pestaña que no está
+     puesta, los chips de categoría de Documentos, la cuenta de tareas dentro de
+     su píldora gris—. Sobre blanco ya llegaba, así que el cambio no se nota en
+     el 90 % de los sitios y arregla justo el 10 % que fallaba. */
+  --color-muted:          #6E6861; /* texto secundario */
+  /* `faint` da 1,8:1 sobre blanco y `muted-soft` 2,6:1, así que **ninguno de
+     los dos es color de texto**: son para lo que está apagado a propósito —un
+     control desactivado, un día que no es de este mes— y para separadores
+     `aria-hidden`. Lo que hay que poder leer va en `muted` (4,8:1) o en `ink`.
 
-  --color-muted-soft:     #A39B93; /* texto terciario, entre muted y faint */
+     Se usaban para el tamaño y la fecha de cada documento, para los iconos de
+     `+`/mover/borrar de una lista, para los lápices de Ajustes, para las
+     etiquetas de hora del calendario y para el placeholder de los buscadores
+     —que es donde el buscador dice cuántas cosas hay—. Todo eso es dato o es
+     acción, y estaba pintado como si no lo fuera. */
+  --color-faint:          #C4BFB9; /* solo desactivado y decoración */
+
+  --color-muted-soft:     #A39B93; /* solo decoración: separadores aria-hidden */
 
   --color-primary:        #8BA888; /* verde principal */
   --color-primary-hover:  #7a9877;
-  --color-primary-strong: #5C7A59;
+  /* #5C7A59 hasta hoy, y se quedaba en 4,48:1 sobre el crema: el nombre de cada
+     pantalla en `TopBar` va a 18 px en negrita, que **no** cuenta como texto
+     grande (hace falta 18,66) y por tanto le toca el 4,5. Dos centésimas. Este
+     tono da 4,73 sobre el crema y 5,06 en blanco encima, que es el otro trabajo
+     que hace: es el fondo de todos los botones primarios. Sigue siendo el mismo
+     verde. */
+  --color-primary-strong: #597656;
   --color-primary-deep:   #4E6B4C; /* hover del botón primario fuerte */
   --color-primary-deepest:#3D5C3A; /* active del botón y marca sobre fondo oscuro */
   --color-primary-tint:   #F5F9F5; /* fondo verde muy claro */
   --color-primary-line:   #DDEAD9; /* borde verde claro */
 
   --color-accent:         #D8A48F; /* salmón */
+  --color-accent-strong:  #9B5A45; /* texto salmón legible: es el color de "hoy" */
   --color-sand:           #E9C46A; /* amarillo de marca: avisos suaves */
   --color-sand-hover:     #DDB652; /* hover del botón de aviso */
   --color-sand-strong:    #9A7D1A; /* texto legible sobre fondo sand */
   --color-warm:           #FFF8EF; /* fondo cálido de tarjeta destacada */
 
   --color-danger:         #D96C6C;
-  --color-danger-hover:   #C45F5F; /* hover del botón de peligro */
-  --color-danger-strong:  #B24D4D; /* texto de error sobre danger-soft */
+  /* Sobre `danger-soft` daba 4,40:1 —a una décima— y ahí es donde vive la
+     píldora de "Atrasada · 17 jun", que es el aviso más repetido de Inicio, a
+     10 px. Con este da 4,61. */
+  --color-danger-strong:  #AE4A4A; /* texto de error sobre danger-soft */
+  --color-danger-deep:    #9C4141; /* hover del botón de peligro relleno */
   --color-danger-soft:    #FDE8E8; /* fondo de peligro (hover) */
   --color-danger-line:    #F1C9C9; /* borde de peligro */
   --color-danger-tint:    #FDF6F6; /* fondo de tarjeta de peligro */
@@ -94,8 +120,36 @@
     @apply text-xs font-bold uppercase tracking-widest text-muted;
   }
   .field-input {
-    @apply w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink transition placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary;
+    @apply w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink transition placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary-strong;
   }
+  /* Un botón pequeño con un área de toque de dedo.
+     ---------------------------------------------------------------
+     Los iconos de una fila —la papelera de una tarea, el `+` de las unidades,
+     el lápiz de una comida— miden 28 px, y ese tamaño es el que tienen que
+     medir: son cuatro en el borde derecho de una fila y agrandarlos empuja el
+     texto. Lo que se agranda es **dónde se puede tocar**, con un pseudoelemento
+     que no ocupa sitio en la maqueta: 8 px arriba y abajo, que deja 44 px de
+     alto, el tamaño que recomiendan Apple y Material.
+
+     **Solo a lo alto, y a propósito.** En una fila de la lista hay tres de estos
+     a 2 px unos de otros; ensanchándolos, sus áreas se pisarían y el toque le
+     tocaría al vecino, que es peor que el problema que esto arregla. A lo alto
+     no se pisa nada: cada fila tiene su propio hueco y 8 px caben dentro.
+
+     El mínimo de la WCAG 2.5.8 (24 px) ya se cumplía y lo vigila
+     `e2e/movil.spec.ts`; esto es la diferencia entre cumplirlo y acertar. */
+  .area-de-toque {
+    position: relative;
+  }
+  .area-de-toque::after {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    bottom: -0.5rem;
+    left: 0;
+    right: 0;
+  }
+
   /* La barra inferior se apoya en el borde de la pantalla: en los móviles con
      barra de gestos hay que dejarle su hueco o el texto queda debajo. La clase
      se usaba en BottomNav sin estar definida en ninguna parte. */
@@ -192,6 +246,26 @@ body {
   background-color: var(--farpi-cream);
   color: var(--farpi-charcoal);
   min-height: 100dvh;
+}
+
+/* Dónde está el foco al ir con el teclado.
+   ---------------------------------------------------------------
+   Lo había —el anillo que pone el navegador por su cuenta— pero no era de
+   nadie: cada navegador dibuja el suyo, en Chromium sale negro y en el crema de
+   Farpi no se distingue del texto. Un anillo propio, en el verde legible de la
+   app y separado 2 px para que se vea también encima de un botón oscuro.
+
+   **`:focus-visible` y no `:focus`**: el navegador solo lo enciende cuando se
+   navega con el teclado, así que un dedo o un ratón no dejan medio botón
+   subrayado detrás. Los campos de formulario traen el suyo (`.field-input`), que
+   es un anillo relleno y va por dentro.
+
+   Sin tocar el `border-radius`: el `outline` sigue solo la forma del elemento,
+   así que un botón redondo lleva anillo redondo. Ponérselo aquí se lo cambiaría
+   a todos al recibir el foco. */
+:focus-visible {
+  outline: 2px solid var(--color-primary-strong);
+  outline-offset: 2px;
 }
 
 /* Suavizar scrollbar en webkit */

@@ -14,7 +14,7 @@ import { MoreMenu } from './MoreMenu'
  */
 function claseItem(activa: boolean) {
   return `flex flex-col items-center gap-0.5 px-1.5 py-2 rounded-xl transition-colors min-w-0 ${
-    activa ? 'text-primary' : 'text-muted hover:text-ink'
+    activa ? 'text-primary-strong' : 'text-muted hover:text-ink'
   }`
 }
 
@@ -43,7 +43,7 @@ export function BottomNav() {
                 strokeWidth={active ? 2.5 : 1.8}
                 className={active ? 'drop-shadow-sm' : ''}
               />
-              <span className={`${CLASE_ETIQUETA} ${active ? 'text-primary' : ''}`}>{label}</span>
+              <span className={`${CLASE_ETIQUETA} ${active ? 'text-primary-strong' : ''}`}>{label}</span>
             </Link>
           )
         })}

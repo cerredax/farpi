@@ -51,7 +51,7 @@ export function NoteCard({ note, onEdit }: NoteCardProps) {
             hay quien se salta el nombre y la nota fijada no se oye distinta de
             las demás. */}
         {note.pinned && (
-          <Pin size={14} strokeWidth={2.4} className="mt-0.5 flex-shrink-0 text-primary" role="img" aria-label="Fijada" />
+          <Pin size={14} strokeWidth={2.4} className="mt-0.5 flex-shrink-0 text-primary-strong" role="img" aria-label="Fijada" />
         )}
       </div>
 

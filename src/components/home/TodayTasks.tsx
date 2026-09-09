@@ -56,9 +56,15 @@ export const TodayTasks = memo(function TodayTasks({ tasks, onToggle }: TodayTas
                 size="sm"
                 className="w-10"
               />
-              <p className="flex-1 min-w-0 text-sm font-semibold text-ink leading-snug">{task.title}</p>
+              {/* `lg:flex-initial`: la tarjeta del día ocupa las dos columnas de
+                  escritorio —es el titular de la pantalla— y con `flex-1` a
+                  1440 px el nombre de la tarea se quedaba a la izquierda y su
+                  "Atrasada · 17 jun" a novecientos píxeles, al otro extremo de
+                  la fila. En móvil no cambia nada: ahí el texto llena el ancho
+                  igual porque no cabe de otra forma. */}
+              <p className="min-w-0 flex-1 text-sm font-semibold text-ink leading-snug lg:flex-initial">{task.title}</p>
               {vencida && task.due_date && (
-                <span className="flex-shrink-0 rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger">
+                <span className="flex-shrink-0 rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger-strong">
                   Atrasada · {format(parseLocalDate(task.due_date), 'd MMM', { locale: es })}
                 </span>
               )}

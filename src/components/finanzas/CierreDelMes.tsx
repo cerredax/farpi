@@ -114,7 +114,7 @@ export function CierreDelMes({
           {/* Este sí se queda: no hay diálogo donde contarlo, porque deshacerlo
               no pide confirmación —no pierde nada— y la pega es de tiempo, no de
               lo que va a pasar al pulsar. */}
-          <p className="mt-1 px-1 text-center text-[11px] leading-relaxed text-faint">
+          <p className="mt-1 px-1 text-center text-[11px] leading-relaxed text-muted">
             Este mes está cerrado a mano. Solo se puede deshacer mientras siga siendo el
             mes en curso.
           </p>
@@ -131,7 +131,7 @@ export function CierreDelMes({
               type="button"
               onClick={confirmar}
               className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition-colors ${
-                pendiente === 'cero' ? 'bg-danger hover:opacity-90' : 'bg-primary hover:bg-primary-hover'
+                pendiente === 'cero' ? 'bg-danger hover:opacity-90' : 'bg-primary-strong hover:bg-primary-deep'
               }`}
             >
               {pendiente === 'cero' ? 'Sí, ponerlo a cero' : 'Sí, cerrar el mes'}

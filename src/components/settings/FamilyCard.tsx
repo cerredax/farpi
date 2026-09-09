@@ -3,7 +3,13 @@ import type { Family } from '@/types'
 
 interface FamilyCardProps {
   family: Family
-  onEdit: () => void
+  /**
+   * Cómo se edita. **Sin él no hay lápiz**, y la tarjeta se queda solo con el
+   * nombre: renombrar la familia —y cerrarla, que se hace desde el mismo
+   * sheet— es cosa de un administrador, y la policy de `families` es la que
+   * manda. Ofrecerlo a quien no puede era llevarle a un error.
+   */
+  onEdit?: () => void
 }
 
 /**
@@ -20,13 +26,15 @@ export function FamilyCard({ family, onEdit }: FamilyCardProps) {
         <Home size={22} className="text-primary-strong" strokeWidth={1.8} />
       </div>
       <p className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
-      <button
-        onClick={onEdit}
-        aria-label="Editar familia"
-        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-all hover:bg-surface hover:text-ink active:scale-95"
-      >
-        <Pencil size={17} strokeWidth={1.8} />
-      </button>
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          aria-label="Editar familia"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-all hover:bg-surface hover:text-ink active:scale-95"
+        >
+          <Pencil size={17} strokeWidth={1.8} />
+        </button>
+      )}
     </div>
   )
 }

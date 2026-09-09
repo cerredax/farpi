@@ -77,7 +77,7 @@ export function WeekGrid({
                     disabled={!hasMeals}
                     className={`mx-auto mt-2 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold transition-colors ${
                       hasMeals
-                        ? 'bg-white text-primary shadow-sm hover:bg-primary-tint'
+                        ? 'bg-white text-primary-strong shadow-sm hover:bg-primary-tint'
                         : 'bg-white/50 text-faint cursor-not-allowed'
                     }`}
                     aria-label={`Copiar menú del ${format(day, 'd MMM', { locale: es })}`}
@@ -86,7 +86,7 @@ export function WeekGrid({
                     Copiar
                   </button>
                   {todayColumn && (
-                    <span className="inline-block w-1 h-1 rounded-full bg-primary mt-1" />
+                    <span className="inline-block w-1 h-1 rounded-full bg-primary-strong mt-1" />
                   )}
                 </div>
               )
@@ -123,12 +123,12 @@ export function WeekGrid({
                         onClick={() => onEdit(meal)}
                         className="group h-full w-full p-2 text-left"
                       >
-                        <div className="h-full rounded-2xl border border-line bg-white/90 px-3 py-2 shadow-sm transition-colors group-hover:border-primary group-hover:bg-white">
+                        <div className="h-full rounded-2xl border border-line bg-white/90 px-3 py-2 shadow-sm transition-colors group-hover:border-primary-strong group-hover:bg-white">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-primary-strong">
                               {slot.emoji} {slot.label}
                             </p>
-                            <Pencil size={11} className="text-faint group-hover:text-primary transition-colors flex-shrink-0" />
+                            <Pencil size={11} className="text-muted group-hover:text-primary-strong transition-colors flex-shrink-0" />
                           </div>
                           <p className="mt-1 text-sm font-semibold text-ink leading-snug">
                             {meal.name}
@@ -152,7 +152,7 @@ export function WeekGrid({
                         className="group flex h-full w-full items-center justify-center p-2"
                         aria-label={`Añadir ${slot.label.toLowerCase()} para ${format(day, 'd MMM', { locale: es })}`}
                       >
-                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-line-strong text-faint transition-colors group-hover:border-primary group-hover:bg-primary-tint group-hover:text-primary" style={{ minHeight: cellMinHeight - 32 }}>
+                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-line-strong text-muted transition-colors group-hover:border-primary-strong group-hover:bg-primary-tint group-hover:text-primary-strong" style={{ minHeight: cellMinHeight - 32 }}>
                           <div className="flex flex-col items-center gap-1">
                             <Plus size={14} strokeWidth={2.5} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Añadir</span>

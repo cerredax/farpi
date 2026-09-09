@@ -138,7 +138,6 @@ export function MealSheet({
         <SheetFooter
           form="meal-form"
           submitLabel={mode === 'create' ? 'Guardar comida' : 'Guardar cambios'}
-          disabled={!draft.name.trim() || !draft.date}
           error={formError}
           onDelete={mode === 'edit'
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar comida', confirmLabel: 'Confirmar eliminación' }
@@ -168,19 +167,19 @@ export function MealSheet({
                   key={slot.key}
                   type="button"
                   onClick={() => cambiarFranja(slot.key)}
-                  className={`py-2.5 rounded-xl text-center transition-colors flex flex-col items-center gap-1 relative ${selected ? 'bg-primary text-white' : 'bg-canvas text-muted hover:bg-surface'}`}
+                  className={`py-2.5 rounded-xl text-center transition-colors flex flex-col items-center gap-1 relative ${selected ? 'bg-primary-strong text-white' : 'bg-canvas text-muted hover:bg-surface'}`}
                 >
                   <span className="text-base">{slot.emoji}</span>
                   <span className="text-[10px] font-bold">{slot.label}</span>
                   {occupied && (
-                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${selected ? 'bg-white/70' : 'bg-accent'}`} />
+                    <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${selected ? 'bg-white/70' : 'bg-accent-strong'}`} />
                   )}
                 </button>
               )
             })}
           </div>
           {mode === 'create' && occupiedSlots.includes(draft.slot) && (
-            <p className="text-[11px] text-accent font-semibold flex items-center gap-1">
+            <p className="text-[11px] text-accent-strong font-semibold flex items-center gap-1">
               <span>↻</span> Este horario ya tiene plato — se reemplazará
             </p>
           )}
@@ -206,7 +205,7 @@ export function MealSheet({
               : 'Los que más repetís'}
           />
           {buscando && sugerencias.length === 0 && historial.length > 0 && (
-            <p className="text-[11px] text-faint">Plato nuevo: no lo habíais apuntado nunca.</p>
+            <p className="text-[11px] text-muted">Plato nuevo: no lo habíais apuntado nunca.</p>
           )}
         </Field>
 

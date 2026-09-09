@@ -53,7 +53,7 @@ export function DeleteAccountCard() {
         onClick={handleDelete}
         onBlur={() => setConfirmDelete(false)}
         disabled={deleting}
-        className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirmDelete ? 'bg-danger text-white' : 'border border-danger-line text-danger hover:bg-danger-soft'}`}
+        className={`mt-3 w-full rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirmDelete ? 'bg-danger-strong text-white' : 'border border-danger-line text-danger-strong hover:bg-danger-soft'}`}
       >
         {deleting ? (
           <span className="inline-flex items-center justify-center gap-2"><Loader2 size={15} className="animate-spin" /> Borrando…</span>
@@ -63,7 +63,7 @@ export function DeleteAccountCard() {
           <span className="inline-flex items-center justify-center gap-2"><Trash2 size={15} /> Borrar mi cuenta</span>
         )}
       </button>
-      {deleteError && <p className="mt-2 text-xs font-medium text-danger">{deleteError}</p>}
+      {deleteError && <p className="mt-2 text-xs font-medium text-danger-strong">{deleteError}</p>}
     </div>
   )
 }

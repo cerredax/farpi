@@ -27,7 +27,7 @@ export function SideNav() {
       className="hidden lg:z-50 lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:flex-col lg:border-r lg:border-line lg:bg-white"
     >
       <div className="flex h-14 flex-shrink-0 items-center px-5">
-        <span className="text-lg font-extrabold tracking-tight text-primary">Farpi</span>
+        <span className="text-lg font-extrabold tracking-tight text-primary-strong">Farpi</span>
       </div>
 
       <ul className="flex-1 space-y-1 px-3 py-2">
@@ -39,7 +39,7 @@ export function SideNav() {
                 href={href}
                 aria-current={activa ? 'page' : undefined}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-                  activa ? 'bg-primary-tint text-primary' : 'text-muted hover:bg-canvas hover:text-ink'
+                  activa ? 'bg-primary-tint text-primary-strong' : 'text-muted hover:bg-canvas hover:text-ink'
                 }`}
               >
                 <Icon size={19} strokeWidth={activa ? 2.4 : 1.8} className="flex-shrink-0" />

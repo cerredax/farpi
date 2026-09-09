@@ -80,7 +80,6 @@ export function AjusteDelMesSheet({
         <SheetFooter
           form="ajuste-mes-form"
           submitLabel="Guardar"
-          disabled={!draft.amount.trim()}
           error={formError}
         />
       }
@@ -97,7 +96,7 @@ export function AjusteDelMesSheet({
             required
             className="field-input"
           />
-          <p className="text-[10px] leading-relaxed text-faint">
+          <p className="text-[10px] leading-relaxed text-muted">
             {referencia !== null
               ? `Solo para ${mesEnMinuscula}. La referencia sigue siendo ${formatCentsCorto(referencia)} al mes y los demás meses no se tocan.`
               : `Solo para ${mesEnMinuscula}: los demás meses siguen con ${esIngreso ? 'lo que entra' : 'lo que sale'} de siempre.`}

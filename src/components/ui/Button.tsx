@@ -20,7 +20,7 @@ const variantClasses: Record<Variant, string> = {
   secondary: 'bg-canvas text-ink border border-line hover:bg-surface active:bg-line',
   ghost:     'text-muted hover:text-ink hover:bg-surface active:bg-line active:text-ink',
   warn:      'bg-sand text-ink hover:bg-sand-hover active:bg-sand-hover shadow-sm',
-  danger:    'bg-danger text-white hover:bg-danger-hover active:bg-danger-strong',
+  danger:    'bg-danger-strong text-white hover:bg-danger-deep active:bg-danger-deep',
 }
 
 const sizeClasses = {

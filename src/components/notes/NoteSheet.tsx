@@ -71,7 +71,6 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
         <SheetFooter
           form="note-form"
           submitLabel={mode === 'create' ? 'Crear nota' : 'Guardar'}
-          disabled={!draft.title.trim()}
           error={formError}
           onDelete={mode === 'edit'
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar nota', confirmLabel: 'Confirmar eliminación' }
@@ -112,7 +111,7 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
               escribir una contraseña la escribe en este campo, no leyendo la
               política. Es texto plano en la base, protegido por la RLS y por
               nada más. */}
-          <p className="text-[10px] leading-relaxed text-faint">
+          <p className="text-[10px] leading-relaxed text-muted">
             Solo lo ve tu familia. Farpi no es un gestor de contraseñas: no guardes
             aquí las claves del banco o del correo.
           </p>

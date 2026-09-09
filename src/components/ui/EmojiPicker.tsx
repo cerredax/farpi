@@ -35,7 +35,7 @@ export function EmojiPicker({ opciones, value, onChange }: EmojiPickerProps) {
             // El nombre accesible del botón es el propio emoji, que un lector de
             // pantalla ya sabe leer; lo que no se oía era cuál está puesto.
             aria-pressed={selected}
-            className={`flex h-9 w-9 items-center justify-center rounded-xl text-xl transition-colors ${selected ? 'bg-primary/20 ring-2 ring-primary' : 'bg-canvas hover:bg-surface'}`}
+            className={`flex h-9 w-9 items-center justify-center rounded-xl text-xl transition-colors ${selected ? 'bg-primary/20 ring-2 ring-primary-strong' : 'bg-canvas hover:bg-surface'}`}
           >
             {emoji}
           </button>

@@ -53,9 +53,9 @@ export function AccountActions() {
             autoComplete="new-password"
             className="field-input"
           />
-          {pwError && <p className="text-xs font-medium text-danger">{pwError}</p>}
+          {pwError && <p className="text-xs font-medium text-danger-strong">{pwError}</p>}
           <div className="flex gap-2">
-            <button type="submit" disabled={pwBusy} className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:opacity-60">
+            <button type="submit" disabled={pwBusy} className="flex-1 rounded-xl bg-primary-strong py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep disabled:opacity-60">
               {pwBusy ? <span className="inline-flex items-center gap-2"><Loader2 size={15} className="animate-spin" /> Guardando…</span> : 'Guardar'}
             </button>
             <button type="button" onClick={() => { setShowPasswordForm(false); setPassword(''); setPwError(null) }} className="rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-muted transition-colors hover:bg-surface">

@@ -97,7 +97,7 @@ function CallbackHandler() {
             <p className="mt-2 text-sm leading-relaxed text-muted">{error}</p>
             <a
               href="/auth/login"
-              className="mt-5 inline-block rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-hover"
+              className="mt-5 inline-block rounded-2xl bg-primary-strong px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-deep"
             >
               Ir a iniciar sesión
             </a>

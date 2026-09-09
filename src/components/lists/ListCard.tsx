@@ -42,11 +42,11 @@ export function ListCard({ list, pendientes, onClick }: ListCardProps) {
       </span>
       <div className="min-w-0 flex-1">
         <p className={`text-sm font-bold leading-tight ${alDia ? 'text-muted' : 'text-ink'}`}>{list.name}</p>
-        <p className={`mt-1 truncate text-xs leading-snug ${alDia ? 'text-faint' : 'text-muted'}`}>
+        <p className={`mt-1 truncate text-xs leading-snug ${alDia ? 'text-muted' : 'text-muted'}`}>
           {resumen}
         </p>
       </div>
-      <ChevronRight size={16} className="flex-shrink-0 text-faint" />
+      <ChevronRight size={16} className="flex-shrink-0 text-muted" />
     </button>
   )
 }

@@ -28,7 +28,7 @@ export function OffDayConfirmDialog({ open, task, onConfirm, onCancel }: OffDayC
         <div className="px-5 py-4 space-y-2">
           <button
             onClick={onConfirm}
-            className="w-full py-3 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors"
+            className="w-full py-3 rounded-2xl bg-primary-strong text-white text-sm font-semibold hover:bg-primary-deep transition-colors"
           >
             Sí, marcar como hecha
           </button>

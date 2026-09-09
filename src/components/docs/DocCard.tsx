@@ -69,14 +69,14 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
               {format(parseISO(doc.expires_on), 'd MMM yyyy', { locale: es })}
             </span>
           )}
-          <span className="text-[10px] text-faint">
+          <span className="text-[10px] text-muted">
             {formatFileSize(doc.size_bytes)} · {format(parseISO(doc.created_at), 'd MMM yyyy', { locale: es })}
           </span>
         </div>
       </div>
 
       {/* Indicador de que es editable */}
-      <span className="text-faint text-xs mt-1 flex-shrink-0">›</span>
+      <span className="text-muted text-xs mt-1 flex-shrink-0">›</span>
     </button>
   )
 }

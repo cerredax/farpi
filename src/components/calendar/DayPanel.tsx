@@ -82,7 +82,7 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
 
   return (
     <section aria-label={`Qué hay el ${format(day, "d 'de' MMMM", { locale: es })}`} className="border-t border-hairline px-3 py-3">
-      <h3 className={`mb-2 px-1 text-xs font-bold uppercase tracking-widest ${isToday(day) ? 'text-accent' : 'text-muted'}`}>
+      <h3 className={`mb-2 px-1 text-xs font-bold uppercase tracking-widest ${isToday(day) ? 'text-accent-strong' : 'text-muted'}`}>
         {capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))}
       </h3>
 

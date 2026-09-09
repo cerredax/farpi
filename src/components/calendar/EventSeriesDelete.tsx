@@ -19,14 +19,14 @@ export function EventSeriesDelete({ onDeleteOne, onDeleteAll, onCancel }: EventS
       <button
         type="button"
         onClick={onDeleteOne}
-        className="w-full rounded-xl border border-danger-line py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft"
+        className="w-full rounded-xl border border-danger-line py-2.5 text-sm font-semibold text-danger-strong transition-colors hover:bg-danger-soft"
       >
         Eliminar solo este
       </button>
       <button
         type="button"
         onClick={onDeleteAll}
-        className="w-full rounded-xl bg-danger py-2.5 text-sm font-semibold text-white transition-colors"
+        className="w-full rounded-xl bg-danger-strong py-2.5 text-sm font-semibold text-white transition-colors"
       >
         Eliminar toda la serie
       </button>

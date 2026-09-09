@@ -32,6 +32,12 @@ interface MemberSheetProps {
   onInvite: (email: string) => Promise<void>
   onUpdate: (id: string, name: string, color: string | null) => void
   onChangeRole?: (id: string, role: Role) => Promise<void>
+  /**
+   * Si se ofrece "Quitar miembro". Lo valida `remove_family_member`, que exige
+   * ser administrador **de esa familia**: sin esto, un miembro normal veía el
+   * botón, contestaba a la pregunta y recibía un error de la base.
+   */
+  puedeQuitar?: boolean
   onRemove: (id: string) => void
 }
 
@@ -50,7 +56,7 @@ function initDraft(mode: Mode, initial: FamilyMember | null | undefined, default
   }
 }
 
-export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, documentosSubidos = 0, defaultColor = PERSON_COLORS[0].value, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
+export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, documentosSubidos = 0, defaultColor = PERSON_COLORS[0].value, puedeQuitar = true, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
   const { draft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<MemberDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultColor),
@@ -116,8 +122,8 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
         <SheetFooter
           form="member-form"
           submitLabel={isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
-          disabled={isPending || (mode === 'invite' ? !isValidEmail(draft.email) : !draft.name.trim())}
-          onDelete={mode === 'edit' ? { onClick: preguntar, idleLabel: 'Quitar miembro' } : undefined}
+          disabled={isPending}
+          onDelete={mode === 'edit' && puedeQuitar ? { onClick: preguntar, idleLabel: 'Quitar miembro' } : undefined}
         />
       )}
     >
@@ -162,9 +168,9 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
                 className="field-input"
               />
               {formError ? (
-                <p className="text-[11px] text-danger font-medium">{formError}</p>
+                <p className="text-[11px] text-danger-strong font-medium">{formError}</p>
               ) : (
-                <p className="text-[10px] text-faint">
+                <p className="text-[10px] text-muted">
                   En modo demo, la invitación no se envía. El email queda guardado como referencia.
                 </p>
               )}
@@ -185,7 +191,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
               <div className="space-y-1.5 pt-2">
                 <label className="field-label">Color</label>
                 <ColorPicker value={draft.color} onChange={color => patch({ color })} />
-                <p className="text-[10px] text-faint">
+                <p className="text-[10px] text-muted">
                   Identifica a esta persona en el calendario y en los documentos.
                 </p>
               </div>
@@ -203,7 +209,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
                         type="button"
                         onClick={() => handleRoleChange(value)}
                         aria-pressed={role === value}
-                        className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${role === value ? 'border-primary bg-primary-tint text-primary-strong' : 'border-line bg-canvas text-muted hover:bg-surface'}`}
+                        className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors ${role === value ? 'border-primary-strong bg-primary-tint text-primary-strong' : 'border-line bg-canvas text-muted hover:bg-surface'}`}
                       >
                         <Icon size={15} strokeWidth={2.3} />
                         {label}
@@ -211,8 +217,8 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
                     ))}
                   </div>
                   {roleError
-                    ? <p className="text-[11px] text-danger font-medium">{roleError}</p>
-                    : <p className="text-[10px] text-faint">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
+                    ? <p className="text-[11px] text-danger-strong font-medium">{roleError}</p>
+                    : <p className="text-[10px] text-muted">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
                   }
                 </div>
               )}

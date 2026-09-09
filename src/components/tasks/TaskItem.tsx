@@ -3,7 +3,7 @@ import { es } from 'date-fns/locale'
 import { Repeat2 } from 'lucide-react'
 import type { Child, FamilyMember, Task, TaskPriority } from '@/types'
 import { MS_CONFIRMAR_BORRADO, TASK_RECURRENCES } from '@/lib/constants'
-import { resolveAssignee } from '@/lib/assignees'
+import { fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { DeleteButton } from '@/components/ui/DeleteButton'
@@ -62,7 +62,7 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
       >
         <p
           className={`text-sm font-semibold leading-snug transition-colors ${
-            task.completed ? 'line-through text-faint' : 'text-ink'
+            task.completed ? 'line-through text-muted' : 'text-ink'
           }`}
         >
           {task.title}
@@ -72,10 +72,19 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {/* De quién es, en su color y con nombre. Sin nombre no se sabría de
                 quién es el color hasta habérselo aprendido, y "es de todos" no
-                se dice con una etiqueta: se dice no poniendo ninguna. */}
+                se dice con una etiqueta: se dice no poniendo ninguna.
+
+                El color va de **fondo** y el nombre en tinta (`etiqueta-persona`,
+                la misma del calendario), no el nombre pintado del color de la
+                persona. Los seis colores de hijo de `PERSON_COLORS` están en
+                L* 71-88 —pensados para llevar tinta encima— así que como color
+                de texto sobre blanco daban hasta 1,5:1: "Cris" en rosa chicle
+                era literalmente ilegible. */}
             {asignado && (
-              <span className="flex items-center gap-1 text-[10px] font-bold" style={{ color: asignado.color }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: asignado.color }} aria-hidden />
+              <span
+                className="etiqueta-persona max-w-[7rem] px-1.5 py-0.5 text-[10px]"
+                style={{ backgroundColor: fondoDePersona(asignado.color) }}
+              >
                 {asignado.name}
               </span>
             )}
@@ -86,9 +95,9 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                   due.overdue
-                    ? 'bg-danger-soft text-danger'
+                    ? 'bg-danger-soft text-danger-strong'
                     : due.label === 'Hoy'
-                    ? 'bg-danger-soft text-accent'
+                    ? 'bg-danger-soft text-accent-strong'
                     : 'bg-surface text-muted'
                 }`}
               >
@@ -96,7 +105,7 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
               </span>
             )}
             {task.recurrence !== 'none' && (
-              <span className="flex items-center gap-0.5 text-[10px] font-bold text-primary">
+              <span className="flex items-center gap-0.5 text-[10px] font-bold text-primary-strong">
                 <Repeat2 size={11} strokeWidth={2.5} />
                 {TASK_RECURRENCES.find(r => r.value === task.recurrence)?.shortLabel}
               </span>

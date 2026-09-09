@@ -80,18 +80,18 @@ export function BackupCard() {
       {/* El recuento, a secas y como un albarán. Es lo que hace que una copia dé
           confianza: "descargar una copia" no dice si va vacía. Sin prosa alrededor,
           que la cabecera ya ha dicho qué lleva. */}
-      <p className="text-[10px] text-faint">{resumenDeExportacion(datos)}</p>
+      <p className="text-[10px] text-muted">{resumenDeExportacion(datos)}</p>
 
       {/* El archivo lleva DNI, informes médicos y fechas de nacimiento de los
           niños. No se cifra a propósito —una contraseña que se olvida convierte la
           copia en nada— así que al menos se dice dónde guardarlo. */}
-      <p className="text-[10px] leading-relaxed text-faint">
+      <p className="text-[10px] leading-relaxed text-muted">
         Sin cifrar y con datos de la familia dentro: guárdalo donde guardarías los papeles. Los archivos de los
         documentos no van en la copia; están en Google Drive.
       </p>
 
       {hecho && <p className="text-[11px] font-semibold text-primary-strong">Copia descargada.</p>}
-      {error && <p className="text-[11px] font-medium text-danger">{error}</p>}
+      {error && <p className="text-[11px] font-medium text-danger-strong">{error}</p>}
     </Card>
   )
 }

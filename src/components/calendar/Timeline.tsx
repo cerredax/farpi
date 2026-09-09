@@ -319,12 +319,12 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
           const hoy = isToday(day)
           return (
             <div key={day.toISOString()} className="flex flex-col items-center gap-0.5 py-2" style={{ gridColumn: i + 2, gridRow: 1 }}>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${hoy ? 'text-accent' : 'text-muted'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${hoy ? 'text-accent-strong' : 'text-muted'}`}>
                 {capitalize(format(day, days.length === 1 ? 'EEEE' : 'EEE', { locale: es }))}
               </span>
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
-                  hoy ? 'bg-accent text-white' : 'text-ink'
+                  hoy ? 'bg-accent-strong text-white' : 'text-ink'
                 }`}
               >
                 {format(day, 'd')}
@@ -344,7 +344,7 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
               en versalitas espaciadas partía en dos líneas y se comía el alto de
               la franja. */}
           <span
-            className={CANAL_FIJO + ' flex items-center justify-end whitespace-nowrap bg-white pr-2 text-[9px] font-bold text-faint'}
+            className={CANAL_FIJO + ' flex items-center justify-end whitespace-nowrap bg-white pr-2 text-[9px] font-bold text-muted'}
             style={ESTILO_CANAL}
           >
             {/* El fondo va en dos capas porque el de la franja es translúcido:
@@ -433,7 +433,7 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
             {horas.map((hora, i) => (
               <span
                 key={hora}
-                className="absolute right-2 -translate-y-1/2 text-[10px] font-bold text-faint"
+                className="absolute right-2 -translate-y-1/2 text-[10px] font-bold text-muted"
                 style={{ top: enHoras(i) }}
               >
                 {String(hora).padStart(2, '0')}:00

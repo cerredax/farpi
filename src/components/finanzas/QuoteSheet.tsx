@@ -68,7 +68,6 @@ export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }
         <SheetFooter
           form="quote-form"
           submitLabel={initial ? 'Guardar' : 'Apuntar presupuesto'}
-          disabled={!draft.title.trim() || !draft.provider.trim() || !draft.amount.trim()}
           error={formError}
           onDelete={initial
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar presupuesto', confirmLabel: 'Confirmar eliminación' }

@@ -13,6 +13,111 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-09
+
+### Auditoría de usabilidad: el contraste, quién puede qué y el botón que no decía nada (09-09-2026)
+
+Una revisión de la app entera desde fuera —código y navegación en modo demo a 390 y
+1440 px— midiendo en el navegador el contraste de **todo** nodo de texto contra su fondo
+real y el tamaño de todos los controles. Salieron **83 fallos de contraste** y cuatro
+problemas de flujo. Quedan 6, y los 6 son a propósito.
+
+**El verde de marca se usaba como color de texto.** `primary` (#8BA888) sobre blanco da
+2,61:1, y ahí estaban «Añadir ítem» al pie de una lista, «+ Añadir comida de hoy»,
+«Invitar persona», «Añadir adulto», «Añadir hijo», las píldoras de «Diaria» y «Semanal» de
+una tarea, la marca de `SideNav` y —lo más cómico— **la etiqueta de la pestaña activa de la
+barra de abajo**: el sitio donde estás era el peor de leer de los seis. Es exactamente el
+arreglo que ya se hizo en `SectionLink` el 08-09 y que no se había propagado. Ahora todo
+texto y todo icono pulsable van en `primary-strong`, y con ellos los estados elegidos que
+eran blanco sobre `primary` (el chip de Documentos, la pestaña de Finanzas, el `+` de
+`ViewHeader`, los interruptores) y **once botones primarios escritos a mano** que no usaban
+`Button` y por eso se habían quedado atrás.
+
+**`faint` y `muted-soft` no son colores de texto y se usaban como tales.** 1,83:1 y 2,56:1.
+Llevaban el tamaño y la fecha de cada documento, los tres iconos de acción de cada ítem de
+la compra, los lápices de Ajustes, las horas del eje del calendario y el *placeholder* de
+los buscadores, que es donde el buscador dice cuántas cosas hay. Todo eso es dato o es
+acción. Pasan a `muted`, y los dos tonos claros se quedan **solo** para lo que está apagado
+a propósito —un control desactivado, un día que no es de este mes— y para separadores
+`aria-hidden`. Está escrito en su token para que no vuelva a pasar.
+
+**El color de una persona pintaba texto.** «Cris» en rosa chicle sobre blanco: **1,5:1**.
+Los seis colores de hijo de `PERSON_COLORS` viven en L\* 71-88 **a propósito**, para llevar
+tinta encima; usarlos de tinta era usarlos justo al revés. La app ya tenía la pieza buena
+—`.etiqueta-persona` con `fondoDePersona`, la del calendario, en seis sitios— y ahora la
+usan también la fila de una tarea y los planes de Inicio. En el selector de a quién se
+asigna algo, el nombre elegido pasa a tinta: que está elegido ya lo dicen el círculo
+crecido, su anillo y el fondo.
+
+**Y «hoy» era ilegible.** El salmón `accent` (#D8A48F) marca el día actual en la agenda, en
+el panel del día y en la cabecera de la vista de día: 2,18:1. No había un tono legible de
+ese color, así que se calcula uno —`accent-strong` (#9B5A45)— igual que existían
+`sand-strong` y `danger-strong`, comprobado sobre los cuatro fondos donde se usa y a
+distancia suficiente de «Ladrillo» para que no se confunda con una persona.
+
+Al final quedaban cuatro tokens a una décima del mínimo: `muted` sobre `surface` (4,13),
+`primary-strong` sobre el crema (4,48 — el nombre de cada pantalla, a 18 px, que **no**
+cuenta como texto grande), `danger-strong` sobre `danger-soft` (4,40 — la píldora de
+«Atrasada · 17 jun», el aviso más repetido de Inicio) y el blanco sobre `bg-danger` relleno
+(3,28 — el rótulo que hay que leer **antes** de tocar «Borrar»). Se corrigen en la paleta,
+que es donde el proyecto dice que se corrige, con el porqué y el número al lado de cada uno.
+
+Lo que **no** se toca: los días fuera de mes de la rejilla (1,83) y el `·` de `Garantias`.
+El primero está apagado a propósito y lo dice su comentario desde el 31-08; el segundo es
+`aria-hidden`. Son los 6 que quedan.
+
+---
+
+**Quién puede qué.** Ajustes le ofrecía a todo el mundo el lápiz de la familia, «Invitar
+persona», cancelar una invitación, cambiar un rol, quitar a alguien y las franjas de
+comida. La base solo deja hacer eso a un administrador —las policies de `families` y
+`family_invites`, y las tres RPC de miembros—, así que un miembro normal rellenaba el
+formulario, pulsaba Guardar y se comía un error. Ahora esos controles no están, y en su
+sitio hay una línea que dice por qué: un hueco callado se lee como que la app está rota.
+Editar **tu** nombre y **tu** color sigue siendo tuyo, que es lo que dice
+`update_family_member_profile`. Las franjas de comida entran aquí aunque no lo parezcan:
+viven en `families.meal_slots`. **En duda se enseña**: solo se cierra cuando consta que
+eres `member`, nunca porque no hayamos podido leer tu fila.
+
+**Los errores de guardado salían en inglés y hablando de la base.** `SaveStatus` pintaba
+`err.message` tal cual, así que quien no podía invitar leía `new row violates row-level
+security policy for table "family_invites"` debajo de «No se ha guardado el cambio». Se
+traduce en `assertNoError`, que es por donde entra el único mensaje crudo que hay, con
+`src/lib/errores.ts` y sus diez tests. Las excepciones de las RPC ya están en castellano y
+**pasan tal cual**; las guardas internas del esquema (`list_items: list_id no pertenece…`)
+no, porque si saltan es un fallo nuestro y no algo que se pueda arreglar desde la cocina.
+
+**El botón de guardar nacía apagado y no decía qué faltaba.** Trece sheets tenían
+`disabled={!draft.algo.trim()}`, así que el botón salía al 50 % de opacidad sin una palabra,
+y el mensaje que sí existía —«El título es obligatorio.», en `validators.ts`— **era
+inalcanzable**: el submit nunca llegaba a dispararse. Fuera el `disabled` en los trece; el
+`required` que ya llevaban los campos hace que el navegador pare el envío y **lleve el foco
+al campo que falta**, y `formError` recupera lo suyo para las reglas que cruzan campos. Se
+queda apagado solo lo que significa «hay algo en curso» (subiendo un archivo, enviando una
+invitación). De paso, el mensaje del pie sube de 10 a 12 px y lleva `role="alert"`: aparece
+después de pulsar, y sin él un lector de pantalla deja esperando.
+
+**Apuntar en la cesta desde Inicio.** La pantalla que más se abre no dejaba añadir nada: se
+marcaba y se abría lo apuntado, pero apuntar era irse a otra pantalla, cuatro toques. Ahora
+«Listas de casa» lleva un `+` que abre el mismo `ItemSheet` de siempre con la cesta que más
+cosas tiene pendientes —la de la compra, casi siempre— y **lo dice en el título**: «Añadir a
+Compra». Se descartó poner un selector de listas delante: existe para que «se ha acabado el
+café» cueste dos toques, y un desplegable lo devuelve a cuatro.
+
+**Lo demás.** El arranque era un texto centrado en una pantalla vacía mientras se resolvían
+diecinueve consultas; ahora sale la app apagada —la barra de arriba, la tarjeta del día, la
+de abajo— para que la espera se lea como una carga y no como un cuelgue. Inicio tenía una
+copia del diálogo de «esta tarea no es de hoy» con los botones a mano y que **no sabía de
+tareas que se repiten**: usa el de Tareas. En escritorio, el nombre de una tarea y su
+«Atrasada» estaban a novecientos píxeles uno de otro. El foco del teclado deja de ser el
+del navegador y pasa a tener anillo propio. Y los iconos de 28 px de las filas ganan área
+de toque a lo alto hasta 44 px con un pseudoelemento que no ocupa sitio —**solo a lo alto**:
+en una fila de la compra hay tres a 2 px unos de otros y ensanchándolos se pisarían, que es
+peor que el problema que arregla.
+
+Lo que queda anotado y no se hizo: no hay búsqueda global —cada sección busca lo suyo— y
+las tres acciones por fila de una lista siguen siendo tres.
+
 ## Cerrado el 2026-09-08
 
 ### Cuatro borrados preguntan, y el rojo de borrar sube de contraste (08-09-2026)

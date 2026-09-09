@@ -90,7 +90,6 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
         <SheetFooter
           form="child-form"
           submitLabel={mode === 'create' ? textos.anadir : 'Guardar cambios'}
-          disabled={!draft.name.trim()}
           error={formError}
         />
       )}

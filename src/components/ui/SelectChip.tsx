@@ -9,7 +9,7 @@ interface SelectChipProps {
 /** Píldora seleccionable de una fila de opciones (categorías, personas, filtros). */
 export function SelectChip({ selected, onClick, selectedColor, children }: SelectChipProps) {
   const tone = selected
-    ? selectedColor ? 'text-white' : 'bg-primary text-white'
+    ? selectedColor ? 'text-white' : 'bg-primary-strong text-white'
     : 'bg-canvas text-muted border border-line hover:bg-surface'
 
   return (

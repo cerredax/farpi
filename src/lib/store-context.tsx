@@ -6,6 +6,8 @@ import { mockRepos } from './mock-repos'
 import { supabaseRepos } from './supabase-repos'
 import { IS_DEMO_MODE } from './supabase/client'
 import { mesDe, mesVecino } from './budgets'
+import { mensajeDeError } from './errores'
+import { CargandoFarpi, ErrorDeArranque } from '@/components/layout/CargandoFarpi'
 import { getLocalDateString } from './date-utils'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
@@ -415,7 +417,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       // arriba, y lo hace también `recargarPorciones`.
       if (IS_DEMO_MODE) store.persistAll()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando los datos')
+      setError(err instanceof Error ? mensajeDeError(err.message) : 'Error cargando los datos')
     } finally {
       setIsLoading(false)
     }
@@ -491,7 +493,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       else await reload()
       return resultado
     } catch (err) {
-      setError(err instanceof Error ? err.message : mensaje)
+      setError(err instanceof Error ? mensajeDeError(err.message) : mensaje)
       return fallback
     } finally {
       setIsSaving(false)
@@ -585,7 +587,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           const created = await repos.family.createFamily(name)
           switchFamily(created.id)
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'No se pudo crear la familia')
+          setError(err instanceof Error ? mensajeDeError(err.message) : 'No se pudo crear la familia')
         } finally {
           setIsSaving(false)
         }
@@ -604,7 +606,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           await repos.family.deleteFamily(familyId)
           switchFamily(otra.id)
         } catch (err) {
-          setError(err instanceof Error ? err.message : 'No se pudo eliminar la familia')
+          setError(err instanceof Error ? mensajeDeError(err.message) : 'No se pudo eliminar la familia')
         } finally {
           setIsSaving(false)
         }
@@ -807,12 +809,12 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   ])
 
   if (isLoading && !value) {
-    return <ShellState title="Cargando Farpi" description="Preparando los datos de la familia..." />
+    return <CargandoFarpi />
   }
 
   if (!value) {
     return (
-      <ShellState
+      <ErrorDeArranque
         title="No se pudo cargar la familia"
         description={error ?? 'Revisa la sesión o la configuración de Supabase.'}
       />
@@ -823,17 +825,6 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     <StoreCtx.Provider value={value}>
       {children}
     </StoreCtx.Provider>
-  )
-}
-
-function ShellState({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 text-center">
-      <div className="max-w-sm">
-        <p className="text-lg font-extrabold text-ink">{title}</p>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
-      </div>
-    </div>
   )
 }
 

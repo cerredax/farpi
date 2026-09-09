@@ -54,7 +54,7 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
       <ul className="divide-y divide-hairline">
         {cumples.map(({ id, nombre, fecha, edad, dias, color }) => (
           <li key={id} className="flex items-baseline gap-2 px-4 py-3">
-            <span className="text-xs font-bold text-primary">{diaDeCumple(fecha, dias)}</span>
+            <span className="text-xs font-bold text-primary-strong">{diaDeCumple(fecha, dias)}</span>
             {/* El nombre sobre su color, como en la agenda: de quién es algo se
                 dice igual en toda la app. Quien no es de la casa no tiene color,
                 y va sobre el gris de la app: el color significa "de quién es

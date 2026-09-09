@@ -1,4 +1,5 @@
 import { createClient } from '../supabase/client'
+import { mensajeDeError } from '../errores'
 
 /**
  * Lo que comparten todos los repos de Supabase: cómo se falla y quién eres.
@@ -10,8 +11,19 @@ export function fail(message: string): never {
   throw new Error(message)
 }
 
-export function assertNoError(error: { message: string } | null | undefined): void {
-  if (error) fail(error.message)
+/**
+ * El error de Supabase, si lo hay, contado en castellano.
+ *
+ * Es **el único sitio** por donde entra un mensaje de Postgres en la app, y por
+ * eso traduce aquí: el `catch` del store sigue haciendo `err.message` y ya no
+ * necesita saber nada de policies ni de códigos. El porqué y el reparto, en
+ * `errores.ts`.
+ *
+ * Acepta el `code` además del `message` porque PostgREST manda los dos y el
+ * código es el que no cambia entre versiones.
+ */
+export function assertNoError(error: { message: string; code?: string } | null | undefined): void {
+  if (error) fail(mensajeDeError(error.message, error.code))
 }
 
 /**

@@ -41,7 +41,7 @@ export function ConnectStorage({ conexion, connectUrl }: ConnectStorageProps) {
       </p>
       <a
         href={connectUrl}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
       >
         <HardDriveUpload size={16} strokeWidth={2.3} />
         {conexion.revocada ? 'Volver a conectar' : 'Conectar Google Drive'}

@@ -58,7 +58,7 @@ export function ViewHeader({ resumen, buscador, onAdd, addLabel }: ViewHeaderPro
         <button
           onClick={onAdd}
           aria-label={addLabel}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-colors hover:bg-primary-hover"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-colors hover:bg-primary-deep"
         >
           <Plus size={20} />
         </button>

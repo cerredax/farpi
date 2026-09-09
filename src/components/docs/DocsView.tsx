@@ -68,7 +68,7 @@ export function DocsView() {
             <button
               key={String(f.key)}
               onClick={() => s.setActiveFilter(f.key)}
-              className={`flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
+              className={`flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary-strong text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
             >
               {f.key && <CategoryIcon category={f.key} size={13} />}
               {f.label}

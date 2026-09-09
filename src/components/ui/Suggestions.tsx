@@ -20,7 +20,7 @@ export function Suggestions({ values, onPick, label, scroll = false }: Suggestio
 
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-semibold text-faint">{label}</p>
+      <p className="text-[11px] font-semibold text-muted">{label}</p>
       <div className={`flex flex-wrap gap-1.5 ${scroll ? 'max-h-32 overflow-y-auto' : ''}`}>
         {values.map(value => (
           <button

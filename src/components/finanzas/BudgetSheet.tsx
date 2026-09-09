@@ -97,7 +97,6 @@ export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: Budget
         <SheetFooter
           form="budget-form"
           submitLabel={initial ? 'Guardar' : 'Crear partida'}
-          disabled={!draft.name.trim() || !draft.monthly_limit.trim()}
           error={formError}
           onDelete={initial ? { onClick: preguntar, idleLabel: 'Eliminar partida' } : undefined}
         />
@@ -140,7 +139,7 @@ export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: Budget
               required
               className="field-input"
             />
-            <p className="text-[10px] leading-relaxed text-faint">
+            <p className="text-[10px] leading-relaxed text-muted">
               Vale todos los meses hasta que lo cambies. Cambiarlo no toca lo ya
               apuntado.
             </p>

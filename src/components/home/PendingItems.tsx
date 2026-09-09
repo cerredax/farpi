@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, ShoppingBasket } from 'lucide-react'
+import { ChevronDown, Plus, ShoppingBasket } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
@@ -12,6 +12,18 @@ import type { PendingItem } from '@/types'
 interface PendingItemsProps {
   items: PendingItem[]
   onToggle: (id: string) => void
+  /**
+   * Apuntar algo en la cesta sin salir de Inicio. **Sin él no hay botón**: una
+   * casa que todavía no ha creado ninguna lista no tiene dónde meterlo.
+   *
+   * Inicio no dejaba añadir nada (08-09-2026): se marcaba y se abría lo
+   * apuntado, pero apuntar era irse a otra pantalla. Y lo que más se apunta en
+   * una casa es justo esto —"se ha acabado el café"—, que costaba cuatro toques
+   * desde la pantalla que más se abre.
+   */
+  onAdd?: () => void
+  /** En qué cesta cae, para decirlo en el botón. */
+  cestaLabel?: string
 }
 
 /**
@@ -26,7 +38,7 @@ interface PendingItemsProps {
  * Los nombres de las cestas se dicen **una vez y en un solo sitio**: arriba
  * mientras está plegado, y encima de su grupo cuando se abre (04-09-2026).
  */
-export const PendingItems = memo(function PendingItems({ items, onToggle }: PendingItemsProps) {
+export const PendingItems = memo(function PendingItems({ items, onToggle, onAdd, cestaLabel }: PendingItemsProps) {
   const [abierto, setAbierto] = useState(false)
 
   const cestas = useMemo(() => selectPendingItemsByList(items), [items])
@@ -38,6 +50,16 @@ export const PendingItems = memo(function PendingItems({ items, onToggle }: Pend
       accentColor="#D8A48F"
       isEmpty={items.length === 0}
       emptyState={<EmptyState compact emoji="🧺" title="La cesta está vacía, de momento" />}
+      accion={onAdd && (
+        <button
+          type="button"
+          onClick={onAdd}
+          aria-label={cestaLabel ? `Apuntar algo en ${cestaLabel}` : 'Apuntar algo en la lista'}
+          className="-my-2 -mr-1 flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
+        >
+          <Plus size={17} strokeWidth={2.6} />
+        </button>
+      )}
       footer={
         <SectionLink href="/lists">Ver todas las listas</SectionLink>
       }

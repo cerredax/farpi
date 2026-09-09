@@ -25,7 +25,7 @@ export function MealRow({ meal, onEdit }: { meal: MealPlan; onEdit: (meal: MealP
       <button
         onClick={() => onEdit(meal)}
         aria-label={`Editar ${meal.name}`}
-        className="w-7 h-7 flex items-center justify-center rounded-full text-faint hover:text-muted hover:bg-surface transition-colors flex-shrink-0"
+        className="area-de-toque w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0"
       >
         <Pencil size={13} strokeWidth={1.8} />
       </button>

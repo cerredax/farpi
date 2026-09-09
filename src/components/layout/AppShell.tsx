@@ -10,6 +10,7 @@ import { TopBar } from './TopBar'
 import { BottomNav } from './BottomNav'
 import { SideNav } from './SideNav'
 import { SaveStatus } from './SaveStatus'
+import { CargandoFarpi, ErrorDeArranque } from './CargandoFarpi'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [familyId, setFamilyId] = useState<string>(() => readActiveFamilyId())
@@ -62,12 +63,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     // El key={familyId} en StoreProvider provoca un remount limpio con el nuevo ID
   }
 
+  // Buscar la familia y cargar sus datos son dos esperas seguidas y quien mira
+  // no distingue una de otra, así que enseñan lo mismo: el esqueleto de la app.
   if (isResolvingFamily) {
-    return <ShellMessage title="Cargando Farpi" description="Buscando tu familia..." />
+    return <CargandoFarpi />
   }
 
   if (resolveError) {
-    return <ShellMessage title="No se pudo cargar Farpi" description={resolveError} />
+    return <ErrorDeArranque title="No se pudo cargar Farpi" description={resolveError} />
   }
 
   return (
@@ -90,16 +93,5 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <BottomNav />
       </div>
     </StoreProvider>
-  )
-}
-
-function ShellMessage({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 text-center">
-      <div className="max-w-sm">
-        <p className="text-lg font-extrabold text-ink">{title}</p>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{description}</p>
-      </div>
-    </div>
   )
 }

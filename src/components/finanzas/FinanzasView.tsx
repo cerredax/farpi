@@ -156,7 +156,7 @@ export function FinanzasView() {
               aria-controls={`panel-${p.key}`}
               onClick={() => s.setPestaña(p.key)}
               className={`flex-shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
-                s.pestaña === p.key ? 'bg-primary text-white' : 'bg-white border border-line text-muted hover:bg-surface'
+                s.pestaña === p.key ? 'bg-primary-strong text-white' : 'bg-white border border-line text-muted hover:bg-surface'
               }`}
             >
               {p.label}
@@ -249,7 +249,7 @@ export function FinanzasView() {
 
           <section aria-label="El día a día" className="space-y-2">
             <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
-              El día a día {s.delMes.length > 0 && <span className="text-faint">({s.delMes.length})</span>}
+              El día a día {s.delMes.length > 0 && <span className="text-muted">({s.delMes.length})</span>}
             </h2>
 
             {/* En un mes que no ha llegado el hueco **invita**, no explica

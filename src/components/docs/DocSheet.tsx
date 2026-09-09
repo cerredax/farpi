@@ -178,7 +178,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
               ? (mode === 'create' ? 'Subiendo el archivo…' : 'Guardando…')
               : (mode === 'create' ? 'Guardar documento' : 'Guardar cambios')
           }
-          disabled={guardando || !draft.name.trim() || !!fileError || faltaConectar || (mode === 'create' && !selectedFile)}
+          disabled={guardando || !!fileError || faltaConectar || (mode === 'create' && !selectedFile)}
           onDelete={mode === 'edit' && onDelete
             ? { confirming: confirmDelete, onClick: handleDelete, idleLabel: 'Eliminar documento', confirmLabel: 'Confirmar eliminación' }
             : undefined}
@@ -194,7 +194,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center gap-3 bg-canvas border-2 border-dashed border-line-strong rounded-xl px-4 py-3 hover:border-primary hover:bg-primary-tint transition-colors text-left"
+                className="w-full flex items-center gap-3 bg-canvas border-2 border-dashed border-line-strong rounded-xl px-4 py-3 hover:border-primary-strong hover:bg-primary-tint transition-colors text-left"
               >
                 <Upload size={18} className="text-primary flex-shrink-0" />
                 <span className="text-sm text-muted truncate flex-1">
@@ -203,8 +203,8 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
               </button>
               <input ref={fileRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFile} />
               {fileError
-                ? <p className="text-[10px] text-danger font-semibold">{fileError}</p>
-                : <p className="text-[10px] text-faint">PDF, JPG o PNG. Tamaño máximo: 20 MB.</p>
+                ? <p className="text-[10px] text-danger-strong font-semibold">{fileError}</p>
+                : <p className="text-[10px] text-muted">PDF, JPG o PNG. Tamaño máximo: 20 MB.</p>
               }
             </>
           ) : (
@@ -236,7 +236,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                   }
                 </button>
               )}
-              {openError && <p className="text-[10px] text-danger font-semibold">{openError}</p>}
+              {openError && <p className="text-[10px] text-danger-strong font-semibold">{openError}</p>}
             </>
           )}
         </Field>

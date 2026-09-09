@@ -102,17 +102,50 @@ function Grupo({ titulo, children }: { titulo: string; children: React.ReactNode
   )
 }
 
+/**
+ * Por qué no está el botón que debería estar ahí.
+ *
+ * Se dice y no se calla: un hueco donde antes había un lápiz se lee como que la
+ * app está rota, y quien no es administrador no tiene forma de saber que hay un
+ * reparto de papeles hasta que se topa con él. Una línea gris, al pie de lo que
+ * no se puede tocar, y ya.
+ */
+function SoloAdmin({ children }: { children: React.ReactNode }) {
+  return <p className="px-1 text-xs leading-relaxed text-muted">{children}</p>
+}
+
 export function SettingsView() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const {
     family, families, activeFamilyId, switchFamily, createFamily, deleteFamily,
-    members, invites, kids, mealSlots, documents, allEvents, tasks, lists, meals,
+    members, currentMember, invites, kids, mealSlots, documents, allEvents, tasks, lists, meals,
     updateFamilyName, updateMealSlots, inviteMember, updateMember, updateMemberRole, removeMember, cancelInvite,
     createKid, updateKid, deleteKid,
   } = useStore()
 
   const adminCount = members.filter(m => m.role === 'admin').length
+
+  /**
+   * Si quien mira puede tocar los ajustes de la familia.
+   *
+   * Hasta ahora esta pantalla se los ofrecía a todo el mundo: el lápiz de la
+   * familia, "Invitar persona", cancelar una invitación, cambiar un rol, quitar
+   * a alguien y las franjas de comida. Pero la base solo deja hacer eso a un
+   * administrador —las policies de `families` y `family_invites`, y las RPC de
+   * miembros—, así que un miembro normal rellenaba el formulario, pulsaba
+   * Guardar y recibía un error. Un callejón sin salida con premio.
+   *
+   * Las franjas de comida entran aquí aunque no lo parezca: viven en la columna
+   * `meal_slots` de `families`, así que cambiarlas es actualizar la familia.
+   *
+   * **En duda, se enseña.** `currentMember` es `null` mientras no se sabe quién
+   * eres —una lectura de sesión que falla, alguien que aún no figura en esta
+   * familia—, y esconder los ajustes a un administrador porque no hemos podido
+   * leer su fila sería peor que el problema que esto arregla. Solo se cierra
+   * cuando consta que eres `member`.
+   */
+  const esAdmin = currentMember?.role !== 'member'
   // La misma tabla, dos bloques: los adultos sin cuenta no son hijos.
   const { adultos: otrosAdultos, hijos } = splitPeople(kids)
 
@@ -241,7 +274,10 @@ export function SettingsView() {
         <div className="min-w-0">
           <div id="panel-familia" role="tabpanel" aria-labelledby="tab-familia" hidden={pestañaActiva !== 'familia'} className="space-y-7">
             <Bloque titulo="Tu familia">
-              <FamilyCard family={family} onEdit={() => setFamilySheetOpen(true)} />
+              <FamilyCard family={family} onEdit={esAdmin ? () => setFamilySheetOpen(true) : undefined} />
+              {!esAdmin && (
+                <SoloAdmin>El nombre de la casa lo cambia un administrador.</SoloAdmin>
+              )}
 
               <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
                 {/* Con una sola familia la lista repetía el nombre que ya está en la
@@ -266,9 +302,9 @@ export function SettingsView() {
                       value={newFamilyName}
                       onChange={e => setNewFamilyName(e.target.value)}
                       placeholder="Nombre de la familia"
-                      className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary-strong"
                     />
-                    <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">Crear</button>
+                    <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary-strong text-white text-sm font-semibold">Crear</button>
                     <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex flex-shrink-0 items-center justify-center px-3 py-2 rounded-xl border border-line text-muted transition-colors hover:bg-surface hover:text-ink"><X size={16} strokeWidth={2.4} /></button>
                   </form>
                 ) : (
@@ -290,7 +326,22 @@ export function SettingsView() {
                   cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
                   dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
               <Grupo titulo="Adultos con cuenta">
-                <MembersList members={members} invites={invites} kids={kids} onEdit={openEditMember} onInvite={openInvite} onCancelInvite={cancelInvite} />
+                <MembersList
+                  members={members}
+                  invites={invites}
+                  kids={kids}
+                  puedeGestionar={esAdmin}
+                  miMemberId={currentMember?.id ?? null}
+                  onEdit={openEditMember}
+                  onInvite={openInvite}
+                  onCancelInvite={cancelInvite}
+                />
+                {!esAdmin && (
+                  <SoloAdmin>
+                    Invitar a alguien y cambiar quién es administrador son cosa de un administrador.
+                    Tu nombre y tu color sí los cambias tú.
+                  </SoloAdmin>
+                )}
               </Grupo>
 
               <Grupo titulo="Adultos sin cuenta">
@@ -309,7 +360,13 @@ export function SettingsView() {
               <InstallPWA />
 
               <Grupo titulo="Franjas de comida">
-                <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} />
+                {/* Viven en `families.meal_slots`, así que cambiarlas es
+                    actualizar la familia: la policy solo deja hacerlo a un
+                    administrador. */}
+                <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} puedeCambiar={esAdmin} />
+                {!esAdmin && (
+                  <SoloAdmin>Las franjas las decide un administrador, porque son las de toda la casa.</SoloAdmin>
+                )}
               </Grupo>
             </Bloque>
           </div>
@@ -353,10 +410,10 @@ export function SettingsView() {
             <Bloque titulo="Legal">
               <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
                 <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
-                  Política de privacidad <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
+                  Política de privacidad <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" />
                 </Link>
                 <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
-                  Términos de servicio <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-faint" />
+                  Términos de servicio <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" />
                 </Link>
               </div>
             </Bloque>
@@ -373,7 +430,7 @@ export function SettingsView() {
                   <button
                     onClick={handleReset}
                     onBlur={() => setConfirmReset(false)}
-                    className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger text-white' : 'border border-line text-muted hover:bg-surface'}`}
+                    className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger-strong text-white' : 'border border-line text-muted hover:bg-surface'}`}
                   >
                     {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
                   </button>
@@ -407,7 +464,12 @@ export function SettingsView() {
         onClose={() => setMemberSheetOpen(false)}
         onInvite={(email) => inviteMember(email)}
         onUpdate={updateMember}
-        onChangeRole={updateMemberRole}
+        // Sin `onChangeRole` el sheet no pinta el selector de rol, que es lo que
+        // ya hacía cuando llegaba sin él. Cambiar un rol y quitar a alguien los
+        // validan `update_family_member_role` y `remove_family_member`, las dos
+        // comprobando que quien llama es administrador de esa familia.
+        onChangeRole={esAdmin ? updateMemberRole : undefined}
+        puedeQuitar={esAdmin}
         onRemove={removeMember}
       />
 

@@ -74,7 +74,7 @@ export function MealsView() {
                 <p className="text-xs text-muted mt-1">Planifica las comidas de hoy</p>
                 <button
                   onClick={() => s.openCreate()}
-                  className="mt-3 px-3 py-2 text-sm font-semibold text-primary rounded-xl hover:bg-primary-tint"
+                  className="mt-3 px-3 py-2 text-sm font-semibold text-primary-strong rounded-xl hover:bg-primary-tint"
                 >
                   + Añadir comida de hoy
                 </button>
@@ -146,7 +146,7 @@ export function MealsView() {
             <button
               onClick={() => s.openCreate()}
               aria-label="Añadir comida"
-              className="flex items-center gap-2 px-4 h-9 bg-primary text-white rounded-full text-sm font-semibold shadow-md hover:bg-primary-hover transition-colors"
+              className="flex items-center gap-2 px-4 h-9 bg-primary-strong text-white rounded-full text-sm font-semibold shadow-md hover:bg-primary-deep transition-colors"
             >
               <Plus size={16} strokeWidth={2.5} />
               Añadir

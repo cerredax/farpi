@@ -47,7 +47,7 @@ export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProp
             {match.list_emoji ?? '📋'} {match.list_name}
           </span>
         </span>
-        <ChevronRight size={16} className="text-faint flex-shrink-0" />
+        <ChevronRight size={16} className="text-muted flex-shrink-0" />
       </button>
     </div>
   )

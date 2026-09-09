@@ -21,10 +21,12 @@ interface CardSectionProps {
    *  él las cuatro secciones de Inicio eran indistinguibles a simple vista. */
   icon?: ElementType
   accentColor?: string
+  /** Lo que se puede hacer en la sección desde su propio rótulo, a la derecha. */
+  accion?: React.ReactNode
   children: React.ReactNode
 }
 
-export function CardSection({ label, icon: Icon, accentColor, children }: CardSectionProps) {
+export function CardSection({ label, icon: Icon, accentColor, accion, children }: CardSectionProps) {
   return (
     <section className="space-y-3">
       <h2 className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-widest text-muted">
@@ -38,6 +40,7 @@ export function CardSection({ label, icon: Icon, accentColor, children }: CardSe
           </span>
         )}
         {label}
+        {accion && <span className="ml-auto">{accion}</span>}
       </h2>
       {children}
     </section>

@@ -69,7 +69,6 @@ export function ListSheet({ open, mode, initial, itemsCount = 0, onClose, onCrea
         <SheetFooter
           form="list-form"
           submitLabel={mode === 'create' ? 'Crear lista' : 'Guardar'}
-          disabled={!draft.name.trim()}
           error={formError}
           onDelete={mode === 'edit' ? { onClick: preguntar, idleLabel: 'Eliminar lista' } : undefined}
         />

@@ -61,14 +61,14 @@ export function ChildrenList({ kids, kind, onEdit, onAdd }: ChildrenListProps) {
               </p>
             )}
           </div>
-          <span className="w-8 h-8 flex items-center justify-center rounded-full text-faint flex-shrink-0">
+          <span className="w-8 h-8 flex items-center justify-center rounded-full text-muted flex-shrink-0">
             <Pencil size={15} strokeWidth={1.8} />
           </span>
         </button>
       ))}
       <div className={kids.length > 0 ? 'border-t border-hairline' : ''}>
-        <button onClick={onAdd} className="w-full flex items-center gap-3 px-4 py-3.5 text-primary hover:bg-primary-tint active:bg-primary-tint transition-colors">
-          <span className="w-10 h-10 rounded-full border-2 border-dashed border-primary flex items-center justify-center flex-shrink-0">
+        <button onClick={onAdd} className="w-full flex items-center gap-3 px-4 py-3.5 text-primary-strong hover:bg-primary-tint active:bg-primary-tint transition-colors">
+          <span className="w-10 h-10 rounded-full border-2 border-dashed border-primary-strong flex items-center justify-center flex-shrink-0">
             <UserPlus size={17} strokeWidth={1.8} />
           </span>
           <span className="text-sm font-semibold">{textos.anadir}</span>

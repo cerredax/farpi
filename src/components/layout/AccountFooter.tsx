@@ -73,7 +73,7 @@ export function AccountFooter() {
         href={ROUTES.settings}
         aria-current={enAjustes ? 'page' : undefined}
         className={`flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-          enAjustes ? 'bg-primary-tint text-primary' : 'text-muted hover:bg-canvas hover:text-ink'
+          enAjustes ? 'bg-primary-tint text-primary-strong' : 'text-muted hover:bg-canvas hover:text-ink'
         }`}
       >
         <Settings size={19} strokeWidth={enAjustes ? 2.4 : 1.8} className="flex-shrink-0" />

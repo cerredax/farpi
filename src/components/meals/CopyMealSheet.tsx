@@ -73,7 +73,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               <p className="text-xs font-black uppercase tracking-widest text-muted">Menú origen</p>
               <p className="text-sm font-bold text-ink capitalize">{formatDateLabel(sourceDate)}</p>
               {!hasMeals && (
-                <p className="mt-1 text-xs font-semibold text-accent">
+                <p className="mt-1 text-xs font-semibold text-accent-strong">
                   Este día no tiene comidas para copiar.
                 </p>
               )}
@@ -145,7 +145,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               className="field-input"
             />
             {invalidRepeatRange && (
-              <p className="text-[11px] font-semibold text-danger">
+              <p className="text-[11px] font-semibold text-danger-strong">
                 La fecha fin no puede ser anterior al día destino.
               </p>
             )}

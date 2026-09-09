@@ -182,11 +182,15 @@ export function useEventSheet({
     onClose()
   })
 
-  // El título solo frena el botón en un plan; en los de rango es opcional y se
-  // rellena solo con el nombre del tipo.
+  // En los de rango el título es opcional y se rellena solo con el nombre del
+  // tipo. Lo usa la etiqueta del campo, que lo dice ahí mismo.
   const tituloOpcional = esDeRango
-  const canSubmit = (tituloOpcional || draft.title.trim().length > 0)
-    && seriesError === null && yearlyError === null && vacacionesError === null
+
+  // **El título ya no frena el botón**: lo comprueba `validateEventDraft`, y el
+  // mensaje sale al pulsar. Un botón apagado sin explicación deja mirando el
+  // formulario a ver qué falta; los tres errores de serie sí siguen aquí porque
+  // esos ya se cuentan en su sitio, en rojo y debajo del campo que los provoca.
+  const canSubmit = seriesError === null && yearlyError === null && vacacionesError === null
 
   // El botón dice cuántas cosas va a crear: pulsar "Apuntar" y que aparezcan
   // cuarenta es una sorpresa que nadie quiere. Y lo dice en días, que es la

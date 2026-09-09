@@ -61,8 +61,8 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
                   onClick={() => s.toggleWeekday(day)}
                   className={`flex-1 h-9 rounded-xl text-xs font-black transition-colors ${
                     s.recurrenceWeekdays.includes(day)
-                      ? 'bg-primary text-white'
-                      : 'bg-canvas border border-line text-muted hover:border-primary'
+                      ? 'bg-primary-strong text-white'
+                      : 'bg-canvas border border-line text-muted hover:border-primary-strong'
                   }`}
                 >
                   {label}
@@ -91,7 +91,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
             />
           )}
 
-          {s.seriesError && <p className="text-xs font-bold text-danger">{s.seriesError}</p>}
+          {s.seriesError && <p className="text-xs font-bold text-danger-strong">{s.seriesError}</p>}
         </div>
       )}
 
@@ -118,7 +118,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
             />
           )}
 
-          {s.yearlyError && <p className="text-xs font-bold text-danger">{s.yearlyError}</p>}
+          {s.yearlyError && <p className="text-xs font-bold text-danger-strong">{s.yearlyError}</p>}
         </div>
       )}
     </div>
@@ -132,7 +132,7 @@ function SeriesPreview({ titulo, frase, total }: { titulo: string; frase: string
       <p className="text-sm text-ink leading-snug">
         <span className="font-semibold">{titulo.trim() || 'El evento'}</span>{' '}{frase}
       </p>
-      <p className="text-sm font-bold text-primary">{total}</p>
+      <p className="text-sm font-bold text-primary-strong">{total}</p>
       <p className="text-xs text-muted">Podrás editar cada evento por separado.</p>
     </div>
   )

@@ -39,9 +39,15 @@ interface DeleteButtonProps {
  * px— y `danger` sobre blanco se queda en 3,3:1, por debajo del 4,5:1 que pide
  * WCAG AA; sobre el fondo del hover, en 2,8:1. Y falla justo donde más importa,
  * en el «Borrar» blanco sobre rojo relleno del segundo toque, que es el rótulo
- * que hay que leer **antes** de tocar. `danger-strong` da 5,2:1 en las dos
- * direcciones. `danger` se queda para lo que no es texto: bordes, fondos suaves,
- * barras y puntos.
+ * que hay que leer **antes** de tocar. `danger-strong` da 5,41:1 sobre blanco y
+ * 4,61 sobre `danger-soft`. `danger` se queda para lo que no es texto: bordes,
+ * fondos suaves, barras y puntos.
+ *
+ * Y **el mismo rojo lo llevan ya los demás botones de peligro rellenos**: el
+ * `danger` de `Button`, el «Sí, borrar toda la serie» del calendario, el de
+ * borrar la cuenta, el de desconectar Drive y el de reiniciar la demo iban en
+ * `bg-danger` con texto blanco, que da 3,28:1. Todos eran la misma clase de
+ * botón que este y decían lo mismo con un rojo distinto.
  */
 export function DeleteButton({ confirming = false, onClick, idleLabel, confirmLabel, variant = 'footer', ariaLabel, confirmAriaLabel }: DeleteButtonProps) {
   const danger = confirming ? 'bg-danger-strong text-white' : 'text-danger-strong hover:bg-danger-soft'
@@ -59,8 +65,8 @@ export function DeleteButton({ confirming = false, onClick, idleLabel, confirmLa
         type="button"
         onClick={onClick}
         aria-label={confirming ? confirmAriaLabel ?? confirmLabel : ariaLabel ?? idleLabel}
-        className={`flex h-7 flex-shrink-0 items-center justify-center gap-1 rounded-full text-xs font-bold transition-colors ${
-          confirming ? 'bg-danger-strong px-2 text-white' : 'w-7 text-faint hover:bg-danger-soft hover:text-danger-strong'
+        className={`area-de-toque flex h-7 flex-shrink-0 items-center justify-center gap-1 rounded-full text-xs font-bold transition-colors ${
+          confirming ? 'bg-danger-strong px-2 text-white' : 'w-7 text-muted hover:bg-danger-soft hover:text-danger-strong'
         }`}
       >
         <Trash2 size={14} />

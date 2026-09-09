@@ -220,7 +220,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
 
               <div className="mb-4 flex items-center gap-3">
                 <div className="h-px flex-1 bg-line" />
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-faint">o</span>
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted">o</span>
                 <div className="h-px flex-1 bg-line" />
               </div>
             </>
@@ -266,7 +266,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-soft transition-colors hover:text-muted"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted transition-colors hover:text-ink"
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -285,7 +285,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                 />
               </InputIcon>
               {password && !passwordIsValid && (
-                <p className="mt-1 text-[11px] font-semibold text-danger">Mínimo 8 caracteres.</p>
+                <p className="mt-1 text-[11px] font-semibold text-danger-strong">Mínimo 8 caracteres.</p>
               )}
             </Field>
 
@@ -304,7 +304,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                   />
                 </InputIcon>
                 {confirmPassword && !passwordsMatch && (
-                  <p className="mt-1 text-[11px] font-semibold text-danger">Las contraseñas no coinciden.</p>
+                  <p className="mt-1 text-[11px] font-semibold text-danger-strong">Las contraseñas no coinciden.</p>
                 )}
               </Field>
             )}
@@ -378,7 +378,7 @@ function InputIcon({
 }) {
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint">
+      <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
         {icon}
       </span>
       {children}

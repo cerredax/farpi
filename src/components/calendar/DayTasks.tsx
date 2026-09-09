@@ -57,7 +57,7 @@ function TaskRow({ task, kids, members, atrasada, onToggle, mostrarPersona }: {
       {/* Icono y no la palabra "Atrasada": en un móvil de 390 px, la etiqueta se
           comía media fila. El nombre completo va en la etiqueta accesible. */}
       {atrasada && (
-        <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger" aria-label="Atrasada" />
+        <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger-strong" aria-label="Atrasada" />
       )}
     </div>
   )
@@ -97,12 +97,12 @@ function TaskSummary({ total, atrasadas, abierto, onToggle }: {
           aria-hidden
         />
       </span>
-      {enRojo && <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger" aria-hidden />}
-      <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${enRojo ? 'text-danger' : 'text-muted'}`}>
+      {enRojo && <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger-strong" aria-hidden />}
+      <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${enRojo ? 'text-danger-strong' : 'text-muted'}`}>
         {abierto ? 'Ocultar las tareas' : etiqueta}
       </span>
       {!abierto && insignia && (
-        <span className="flex flex-shrink-0 items-center gap-1 text-[11px] font-bold text-danger">
+        <span className="flex flex-shrink-0 items-center gap-1 text-[11px] font-bold text-danger-strong">
           <AlertTriangle size={13} strokeWidth={2.6} aria-hidden />
           {insignia}
         </span>

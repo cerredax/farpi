@@ -128,7 +128,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
             size={12}
             strokeWidth={2.6}
             aria-hidden
-            className={`flex-shrink-0 text-faint transition-transform ${abierta ? 'rotate-180' : ''}`}
+            className={`flex-shrink-0 text-muted transition-transform ${abierta ? 'rotate-180' : ''}`}
           />
         </span>
         <span className={`flex-shrink-0 font-semibold tabular-nums ${CLASE_IMPORTE[tono]}`}>
@@ -154,7 +154,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
                       retocado se lee igual que uno normal y la referencia solo se
                       ve yéndose a «Lo fijo». */}
                   {fijo.referenciaCents !== null && (
-                    <span className="block truncate text-[11px] text-faint">
+                    <span className="block truncate text-[11px] text-muted">
                       suele ser {signo(fijo.referenciaCents)}
                     </span>
                   )}
@@ -305,7 +305,7 @@ export function CuentaDelMes({
       </div>
 
       {cuenta.origen !== 'plantilla' && !porVenirVacio && (
-        <p className="mt-1 text-center text-[13px] text-faint">
+        <p className="mt-1 text-center text-[13px] text-muted">
           {cuenta.origen === 'copia'
             ? copiaVacia
               ? 'De este mes no se guardó ningún fijo ni ninguna partida.'

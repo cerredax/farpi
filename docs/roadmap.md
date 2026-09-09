@@ -721,6 +721,35 @@ sube de contraste»); el relato, en `docs/historial.md`.
       trabajo: los avisos de validación de los sheets (`text-danger` a 10 y 11 px), la
       variante `danger` de `Button` y el botón rojo del diálogo de poner un mes a cero.
 
+## Fase 8u - Cinco arreglos de lectura (09-09-2026)
+
+Cinco cosas señaladas de una tirada mirando la app, todas de cómo se lee. El porqué de
+cada una, en `docs/architecture.md`; el relato, en `docs/historial.md`.
+
+- [x] **Inicio parte lo que viene en tres cajas**: «Mañana», «Próximos días» y «Próxima
+      semana». El primer corte es mañana —la pregunta que se hace al acostarse— y el
+      segundo el **domingo**, no una distancia en días: un sábado la caja del medio no se
+      pinta y el lunes sale ya como semana que viene. En la caja de mañana las filas se
+      callan el día y dejan el ancho a la hora.
+- [x] **Los vacíos dejan de explicar la pantalla.** Doce párrafos de manual fuera; queda
+      el emoji y el título. La `description` de `EmptyState` se reserva para decir qué se
+      ha buscado, y donde el motivo del vacío era información se subió al título (las tres
+      ramas de «Sin partidas» en Finanzas). Documentos y el «Sin menú para hoy» de Comidas
+      dejan de escribir su vacío a mano y pasan por el componente.
+- [x] **El `+` de Comidas en escritorio es el círculo de siempre**, no una pastilla con la
+      palabra al lado: era el único botón de alta de la app con texto.
+- [x] **Ajustes en móvil es un índice de secciones**, no cinco pastillas que envuelven:
+      filas con icono y chevrón, enlaces de verdad, y un «‹ Ajustes» para volver. En
+      escritorio no cambia nada; la diferencia la hace `esSeccionConocida`.
+- [x] **La ficha de un documento dice la categoría con su icono en color** —el nombre se
+      queda para el lector de pantalla y el `title`— y de quién es pasa a
+      `.etiqueta-persona`, la última que quedaba en color macizo.
+- [x] Dos unitarios nuevos y cinco tests de navegador reescritos para el índice de
+      Ajustes: **663** en la pasada completa (500 unitarios y 163 de navegador).
+- [ ] **Una sección de ayuda**, que es a donde tiene que ir lo que se quitó de los vacíos.
+      No urge —lo que se fue era manual de estreno, no algo que se consulte—, pero es la
+      contrapartida de haberlo quitado y conviene no perderla de vista.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

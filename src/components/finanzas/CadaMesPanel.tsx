@@ -181,7 +181,6 @@ export function CadaMesPanel({
           <EmptyState
             emoji="💼"
             title="Sin ingresos fijos"
-            description="Pon las nóminas y lo que entre todos los meses. Es la mitad de la cuenta."
           />
         ) : (
           <Lista>
@@ -203,7 +202,6 @@ export function CadaMesPanel({
           <EmptyState
             emoji="🏠"
             title="Sin gastos fijos"
-            description="El alquiler, la luz, las suscripciones: lo que se paga sí o sí cada mes."
           />
         ) : (
           <Lista>
@@ -225,7 +223,6 @@ export function CadaMesPanel({
           <EmptyState
             emoji="🎯"
             title="Sin partidas"
-            description="Reparte el mes en partidas para lo que varía —la compra, el ocio— y en «El mes» verás cuánto llevas de cada una."
           />
         ) : (
           <Lista>

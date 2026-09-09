@@ -120,7 +120,6 @@ export function ListsView() {
         <EmptyState
           emoji="📋"
           title="Sin listas todavía"
-          description="Una lista por cesta: la compra, la farmacia, lo que hay que llevar al pueblo."
         />
       ) : (
         <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">

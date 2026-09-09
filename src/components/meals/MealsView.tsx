@@ -10,6 +10,7 @@ import { WeekGrid } from './WeekGrid'
 import { WeekList } from './WeekList'
 import { useMealsState } from './useMealsState'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { capitalize } from '@/lib/text'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 
@@ -68,16 +69,23 @@ export function MealsView() {
         {s.viewMode === 'today' && (
           <div>
             {s.todayMeals.length === 0 ? (
-              <Card className="py-10 text-center">
-                <p className="text-3xl mb-2">🍽️</p>
-                <p className="font-bold text-ink text-sm">Sin menú para hoy</p>
-                <p className="text-xs text-muted mt-1">Planifica las comidas de hoy</p>
-                <button
-                  onClick={() => s.openCreate()}
-                  className="mt-3 inline-flex min-h-11 items-center px-3 text-sm font-semibold text-primary-strong rounded-xl hover:bg-primary-tint"
-                >
-                  + Añadir comida de hoy
-                </button>
+              <Card padded={false}>
+                {/* El `EmptyState` de siempre y no un vacío escrito aquí. Sin la
+                    línea que explicaba la pantalla ("Planifica las comidas de
+                    hoy"), como el resto desde el 09-09-2026: lo que queda es el
+                    botón, que sí hace algo. */}
+                <EmptyState
+                  emoji="🍽️"
+                  title="Sin menú para hoy"
+                  action={
+                    <button
+                      onClick={() => s.openCreate()}
+                      className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-primary-strong hover:bg-primary-tint"
+                    >
+                      Añadir comida de hoy
+                    </button>
+                  }
+                />
               </Card>
             ) : (
               <Card padded={false}>
@@ -143,13 +151,19 @@ export function MealsView() {
               </button>
             </div>
 
+            {/* El mismo `+` redondo que `ViewHeader` pone en Listas, Tareas,
+                Notas y Documentos, y que esta misma pantalla ya usa en móvil.
+                Era el único botón de alta de la app con la palabra escrita al
+                lado, y por eso el escritorio de Comidas se leía distinto del
+                resto sin que hubiera ninguna razón: aquí no cabe `ViewHeader`
+                entero —la cabecera lleva el paso de semana—, pero el botón sí
+                es el mismo. */}
             <button
               onClick={() => s.openCreate()}
               aria-label="Añadir comida"
-              className="flex items-center gap-2 px-4 h-9 bg-primary-strong text-white rounded-full text-sm font-semibold shadow-md hover:bg-primary-deep transition-colors"
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-colors hover:bg-primary-deep"
             >
-              <Plus size={16} strokeWidth={2.5} />
-              Añadir
+              <Plus size={20} />
             </button>
           </div>
         </div>

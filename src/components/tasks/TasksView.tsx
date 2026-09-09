@@ -94,20 +94,17 @@ export function TasksView() {
           </div>
           {pending.length === 0 ? (
             /* Tres estados y no dos: "no queda nada por hacer" y "aquí no ha
-               habido nunca nada" no son lo mismo. Una familia que estrena la app
-               se encontraba un "Todo al día" felicitándola por lo que no había
-               hecho, y sin una palabra de para qué sirve la pantalla. */
+               habido nunca nada" no son lo mismo, y una familia que estrena la
+               app se encontraba un "Todo al día" felicitándola por lo que no
+               había hecho. La diferencia la lleva el título; la explicación de
+               para qué sirve la pantalla se fue con las demás el 09-09-2026. */
             <div className="bg-white rounded-2xl border border-surface shadow-sm lg:col-span-2">
               {buscando ? (
                 <EmptyState emoji="🔍" title="Sin coincidencias" description={`Ninguna tarea pendiente con «${busqueda.trim()}»`} />
               ) : tasks.length === 0 ? (
-                <EmptyState
-                  emoji="🗒️"
-                  title="Sin tareas todavía"
-                  description="Apunta lo que hay que hacer en casa: llamar al fontanero, renovar el DNI, sacar la basura los martes."
-                />
+                <EmptyState emoji="🗒️" title="Sin tareas todavía" />
               ) : (
-                <EmptyState emoji="✅" title="Todo al día" description="No hay tareas pendientes" />
+                <EmptyState emoji="✅" title="Todo al día" />
               )}
             </div>
           ) : (

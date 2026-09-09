@@ -486,12 +486,26 @@ test.describe('justo por debajo de lg, a 1023 px', () => {
     expect(await columnasDeTarjetas(page), 'la rejilla de Documentos se ha colado por debajo de lg').toBe(0)
   })
 
-  test('en Ajustes las secciones siguen siendo una fila encima', async ({ page }) => {
+  // Por debajo de `lg`, Ajustes no tiene columna ni pestañas: es el índice de
+  // secciones, y el contenido solo aparece al entrar en una. Lo que se vigila
+  // aquí es que la columna de escritorio no se cuele un píxel antes de tiempo.
+  test('en Ajustes sigue mandando el índice de secciones y no la columna', async ({ page }) => {
     await page.goto('/settings')
     await page.waitForTimeout(800)
 
-    const { secciones, panel } = await ajustesSeccionesYPanel(page)
-    expect(secciones.y + secciones.height, 'la columna de Ajustes se ha colado por debajo de lg').toBeLessThanOrEqual(panel.y)
+    await expect(
+      page.getByRole('tablist', { name: 'Secciones de ajustes' }),
+      'la columna de pestañas de Ajustes se ha colado por debajo de lg',
+    ).toBeHidden()
+    await expect(page.getByRole('navigation', { name: 'Secciones de ajustes' })).toBeVisible()
+    await expect(page.locator('#panel-familia')).toBeHidden()
+
+    await page.getByRole('link', { name: 'Familia' }).click()
+    await page.waitForTimeout(500)
+    await expect(page.locator('#panel-familia')).toBeVisible()
+    // Dentro de `main`: el menú "Más" lleva otro enlace a Ajustes, en un sheet
+    // cerrado que cuelga del `body`.
+    await expect(page.locator('main').getByRole('link', { name: 'Ajustes' })).toBeVisible()
   })
 
   test('en Comidas sigue la semana en vertical y no la rejilla', async ({ page }) => {

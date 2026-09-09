@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { CategoryIcon } from './CategoryIcon'
 import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
@@ -115,17 +116,18 @@ export function DocsView() {
 
       {/* Lista */}
       {s.filtered.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-4xl mb-3">📄</p>
-          <p className="font-bold text-ink">Sin documentos</p>
-          <p className="text-sm text-muted mt-1">
-            {s.busqueda.trim()
-              ? `Ninguno coincide con «${s.busqueda.trim()}»`
-              : s.activeFilter
-              ? 'No hay documentos en esta categoría'
-              : 'Guarda el primer documento de la familia'}
-          </p>
-        </div>
+        /* El mismo `EmptyState` que el resto de la app y no un vacío escrito a
+           mano aquí: era el único que se había quedado fuera, con su propio
+           tamaño de emoji y su propio hueco. Lo que hay debajo del título solo
+           se pinta cuando se ha buscado algo, que es la única de las tres ramas
+           que informa en vez de explicar. */
+        <EmptyState
+          emoji={s.busqueda.trim() ? '🔍' : '📄'}
+          title={s.busqueda.trim()
+            ? 'Sin coincidencias'
+            : s.activeFilter ? 'Sin documentos en esta categoría' : 'Sin documentos'}
+          description={s.busqueda.trim() ? `Ningún documento coincide con «${s.busqueda.trim()}»` : undefined}
+        />
       ) : (
         <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
           {s.filtered.map(doc => {

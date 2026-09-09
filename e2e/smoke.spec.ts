@@ -83,6 +83,10 @@ test('el sheet de tareas abre como diálogo con campos etiquetados', async ({ pa
 test('una familia creada se puede eliminar y la app vuelve a la anterior', async ({ page }) => {
   await page.goto('/settings')
 
+  // En móvil Ajustes abre en el índice de secciones; la familia está en la
+  // primera fila.
+  await page.getByRole('link', { name: 'Familia' }).click()
+
   await page.getByRole('button', { name: '+ Nueva familia' }).click()
   await page.getByPlaceholder('Nombre de la familia').fill('Familia de prueba')
   await page.getByRole('button', { name: 'Crear', exact: true }).click()

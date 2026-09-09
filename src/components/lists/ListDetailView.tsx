@@ -155,7 +155,6 @@ export function ListDetailView({
           <EmptyState
             emoji="📝"
             title="Esta lista está vacía"
-            description="Apunta lo primero que haga falta"
           />
         ) : visibles.length === 0 ? (
           <EmptyState

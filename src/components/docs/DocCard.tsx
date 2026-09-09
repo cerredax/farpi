@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CategoryIcon } from './CategoryIcon'
 import { FileTypeIcon } from './FileTypeIcon'
-import { textColorOn } from '@/lib/assignees'
+import { fondoDePersona } from '@/lib/assignees'
 import { DOC_CATEGORIES, FAMILY_COLOR } from '@/lib/constants'
 import { selectExpiryState } from '@/lib/selectors'
 import { formatFileSize } from '@/lib/text'
@@ -50,13 +50,31 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
           <p className="text-xs text-muted mt-0.5 truncate">{doc.description}</p>
         )}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-surface text-muted px-2 py-0.5 rounded-full">
-            <CategoryIcon category={categoria} /> {ETIQUETAS[categoria] ?? 'Otros'}
+          {/* La categoría, solo su icono y en color (09-09-2026). Era una
+              píldora gris con el nombre escrito al lado, y en una fila donde ya
+              compiten la caducidad, el tamaño y la fecha se llevaba el ancho
+              para repetir la palabra por la que muchas veces se ha filtrado
+              justo arriba. Es lo mismo que hacen la tarjeta de una nota y la de
+              una lista con su emoji: la imagen dice de qué va y no gasta línea.
+              El nombre sigue estando para quien no ve el icono —lector de
+              pantalla— y al pasar el ratón. */}
+          <span
+            role="img"
+            aria-label={ETIQUETAS[categoria] ?? 'Otros'}
+            title={ETIQUETAS[categoria] ?? 'Otros'}
+            className="flex-shrink-0 text-primary-strong"
+          >
+            <CategoryIcon category={categoria} size={15} />
           </span>
+          {/* De quién es, con la etiqueta de toda la app: el color de la persona
+              de fondo y el nombre en tinta. Iba en color macizo con el texto
+              calculado encima, que es lo que hacían todas antes de que la
+              paleta de hijos se aclarara a L* 71-88; en esos tonos el blanco no
+              llega al contraste. */}
           {assigneeName && (
             <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: assigneeColor ?? FAMILY_COLOR, color: textColorOn(assigneeColor ?? FAMILY_COLOR) }}
+              className="etiqueta-persona max-w-[7rem] px-1.5 py-0.5 text-[10px]"
+              style={{ backgroundColor: fondoDePersona(assigneeColor ?? FAMILY_COLOR) }}
             >
               {assigneeName}
             </span>

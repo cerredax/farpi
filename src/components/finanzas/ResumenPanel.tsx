@@ -601,7 +601,6 @@ export function ResumenPanel({
           <EmptyState
             emoji="📈"
             title="Todavía no hay meses que comparar"
-            description="En cuanto termine este mes se guardará su foto y aquí empezará a verse la serie."
           />
         ) : (
           <div className="space-y-3">
@@ -626,7 +625,6 @@ export function ResumenPanel({
           <EmptyState
             emoji="🧾"
             title="Nada gastado este mes"
-            description="En cuanto apuntes algún gasto se verá aquí en qué se va."
           />
         ) : (
           <EnQueSeVa reparto={reparto} sePasan={sePasan} mesAnterior={mesAnterior} />

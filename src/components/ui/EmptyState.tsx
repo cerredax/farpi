@@ -1,6 +1,16 @@
 interface EmptyStateProps {
   emoji?: string
   title: string
+  /**
+   * **Solo para decir qué se ha buscado**: "Ninguna tarea pendiente con «pan»".
+   *
+   * No es el sitio donde explicar para qué sirve la pantalla. Hasta el
+   * 09-09-2026 lo era —"Apunta lo que hay que hacer en casa: llamar al
+   * fontanero, renovar el DNI, sacar la basura los martes"— y eran doce
+   * párrafos de manual repartidos por la app, leídos una vez y estorbando
+   * siempre. La ayuda, cuando la haya, irá en su propia sección; un hueco
+   * vacío se explica con dos palabras o no se explica.
+   */
   description?: string
   action?: React.ReactNode
   /**

@@ -611,8 +611,10 @@ test('en Documentos solo se filtran las categorías que tienen documentos', asyn
 test('la copia de seguridad se descarga y lleva los datos de la familia', async ({ page }) => {
   await page.goto('/settings')
   await page.waitForTimeout(800)
-  // La copia de seguridad vive en la pestaña "Cuenta", no en la que abre por defecto.
-  await page.getByRole('tab', { name: 'Cuenta' }).click()
+  // La copia de seguridad vive en la sección "Cuenta". En móvil Ajustes abre en
+  // el índice de secciones, así que se entra por su fila.
+  await page.getByRole('link', { name: 'Cuenta' }).click()
+  await page.waitForTimeout(500)
 
   const descarga = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Descargar una copia de todo' }).click()
@@ -692,6 +694,9 @@ test('las respuestas llevan las cabeceras de seguridad', async ({ page }) => {
 test('un adulto sin cuenta se da de alta en Ajustes y se puede asignar', async ({ page }) => {
   await page.goto('/settings')
   await page.waitForTimeout(800)
+  // Las personas viven en "Familia", la primera fila del índice de Ajustes.
+  await page.getByRole('link', { name: 'Familia' }).click()
+  await page.waitForTimeout(500)
 
   await page.getByRole('button', { name: 'Añadir adulto' }).click()
   const sheet = page.getByRole('dialog', { name: 'Añadir adulto' })
@@ -746,8 +751,9 @@ test('unas vacaciones se apuntan sin escribir título', async ({ page }) => {
 test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => {
   await page.goto('/settings')
   await page.waitForTimeout(800)
-  // Las franjas de comida viven en la pestaña "Casa", no en la que abre por defecto.
-  await page.getByRole('tab', { name: 'Casa' }).click()
+  // Las franjas de comida viven en la sección "Casa", no en el índice.
+  await page.getByRole('link', { name: 'Casa' }).click()
+  await page.waitForTimeout(500)
 
   const merienda = page.getByRole('switch', { name: 'Merienda' })
   await expect(merienda).toHaveAttribute('aria-checked', 'true')
@@ -772,12 +778,12 @@ test('una franja apagada en Ajustes desaparece de Comidas', async ({ page }) => 
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
 
-  // Vuelta atrás: la franja reaparece con todo lo que tuviera. La pestaña
-  // vuelve a abrir en "Familia" por defecto, así que hay que volver a entrar
-  // en "Casa".
+  // Vuelta atrás: la franja reaparece con todo lo que tuviera. Ajustes vuelve a
+  // abrir en su índice, así que hay que volver a entrar en "Casa".
   await page.goto('/settings')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Casa' }).click()
+  await page.getByRole('link', { name: 'Casa' }).click()
+  await page.waitForTimeout(500)
   await page.getByRole('switch', { name: 'Merienda' }).click()
   await page.waitForTimeout(500)
   await page.goto('/meals')

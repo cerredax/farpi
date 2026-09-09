@@ -383,47 +383,76 @@ test.describe('familyAbsenceEdges', () => {
   })
 })
 
-// Inicio parte lo que viene en dos cajas: lo que hay que preparar y lo que solo
-// hay que saber. El corte es por día natural, no por horas.
+// Inicio parte lo que viene en tres cajas: mañana, lo que queda de semana y la
+// que viene. Los cortes son por día natural y por domingo, no por horas.
 test.describe('partirPlanesProximos', () => {
-  const HOY = new Date(2026, 8, 8, 18, 0) // 8 de septiembre de 2026, por la tarde
+  const HOY = new Date(2026, 8, 8, 18, 0) // martes 8 de septiembre de 2026, por la tarde
 
-  test('mañana y pasado mañana van juntos, el resto de la semana aparte', () => {
-    const { proximos, resto } = partirPlanesProximos([
+  test('mañana va sola, el resto de la semana aparte y el lunes ya es la semana que viene', () => {
+    const { manana, proximos, proximaSemana } = partirPlanesProximos([
       event({ title: 'manana', start_at: '2026-09-09T09:00:00' }),
       event({ title: 'pasado', start_at: '2026-09-10T21:00:00' }),
-      event({ title: 'en-tres', start_at: '2026-09-11T09:00:00' }),
-      event({ title: 'en-seis', start_at: '2026-09-14T09:00:00' }),
+      event({ title: 'domingo', start_at: '2026-09-13T09:00:00' }),
+      event({ title: 'lunes', start_at: '2026-09-14T09:00:00' }),
     ], HOY)
-    expect(proximos.map(e => e.title)).toEqual(['manana', 'pasado'])
-    expect(resto.map(e => e.title)).toEqual(['en-tres', 'en-seis'])
+    expect(manana.map(e => e.title)).toEqual(['manana'])
+    expect(proximos.map(e => e.title)).toEqual(['pasado', 'domingo'])
+    expect(proximaSemana.map(e => e.title)).toEqual(['lunes'])
   })
 
-  test('un plan de pasado mañana a última hora sigue siendo de pasado mañana', () => {
-    const { proximos, resto } = partirPlanesProximos(
-      [event({ start_at: '2026-09-10T23:30:00' })], HOY,
+  test('un plan de mañana a última hora sigue siendo de mañana', () => {
+    const { manana, proximos } = partirPlanesProximos(
+      [event({ start_at: '2026-09-09T23:30:00' })], HOY,
     )
-    expect(proximos).toHaveLength(1)
-    expect(resto).toHaveLength(0)
+    expect(manana).toHaveLength(1)
+    expect(proximos).toHaveLength(0)
   })
 
-  test('el límite cruza el cambio de mes', () => {
-    const finDeMes = new Date(2026, 8, 30, 10, 0)
-    const { proximos, resto } = partirPlanesProximos([
+  test('el límite de mañana cruza el cambio de mes', () => {
+    const finDeMes = new Date(2026, 8, 30, 10, 0) // miércoles 30 de septiembre
+    const { manana, proximos, proximaSemana } = partirPlanesProximos([
       event({ title: 'uno-de-octubre', start_at: '2026-10-01T09:00:00' }),
       event({ title: 'dos-de-octubre', start_at: '2026-10-02T09:00:00' }),
-      event({ title: 'tres-de-octubre', start_at: '2026-10-03T09:00:00' }),
+      event({ title: 'cinco-de-octubre', start_at: '2026-10-05T09:00:00' }),
     ], finDeMes)
-    expect(proximos.map(e => e.title)).toEqual(['uno-de-octubre', 'dos-de-octubre'])
-    expect(resto.map(e => e.title)).toEqual(['tres-de-octubre'])
+    expect(manana.map(e => e.title)).toEqual(['uno-de-octubre'])
+    expect(proximos.map(e => e.title)).toEqual(['dos-de-octubre'])
+    expect(proximaSemana.map(e => e.title)).toEqual(['cinco-de-octubre'])
   })
 
-  test('una semana entera en los dos primeros días deja la otra caja vacía', () => {
-    const { proximos, resto } = partirPlanesProximos([
+  // En sábado y en domingo no queda semana en medio: lo de pasado mañana ya es de
+  // la que viene, que es como se dice en casa. La caja del medio no se pinta.
+  test('un sábado, la caja del medio se queda vacía', () => {
+    const sabado = new Date(2026, 8, 12, 10, 0)
+    const { manana, proximos, proximaSemana } = partirPlanesProximos([
+      event({ title: 'domingo', start_at: '2026-09-13T09:00:00' }),
+      event({ title: 'lunes', start_at: '2026-09-14T09:00:00' }),
+    ], sabado)
+    expect(manana.map(e => e.title)).toEqual(['domingo'])
+    expect(proximos).toEqual([])
+    expect(proximaSemana.map(e => e.title)).toEqual(['lunes'])
+  })
+
+  // El domingo es el último día de la semana, así que mañana ya cae fuera. Manda
+  // "mañana": el lunes no se lee como "la semana que viene" cuando es mañana.
+  test('un domingo, mañana gana al calendario', () => {
+    const domingo = new Date(2026, 8, 13, 10, 0)
+    const { manana, proximos, proximaSemana } = partirPlanesProximos([
+      event({ title: 'lunes', start_at: '2026-09-14T09:00:00' }),
+      event({ title: 'martes', start_at: '2026-09-15T09:00:00' }),
+    ], domingo)
+    expect(manana.map(e => e.title)).toEqual(['lunes'])
+    expect(proximos).toEqual([])
+    expect(proximaSemana.map(e => e.title)).toEqual(['martes'])
+  })
+
+  test('una semana entera en mañana deja las otras dos cajas vacías', () => {
+    const { manana, proximos, proximaSemana } = partirPlanesProximos([
       event({ start_at: '2026-09-09T09:00:00' }),
-      event({ start_at: '2026-09-10T09:00:00' }),
+      event({ start_at: '2026-09-09T18:00:00' }),
     ], HOY)
-    expect(proximos).toHaveLength(2)
-    expect(resto).toEqual([])
+    expect(manana).toHaveLength(2)
+    expect(proximos).toEqual([])
+    expect(proximaSemana).toEqual([])
   })
 })

@@ -221,14 +221,19 @@ export function FinanzasView() {
               </div>
 
               {s.resumen.length === 0 ? (
+                /* Las tres ramas están en el título y no en una descripción
+                    debajo, porque no explican para qué sirven las partidas: dicen
+                    por qué no hay ninguna, y no es lo mismo un mes al que no se
+                    le puso ninguna que uno del que no se guardó el plan. Sin esa
+                    distinción, un "Sin partidas" a secas afirmaría algo que no
+                    consta. */
                 <EmptyState
                   emoji="🎯"
-                  title="Sin partidas"
-                  description={s.planVivo
-                    ? 'Reparte el mes en partidas para lo que varía —la compra, el ocio— en «Lo fijo», y aquí verás cuánto llevas de cada una.'
+                  title={s.planVivo
+                    ? 'Sin partidas'
                     : s.planCongelado
-                      ? 'Ese mes se cerró sin ninguna partida puesta.'
-                      : 'De ese mes no se guardó el plan, así que no se sabe qué partidas había.'}
+                      ? 'Ese mes se cerró sin partidas'
+                      : 'De ese mes no se guardó el plan'}
                 />
               ) : (
                 s.resumen.map(r => (
@@ -263,9 +268,6 @@ export function FinanzasView() {
                 title={s.esPorVenir
                   ? 'Nada apuntado todavía'
                   : s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
-                description={s.esPorVenir
-                  ? 'Apunta lo que ya sabes que va a llegar: el seguro, la matrícula, el IBI.'
-                  : 'Apunta lo que se va gastando —y lo que entra sin ser fijo— y la cuenta de arriba se mueve sola.'}
               />
             ) : (
               <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
@@ -359,7 +361,6 @@ export function FinanzasView() {
             <EmptyState
               emoji="📄"
               title="Sin presupuestos pedidos"
-              description="Apunta lo que te pasen y, si pides otro para lo mismo, saldrán juntos con el más barato marcado."
             />
           ) : (
             s.grupos.map(grupo => (

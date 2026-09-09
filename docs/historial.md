@@ -15,6 +15,66 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-09
 
+### Cinco arreglos de lectura: mañana, los vacíos, el `+`, Ajustes en el móvil y la ficha de un papel (09-09-2026)
+
+Cinco cosas señaladas de una tirada mirando la app, todas de cómo se lee y ninguna de qué
+hace. Van por orden de discusión.
+
+**Mañana no es «los próximos días».** Inicio partía lo que viene en dos cajas desde el día
+anterior —mañana y pasado juntos, y el resto de la semana aparte—, y el corte seguía
+escondiendo la pregunta que se hace de verdad al acostarse. Ahora son tres: "Mañana", "Próximos
+días" y "Próxima semana". El primer corte es mañana y el segundo **el domingo**, no
+"dentro de tres días": en casa se habla de esta semana y la que viene, así que un sábado la
+caja del medio no se pinta y el lunes sale ya como semana que viene. Mañana manda sobre el
+calendario —un domingo, el lunes es mañana antes que ser la semana siguiente—, y en esa caja
+las filas se callan el día: escribir "Mañana" en cada línea de una caja titulada "Mañana" es
+gastar el ancho de la hora en decir lo mismo dos veces. El color va de cerca a lejos
+—amarillo, salmón, gris—, con tokens que ya existían, y no dice de quién es el plan: eso lo
+sigue diciendo el punto de cada fila. Seis tests unitarios cubren los dos cortes, el cambio de
+mes y los dos días de la semana en los que la caja del medio desaparece.
+
+**Los huecos vacíos explicaban la pantalla.** Doce párrafos de manual repartidos por la app
+—"Apunta lo que hay que hacer en casa: llamar al fontanero, renovar el DNI, sacar la basura
+los martes"—, que se leen una vez y estorban siempre. Fuera. Queda el emoji y el título, y la
+`description` de `EmptyState` se reserva para decir qué se ha buscado ("Ninguna tarea
+pendiente con «pan»"), que informa en vez de explicar. Donde el motivo del vacío **sí** era
+información se subió al título: las tres ramas de "Sin partidas" de Finanzas no dicen lo
+mismo, porque un mes al que no se le puso ninguna y otro del que no se guardó el plan no son
+el mismo hueco, y "Sin partidas" a secas afirmaría algo que no consta. Se salvó también la
+llamada del vacío de la agenda, pero como acción y no como descripción: esa tarjeta entera es
+un botón y sin nada escrito se lee como un agujero. De paso, los dos vacíos que estaban
+escritos a mano —Documentos y el "Sin menú para hoy" de Comidas— pasan a usar el componente.
+La ayuda, cuando la haya, irá en su propia sección; es lo que se decidió al quitarlas.
+
+**Un `+` con la palabra al lado.** La cabecera de Comidas en escritorio no puede usar
+`ViewHeader` entero, porque lleva además el paso de semana, y por eso su botón de alta se
+había escrito a mano: una pastilla verde con `＋ Añadir`. Era el único de la app con texto,
+y bastaba mirar dos pantallas seguidas para notarlo. Ahora es el mismo círculo de 44 px.
+
+**Ajustes en el móvil.** Cinco pastillas de texto que a 390 px se partían en dos filas y
+dejaban el borde derecho a jirones, y que además obligaban a elegir sección antes de saber
+qué hay dentro de cada una. En móvil dejan de ser pestañas: `/settings` es ahora un índice de
+filas con icono y chevrón, como los ajustes de cualquier teléfono, y cada una entra en su
+sección con un "‹ Ajustes" para volver. Son enlaces de verdad, así que el botón de atrás
+también sirve. En escritorio no cambia nada —siguen siendo las pestañas de pie del
+02-09-2026—, y la diferencia la hace `esSeccionConocida`: sin `?seccion=`, escritorio abre
+Familia y móvil abre el índice. El `role="tablist"` sigue existiendo una sola vez, en la
+columna de escritorio; el índice es un `<nav>` de enlaces, así que no hay dos juegos de `id`
+compitiendo por los mismos `aria-controls`.
+
+**La ficha de un papel.** La categoría era una píldora gris con el nombre escrito, en una fila
+donde ya compiten la caducidad, el tamaño y la fecha, y muchas veces repetía la palabra por la
+que se acababa de filtrar tres centímetros más arriba. Ahora es solo su icono, en verde, con el
+nombre para el lector de pantalla y al pasar el ratón: lo mismo que hacen la tarjeta de una
+nota y la de una lista con su emoji. Y de quién es el documento pasa a la etiqueta de toda la
+app —color de la persona de fondo, nombre en tinta—, que era la última que quedaba en color
+macizo con el texto calculado encima, de cuando la paleta de hijos era más oscura.
+
+Suite completa: **663** (500 unitarios + 163 de navegador). Los tests de Ajustes que entraban
+por `role="tab"` ahora entran por la fila del índice, que es como se navega en el móvil donde
+corre la suite, y el de 1023 px comprueba lo contrario que antes: que por debajo del corte no
+hay columna ni pestañas, sino índice.
+
 ### Lo que quedaba de la auditoría: 44 px, el foco, la fila de la compra y compartir (09-09-2026)
 
 La segunda mitad del repaso del mismo día, con la lista de pendientes delante y de menos a

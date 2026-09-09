@@ -1,9 +1,9 @@
 import { memo } from 'react'
-import { CalendarDays, CalendarRange } from 'lucide-react'
+import { CalendarClock, CalendarDays, CalendarRange } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import type { Event, Child, FamilyMember } from '@/types'
-import { format, isTomorrow } from 'date-fns'
+import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { partirPlanesProximos } from '@/lib/events'
@@ -23,12 +23,17 @@ interface UpcomingEventsProps {
  * está a más de siete días.
  */
 function eventDayLabel(date: Date): string {
-  if (isTomorrow(date)) return 'Mañana'
   return capitalize(format(date, 'EEE d', { locale: es }))
 }
 
-/** Las filas de un bloque. Las dos cajas enseñan un plan igual. */
-function ListaDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
+/**
+ * Las filas de un bloque. Las tres cajas enseñan un plan igual.
+ *
+ * `conDia` lo apaga la caja de mañana, y solo ella: escribir "Mañana" en cada
+ * fila de una caja que ya se titula "Mañana" es decir lo mismo dos veces y
+ * quitarle sitio a la hora, que ahí es lo único que cambia de una fila a otra.
+ */
+function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: UpcomingEventsProps & { conDia?: boolean }) {
   return (
     <ul className="divide-y divide-hairline">
       {events.map(event => {
@@ -53,7 +58,9 @@ function ListaDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
                   style={{ backgroundColor: eventColor(event, members, kids) }}
                   aria-hidden
                 />
-                <span className="text-xs font-bold text-primary-strong">{eventDayLabel(fecha)}</span>
+                {conDia && (
+                  <span className="text-xs font-bold text-primary-strong">{eventDayLabel(fecha)}</span>
+                )}
                 <span className="text-xs font-semibold text-muted">
                   {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}
                 </span>
@@ -82,49 +89,62 @@ function ListaDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
 }
 
 /**
- * Lo que viene, en **dos cajas**: "Próximos días" —mañana y pasado mañana— y
- * "Resto de semana".
+ * Lo que viene, en **tres cajas**: "Mañana", "Próximos días" —lo que queda de
+ * esta semana— y "Próxima semana".
  *
  * Era una sola lista de siete días, y ahí "Mañana a las nueve" y "Sáb 12" se
  * leían con el mismo peso pese a no pedir lo mismo: lo de mañana hay que
- * prepararlo esta noche y lo del sábado solo hay que saberlo. El corte está en
- * `partirPlanesProximos`, con el porqué de los dos días.
+ * prepararlo esta noche y lo del sábado solo hay que saberlo. Fueron dos cajas
+ * hasta el 09-09-2026, con mañana y pasado juntos; ahora mañana va sola, que es
+ * la pregunta que se hace de verdad al acostarse. El corte está en
+ * `partirPlanesProximos`, con el porqué de cada uno.
  *
- * Lo inmediato se queda con el amarillo de la sección y lo de más allá va en
- * gris: es la misma cosa a distinta distancia, y el color dice cuál de las dos
- * pide algo hoy. El gris es el que ya usa la app para lo que no es de nadie en
- * concreto, no un color nuevo. Cada caja desaparece si no tiene nada, así que
- * una semana con todo en los dos primeros días se sigue viendo como un solo
- * bloque.
+ * El color va de cerca a lejos: el amarillo de la sección para mañana, el salmón
+ * para lo que queda de semana y el gris para lo de la semana que viene, que es
+ * el que la app ya usa para lo que no pide nada ahora mismo. No son colores
+ * nuevos y no significan de quién es el plan —eso lo dice el punto de cada
+ * fila—, solo a qué distancia está. Cada caja desaparece si no tiene nada, así
+ * que una semana con todo mañana se sigue viendo como un solo bloque.
  */
 export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, members, onOpen }: UpcomingEventsProps) {
   // Sin nada que enseñar no se pinta el bloque: una tarjeta vacía diciendo
   // "semana tranquila" ocupa lo mismo que una con contenido.
   if (events.length === 0) return null
 
-  const { proximos, resto } = partirPlanesProximos(events)
+  const { manana, proximos, proximaSemana } = partirPlanesProximos(events)
 
   return (
     <>
+      {manana.length > 0 && (
+        <HomeSection
+          label="Mañana"
+          icon={CalendarClock}
+          accentColor="#E9C46A"
+          footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
+        >
+          <ListaDePlanes events={manana} kids={kids} members={members} onOpen={onOpen} conDia={false} />
+        </HomeSection>
+      )}
+
       {proximos.length > 0 && (
         <HomeSection
           label="Próximos días"
           icon={CalendarDays}
-          accentColor="#E9C46A"
+          accentColor="#D8A48F"
           footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
         >
           <ListaDePlanes events={proximos} kids={kids} members={members} onOpen={onOpen} />
         </HomeSection>
       )}
 
-      {resto.length > 0 && (
+      {proximaSemana.length > 0 && (
         <HomeSection
-          label="Resto de semana"
+          label="Próxima semana"
           icon={CalendarRange}
           accentColor="#A39B93"
           footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
         >
-          <ListaDePlanes events={resto} kids={kids} members={members} onOpen={onOpen} />
+          <ListaDePlanes events={proximaSemana} kids={kids} members={members} onOpen={onOpen} />
         </HomeSection>
       )}
     </>

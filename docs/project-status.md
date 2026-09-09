@@ -20,12 +20,15 @@ que todavía no existen (ver "Siguiente paso recomendado").
 
 ### Pantallas / producto
 
-- Inicio / Hoy, con lo que viene en **dos cajas** —"Próximos días" (mañana y pasado
-  mañana, en el amarillo de la sección) y "Resto de semana" (en gris), partidas por
-  `partirPlanesProximos` el 08-09-2026: en una sola lista, lo de mañana y lo del sábado
-  se leían con el mismo peso pese a no pedir lo mismo. Son los siete días siguientes y no
-  la semana natural, y por eso ya no se llaman "Esta semana" (05-09-2026)— y lo que va
-  atrasado arrastrado al día de hoy. La tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera
+- Inicio / Hoy, con lo que viene en **tres cajas** —"Mañana" (en el amarillo de la
+  sección, y sin repetir la palabra en cada fila: ahí solo va la hora), "Próximos días"
+  (lo que queda de esta semana, en salmón) y "Próxima semana" (en gris)—, partidas por
+  `partirPlanesProximos`. Fueron dos cajas del 08 al 09-09-2026, con mañana y pasado
+  juntos; mañana se separó porque es la pregunta que se hace de verdad al acostarse. El
+  segundo corte es el **domingo** y no "dentro de tres días": en casa se habla de esta
+  semana y la que viene, así que un sábado la caja del medio no se pinta y el lunes sale
+  ya en "próxima semana". El horizonte siguen siendo siete días. Y lo que va atrasado,
+  arrastrado al día de hoy. La tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera
   y ya no, para no decir la hora dos veces en la misma pantalla— y dentro lleva
   cumpleaños, planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a
   "¿qué toca hoy?" en un sitio, en vez del menú suelto al final de la columna. **Los
@@ -278,6 +281,27 @@ que todavía no existen (ver "Siguiente paso recomendado").
 - **Una semana de Comidas vacía ya no son 35 «Añadir» iguales** (09-09-2026): solo el día de
   hoy lo enseña y el resto aparece al pasar por encima. Solo en `lg:`, que es donde vive la
   rejilla.
+- **Un hueco vacío ya no explica la pantalla** (09-09-2026). Los `EmptyState` eran doce
+  párrafos de manual repartidos por la app —"Apunta lo que hay que hacer en casa: llamar
+  al fontanero, renovar el DNI, sacar la basura los martes"—, leídos una vez y estorbando
+  siempre. Queda el emoji y el título. La `description` sobrevive **solo para decir qué se
+  ha buscado** ("Ninguna tarea pendiente con «pan»"), que informa en vez de explicar; donde
+  el motivo del vacío era información y no manual, se subió al título (las tres ramas de
+  "Sin partidas" en Finanzas: no es lo mismo un mes al que no se le puso ninguna que uno
+  del que no se guardó el plan). La ayuda, cuando la haya, irá en su propia sección. De
+  paso, Documentos y el "Sin menú para hoy" de Comidas dejaron de escribir su vacío a mano
+  y usan el componente.
+- **El `+` de Comidas es el mismo que el de las demás** (09-09-2026): era el único botón de
+  alta de la app con la palabra escrita al lado (`＋ Añadir`), y solo en escritorio, porque
+  esa cabecera lleva el paso de semana y no puede usar `ViewHeader` entero. El botón sí es
+  el de `ViewHeader`.
+- **La tarjeta de un documento dice la categoría con el icono y ya** (09-09-2026): era una
+  píldora gris con el nombre escrito, y en una fila donde ya compiten la caducidad, el
+  tamaño y la fecha se llevaba el ancho para repetir la palabra por la que muchas veces se
+  acaba de filtrar. Es lo que hacen la tarjeta de una nota y la de una lista con su emoji;
+  el nombre sigue ahí para el lector de pantalla y al pasar el ratón. Y de quién es va con
+  **la etiqueta de toda la app** —el color de la persona de fondo y el nombre en tinta—,
+  que era la última que quedaba en color macizo con el texto calculado encima.
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
   y cerrar una familia entera (un admin, y nunca la última que le queda).
@@ -288,12 +312,16 @@ que todavía no existen (ver "Siguiente paso recomendado").
   por eso no son pastillas—, Ajustes y cerrar sesión, y deja la cabecera sin ningún icono.
   Qué secciones caen ahí lo dice la bandera `enMas` de `secciones.ts`, que leen las dos
   barras: era un filtro escrito a mano y con dos secciones ya podía contradecirse.
-  Ajustes abre en Familia; elegir pestaña es cosa de las pestañas — y las cinco se ven a
-  la vez desde el 02-09-2026, que envuelven en vez de arrastrarse. Ese mismo día las
-  pestañas se pusieron de pie en escritorio: columna de secciones con icono a la
-  izquierda —pegada, para que sigan a la vista— y contenido a la derecha hasta
-  `lg:max-w-5xl`. En móvil no cambia la colocación, solo el aspecto: la activa se marca
-  con el verde clarito de `SideNav` y las demás son texto, no cinco pastillas blancas. Cambiar contraseña
+  **En móvil, Ajustes es un índice** (09-09-2026): `/settings` abre una lista de filas
+  con icono y chevrón —Familia, Casa, Cuenta, Sincronización, Legal— y cada una entra en
+  su sección, con un "‹ Ajustes" para volver. Son enlaces de verdad, así que el botón de
+  atrás del teléfono también vuelve. Antes eran cinco pastillas de texto que a 390 px se
+  partían en dos filas con el borde derecho a jirones, y obligaban a elegir sección antes
+  de saber qué había en cada una. En escritorio no cambia nada: siguen siendo pestañas de
+  pie desde el 02-09-2026 —columna de secciones con icono a la izquierda, pegada para que
+  sigan a la vista, y contenido a la derecha hasta `lg:max-w-5xl`—, la activa marcada con
+  el verde clarito de `SideNav` y las demás en texto. Sin `?seccion=`, escritorio abre
+  Familia y móvil el índice: la diferencia la hace `esSeccionConocida`. Cambiar contraseña
   (`AccountActions.tsx`) y borrar cuenta siguen dentro de Ajustes. **Cerrar sesión
   deja en la portada** (02-09-2026), no en el login: quien sale de casa no está
   intentando entrar, y al login se llega desde un correo, no al terminar.
@@ -519,13 +547,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **661 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **663 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 498 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 09-09-2026 (los últimos, la traducción de los errores de Supabase y el texto con el que una lista sale a un chat) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 163 de navegador. La cifra sale de la pasada completa del 09-09-2026 (661 en total,
-    498 unitarios; los diez últimos, el listón de 44 px en cada ruta; el último, los atajos «Hoy» y «Mañana» de la fecha de una tarea: que
+  - 500 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 09-09-2026 (los últimos, el reparto de lo que viene en Inicio: que mañana va sola, que el segundo corte es el domingo y que un domingo el lunes sigue siendo mañana) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 163 de navegador. La cifra sale de la pasada completa del 09-09-2026 (663 en total,
+    500 unitarios; los diez últimos, el listón de 44 px en cada ruta; el último, los atajos «Hoy» y «Mañana» de la fecha de una tarea: que
     ponen la fecha, que la quitan al segundo toque y que la tarea sale con su «Hoy»):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes, tamaño mínimo de los controles y que ningún sheet cerrado asome por abajo) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - **El contraste está medido y cumple AA, con dos excepciones escritas** (09-09-2026).

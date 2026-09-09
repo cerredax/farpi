@@ -1,3 +1,4 @@
+import { endOfWeek } from 'date-fns'
 import { extractDate } from './date-utils'
 import type { Event, EventKind, FamilyMember } from '@/types'
 
@@ -335,30 +336,42 @@ export function siguientePlan(events: Event[], ahora: Date): Event | null {
 }
 
 /**
- * Parte los planes que vienen en dos: lo inmediato —mañana y pasado mañana— y
- * el resto de la semana.
+ * Parte los planes que vienen en tres: **mañana**, el resto de **esta semana** y
+ * lo que ya cae en **la que viene**.
  *
  * Inicio los enseñaba en un solo bloque de siete días, y ahí "Mañana a las
  * nueve" y "Sáb 12" se leían con el mismo peso: hay que preparar lo primero y
- * solo saber lo segundo. Dos días es el corte porque es lo que se prepara la
- * noche de antes; a partir del tercero la respuesta útil ya no es "prepara
- * esto" sino "esta semana hay esto".
+ * solo saber lo segundo. El primer corte fue de dos días —mañana y pasado
+ * juntos—, y seguía escondiendo la pregunta que más se hace después de "¿qué hay
+ * hoy?": mañana tiene caja propia desde el 09-09-2026, como ya la tenía en la
+ * agenda del calendario (`tramoDeAgenda`).
  *
- * El límite se calcula por día natural, no por horas: un plan de pasado mañana
- * a las 21:00 es de pasado mañana aunque falten más de 48 horas.
+ * El segundo corte es el **domingo**, no "dentro de tres días": en casa se habla
+ * de esta semana y la que viene, no de distancias. Por eso un sábado la caja del
+ * medio se queda vacía y el lunes sale ya en "próxima semana", que es justo lo
+ * que se quería decir.
+ *
+ * Todo se calcula por día natural, no por horas: un plan de mañana a las 23:00 es
+ * de mañana aunque falten casi dos días.
  */
 export function partirPlanesProximos(
   events: Event[],
   hoy: Date = new Date(),
-): { proximos: Event[]; resto: Event[] } {
-  // Con el constructor de tres partes, para que el 30 de un mes más dos días
-  // caiga en el siguiente sin hacer cuentas con milisegundos.
-  const limite = localDay(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 2))
+): { manana: Event[]; proximos: Event[]; proximaSemana: Event[] } {
+  // Con el constructor de tres partes, para que el 30 de un mes más un día caiga
+  // en el siguiente sin hacer cuentas con milisegundos.
+  const diaManana = localDay(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1))
+  const finDeSemana = localDay(endOfWeek(hoy, { weekStartsOn: 1 }))
+  const manana: Event[] = []
   const proximos: Event[] = []
-  const resto: Event[] = []
+  const proximaSemana: Event[] = []
   for (const event of events) {
-    if (extractDate(event.start_at) <= limite) proximos.push(event)
-    else resto.push(event)
+    const dia = extractDate(event.start_at)
+    // Mañana manda sobre el calendario: un domingo, el lunes es mañana antes que
+    // ser la semana que viene.
+    if (dia <= diaManana) manana.push(event)
+    else if (dia <= finDeSemana) proximos.push(event)
+    else proximaSemana.push(event)
   }
-  return { proximos, resto }
+  return { manana, proximos, proximaSemana }
 }

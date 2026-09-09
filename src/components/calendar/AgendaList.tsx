@@ -446,10 +446,14 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
           onClick={() => onAdd(rangeStart)}
           className={`w-full text-left transition-colors hover:border-primary-strong ${TARJETA}`}
         >
+          {/* La invitación no va de descripción sino de acción: la tarjeta
+              entera es un botón y sin nada que lo diga se lee como un hueco.
+              Es lo único que se salva de los textos explicativos que se fueron
+              el 09-09-2026, y se salva porque no explica, llama. */}
           <EmptyState
             emoji="✨"
             title="Sin planes"
-            description="Toca para apuntar algo"
+            action={<span className="text-sm font-semibold text-primary-strong">Apuntar algo</span>}
           />
         </button>
       ) : eje === 'persona' ? (

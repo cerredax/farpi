@@ -45,9 +45,7 @@ export function NotesView() {
         <EmptyState
           emoji="📝"
           title={s.busqueda.trim() ? 'Ninguna nota coincide' : 'Sin notas'}
-          description={s.busqueda.trim()
-            ? `Ninguna coincide con «${s.busqueda.trim()}»`
-            : 'Apunta lo que hay que tener a mano: teléfonos, la clave del wifi, dónde está cada cosa.'}
+          description={s.busqueda.trim() ? `Ninguna coincide con «${s.busqueda.trim()}»` : undefined}
         />
       ) : (
         /* `items-start` para que una nota corta no se estire hasta el alto de la

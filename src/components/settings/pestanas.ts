@@ -38,6 +38,17 @@ export const PESTAÑAS_VISIBLES = IS_DEMO_MODE
   ? PESTAÑAS.filter(p => p.key !== 'sincronizacion')
   : PESTAÑAS
 
+/**
+ * Si la URL nombra una sección de verdad.
+ *
+ * No es lo mismo que `pestañaDesdeUrl`, que siempre devuelve una: en móvil,
+ * `/settings` a secas **no es Familia**, es el índice de las cinco secciones, y
+ * esta es la pregunta que lo distingue.
+ */
+export function esSeccionConocida(seccion: string | null | undefined): boolean {
+  return PESTAÑAS_VISIBLES.some(p => p.key === seccion)
+}
+
 /** La sección que pide la URL (`/settings?seccion=casa`), o Familia si no dice nada. */
 export function pestañaDesdeUrl(seccion: string | null | undefined): PestañaKey {
   const encontrada = PESTAÑAS_VISIBLES.find(p => p.key === seccion)

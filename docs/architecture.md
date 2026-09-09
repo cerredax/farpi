@@ -2433,6 +2433,10 @@ señal —«dónde estás»— y no dos cosas distintas.
 
 ### Lo que viene se parte en dos, y el enlace del pie se lee (08-09-2026)
 
+> El reparto de las cajas lo revisó al día siguiente «Mañana tiene caja propia»,
+> aquí abajo: hoy son tres y el segundo corte es el domingo. El porqué de partirlo
+> —que es lo que sigue valiendo— se cuenta aquí.
+
 **«Próximos días» pasa a ser dos cajas: «Próximos días» y «Resto de semana».** El bloque
 son los siete días siguientes (`selectUpcomingEvents`), y en una sola lista «Mañana a las
 nueve» y «Sáb 12» se leían con el mismo peso pese a no pedir lo mismo: lo de mañana se
@@ -2563,6 +2567,99 @@ Queda pendiente el mismo repaso en los avisos de validación de los sheets (`tex
 10 y 11 px), en la variante `danger` de `Button` y en el botón rojo del diálogo de poner un
 mes a cero, que son la misma clase de defecto en sitios que este trabajo no tocaba.
 
+### Mañana tiene caja propia, y la semana se corta en domingo (09-09-2026)
+
+Lo que viene en Inicio pasa de dos cajas a **tres**: «Mañana», «Próximos días» y «Próxima
+semana». La razón de partirlo sigue siendo la de la sección de arriba; lo que cambia es
+dónde.
+
+**El primer corte es mañana.** Con mañana y pasado en la misma caja, la pregunta que se
+hace de verdad al acostarse —«¿qué hay mañana?»— seguía teniendo que leerse dentro de una
+lista de dos días. Y en esa caja las filas **se callan el día**: escribir «Mañana» delante
+de cada línea de una caja titulada «Mañana» es decir lo mismo dos veces y gastar el ancho
+que necesita la hora, que ahí es lo único que cambia de una fila a otra.
+
+**El segundo corte es el domingo, no «dentro de tres días».** En casa se habla de esta
+semana y la que viene, no de distancias en días. La consecuencia es deliberada: un sábado
+la caja del medio no se pinta y el lunes sale ya en «próxima semana», que es justo lo que
+se quería decir. Y **mañana manda sobre el calendario**: un domingo, el lunes va en
+«Mañana» y no en «Próxima semana», porque nadie llama «la semana que viene» a mañana.
+
+El horizonte no cambia: siguen siendo los siete días de `selectUpcomingEvents`. El color va
+de cerca a lejos —el amarillo de la sección, el salmón y el gris—, todos tokens que ya
+existían, y no dice de quién es el plan: eso lo sigue diciendo el punto de cada fila.
+
+### Un hueco vacío no explica la pantalla (09-09-2026)
+
+Los `EmptyState` habían acabado siendo el manual de la app: doce párrafos repartidos por
+las pantallas explicando para qué sirve cada una («Apunta lo que hay que hacer en casa:
+llamar al fontanero, renovar el DNI, sacar la basura los martes»). Se leen una vez, en el
+estreno, y estorban el resto de la vida de la app — que es casi toda, porque una casa en
+marcha ve esos huecos cuando acaba de vaciar una lista, no cuando la estrena.
+
+Queda **el emoji y el título**. La `description` sobrevive con un único uso: decir qué se
+ha buscado («Ninguna tarea pendiente con «pan»»), que no explica nada, informa. Y donde el
+motivo del vacío **sí** era información se subió al título en vez de perderlo: las tres
+ramas de «Sin partidas» en Finanzas no dicen lo mismo —un mes al que no se le puso ninguna
+y otro del que no se guardó el plan son huecos distintos—, y «Sin partidas» a secas
+afirmaría algo que no consta.
+
+Una excepción, y es de forma: el vacío de la agenda de 45 días conserva su llamada
+(«Apuntar algo»), pero como `action` y no como descripción. Esa tarjeta entera es un botón,
+y sin nada escrito dentro se lee como un agujero.
+
+Esto **no** deroga «Un vacío dice cuál de los tres vacíos es» (05-09-2026): la distinción
+entre «no queda nada por hacer» y «aquí no ha habido nunca nada» sigue en pie, solo que
+ahora la lleva entera el título. Lo que se va es el manual. La ayuda, cuando la haya, irá
+en su propia sección, que es donde se busca y donde no estorba.
+
+### En el móvil, Ajustes es un índice (09-09-2026)
+
+Ajustes tiene cinco secciones y en escritorio son pestañas de pie (02-09-2026). En móvil
+eran esas mismas pestañas en horizontal: cinco pastillas de texto que a 390 px se partían
+en dos filas y dejaban el borde derecho a jirones, y que obligaban a elegir sección antes
+de saber qué hay dentro de cada una.
+
+En móvil dejan de ser pestañas. `/settings` abre un **índice**: cinco filas con icono y
+chevrón, la misma fila que `MoreMenu`, que es de donde se llega — entrar en Ajustes no
+cambia de forma a mitad de camino. Cada una entra en su sección y arriba queda un
+«‹ Ajustes» para volver. Son **enlaces de verdad** a `?seccion=…`, así que entran en el
+historial y el botón de atrás del teléfono vuelve al índice.
+
+Es una excepción consciente a la regla de no esconder contenido, la misma que ya se hizo al
+poner pestañas: no es «lo que se viene a buscar» escondido dentro de un bloque que ya se
+está mirando, son cinco sitios distintos con cinco propósitos distintos, y el índice los
+nombra todos a la vez antes de entrar en ninguno.
+
+En escritorio no cambia nada. La diferencia la hace `esSeccionConocida`: sin `?seccion=`,
+escritorio abre Familia —una columna de secciones al lado de un panel vacío no diría nada—
+y móvil abre el índice. El `role="tablist"` sigue existiendo **una sola vez**, en la
+columna de escritorio; el índice es un `<nav>` de enlaces, así que no hay dos juegos de
+`id` peleándose los mismos `aria-controls`.
+
+### El botón de alta es el mismo círculo en todas partes (09-09-2026)
+
+`ViewHeader` puso el `+` arriba en las seis pantallas de contenido, pero la cabecera de
+Comidas en escritorio no puede usarlo entero: lleva además el paso de semana. Su botón se
+había escrito a mano y había derivado a una pastilla verde con la palabra al lado
+(`＋ Añadir`) — el único botón de alta de la app con texto. Ahora es el mismo círculo de
+44 px, con `aria-label` en vez de rótulo. La regla: cuando una pantalla no pueda usar
+`ViewHeader`, que use su botón.
+
+### En la ficha de un papel, la categoría es su icono (09-09-2026)
+
+La tarjeta de un documento decía la categoría con una píldora gris de icono + nombre, en
+una fila donde ya compiten la caducidad, el tamaño y la fecha. Se llevaba el ancho para
+repetir, muchas veces, la palabra por la que se acababa de filtrar tres centímetros más
+arriba. Ahora es **solo el icono, en color**, con el nombre en `aria-label` y en el `title`
+para quien no lo vea o pase el ratón. Es lo mismo que hacen la tarjeta de una nota y la de
+una lista con su emoji: la imagen dice de qué va y no gasta línea.
+
+Y de quién es el documento pasa a `.etiqueta-persona` + `fondoDePersona`, la etiqueta de
+toda la app. Era la última que quedaba en color macizo con el texto calculado encima, de
+cuando la paleta de hijos era más oscura; hoy esos colores están en L* 71-88 justamente
+para llevar tinta.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro
@@ -2571,6 +2668,10 @@ de una herramienta de trabajo. Al escribir textos nuevos:
 - **Vosotros, no el usuario.** "Ya tenéis leche", "no lo habíais apuntado nunca".
 - **Los vacíos dicen qué pasa, no que no hay datos.** "Sin planes", "No falta nada",
   "Sin menú para hoy" — nunca "No se han encontrado elementos".
+- **Y no explican la pantalla** (09-09-2026). Un hueco vacío se cuenta con dos palabras o
+  no se cuenta: nada de "Apunta lo que hay que hacer en casa: llamar al fontanero…". Lo
+  único que va debajo del título es qué se ha buscado. El porqué, en "Un hueco vacío no
+  explica la pantalla".
 - **Las etiquetas dicen lo que hace el toque**, con el nombre de la cosa dentro:
   "Apuntar que hace falta Leche", "Ya tenéis Leche, quitar de lo que falta". No
   "marcar como hecho".
@@ -2589,7 +2690,7 @@ de una herramienta de trabajo. Al escribir textos nuevos:
 - Frases cortas y sin signos de admiración. Ya no hay excepciones: la última era
   «Lista vacía. ¡Añade el primer ítem!» (`ListDetailView.tsx`), que se quedó de antes y
   desafinaba; el 24-08-2026 pasó a «Esta lista está vacía / Apunta lo primero que haga
-  falta».
+  falta», y el 09-09-2026 a «Esta lista está vacía» a secas.
 
 ## Decisiones técnicas
 

@@ -177,7 +177,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
             <button
               type="button"
               onClick={onEdit}
-              className="mt-1 min-h-6 px-1 py-1 text-[13px] font-semibold text-primary-strong"
+              className="mt-1 min-h-11 px-1 text-[13px] font-semibold text-primary-strong"
             >
               Editar partida
             </button>

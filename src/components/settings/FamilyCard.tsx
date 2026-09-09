@@ -25,7 +25,12 @@ export function FamilyCard({ family, onEdit }: FamilyCardProps) {
       <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint">
         <Home size={22} className="text-primary-strong" strokeWidth={1.8} />
       </div>
-      <p className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
+      {/* `title` además del recorte: "Familia de Carlos, María y…" no se podía
+          leer entera desde ninguna parte —la única forma era abrir el sheet de
+          editar, que desde el 09-09-2026 solo abre un administrador—. Con esto
+          basta el ratón encima, y un lector de pantalla lee el nombre completo
+          igualmente porque el texto está en el DOM. */}
+      <p title={family.name} className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
       {onEdit && (
         <button
           onClick={onEdit}

@@ -54,10 +54,16 @@ export function DeleteButton({ confirming = false, onClick, idleLabel, confirmLa
 
   /**
    * En una fila el borrado no puede ocupar sitio hasta que hace falta: en reposo
-   * es la papelera de 28 px de siempre, y al pedir confirmación crece hasta
-   * llevar la palabra dentro, en rojo relleno. Que **cambie de forma** es lo que
-   * avisa de que el siguiente toque va en serio; un icono que se pone rojo sin
-   * moverse se confunde con el estado normal de una papelera.
+   * es una papelera sola, y al pedir confirmación crece hasta llevar la palabra
+   * dentro, en rojo relleno. Que **cambie de forma** es lo que avisa de que el
+   * siguiente toque va en serio; un icono que se pone rojo sin moverse se
+   * confunde con el estado normal de una papelera.
+   *
+   * Mide **44 px** desde el 09-09-2026, y pudo porque la fila de una lista dejó
+   * de llevarla: era la única que la tenía pegada a otros tres botones de 28, y
+   * allí no había ancho que darle. En una tarea está sola en su columna, así que
+   * cabe entera y ya no hace falta el `area-de-toque` que le ampliaba el alto
+   * con un pseudoelemento.
    */
   if (variant === 'inline') {
     return (
@@ -65,8 +71,8 @@ export function DeleteButton({ confirming = false, onClick, idleLabel, confirmLa
         type="button"
         onClick={onClick}
         aria-label={confirming ? confirmAriaLabel ?? confirmLabel : ariaLabel ?? idleLabel}
-        className={`area-de-toque flex h-7 flex-shrink-0 items-center justify-center gap-1 rounded-full text-xs font-bold transition-colors ${
-          confirming ? 'bg-danger-strong px-2 text-white' : 'w-7 text-muted hover:bg-danger-soft hover:text-danger-strong'
+        className={`flex h-11 flex-shrink-0 items-center justify-center gap-1 rounded-full text-xs font-bold transition-colors ${
+          confirming ? 'bg-danger-strong px-3 text-white' : 'w-11 text-muted hover:bg-danger-soft hover:text-danger-strong'
         }`}
       >
         <Trash2 size={14} />

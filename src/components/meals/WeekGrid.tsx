@@ -152,8 +152,25 @@ export function WeekGrid({
                         className="group flex h-full w-full items-center justify-center p-2"
                         aria-label={`Añadir ${slot.label.toLowerCase()} para ${format(day, 'd MMM', { locale: es })}`}
                       >
-                        <div className="flex w-full items-center justify-center rounded-2xl border border-dashed border-line-strong text-muted transition-colors group-hover:border-primary-strong group-hover:bg-primary-tint group-hover:text-primary-strong" style={{ minHeight: cellMinHeight - 32 }}>
-                          <div className="flex flex-col items-center gap-1">
+                        {/* **Solo el día de hoy enseña el «Añadir»**; los otros
+                            seis dejan la celda en blanco hasta que el ratón pasa
+                            por encima. Una semana vacía pintaba **35 llamadas a
+                            la acción idénticas**, que son cero llamadas a la
+                            acción: ninguna dice por dónde empezar y entre todas
+                            tapan la rejilla, que es lo que se viene a leer. La
+                            celda sigue siendo un botón entero y con su nombre,
+                            así que no se pierde nada; solo deja de gritar.
+
+                            Esto es de `lg:` para arriba y solo ahí: por debajo
+                            manda `WeekList`, que es una lista y no una rejilla,
+                            y donde no hay ratón que pase por encima. */}
+                        <div
+                          className={`flex w-full items-center justify-center rounded-2xl border border-dashed text-muted transition-colors group-hover:border-primary-strong group-hover:bg-primary-tint group-hover:text-primary-strong group-focus-visible:border-primary-strong group-focus-visible:text-primary-strong ${
+                            todayColumn ? 'border-line-strong' : 'border-transparent group-hover:border-primary-strong'
+                          }`}
+                          style={{ minHeight: cellMinHeight - 32 }}
+                        >
+                          <div className={`flex flex-col items-center gap-1 transition-opacity ${todayColumn ? '' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'}`}>
                             <Plus size={14} strokeWidth={2.5} />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Añadir</span>
                           </div>

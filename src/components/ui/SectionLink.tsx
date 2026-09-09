@@ -3,8 +3,12 @@ import { ChevronRight } from 'lucide-react'
 
 /**
  * El enlace del pie de una sección de Inicio: "Ver calendario", "Ver todas las
- * tareas". Los márgenes negativos con relleno son para que el objetivo táctil
- * llegue al mínimo sin que el texto se despegue del borde de la tarjeta.
+ * tareas".
+ *
+ * Mide **44 px de alto** (`min-h-11`) y el pie de `HomeSection` se ha quedado
+ * sin relleno vertical para dárselos: sumando los dos, cada tarjeta de Inicio
+ * habría crecido 16 px, y son seis en la misma pantalla. El margen negativo a
+ * los lados es para que el texto no se despegue del borde de la tarjeta.
  *
  * Vive aquí porque estaba escrito cinco veces con las mismas clases y una de
  * las cinco se había quedado atrás en el color (`text-primary-strong` en vez de
@@ -26,7 +30,7 @@ export function SectionLink({ href, children }: { href: string; children: React.
   return (
     <Link
       href={href}
-      className="group inline-flex items-center gap-0.5 -mx-1 rounded-lg px-1 py-1.5 text-xs font-semibold text-primary-strong"
+      className="group inline-flex min-h-11 items-center gap-0.5 -mx-1 rounded-lg px-1 text-xs font-semibold text-primary-strong"
     >
       <span className="group-hover:underline">{children}</span>
       <ChevronRight size={14} strokeWidth={2.6} aria-hidden />

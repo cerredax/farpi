@@ -260,6 +260,24 @@ que todavía no existen (ver "Siguiente paso recomendado").
   `family_invites` y las tres RPC de miembros— y a quien no lo es no se le enseñan, con una
   línea que dice por qué. Tu nombre y tu color siguen siendo tuyos. **En duda se enseña**:
   solo se cierra cuando consta que eres `member`.
+- **Guardar confirma** (09-09-2026): donde antes solo se decía «Guardando…», ahora se dice
+  también «Guardado» durante segundo y medio. Sale de ver `isSaving` apagarse sin error, así
+  que no hay que tocar ninguna de las cuarenta escrituras. Manda el error si lo hay, y el
+  «Hecho · Deshacer» si la acción trae el suyo.
+- **La fila de una lista se queda con lo que se hace en el súper** (09-09-2026): marcar y
+  las unidades. Mover y borrar están en el sheet, que se abre tocando el nombre. Eran
+  cuatro botones de 28 px a 2 px unos de otros en el borde por donde pasa el pulgar.
+- **Lo que falta se manda a un chat** (09-09-2026): el detalle de una lista lleva un botón
+  de compartir —solo si el navegador sabe y solo si falta algo— que abre el diálogo del
+  sistema con la lista escrita (`listaParaCompartir`). Va **solo lo pendiente**, no el
+  catálogo: es el encargo, no el inventario. La mitad de las veces quien va al súper no
+  tiene cuenta.
+- **Documentos enseña cuatro categorías y un «+N más»** (09-09-2026): con ocho, la tira
+  envolvía en tres filas y se comía 230 px antes del primer papel. La que está puesta se
+  enseña siempre, aunque caiga fuera de las cuatro.
+- **Una semana de Comidas vacía ya no son 35 «Añadir» iguales** (09-09-2026): solo el día de
+  hoy lo enseña y el resto aparece al pasar por encima. Solo en `lg:`, que es donde vive la
+  rejilla.
 - Deshacer una tarea marcada sin querer, desde el aviso de la barra de estado.
 - Ajustes de familia: miembros, invitaciones, hijos, cambio de rol admin/miembro,
   y cerrar una familia entera (un admin, y nunca la última que le queda).
@@ -501,13 +519,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **647 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **661 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 494 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 09-09-2026 (los diez últimos, la traducción de los errores de Supabase) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 153 de navegador. La cifra sale de la pasada completa del 09-09-2026 (647 en total,
-    494 unitarios; el último, los atajos «Hoy» y «Mañana» de la fecha de una tarea: que
+  - 498 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 09-09-2026 (los últimos, la traducción de los errores de Supabase y el texto con el que una lista sale a un chat) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 163 de navegador. La cifra sale de la pasada completa del 09-09-2026 (661 en total,
+    498 unitarios; los diez últimos, el listón de 44 px en cada ruta; el último, los atajos «Hoy» y «Mañana» de la fecha de una tarea: que
     ponen la fecha, que la quitan al segundo toque y que la tarea sale con su «Hoy»):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes, tamaño mínimo de los controles y que ningún sheet cerrado asome por abajo) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - **El contraste está medido y cumple AA, con dos excepciones escritas** (09-09-2026).
@@ -532,11 +550,23 @@ que todavía no existen (ver "Siguiente paso recomendado").
 - **Foco de teclado propio** (09-09-2026): `:focus-visible` global en `globals.css`, en
   `primary-strong` y con 2 px de separación. Antes era el anillo que pusiera cada
   navegador.
-- **Los iconos de 28 px de las filas tienen 44 px de alto de área de toque**
-  (`.area-de-toque`, 09-09-2026), con un pseudoelemento que no ocupa sitio en la maqueta.
-  **Solo a lo alto**: en una fila de la compra hay tres a 2 px unos de otros y ensanchando
-  se pisarían. El mínimo de 24 px de la WCAG 2.5.8 ya se cumplía y lo sigue vigilando
-  `e2e/movil.spec.ts`.
+- **Ningún control baja de 44×44 px** (09-09-2026), que es lo que recomiendan Apple y
+  Material y lo que mide un dedo. Lo vigila un segundo bucle de `e2e/movil.spec.ts`,
+  aparte del de 24 px de la WCAG 2.5.8, que sigue siendo el suelo duro. Pasaron por ahí
+  las pestañas de Ajustes y Finanzas, los chips de Documentos, las flechas de mes, los
+  desplegables de la cuenta del mes, los campos de formulario, el enlace del pie de cada
+  sección de Inicio, las seis pastillas de la barra de abajo y la papelera de una tarea.
+  Una sola excepción, la que recoge la propia 2.5.8: un enlace `display: inline` dentro
+  de una frase —el correo de la carta de la portada—, que no se agranda sin romper el
+  renglón. Queda `.area-de-toque` en globals.css para los iconos que no pueden crecer a
+  lo ancho; hoy no lo usa nadie de forma crítica.
+- **Los sheets atrapan el foco y lo devuelven** (`BottomSheet`, 09-09-2026): el panel dice
+  `aria-modal` pero el `Tab` se escapaba a la pantalla de detrás, y al cerrar el foco se
+  iba al `body` en vez de al botón desde el que se entró.
+- **Las dos regiones que avisan están siempre en el DOM** (`SaveStatus`, 09-09-2026), una
+  `polite` y otra `assertive`, y **son los mismos nodos que se ven**: una región viva
+  insertada de golpe no se anuncia de forma fiable, y dos nodos con el mismo texto lo
+  dirían dos veces.
 - **Los errores de escritura se cuentan en castellano** (09-09-2026): `src/lib/errores.ts`,
   aplicado en `assertNoError`, que es por donde entra el único mensaje crudo de Postgres
   que hay. Las excepciones de las RPC ya vienen en castellano y pasan tal cual; las guardas

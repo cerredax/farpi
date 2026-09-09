@@ -123,7 +123,7 @@ export function AjusteDelMesSheet({
           <button
             type="button"
             onClick={onEditarFijo}
-            className="flex min-h-6 w-full items-center justify-center gap-1 py-2 text-[13px] font-semibold text-primary-strong"
+            className="flex min-h-11 w-full items-center justify-center gap-1 text-[13px] font-semibold text-primary-strong"
           >
             Cambiar cuánto es cada mes
             <ArrowRight size={14} strokeWidth={2.6} aria-hidden />

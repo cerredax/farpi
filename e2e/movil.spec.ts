@@ -78,6 +78,12 @@ for (const ruta of RUTAS) {
           // Los que no se ven (sheets cerrados, menús plegados) no cuentan.
           if (r.width === 0 || r.height === 0) return false
           if (el.closest('[inert]')) return false
+          // La excepción "inline" que la propia 2.5.8 recoge: un enlace metido
+          // en una frase mide lo que mide el renglón, y agrandarlo rompería el
+          // texto que lo rodea. En Farpi es uno: el correo de la carta de la
+          // portada. No es una rendija abierta a los controles de la app, que
+          // ninguno es `display: inline`.
+          if (getComputedStyle(el).display === 'inline') return false
           return r.width < minimo || r.height < minimo
         })
         .slice(0, 8)
@@ -160,3 +166,50 @@ test('con el botón «Hoy» puesto, la cabecera del calendario sigue cabiendo a 
   await page.waitForTimeout(400)
   await expect(hoy).toHaveCount(0)
 })
+
+// ── El listón cómodo ──────────────────────────────────────────────────────────
+//
+// Los 24 px de arriba son el mínimo de la WCAG 2.5.8 y siguen siendo el suelo
+// duro. Esto es lo otro: **44 px**, que es lo que recomiendan Apple y Material y
+// lo que mide un dedo de verdad. La app entera llegó ahí el 09-09-2026 —pestañas
+// de 28, chips de 30, flechas de 36, los tres desplegables de 24 de Finanzas, la
+// papelera de una tarea, las seis pastillas de la barra de abajo— y esto es para
+// que no vuelva a bajar sin que nadie se entere.
+//
+// Va en su propio bucle y no dentro del de arriba a propósito: son dos
+// exigencias distintas —una es la norma y la otra es el criterio de la casa— y
+// mezclarlas haría que un control de 30 px fallase diciendo "mínimo 24".
+const MINIMO_COMODO = 44
+
+for (const ruta of RUTAS) {
+  test(`los controles llegan a ${MINIMO_COMODO}px en ${ruta}`, async ({ page }) => {
+    await page.goto(ruta)
+    await page.waitForTimeout(900)
+
+    const cortos = await page.evaluate(minimo => {
+      return [...document.querySelectorAll('button, a[href], input, select, textarea')]
+        .filter(el => {
+          const r = el.getBoundingClientRect()
+          if (r.width === 0 || r.height === 0) return false
+          if (el.closest('[inert]')) return false
+          // La excepción que la propia WCAG 2.5.8 llama "inline": un enlace
+          // dentro de una frase no se puede agrandar sin romper el renglón del
+          // texto que lo rodea. Son los de la portada —el correo dentro de la
+          // carta, Privacidad y Términos al pie—, no controles de la app.
+          if (getComputedStyle(el).display === 'inline') return false
+          // `area-de-toque` amplía el alto 8 px por arriba y por abajo con un
+          // pseudoelemento, que `getBoundingClientRect` no ve.
+          const extra = el.classList.contains('area-de-toque') ? 16 : 0
+          return r.width < minimo || r.height + extra < minimo
+        })
+        .slice(0, 8)
+        .map(el => {
+          const r = el.getBoundingClientRect()
+          const texto = el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 30) || el.tagName
+          return `${texto} (${Math.round(r.width)}×${Math.round(r.height)})`
+        })
+    }, MINIMO_COMODO)
+
+    expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px en ${ruta}`).toEqual([])
+  })
+}

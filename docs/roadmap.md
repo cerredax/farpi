@@ -28,9 +28,10 @@ que corre el resto de la suite): capturas de las nueve pantallas revisadas una a
 una, más comprobaciones automáticas que quedan fijas en `e2e/movil.spec.ts`.
 
 - ✅ Ninguna pantalla desborda a lo ancho.
-- ✅ Ningún control por debajo de 24×24 px (mínimo WCAG 2.5.8). Y desde el 09-09-2026 los
-  iconos de 28 px de las filas llegan a 44 px de alto de área de toque (`.area-de-toque`),
-  que es lo que recomiendan Apple y Material; a lo ancho no, y el porqué está en el token.
+- ✅ Ningún control por debajo de 24×24 px (mínimo WCAG 2.5.8).
+- ✅ **Y ninguno por debajo de 44×44** (09-09-2026), el criterio de la casa, con un
+  segundo bucle en `e2e/movil.spec.ts`. Una sola excepción, la de la propia norma: un
+  enlace `display: inline` dentro de una frase.
 - ✅ **Contraste AA medido en el navegador** (09-09-2026), nodo a nodo contra su fondo
   real en las diez rutas: de 83 avisos a 6, y los 6 son deliberados (los días fuera de mes
   y un separador `aria-hidden`). Las reglas de la paleta, en `project-status.md`.

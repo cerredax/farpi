@@ -1,24 +1,18 @@
-import { FolderInput, Minus, Plus } from 'lucide-react'
-import { MAX_UNIDADES, MS_CONFIRMAR_BORRADO } from '@/lib/constants'
-import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { Minus, Plus } from 'lucide-react'
+import { MAX_UNIDADES } from '@/lib/constants'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { CirclePlus } from '@/components/ui/CirclePlus'
-import { DeleteButton } from '@/components/ui/DeleteButton'
 import type { ListItem } from '@/types'
 
 interface ListItemRowProps {
   item: ListItem
-  /** Con una sola lista no hay a dónde mover: el botón sobra. */
-  puedeMover: boolean
   onToggle: () => void
   onQuantity: (quantity: number) => void
   onEdit: () => void
-  onMove: () => void
-  onDelete: () => void
 }
 
 /**
- * Una fila de la lista: marcar, renombrar, mover y borrar.
+ * Una fila de la lista: marcar, renombrar y las unidades.
  *
  * Lo marcado no se tacha ni desaparece: no es historial de lo hecho, es el
  * catálogo de lo que compráis, a un toque de volver a hacer falta. Lo que cambia
@@ -34,16 +28,19 @@ interface ListItemRowProps {
  * texto **es** el dato, y "Leche entera sin lac…" no sirve de nada. Con
  * `min-w-0` no puede empujar la fila a lo ancho por larga que sea.
  *
- * **Borrar pide confirmación**, como en los sheets. Aquí la papelera de 28 px va
- * pegada al `+` de las unidades, que es el botón que se pulsa a una mano en el
- * súper; un dedo desviado se llevaba el ítem sin avisar y sin manera de
- * recuperarlo. Se desarma sola a los `MS_CONFIRMAR_BORRADO`: la fila no se
- * cierra como un sheet, y una papelera armada para siempre es la misma trampa
- * por el otro lado.
+ * **En la fila solo está lo que se hace en el súper** (09-09-2026): marcar y las
+ * unidades. Mover y borrar se fueron al sheet, que se abre tocando el nombre.
+ *
+ * Eran cuatro objetivos en el borde derecho de cada fila —`−`, `+`, mover y la
+ * papelera— separados 2 px, todos de 28, y en una lista de veinte cosas eso son
+ * ochenta botones diminutos apilados justo por donde pasa el pulgar al bajar. El
+ * 95 % de las veces lo que se hace aquí es marcar. Los otros dos siguen a un
+ * toque de distancia y allí caben con su nombre escrito, que además dice qué
+ * hacen: una papelera no distingue "quitar de lo que falta" de "borrar el ítem",
+ * y las dos cosas estaban en la misma fila.
  */
-export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, onMove, onDelete }: ListItemRowProps) {
+export function ListItemRow({ item, onToggle, onQuantity, onEdit }: ListItemRowProps) {
   const enCatalogo = item.completed
-  const { confirming, requestConfirm } = useConfirmAction(MS_CONFIRMAR_BORRADO)
 
   return (
     <div className={`flex items-center gap-2 rounded-2xl border px-2 py-2 transition-colors ${
@@ -86,7 +83,7 @@ export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, on
               <button
                 onClick={() => onQuantity(item.quantity - 1)}
                 aria-label={`Quitar una unidad de ${item.text}`}
-                className="area-de-toque flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
               >
                 <Minus size={14} strokeWidth={2.6} />
               </button>
@@ -99,31 +96,12 @@ export function ListItemRow({ item, puedeMover, onToggle, onQuantity, onEdit, on
             onClick={() => onQuantity(item.quantity + 1)}
             disabled={item.quantity >= MAX_UNIDADES}
             aria-label={`Añadir una unidad de ${item.text}`}
-            className="area-de-toque flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-tint hover:text-primary-strong disabled:opacity-40"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-tint hover:text-primary-strong disabled:opacity-40"
           >
             <Plus size={14} strokeWidth={2.6} />
           </button>
         </div>
       )}
-
-      {puedeMover && (
-        <button
-          onClick={onMove}
-          aria-label={`Mover ${item.text} a otra lista`}
-          className="area-de-toque w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-primary-strong hover:bg-primary-tint flex-shrink-0 transition-colors"
-        >
-          <FolderInput size={14} />
-        </button>
-      )}
-      <DeleteButton
-        variant="inline"
-        confirming={confirming}
-        onClick={() => requestConfirm(onDelete)}
-        idleLabel="Eliminar"
-        confirmLabel="Borrar"
-        ariaLabel={`Eliminar ${item.text} de la lista`}
-        confirmAriaLabel={`Confirmar que se elimina ${item.text} de la lista`}
-      />
     </div>
   )
 }

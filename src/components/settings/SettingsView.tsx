@@ -250,7 +250,7 @@ export function SettingsView() {
               aria-selected={pestañaActiva === p.key}
               aria-controls={`panel-${p.key}`}
               onClick={() => irAPestaña(p.key)}
-              className={`inline-flex items-center rounded-xl px-3 py-1.5 text-xs font-bold transition-colors lg:flex lg:w-full lg:min-h-11 lg:gap-3 lg:py-2.5 lg:text-sm ${
+              className={`inline-flex min-h-11 items-center rounded-xl px-3 text-xs font-bold transition-colors lg:flex lg:w-full lg:gap-3 lg:text-sm ${
                 pestañaActiva === p.key
                   ? 'bg-primary-tint text-primary-strong'
                   : 'text-muted hover:bg-surface hover:text-ink'
@@ -430,7 +430,7 @@ export function SettingsView() {
                   <button
                     onClick={handleReset}
                     onBlur={() => setConfirmReset(false)}
-                    className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger-strong text-white' : 'border border-line text-muted hover:bg-surface'}`}
+                    className={`w-full min-h-11 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger-strong text-white' : 'border border-line text-muted hover:bg-surface'}`}
                   >
                     {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
                   </button>

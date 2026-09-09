@@ -40,7 +40,7 @@ function Cabecera({ titulo, total, etiquetaNuevo, onNuevo }: {
       <button
         type="button"
         onClick={onNuevo}
-        className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
+        className="-mr-2 flex min-h-11 items-center gap-1 px-2 text-xs font-bold text-primary-strong"
       >
         <Plus size={14} strokeWidth={2.6} aria-hidden />
         {etiquetaNuevo}

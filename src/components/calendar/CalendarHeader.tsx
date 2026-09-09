@@ -84,7 +84,7 @@ function SelectorDeVista({ vista, vistas, onVista }: {
         onClick={() => setAbierto(a => !a)}
         aria-haspopup="menu"
         aria-expanded={abierto}
-        className="flex h-10 items-center gap-1 rounded-2xl bg-surface px-3 text-sm font-bold text-ink transition-colors active:bg-line"
+        className="flex h-11 items-center gap-1 rounded-2xl bg-surface px-3 text-sm font-bold text-ink transition-colors active:bg-line"
       >
         {NOMBRES[vista]}
         <ChevronDown size={16} strokeWidth={2.5} className={`text-muted transition-transform ${abierto ? 'rotate-180' : ''}`} aria-hidden />
@@ -148,7 +148,7 @@ interface CalendarHeaderProps {
 
 export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev, onNext, onHoy, fueraDeHoy, onAdd }: CalendarHeaderProps) {
 
-  const FLECHA = 'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
+  const FLECHA = 'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
 
   const anterior = (
     <button type="button" onClick={onPrev} aria-label={`${unidad} anterior`} className={FLECHA}>
@@ -237,7 +237,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
           type="button"
           onClick={onAdd}
           aria-label="Apuntar algo"
-          className="ml-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-all hover:bg-primary-deep active:scale-95 lg:ml-2"
+          className="ml-1 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-all hover:bg-primary-deep active:scale-95 lg:ml-2"
         >
           <Plus size={20} strokeWidth={2.5} />
         </button>

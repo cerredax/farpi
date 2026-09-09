@@ -148,8 +148,18 @@ export function HomeView() {
           ocupa el ancho —es el titular de la pantalla— y debajo las secciones
           se reparten en dos columnas, para que "qué hay que saber hoy" entre de
           una vez sin bajar. La rejilla va en este mismo div y cada hijo dice si
-          ocupa una o dos, así que por debajo de `lg` el DOM no cambia. */}
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+          ocupa una o dos, así que por debajo de `lg` el DOM no cambia.
+
+          `[&>*:last-child:nth-child(even)]:col-span-2` cierra el hueco de la
+          derecha (09-09-2026). La tarjeta del día es el hijo 1 y ocupa la fila
+          entera, así que los pares caen en la columna izquierda: una sección
+          par **y** última es una que se queda sola con medio ancho de pantalla
+          en blanco al lado. Se estira y ya. Los impares no se tocan, que esos
+          tienen compañera a la derecha. Con las secciones que se pintan solas
+          cuando tienen algo, cuántas hay cambia cada día, así que la cuenta la
+          hace el CSS y no un `useMemo` que tendría que repetir aquí la regla de
+          vacío de cada una. */}
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lg:max-w-5xl lg:px-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start lg:[&>*:last-child:nth-child(even)]:col-span-2">
         <div className="relative overflow-hidden rounded-[2rem] border border-line bg-warm p-4 shadow-sm lg:col-span-2 lg:p-6">
           {ahora && <DayIllustration period={getDayPeriod(ahora)} />}
           <div className="relative space-y-3">

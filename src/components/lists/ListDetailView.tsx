@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Plus, ArrowLeft, ChevronDown, Pencil } from 'lucide-react'
+import { Plus, ArrowLeft, ChevronDown, Pencil, Share2 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { selectListItemGroups } from '@/lib/selectors'
-import { normalizaParaBuscar } from '@/lib/text'
+import { listaParaCompartir, normalizaParaBuscar } from '@/lib/text'
+import { useIsClient } from '@/hooks/useIsClient'
 import type { List, ListItem } from '@/types'
 import { ListItemRow } from './ListItemRow'
 
@@ -17,10 +18,6 @@ interface ListDetailViewProps {
   onOpenEdit: () => void
   onOpenAddItem: () => void
   onOpenEditItem: (item: ListItem) => void
-  onOpenMoveItem: (item: ListItem) => void
-  onDeleteItem: (id: string) => void
-  /** Con una sola lista no hay a dónde mover: el botón sobra. */
-  puedeMover: boolean
 }
 
 /**
@@ -48,9 +45,21 @@ function GrupoTitulo({ titulo, cuenta, accion }: { titulo: string; cuenta?: numb
 }
 
 export function ListDetailView({
-  list, items, onBack, onToggle, onQuantity, onOpenEdit, onOpenAddItem, onOpenEditItem, onOpenMoveItem, onDeleteItem, puedeMover,
+  list, items, onBack, onToggle, onQuantity, onOpenEdit, onOpenAddItem, onOpenEditItem,
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
+
+  /**
+   * Si el navegador sabe compartir. **Se pregunta en el cliente y por eso hay
+   * estado**: en el servidor no hay `navigator`, y pintar el botón siempre para
+   * que no haga nada en un portátil sería peor que no tenerlo.
+   *
+   * `navigator.share` está en los móviles, que es donde importa: quien va al
+   * súper sin cuenta —el abuelo, el amigo que pasa por allí— recibe la lista en
+   * su chat y no hay nada que instalar.
+   */
+  const enElNavegador = useIsClient()
+  const sePuedeCompartir = enElNavegador && typeof navigator !== 'undefined' && !!navigator.share
   // Una lista es lo que falta. Lo demás —lo de siempre, lo que ya tenéis— es el
   // catálogo del que se tira para apuntar, y **arranca abierto**: entrar en una
   // lista es casi siempre ir a apuntar de ahí, y plegado costaba un toque de más
@@ -67,6 +76,27 @@ export function ListDetailView({
     : items
 
   const { pending, completed } = selectListItemGroups(visibles)
+
+  /**
+   * Manda lo que falta al chat que elija quien pulsa.
+   *
+   * Se comparte **la lista entera y no lo que quede del filtro**: por eso sale de
+   * `items` y no de `visibles`. Buscar "leche" y mandar la lista con una sola
+   * cosa dentro sería mandar otra lista.
+   *
+   * Sin `catch` que avise: cancelar el diálogo del sistema **rechaza la promesa**
+   * igual que un fallo de verdad, así que un aviso de error saltaría cada vez que
+   * alguien se arrepiente. No hay nada que se haya quedado a medias.
+   */
+  async function compartir() {
+    const texto = listaParaCompartir(list.name, list.emoji, selectListItemGroups(items).pending)
+    if (!texto) return
+    try {
+      await navigator.share({ title: list.name, text: texto })
+    } catch {
+      // Cancelado, o el navegador no ha querido. No hay nada que contar.
+    }
+  }
 
   // Buscando se enseña todo: si lo único que coincide está en el catálogo,
   // esconderlo detrás del plegado sería contestar "no hay nada" a una búsqueda
@@ -85,14 +115,25 @@ export function ListDetailView({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        <button onClick={onBack} aria-label="Volver a las listas" className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors flex-shrink-0">
+        <button onClick={onBack} aria-label="Volver a las listas" className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors flex-shrink-0">
           <ArrowLeft size={18} />
         </button>
         <span className="text-xl">{list.emoji ?? '📋'}</span>
         <h1 className="flex-1 font-extrabold text-ink text-lg leading-tight truncate">{list.name}</h1>
+        {/* Mandar lo que falta a un chat. Solo si hay algo que mandar: una
+            lista al día no es un encargo. */}
+        {sePuedeCompartir && pending.length > 0 && (
+          <button
+            onClick={compartir}
+            aria-label={`Compartir lo que falta de ${list.name}`}
+            className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0"
+          >
+            <Share2 size={16} />
+          </button>
+        )}
         {/* Con nombre: es un lápiz a secas, y sin él un lector de pantalla
             anuncia un botón sin decir de qué. */}
-        <button onClick={onOpenEdit} aria-label={`Editar la lista ${list.name}`} className="area-de-toque w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0">
+        <button onClick={onOpenEdit} aria-label={`Editar la lista ${list.name}`} className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0">
           <Pencil size={15} />
         </button>
       </div>
@@ -134,12 +175,9 @@ export function ListDetailView({
                     <ListItemRow
                       key={item.id}
                       item={item}
-                      puedeMover={puedeMover}
                       onToggle={() => onToggle(item.id)}
                       onQuantity={q => onQuantity(item.id, q)}
                       onEdit={() => onOpenEditItem(item)}
-                      onMove={() => onOpenMoveItem(item)}
-                      onDelete={() => onDeleteItem(item.id)}
                     />
                   ))
                 )}
@@ -171,12 +209,9 @@ export function ListDetailView({
                   <ListItemRow
                     key={item.id}
                     item={item}
-                    puedeMover={puedeMover}
                     onToggle={() => onToggle(item.id)}
                     onQuantity={q => onQuantity(item.id, q)}
                     onEdit={() => onOpenEditItem(item)}
-                    onMove={() => onOpenMoveItem(item)}
-                    onDelete={() => onDeleteItem(item.id)}
                   />
                 ))}
               </section>

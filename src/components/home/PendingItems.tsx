@@ -55,7 +55,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle, onAdd,
           type="button"
           onClick={onAdd}
           aria-label={cestaLabel ? `Apuntar algo en ${cestaLabel}` : 'Apuntar algo en la lista'}
-          className="-my-2 -mr-1 flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
+          className="-my-2 -mr-2 flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
         >
           <Plus size={17} strokeWidth={2.6} />
         </button>

@@ -58,7 +58,7 @@ export function MealsView() {
             <button
               key={tab}
               onClick={() => s.setViewMode(tab)}
-              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${s.viewMode === tab ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
+              className={`flex-1 min-h-11 rounded-xl text-sm font-bold transition-colors ${s.viewMode === tab ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
             >
               {tab === 'today' ? 'Hoy' : 'Esta semana'}
             </button>
@@ -74,7 +74,7 @@ export function MealsView() {
                 <p className="text-xs text-muted mt-1">Planifica las comidas de hoy</p>
                 <button
                   onClick={() => s.openCreate()}
-                  className="mt-3 px-3 py-2 text-sm font-semibold text-primary-strong rounded-xl hover:bg-primary-tint"
+                  className="mt-3 inline-flex min-h-11 items-center px-3 text-sm font-semibold text-primary-strong rounded-xl hover:bg-primary-tint"
                 >
                   + Añadir comida de hoy
                 </button>

@@ -15,6 +15,80 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-09
 
+### Lo que quedaba de la auditoría: 44 px, el foco, la fila de la compra y compartir (09-09-2026)
+
+La segunda mitad del repaso del mismo día, con la lista de pendientes delante y de menos a
+más discutible.
+
+**Cuarenta y cuatro píxeles.** Los 24 de la WCAG 2.5.8 se cumplían y los vigila la suite,
+pero 24 es el suelo legal y no lo que mide un dedo: Apple y Material dicen 44, y la app
+tenía pestañas de 28, chips de 30, flechas de 36, tres desplegables de la cuenta del mes
+clavados en 24 —«Septiembre 2026», los dos totales de fijos—, campos de formulario de 42,
+el enlace del pie de cada sección de Inicio en 28 y las seis pastillas de la barra de abajo
+entre 34 y 42 de ancho. Ahora no queda ninguno por debajo de 44 en las nueve rutas. El pie
+de las tarjetas de Inicio se quedó sin relleno vertical para dárselo al enlace, porque si
+no cada tarjeta crecía 16 px y son seis en la misma pantalla; y las pastillas se reparten
+el ancho con `flex-1` en vez de encogerse a su contenido. Lo vigila un **segundo** bucle en
+`movil.spec.ts`, aparte del de 24: son dos exigencias distintas —una es la norma y la otra
+el criterio de la casa— y mezclarlas haría que un control de 30 fallase diciendo «mínimo
+24». Con una excepción, y es la que recoge la propia norma: un enlace `display: inline`
+metido en una frase mide lo que mide el renglón. En Farpi es uno, el correo de la carta de
+la portada.
+
+**El foco.** `BottomSheet` decía `aria-modal="true"` —que promete que detrás no hay nada
+con lo que interactuar— y el `Tab` se escapaba igualmente a la pantalla de debajo: se
+acababa recorriendo la barra de abajo con un formulario abierto encima. Y al cerrar, el
+foco se iba al `body`, así que el siguiente `Tab` empezaba por el principio de la página en
+vez de por el botón desde el que se había entrado. Los dos arreglados. Los focusables se
+piden en cada `Tab` y no una vez al abrir, porque dentro de un sheet aparecen y desaparecen
+controles —el selector de rol, los campos de una serie, el paso de confirmar un borrado— y
+una lista tomada al abrirlo se quedaría vieja al primer cambio.
+
+**Los avisos.** `SaveStatus` montaba el aviso entero al aparecer, con su `role` dentro, y
+una región viva insertada de golpe no se anuncia de forma fiable. Medido: cero elementos
+con `aria-live` en reposo en las nueve rutas. Ahora los dos contenedores están siempre ahí
+—uno `polite` y otro `assertive`— y lo que cambia es lo de dentro. Se probó con dos
+regiones `sr-only` aparte de la tarjeta y se descartó en el momento: el mismo texto dos
+veces en la página, y un test lo cazó por ambigüedad. Son los mismos nodos que se ven.
+
+**Guardar confirma.** Salvo marcar una tarea, que tiene su «Deshacer», guardar un gasto o
+un documento no decía nada: el sheet se cerraba y ya. Ahora sale «Guardado» segundo y
+medio. Sale de mirar `isSaving` pasar de `true` a `false` sin error, que es lo que permite
+hacerlo sin tocar ninguna de las cuarenta escrituras del store.
+
+**La fila de la compra.** Cada ítem llevaba cuatro botones de 28 px separados 2 px —`−`,
+`+`, mover y la papelera— en el borde derecho, que es por donde baja el pulgar. En una
+lista de veinte cosas son ochenta objetivos diminutos apilados para algo que el 95 % de las
+veces es marcar. Mover y borrar se van al sheet, que se abre tocando el nombre y donde
+caben con su nombre escrito —y donde además dicen lo que hacen: una papelera no distingue
+«quitar de lo que falta» de «borrar el ítem», y las dos cosas estaban en la misma fila—.
+Con dos botones en vez de cuatro, las unidades pasan a 44 px. Y de rebote, la papelera de
+una tarea pudo crecer también: era la única `inline` que quedaba pegada a otras tres.
+
+**Documentos y Comidas.** La tira de categorías envolvía en tres filas y se comía 230 px
+antes del primer papel, en la única sección a la que se entra buscando **uno** concreto:
+cuatro y un «+4 más». No es esconder contenido —la trampa en la que este repositorio ha
+caído dos veces— porque un filtro no es contenido, el buscador está justo encima y la
+categoría puesta se enseña siempre aunque caiga fuera. Y una semana vacía de Comidas
+pintaba 35 «Añadir» idénticos, que son cero llamadas a la acción: ahora solo lo enseña hoy
+y el resto aparece al pasar el ratón. Solo en `lg:`, que es donde vive esa rejilla.
+
+**Compartir.** Farpi se manda por WhatsApp entre familias —lo dice hasta el `openGraph`—
+pero una lista no salía de la app; lo único que sale es la copia de seguridad de Ajustes,
+que es la familia entera en JSON. Ahora el detalle de una lista tiene un botón de compartir
+que abre el diálogo del sistema con lo que falta escrito. Va **solo lo pendiente** y no el
+catálogo: se manda el encargo, no el inventario de lo que compra la casa. Y el botón solo
+aparece si el navegador sabe compartir y si hay algo que mandar.
+
+**Y dos sueltos**: Inicio ya no deja media pantalla en blanco a la derecha en escritorio
+—la última sección se estira si se queda sola en su fila, y la cuenta la hace el CSS porque
+cuántas secciones hay cambia cada día—, y el nombre de la familia truncado en Ajustes lleva
+`title`, que era la única forma de leerlo entero desde que editar la familia es cosa de un
+administrador.
+
+Lo que sigue sin hacer y queda anotado: **no hay búsqueda global**, la rejilla del mes se
+come 610 de los 844 px a 390, y no hay modo oscuro.
+
 ### Auditoría de usabilidad: el contraste, quién puede qué y el botón que no decía nada (09-09-2026)
 
 Una revisión de la app entera desde fuera —código y navegación en modo demo a 390 y

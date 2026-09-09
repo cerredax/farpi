@@ -114,10 +114,9 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
         )}
       </button>
 
-      {/* Borrar. El hueco mide lo mismo que la columna de antes (28 px de botón
-          más los 12 del padding), así que el título de la tarea no se mueve; al
-          confirmar, la píldora crece y el título se encoge con su `min-w-0`. */}
-      <div className="flex flex-shrink-0 items-center pl-1 pr-2">
+      {/* Borrar, en su propia columna. Al confirmar, la píldora crece y el
+          título se encoge con su `min-w-0`. */}
+      <div className="flex flex-shrink-0 items-center pr-1">
         <DeleteButton
           variant="inline"
           confirming={confirming}

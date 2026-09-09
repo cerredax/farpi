@@ -87,7 +87,7 @@ function TaskSummary({ total, atrasadas, abierto, onToggle }: {
     <button
       onClick={onToggle}
       aria-expanded={abierto}
-      className="flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-canvas"
+      className="flex min-h-11 w-full items-center gap-1.5 rounded-lg px-1.5 text-left transition-colors hover:bg-canvas"
     >
       <span className="flex w-8 flex-shrink-0 justify-center">
         <ChevronDown

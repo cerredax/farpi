@@ -18,17 +18,72 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Cerrar con Escape y llevar el foco al panel al abrir (accesibilidad).
+  /**
+   * Escape cierra, el foco entra al abrir, **se queda dentro mientras está
+   * abierto** y vuelve al botón que lo abrió al cerrarse.
+   *
+   * Las dos últimas faltaban. El panel dice `aria-modal="true"`, que promete que
+   * detrás no hay nada con lo que interactuar, pero el `Tab` se escapaba a la
+   * pantalla de debajo: quien navega con teclado acababa recorriendo la barra de
+   * abajo y los enlaces de Inicio con un formulario abierto encima, sin ver
+   * dónde estaba el foco. Y al cerrar, el foco se iba al `body`, así que el
+   * siguiente `Tab` empezaba por el principio de la página en vez de por el
+   * botón desde el que se había entrado.
+   *
+   * Los focusables se piden **en cada `Tab`** y no una vez al abrir: dentro de
+   * un sheet aparecen y desaparecen controles —el selector de rol, los campos de
+   * una serie, el paso de confirmar un borrado— y una lista tomada al abrirlo se
+   * quedaría vieja al primer cambio.
+   */
   useEffect(() => {
     if (!open) return
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+
+    const disparador = document.activeElement as HTMLElement | null
+    // El nodo se guarda aquí y no se lee de la ref en la limpieza: para entonces
+    // puede haber cambiado, y es lo que avisa `react-hooks/exhaustive-deps`.
+    const panel = panelRef.current
+
+    function focusables(): HTMLElement[] {
+      if (!panel) return []
+      return [...panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter(el => el.offsetParent !== null || el === document.activeElement)
     }
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key !== 'Tab') return
+
+      const dentro = focusables()
+      // Sin nada que enfocar, el foco se queda en el panel: dejarlo salir sería
+      // justo lo que esto viene a evitar.
+      if (dentro.length === 0) { e.preventDefault(); panel?.focus(); return }
+
+      const primero = dentro[0]
+      const ultimo = dentro[dentro.length - 1]
+      const actual = document.activeElement
+
+      if (e.shiftKey && (actual === primero || actual === panel)) {
+        e.preventDefault()
+        ultimo.focus()
+      } else if (!e.shiftKey && actual === ultimo) {
+        e.preventDefault()
+        primero.focus()
+      }
+    }
+
     document.addEventListener('keydown', onKeyDown)
-    const focusTimer = window.setTimeout(() => panelRef.current?.focus(), 0)
+    const focusTimer = window.setTimeout(() => panel?.focus(), 0)
+
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       window.clearTimeout(focusTimer)
+      // Solo si el foco sigue dentro del sheet: si mientras tanto se ha ido a
+      // otro sitio a propósito —un enlace del menú que navega—, robárselo sería
+      // peor que no devolverlo.
+      if (disparador?.isConnected && panel?.contains(document.activeElement)) {
+        disparador.focus()
+      }
     }
   }, [open, onClose])
 
@@ -81,7 +136,7 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
               type="button"
               onClick={onClose}
               aria-label="Cerrar"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors"
+              className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors"
             >
               <X size={18} />
             </button>

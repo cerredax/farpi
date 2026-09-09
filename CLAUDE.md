@@ -38,9 +38,13 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 - Mantener el modo demo/mock funcionando: es el fallback sin credenciales y el
   entorno donde corre la suite e2e.
 - Mobile-first siempre. No cambiar el diseño visual de forma amplia sin confirmación.
-  Dos límites que no se negocian y que `e2e/movil.spec.ts` comprueba: nada desborda
+  Tres límites que no se negocian y que `e2e/movil.spec.ts` comprueba: nada desborda
   a lo ancho a **390 px** (un iPhone normal, más estrecho que el Pixel 7 con el que
-  corre el resto de la suite) y ningún control baja de **24×24 px** (mínimo WCAG 2.5.8).
+  corre el resto de la suite), ningún control baja de **24×24 px** (mínimo WCAG 2.5.8)
+  y ninguno baja de **44×44** (Apple y Material, el criterio de la casa desde el
+  09-09-2026). La única excepción es la que recoge la propia 2.5.8: un enlace
+  `display: inline` dentro de una frase, que no se puede agrandar sin romper el
+  renglón. En Farpi es uno, el correo de la carta de la portada.
 - **El escritorio se hace en `lg:` y no toca nada por debajo.** La navegación cambia
   ahí: `BottomNav` se va con `lg:hidden` y entra `SideNav` con `hidden lg:flex`. Si un
   cambio de escritorio necesita tocar un valor que ya se usa en móvil, no se toca: se
@@ -81,8 +85,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 484 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 637 (484 unitarios + 153 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 498 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 661 (498 unitarios + 163 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -269,6 +273,11 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
   salieron 83 fallos; el detalle y las excepciones, en `docs/project-status.md`.
 - **Un botón primario se hace con `Button`.** Once estaban escritos a mano con
   `bg-primary text-white` y por eso se quedaron atrás cuando la paleta cambió.
+- **Lo que hace una fila se decide por lo que se hace en ella**, no por lo que cabe.
+  La de una lista llevaba cuatro botones de 28 px pegados en el borde por donde pasa
+  el pulgar —`−`, `+`, mover y borrar— para algo que el 95 % de las veces es marcar.
+  Mover y borrar viven en el sheet, que se abre tocando el nombre y donde caben con
+  su nombre escrito.
 - **Un botón de guardar no se deshabilita porque falte un campo**: se deja pulsable y que
   hable el `required` del campo o `formError`. Apagado sin explicación no dice qué falta, y
   el mensaje del validador no llega a verse nunca. `disabled` es para «hay algo en curso».

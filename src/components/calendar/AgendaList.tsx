@@ -396,7 +396,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                   type="button"
                   onClick={() => setEje(valor)}
                   aria-pressed={eje === valor}
-                  className={`rounded-xl px-2.5 py-1.5 text-xs font-bold transition-colors ${
+                  className={`inline-flex min-h-11 items-center rounded-xl px-2.5 text-xs font-bold transition-colors ${
                     eje === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
                   }`}
                 >

@@ -120,7 +120,7 @@
     @apply text-xs font-bold uppercase tracking-widest text-muted;
   }
   .field-input {
-    @apply w-full rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm text-ink transition placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary-strong;
+    @apply w-full rounded-xl border border-line bg-canvas px-3 py-3 text-sm text-ink transition placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary-strong;
   }
   /* Un botón pequeño con un área de toque de dedo.
      ---------------------------------------------------------------

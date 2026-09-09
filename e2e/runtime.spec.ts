@@ -267,8 +267,9 @@ test('el sheet de crear ítem llega vacío la segunda vez', async ({ page }) => 
   await expect(page.locator('#item-text')).toHaveValue('')
 })
 
-// Un ítem se apunta donde estás y luego resulta que iba en otra cesta. Se
-// mueve desde su propia fila: un toque abre el sheet, otro lo manda.
+// Un ítem se apunta donde estás y luego resulta que iba en otra cesta. Mover
+// salió de la fila el 09-09-2026 —eran cuatro botones de 28 px pegados en el
+// borde donde pasa el pulgar— y vive en el sheet, que se abre tocando el nombre.
 test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await page.goto('/lists')
   await page.waitForTimeout(700)
@@ -279,7 +280,8 @@ test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await page.getByRole('button', { name: 'Añadir', exact: true }).click()
   await page.waitForTimeout(300)
 
-  await page.getByRole('button', { name: 'Mover Jabón neutro a otra lista' }).click()
+  await page.getByRole('button', { name: 'Jabón neutro', exact: true }).click()
+  await page.getByRole('button', { name: 'Mover a otra lista' }).click()
   const sheet = page.getByRole('dialog', { name: 'Mover «Jabón neutro»' })
 
   // Mover algo a donde ya está no es una opción: Farmacia no se ofrece.

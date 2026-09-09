@@ -155,7 +155,7 @@ export function FinanzasView() {
               aria-selected={s.pestaña === p.key}
               aria-controls={`panel-${p.key}`}
               onClick={() => s.setPestaña(p.key)}
-              className={`flex-shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-colors ${
+              className={`inline-flex min-h-11 flex-shrink-0 items-center rounded-xl px-3 text-xs font-bold transition-colors ${
                 s.pestaña === p.key ? 'bg-primary-strong text-white' : 'bg-white border border-line text-muted hover:bg-surface'
               }`}
             >
@@ -212,7 +212,7 @@ export function FinanzasView() {
                   <button
                     type="button"
                     onClick={() => s.abrirPartida(null)}
-                    className="-mr-2 flex min-h-6 items-center gap-1 px-2 py-1 text-xs font-bold text-primary-strong"
+                    className="-mr-2 flex min-h-11 items-center gap-1 px-2 text-xs font-bold text-primary-strong"
                   >
                     <Plus size={14} strokeWidth={2.6} aria-hidden />
                     Nueva partida

@@ -43,9 +43,6 @@ export function ListsView() {
           onOpenEdit={() => s.openEditList(s.selectedList!)}
           onOpenAddItem={s.openAddItem}
           onOpenEditItem={s.openEditItem}
-          onOpenMoveItem={s.openMoveItem}
-          onDeleteItem={s.deleteListItem}
-          puedeMover={s.lists.length > 1}
         />
         {listSheet}
         <ItemSheet
@@ -54,6 +51,12 @@ export function ListsView() {
           mode={s.itemMode}
           initial={s.editingItem}
           historial={s.historialItems}
+          onMove={s.lists.length > 1 && s.editingItem
+            // Se cierra el de editar antes de abrir el de mover: son dos sheets
+            // hermanos y dos `fixed` a la vez, uno encima del otro, no se leen
+            // como un paso siguiente sino como una avería.
+            ? () => { s.setItemSheetOpen(false); s.openMoveItem(s.editingItem!) }
+            : undefined}
           onClose={() => s.setItemSheetOpen(false)}
           onCreate={s.handleCreateItem}
           onUpdate={s.updateListItem}

@@ -122,7 +122,7 @@ export function TasksView() {
                 {tituloCompletadas}
               </div>
             ) : (
-              <button onClick={() => setShowCompleted(v => !v)} aria-expanded={showCompleted} className="flex items-center gap-2 px-1 py-1.5 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors lg:col-span-2 lg:mb-0">
+              <button onClick={() => setShowCompleted(v => !v)} aria-expanded={showCompleted} className="flex min-h-11 items-center gap-2 px-1 mb-2 w-full text-left rounded-xl hover:bg-surface transition-colors lg:col-span-2 lg:mb-0">
                 {tituloCompletadas}
                 <span className="ml-auto text-muted">{showCompleted ? <ChevronDown size={15} /> : <ChevronRight size={15} />}</span>
               </button>

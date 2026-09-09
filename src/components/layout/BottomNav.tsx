@@ -13,7 +13,7 @@ import { MoreMenu } from './MoreMenu'
  * tiene que ser igual.
  */
 function claseItem(activa: boolean) {
-  return `flex flex-col items-center gap-0.5 px-1.5 py-2 rounded-xl transition-colors min-w-0 ${
+  return `flex flex-1 flex-col items-center gap-0.5 px-1.5 py-2 rounded-xl transition-colors min-w-0 ${
     activa ? 'text-primary-strong' : 'text-muted hover:text-ink'
   }`
 }

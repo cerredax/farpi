@@ -68,7 +68,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
     }
   }, [abierto])
 
-  const FLECHA = 'flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-canvas'
+  const FLECHA = 'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl text-muted transition-colors hover:bg-canvas'
 
   return (
     <div className="flex items-center justify-between gap-1">
@@ -89,7 +89,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
           aria-expanded={abierto}
           // `min-h-6`: a 12 px de texto el botón se quedaba en 20 de alto y
           // `movil.spec.ts` lo cazó, que exige los 24 de la WCAG 2.5.8.
-          className="flex min-h-6 w-full items-center justify-center gap-1 rounded-lg py-0.5 transition-colors hover:bg-canvas"
+          className="flex min-h-11 w-full items-center justify-center gap-1 rounded-lg transition-colors hover:bg-canvas"
         >
           <span className="truncate text-xs font-bold uppercase tracking-widest text-muted">
             {nombreLargo(mes)}

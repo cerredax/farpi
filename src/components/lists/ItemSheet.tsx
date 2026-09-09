@@ -1,5 +1,6 @@
 'use client'
 
+import { FolderInput } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
@@ -22,6 +23,16 @@ interface ItemSheetProps {
    * dónde va.
    */
   titulo?: string
+  /**
+   * Mandar el ítem a otra lista. **Sin él no hay botón**: con una sola lista no
+   * hay a dónde mover, y desde Inicio esto se abre solo para apuntar.
+   *
+   * Vive aquí desde el 09-09-2026. Estaba en la propia fila, junto a la papelera
+   * y a los dos botones de las unidades: cuatro objetivos de 28 px a 2 px unos
+   * de otros en el borde por donde pasa el pulgar. Aquí cabe con su nombre
+   * escrito, que además dice lo que hace.
+   */
+  onMove?: () => void
   onClose: () => void
   onCreate: (draft: ListItemDraft) => void
   onUpdate: (id: string, draft: ListItemDraft) => void
@@ -35,7 +46,7 @@ function initDraft(mode: 'create' | 'edit', initial: ListItem | null | undefined
   return { text: mode === 'edit' && initial ? initial.text : '' }
 }
 
-export function ItemSheet({ open, mode, initial, historial = [], titulo, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
+export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListItemDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -85,6 +96,19 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onClose
             label={draft.text.trim() ? 'Coincidencias' : 'Los que más apuntáis'}
           />
         </Field>
+
+        {/* Fuera del `SheetFooter`, que es solo para guardar y borrar: mover no
+            es ninguna de las dos: es llevarse el ítem a otro sitio tal cual. */}
+        {mode === 'edit' && onMove && (
+          <button
+            type="button"
+            onClick={onMove}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-canvas text-sm font-semibold text-ink transition-colors hover:bg-surface"
+          >
+            <FolderInput size={15} strokeWidth={2.2} aria-hidden />
+            Mover a otra lista
+          </button>
+        )}
       </form>
     </BottomSheet>
   )

@@ -25,7 +25,7 @@ export function HomeSection({ label, icon, accentColor, isEmpty = false, emptySt
         style={accentColor ? { borderLeft: `3px solid ${accentColor}` } : undefined}
       >
         {isEmpty ? emptyState : children}
-        <div className="border-t border-hairline px-4 py-2.5">
+        <div className="border-t border-hairline px-4">
           {footer}
         </div>
       </div>

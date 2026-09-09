@@ -120,7 +120,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
         onClick={() => setAbierta(v => !v)}
         aria-expanded={abierta}
         aria-controls={panelId}
-        className="-mx-1 flex min-h-6 w-full items-center justify-between gap-3 rounded-lg px-1 text-left text-[13px] transition-colors hover:bg-canvas active:bg-canvas"
+        className="-mx-1 flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-1 text-left text-[13px] transition-colors hover:bg-canvas active:bg-canvas"
       >
         <span className="flex min-w-0 items-center gap-1 text-muted">
           <span className="truncate">{etiqueta}</span>
@@ -176,7 +176,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
                     type="button"
                     onClick={() => onAjustar(fijo)}
                     aria-label={`Ajustar ${fijo.name} en este mes`}
-                    className="-mx-1 flex min-h-6 w-full items-baseline gap-2 rounded-lg px-1 text-left transition-colors hover:bg-canvas active:bg-canvas"
+                    className="-mx-1 flex min-h-9 w-full items-baseline gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-canvas active:bg-canvas"
                   >
                     {contenido}
                   </button>
@@ -327,7 +327,7 @@ export function CuentaDelMes({
         <button
           type="button"
           onClick={onVerPrevision}
-          className="mt-1 min-h-6 w-full py-1 text-center text-[13px] font-semibold text-primary-strong"
+          className="mt-1 min-h-11 w-full text-center text-[13px] font-semibold text-primary-strong"
         >
           {previsionAbierta ? 'Ocultar las cuentas' : `Ver las cuentas de ${nombreDelMes.split(' ')[0].toLowerCase()}`}
         </button>
@@ -364,7 +364,7 @@ export function CuentaDelMes({
         <button
           type="button"
           onClick={onPonerFijos}
-          className="mt-2 min-h-6 w-full border-t border-hairline pt-2.5 text-left text-[13px] text-muted"
+          className="mt-2 min-h-11 w-full border-t border-hairline pt-2.5 text-left text-[13px] text-muted"
         >
           Pon tus ingresos y gastos de todos los meses en{' '}
           <span className="font-semibold text-primary-strong">Lo fijo</span> y aquí

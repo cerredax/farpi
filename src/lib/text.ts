@@ -60,3 +60,34 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+/**
+ * Una lista escrita para mandarla por WhatsApp.
+ *
+ * Farpi se comparte entre familias por WhatsApp —lo dice hasta el `openGraph` de
+ * `layout.tsx`— pero una lista no salía de la app: la copia de seguridad de
+ * Ajustes exporta la familia entera en JSON, que es otra cosa. Y la mitad de las
+ * veces quien va al súper no tiene cuenta: es el abuelo, o el amigo que pasa por
+ * allí.
+ *
+ * **Solo lo que falta**, no el catálogo: lo que se manda es el encargo, no el
+ * inventario de lo que compra la casa. Sin nada pendiente devuelve cadena vacía,
+ * y quien llama decide qué hacer con eso.
+ *
+ * El emoji de la lista va delante del título porque llega a un chat, no a una
+ * interfaz: ahí es lo único que la distingue de un mensaje cualquiera.
+ */
+export function listaParaCompartir(
+  nombre: string,
+  emoji: string | null,
+  pendientes: { text: string; quantity: number }[],
+): string {
+  if (pendientes.length === 0) return ''
+  const titulo = `${emoji ?? '📋'} ${nombre}`
+  const lineas = pendientes.map(item =>
+    // La cantidad solo cuando pasa de una, igual que en la fila: "×1" es decir
+    // lo que ya dice el renglón.
+    item.quantity > 1 ? `- ${item.text} ×${item.quantity}` : `- ${item.text}`,
+  )
+  return [titulo, ...lineas].join('\n')
+}

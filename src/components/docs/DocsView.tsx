@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import { CategoryIcon } from './CategoryIcon'
 import { DocCard } from './DocCard'
@@ -8,8 +9,33 @@ import { useDocsState } from './useDocsState'
 import { resolveAssignee } from '@/lib/assignees'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 
+/**
+ * Cuántas categorías se enseñan sin pedirlo.
+ *
+ * Con las ocho que tiene la familia de la demo, la tira envolvía en **tres
+ * filas y ocupaba unos 230 px a 390 px de ancho**: un muro entre quien entra y
+ * los papeles, en la única sección a la que se entra buscando **uno** concreto.
+ * Cuatro caben en dos filas y dejan ver la primera tarjeta.
+ *
+ * No es esconder contenido —la trampa en la que este repositorio ha caído dos
+ * veces— porque nada de esto es contenido: son filtros, el buscador está justo
+ * encima y el resto está a un toque con su cuenta escrita.
+ */
+const CATEGORIAS_A_LA_VISTA = 4
+
 export function DocsView() {
   const s = useDocsState()
+  const [verTodasLasCategorias, setVerTodasLasCategorias] = useState(false)
+
+  // La que está puesta se enseña siempre, aunque caiga fuera de las cuatro: si
+  // no, filtrar por «Viajes» dejaría la tira sin decir por qué se ven tres
+  // papeles de once.
+  const activaEstaFuera =
+    s.activeFilter !== null &&
+    s.categorias.findIndex(c => c.key === s.activeFilter) >= CATEGORIAS_A_LA_VISTA
+  const todasALaVista = verTodasLasCategorias || activaEstaFuera
+  const categoriasVisibles = todasALaVista ? s.categorias : s.categorias.slice(0, CATEGORIAS_A_LA_VISTA)
+  const ocultas = s.categorias.length - categoriasVisibles.length
 
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
@@ -64,16 +90,26 @@ export function DocsView() {
           categoría vacía no es contenido, es un filtro muerto. */}
       {s.puedeFiltrar && (
         <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
-          {[{ key: null, label: 'Todos' }, ...s.categorias].map(f => (
+          {[{ key: null, label: 'Todos' }, ...categoriasVisibles].map(f => (
             <button
               key={String(f.key)}
               onClick={() => s.setActiveFilter(f.key)}
-              className={`flex flex-shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary-strong text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
+              className={`flex min-h-11 flex-shrink-0 items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary-strong text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
             >
               {f.key && <CategoryIcon category={f.key} size={13} />}
               {f.label}
             </button>
           ))}
+
+          {ocultas > 0 && (
+            <button
+              type="button"
+              onClick={() => setVerTodasLasCategorias(true)}
+              className="flex min-h-11 flex-shrink-0 items-center rounded-xl border border-dashed border-line-strong px-3 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
+            >
+              +{ocultas} más
+            </button>
+          )}
         </div>
       )}
 

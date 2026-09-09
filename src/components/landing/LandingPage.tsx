@@ -208,7 +208,7 @@ export function LandingPage() {
     <div className="min-h-dvh bg-canvas text-ink">
       <header className="sticky top-0 z-30 border-b border-line bg-canvas/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3 sm:px-8">
-          <Link href="/" className="flex items-center gap-2.5 py-1" aria-label="Farpi, inicio">
+          <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label="Farpi, inicio">
             <Image
               src="/app-icon.svg"
               width={32}
@@ -477,7 +477,7 @@ export function LandingPage() {
                 Cualquier sugerencia es bienvenida:{' '}
                 <a
                   href={`mailto:${CONTACT}`}
-                  className="inline-block py-0.5 font-semibold text-primary-strong hover:underline"
+                  className="font-semibold text-primary-strong hover:underline"
                 >
                   {CONTACT}
                 </a>
@@ -492,8 +492,12 @@ export function LandingPage() {
           </section>
 
           <footer className="flex flex-wrap gap-x-5 border-t border-line px-1 pt-6 text-xs font-medium text-muted">
-            <Link href="/privacidad" className="py-2 hover:text-muted">Privacidad</Link>
-            <Link href="/terminos" className="py-2 hover:text-muted">Términos</Link>
+            {/* `min-h-11`: son los dos únicos enlaces del pie y se pulsan con el
+                dedo como cualquier otra cosa. El correo de la carta se queda
+                como está —`inline` dentro de una frase—, que es la excepción que
+                la propia WCAG 2.5.8 reconoce: agrandarlo rompería el renglón. */}
+            <Link href="/privacidad" className="inline-flex min-h-11 items-center hover:text-ink">Privacidad</Link>
+            <Link href="/terminos" className="inline-flex min-h-11 items-center hover:text-ink">Términos</Link>
           </footer>
         </div>
       </main>

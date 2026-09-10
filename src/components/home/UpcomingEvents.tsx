@@ -6,6 +6,7 @@ import type { Event, Child, FamilyMember } from '@/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
+import { extractDate } from '@/lib/date-utils'
 import { partirPlanesProximos } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 
@@ -32,22 +33,33 @@ function eventDayLabel(date: Date): string {
  * `conDia` lo apaga la caja de mañana, y solo ella: escribir "Mañana" en cada
  * fila de una caja que ya se titula "Mañana" es decir lo mismo dos veces y
  * quitarle sitio a la hora, que ahí es lo único que cambia de una fila a otra.
+ *
+ * Con día, las filas van **agrupadas por jornada**: el día se escribe una vez y
+ * lo que cae ese mismo día se alinea debajo sin repetirlo, más pegado, y la
+ * línea solo aparece al cambiar de día. No hay cabecera de día a propósito:
+ * aquí caben cinco planes contados (`selectUpcomingEvents`) y un rótulo por día
+ * ocuparía más que la lista. El hueco de la fecha es de ancho fijo para que las
+ * horas caigan en columna: es lo que hace que un día con dos planes se lea como
+ * uno solo.
  */
 function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: UpcomingEventsProps & { conDia?: boolean }) {
   return (
-    <ul className="divide-y divide-hairline">
-      {events.map(event => {
+    <ul className={conDia ? undefined : 'divide-y divide-hairline'}>
+      {events.map((event, i) => {
         const fecha = new Date(event.start_at)
         const asignado = resolveAssignee(event, members, kids)
+        // Los planes llegan ordenados por fecha (`selectUpcomingEvents`), así que
+        // para saber si empieza un día nuevo basta con mirar el de arriba.
+        const abreDia = i === 0 || extractDate(events[i - 1].start_at) !== extractDate(event.start_at)
         return (
-          <li key={event.id}>
+          <li key={event.id} className={conDia && abreDia && i > 0 ? 'border-t border-line' : undefined}>
             {/* La fila entera abre el plan, como en lo de hoy y en la agenda
                 del calendario (04-09-2026). */}
             <button
               type="button"
               onClick={() => onOpen(event)}
               title={event.title}
-              className="block w-full px-4 py-3 text-left transition-colors hover:bg-surface"
+              className={`block w-full px-4 text-left transition-colors hover:bg-surface ${conDia && !abreDia ? 'pt-0.5 pb-3' : 'py-3'}`}
             >
               <div className="flex items-baseline gap-2">
                 {/* El mismo punto que la agenda del calendario: lo de toda la
@@ -58,8 +70,14 @@ function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: Upcomin
                   style={{ backgroundColor: eventColor(event, members, kids) }}
                   aria-hidden
                 />
+                {/* El día, una vez por jornada. Las filas que siguen dejan el
+                    hueco —del mismo ancho, para que las horas queden en
+                    columna— y lo dicen solo para quien escucha: la fila tiene
+                    que seguir sabiendo de qué día es aunque no lo enseñe. */}
                 {conDia && (
-                  <span className="text-xs font-bold text-primary-strong">{eventDayLabel(fecha)}</span>
+                  <span className="w-[3.25rem] flex-shrink-0 whitespace-nowrap text-xs font-bold text-primary-strong">
+                    {abreDia ? eventDayLabel(fecha) : <span className="sr-only">{eventDayLabel(fecha)}</span>}
+                  </span>
                 )}
                 <span className="text-xs font-semibold text-muted">
                   {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}

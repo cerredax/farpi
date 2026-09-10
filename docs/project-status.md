@@ -27,7 +27,11 @@ que todavía no existen (ver "Siguiente paso recomendado").
   juntos; mañana se separó porque es la pregunta que se hace de verdad al acostarse. El
   segundo corte es el **domingo** y no "dentro de tres días": en casa se habla de esta
   semana y la que viene, así que un sábado la caja del medio no se pinta y el lunes sale
-  ya en "próxima semana". El horizonte siguen siendo siete días. Y lo que va atrasado,
+  ya en "próxima semana". El horizonte siguen siendo siete días. En las dos cajas que
+  llevan fecha, los planes van **agrupados por día** (10-09-2026): el día se escribe una
+  vez, lo que cae esa misma jornada se alinea debajo sin repetirlo y la raya solo aparece
+  al cambiar de día. Sin cabecera de día a propósito: aquí caben cinco planes contados y
+  un rótulo por jornada ocuparía más que la lista. Y lo que va atrasado,
   arrastrado al día de hoy. La tarjeta del día abre con el saludo y la fecha —que estuvieron en la cabecera
   y ya no, para no decir la hora dos veces en la misma pantalla— y dentro lleva
   cumpleaños, planes, tareas de hoy y el menú (`TodayMealsRow`): todo lo que responde a

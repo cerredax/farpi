@@ -2,7 +2,7 @@ import { SectionLink } from '@/components/ui/SectionLink'
 import { Heart } from 'lucide-react'
 import { memo } from 'react'
 import type { Event, Child, FamilyMember } from '@/types'
-import { eventColor, resolveAssignee, textColorOn } from '@/lib/assignees'
+import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { planYaPasado, siguientePlan } from '@/lib/events'
 import { format } from 'date-fns'
 
@@ -92,10 +92,14 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-ink text-sm leading-snug">{event.title}</p>
+                  {/* La etiqueta de toda la app: el color de la persona de
+                      fondo y el nombre en tinta. Era la última que quedaba en
+                      color macizo con el texto calculado encima (10-09-2026),
+                      justo en la tarjeta que más se mira. */}
                   {asignado && (
                     <span
-                      className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: asignado.color, color: textColorOn(asignado.color) }}
+                      className="etiqueta-persona mt-1 inline-block max-w-[7rem] px-1.5 py-0.5 text-[10px]"
+                      style={{ backgroundColor: fondoDePersona(asignado.color) }}
                     >
                       {asignado.name}
                     </span>

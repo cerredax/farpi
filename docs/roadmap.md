@@ -717,9 +717,10 @@ sube de contraste»); el relato, en `docs/historial.md`.
 - [x] Uno de navegador nuevo (el diálogo de la lista) y el de la familia reescrito para el
       flujo nuevo, que ahora comprueba también el cancelar: **637** en la pasada completa
       (484 unitarios y 153 de navegador).
-- [ ] Pendiente del mismo repaso de contraste, medido y sin tocar porque no era de este
-      trabajo: los avisos de validación de los sheets (`text-danger` a 10 y 11 px), la
-      variante `danger` de `Button` y el botón rojo del diálogo de poner un mes a cero.
+- [x] Cerrado el 10-09-2026 lo que quedaba de ese repaso. Los avisos de validación de los
+      sheets y la variante `danger` de `Button` ya los arregló la medición del 09-09; el
+      único que seguía vivo era el botón rojo del diálogo de poner un mes a cero, en
+      `bg-danger` con texto blanco (3,33:1). Ahora `danger-strong`, 5,41:1.
 
 ## Fase 8u - Cinco arreglos de lectura (09-09-2026)
 
@@ -749,6 +750,28 @@ cada una, en `docs/architecture.md`; el relato, en `docs/historial.md`.
 - [ ] **Una sección de ayuda**, que es a donde tiene que ir lo que se quitó de los vacíos.
       No urge —lo que se fue era manual de estreno, no algo que se consulte—, pero es la
       contrapartida de haberlo quitado y conviene no perderla de vista.
+
+## Fase 8v - Lo que quedaba a medias del repaso (10-09-2026)
+
+Deuda de los dos días anteriores, no trabajo nuevo.
+
+- [x] **La última etiqueta de persona en color macizo**, la de los planes de hoy en Inicio
+      (`TodayEvents`), pasa a `.etiqueta-persona` + `fondoDePersona`. Medido en el
+      navegador sobre su fondo real —que es `bg-white/80` encima de la tarjeta cálida, no
+      blanco—: **12,45:1** con el rosa de un hijo y **7,10:1** con el ladrillo de un
+      adulto, frente a 10,24 y 5,42 del estilo anterior. Mejora en las dos, y de paso
+      deja de haber dos maneras de decir de quién es algo.
+- [x] **El botón «Sí, ponerlo a cero»** del cierre del mes, el único rojo que seguía en
+      `bg-danger` con texto blanco: 3,33:1 → **5,41:1**.
+- [x] Comprobado que lo demás de aquella lista ya estaba hecho: no queda ningún
+      `text-danger` ni `bg-danger` con texto encima en `src/`. Lo que sigue en `danger` es
+      lo que no es texto —el punto y la línea del `Timeline`, la barra de una partida
+      pasada, bordes y fondos suaves—, que con 3,33:1 cumple el 3:1 de la 1.4.11.
+- [x] **`textColorOn` no se va**, y no es un olvido: los avatares de Ajustes, el pie de la
+      cuenta y el icono de la tarta de un cumpleaños son un color macizo con una inicial o
+      un icono encima, no una etiqueta con un nombre. La paleta está partida en dos bandas
+      de claridad justamente para que ahí el reparto blanco/tinta funcione (el peor,
+      Ladrillo, 5,42:1). `.etiqueta-persona` es para los nombres.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

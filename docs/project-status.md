@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-09.
+Última revisión: 2026-09-10.
 
 ## Resumen
 
@@ -295,6 +295,14 @@ que todavía no existen (ver "Siguiente paso recomendado").
   alta de la app con la palabra escrita al lado (`＋ Añadir`), y solo en escritorio, porque
   esa cabecera lleva el paso de semana y no puede usar `ViewHeader` entero. El botón sí es
   el de `ViewHeader`.
+- **De quién es algo se dice siempre igual** (10-09-2026): `.etiqueta-persona` +
+  `fondoDePersona`, el color de la persona de fondo y el nombre en tinta. La última que
+  quedaba en color macizo era la de los planes de hoy en Inicio, justo la tarjeta que más
+  se mira. Medida sobre su fondo real —`bg-white/80` encima de la tarjeta cálida— da
+  12,45:1 con el rosa de un hijo y 7,10:1 con el ladrillo de un adulto, mejor que el
+  10,24 y 5,42 de antes. `textColorOn` sigue en pie para lo que **no** es una etiqueta de
+  nombre: los avatares de Ajustes y del pie de la cuenta, y el icono de la tarta de un
+  cumpleaños, que son una inicial o un icono sobre el color macizo.
 - **La tarjeta de un documento dice la categoría con el icono y ya** (09-09-2026): era una
   píldora gris con el nombre escrito, y en una fila donde ya compiten la caducidad, el
   tamaño y la fecha se llevaba el ancho para repetir la palabra por la que muchas veces se
@@ -863,12 +871,12 @@ Las dos que había aquí se cerraron el 06-08-2026:
 
 ### Después
 
-4. Medir el contraste de la paleta (el resto de la revisión de accesibilidad —roles,
-   labels, foco, `inert` en los sheets— está hecha, Fase 8 del roadmap). Lo medido hasta
-   hoy es el rojo: `danger` como **texto** no llega (3,33:1 sobre blanco, 2,83:1 sobre
-   `danger-soft`) y `DeleteButton` ya usa `danger-strong`. Siguen en `danger` y sin repasar
-   los avisos de validación de los sheets (10 y 11 px), la variante `danger` de `Button` y
-   el botón del diálogo de poner un mes a cero.
+4. ~~Medir el contraste de la paleta.~~ **Hecho.** El resto de la revisión de
+   accesibilidad —roles, labels, foco, `inert` en los sheets— ya estaba (Fase 8 del
+   roadmap); el contraste se midió nodo a nodo en el navegador el 09-09-2026 y lo que
+   quedó anotado se cerró el 10-09-2026. Ya no hay texto sobre `danger`: el último era el
+   «Sí, ponerlo a cero» del cierre del mes (3,33:1 → 5,41:1). `danger` se queda para lo
+   que no es texto, donde 3,33:1 cumple el 3:1 de la 1.4.11.
 
 ## Historial
 

@@ -2563,9 +2563,12 @@ El tono no se toca y la paleta no crece: `danger-strong` ya existía —estaba a
 bordes (`danger-line`), fondos suaves (`danger-soft`, `danger-tint`), la barra de una
 partida pasada y el punto de la hora en la agenda.
 
-Queda pendiente el mismo repaso en los avisos de validación de los sheets (`text-danger` a
-10 y 11 px), en la variante `danger` de `Button` y en el botón rojo del diálogo de poner un
-mes a cero, que son la misma clase de defecto en sitios que este trabajo no tocaba.
+Los tres sitios que quedaban de la misma clase están cerrados. Los avisos de validación de
+los sheets y la variante `danger` de `Button` cayeron con la medición del 09-09-2026; el
+botón rojo del diálogo de poner un mes a cero, el 10-09-2026 (3,33:1 → 5,41:1). En `src/`
+ya no queda texto encima de `danger`: lo que sigue en ese tono es lo que no es texto —el
+punto y la línea del `Timeline`, la barra de una partida pasada, bordes y fondos suaves—,
+donde 3,33:1 cumple el 3:1 de la 1.4.11.
 
 ### Mañana tiene caja propia, y la semana se corta en domingo (09-09-2026)
 

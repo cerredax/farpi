@@ -131,7 +131,7 @@ export function CierreDelMes({
               type="button"
               onClick={confirmar}
               className={`w-full rounded-2xl py-3 text-sm font-semibold text-white transition-colors ${
-                pendiente === 'cero' ? 'bg-danger hover:opacity-90' : 'bg-primary-strong hover:bg-primary-deep'
+                pendiente === 'cero' ? 'bg-danger-strong hover:opacity-90' : 'bg-primary-strong hover:bg-primary-deep'
               }`}
             >
               {pendiente === 'cero' ? 'Sí, ponerlo a cero' : 'Sí, cerrar el mes'}

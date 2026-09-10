@@ -13,6 +13,47 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-10
+
+### Lo que quedaba a medias del repaso: la última etiqueta y el último rojo (10-09-2026)
+
+Deuda de los dos días anteriores, no trabajo nuevo. Salió de mirar la lista de «pendiente
+del mismo repaso» que habían dejado escrita el 08 y el 09.
+
+**La última etiqueta de persona en color macizo.** Los planes de hoy en Inicio
+(`TodayEvents`) decían de quién eran con el color de la persona a pelo y el texto blanco o
+tinta calculado encima (`textColorOn`), que es como se hacían todas antes de que la paleta
+de hijos se aclarara. Era la única que quedaba, y justo en la tarjeta que más se mira.
+Pasa a `.etiqueta-persona` + `fondoDePersona`, como el resto.
+
+Medido en el navegador y no de memoria, porque el fondo real de esa fila no es blanco sino
+`bg-white/80` encima de la tarjeta cálida: **12,45:1** con el rosa de un hijo y **7,10:1**
+con el ladrillo de un adulto, frente a 10,24 y 5,42 del estilo anterior. Mejora en las dos.
+
+De paso quedó claro qué **no** hay que tocar. `textColorOn` sigue en cinco sitios y ninguno
+es un olvido: los avatares de Ajustes, el del pie de la cuenta y el icono de la tarta de un
+cumpleaños son una inicial o un icono sobre el color macizo, no una etiqueta con un nombre.
+La paleta está partida en dos bandas de claridad justamente para que ahí el reparto
+blanco/tinta funcione (el peor, Ladrillo, 5,42:1). `.etiqueta-persona` es para los nombres.
+
+**El último rojo por debajo del contraste.** El botón «Sí, ponerlo a cero» del diálogo del
+cierre del mes iba en `bg-danger` con texto blanco: **3,33:1**, por debajo del 4,5:1 de AA,
+y en el rótulo de una acción que borra la copia de un mes. Ahora `danger-strong`,
+**5,41:1**, el mismo que llevan `DeleteButton`, la variante `danger` de `Button` y los
+cuatro diálogos de borrado.
+
+Los otros dos sitios de aquella lista —los avisos de validación de los sheets y la variante
+`danger` de `Button`— ya los había arreglado la medición del 09 sin que nadie tachara la
+nota. Comprobado: en `src/` no queda ningún `text-danger` ni ningún `bg-danger` con texto
+encima. Lo que sigue en ese tono es lo que no es texto —el punto y la línea del `Timeline`,
+la barra de una partida pasada, bordes y fondos suaves—, donde 3,33:1 cumple el 3:1 que
+pide la 1.4.11.
+
+Y una corrección al comentario de `ConfirmDelete`, que justificaba escribir sus botones a
+mano diciendo que `Button variant="danger"` iba en `bg-danger`. Ya no: esa razón caducó el
+09. La que queda es la forma —son el pie de un sheet, a lo ancho y apilados, no la pastilla
+que devuelve `Button`—, y así está escrito.
+
 ## Cerrado el 2026-09-09
 
 ### Cinco arreglos de lectura: mañana, los vacíos, el `+`, Ajustes en el móvil y la ficha de un papel (09-09-2026)

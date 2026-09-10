@@ -303,6 +303,15 @@ que todavía no existen (ver "Siguiente paso recomendado").
   10,24 y 5,42 de antes. `textColorOn` sigue en pie para lo que **no** es una etiqueta de
   nombre: los avatares de Ajustes y del pie de la cuenta, y el icono de la tarta de un
   cumpleaños, que son una inicial o un icono sobre el color macizo.
+- **Guardar un papel se hace con los controles de la app** (10-09-2026): el sheet de
+  Documentos era el único sitio donde una categoría se elegía con una pastilla distinta de
+  la de los filtros de su propia pantalla —30 px sobre fondo beige contra 44 sobre
+  blanco— y el único donde de quién es algo se elegía sin color, con chips de texto.
+  Ahora la categoría es `CategoryChip`, el mismo componente que la tira de filtros, y de
+  quién es va con el `AssigneePicker` de Tareas, el calendario y Finanzas, con su rótulo
+  propio («De quién es»): lo único que cambiaba de verdad era la pregunta, no el control.
+  De paso, esos chips dejan de quedarse en 30 px, por debajo del mínimo de 44 de la casa
+  que en un sheet no vigila `e2e/movil.spec.ts` porque mientras está cerrado es `inert`.
 - **La tarjeta de un documento dice la categoría con el icono y ya** (09-09-2026): era una
   píldora gris con el nombre escrito, y en una fila donde ya compiten la caducidad, el
   tamaño y la fecha se llevaba el ancho para repetir la palabra por la que muchas veces se

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { CategoryIcon } from './CategoryIcon'
+import { CategoryChip } from './CategoryChip'
 import { DocCard } from './DocCard'
 import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
@@ -92,14 +92,13 @@ export function DocsView() {
       {s.puedeFiltrar && (
         <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
           {[{ key: null, label: 'Todos' }, ...categoriasVisibles].map(f => (
-            <button
+            <CategoryChip
               key={String(f.key)}
+              category={f.key}
+              label={f.label}
+              selected={s.activeFilter === f.key}
               onClick={() => s.setActiveFilter(f.key)}
-              className={`flex min-h-11 flex-shrink-0 items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-colors ${s.activeFilter === f.key ? 'bg-primary-strong text-white' : 'bg-white border border-line text-muted hover:bg-surface'}`}
-            >
-              {f.key && <CategoryIcon category={f.key} size={13} />}
-              {f.label}
-            </button>
+            />
           ))}
 
           {ocultas > 0 && (

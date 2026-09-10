@@ -3,15 +3,14 @@
 import { useState, useRef } from 'react'
 import { Upload, ExternalLink, Loader2 } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { Field } from '@/components/ui/Field'
-import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember, StorageConnection } from '@/types'
-import { CategoryIcon } from './CategoryIcon'
+import { CategoryChip } from './CategoryChip'
 import { ConnectStorage } from './ConnectStorage'
 import { FileTypeIcon, etiquetaDeTipo } from './FileTypeIcon'
 import { DOC_CATEGORIES } from '@/lib/constants'
-import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import { formatFileSize } from '@/lib/text'
 import { validateDocumentFile } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
@@ -254,34 +253,34 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
           />
         </Field>
 
+        {/* La misma pastilla que los filtros de la pantalla (`CategoryChip`):
+            elegir «Salud» al guardar y filtrar por «Salud» son el mismo gesto
+            sobre la misma cosa, y se habían quedado con dos aspectos distintos. */}
         <Field label="Categoría" spacing="group">
           <div className="flex flex-wrap gap-2">
             {DOC_CATEGORIES.map(cat => (
-              <SelectChip
+              <CategoryChip
                 key={cat.key}
+                category={cat.key}
+                label={cat.label}
                 selected={draft.category === cat.key}
                 onClick={() => patch({ category: cat.key })}
-              >
-                <CategoryIcon category={cat.key} size={13} /> {cat.label}
-              </SelectChip>
+              />
             ))}
           </div>
         </Field>
 
-        <Field label="De quién" hint="(opcional)" spacing="group">
-          <div className="flex flex-wrap gap-2">
-            {buildAssignees(members, kids).map(a => (
-              <SelectChip
-                key={a.key}
-                selected={assigneeKeyOf(draft) === a.key}
-                onClick={() => patch({ child_id: a.child_id, member_id: a.member_id })}
-                selectedColor={a.key === 'familia' ? undefined : a.color}
-              >
-                {a.name}
-              </SelectChip>
-            ))}
-          </div>
-        </Field>
+        {/* Los círculos de color de toda la app y no los chips de texto que había
+            aquí: de quién es algo se elige igual en Tareas, en el calendario y en
+            Finanzas, y este era el único sitio donde se elegía sin color. */}
+        <AssigneePicker
+          value={draft}
+          onChange={patch}
+          members={members}
+          kids={kids}
+          label="De quién es"
+          hint="(opcional)"
+        />
 
         <Field label="Descripción" htmlFor="doc-description" hint="(opcional)">
           <input

@@ -41,7 +41,7 @@ interface ConfirmDeleteFooterProps {
  * iba en `bg-danger`, 3,3:1 con texto blanco— y esa razón ya no vale: el repaso
  * del 09-09-2026 pasó la variante a `danger-strong`. Lo que queda es la forma:
  * estos dos botones son el **pie de un sheet**, a lo ancho y apilados, y no la
- * pastilla que devuelve `Button`. El rojo es el mismo (`danger-strong`, 5,2:1) que
+ * pastilla que devuelve `Button`. El rojo es el mismo (`danger-strong`, 5,41:1) que
  * `DeleteButton` y que la variante.
  *
  * «Cancelar» va debajo y sin color: es lo que se pulsa por descuido, y el orden

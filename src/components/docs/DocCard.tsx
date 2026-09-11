@@ -2,10 +2,9 @@
 
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CategoryIcon } from './CategoryIcon'
 import { FileTypeIcon } from './FileTypeIcon'
 import { fondoDePersona } from '@/lib/assignees'
-import { DOC_CATEGORIES, FAMILY_COLOR } from '@/lib/constants'
+import { DOC_CATEGORY, FAMILY_COLOR } from '@/lib/constants'
 import { selectExpiryState } from '@/lib/selectors'
 import { formatFileSize } from '@/lib/text'
 import type { DocCategory, Document } from '@/types'
@@ -15,10 +14,6 @@ const CADUCIDAD_ESTILO = {
   pronto:   'bg-sand/25 text-sand-strong',
   vigente:  'bg-surface text-muted',
 } as const
-
-const ETIQUETAS = Object.fromEntries(
-  DOC_CATEGORIES.map(c => [c.key, c.label])
-) as Record<DocCategory, string>
 
 interface DocCardProps {
   doc: Document
@@ -31,6 +26,7 @@ interface DocCardProps {
 /** Tarjeta de documento en el listado, con categoría, dueño y metadatos. */
 export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardProps) {
   const categoria: DocCategory = doc.category ?? 'otros'
+  const etiqueta = DOC_CATEGORY[categoria]?.label ?? 'Otros'
   const caducidad = selectExpiryState(doc.expires_on)
 
   return (
@@ -50,21 +46,24 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
           <p className="text-xs text-muted mt-0.5 truncate">{doc.description}</p>
         )}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          {/* La categoría, solo su icono y en color (09-09-2026). Era una
+          {/* La categoría, solo su icono y sin la palabra (09-09-2026). Era una
               píldora gris con el nombre escrito al lado, y en una fila donde ya
               compiten la caducidad, el tamaño y la fecha se llevaba el ancho
               para repetir la palabra por la que muchas veces se ha filtrado
-              justo arriba. Es lo mismo que hacen la tarjeta de una nota y la de
-              una lista con su emoji: la imagen dice de qué va y no gasta línea.
+              justo arriba.
+              Y el icono es el emoji del catálogo, no un trazo de `lucide`: es lo
+              mismo que hacen la tarjeta de una nota, la de una lista y la fila
+              de un gasto, y ser la única sección con otro idioma de iconos no
+              venía de ninguna decisión de producto.
               El nombre sigue estando para quien no ve el icono —lector de
               pantalla— y al pasar el ratón. */}
           <span
             role="img"
-            aria-label={ETIQUETAS[categoria] ?? 'Otros'}
-            title={ETIQUETAS[categoria] ?? 'Otros'}
-            className="flex-shrink-0 text-primary-strong"
+            aria-label={etiqueta}
+            title={etiqueta}
+            className="flex-shrink-0 text-base leading-none"
           >
-            <CategoryIcon category={categoria} size={15} />
+            {DOC_CATEGORY[categoria]?.emoji ?? '📄'}
           </span>
           {/* De quién es, con la etiqueta de toda la app: el color de la persona
               de fondo y el nombre en tinta. Iba en color macizo con el texto

@@ -2210,12 +2210,39 @@ podía significar mientras fuera el único sitio donde meter una póliza. La cla
 renombró aunque «Identidad» sea más exacto: hay documentos reales en producción con ese
 valor y cambiarlo obligaría a migrar filas para ganar precisión de vocabulario.
 
-**El icono es de lucide y no un emoji** (`src/components/docs/CategoryIcon.tsx`). El chip de
-la tarjeta tiene el texto a 10 px; a ese tamaño un emoji de color es una mancha, y encima
-Android, iOS y Windows dibujan cada uno el suyo. Los iconos son monocromos, heredan el color
-del chip y son los mismos que el resto de la app. `constants.ts` se queda sin el campo
-`emoji` y **sin icono**: ese archivo lo importa también el servidor y no puede arrastrar
-`lucide-react`.
+**El icono es un emoji, como en toda la app** (11-09-2026, en `DOC_CATEGORIES`). Fueron
+iconos de línea de `lucide` desde el 02-09-2026, y el argumento era de tamaño: el chip de la
+tarjeta llevaba el texto a 10 px, y a esa altura un emoji de color es una mancha que además
+Android, iOS y Windows dibujan a su manera. Lo que ese argumento no explicaba es por qué
+Documentos tenía que ser la única sección con otro idioma de iconos: una lista, una nota,
+una partida y un fijo se reconocen por su emoji, y el de la tarjeta ya no comparte línea con
+un texto de 10 px —la palabra se fue de la tarjeta el 09-09-2026, que es lo que dejaba sin
+sostén la razón original—.
+
+Los once salen del **mismo vocabulario que ya ofrecen los sheets** de listas, notas y
+partidas (🏥, 🎒, 🏠, 🚗, 🐾, ✈️, 🧾), y ninguno es posterior a Unicode 7. Eso último no es
+puntillismo: en una lista los elige la familia de un juego curado, pero aquí el catálogo es
+fijo, así que un emoji reciente no sale como un icono raro que alguien escogió, sale como un
+cuadrado vacío para todo el que tenga el móvil viejo. Por eso `personal` no lleva 🪪, que es
+más literal y es de Unicode 14.
+
+Y lleva 👤 y no 🆔 porque el juego además tiene que **caber en la paleta**. El 🆔 se probó
+primero y se dibuja como un bloque violeta macizo —el único color saturado de los once—: en
+una pantalla de salvia y arena se veía antes que el nombre del documento, y eso en la única
+sección a la que se entra buscando un papel concreto. 👤 es gris, va con la palabra y dice lo
+que es la carpeta: los papeles de una persona.
+
+El campo vive en `constants.ts` y no en un componente aparte —`CategoryIcon.tsx` se borró—
+porque un emoji es texto: el problema de tener el icono ahí era que ese archivo lo importa
+también el servidor y no podía arrastrar `lucide-react`. Para pintar una categoría suelta
+está `DOC_CATEGORY`, la misma lista indexada por clave.
+
+**En la tarjeta va el emoji solo; en la pastilla, con la palabra.** No es una incoherencia:
+la tarjeta repetía un nombre que muchas veces se acaba de leer en el filtro de arriba,
+mientras que un filtro tiene que decir qué filtra —once carpetas sin nombre obligan a
+adivinar cuál es Personal y cuál Seguros—. En la tarjeta el emoji es `role="img"` con el
+nombre en `aria-label` y en `title`; en la pastilla es `aria-hidden`, porque el nombre ya
+está escrito al lado.
 
 **Como filtro solo salen las carpetas que tienen algo dentro** (03-09-2026,
 `selectDocCategoryFilters`). Que haya once carpetas es bueno para guardar y era malo para

@@ -145,9 +145,17 @@ que todavía no existen (ver "Siguiente paso recomendado").
   `storage_path`, que ahora es el identificador que le pone Google. **Once categorías** (02-09-2026), en `DOC_CATEGORIES`: Salud, Colegio,
   Personal, Vivienda, Vehículo, Seguros, Finanzas, Facturas, Mascotas, Viajes y Otros.
   `personal` es identidad —DNI, pasaporte, libro de familia—, no el cajón de lo que no
-  encaja; para eso está «Otros». Cada una lleva un icono de lucide
-  (`docs/CategoryIcon.tsx`), no un emoji: el chip mide 10 px y ahí un emoji de color es
-  una mancha distinta en cada sistema. La fila de filtros **envuelve en los dos tamaños**
+  encaja; para eso está «Otros». **Cada una lleva su emoji** (11-09-2026, en el propio
+  `DOC_CATEGORIES`), del mismo vocabulario que los sheets de listas, notas y partidas y
+  ninguno posterior a Unicode 7 —en un catálogo fijo, un emoji reciente es un cuadrado
+  vacío para quien tenga el móvil viejo, y por eso `personal` no lleva 🪪—. Lleva 👤 y no
+  🆔, que se probó primero: el 🆔 es un bloque violeta macizo, el único color saturado de
+  los once, y sobre salvia y arena se veía antes que el nombre del documento. Fueron
+  iconos de lucide hasta esa fecha, por el tamaño del chip; el argumento se cayó cuando
+  la palabra se fue de la tarjeta el 09-09-2026, y lo que quedaba era la única sección de
+  la app que identificaba en otro idioma. En la tarjeta va el emoji solo (con el nombre en
+  `aria-label` y `title`); en la pastilla, con la palabra al lado, porque un filtro tiene
+  que decir qué filtra. La fila de filtros **envuelve en los dos tamaños**
   (02-09-2026): en móvil se arrastraba, y a 390 px entraban cuatro y las otras ocho
   quedaban fuera de pantalla. Y desde el 03-09-2026 **como filtro solo se ofrecen las
   categorías que tienen algún documento** (`selectDocCategoryFilters`), más la que estés
@@ -157,9 +165,9 @@ que todavía no existen (ver "Siguiente paso recomendado").
   Con una sola categoría con papeles no sale la tira: no filtraría nada, igual que el
   buscador por debajo de `MINIMO_PARA_BUSCAR`. Las once siguen estando al **guardar** un
   documento; esconder contenido en esta app ha salido mal cada vez, pero una categoría
-  vacía no es contenido, es un filtro muerto. La categoría «Finanzas» lleva el símbolo € desde
-  el 02-09-2026, el mismo que la sección: fue una tarjeta de crédito y luego una hucha,
-  que de cerca es un cerdito y no dice «dinero» sino «ahorrar».
+  vacía no es contenido, es un filtro muerto. La categoría «Finanzas» va con el euro (💶)
+  desde el 02-09-2026, el mismo que la sección: fue una tarjeta de crédito y luego una
+  hucha, que de cerca es un cerdito y no dice «dinero» sino «ahorrar».
 - **Notas** (31-08-2026): lo que hay que tener apuntado en casa y no es una fecha, una
   tarea ni un papel —el teléfono del pediatra, la clave del wifi, dónde está el contador—.
   Título, texto libre, un emoji y la posibilidad de fijar una arriba. Sin categorías, sin

@@ -10,23 +10,50 @@ import type { DocCategory, DocMimeType, MealSlot, QuoteStatus, TaskPriority, Tas
  * tiene ahora su sitio, y por eso la lista es larga: el filtro solo sirve si
  * cada papel de una casa cabe en una carpeta que no sea «Otros».
  *
- * Aquí no hay icono a propósito: este archivo lo importa también el servidor y
- * no puede arrastrar `lucide-react`. El icono de cada clave lo pone
- * `src/components/docs/CategoryIcon.tsx`.
+ * **El icono es un emoji, como en el resto de la app.** Una lista, una nota y
+ * una partida se reconocen por el suyo; Documentos era la única sección que
+ * identificaba con iconos de línea de `lucide`, y no por una razón de producto:
+ * el argumento era que el chip medía 10 px y a ese tamaño un emoji de color es
+ * una mancha. Eso justificaba aquel chip, no la sección entera, y a cambio dejó
+ * once carpetas dibujadas en un idioma que no se habla en ninguna otra pantalla.
+ *
+ * Los emoji se eligen del mismo vocabulario que ya usan los sheets de listas,
+ * notas y partidas (🏥, 🎒, 🏠, 🚗, 🐾, ✈️, 🧾), y ninguno es posterior a
+ * Unicode 7: en un catálogo fijo, un emoji nuevo no es un icono raro que alguien
+ * eligió, es un cuadrado vacío para toda la familia que tenga el móvil viejo.
+ * Por eso `personal` no lleva 🪪, que es más literal y es de Unicode 14.
+ *
+ * Y el que lleva es 👤 y no 🆔 porque el juego tiene que **caber en la paleta**:
+ * el 🆔 se dibuja como un bloque violeta macizo, el único color saturado de los
+ * once, y en una pantalla de salvia y arena se veía antes que el nombre del
+ * documento. 👤 es gris, va con la palabra y dice lo que es la carpeta: los
+ * papeles de una persona.
+ *
+ * Aquí sí caben, al contrario que los de `lucide`: son texto, y este archivo lo
+ * importa también el servidor.
  */
-export const DOC_CATEGORIES: { key: DocCategory; label: string }[] = [
-  { key: 'salud',    label: 'Salud' },
-  { key: 'colegio',  label: 'Colegio' },
-  { key: 'personal', label: 'Personal' },
-  { key: 'vivienda', label: 'Vivienda' },
-  { key: 'vehiculo', label: 'Vehículo' },
-  { key: 'seguros',  label: 'Seguros' },
-  { key: 'finanzas', label: 'Finanzas' },
-  { key: 'facturas', label: 'Facturas' },
-  { key: 'mascotas', label: 'Mascotas' },
-  { key: 'viajes',   label: 'Viajes' },
-  { key: 'otros',    label: 'Otros' },
+export const DOC_CATEGORIES: { key: DocCategory; label: string; emoji: string }[] = [
+  { key: 'salud',    label: 'Salud',    emoji: '🏥' },
+  { key: 'colegio',  label: 'Colegio',  emoji: '🎒' },
+  { key: 'personal', label: 'Personal', emoji: '👤' },
+  { key: 'vivienda', label: 'Vivienda', emoji: '🏠' },
+  { key: 'vehiculo', label: 'Vehículo', emoji: '🚗' },
+  { key: 'seguros',  label: 'Seguros',  emoji: '🛡️' },
+  { key: 'finanzas', label: 'Finanzas', emoji: '💶' },
+  { key: 'facturas', label: 'Facturas', emoji: '🧾' },
+  { key: 'mascotas', label: 'Mascotas', emoji: '🐾' },
+  { key: 'viajes',   label: 'Viajes',   emoji: '✈️' },
+  { key: 'otros',    label: 'Otros',    emoji: '📄' },
 ]
+
+/**
+ * La misma lista indexada por clave, para pintar una categoría suelta sin
+ * recorrer las once. La usan la tarjeta del listado y la pastilla.
+ */
+export const DOC_CATEGORY: Record<DocCategory, { label: string; emoji: string }> =
+  Object.fromEntries(
+    DOC_CATEGORIES.map(({ key, label, emoji }) => [key, { label, emoji }])
+  ) as Record<DocCategory, { label: string; emoji: string }>
 
 export const VALID_MIME_TYPES: DocMimeType[] = ['application/pdf', 'image/jpeg', 'image/png']
 

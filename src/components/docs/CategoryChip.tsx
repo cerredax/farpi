@@ -1,5 +1,5 @@
+import { DOC_CATEGORY } from '@/lib/constants'
 import type { DocCategory } from '@/types'
-import { CategoryIcon } from './CategoryIcon'
 
 interface CategoryChipProps {
   /** La categoría, o `null` para el «Todos» de la tira de filtros, que no lleva icono. */
@@ -19,6 +19,11 @@ interface CategoryChipProps {
  * exactamente lo mismo. Además 30 px se queda por debajo del mínimo de la casa
  * (44×44), que en un sheet no vigila `e2e/movil.spec.ts` porque mientras está
  * cerrado es `inert`.
+ *
+ * **Aquí el emoji no quita la palabra.** En la tarjeta sí —la categoría ya se
+ * acaba de leer en el filtro—, pero un filtro tiene que decir qué filtra: once
+ * carpetas sin nombre obligan a adivinar cuál es Personal y cuál Seguros, y el
+ * emoji es decorativo (`aria-hidden`) justo porque el nombre va al lado.
  */
 export function CategoryChip({ category, label, selected, onClick }: CategoryChipProps) {
   return (
@@ -31,7 +36,11 @@ export function CategoryChip({ category, label, selected, onClick }: CategoryChi
           : 'bg-white border border-line text-muted hover:bg-surface'
       }`}
     >
-      {category && <CategoryIcon category={category} size={13} />}
+      {category && (
+        <span className="flex-shrink-0 text-sm leading-none" aria-hidden>
+          {DOC_CATEGORY[category]?.emoji ?? '📄'}
+        </span>
+      )}
       {label}
     </button>
   )

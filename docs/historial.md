@@ -13,6 +13,55 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-11
+
+### Las categorías de Documentos vuelven al idioma de la casa (11-09-2026)
+
+Vino de una pregunta de las que valen: «quiero categorías con iconos igual que está en el
+resto de la aplicación, ¿por qué ahí decides poner texto?». Y la respuesta era que no había
+respuesta. Iconos había —los once de `lucide`, puestos el 02-09-2026—, pero eran de otro
+idioma: una lista, una nota, una partida y un fijo se reconocen por su **emoji**, y
+Documentos era la única sección del cajón que identificaba con trazos monocromos. Puestas
+las dos pantallas una al lado de la otra, no parecen la misma app.
+
+El argumento original estaba escrito y era honesto: el chip de la tarjeta llevaba el texto a
+10 px y a esa altura un emoji de color es una mancha que además Android, iOS y Windows
+dibujan cada uno a su manera. Lo que pasa es que **ese argumento ya no describía la
+pantalla**: la palabra se fue de la tarjeta el 09-09-2026 y el icono quedó solo, sin texto
+de 10 px al lado al que igualar. La razón se había quedado en pie sola, sin el caso que la
+sostenía.
+
+Así que los once pasan a emoji, dentro del propio `DOC_CATEGORIES` —un emoji es texto, y lo
+que no cabía en `constants.ts` era `lucide-react`, que ese archivo lo importa también el
+servidor—. `CategoryIcon.tsx` se borra y entra `DOC_CATEGORY`, la misma lista indexada por
+clave para pintar una categoría suelta.
+
+**El vocabulario se elige, no se improvisa.** Salen del mismo juego que ya ofrecen los
+sheets de listas, notas y partidas (🏥, 🎒, 🏠, 🚗, 🐾, ✈️, 🧾), y ninguno es posterior a
+Unicode 7. Esto último no es puntillismo: en una lista el emoji lo elige la familia de un
+juego curado, así que uno raro es cosa de quien lo eligió; aquí el catálogo es **fijo**, y un
+emoji reciente no sale como una elección, sale como un cuadrado vacío para todo el que tenga
+el móvil viejo. Por eso `personal` no lleva 🪪, que es lo más literal y es de Unicode 14.
+
+Y lleva 👤 porque el primer intento fue 🆔 y **hubo que mirarlo en pantalla para verlo**: el
+🆔 se dibuja como un bloque violeta macizo, el único color saturado de los once, y sobre
+salvia y arena se veía antes que el nombre del documento. En la única sección a la que se
+entra buscando un papel concreto, eso es exactamente lo que no se quiere. 👤 es gris, va con
+la palabra y dice lo que es la carpeta.
+
+**Lo que no se unificó a lo bruto: el texto del filtro se queda.** En la tarjeta va el emoji
+solo, porque ahí repetía un nombre que muchas veces se acaba de leer en la pastilla de
+arriba. Pero un filtro tiene que decir qué filtra, y once carpetas sin nombre obligan a
+adivinar cuál es Personal y cuál Seguros. Así que la pastilla lleva emoji **y** palabra, con
+el emoji en `aria-hidden` porque el nombre ya está escrito al lado; en la tarjeta es
+`role="img"` con el nombre en `aria-label` y en `title`, para quien no ve el icono.
+
+Comprobado a 390 px en el navegador, no de memoria: la tira sigue envolviendo igual que con
+`lucide` y la rejilla de las once del sheet sigue cabiendo en cuatro filas. Y de paso salió
+un detalle del entorno que no tiene que ver con esto: `npm run test:unit` en paralelo tumba
+workers en esta máquina (código 134 y 0xC0000409, crashes de Node, no aserciones). Con
+`--workers=1` pasan los 500, y la suite entera los 663.
+
 ## Cerrado el 2026-09-10
 
 ### Lo que quedaba a medias del repaso: la última etiqueta y el último rojo (10-09-2026)

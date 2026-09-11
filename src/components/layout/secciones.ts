@@ -1,4 +1,4 @@
-import { Home, Calendar, ClipboardList, CheckSquare, UtensilsCrossed, FolderOpen, StickyNote, Euro } from 'lucide-react'
+import { Home, Calendar, ClipboardList, CheckSquare, UtensilsCrossed, FolderOpen, StickyNote, Euro, Cake } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
 
 interface Seccion {
@@ -41,6 +41,7 @@ export const SECCIONES: Seccion[] = [
   { href: ROUTES.finanzas, label: 'Finanzas',   icon: Euro, enMas: true },
   { href: ROUTES.notes,    label: 'Notas',      icon: StickyNote, enMas: true },
   { href: ROUTES.docs,     label: 'Documentos', icon: FolderOpen, enMas: true },
+  { href: ROUTES.cumples,  label: 'Cumpleaños', icon: Cake, enMas: true },
 ]
 
 /**

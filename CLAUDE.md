@@ -85,8 +85,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 500 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 663 (500 unitarios + 163 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 501 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 670 (501 unitarios + 169 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -133,7 +133,7 @@ Pantallas (src/components/**)
 
 ### Next.js 16
 
-- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, notes, docs, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo y sin sesión: `/privacidad` y `/terminos` (públicas, y requisito para publicar en Google Play) y `/offline` (fallback del service worker).
+- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, finanzas, notes, docs, cumples, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo y sin sesión: `/privacidad` y `/terminos` (públicas, y requisito para publicar en Google Play) y `/offline` (fallback del service worker).
 - El middleware es **`src/proxy.ts`** (renombrado en Next 16, exporta `proxy()`), que delega en `src/lib/supabase/middleware.ts` para refrescar la sesión.
 - **Las rutas públicas son una lista blanca a mano**: `PUBLIC_ROUTES` en `src/lib/supabase/middleware.ts`. Si añades una página que se ve sin sesión y no la metes ahí, redirige al login. Lo mismo por el otro lado: el `matcher` de `src/proxy.ts` deja fuera `sw.js` y `manifest.json` a propósito — si pasan por el control de sesión responden con redirect y el navegador se niega a registrar el service worker.
 - Ante dudas de API o convención, consultar la documentación local en `node_modules/next/dist/docs/` antes de asumir comportamiento antiguo.

@@ -1,22 +1,12 @@
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { memo } from 'react'
 import { PartyPopper } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { fondoDePersona } from '@/lib/assignees'
-import { edadEnPalabras, type CumpleEnCasa } from '@/lib/birthdays'
-import { parseLocalDate } from '@/lib/date-utils'
-import { capitalize } from '@/lib/text'
+import { diaDeCumple, edadEnPalabras, type CumpleEnCasa } from '@/lib/birthdays'
 
 interface UpcomingBirthdaysProps {
   cumples: CumpleEnCasa[]
-}
-
-/** "Mañana", "Jue 4 sept". Lo mismo que hace "Próximos días" con los planes. */
-function diaDeCumple(fecha: string, dias: number): string {
-  if (dias === 1) return 'Mañana'
-  return capitalize(format(parseLocalDate(fecha), 'EEE d MMM', { locale: es }))
 }
 
 /**

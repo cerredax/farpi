@@ -26,6 +26,12 @@ interface Params {
   onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
   onUpdate: (id: string, draft: EventDraft) => void
   onDelete: (id: string) => void
+  /**
+   * Qué se está apuntando, cuando ya se sabe por dónde se ha entrado: el `+` de
+   * Cumpleaños abre este mismo sheet, pero ahí no hay nada que elegir. Sin él
+   * se abre en "Un plan", que es lo que abre el calendario.
+   */
+  defaultKind?: EventDraft['kind']
 }
 
 /**
@@ -45,6 +51,7 @@ export function initDraft(
   initial: Event | null | undefined,
   defaultDate: Date | undefined,
   defaultTime?: string,
+  defaultKind?: EventDraft['kind'],
 ): EventDraft {
   if (mode === 'edit' && initial) {
     return {
@@ -68,11 +75,16 @@ export function initDraft(
    * la cabecera, la agenda, la rejilla del mes— no llega ninguna y la hora sigue
    * vacía, que ahí nadie ha señalado ninguna.
    */
+  // Lo que el tipo arrastra consigo es lo mismo que aplica el selector de "Qué
+  // es" al cambiarlo: días completos para los de rango y para un cumpleaños,
+  // porque nadie cumple de seis a ocho.
+  const kind = defaultKind ?? 'evento'
+  const date = format(defaultDate ?? new Date(), 'yyyy-MM-dd')
   return {
-    title: '', description: '',
-    date: format(defaultDate ?? new Date(), 'yyyy-MM-dd'),
-    all_day: false, start_time: defaultTime ?? '', end_time: '', child_id: null, member_id: null,
-    kind: 'evento', end_date: '', birth_year: '',
+    title: '', description: '', date,
+    all_day: isRangeKind(kind) || kind === 'cumple',
+    start_time: defaultTime ?? '', end_time: '', child_id: null, member_id: null,
+    kind, end_date: isRangeKind(kind) ? date : '', birth_year: '',
   }
 }
 
@@ -85,12 +97,12 @@ export function initDraft(
  * pasaba de 480 líneas y no se sabía qué estado servía a qué formulario.
  */
 export function useEventSheet({
-  open, mode, initial, defaultDate, defaultTime,
+  open, mode, initial, defaultDate, defaultTime, defaultKind,
   onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
 }: Params) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<EventDraft>({
     open,
-    initialDraft: () => initDraft(mode, initial, defaultDate, defaultTime),
+    initialDraft: () => initDraft(mode, initial, defaultDate, defaultTime, defaultKind),
     validate: validateEventDraft,
     autoFocus: mode === 'create',
   })

@@ -48,7 +48,7 @@ test('home carga con datos demo y la navegación inferior', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Docs' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Más' }).click()
   const mas = page.getByRole('dialog', { name: 'Más' })
-  for (const fila of ['Notas', 'Documentos', 'Ajustes']) {
+  for (const fila of ['Notas', 'Documentos', 'Cumpleaños', 'Ajustes']) {
     await expect(mas.getByRole('link', { name: fila })).toBeVisible()
   }
   await mas.getByRole('link', { name: 'Documentos' }).click()
@@ -210,6 +210,36 @@ test('un cumpleaños sin año de nacimiento se felicita sin edad', async ({ page
 
   await page.goto('/home')
   await expect(page.getByText('Hoy es el cumple de Nico del cole')).toBeVisible()
+})
+
+/**
+ * La pantalla de Cumpleaños: los doce meses que vienen, de una vez.
+ *
+ * Lo que se prueba aquí es lo que no se ve en un unitario. Que la lista **junta
+ * los dos orígenes** —Cris sale de su fecha de nacimiento sin que nadie haya
+ * apuntado nada, la abuela de un cumpleaños apuntado— y que el `+` abre el
+ * sheet del calendario **sin el selector de "Qué es"**: quien entra por aquí ya
+ * ha elegido qué está apuntando.
+ */
+test('los cumpleaños se ven todos juntos y se apuntan desde su pantalla', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  await page.goto('/cumples')
+
+  // Cris está sin haber apuntado nada: su cumpleaños se deduce de la fecha de
+  // nacimiento que tiene en Ajustes.
+  await expect(page.getByText('Cris')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Apuntar un cumpleaños' }).click()
+  await expect(page.locator('#event-kind')).toHaveCount(0)
+  await page.locator('#event-title').fill('Abuela Carmen')
+  await page.locator('#event-date').fill(iso)
+  await page.locator(GUARDAR_EVENTO).click()
+
+  // Y baja a la lista, el primero: es hoy.
+  const filas = page.getByRole('listitem')
+  await expect(filas.filter({ hasText: 'Abuela Carmen' })).toContainText('Hoy')
 })
 
 /**

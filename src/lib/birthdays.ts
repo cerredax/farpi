@@ -1,6 +1,9 @@
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { DIAS_AVISO_CUMPLE } from './constants'
 import { extractDate, getLocalDateString, parseLocalDate } from './date-utils'
 import { isBirthday } from './events'
+import { capitalize } from './text'
 import type { Event } from '@/types'
 
 /**
@@ -111,6 +114,20 @@ export function proximosCumples<P extends PersonaConCumple>(
 /** "8 años", "1 año". */
 export function edadEnPalabras(edad: number): string {
   return edad === 1 ? '1 año' : `${edad} años`
+}
+
+/**
+ * Cuándo es, dicho como se diría en casa: "Hoy", "Mañana" o "Jue 4 sep".
+ *
+ * Vive aquí y no en la pantalla que lo pinta porque son dos —el bloque de
+ * Inicio y la lista de Cumpleaños— y un cumpleaños tiene que decirse igual en
+ * las dos. Es la misma escala que usan la agenda y las ausencias: cerca se
+ * habla en días y lejos en fechas.
+ */
+export function diaDeCumple(fecha: string, dias: number): string {
+  if (dias === 0) return 'Hoy'
+  if (dias === 1) return 'Mañana'
+  return capitalize(format(parseLocalDate(fecha), 'EEE d MMM', { locale: es }))
 }
 
 /**

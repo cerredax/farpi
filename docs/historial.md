@@ -15,6 +15,43 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-11
 
+### Los cumpleaños tienen su propia pantalla (11-09-2026)
+
+La petición fue «en Más quiero un apartado de cumpleaños, el listado de los que están y un
+botón de más para darlos de alta». Lo de dar de alta ya se podía —un cumpleaños de fuera es
+un evento `kind = 'cumple'` desde el 27-08-2026—, así que lo que justifica la pantalla es la
+otra mitad: **el año entero**. Inicio avisa con catorce días y el bloque del calendario
+enseña el mes que se está mirando; en septiembre, «¿cuándo es el cumple de la abuela?» no
+tenía respuesta en ninguna pantalla si caía en marzo.
+
+La lista sale casi gratis porque la cuenta ya estaba escrita: `cumplesDeLaCasa` junta desde
+el 27-08-2026 los dos orígenes —la fecha de nacimiento de Ajustes y el cumpleaños apuntado
+en el calendario— y el store carga todos los eventos, no solo los del mes. La pantalla es
+esa función con otra ventana.
+
+**Y la ventana es de 364 días, no de 365.** Los de fuera se materializan una fila por año,
+así que con 365 quien cumple hoy saldría dos veces: hoy y dentro de un año. Con 364 no se
+pierde nadie, porque el próximo cumpleaños de cualquiera cae siempre a 365 días o menos y el
+de quien cumple hoy está a cero.
+
+El `+` **no estrena formulario**: abre el sheet del calendario con `defaultKind`, que además
+esconde el selector de «Qué es» —quien pulsa el `+` de Cumpleaños ya eligió al entrar— y
+pone el título en «Apuntar un cumpleaños». Tener aquí un formulario propio habría sido la
+segunda forma de crear la misma cosa.
+
+La asimetría que se aceptó en agosto sigue en pie y ahora se ve: el `+` solo apunta a los de
+fuera, porque al de casa no se le apunta el cumpleaños, se le pone la fecha en su ficha. La
+lista no lo distingue —para quien mira son un nombre y un día— y por eso mismo las filas
+**todavía no se tocan**: corregir o borrar sigue siendo del calendario y de Ajustes. Se dejó
+fuera a propósito, no por olvido.
+
+De paso, `diaDeCumple` («Hoy», «Mañana», «Jue 3 sep») sube a `birthdays.ts`: lo tenía escrito
+el bloque de Inicio y ahora son dos las pantallas que dicen cuándo es un cumpleaños, que
+tienen que decirlo igual.
+
+Suite completa: **670** (501 unitarios y 169 de navegador). Los recuentos de `CLAUDE.md` y
+`project-status.md` estaban desfasados desde varios cierres atrás y se corrigen aquí.
+
 ### Las categorías de Documentos vuelven al idioma de la casa (11-09-2026)
 
 Vino de una pregunta de las que valen: «quiero categorías con iconos igual que está en el

@@ -27,6 +27,12 @@ interface EventSheetProps {
   onUpdate: (id: string, draft: EventDraft) => void
   onDelete: (id: string) => void
   onDeleteSeries?: (groupId: string) => void
+  /**
+   * Qué se está apuntando cuando la pantalla ya lo sabe. Con él, el selector de
+   * "Qué es" no se enseña: quien pulsa el `+` de Cumpleaños no está eligiendo
+   * entre cinco tipos, ya ha elegido al entrar ahí.
+   */
+  defaultKind?: EventDraft['kind']
 }
 
 /**
@@ -35,13 +41,13 @@ interface EventSheetProps {
  * `useEventSheet`; aquí queda lo que se ve.
  */
 export function EventSheet({
-  open, mode, initial, defaultDate, defaultTime, kids, members,
+  open, mode, initial, defaultDate, defaultTime, defaultKind, kids, members,
   onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete, onDeleteSeries,
 }: EventSheetProps) {
   // El ref sale del objeto: dentro, cualquier `s.loQueSea` se lee como acceder
   // a un ref durante el render y el linter lo para, con razón.
   const { firstFieldRef, ...s } = useEventSheet({
-    open, mode, initial, defaultDate, defaultTime,
+    open, mode, initial, defaultDate, defaultTime, defaultKind,
     onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
   })
 
@@ -64,7 +70,14 @@ export function EventSheet({
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Apuntar en el calendario' : 'Editar lo apuntado'}
+      title={
+        mode !== 'create'
+          ? 'Editar lo apuntado'
+          // Con el tipo ya decidido, el título dice qué se está apuntando: el
+          // sheet abre sin el selector, así que "Apuntar en el calendario" sería
+          // lo único de la pantalla que no habla de cumpleaños.
+          : defaultKind === 'cumple' ? 'Apuntar un cumpleaños' : 'Apuntar en el calendario'
+      }
       onClose={onClose}
       headerActions={headerActions}
       footer={
@@ -94,7 +107,7 @@ export function EventSheet({
             del formulario para una decisión que se toma una vez y casi siempre
             es la de por defecto. Un desplegable ocupa una línea, y sobre todo
             aguanta el quinto y el sexto tipo sin volver a reordenar nada. */}
-        {mode === 'create' && (
+        {mode === 'create' && !defaultKind && (
           <Field label="Qué es" htmlFor="event-kind">
             <select
               id="event-kind"

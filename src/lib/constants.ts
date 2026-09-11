@@ -310,6 +310,17 @@ export const DIAS_VALIDEZ_INVITACION = 30
 export const DIAS_AVISO_CUMPLE = 14
 
 /**
+ * Cuánto abarca la pantalla de Cumpleaños: los doce meses que vienen.
+ *
+ * Un año **menos un día** a propósito. Los de fuera de casa son eventos, una
+ * fila por año, así que con 365 quien cumple hoy saldría dos veces: hoy y
+ * dentro de un año. Con 364 no se pierde ninguno —el próximo cumpleaños de
+ * cualquiera cae siempre a 365 días o menos, y el de quien cumple hoy está a
+ * cero— y la lista no repite a nadie.
+ */
+export const DIAS_LISTA_CUMPLES = 364
+
+/**
  * Cuántos años por delante se apunta un cumpleaños de fuera de casa.
  *
  * La serie anual se materializa —una fila por año, como los festivos—, así que
@@ -342,5 +353,6 @@ export const ROUTES = {
   finanzas: '/finanzas',
   notes:    '/notes',
   docs:     '/docs',
+  cumples:  '/cumples',
   settings: '/settings',
 } as const

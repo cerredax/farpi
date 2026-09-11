@@ -63,6 +63,7 @@ const ROUTES = [
   '/finanzas',
   '/notes',
   '/docs',
+  '/cumples',
   '/settings',
   '/auth/login',
   '/privacidad',

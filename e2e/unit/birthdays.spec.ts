@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { cumplesDeLaCasa, edadEnPalabras, fraseDeCumplesDeLaCasa, proximoCumple, proximosCumples } from '@/lib/birthdays'
+import { cumplesDeLaCasa, diaDeCumple, edadEnPalabras, fraseDeCumplesDeLaCasa, proximoCumple, proximosCumples } from '@/lib/birthdays'
 import { event } from './fixtures'
 import type { Child } from '@/types'
 
@@ -104,6 +104,15 @@ test.describe('cómo se dice', () => {
 
   test('sin cumpleaños no dice nada', () => {
     expect(fraseDeCumplesDeLaCasa([])).toBe('')
+  })
+
+  // Cerca se dice en días y lejos con la fecha. Lo usan el bloque de Inicio y la
+  // lista de Cumpleaños, que llega a doce meses vista: ahí "dentro de 214 días"
+  // no le dice nada a nadie.
+  test('el día se dice en palabras cuando está cerca', () => {
+    expect(diaDeCumple('2026-08-27', 0)).toBe('Hoy')
+    expect(diaDeCumple('2026-08-28', 1)).toBe('Mañana')
+    expect(diaDeCumple('2026-09-03', 7)).toBe('Jue 3 sep')
   })
 })
 

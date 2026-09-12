@@ -345,14 +345,14 @@ export const QUOTE_STATUSES: { value: QuoteStatus; label: string; corto: string 
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 
 export const ROUTES = {
-  home:     '/home',
-  calendar: '/calendar',
-  tasks:    '/tasks',
-  lists:    '/lists',
-  meals:    '/meals',
-  finanzas: '/finanzas',
-  notes:    '/notes',
-  docs:     '/docs',
-  cumples:  '/cumples',
-  settings: '/settings',
+  home:      '/home',
+  calendar:  '/calendar',
+  tasks:     '/tasks',
+  lists:     '/lists',
+  meals:     '/meals',
+  finanzas:  '/finanzas',
+  notes:     '/notes',
+  docs:      '/docs',
+  birthdays: '/birthdays',
+  settings:  '/settings',
 } as const

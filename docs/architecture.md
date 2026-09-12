@@ -2701,6 +2701,53 @@ toda la app. Era la última que quedaba en color macizo con el texto calculado e
 cuando la paleta de hijos era más oscura; hoy esos colores están en L* 71-88 justamente
 para llevar tinta.
 
+### Cada día de "lo que viene" es un bloque, no una columna (12-09-2026)
+
+Las cajas de "Próximos días" y "Próxima semana" ya agrupaban por jornada, pero el día era
+una **columna de ancho fijo en la primera fila**: la segunda cosa del mismo día dejaba ese
+hueco en blanco para que las horas cayeran alineadas. La cuenta salía con una fila por día
+y se rompía justo cuando había dos — que es cuando el agrupado tenía que servir de algo. A
+la vista quedaba un punto de color, un agujero de tres centímetros y una hora suelta.
+
+El día pasa a ser un **rótulo encima de lo suyo**, entero ("Miércoles 6") porque ya no
+comparte renglón con nada, y las filas se quedan con la hora, que es lo único que las
+distingue dentro de un día. No es un rótulo inventado: es el mismo de las cestas de
+`PendingItems` —`bg-surface`, `text-[11px]`, `uppercase`—, el mismo gesto de agrupar filas
+dentro de una sección y en la misma pantalla. Va en `h3` y no en una `section` con nombre
+por lo mismo que allí: tres días serían tres landmarks anidados dentro del de la caja.
+
+Esto **deroga** la nota de 10-09-2026 que decía que no habría cabecera de día porque "aquí
+caben cinco planes contados y un rótulo por jornada ocuparía más que la lista". La cuenta
+era correcta y la conclusión no: lo que ocupaba de más era el hueco reservado en cada fila
+que no abría día.
+
+**La etiqueta de quien lo lleva tampoco se repite** si el plan de arriba es suyo. Una
+persona con dos cosas el mismo día veía su nombre dos veces seguidas, y las dos filas se
+leían como dos asuntos sueltos en lugar de como su tarde. El punto de color sigue en todas,
+así que de quién es no se pierde de vista, y quien escucha la fila lo sigue oyendo
+(`sr-only`).
+
+Lo que **no** se hace es reordenar por persona dentro del día, que era la otra mitad de lo
+pedido. Dentro de un día lo que se lee es la hora, y agrupar por quién lo lleva rompería
+ese orden justo donde más se necesita; además, con cinco planes un grupo de persona casi
+siempre tendría una sola fila, y lo de toda la familia no tiene ninguna. El eje de persona
+existe y vive donde sí contesta algo: la agenda del calendario (`agruparPorPersona`).
+
+### La ruta de Cumpleaños se llama `/birthdays` (12-09-2026)
+
+Nació como `/cumples` el 11-09-2026 y era la única pantalla nueva que no seguía la
+convención del resto del grupo — `home`, `calendar`, `tasks`, `lists`, `meals`, `notes`,
+`docs`, `settings`. Se renombran la ruta, la carpeta de sus componentes
+(`src/components/birthdays/`) y `BirthdaysView`. Lo que **no** se toca es el código de
+dentro: `cumplesDeLaCasa`, `proximosCumples`, `DIAS_LISTA_CUMPLES` y el rótulo
+"Cumpleaños" siguen en español, que es la convención del proyecto — lo que está en inglés
+es el nombre de la ruta y el del componente de pantalla, no la lógica.
+
+Queda **`/finanzas`** como la única en español. No se toca aquí: es una ruta viva desde
+hace semanas, con la app instalada en los móviles de la familia, y cambiarla sin necesidad
+rompe lo que haya guardado en marcadores. Cumpleaños se renombra porque tiene un día de
+vida y no le ha dado tiempo a que nadie la guarde.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

@@ -42,7 +42,7 @@ import type { Event } from '@/types'
  * calendario: cada año es su propia fila. Borrar sí pregunta por la serie
  * entera (`EventSeriesDelete`).
  */
-export function CumplesView() {
+export function BirthdaysView() {
   const { kids, members, allEvents, createEvent, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editando, setEditando] = useState<Event | null>(null)

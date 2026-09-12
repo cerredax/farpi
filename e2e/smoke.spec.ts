@@ -229,7 +229,7 @@ test('los cumpleaños se ven todos juntos y se apuntan desde su pantalla', async
   const hoy = new Date()
   const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 
-  await page.goto('/cumples')
+  await page.goto('/birthdays')
 
   // Cris está sin haber apuntado nada: su cumpleaños se deduce de la fecha de
   // nacimiento que tiene en Ajustes.

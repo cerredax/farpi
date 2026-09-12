@@ -5,9 +5,9 @@ import { SectionLink } from '@/components/ui/SectionLink'
 import type { Event, Child, FamilyMember } from '@/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
-import { extractDate } from '@/lib/date-utils'
-import { partirPlanesProximos } from '@/lib/events'
+import { assigneeKeyOf, eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
+import { parseLocalDate } from '@/lib/date-utils'
+import { agruparPlanesPorDia, partirPlanesProximos } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 
 interface UpcomingEventsProps {
@@ -19,47 +19,45 @@ interface UpcomingEventsProps {
 }
 
 /**
- * Día dentro de los próximos siete. Se abrevia ("Mié 6") porque compite por el
- * ancho con la hora en la misma línea, y el mes sobra: nada de lo que sale aquí
- * está a más de siete días.
+ * El día que encabeza un bloque. Va entero —"Miércoles 6"— porque tiene su
+ * propia línea: se abreviaba ("Mié 6") cuando compartía renglón con la hora de
+ * la primera fila y competía con ella por el ancho. El mes sigue sobrando: nada
+ * de lo que sale aquí está a más de siete días.
  */
-function eventDayLabel(date: Date): string {
-  return capitalize(format(date, 'EEE d', { locale: es }))
+function diaDePlanesLabel(dia: string): string {
+  return capitalize(format(parseLocalDate(dia), 'EEEE d', { locale: es }))
 }
 
 /**
- * Las filas de un bloque. Las tres cajas enseñan un plan igual.
+ * Las filas de un día: un plan por línea, en orden de hora.
  *
- * `conDia` lo apaga la caja de mañana, y solo ella: escribir "Mañana" en cada
- * fila de una caja que ya se titula "Mañana" es decir lo mismo dos veces y
- * quitarle sitio a la hora, que ahí es lo único que cambia de una fila a otra.
+ * **La etiqueta de quien lo lleva no se repite** si el plan de arriba es suyo.
+ * Con dos cosas el mismo día —la de las cinco y la de las siete de la misma
+ * persona— el nombre salía dos veces seguidas y las dos filas se leían como dos
+ * asuntos sueltos en vez de como la tarde de alguien. El punto de color sigue en
+ * todas, así que de quién es no se pierde de vista, y quien escucha la fila lo
+ * sigue oyendo en `sr-only`.
  *
- * Con día, las filas van **agrupadas por jornada**: el día se escribe una vez y
- * lo que cae ese mismo día se alinea debajo sin repetirlo, más pegado, y la
- * línea solo aparece al cambiar de día. No hay cabecera de día a propósito:
- * aquí caben cinco planes contados (`selectUpcomingEvents`) y un rótulo por día
- * ocuparía más que la lista. El hueco de la fecha es de ancho fijo para que las
- * horas caigan en columna: es lo que hace que un día con dos planes se lea como
- * uno solo.
+ * Lo que **no** se hace es reordenar por persona: dentro de un día lo que se lee
+ * es la hora, y agrupar por quién lo lleva rompería ese orden justo donde más se
+ * necesita. El eje de persona vive donde tiene sentido, en la agenda del
+ * calendario (`agruparPorPersona`).
  */
-function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: UpcomingEventsProps & { conDia?: boolean }) {
+function FilasDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
   return (
-    <ul className={conDia ? undefined : 'divide-y divide-hairline'}>
+    <ul className="divide-y divide-hairline">
       {events.map((event, i) => {
-        const fecha = new Date(event.start_at)
         const asignado = resolveAssignee(event, members, kids)
-        // Los planes llegan ordenados por fecha (`selectUpcomingEvents`), así que
-        // para saber si empieza un día nuevo basta con mirar el de arriba.
-        const abreDia = i === 0 || extractDate(events[i - 1].start_at) !== extractDate(event.start_at)
+        const repitePersona = i > 0 && assigneeKeyOf(events[i - 1]) === assigneeKeyOf(event)
         return (
-          <li key={event.id} className={conDia && abreDia && i > 0 ? 'border-t border-line' : undefined}>
+          <li key={event.id}>
             {/* La fila entera abre el plan, como en lo de hoy y en la agenda
                 del calendario (04-09-2026). */}
             <button
               type="button"
               onClick={() => onOpen(event)}
               title={event.title}
-              className={`block w-full px-4 text-left transition-colors hover:bg-surface ${conDia && !abreDia ? 'pt-0.5 pb-3' : 'py-3'}`}
+              className="block w-full px-4 py-3 text-left transition-colors hover:bg-surface"
             >
               <div className="flex items-baseline gap-2">
                 {/* El mismo punto que la agenda del calendario: lo de toda la
@@ -70,31 +68,26 @@ function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: Upcomin
                   style={{ backgroundColor: eventColor(event, members, kids) }}
                   aria-hidden
                 />
-                {/* El día, una vez por jornada. Las filas que siguen dejan el
-                    hueco —del mismo ancho, para que las horas queden en
-                    columna— y lo dicen solo para quien escucha: la fila tiene
-                    que seguir sabiendo de qué día es aunque no lo enseñe. */}
-                {conDia && (
-                  <span className="w-[3.25rem] flex-shrink-0 whitespace-nowrap text-xs font-bold text-primary-strong">
-                    {abreDia ? eventDayLabel(fecha) : <span className="sr-only">{eventDayLabel(fecha)}</span>}
-                  </span>
-                )}
                 <span className="text-xs font-semibold text-muted">
-                  {event.all_day ? 'Todo el día' : format(fecha, 'HH:mm')}
+                  {event.all_day ? 'Todo el día' : format(new Date(event.start_at), 'HH:mm')}
                 </span>
-                {/* De quién es, en su color y en la misma línea que la fecha.
+                {/* De quién es, en su color y en la misma línea que la hora.
                     Como píldora debajo se comía una línea entera por evento
-                    para decir una palabra. Es el formato de la agenda —y ahora
-                    también su etiqueta: el color va de fondo y el nombre en
-                    tinta, porque los colores de hijo son claros a propósito y
-                    como color de texto sobre blanco no se leían. */}
+                    para decir una palabra. Es el formato de la agenda —y también
+                    su etiqueta: el color va de fondo y el nombre en tinta, porque
+                    los colores de hijo son claros a propósito y como color de
+                    texto sobre blanco no se leían. */}
                 {asignado && (
-                  <span
-                    className="etiqueta-persona min-w-0 max-w-[6rem] px-1.5 py-0.5 text-[11px]"
-                    style={{ backgroundColor: fondoDePersona(asignado.color) }}
-                  >
-                    {asignado.name}
-                  </span>
+                  repitePersona ? (
+                    <span className="sr-only">{asignado.name}</span>
+                  ) : (
+                    <span
+                      className="etiqueta-persona min-w-0 max-w-[6rem] px-1.5 py-0.5 text-[11px]"
+                      style={{ backgroundColor: fondoDePersona(asignado.color) }}
+                    >
+                      {asignado.name}
+                    </span>
+                  )
                 )}
               </div>
               <p className="font-semibold text-ink text-sm leading-snug mt-0.5">{event.title}</p>
@@ -103,6 +96,40 @@ function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: Upcomin
         )
       })}
     </ul>
+  )
+}
+
+/**
+ * Lo que enseña una caja, **en bloques de un día** (12-09-2026).
+ *
+ * El día era una columna de ancho fijo en la primera fila, y la segunda cosa del
+ * mismo día dejaba ese hueco en blanco: quedaba una fila descolgada con un
+ * agujero en medio. Ahora encabeza lo suyo y las filas se quedan con la hora,
+ * que es lo que las distingue.
+ *
+ * Es el mismo rótulo que el de las cestas de `PendingItems`: son el mismo gesto
+ * —agrupar filas dentro de una sección de Inicio— y en la misma pantalla. Y va
+ * en `h3` y no en una `section` con nombre por lo mismo que allí: tres días
+ * serían tres landmarks anidados dentro del de la caja.
+ *
+ * `conDia` lo apaga la caja de mañana, y solo ella: encabezar con "Miércoles 6"
+ * dentro de una caja que ya se titula "Mañana" es decir lo mismo dos veces, y un
+ * único bloque no separa nada de nada.
+ */
+function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: UpcomingEventsProps & { conDia?: boolean }) {
+  if (!conDia) return <FilasDePlanes events={events} kids={kids} members={members} onOpen={onOpen} />
+
+  return (
+    <div className="divide-y divide-hairline">
+      {agruparPlanesPorDia(events).map(({ dia, events: delDia }) => (
+        <div key={dia}>
+          <h3 className="bg-surface px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
+            {diaDePlanesLabel(dia)}
+          </h3>
+          <FilasDePlanes events={delDia} kids={kids} members={members} onOpen={onOpen} />
+        </div>
+      ))}
+    </div>
   )
 }
 

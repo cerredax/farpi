@@ -375,3 +375,35 @@ export function partirPlanesProximos(
   }
   return { manana, proximos, proximaSemana }
 }
+
+/** Un día de "lo que viene", con lo que cae en él en orden de hora. */
+export interface DiaDePlanes {
+  /** El día en yyyy-MM-dd, que es la clave con la que se compara en toda la app. */
+  dia: string
+  events: Event[]
+}
+
+/**
+ * Junta en bloques los planes que caen el mismo día.
+ *
+ * Inicio los enseñaba en una lista corrida donde el día era una **columna** de
+ * la primera fila: la segunda cosa del mismo día dejaba ese hueco en blanco, y
+ * a la vista quedaba una fila descolgada con un agujero en medio. El día pasa a
+ * ser un rótulo encima de lo suyo —el mismo patrón que las cestas de
+ * `PendingItems`—, y las filas se quedan con la hora, que es lo que las
+ * distingue.
+ *
+ * **Cuenta con que los planes vienen ordenados por fecha**, que es como los
+ * deja `selectUpcomingEvents`: por eso basta con mirar el bloque de arriba y no
+ * hace falta un mapa. Sin ordenar, un día podría salir dos veces.
+ */
+export function agruparPlanesPorDia(events: Event[]): DiaDePlanes[] {
+  const dias: DiaDePlanes[] = []
+  for (const event of events) {
+    const dia = extractDate(event.start_at)
+    const ultimo = dias[dias.length - 1]
+    if (ultimo && ultimo.dia === dia) ultimo.events.push(event)
+    else dias.push({ dia, events: [event] })
+  }
+  return dias
+}

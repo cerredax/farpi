@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
+import { agruparPlanesPorDia, daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
 import type { FamilyMember } from '@/types'
 import { event } from './fixtures'
 
@@ -454,5 +454,31 @@ test.describe('partirPlanesProximos', () => {
     expect(manana).toHaveLength(2)
     expect(proximos).toEqual([])
     expect(proximaSemana).toEqual([])
+  })
+})
+
+// Dentro de cada caja, cada día es un bloque con su rótulo encima.
+test.describe('agruparPlanesPorDia', () => {
+  test('lo del mismo día va junto y en el orden en que llega', () => {
+    const dias = agruparPlanesPorDia([
+      event({ title: 'fútbol', start_at: '2026-09-10T17:00:00' }),
+      event({ title: 'cena',   start_at: '2026-09-10T21:00:00' }),
+      event({ title: 'médico', start_at: '2026-09-12T09:00:00' }),
+    ])
+    expect(dias.map(d => d.dia)).toEqual(['2026-09-10', '2026-09-12'])
+    expect(dias[0].events.map(e => e.title)).toEqual(['fútbol', 'cena'])
+    expect(dias[1].events.map(e => e.title)).toEqual(['médico'])
+  })
+
+  test('la hora no parte el día: un plan de las 23:00 es del mismo día que el de las 9:00', () => {
+    const dias = agruparPlanesPorDia([
+      event({ start_at: '2026-09-10T09:00:00' }),
+      event({ start_at: '2026-09-10T23:00:00' }),
+    ])
+    expect(dias).toHaveLength(1)
+  })
+
+  test('sin planes no hay bloques', () => {
+    expect(agruparPlanesPorDia([])).toEqual([])
   })
 })

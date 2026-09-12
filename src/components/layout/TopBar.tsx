@@ -3,16 +3,16 @@
 import { usePathname } from 'next/navigation'
 
 const titles: Record<string, string> = {
-  '/home':     'Inicio',
-  '/calendar': 'Calendario',
-  '/tasks':    'Tareas',
-  '/lists':    'Listas',
-  '/meals':    'Comidas',
-  '/finanzas': 'Finanzas',
-  '/notes':    'Notas',
-  '/docs':     'Documentos',
-  '/cumples':  'Cumpleaños',
-  '/settings': 'Ajustes',
+  '/home':      'Inicio',
+  '/calendar':  'Calendario',
+  '/tasks':     'Tareas',
+  '/lists':     'Listas',
+  '/meals':     'Comidas',
+  '/finanzas':  'Finanzas',
+  '/notes':     'Notas',
+  '/docs':      'Documentos',
+  '/birthdays': 'Cumpleaños',
+  '/settings':  'Ajustes',
 }
 
 export function TopBar() {

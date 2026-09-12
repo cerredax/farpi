@@ -15,7 +15,7 @@ import { elegirVista } from './vistas'
 
 // La barra de la página de inicio pública lleva la marca y los dos botones de
 // cuenta en una sola fila, que es justo lo que se sale a 390 px si crece.
-const RUTAS = ['/', '/home', '/calendar', '/tasks', '/lists', '/meals', '/finanzas', '/notes', '/docs', '/cumples', '/settings']
+const RUTAS = ['/', '/home', '/calendar', '/tasks', '/lists', '/meals', '/finanzas', '/notes', '/docs', '/birthdays', '/settings']
 
 const MINIMO_TOQUE = 24
 

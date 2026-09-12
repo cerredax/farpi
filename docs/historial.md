@@ -13,6 +13,77 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-12
+
+### Cada día de "lo que viene" es un bloque, y la ruta de Cumpleaños se llama `/birthdays` (12-09-2026)
+
+Una observación y una petición. La observación: «cuando una persona tiene dos cosas el
+mismo día, se ve un poco raro». La petición que venía con ella: agrupar por día, persona y
+tareas, y que cada día fuese un rectángulo.
+
+**Lo raro tenía nombre.** Desde el 10-09-2026 las cajas de «Próximos días» y «Próxima
+semana» ya agrupaban por jornada, pero el día no era un bloque: era una **columna de
+3,25 rem en la primera fila de cada jornada**, reservada en todas las demás para que las
+horas cayeran alineadas. Con una cosa por día la cuenta salía; con dos, la segunda fila
+quedaba con el punto de color a la izquierda, un agujero de tres centímetros y la hora
+suelta al otro lado. El agrupado se rompía exactamente cuando tenía que servir de algo.
+
+**El día sube a rótulo.** Entero —«Miércoles 6»—, porque ya no comparte renglón con nadie
+y no hay por qué abreviarlo, y en la misma franja gris con la que `PendingItems` encabeza
+cada cesta: es el mismo gesto, agrupar filas dentro de una sección de Inicio, y en la
+misma pantalla. Las filas se quedan con la hora, que es lo único que las distingue dentro
+de un día. Va en `h3` y no en una `section` con nombre, por lo mismo que allí: tres días
+serían tres landmarks anidados dentro del de la caja. La caja de «Mañana» no lleva rótulo
+de día y sigue sin llevarlo: dentro de algo titulado «Mañana» es decir lo mismo dos veces,
+y un solo bloque no separa nada.
+
+Esto deroga la nota del 10-09-2026 que decía que no habría cabecera de día porque «aquí
+caben cinco planes contados y un rótulo por jornada ocuparía más que la lista». La cuenta
+era buena y la conclusión no: lo que ocupaba de más era el hueco reservado en cada fila
+que no abría día.
+
+**Y la persona deja de repetirse.** Si el plan de arriba es suyo, la etiqueta no se vuelve
+a pintar. Ana con dos cosas el mismo día veía su nombre dos veces seguidas y las dos filas
+se leían como dos asuntos sueltos en lugar de como su tarde. El punto de color sigue en
+todas, así que de quién es no se pierde de vista, y quien escucha la fila lo sigue oyendo
+(`sr-only`).
+
+**Lo que se descartó de lo pedido, y por qué.** Dos cosas de las tres.
+
+El **rectángulo de verdad** por día —tarjeta con su borde— no se hizo. Como mucho se
+enseñan cinco planes en siete días (`selectUpcomingEvents`), repartidos en tres
+`HomeSection` que ya tienen borde, rótulo e icono: cinco planes en cinco días serían cinco
+marcos anidados dentro de otros tres, en una pantalla de 390 px. El rótulo sobre fondo gris
+separa igual de claro y no multiplica el marco.
+
+**Agrupar por persona dentro del día** tampoco. Dentro de un día lo que se lee es la hora
+—«a las cinco fútbol, a las siete cena»— y ordenar por quién lo lleva rompe eso justo donde
+más se necesita; con cinco planes, además, un grupo de persona casi siempre tendría una
+sola fila, y lo de toda la familia no tiene ninguna. El eje de persona existe desde el
+27-08-2026 y vive donde sí contesta algo: la agenda del calendario (`agruparPorPersona`).
+Lo que de aquella petición sí se hizo es lo que arreglaba lo que chirriaba: no repetir el
+nombre.
+
+**Las tareas** se quedan en «Lo demás por hacer». Meterlas en el bloque de su día es
+coherente, pero las tareas sin fecha —la mayoría— no tienen día donde caer, y moverlas a
+medias dejaría las tareas de casa en dos sitios distintos de la misma pantalla. Se dijo
+antes de empezar y se dejó fuera del cambio.
+
+La lógica nueva es `agruparPlanesPorDia` en `src/lib/events.ts`, al lado de
+`partirPlanesProximos`, con tres unitarios (504 en total, 673 la suite).
+
+**El renombrado.** `/cumples` nació el 11-09-2026 y era la única ruta nueva fuera de la
+convención del grupo: `home`, `calendar`, `tasks`, `lists`, `meals`, `notes`, `docs`,
+`settings`. Pasa a `/birthdays`, con su carpeta de componentes (`src/components/birthdays/`)
+y `BirthdaysView`. Por dentro no se toca nada: `cumplesDeLaCasa`, `proximosCumples`,
+`DIAS_LISTA_CUMPLES` y el rótulo «Cumpleaños» siguen en español, que es la convención del
+proyecto — lo que está en inglés es el nombre de la ruta y el del componente de pantalla,
+no la lógica.
+
+Queda `/finanzas` como la única en español, y se deja. Es una ruta viva desde hace semanas
+con la app instalada en los móviles de la familia; cambiarla sin necesidad rompe marcadores.
+Cumpleaños se renombra porque tenía un día de vida.
+
 ## Cerrado el 2026-09-11
 
 ### Un cumpleaños se edita desde su pantalla, y sube encima de Documentos (11-09-2026)

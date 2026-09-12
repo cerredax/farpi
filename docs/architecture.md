@@ -1148,6 +1148,17 @@ tampoco se viera ahí, no habría dónde corregirlo ni borrarlo. Desde el 28-08-
 Inicio lleva al calendario cuando todo lo que enseña son cumpleaños apuntados, y a Ajustes
 cuando hay alguno de la casa.
 
+**Y desde el 11-09-2026 las filas de la pantalla de Cumpleaños llevan a lo mismo, cada una a
+su origen**: la del apuntado abre ahí mismo el sheet del calendario en edición y la del de
+casa lleva a su ficha en Ajustes (`?seccion=familia`). Es la asimetría de arriba pero al
+revés: la lista no distingue los dos orígenes —para quien mira son un nombre y un día— y en
+el momento de **corregir** no puede seguir sin distinguirlos, porque el dato no está en el
+mismo sitio. Se dejó sin tocar el día que nació la pantalla, con el argumento de que corregir
+era cosa del calendario; no aguantó, porque ir al calendario obliga a acertar el mes en el que
+cae el cumpleaños, que es justo el problema por el que existe la lista. Lo que se edita de una
+serie anual es **el cumpleaños de este año**, igual que en el calendario: cada año es su
+propia fila, y borrar sí pregunta por la serie entera.
+
 **El de hoy y los que vienen se leen distinto.** El de hoy abre la tarjeta de hoy, con la
 tarta y el color de la persona; los siguientes van en su bloque, con catorce días de
 ventana (`DIAS_AVISO_CUMPLE`). Es lo único de Inicio que **caduca el mismo día** —una cita

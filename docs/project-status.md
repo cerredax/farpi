@@ -265,16 +265,25 @@ que todavía no existen (ver "Siguiente paso recomendado").
 - Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
   Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
   catorce días van en su bloque; el aviso de las siete felicita el mismo día.
-- **Cumpleaños tiene pantalla propia** (11-09-2026), en "Más" con Finanzas, Notas y
-  Documentos. Es la lista de los **doce meses** que vienen, de hoy al más lejano, y junta
+- **Cumpleaños tiene pantalla propia** (11-09-2026), en "Más" entre Notas y Documentos.
+  Es la lista de los **doce meses** que vienen, de hoy al más lejano, y junta
   los dos orígenes sin distinguirlos: quien es de casa sale de su fecha de nacimiento y
   quien no, del cumpleaños apuntado. Existe porque esa era la pregunta que la app no
   contestaba: Inicio avisa con dos semanas y el calendario enseña el mes que se está
   mirando, así que en septiembre no había dónde ver que la abuela cumple en marzo. El `+`
   abre el mismo sheet del calendario con el tipo ya puesto —sin el selector de "Qué es",
   que ahí ya no hay nada que elegir— y por eso solo apunta a los de fuera: al de casa se
-  le pone la fecha en su ficha. Las filas todavía no se tocan: corregir o borrar sigue
-  siendo cosa del calendario y de Ajustes.
+  le pone la fecha en su ficha.
+  **Las filas se tocan** (11-09-2026) y llevan a donde se arregla cada cosa, que es donde
+  la costura de los dos orígenes asoma: un cumpleaños apuntado abre ahí mismo el sheet del
+  calendario en edición —nombre, día y año de nacimiento, y "Eliminar" preguntando por la
+  serie entera— y el de quien es de la casa lleva a su ficha en Ajustes
+  (`?seccion=familia`), que es donde vive la fecha de nacimiento de la que se deduce.
+  De una serie anual se edita **el cumpleaños de este año**, igual que en el calendario:
+  cada año es su propia fila.
+  En "Más" va **encima de Documentos** y no al final: entre las cuatro, Documentos es la
+  que menos se abre y la última fila de una lista es el sitio de lo que menos se usa, no
+  el de lo último que se añadió.
 - **Se apunta en la cesta desde Inicio** (09-09-2026): «Listas de casa» lleva un `+` que
   abre el mismo `ItemSheet` con la cesta que más cosas tiene pendientes y lo dice en el
   título («Añadir a Compra»). Sin selector de listas delante a propósito: existe para que

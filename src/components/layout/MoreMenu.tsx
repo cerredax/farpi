@@ -38,7 +38,7 @@ function Fila({ href, label, icon: Icon, separada, onIr }: {
 /**
  * "Más": la última pastilla de la barra de abajo, y todo lo que no cabe en ella.
  *
- * Lleva Finanzas, Notas, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
+ * Lleva Finanzas, Notas, Cumpleaños, Documentos, Ajustes y cerrar sesión. Es lo que ocupaba el círculo de la
  * cuenta en la esquina de `TopBar` hasta el 28-08-2026, y viene de una cuenta
  * sencilla: en móvil había **dos** sitios donde tocar para salir de las cinco
  * pantallas de siempre —la barra de abajo y un icono arriba a la derecha—, y el

@@ -31,6 +31,12 @@ interface Seccion {
  *
  * "Ajustes" no está en la lista. En escritorio va aparte, al pie de la columna;
  * en móvil, dentro de "Más".
+ *
+ * Dentro de "Más" el orden también dice algo, y por eso Cumpleaños va **encima
+ * de Documentos** y no al final: entre las cuatro, Documentos es la que menos se
+ * abre —el DNI y el libro de familia, dos veces al año— y un cumpleaños se
+ * consulta cada vez que hay que comprar un regalo. La última fila de una lista
+ * es el sitio de lo que menos se usa, no el de lo último que se añadió.
  */
 export const SECCIONES: Seccion[] = [
   { href: ROUTES.home,     label: 'Inicio',     icon: Home },
@@ -40,8 +46,8 @@ export const SECCIONES: Seccion[] = [
   { href: ROUTES.meals,    label: 'Comidas',    icon: UtensilsCrossed },
   { href: ROUTES.finanzas, label: 'Finanzas',   icon: Euro, enMas: true },
   { href: ROUTES.notes,    label: 'Notas',      icon: StickyNote, enMas: true },
-  { href: ROUTES.docs,     label: 'Documentos', icon: FolderOpen, enMas: true },
   { href: ROUTES.cumples,  label: 'Cumpleaños', icon: Cake, enMas: true },
+  { href: ROUTES.docs,     label: 'Documentos', icon: FolderOpen, enMas: true },
 ]
 
 /**

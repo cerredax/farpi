@@ -15,6 +15,52 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-11
 
+### Un cumpleaños se edita desde su pantalla, y sube encima de Documentos (11-09-2026)
+
+Dos peticiones de la misma frase: «la opción de cumpleaños tiene que ir encima de
+documentos. Debe de poder editar un cumpleaños».
+
+**El orden.** Cumpleaños entró en «Más» como cuarta y última fila porque era la última en
+llegar, que no es un criterio. Documentos es la sección a la que menos se entra —el DNI y el
+libro de familia se miran dos veces al año, y es justo el argumento con el que bajó a «Más»
+el 28-08-2026—, así que la última fila le corresponde a ella. Un cumpleaños se consulta cada
+vez que hay que comprar un regalo. El cambio es una línea en `secciones.ts`, y lo heredan las
+dos barras: `SideNav` la lee tal cual y `MoreMenu` deriva de ella.
+
+**La edición.** Las filas no se tocaban a propósito el día que nació la pantalla, y la razón
+que se dio entonces no aguanta: «corregir es cosa del calendario» significa que para arreglar
+un nombre hay que ir al calendario **y acertar el mes** en el que cae, que es exactamente el
+problema por el que existe esta lista. Si la pantalla es la que contesta cuándo cumple la
+abuela, es la que tiene que dejar corregirlo.
+
+Ahora la fila lleva a donde se arregla cada cosa, y es ahí donde la costura de los dos
+orígenes asoma una vez, sin poder evitarlo:
+
+- **Apuntado** (la abuela, el amigo del cole): abre el sheet del calendario en edición, aquí
+  mismo. El mismo que ya abría el `+`, con `mode="edit"` e `initial`, y con `onDeleteSeries`,
+  porque un cumpleaños apuntado **es** una serie anual: sin él, «Eliminar» solo habría
+  borrado el de este año y el que viene seguiría en la lista.
+- **De la casa** (Cris): lleva a su ficha en Ajustes, `?seccion=familia`, porque no hay nada
+  apuntado que editar —el cumpleaños se deduce de la fecha de nacimiento— y en móvil
+  `/settings` a secas es el índice de las cinco secciones, no Familia. Es un enlace de
+  verdad y no un botón: se va a otra pantalla.
+
+Mandar los dos al mismo formulario habría pedido dar de alta a la abuela como persona de la
+familia, que es lo que se descartó en agosto y sigue descartado.
+
+Lo que **no** cambia: de una serie anual se edita el cumpleaños de este año, igual que en el
+calendario, porque cada año es su propia fila. Añadir un `updateEventSeries` al contrato de
+repositorios y a sus dos implementaciones es otro trabajo y no lo pedía esta petición.
+
+Lo que se ve es igual en las dos filas —cuándo, quién y qué edad— porque de dónde sale el
+dato no es asunto de quien lo mira. Lo único que hubo que añadir al pintado es `min-h-11`: con
+`py-3` y texto de 12 px la fila se quedaba en 40 px y no llega a los 44 de la casa.
+
+Suite completa: **670**, la misma cuenta. No hay test nuevo: se amplían el de la pantalla de
+Cumpleaños, que ahora edita lo que acaba de apuntar y comprueba a dónde apunta la fila de
+Cris, y el de la navegación, que pasa a exigir el **orden** de «Más» y no solo que estén las
+cuatro.
+
 ### Los cumpleaños tienen su propia pantalla (11-09-2026)
 
 La petición fue «en Más quiero un apartado de cumpleaños, el listado de los que están y un

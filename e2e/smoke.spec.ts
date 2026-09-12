@@ -48,8 +48,12 @@ test('home carga con datos demo y la navegación inferior', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Docs' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Más' }).click()
   const mas = page.getByRole('dialog', { name: 'Más' })
-  for (const fila of ['Notas', 'Documentos', 'Cumpleaños', 'Ajustes']) {
-    await expect(mas.getByRole('link', { name: fila })).toBeVisible()
+  // Y en este orden, que también se decidió: Cumpleaños va encima de Documentos,
+  // que entre las cuatro es la que menos se abre. La última fila de una lista es
+  // el sitio de lo que menos se usa, no el de lo último que se añadió.
+  const enMas = ['Finanzas', 'Notas', 'Cumpleaños', 'Documentos', 'Ajustes']
+  for (const [i, fila] of enMas.entries()) {
+    await expect(mas.getByRole('link').nth(i)).toHaveAccessibleName(fila)
   }
   await mas.getByRole('link', { name: 'Documentos' }).click()
   await expect(page).toHaveURL(/\/docs/)
@@ -240,6 +244,23 @@ test('los cumpleaños se ven todos juntos y se apuntan desde su pantalla', async
   // Y baja a la lista, el primero: es hoy.
   const filas = page.getByRole('listitem')
   await expect(filas.filter({ hasText: 'Abuela Carmen' })).toContainText('Hoy')
+
+  // Y se corrige sin salir de aquí: la fila del apuntado abre el mismo sheet,
+  // ya en edición. Antes había que ir a buscarlo al bloque del calendario, y
+  // solo si caía en el mes que se estuviera mirando.
+  await page.getByRole('button', { name: 'Editar el cumpleaños de Abuela Carmen' }).click()
+  await expect(page.getByRole('dialog', { name: 'Editar lo apuntado' })).toBeVisible()
+  await page.locator('#event-title').fill('Abuela Carmen Ruiz')
+  await page.locator('#event-birth-year').fill('1949')
+  await page.locator(GUARDAR_EVENTO).click()
+
+  const anos = hoy.getFullYear() - 1949
+  await expect(filas.filter({ hasText: 'Abuela Carmen Ruiz' })).toContainText(`cumple ${anos} años`)
+
+  // El de quien es de la casa no abre formulario: no está apuntado en ninguna
+  // parte, se deduce de su fecha de nacimiento, y la fila lleva a donde vive.
+  await expect(page.getByRole('link', { name: /Cambiar la fecha de nacimiento de Cris/ }))
+    .toHaveAttribute('href', '/settings?seccion=familia')
 })
 
 /**

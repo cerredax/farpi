@@ -84,7 +84,7 @@ function SelectorDeVista({ vista, vistas, onVista }: {
         onClick={() => setAbierto(a => !a)}
         aria-haspopup="menu"
         aria-expanded={abierto}
-        className="flex h-11 items-center gap-1 rounded-2xl bg-surface px-3 text-sm font-bold text-ink transition-colors active:bg-line"
+        className="flex h-11 items-center gap-1 rounded-2xl bg-surface px-2.5 text-sm font-bold text-ink transition-colors active:bg-line"
       >
         {NOMBRES[vista]}
         <ChevronDown size={16} strokeWidth={2.5} className={`text-muted transition-transform ${abierto ? 'rotate-180' : ''}`} aria-hidden />
@@ -166,7 +166,12 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
       {/* Una sola fila para las dos versiones: el título con sus flechas y, a la
           derecha, el selector y el `+`. El plegable del mes se fue al entrar la
           vista Mes en móvil (26-08-2026): eran dos maneras de pedir lo mismo. */}
-      <div className="flex items-center justify-between gap-2">
+      {/* El hueco entre grupos es más corto en móvil (13-09-2026): a 390 px esta
+          fila lleva cinco cosas, y con el botón "Hoy" puesto los tres huecos de
+          8 px salían del único sitio que puede ceder, que es el título. Los 12 px
+          que se ahorran son los que hacen que quepa "Ago 2026" entero. En
+          escritorio sobra el ancho y el hueco se queda como estaba. */}
+      <div className="flex items-center justify-between gap-1 lg:gap-2">
         {/**
           * **Las flechas no se mueven de sitio** (28-08-2026). El grupo ocupa el
           * ancho libre y el título se estira dentro, así que la izquierda y la
@@ -182,7 +187,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
           */}
         <div className="flex min-w-0 flex-1 items-center gap-0.5 lg:max-w-sm">
           {anterior}
-          <h2 className="min-w-0 flex-1 truncate px-1 text-base font-extrabold tracking-tight text-ink">{titulo}</h2>
+          <h2 className="min-w-0 flex-1 truncate px-0.5 text-base font-extrabold tracking-tight text-ink lg:px-1">{titulo}</h2>
           {siguiente}
         </div>
 

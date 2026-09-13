@@ -675,6 +675,42 @@ test('el calendario busca también en el pasado', async ({ page }) => {
   await expect(page.getByText('ITV del coche')).toBeVisible()
 })
 
+// La lista que va debajo del mes arrancaba **siempre en hoy**, se mirase el mes
+// que se mirase: con la rejilla en agosto, debajo seguía encabezando "Hoy" con
+// lo de junio. Dos meses en la misma pantalla y nada que lo avisara. Se prueba
+// con el rótulo "Hoy" porque es el único que dice a qué día está anclada la
+// lista sin depender de en qué día de la semana corra el test.
+test('la lista de debajo del mes habla del mes que se está mirando', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  // Algo hoy, para que el tramo "Hoy" exista: un día sin nada no se pinta, y
+  // los datos de demo son de junio.
+  await page.goto('/calendar')
+  await page.waitForTimeout(800)
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  await page.locator('#event-title').fill('Cita de hoy')
+  await page.locator('#event-date').fill(iso)
+  await page.locator('#event-start').fill('12:00')
+  await page.getByRole('button', { name: 'Apuntar', exact: true }).click()
+  await page.waitForTimeout(700)
+
+  await verEnMes(page)
+  await expect(seccionDeHoy(page)).toBeVisible()
+
+  // Dos meses adelante: la lista se va con la rejilla.
+  await page.getByRole('button', { name: 'Mes siguiente' }).click()
+  await page.getByRole('button', { name: 'Mes siguiente' }).click()
+  await page.waitForTimeout(500)
+  await expect(seccionDeHoy(page)).toHaveCount(0)
+
+  // Y volver a hoy la trae de vuelta, que es la otra mitad: el ancla se mueve
+  // con el mes, no se pierde.
+  await page.getByRole('button', { name: 'Hoy', exact: true }).click()
+  await page.waitForTimeout(500)
+  await expect(seccionDeHoy(page)).toBeVisible()
+})
+
 // Las cabeceras se configuran en next.config.ts y no se ven al usar la app: si
 // alguien las quita sin querer, nadie se entera hasta que pasa algo.
 test('las respuestas llevan las cabeceras de seguridad', async ({ page }) => {

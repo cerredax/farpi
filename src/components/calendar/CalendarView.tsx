@@ -184,9 +184,11 @@ export function CalendarView() {
   /**
    * Las flechas recorren lo que se esté viendo: un mes, una semana o un día.
    *
-   * En móvil solo aparecen con el mes desplegado —la lista arranca en hoy y se
-   * desliza, no hay nada que recorrer— y ahí `vista` vale `mes`, que es su valor
-   * de partida y el móvil no lo toca.
+   * En las dos vistas sin eje —Mes y, en móvil, Agenda— eso es el mes, y desde
+   * el 13-09-2026 mover el mes mueve también la lista de debajo (ver
+   * `desdeAgenda`). Antes, en la pestaña Agenda, las flechas cambiaban el rótulo
+   * de la cabecera y no movían nada: el único sitio de la app donde un control
+   * de navegación no navegaba.
    */
   function mover(pasos: number) {
     if (!conEje) return setCurrentMonth(m => addMonths(m, pasos))
@@ -268,17 +270,31 @@ export function CalendarView() {
   )
 
   /**
-   * La lista arranca **siempre en hoy** y no se mueve.
+   * En el mes de hoy la lista arranca **en hoy**, y en cualquier otro, en el
+   * **día 1 del mes que se está mirando** (13-09-2026).
    *
-   * Estuvo anclada al día elegido y resultó ser un fallo: apuntar algo para el 6
-   * de septiembre movía el ancla allí y la agenda se quedaba empezando en
-   * septiembre, sin hoy ni el resto de la semana a la vista.
+   * Arrancaba siempre en hoy, y eso dejaba la pantalla diciendo dos cosas
+   * distintas a la vez: con la rejilla en agosto, la lista de debajo seguía
+   * encabezada por "Hoy · 17 mié" de junio. En móvil, que es donde la lista va
+   * debajo del mes y no en una columna aparte, eran dos meses en la misma
+   * pantalla sin nada que avisara. Y en la pestaña Agenda era peor todavía: allí
+   * no hay rejilla, así que las flechas cambiaban el rótulo de la cabecera y no
+   * movían nada.
    *
-   * Elegir un día en la rejilla no mueve el ancla: **desliza** la lista hasta él.
-   * Es lo que hace Google, y deja que el mes sirva de índice sin quitarte de
-   * delante lo que viene antes.
+   * Lo que se conserva es la razón por la que el ancla dejó de ser el día
+   * elegido: apuntar algo para el 6 de septiembre movía la lista allí y se
+   * llevaba por delante lo que viene antes. Un mes no es un día — elegir el 18
+   * de agosto mirando agosto no mueve nada, sigue **deslizando** hasta él (ver
+   * `focusDay`) —, así que el ancla solo se mueve cuando te vas de mes, que es
+   * justo cuando dejar la lista en hoy era mentir.
+   *
+   * De propina, el salto al día elegido vuelve a funcionar lejos: la lista pinta
+   * 45 días desde su ancla, así que con la lista siempre en hoy, elegir un día
+   * de dentro de tres meses no tenía ninguna fila a la que ir.
    */
-  const desdeAgenda = startOfDay(today)
+  const desdeAgenda = isSameMonth(currentMonth, today)
+    ? startOfDay(today)
+    : startOfMonth(currentMonth)
 
   // La agenda solo necesita el tramo que va a listar. El mes recibe todos los
   // eventos y se queda con los de cada día, que ya sabe hacerlo.
@@ -314,9 +330,16 @@ export function CalendarView() {
    * septiembre" se cortaba en "31 de ago – 6 de …", que no dice dónde estás. Con
    * "31 ago – 6 sep" y "Jue, 27 ago" entra entero. En escritorio sobra el sitio,
    * así que allí sigue escrito largo.
+   *
+   * **El mes se abrevia igual desde el 13-09-2026**, y por lo mismo: era el
+   * único título que seguía escrito largo en móvil, y en cuanto aparece el botón
+   * "Hoy" —o sea, en cuanto te vas del mes de hoy— al título le quedan unos 60
+   * px y salía "Agosto …". Perder el año justo cuando estás lejos es perder la
+   * mitad de la respuesta. "Ago 2026" entra siempre y no cambia de forma al
+   * navegar, que es lo que haría escribirlo largo mientras quepa.
    */
   const [titulo, unidad] = (() => {
-    if (!conEje) return [capitalize(format(currentMonth, 'MMMM yyyy', { locale: es })), 'Mes']
+    if (!conEje) return [capitalize(format(currentMonth, esEscritorio ? 'MMMM yyyy' : 'MMM yyyy', { locale: es })), 'Mes']
     if (vista === 'dia') {
       return [capitalize(format(selectedDay, esEscritorio ? "EEEE, d 'de' MMMM" : 'EEE, d MMM', { locale: es })), 'Día']
     }
@@ -357,7 +380,23 @@ export function CalendarView() {
 
   return (
     <>
-      <div className="pb-6 lg:mx-auto lg:max-w-5xl lg:px-6 lg:py-4">
+      {/**
+        * **El mes se lleva todo el ancho de la pantalla y el eje de horas no**
+        * (13-09-2026).
+        *
+        * La pantalla entera estaba topada a `5xl` (1024 px) mirase lo que
+        * mirase, así que en un monitor de 1440 la rejilla se quedaba en 570 px
+        * —celdas de 81— mientras 400 px de pantalla se quedaban en blanco a la
+        * derecha. A 81 px de celda, **10 de los 11 títulos del mes de demo
+        * salían truncados**: "10:30 Pediat…", "9:30 Cena co…". La celda escribe
+        * títulos justamente porque en escritorio hay ancho para leerlos, y no lo
+        * había.
+        *
+        * El tope se queda en las vistas con eje de horas: ahí el ancho no
+        * compra nada —una columna de día más ancha no cabe más tarde— y una
+        * semana estirada a 1400 px separa la hora de su bloque.
+        */}
+      <div className={`pb-6 lg:mx-auto lg:px-6 lg:py-4 ${conEje ? 'lg:max-w-5xl' : ''}`}>
         <CalendarHeader
           titulo={titulo}
           unidad={unidad}
@@ -406,10 +445,29 @@ export function CalendarView() {
             />
           </div>
         ) : (
-          /* El mes, con la agenda al lado en escritorio y debajo en móvil. La
-             rejilla se lleva el espacio libre —en 1440 px pasa de 380 a más de
-             900— y la lista se queda en una columna fija. */
-          <div className="mt-3 lg:mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-6 lg:items-start">
+          /**
+           * El mes y la agenda: **al lado a partir de 1400 px, y debajo por
+           * debajo de ahí** (13-09-2026). La rejilla se lleva el espacio libre y
+           * la lista se queda en una columna fija de 380.
+           *
+           * Iban al lado desde `lg` (1024 px), y ahí las cuentas no salen: con
+           * la barra lateral (224) y la lista (380), a la rejilla le quedaban
+           * 348 px —**celdas de 49 px**, más estrechas que en un móvil— y encima
+           * escribiendo títulos, que a ese ancho es escribir "10:30 Pe…". La
+           * pantalla más grande enseñaba el mes más pequeño de la app.
+           *
+           * Por debajo de 1400 se apilan, que es lo que ya hacen en móvil: el
+           * mes coge el ancho entero (celdas de 107 px a 1024) y la lista va
+           * debajo con su buscador. No se esconde nada —esconder la lista se
+           * llevaría por delante el buscador del calendario, que vive en ella— y
+           * el salto al día elegido sigue funcionando igual.
+           *
+           * 1400 y no `xl` (1280) porque el corte es una cuenta, no un tamaño de
+           * catálogo: es el ancho a partir del cual la rejilla pasa de 100 px de
+           * celda con la lista al lado, que es lo que mide un título con su hora
+           * delante.
+           */
+          <div className="mt-3 lg:mt-4 min-[1400px]:grid min-[1400px]:grid-cols-[minmax(0,1fr)_380px] min-[1400px]:gap-6 min-[1400px]:items-start">
             {/* El mes y su bloque de ausencias van juntos: en móvil solo cuando
                 se despliega, y en escritorio siempre. En la lista de móvil no se
                 pinta nada de esto: esa pantalla es cabecera y lista. */}
@@ -514,7 +572,11 @@ export function CalendarView() {
               </div>
             </div>
 
-            <div>
+            {/* El aire entre el mes y la lista cuando van apilados: la propia
+                lista trae el suyo en móvil (`pt-4`) y lo quita en escritorio
+                (`lg:pt-0`), que es donde estaba al lado y no debajo. Entre 1024
+                y 1400 vuelve a ir debajo, así que hace falta otra vez. */}
+            <div className="lg:mt-6 min-[1400px]:mt-0">
               <AgendaList
                 desde={desdeAgenda}
                 /* El salto de la lista hasta el día elegido es **de escritorio**

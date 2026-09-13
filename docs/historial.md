@@ -13,6 +13,96 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-13
+
+### El mes, medido: dos meses en la misma pantalla y un título de 81 px (13-09-2026)
+
+Repaso de la vista Mes en los dos tamaños, con la app de verdad en modo demo y midiendo en
+el navegador en vez de opinando de memoria. Salieron cuatro cosas, y las cuatro eran
+cuentas, no gustos.
+
+**La lista de debajo del mes hablaba de otro mes.** Arrancaba siempre en hoy, así que con la
+rejilla en agosto debajo seguía encabezando «Hoy · 17 mié» con lo de junio: dos meses en la
+misma pantalla y nada que lo avisara. En la pestaña Agenda era peor, porque allí no hay
+rejilla: las flechas cambiaban el rótulo de la cabecera y no movían nada, el único sitio de
+la app donde un control de navegación no navegaba. Ahora el ancla es **hoy mientras se mire
+el mes de hoy, y el día 1 del mes que se esté mirando en cualquier otro**. Se conserva la
+razón por la que el ancla dejó de ser el día elegido el 25-08-2026 —apuntar algo para el 6
+de septiembre se llevaba por delante lo que viene antes—: un mes no es un día, y elegir un
+día dentro del mes que ya se mira sigue **deslizando** y no reencuadrando. De propina, el
+salto al día elegido vuelve a funcionar lejos: la lista pinta 45 días desde su ancla, así
+que con la lista clavada en hoy, elegir un día de dentro de tres meses no tenía ninguna fila
+a la que ir. Y un mes vacío pasa a decir que lo está, en vez de dejar 31 celdas en blanco
+sobre la agenda de otro mes.
+
+**En escritorio, la pantalla más grande enseñaba el mes más pequeño de la app.** La vista
+estaba topada a 1024 px mirase lo que mirase, así que en un monitor de 1440 la rejilla se
+quedaba en 570 px —celdas de 81— con 400 px en blanco a la derecha: **10 de los 11 títulos
+del mes de demo salían truncados** («10:30 Pediat…», «9:30 Cena co…»). Peor a 1024, donde
+con la barra lateral (224) y la lista (380) a la rejilla le quedaban 348 px: **celdas de 49
+px**, más estrechas que en un móvil, y encima escribiendo títulos. Dos cambios: el tope se
+va en la vista Mes —se queda en las de eje de horas, donde el ancho no compra nada— y las
+dos columnas se juntan **a partir de 1400 px**, que es el ancho desde el que la rejilla
+mantiene los 100 px de celda que mide un título con su hora delante. Por debajo se apilan,
+como ya hacen en móvil. No se esconde nada: esconder la lista se llevaría por delante el
+buscador del calendario, que vive dentro de ella. Medido después: 1024 → 107 px de celda,
+1280 → 144, 1440 → 109 con la lista al lado, 1920 → 177 y **todos los títulos enteros**.
+
+**El título del mes se recortaba a «Agosto …»** en cuanto aparece el botón «Hoy», o sea en
+cuanto te vas del mes de hoy, que es justo cuando el año es la mitad de la respuesta. A 390
+px la fila lleva cinco cosas y al título le quedaban 60 px. El mes se abrevia ya como el de
+la semana —«Ago 2026», que era el único título que seguía escrito largo en móvil— y los
+huecos entre grupos de la fila bajan de 8 a 4 px en móvil, que son los 12 px que faltaban.
+Los doce meses miden lo mismo y caben. El test de la cabecera a 390 px solo miraba el
+desborde, y `truncate` recorta por dentro sin sacar un píxel: ahora mira también si el
+navegador está pintando lo que dice pintar.
+
+**El recuento de un día con más de dos cosas se leía como una fecha.** Era un número pelado
+debajo del número del día: el 17 ponía «17» y justo debajo «4». Y era el día con más cosas
+el único que perdía el color, o sea el único que no decía de quién es nada de lo que hay.
+Ahora son los dos puntos de siempre y «+2» detrás.
+
+Lo que **no** se tocó, habiéndolo mirado: los días de los meses vecinos siguen sin ser
+botones (24-08-2026), la trama del fin de semana se queda, y la celda sigue sin ser un
+resumen del día. Está decidido y escrito.
+
+### Cumpleaños, mes a mes y con buscador (13-09-2026)
+
+La pantalla llevaba dos días siendo una lista de un año entero sin cortes: treinta y tantas
+filas idénticas, todas con la misma forma —día, nombre, edad—, y la única pista de cuándo
+caía cada una era la columna estrecha de la izquierda. Para saber si en marzo había algo
+había que bajar leyéndola renglón a renglón. Se pidió lo que faltaba: rótulos de mes y un
+buscador por nombre.
+
+**El reparto por meses vive en `birthdays.ts`, no en la pantalla.** Es una cuenta de
+calendario, y ahí es donde se prueban: `agrupaCumplesPorMes` recorre la lista ya ordenada y
+va cerrando el mes en cuanto cambia la clave `yyyy-MM`, igual que la agenda con sus tramos.
+
+Lo que costó decidir fue el título, y es la consecuencia de que la ventana sean **doce
+meses y no un año natural**: en septiembre la lista empieza el día 13 de este septiembre y
+acaba el 12 del que viene, así que septiembre sale **dos veces**. Agrupar por el nombre del
+mes habría metido el cumpleaños de dentro de un año en el grupo de esta semana. Se agrupa
+por año y mes, y el año se escribe solo cuando no es el de hoy: «Septiembre» el de ahora,
+«Septiembre 2027» el de dentro de un año. Un tercer título —el año siempre— habría escrito
+2026 doce veces para distinguir un caso que ocurre una vez.
+
+**El buscador es el de `ViewHeader`**, el mismo de Listas, Tareas, Notas y Documentos, con
+el umbral de siempre (`MINIMO_PARA_BUSCAR`, tres). Mira solo el nombre, que es lo único que
+hay, y sin tildes ni mayúsculas: nadie las escribe al buscar. Buscando **se siguen viendo
+los meses**, y no una lista plana de resultados como hace la agenda: ahí la búsqueda cruza
+todo el calendario, pasado incluido, y hace falta decir de qué fecha es cada cosa; aquí lo
+que se quiere saber de un nombre es justo cuándo cae, que es lo que dice el rótulo.
+
+No se tocó la fila. Se pensó en quitarle el mes abreviado —«Jue 4 sep» debajo de un rótulo
+que ya dice «Septiembre»— y se descartó: el ahorro son tres letras, `diaDeCumple` la
+comparten esta pantalla y el bloque de Inicio, y un cumpleaños tiene que decirse igual en
+las dos.
+
+Cuatro unitarios nuevos para el reparto —el orden, el año en el título, el mes que vuelve a
+aparecer y la lista vacía— y el recorrido de `smoke.spec.ts` estirado con un tercer
+cumpleaños, que es lo que hace falta para que el buscador aparezca: comprueba que el rótulo
+del mes de hoy se pinta y que teclear «tio paco» deja fuera a la abuela.
+
 ## Cerrado el 2026-09-12
 
 ### Repaso del calendario: un descanso que se perdía, hoy que no se veía y el mes persona a persona (12-09-2026)

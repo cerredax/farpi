@@ -14,14 +14,14 @@ import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
  */
 
 /**
- * Hasta cuántas marcas se pintan antes de pasar al número.
+ * Cuántas marcas se pintan; de ahí en adelante, el resto se cuenta detrás.
  *
  * **Dos** (24-08-2026, antes tres). Debajo del número caben dos filas de señales
  * —esta y la de ausencias— y con tres puntos de 6 px más sus huecos la fila
  * medía 24 px de los ~52 de la columna: la celda volvía a ser un resumen del
  * día, que es lo que la agenda vino a quitarle. Con dos, "¿pasa algo aquí?" se
- * contesta igual y "¿cuántas cosas?" lo dice el número, que es más exacto que
- * contar puntos.
+ * contesta igual y "¿cuántas cosas?" lo dice el "+n" de detrás, que es más
+ * exacto que contar puntos.
  */
 const MAX_MARCAS = 2
 
@@ -104,27 +104,37 @@ export function DayActivity({ marcas }: { marcas: string[] }) {
   // más altos que los demás y la tira se descuadra fila a fila.
   if (marcas.length === 0) return <span className="block h-3" aria-hidden />
 
-  if (marcas.length > MAX_MARCAS) {
-    return (
-      // `primary-deep` y no `primary-strong` (05-09-2026): a 9 px este número es
-      // el texto más pequeño de la rejilla, y `primary-strong` sobre el crema da
-      // 4,48:1 mientras que `primary-deep` llega a 5,56:1. No cuesta nada y es el
-      // único sitio de la celda donde el tamaño no deja margen.
-      <span className="flex h-3 items-center justify-center text-[9px] font-black leading-none text-primary-deep" aria-hidden>
-        {marcas.length}
-      </span>
-    )
-  }
+  /**
+   * De tres en adelante: **los dos primeros puntos y "+n" detrás** (13-09-2026).
+   *
+   * Era el número pelado, y tenía dos problemas. Uno, que debajo de un número de
+   * día se lee como otra fecha: el 17 ponía "17" y, justo debajo, "4". Dos, que
+   * el día con más cosas era el único que perdía el color, o sea el único que no
+   * decía de quién es nada de lo que hay — al revés de lo que hace falta.
+   *
+   * Caben: dos puntos de 6 px y "+2" a 9 px son unos 30 px de los 51 que mide la
+   * celda a 390 px.
+   */
+  const dos = marcas.slice(0, MAX_MARCAS)
 
   return (
     <span className="flex h-3 items-center justify-center gap-[3px]" aria-hidden>
-      {marcas.map((color, i) => (
+      {dos.map((color, i) => (
         <span
           key={i}
           className="h-1.5 w-1.5 flex-shrink-0 rounded-full ring-1 ring-ink/15"
           style={{ backgroundColor: color }}
         />
       ))}
+      {/* `primary-deep` y no `primary-strong` (05-09-2026): a 9 px este número es
+          el texto más pequeño de la rejilla, y `primary-strong` sobre el crema da
+          4,48:1 mientras que `primary-deep` llega a 5,56:1. No cuesta nada y es el
+          único sitio de la celda donde el tamaño no deja margen. */}
+      {marcas.length > MAX_MARCAS && (
+        <span className="text-[9px] font-black leading-none text-primary-deep">
+          +{marcas.length - MAX_MARCAS}
+        </span>
+      )}
     </span>
   )
 }

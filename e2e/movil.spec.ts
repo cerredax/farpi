@@ -161,6 +161,17 @@ test('con el botón «Hoy» puesto, la cabecera del calendario sigue cabiendo a 
   }))
   expect(desborde.scroll, 'La cabecera con «Hoy» se sale del ancho').toBeLessThanOrEqual(desborde.ancho + 1)
 
+  // Y el título se lee entero, que es lo que el desborde no cazaba: `truncate`
+  // recorta por dentro sin sacar un píxel de la pantalla, así que la fila cabía
+  // mientras ponía "Agosto …" —sin el año, justo cuando te has ido del mes de
+  // hoy y el año es la mitad de la respuesta—. Se mira el elemento y no el
+  // texto: es el navegador quien dice si lo que pinta cabe en su caja.
+  const titulo = await page.evaluate(() => {
+    const h = document.querySelector('main h2')
+    return h ? { texto: h.textContent, cabe: h.scrollWidth <= h.clientWidth + 1 } : null
+  })
+  expect(titulo?.cabe, `El título del mes sale recortado: «${titulo?.texto}»`).toBe(true)
+
   // Y hace lo que dice: vuelve al mes de hoy, con lo que el botón se va solo.
   await hoy.click()
   await page.waitForTimeout(400)

@@ -41,9 +41,13 @@ const DIAS_POR_DELANTE = 45
 
 interface AgendaListProps {
   /**
-   * Día en el que arranca la lista. En la agenda es **hoy** y no se mueve: es
-   * una lista continua que se desliza. Con el mes delante es el **día elegido**,
-   * porque ahí tocar un día tiene que enseñar ese día.
+   * Día en el que arranca la lista: **hoy** mientras se mire el mes de hoy, y el
+   * **día 1 del mes que se esté mirando** en cualquier otro (13-09-2026). Lo
+   * decide `CalendarView`, que es quien sabe qué mes hay puesto, y el porqué
+   * está allí, en `desdeAgenda`.
+   *
+   * Lo que **no** mueve el ancla es elegir un día: para eso está `focusDay`, que
+   * desliza en vez de reencuadrar.
    */
   desde: Date
   /**

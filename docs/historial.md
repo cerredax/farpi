@@ -15,6 +15,95 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-12
 
+### Repaso del calendario: un descanso que se perdía, hoy que no se veía y el mes persona a persona (12-09-2026)
+
+Seis observaciones seguidas mirando el calendario con datos reales. Una era un fallo, tres
+eran defectos que se veían en cuanto se medían, y el resto, cosas que faltaban.
+
+**El fallo: el descanso de la abuela desaparecía justo los días que la casa libraba.** Se
+reprodujo antes de tocar nada, sembrando el modo demo con los dos adultos con cuenta de
+descanso el mismo día y la abuela también: la celda pintaba **una sola franja amarilla** y
+la azul de la abuela no estaba. El día 17, con la abuela sola, sí salía.
+
+La causa venía de la mejora del 05-09-2026. Cuando todos los adultos con cuenta están
+fuera por lo mismo, el día colapsa en una franja amarilla —la de la casa— y eso está bien;
+lo que estaba mal es que se pintaba en un `ausenciaFamiliar ? … : …`, así que sustituía a
+**todas** las demás. Y `familyAbsenceKind` solo cuenta `members`: la abuela es un `Child`
+de tipo `adulto`, va por `child_id` y nunca entró en esa cuenta, así que el amarillo jamás
+habló por ella. Con los hijos pasaba igual. Y el nombre accesible del día repetía el
+error: los recuentos vivían en un `else` y también se callaban.
+
+La regla que faltaba —**el amarillo habla por quien colapsa y por nadie más**— es ahora
+`franjasDeAusencia`, función pura que comparten la celda y los huecos de fuera de mes, que
+hasta ahora repetían el reparto a mano. Y el `else` se fue: "la familia descansando, 1 más
+descansando".
+
+**Los días de una semana no estaban a la misma altura.** Se midió en el navegador antes de
+decidir nada: en la fila del 14 al 20, con una ausencia el 15, el número del 15 arrancaba
+**18 px** desde el borde de su celda y el del 14, **4**. Las franjas iban en el flujo y
+cada una empujaba el número 7 px, así que la fila dejaba de leerse como una fila y la
+franja quedaba tan pegada al borde de arriba que parecía del día anterior.
+
+Reservar el hueco siempre —lo que ya hace `DayActivity` con los puntos— no valía tal cual:
+son 14 px por fila y la rejilla del móvil pasaba de 289 px a 414. Se reserva **por
+semana** (`carrilDeAusencias`): una semana sin ausencias no reserva nada y sigue midiendo
+lo que medía. Y se hace por semanas y no por mes porque el desfase solo se ve entre días
+que están a la misma altura.
+
+**Hoy no se encontraba, y el día elegido no se notaba.** La causa no era de intensidad: el
+mes era la **única vista del calendario** donde hoy no iba en `accent-strong` —el salmón
+que ya usan la agenda, el eje de horas y el panel del día—, y encima llevaba la más débil
+de las dos formas que se repartían desde el 05-09-2026, un anillo de 2 px, en la vista
+donde compite con treinta números.
+
+Ahora son dos señales de naturaleza distinta y no dos formas del mismo círculo: **hoy es
+el número** (disco salmón) y **el elegido es la celda** (fondo `primary-tint` con borde
+interior). De él cuelga un panel entero debajo de la rejilla, así que la respuesta a "¿qué
+estoy mirando?" tiene que ser del tamaño de lo que se mira. Lo que se conserva del
+05-09-2026 sigue en pie: el color no es la única diferencia —una es un disco y la otra un
+fondo—, y el blanco solo va sobre un tono que lo admita (`accent-strong`, 6,29:1).
+
+**El mes no decía a qué hora era nada.** La celda escribía "Dentista" y había que abrir el
+día para saber si era a las nueve o a las siete. Ahora "9:00 Dentista", sin el cero de
+delante porque la celda mide ~81 px cuando la agenda va al lado. Y escribir la hora sacó a
+la luz otro defecto que llevaba ahí desde siempre: **los títulos no estaban ordenados**.
+El día 16 salía "9:00 Dentista, 17:30 Reunión, 12:15 Pediatra", y el "+n más" recortaba
+por posición, así que lo que se escondía no era lo último del día sino lo último de la
+lista.
+
+**La celda se reparte el alto de la ventana.** Medía 104 px fijos, y en un monitor normal
+la rejilla acababa a media pantalla mientras un día con tres planes decía "+1 más". Con el
+alto repartido caben tres títulos.
+
+**El mes se puede mirar persona a persona.** Media pregunta del calendario de una casa es
+"¿y qué tiene Cris?", y se contestaba escaneando colores. Una fila de pastillas debajo de
+la cabecera, que es lo que en Google son los calendarios de la izquierda. Tres decisiones
+que cuestan poco y evitan sorpresas: se guarda **quién está apagado** y no quién está
+encendido, para que quien entre nuevo en la familia se vea desde el primer día; **dura lo
+que dura la pantalla**, porque es un "déjame ver solo esto un momento" y no un ajuste; y
+el filtro se aplica **en `CalendarView` y una sola vez**, porque filtrar en cada sitio era
+la manera segura de que un día la rejilla escondiera a alguien que la lista de al lado
+sigue enseñando.
+
+**Los dos bloques de debajo del mes dejaron de repetirse.** "Vacaciones y descansos" iba
+por fechas, así que un mes con turnos daba siete filas con "Carlos" en tres de ellas: el
+nombre es lo que más ancho ocupa y era justo lo que se repetía. Agrupado por personas son
+tres, con el verbo dicho solo la primera vez de cada tipo ("descansa el 15 sep · el 22
+sep"). Y los cumpleaños del mes en curso que ya pasaron se **pliegan aparte** en vez de
+atenuarse: el día 12 de un septiembre normal, dos de cada tres se llevaban el bloque sin
+leerse y sin irse. Lo que no cambia es lo que ya se aprendió el 05-09-2026 —el título los
+cuenta **todos**, o el recuento bajaría solo según avanzan los días— ni lo que pasa en un
+mes que no es el de hoy, donde no hay nada que separar y salen todos.
+
+Dos cosas se rompieron por el camino y valía la pena arreglarlas bien en vez de esquivar
+los tests: el botón del título de la celda se leía "9:00Revisión del coche" de corrido
+—ahora tiene nombre accesible escrito, "Revisión del coche, a las 9:00"— y el eje de horas
+se identificaba en la suite como el primer `.overflow-x-auto` de la página, que desde hoy
+es la barra del filtro; lleva `data-eje`.
+
+Ocho unitarios nuevos (512 en total, **681** la suite), `lint` y `build` limpios.
+
+
 ### Cada día de "lo que viene" es un bloque, y la ruta de Cumpleaños se llama `/birthdays` (12-09-2026)
 
 Una observación y una petición. La observación: «cuando una persona tiene dos cosas el

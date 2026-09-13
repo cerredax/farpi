@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { agruparPorPersona, tramoDeAgenda } from '@/lib/agenda'
+import { agruparAusenciasPorPersona, agruparPorPersona, tramoDeAgenda } from '@/lib/agenda'
 
 // Los rótulos de la agenda son fechas dichas en palabras, y por eso se prueban
 // aquí: "Mañana" o "La semana que viene" salen mal por un día de diferencia y
@@ -106,5 +106,32 @@ test.describe('agruparPorPersona', () => {
     // El martes no es suyo, así que su lista tiene un solo día.
     expect(marta.dias).toHaveLength(1)
     expect(marta.dias[0].day).toBe(LUNES)
+  })
+})
+
+// El bloque "Vacaciones y descansos" pasó a una fila por persona el 12-09-2026:
+// iba por fecha y en un mes con turnos repetía el mismo nombre tres veces.
+test.describe('agruparAusenciasPorPersona', () => {
+  const ausencias = [
+    ev('v1', { member_id: '1' }),
+    ev('d1', { child_id: '9' }),
+    ev('d2', { member_id: '1' }),
+    ev('f1', {}),
+  ]
+
+  test('cada ausencia cae bajo quien la tiene, en el orden de la casa', () => {
+    const grupos = agruparAusenciasPorPersona(ausencias, [FAMILIA, MARTA, LEO])
+    expect(grupos.map(g => g.persona.key)).toEqual(['familia', 'm:1', 'c:9'])
+    // Las dos de Marta bajo un solo rótulo, y en el orden en que venían.
+    expect(grupos[1].ausencias.map(a => a.id)).toEqual(['v1', 'd2'])
+  })
+
+  test('quien no tiene ninguna no ocupa un rótulo', () => {
+    const grupos = agruparAusenciasPorPersona(ausencias, [FAMILIA, MARTA, LEO, { key: 'm:2' }])
+    expect(grupos.map(g => g.persona.key)).not.toContain('m:2')
+  })
+
+  test('sin ausencias no hay grupos', () => {
+    expect(agruparAusenciasPorPersona([], [FAMILIA, MARTA])).toEqual([])
   })
 })

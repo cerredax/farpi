@@ -132,7 +132,7 @@ export function isAbsence(event: Event): boolean {
  * todos fuera y todos por lo mismo.
  *
  * Nace de un fallo, no de una idea bonita: la celda pinta como mucho dos
- * franjas (`MAX_AUSENCIAS`), así que en una casa de tres adultos de vacaciones
+ * franjas (`MAX_FRANJAS`), así que en una casa de tres adultos de vacaciones
  * el mismo día **la tercera no se pintaba**. Justo el día en el que la respuesta
  * es la más simple de todas —"aquí no hay nadie"— era cuando peor se leía.
  *
@@ -160,6 +160,10 @@ export function isAbsence(event: Event): boolean {
  * Lo que **no** cambia: el bloque "Vacaciones y descansos" sigue listando a cada
  * uno con su nombre y sus fechas. La rejilla contesta "¿qué día es este?" y el
  * bloque "¿quién y hasta cuándo?", que son dos preguntas distintas.
+ *
+ * Y tampoco cambia quién más está fuera: colapsa a los adultos con cuenta y solo
+ * a ellos, así que el descanso de la abuela sigue teniendo su franja al lado
+ * (`franjasDeAusencia`).
  */
 export function familyAbsenceKind(
   events: Event[],
@@ -209,6 +213,78 @@ export function familyAbsenceEdges(
     primero: vecino(-1) !== kind,
     ultimo:  vecino(1)  !== kind,
   }
+}
+
+/**
+ * Cuántas franjas de ausencia caben en un día de la rejilla del mes, contando
+ * la de la casa. Más de dos y la celda deja de ser un sitio al que ir para
+ * volver a ser un resumen, que es lo que la agenda vino a quitarle.
+ */
+export const MAX_FRANJAS = 2
+
+/**
+ * Las ausencias que hay que pintar en un día **además** de la franja de la casa.
+ *
+ * Nace de un fallo (12-09-2026): cuando los dos adultos con cuenta descansaban
+ * el mismo día, la celda pintaba la franja amarilla y **descartaba el resto**.
+ * Así que el descanso de la abuela —que no tiene cuenta, va por `child_id` y
+ * nunca entró en la cuenta de `familyAbsenceKind`— desaparecía del calendario
+ * justo los días en que la casa estaba libre, que es cuando más se mira quién
+ * puede echar una mano.
+ *
+ * La regla es que **el amarillo habla por quien colapsa, y por nadie más**: los
+ * adultos con cuenta que están fuera por ese motivo. Lo que queda fuera de esa
+ * cuenta —quien no tiene cuenta, y quien está fuera por otro motivo— sigue
+ * teniendo su franja.
+ *
+ * El orden es vacaciones primero y descansos después, el mismo que ya tenían la
+ * celda y el hueco de fuera de mes: ordenarlos distinto en cada sitio pintaría
+ * la de arriba abajo al cruzar la frontera del mes y el tramo se partiría en dos
+ * alturas.
+ *
+ * Las devuelve **todas**, sin recortar al tope de la celda: el nombre accesible
+ * del día las cuenta enteras aunque la celda no tenga sitio para pintarlas.
+ * Quien pinte que aplique `topeDeFranjas`.
+ */
+export function franjasDeAusencia(delDia: Event[], familia: EventKind | null): Event[] {
+  return [...delDia.filter(isVacation), ...delDia.filter(isRestDay)]
+    .filter(e => !(familia && e.member_id && e.kind === familia))
+}
+
+/**
+ * Cuántas franjas sueltas caben, contando que la de la casa ya ocupa una. El
+ * tope de la celda es el mismo con ella y sin ella, o el día con menos que
+ * contar sería el más alto de la fila.
+ */
+export function topeDeFranjas(familia: EventKind | null): number {
+  return familia ? MAX_FRANJAS - 1 : MAX_FRANJAS
+}
+
+/**
+ * Cuánto carril de franjas reserva cada día de la rejilla: **el máximo de su
+ * semana**, no el suyo.
+ *
+ * Nace de un defecto medido (12-09-2026): las franjas iban en el flujo, así que
+ * cada una empujaba el número 7 px hacia abajo. En la fila del 14 al 20, con una
+ * ausencia el día 15, el número del 15 arrancaba **14 px más abajo** que el del
+ * 14 y el del 18. Una fila del calendario dejaba de leerse como una fila, y la
+ * franja quedaba tan pegada al borde de arriba que parecía del día anterior.
+ *
+ * Reservar el hueco siempre —aunque no haya nada— es lo que ya hace `DayActivity`
+ * con los puntos, y por lo mismo. Lo que no se puede es reservarlo **en todas las
+ * celdas**: son 14 px por fila y la rejilla del móvil pasaría de 289 px a 414.
+ * Por semana sale gratis: una semana sin ausencias no reserva nada y sigue
+ * midiendo lo que medía.
+ *
+ * Se hace por semanas y no por mes entero porque el desfase solo se ve entre
+ * días que están a la misma altura: dos filas distintas no tienen con qué
+ * compararse.
+ */
+export function carrilDeAusencias(franjasPorDia: number[]): number[] {
+  return franjasPorDia.map((_, i) => {
+    const inicio = Math.floor(i / 7) * 7
+    return Math.max(...franjasPorDia.slice(inicio, inicio + 7))
+  })
 }
 
 /**

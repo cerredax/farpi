@@ -20,6 +20,7 @@ import { capitalize } from '@/lib/text'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences, selectVisibleBirthdays } from '@/lib/selectors'
+import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { isBirthday } from '@/lib/events'
 import { CalendarHeader, type VistaCalendario } from './CalendarHeader'
@@ -31,6 +32,7 @@ import { Availability } from './Availability'
 import { Birthdays } from './Birthdays'
 import { AgendaList } from './AgendaList'
 import { DayPanel } from './DayPanel'
+import { PersonFilter } from './PersonFilter'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
 import type { Event, EventDraft } from '@/types'
@@ -95,7 +97,43 @@ export function CalendarView() {
    * buscador no puedan discrepar: ver un cumpleaños en la agenda que no está en
    * el mes de arriba sería peor que no verlo en ninguno de los dos.
    */
-  const eventos = allEvents.filter(e => !isBirthday(e))
+  const eventosDeTodos = allEvents.filter(e => !isBirthday(e))
+
+  /**
+   * De quién se está enseñando lo del calendario (12-09-2026).
+   *
+   * Se guarda **quién está apagado** y no quién está encendido, para que alguien
+   * que entre en la familia después se vea desde el primer día en vez de quedarse
+   * invisible por no estar en la lista cuando se eligió. El porqué de lo demás
+   * —que apague en vez de resaltar, y que no se guarde de una visita a otra— está
+   * en `PersonFilter`.
+   *
+   * El filtro se aplica **aquí y una sola vez**, sobre todo lo que baja a las
+   * pantallas: la rejilla, la agenda, el eje de horas, los dos bloques de debajo
+   * del mes y el buscador. Filtrar en cada sitio era la manera segura de que un
+   * día la rejilla escondiera a alguien que la lista de al lado sigue enseñando.
+   */
+  const [ocultos, setOcultos] = useState<Set<string>>(new Set())
+  const personas = buildAssignees(members, kids)
+  // Con la familia y un adulto no hay nada que elegir, y son 44 px de pantalla
+  // para nada. Tres es donde filtrar empieza a contestar algo.
+  const sePuedeFiltrar = personas.length >= 3
+  const seVe = (x: { child_id: string | null; member_id: string | null }) => !ocultos.has(assigneeKeyOf(x))
+
+  function alternarPersona(key: string) {
+    setOcultos(previo => {
+      const siguiente = new Set(previo)
+      if (!siguiente.delete(key)) siguiente.add(key)
+      return siguiente
+    })
+  }
+
+  const eventos = ocultos.size === 0 ? eventosDeTodos : eventosDeTodos.filter(seVe)
+  // Los cumpleaños apuntados no son de nadie de la casa —por eso son un tipo de
+  // evento y no una ficha—, así que caen todos bajo "Familia" y el filtro los
+  // trata como tal. Es lo coherente: apagar la familia apaga lo que no es de
+  // nadie en concreto.
+  const cumples = allEvents.filter(e => isBirthday(e) && seVe(e))
 
   /**
    * Aquí vuelve el `useMediaQuery`, que se había ido el 25-08-2026 cuando quién
@@ -224,7 +262,7 @@ export function CalendarView() {
   // Mismo tramo que las ausencias y por la misma razón: el bloque acompaña al
   // mes y no puede hablar de un día que no está pintado encima.
   const cumplesVisibles = selectVisibleBirthdays(
-    allEvents,
+    cumples,
     getLocalDateString(startOfMonth(currentMonth)),
     getLocalDateString(endOfMonth(currentMonth)),
   )
@@ -253,7 +291,7 @@ export function CalendarView() {
 
   // Lo que hay que hacer un día es parte de lo que pasa ese día, se mire la
   // tira o el mes. Lo ya hecho no vuelve aquí, que para eso está Tareas.
-  const tareasPendientes = selectPendingTasks(tasks)
+  const tareasPendientes = selectPendingTasks(tasks).filter(seVe)
 
   // Con cuatro eventos no hay nada que buscar. El buscador mira todo el
   // calendario, no el tramo pintado: lo que se busca suele estar fuera.
@@ -333,6 +371,20 @@ export function CalendarView() {
           onAdd={() => openCreate(selectedDay)}
         />
 
+        {/* Debajo de la cabecera y encima de todo lo demás, porque manda sobre
+            todo lo demás: lo que se pinte a partir de aquí ya viene filtrado.
+            Dentro del mismo relleno lateral que la cabecera. */}
+        {sePuedeFiltrar && (
+          <div className="px-4 lg:px-0">
+            <PersonFilter
+              personas={personas}
+              ocultos={ocultos}
+              onToggle={alternarPersona}
+              onTodos={() => setOcultos(new Set())}
+            />
+          </div>
+        )}
+
         {/* Con el eje de horas delante, la pantalla es solo el eje: Google no
             pone lista al lado en Semana ni en Día, y con ella la rejilla se
             queda sin el ancho que necesita para que un bloque diga algo. La
@@ -343,7 +395,7 @@ export function CalendarView() {
             <Timeline
               days={diasDelEje}
               events={eventos}
-              cumples={allEvents.filter(isBirthday)}
+              cumples={cumples}
               kids={kids}
               members={members}
               tasks={tareasPendientes}
@@ -389,11 +441,11 @@ export function CalendarView() {
                       que acabas de tocar y ellos del mes entero: lo más cercano
                       a lo que se ha hecho, primero. Con hoy elegido no sale, que
                       es lo que ya cuenta la agenda. */}
-                  {!isSameDay(selectedDay, today) && (
+                  {!isSameDay(selectedDay, today) ? (
                     <DayPanel
                       day={selectedDay}
                       events={eventos}
-                      cumples={allEvents.filter(isBirthday)}
+                      cumples={cumples}
                       tasks={tareasPendientes}
                       kids={kids}
                       members={members}
@@ -401,6 +453,27 @@ export function CalendarView() {
                       onAdd={openCreate}
                       onToggleTask={toggleTask}
                     />
+                  ) : (
+                    /**
+                     * Que la rejilla se toca (12-09-2026).
+                     *
+                     * La celda promete desde hace tiempo que "tocar el día enseña
+                     * su detalle debajo", y no había forma de enterarse antes de
+                     * probarlo: con el dedo no hay hover, y con hoy elegido —que es
+                     * como abre la pantalla— debajo del mes no aparece nada.
+                     *
+                     * "Elige" y no "toca": la misma línea la lee un dedo y un
+                     * ratón, y esta pantalla es la misma en los dos sitios.
+                     *
+                     * Va justo en el hueco que deja el panel y **desaparece en
+                     * cuanto se toca un día**, así que no es un cartel permanente:
+                     * es la misma línea, ocupada por la respuesta en vez de por la
+                     * invitación. Vuelve al pulsar "Hoy", que es cuando la
+                     * invitación vuelve a hacer falta.
+                     */
+                    <p className="border-t border-hairline px-4 py-2.5 text-xs text-muted">
+                      Elige un día para ver qué tiene.
+                    </p>
                   )}
 
                 </Card>

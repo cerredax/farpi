@@ -169,10 +169,10 @@ test.describe('escritorio a 1440 px', () => {
     await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 
-    // El botón de la rejilla y no la fila de la agenda de al lado: `exact` los
-    // separa, porque la fila de la agenda se llama "10:00 Revisión del coche
-    // Familia" y el título de la celda se llama solo como el evento.
-    const enLaRejilla = page.getByRole('button', { name: 'Revisión del coche', exact: true })
+    // El botón de la rejilla y no la fila de la agenda de al lado: la celda dice
+    // la hora **detrás** del título ("Revisión del coche, a las 10:00") y la fila
+    // de la agenda la dice delante, así que el nombre exacto los separa.
+    const enLaRejilla = page.getByRole('button', { name: 'Revisión del coche, a las 10:00', exact: true })
     await expect(enLaRejilla).toHaveCount(1)
     await enLaRejilla.click()
 
@@ -235,7 +235,9 @@ test.describe('escritorio a 1440 px', () => {
     await page.locator('#event-kind').selectOption('descanso')
     await page.locator('#event-date').fill('2026-08-11')
     await page.locator('#event-end-date').fill('2026-08-12')
-    await page.getByRole('button', { name: 'María' }).click()
+    // `exact`: la pastilla del filtro de personas se llama "Esconder lo de
+    // María" y sin él el nombre casa con las dos.
+    await page.getByRole('button', { name: 'María', exact: true }).click()
     await page.locator(GUARDAR_EVENTO).click()
     await page.waitForTimeout(700)
 

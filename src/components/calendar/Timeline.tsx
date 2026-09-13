@@ -308,7 +308,10 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
       {/* Las tres rejillas —días, todo el día y el eje— comparten un solo
           contenedor que se desliza a lo ancho: si cada una tuviera el suyo, la
           cabecera se quedaría quieta mientras las horas se mueven. */}
-      <div ref={scrollerRef} className="overflow-x-auto" {...desliz}>
+      {/* `data-eje`: lo que se desliza a lo ancho aquí es la semana, y hace falta
+          poder nombrarlo. `.overflow-x-auto` a secas ya no vale desde que el
+          filtro de personas usa la misma clase más arriba en la página. */}
+      <div ref={scrollerRef} data-eje className="overflow-x-auto" {...desliz}>
       {/* Cabecera de columnas: qué día es cada una. **Solo con varias**: en la
           vista de un día, la cabecera del calendario ya pone "Jueves, 27 de
           agosto" y repetirlo aquí es decirlo dos veces seguidas. */}

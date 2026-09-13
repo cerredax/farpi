@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { agruparPlanesPorDia, daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, vacationEdges, vacationLength } from '@/lib/events'
+import { agruparPlanesPorDia, daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, topeDeFranjas, vacationEdges, vacationLength } from '@/lib/events'
 import type { FamilyMember } from '@/types'
 import { event } from './fixtures'
 
@@ -356,6 +356,55 @@ test.describe('familyAbsenceKind', () => {
     expect(familyAbsenceKind(events, DOS, '2026-08-11')).toBeNull()
     expect(familyAbsenceKind(events, DOS, '2026-08-13')).toBe('vacaciones')
     expect(familyAbsenceKind(events, DOS, '2026-08-15')).toBeNull()
+  })
+})
+
+// El reparto de franjas de un día de la rejilla: la de la casa, y las que la de
+// la casa no dice. Nace del fallo del 12-09-2026 —con los dos adultos de
+// descanso, el de la abuela desaparecía del calendario—.
+test.describe('franjasDeAusencia', () => {
+  const abuela = (dia: string, kind: 'vacaciones' | 'descanso' = 'descanso') =>
+    event({ kind, all_day: true, child_id: 'a1', start_at: `${dia}T00:00:00`, end_at: `${dia}T23:59:00` })
+
+  test('sin ausencia de la casa se pintan todas, vacaciones primero', () => {
+    const delDia = [ausencia('m1', '2026-08-12', '2026-08-12', 'descanso'), abuela('2026-08-12', 'vacaciones')]
+    expect(franjasDeAusencia(delDia, null).map(e => e.kind)).toEqual(['vacaciones', 'descanso'])
+  })
+
+  // El caso del fallo: el amarillo habla por los adultos con cuenta, no por la
+  // abuela, que va por `child_id` y nunca entró en esa cuenta.
+  test('con la casa entera de descanso, el de quien no tiene cuenta se queda', () => {
+    const delDia = [
+      ausencia('m1', '2026-08-12', '2026-08-12', 'descanso'),
+      ausencia('m2', '2026-08-12', '2026-08-12', 'descanso'),
+      abuela('2026-08-12'),
+    ]
+    const sueltas = franjasDeAusencia(delDia, 'descanso')
+    expect(sueltas).toHaveLength(1)
+    expect(sueltas[0].child_id).toBe('a1')
+  })
+
+  // Colapsa un tipo, no a la persona: unas vacaciones de un adulto con cuenta el
+  // día en que la casa descansa siguen siendo algo que el amarillo no dice.
+  test('solo se calla lo que la franja de la casa dice, y del mismo tipo', () => {
+    const delDia = [
+      ausencia('m1', '2026-08-12', '2026-08-12', 'descanso'),
+      ausencia('m2', '2026-08-12', '2026-08-12', 'descanso'),
+      ausencia('m3', '2026-08-12', '2026-08-12', 'vacaciones'),
+    ]
+    expect(franjasDeAusencia(delDia, 'descanso').map(e => e.member_id)).toEqual(['m3'])
+  })
+
+  test('las devuelve todas, sin recortar: el tope lo aplica quien pinta', () => {
+    const delDia = [abuela('2026-08-12'), abuela('2026-08-12'), abuela('2026-08-12')]
+    expect(franjasDeAusencia(delDia, null)).toHaveLength(3)
+  })
+
+  // La de la casa ocupa una de las dos, o el día con menos que contar sería el
+  // más alto de la fila.
+  test('con la casa fuera solo cabe una más', () => {
+    expect(topeDeFranjas('descanso')).toBe(1)
+    expect(topeDeFranjas(null)).toBe(2)
   })
 })
 

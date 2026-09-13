@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-10.
+Última revisión: 2026-09-12.
 
 ## Resumen
 
@@ -64,24 +64,73 @@ que todavía no existen (ver "Siguiente paso recomendado").
   (28-08-2026), los dos **plegados** por defecto y con cuántos hay en el título;
   los cumpleaños salen además en la franja de "todo el día" de las
   vistas Día y Semana, que no tienen bloque debajo al que mirar. Un cumpleaños del
-  mes **que ya pasó se atenúa** (05-09-2026): sigue en la lista y sigue contado en
-  el título, porque el bloque habla del mes que se mira y el calendario también se
-  navega hacia atrás. En móvil se pasa de mes o de día **arrastrando el dedo**, y
+  mes en curso **que ya pasó se pliega aparte** (12-09-2026): arriba quedan los que
+  vienen y al pie una línea —"2 que ya pasaron"— los despliega. El título los sigue
+  contando **todos**, que es lo que no puede cambiar: el bloque habla del mes que se
+  mira, y un recuento que baja solo según avanzan los días se lee como si alguien los
+  hubiera borrado. Estuvieron atenuados al 55 % desde el 05-09-2026, y en un mes por
+  la mitad eso dejaba dos de cada tres filas sin leerse y sin irse. En un mes que no es
+  el de hoy no hay nada que separar y salen todos, atenuados si el mes ya terminó.
+  **"Vacaciones y descansos" va por personas** y no por fechas (12-09-2026): el nombre
+  se dice una vez y sus ausencias van detrás en línea —"Carlos · de vacaciones hasta el
+  11 sep · descansa el 15 sep · el 22 sep"—, con el verbo solo la primera vez de cada
+  tipo. Siete filas con "Carlos" en tres de ellas pasan a tres. Cada ausencia sigue
+  siendo la suya y sigue abriéndose: agrupar mueve el rótulo, no fusiona eventos.
+  **Se puede mirar el calendario persona a persona** (12-09-2026): una fila de
+  pastillas debajo de la cabecera enciende y apaga a cada uno, y lo que se apaga
+  desaparece de todo a la vez —rejilla, agenda, eje de horas, bloques y buscador—,
+  porque el filtro se aplica en `CalendarView` y una sola vez. Se guarda quién está
+  apagado y no quién está encendido, para que quien entre nuevo en la familia se vea
+  desde el primer día; dura lo que dura la pantalla; y solo se pinta con tres personas
+  o más, que con dos no hay nada que elegir. En móvil se pasa de mes o de día **arrastrando el dedo**, y
   cuando lo que se mira no contiene hoy aparece un botón **«Hoy»** junto a las
   flechas (05-09-2026); mirando el presente no se pinta, porque no haría nada.
-- **Hoy y el día elegido se distinguen por la forma, no por el color**
-  (05-09-2026): el elegido es un disco relleno y hoy un anillo, los dos en
-  `primary-strong`. Eran dos discos que solo cambiaban de tono —el verde y el
-  salmón de marca, a ΔE 2,3 en protanopía—, así que para quien no distingue rojos
-  de verdes eran el mismo círculo; y el blanco encima daba 2,61:1 y 2,18:1 sobre
-  el mínimo de 4,5:1.
+- **Hoy es un disco salmón y el día elegido es la celda entera** (12-09-2026). Son
+  dos señales de naturaleza distinta y no dos formas del mismo círculo, que es lo
+  que fueron del 05 al 12-09-2026 —disco relleno el elegido, anillo hoy, los dos en
+  `primary-strong`—. Dos cosas fallaban ahí: el mes era la única vista del
+  calendario donde hoy no iba en `accent-strong`, el salmón que ya usan la agenda,
+  el eje de horas y el panel del día; y hoy llevaba además la más débil de las dos
+  formas, un anillo de 2 px, en la vista donde compite con treinta números. El día
+  elegido pasa a la celda (fondo `primary-tint` y borde interior) porque de él
+  cuelga un panel entero debajo de la rejilla, y la respuesta a "¿qué estoy
+  mirando?" tiene que ser del tamaño de lo que se mira. Se conserva lo que sigue
+  siendo verdad del 05-09-2026: el color no es la única diferencia —una es un disco
+  y la otra un fondo, así que sobrevive a cualquier dicromacia— y el blanco solo va
+  sobre un tono que lo admita (`accent-strong` da 6,29:1).
+- **La celda del mes dice a qué hora es cada cosa** (12-09-2026), en escritorio:
+  "9:00 Dentista" y no "Dentista". Sin el cero de delante, porque la celda mide ~81
+  px cuando la agenda va al lado, y en `tabular-nums` para que las horas queden en
+  columna. Los de todo el día no llevan ninguna. Y **los títulos van por hora**: se
+  pintaban en el orden en que estuvieran, así que el "+n más" recortaba por posición
+  y escondía lo que tocara, no lo último del día.
+- **La celda del mes se reparte el alto de la ventana** en escritorio (12-09-2026),
+  con 104 px de suelo: medía eso fijo, y en un monitor normal la rejilla acababa a
+  media pantalla mientras un día con tres planes decía "+1 más". Con el alto
+  repartido caben **tres títulos** en vez de dos.
+- **Los días de una semana están a la misma altura** (12-09-2026). Las franjas de
+  ausencia iban en el flujo y cada una empujaba el número 7 px: en la fila del 14 al
+  20, con una ausencia el 15, ese número arrancaba 14 px más abajo que el del 14 y
+  el del 18, y la franja quedaba tan pegada al borde de arriba que parecía del día
+  anterior. Ahora el carril se **reserva por semana** (`carrilDeAusencias`): una
+  semana sin ausencias no reserva nada y sigue midiendo lo que medía, y reservarlo
+  en todas las celdas habría llevado la rejilla del móvil de 289 px a 414.
+- **La rejilla dice que se puede tocar** (12-09-2026): con hoy elegido —que es como
+  abre la pantalla— debajo del mes sale "Elige un día para ver qué tiene", justo en
+  el hueco que ocupará el panel, y desaparece al tocar un día. Más `active:` en la
+  celda, que con el dedo no hay hover y tocar un día no acusaba recibo de nada.
 - **Si no queda nadie, el día lleva una sola franja amarilla** (05-09-2026): todos
   los adultos con cuenta fuera y por lo mismo. Hacen falta dos como mínimo y el
   mismo tipo —unas vacaciones y un descanso no se resumen en una palabra—. Además
   de leerse mejor, arregla que la celda pinta dos franjas como mucho: con tres
   adultos de vacaciones el mismo día, la tercera no se pintaba. El bloque
   «Vacaciones y descansos» no cambia: la rejilla dice qué día es este y el bloque,
-  quién está fuera y hasta cuándo.
+  quién está fuera y hasta cuándo. **Va la primera y acompañada, no en lugar de las
+  demás** (12-09-2026): hasta entonces sustituía a todas, así que el día en que los
+  dos adultos con cuenta descansaban, el descanso de la abuela —que va por
+  `child_id` y nunca entró en esa cuenta— desaparecía del calendario y del nombre
+  accesible del día. El amarillo habla por quien colapsa y por nadie más
+  (`franjasDeAusencia`).
 - **Elegir un día del mes enseña qué hay ese día** (28-08-2026), en los dos tamaños. Debajo
   de la rejilla: los planes con su hora, las tareas que vencen y las etiquetas de
   festivo, ausencia y cumpleaños; y si no hay nada, lo dice y ofrece apuntarlo
@@ -602,13 +651,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **673 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **681 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 504 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 12-09-2026 (los últimos, cómo se reparten en bloques de un día los planes que vienen en Inicio: que lo del mismo día va junto, que la hora no parte la jornada y que sin planes no hay bloques) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
-  - 169 de navegador. La cifra sale de la pasada completa del 12-09-2026 (673 en total,
-    504 unitarios; los últimos, la pantalla de Cumpleaños: que junta los dos orígenes sin
+  - 512 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 12-09-2026 (los últimos, el reparto de las franjas de ausencia de un día del mes —que la franja de la casa solo se calla lo que ella misma dice, así que el descanso de quien no tiene cuenta se queda, y que el tope lo aplica quien pinta— y la agrupación por personas del bloque de vacaciones y descansos) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 169 de navegador. La cifra sale de la pasada completa del 12-09-2026 (681 en total,
+    512 unitarios; los últimos, la pantalla de Cumpleaños: que junta los dos orígenes sin
     distinguirlos y que su `+` abre el sheet del calendario sin el selector de «Qué es»,
     más los que cada recorrido de rutas añade solo por tener una ruta más):
     `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes, tamaño mínimo de los controles y que ningún sheet cerrado asome por abajo) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.

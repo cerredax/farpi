@@ -831,7 +831,8 @@ test('un descanso marca todos los días de su rango', async ({ page }) => {
 
   await page.locator('#event-date').fill('2026-08-11')
   await page.locator('#event-end-date').fill('2026-08-12')
-  await page.getByRole('button', { name: 'María' }).click()
+  // `exact`: la pastilla del filtro de personas también lleva su nombre.
+  await page.getByRole('button', { name: 'María', exact: true }).click()
   await page.locator('button[type="submit"][form="event-form"]').click()
   await page.waitForTimeout(600)
 

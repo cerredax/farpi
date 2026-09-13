@@ -61,9 +61,14 @@ export function marcasDelDia(
 export function resumenDelDia({ planes, tareas, vacaciones, descansos, familia }: {
   planes: number
   tareas: number
-  /** Cuántas personas están de vacaciones ese día. */
+  /**
+   * Cuántas personas están de vacaciones ese día **que la franja de la casa no
+   * cuente ya**. Con la casa entera fuera, sus adultos con cuenta se dicen una
+   * vez en `familia` y no vuelven aquí; quien no tiene cuenta —la abuela, un
+   * hijo— nunca entró en esa cuenta y sí.
+   */
   vacaciones: number
-  /** Cuántas descansan ese día. */
+  /** Lo mismo, para quien descansa. */
   descansos: number
   /**
    * El tipo de ausencia cuando **no queda nadie**: todos los adultos con cuenta
@@ -80,12 +85,17 @@ export function resumenDelDia({ planes, tareas, vacaciones, descansos, familia }
     // están todos, que es justo lo que hay que decir. Es lo mismo que hace la
     // franja amarilla, dicho para quien no la ve.
     partes.push(familia === 'vacaciones' ? 'la familia de vacaciones' : 'la familia descansando')
-  } else {
-    // Las ausencias se dicen con número: el tinte avisa de que hay alguien fuera,
-    // pero no de cuántos, y el color de la celda ya no es de nadie en concreto.
-    if (vacaciones > 0) partes.push(`${vacaciones} de vacaciones`)
-    if (descansos > 0) partes.push(`${descansos} descansando`)
   }
+  // Y **después** quien está fuera aparte de ellos, que hasta el 12-09-2026 iba
+  // en un `else` y se perdía entero: con la casa de descanso, el de la abuela no
+  // se decía ni aquí ni en la celda. "1 más" porque viene detrás de la casa; sin
+  // ella es el recuento de siempre.
+  //
+  // Las ausencias se dicen con número: el tinte avisa de que hay alguien fuera,
+  // pero no de cuántos, y el color de la celda ya no es de nadie en concreto.
+  const mas = familia ? ' más' : ''
+  if (vacaciones > 0) partes.push(`${vacaciones}${mas} de vacaciones`)
+  if (descansos > 0) partes.push(`${descansos}${mas} descansando`)
   return partes.length > 0 ? partes.join(', ') : 'sin planes'
 }
 

@@ -1,7 +1,7 @@
 import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
-import { DayCell } from './DayCell'
+import { ALTO_FRANJA, DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
-import { eventCoversDay, familyAbsenceEdges, familyAbsenceKind, isRestDay, isVacation, vacationEdges } from '@/lib/events'
+import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
 import { eventColor } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -33,9 +33,6 @@ const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 /** Las líneas de la rejilla. Las comparten las celdas y los huecos. */
 const HUECO = 'border-b border-r border-line'
 
-/** Cuántas ausencias se pintan en un hueco de fuera de mes. Mismo tope que `DayCell`. */
-const MAX_AUSENCIAS = 2
-
 interface MonthGridProps {
   currentMonth: Date
   selectedDay: Date
@@ -61,6 +58,34 @@ function getMonthDays(month: Date): Date[] {
 export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, members, onSelectDay, onCreateDay, onOpenEvent }: MonthGridProps) {
   const days = getMonthDays(currentMonth)
   const hoyStr = getLocalDateString(new Date())
+
+  /**
+   * Lo que hay cada día, resuelto **antes** de pintar nada.
+   *
+   * Se calculaba dentro del `map` y ahora no puede: el carril de las franjas se
+   * reserva por semana, así que para saber cuánto reserva el lunes hay que haber
+   * mirado ya los otros seis días. Se hace una sola vez y lo aprovechan las dos
+   * ramas —la celda del mes y el hueco de fuera de mes—, que hasta ahora
+   * repetían las mismas cuatro llamadas cada una.
+   */
+  const info = days.map(day => {
+    const delDia = events.filter(e => eventCoversDay(e, day))
+    // Si ese día no hay nadie, y dónde empieza y acaba el tramo. Se calcula
+    // **aquí y no en la celda** porque saber si la franja se redondea exige
+    // mirar el día anterior y el siguiente, y la celda solo conoce el suyo:
+    // `events` entero vive en este componente.
+    const familia = familyAbsenceKind(events, members, day)
+    const sueltas = franjasDeAusencia(delDia, familia).slice(0, topeDeFranjas(familia))
+    return {
+      day,
+      delDia,
+      familia,
+      bordes: familia ? familyAbsenceEdges(events, members, day) : null,
+      sueltas,
+      franjas: (familia ? 1 : 0) + sueltas.length,
+    }
+  })
+  const carriles = carrilDeAusencias(info.map(d => d.franjas))
 
   return (
     /**
@@ -101,7 +126,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
       {/* Sin hueco entre columnas: la raya de los días de ausencia tiene que
           tocarse para leerse como un tramo. */}
       <div className="grid grid-cols-7">
-        {days.map(day => {
+        {info.map(({ day, delDia, familia, bordes, sueltas }, i) => {
           if (!isSameMonth(day, currentMonth)) {
             /**
              * **Los días de las puntas se pintan, sobre el mismo fondo que el
@@ -125,19 +150,10 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
              * rompería el tramo justo donde sigue. Se pinta igual que en
              * `DayCell`, solo que aquí no hay botón debajo que abrirla.
              */
-            const delHueco = events.filter(e => eventCoversDay(e, day))
-            // Vacaciones primero y descansos después, **el mismo orden que
-            // `DayCell`**: con dos ausencias el mismo día, ordenarlas distinto
-            // aquí pintaría la de arriba abajo al cruzar la frontera del mes y
-            // el tramo se partiría en dos alturas.
-            const ausenciasHueco = [...delHueco.filter(isVacation), ...delHueco.filter(isRestDay)]
-              .slice(0, MAX_AUSENCIAS)
-            // El hueco colapsa igual que la celda: si el 31 de agosto no hay
-            // nadie y el 1 de septiembre tampoco, el tramo amarillo tiene que
-            // cruzar la frontera del mes entero. Pintar aquí las franjas de cada
-            // uno lo partiría en dos idiomas a mitad de fila.
-            const familiaHueco = familyAbsenceKind(events, members, day)
-            const bordesHueco = familyAbsenceEdges(events, members, day)
+            // El hueco sale del mismo `info` que la celda, así que colapsa igual
+            // y reparte igual: si el 31 de agosto no hay nadie y el 1 de
+            // septiembre tampoco, el tramo amarillo cruza la frontera del mes
+            // entero en vez de partirse en dos idiomas a mitad de fila.
             return (
               <span
                 key={day.toISOString()}
@@ -148,29 +164,34 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                 // el mes vecino **a la misma altura**. Con `py-1` en el
                 // contenedor, las franjas del hueco caían cuatro píxeles más
                 // abajo que las de al lado y el tramo se veía escalonado.
-                className={`${HUECO} flex w-full flex-col min-h-[52px] lg:min-h-[104px] ${
+                className={`${HUECO} flex w-full flex-col min-h-[52px] lg:min-h-[max(104px,calc((100vh-26rem)/6))] ${
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >
-                {familiaHueco ? (() => {
-                  const redondeo = `${bordesHueco.primero ? 'rounded-l-full' : ''} ${bordesHueco.ultimo ? 'rounded-r-full' : ''}`
-                  return (
-                    <span className={`franja-ausencia ${redondeo}`}>
-                      <span className={`block h-full w-full ${redondeo}`} style={{ backgroundColor: FAMILY_COLOR }} />
-                    </span>
-                  )
-                })() : ausenciasHueco.map(event => {
-                  const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
-                  const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
-                  return (
-                    <span key={event.id} className={`franja-ausencia ${redondeo}`}>
-                      <span
-                        className={`block h-full w-full ${redondeo}`}
-                        style={{ backgroundColor: eventColor(event, members, kids) }}
-                      />
-                    </span>
-                  )
-                })}
+                {/* Con el mismo carril reservado que las celdas: es lo que hace
+                    que un tramo entre en el mes vecino a la misma altura. */}
+                <span className="block w-full flex-shrink-0" style={{ height: carriles[i] * ALTO_FRANJA }}>
+                  {familia && bordes && (() => {
+                    const redondeo = `${bordes.primero ? 'rounded-l-full' : ''} ${bordes.ultimo ? 'rounded-r-full' : ''}`
+                    return (
+                      <span className={`franja-ausencia ${redondeo}`}>
+                        <span className={`block h-full w-full ${redondeo}`} style={{ backgroundColor: FAMILY_COLOR }} />
+                      </span>
+                    )
+                  })()}
+                  {sueltas.map(event => {
+                    const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
+                    const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
+                    return (
+                      <span key={event.id} className={`franja-ausencia ${redondeo}`}>
+                        <span
+                          className={`block h-full w-full ${redondeo}`}
+                          style={{ backgroundColor: eventColor(event, members, kids) }}
+                        />
+                      </span>
+                    )
+                  })}
+                </span>
                 <span className="flex w-full flex-col items-center py-1">
                   <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">
                     {getDate(day)}
@@ -181,15 +202,6 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
           }
 
           const diaStr = getLocalDateString(day)
-          const delDia = events.filter(e => eventCoversDay(e, day))
-          /**
-           * Si ese día no hay nadie, y dónde empieza y acaba el tramo. Se calcula
-           * **aquí y no en la celda** porque saber si la franja se redondea exige
-           * mirar el día anterior y el siguiente, y la celda solo conoce el suyo:
-           * `events` entero vive en este componente.
-           */
-          const familia = familyAbsenceKind(events, members, day)
-          const bordes = familia ? familyAbsenceEdges(events, members, day) : null
           return (
             <DayCell
               key={day.toISOString()}
@@ -203,6 +215,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               members={members}
               onSelect={onSelectDay}
               ausenciaFamiliar={familia && bordes ? { kind: familia, ...bordes } : null}
+              carril={carriles[i]}
               onCreate={onCreateDay}
               onOpenEvent={onOpenEvent}
             />

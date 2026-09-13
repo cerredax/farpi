@@ -392,7 +392,9 @@ test('la semana se recorre a lo ancho sin perder las horas', async ({ page }) =>
   await page.goto('/calendar')
   await elegirVista(page, 'Semana')
 
-  const eje = page.locator('.overflow-x-auto').first()
+  // Por `data-eje` y no por la clase: el filtro de personas también se desliza
+  // a lo ancho y estaba antes en la página.
+  const eje = page.locator('[data-eje]').first()
   await expect(eje).toBeVisible()
   const canal = eje.locator('.sticky').first()
 

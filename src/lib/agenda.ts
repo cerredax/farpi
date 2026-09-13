@@ -106,3 +106,34 @@ export function agruparPorPersona<
     }))
     .filter(grupo => grupo.dias.length > 0)
 }
+
+/**
+ * Lo mismo para el bloque "Vacaciones y descansos": **una fila por persona y no
+ * una por ausencia** (12-09-2026).
+ *
+ * El bloque listaba cada ausencia con su nombre delante, por orden de fecha, y
+ * en un mes con turnos eso son siete filas donde "Carlos" sale tres veces y
+ * "Abuela" dos. El nombre es lo que más ancho ocupa de la fila y es justo lo que
+ * se repetía. Dicho una vez por persona, las mismas siete ausencias caben en
+ * tres filas y la pregunta del bloque —"¿con quién puedo contar?"— se contesta
+ * de un vistazo en vez de leyendo una lista cronológica.
+ *
+ * Cada ausencia **sigue siendo suya y sigue siendo pulsable**: agrupar cambia el
+ * rótulo de sitio, no fusiona eventos. Es la misma idea que el segundo eje de la
+ * agenda, y por eso vive aquí al lado y reutiliza `assigneeKeyOf`.
+ *
+ * El orden de las personas es el de siempre (`buildAssignees`): familia,
+ * adultos, hijos. Dentro de cada una, el que traiga la lista — que es por fecha,
+ * como lo deja `selectVisibleAbsences`.
+ */
+export function agruparAusenciasPorPersona<
+  P extends { key: string },
+  A extends { child_id: string | null; member_id: string | null },
+>(ausencias: A[], personas: P[]): { persona: P; ausencias: A[] }[] {
+  return personas
+    .map(persona => ({
+      persona,
+      ausencias: ausencias.filter(a => assigneeKeyOf(a) === persona.key),
+    }))
+    .filter(grupo => grupo.ausencias.length > 0)
+}

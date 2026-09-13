@@ -15,6 +15,38 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-13
 
+### Fuera el filtro por personas, y apuntar deja de esconderse (13-09-2026)
+
+Dos preguntas de la misma tarde, mirando el móvil.
+
+**«El `+` de la cabecera no aporta, se puede apuntar por los días».** Se comprobó en la
+app antes de quitarlo, y no: el botón «Apuntar algo» del panel del día colgaba de que el
+día estuviera **vacío**, así que en un día con una sola cita no había forma de añadir otra
+ahí. Quedaban el doble toque en la celda —que no se ve, y que existe justamente porque el
+`+` es el camino que sí se ve y el único que funciona con teclado y con lector de
+pantalla— y el propio `+`. Y en la pestaña Agenda de móvil no hay ni rejilla ni panel:
+sin el `+` no quedaría ninguno. Así que el `+` se queda —además es la regla de la casa,
+el alta va arriba en las seis pantallas de contenido— y lo que se arregla es lo que
+faltaba: **el panel del día ofrece apuntar tenga o no tenga algo el día**. Añadir una
+segunda cosa a un día es más frecuente que estrenar uno vacío. El "Nada apuntado." sigue
+siendo solo del día vacío: eso es la respuesta, no la invitación.
+
+**«El filtro por personas, ¿es útil? Su estética no me gusta nada».** Se fue, un día
+después de entrar. La estética tenía un porqué concreto: la fila estaba **siempre**
+rellena de color, así que en reposo —el 95 % del tiempo— eran cuatro o seis bloques
+saturados justo encima del calendario, y lo más llamativo de la pantalla era el mando y
+no el mes. Se llegó a hacer una versión callada —pastillas sin relleno con el punto de
+color, y el color entero solo al filtrar— y aun así la respuesta fue quitarlo, que era
+la pregunta de verdad: 60 px fijos en el móvil, en la vista que menos sitio tiene, para
+un control que se toca una vez cada mucho.
+
+La función no se pierde entera. «¿Y qué tiene Cris?» es media pregunta de una casa, y ya
+la contesta el eje **«Por persona»** de la agenda (27-08-2026), que reparte la lista por
+quién lleva cada cosa sin esconder nada ni dejar la pantalla en un estado del que luego
+hay que acordarse de salir. Lo que sí se pierde es aislar a alguien en la **rejilla** del
+mes; queda escrito en `CalendarView` que, si vuelve a hacer falta, vuelva por donde ya
+está el eje de la agenda o plegado, y no como una banda permanente.
+
 ### El mes, medido: dos meses en la misma pantalla y un título de 81 px (13-09-2026)
 
 Repaso de la vista Mes en los dos tamaños, con la app de verdad en modo demo y midiendo en

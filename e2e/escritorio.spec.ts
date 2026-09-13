@@ -319,6 +319,13 @@ test.describe('escritorio a 1440 px', () => {
     await expect(panel).toBeVisible()
     await expect(panel).toContainText('Revisión del coche')
 
+    // Y ofrece apuntar **aunque el día ya tenga algo** (13-09-2026). El botón
+    // colgaba del día vacío, así que para añadir una segunda cosa a un día
+    // quedaba el doble clic en la celda —que no se ve— o el `+` de la cabecera,
+    // que apunta en el día elegido sin decirlo. Añadir a un día con algo es más
+    // frecuente que estrenar uno vacío.
+    await expect(panel.getByRole('button', { name: /Apuntar algo el 18 de agosto/ })).toBeVisible()
+
     // Y un día vacío también contesta, que es la mitad que faltaba: sin esto,
     // elegir un día sin nada se lee igual que un fallo.
     await page.locator('[aria-pressed][aria-label*="19 de agosto"]').click()

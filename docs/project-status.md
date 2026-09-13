@@ -76,13 +76,12 @@ que todavía no existen (ver "Siguiente paso recomendado").
   11 sep · descansa el 15 sep · el 22 sep"—, con el verbo solo la primera vez de cada
   tipo. Siete filas con "Carlos" en tres de ellas pasan a tres. Cada ausencia sigue
   siendo la suya y sigue abriéndose: agrupar mueve el rótulo, no fusiona eventos.
-  **Se puede mirar el calendario persona a persona** (12-09-2026): una fila de
-  pastillas debajo de la cabecera enciende y apaga a cada uno, y lo que se apaga
-  desaparece de todo a la vez —rejilla, agenda, eje de horas, bloques y buscador—,
-  porque el filtro se aplica en `CalendarView` y una sola vez. Se guarda quién está
-  apagado y no quién está encendido, para que quien entre nuevo en la familia se vea
-  desde el primer día; dura lo que dura la pantalla; y solo se pinta con tres personas
-  o más, que con dos no hay nada que elegir. En móvil se pasa de mes o de día **arrastrando el dedo**, y
+  **Quién lleva cada cosa se mira en la agenda**, con su eje "Por persona"
+  (27-08-2026): el calendario no tiene filtro por personas. Lo tuvo del 12 al
+  13-09-2026 —una fila de pastillas debajo de la cabecera que encendía y apagaba a
+  cada uno— y se quitó: 60 px de pantalla fijos en el móvil, en la vista que menos
+  sitio tiene, para algo que se toca una vez cada mucho, y la pregunta ya tenía
+  dónde contestarse. En móvil se pasa de mes o de día **arrastrando el dedo**, y
   cuando lo que se mira no contiene hoy aparece un botón **«Hoy»** junto a las
   flechas (05-09-2026); mirando el presente no se pinta, porque no haría nada.
 - **Hoy es un disco salmón y el día elegido es la celda entera** (12-09-2026). Son
@@ -137,7 +136,11 @@ que todavía no existen (ver "Siguiente paso recomendado").
   ahí. Antes no contestaba nada —la agenda de abajo arranca en hoy y solo pinta
   días con algo, así que un día pasado o vacío no tenía a dónde llevarte—. Con
   hoy elegido no sale: la agenda ya empieza justo ahí. En escritorio, además, la
-  agenda de la columna de al lado se desliza hasta el día elegido.
+  agenda de la columna de al lado se desliza hasta el día elegido. **Y ofrece
+  apuntar tenga o no tenga algo el día** (13-09-2026): el botón colgaba del día
+  vacío, así que para añadir una segunda cosa a un día quedaba el doble toque en la
+  celda —que no se ve— o el `+` de la cabecera, que apunta en el día elegido sin
+  decirlo.
 - **La lista que acompaña al mes habla del mes que se mira** (13-09-2026): arranca
   en hoy mientras se mire el mes de hoy, y en el día 1 de cualquier otro. Con la
   rejilla en agosto, debajo seguía encabezando "Hoy" con lo de junio; y en la

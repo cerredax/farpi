@@ -127,24 +127,30 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
       <DayTasks tasks={tareasDelDia} kids={kids} members={members} hoy={hoyStr} onToggle={onToggleTask} />
 
       {/* Un día vacío también es una respuesta, y hasta ahora no la daba: elegir
-          un día sin nada se leía igual que un fallo. Con el botón al lado, además,
-          es el sitio natural para apuntar algo ahí. */}
-      {vacio && (
-        <div className="flex items-center gap-2 px-1 py-1">
-          <p className="flex-1 text-sm text-muted">Nada apuntado.</p>
-          {/* La etiqueta dice el día, como los huecos del eje de horas: en la
-              pantalla hay otro botón de apuntar —el `+` de la cabecera— y a
-              oídas los dos sonaban igual sin decir dónde caería lo apuntado. */}
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })}`}
-            onClick={() => onAdd(day)}
-          >
-            Apuntar algo
-          </Button>
-        </div>
-      )}
+          un día sin nada se leía igual que un fallo.
+
+          **Y apuntar se ofrece tenga o no tenga algo el día** (13-09-2026). El
+          botón colgaba de `vacio`, así que en un día con una sola cita no había
+          forma de añadir otra ahí: quedaba el doble toque en la celda, que no se
+          ve, o el `+` de la cabecera, que apunta en el día elegido sin decirlo.
+          Y "añade otra cosa a este día" es más frecuente que "estrena un día
+          vacío". El "Nada apuntado." sí sigue siendo solo del día vacío: es la
+          respuesta, no la invitación. */}
+      <div className="flex items-center gap-2 px-1 py-1">
+        {vacio && <p className="flex-1 text-sm text-muted">Nada apuntado.</p>}
+        {/* La etiqueta dice el día, como los huecos del eje de horas: en la
+            pantalla hay otro botón de apuntar —el `+` de la cabecera— y a
+            oídas los dos sonaban igual sin decir dónde caería lo apuntado. */}
+        <Button
+          variant="secondary"
+          size="sm"
+          className={vacio ? undefined : 'ml-auto'}
+          aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })}`}
+          onClick={() => onAdd(day)}
+        >
+          Apuntar algo
+        </Button>
+      </div>
     </section>
   )
 }

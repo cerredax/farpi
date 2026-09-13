@@ -20,7 +20,6 @@ import { capitalize } from '@/lib/text'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences, selectVisibleBirthdays } from '@/lib/selectors'
-import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { isBirthday } from '@/lib/events'
 import { CalendarHeader, type VistaCalendario } from './CalendarHeader'
@@ -32,7 +31,6 @@ import { Availability } from './Availability'
 import { Birthdays } from './Birthdays'
 import { AgendaList } from './AgendaList'
 import { DayPanel } from './DayPanel'
-import { PersonFilter } from './PersonFilter'
 import { EventSheet } from './EventSheet'
 import { Card } from '@/components/ui/Card'
 import type { Event, EventDraft } from '@/types'
@@ -100,40 +98,22 @@ export function CalendarView() {
   const eventosDeTodos = allEvents.filter(e => !isBirthday(e))
 
   /**
-   * De quién se está enseñando lo del calendario (12-09-2026).
+   * **El filtro por personas se fue el 13-09-2026**, un día después de entrar.
    *
-   * Se guarda **quién está apagado** y no quién está encendido, para que alguien
-   * que entre en la familia después se vea desde el primer día en vez de quedarse
-   * invisible por no estar en la lista cuando se eligió. El porqué de lo demás
-   * —que apague en vez de resaltar, y que no se guarde de una visita a otra— está
-   * en `PersonFilter`.
+   * Era una fila de pastillas debajo de la cabecera que encendía y apagaba a cada
+   * uno. La función tenía sentido —"¿y qué tiene Cris?" es media pregunta de una
+   * casa— pero no pagaba lo que costaba: 60 px de pantalla fijos en el móvil, en
+   * la vista que menos sitio tiene, para algo que se toca una vez cada mucho. Y
+   * la pregunta ya tiene dónde contestarse: el eje **"Por persona"** de la
+   * agenda, que la reparte entera por quién lleva cada cosa sin esconder nada ni
+   * dejar la pantalla en un estado del que luego hay que acordarse de salir.
    *
-   * El filtro se aplica **aquí y una sola vez**, sobre todo lo que baja a las
-   * pantallas: la rejilla, la agenda, el eje de horas, los dos bloques de debajo
-   * del mes y el buscador. Filtrar en cada sitio era la manera segura de que un
-   * día la rejilla escondiera a alguien que la lista de al lado sigue enseñando.
+   * Lo que se pierde es aislar a una persona en la **rejilla** del mes. Si algún
+   * día vuelve a hacer falta, que vuelva por ahí y no como una banda permanente:
+   * el sitio es el que ya ocupa el eje de la agenda, o un control plegado.
    */
-  const [ocultos, setOcultos] = useState<Set<string>>(new Set())
-  const personas = buildAssignees(members, kids)
-  // Con la familia y un adulto no hay nada que elegir, y son 44 px de pantalla
-  // para nada. Tres es donde filtrar empieza a contestar algo.
-  const sePuedeFiltrar = personas.length >= 3
-  const seVe = (x: { child_id: string | null; member_id: string | null }) => !ocultos.has(assigneeKeyOf(x))
-
-  function alternarPersona(key: string) {
-    setOcultos(previo => {
-      const siguiente = new Set(previo)
-      if (!siguiente.delete(key)) siguiente.add(key)
-      return siguiente
-    })
-  }
-
-  const eventos = ocultos.size === 0 ? eventosDeTodos : eventosDeTodos.filter(seVe)
-  // Los cumpleaños apuntados no son de nadie de la casa —por eso son un tipo de
-  // evento y no una ficha—, así que caen todos bajo "Familia" y el filtro los
-  // trata como tal. Es lo coherente: apagar la familia apaga lo que no es de
-  // nadie en concreto.
-  const cumples = allEvents.filter(e => isBirthday(e) && seVe(e))
+  const eventos = eventosDeTodos
+  const cumples = allEvents.filter(isBirthday)
 
   /**
    * Aquí vuelve el `useMediaQuery`, que se había ido el 25-08-2026 cuando quién
@@ -307,7 +287,7 @@ export function CalendarView() {
 
   // Lo que hay que hacer un día es parte de lo que pasa ese día, se mire la
   // tira o el mes. Lo ya hecho no vuelve aquí, que para eso está Tareas.
-  const tareasPendientes = selectPendingTasks(tasks).filter(seVe)
+  const tareasPendientes = selectPendingTasks(tasks)
 
   // Con cuatro eventos no hay nada que buscar. El buscador mira todo el
   // calendario, no el tramo pintado: lo que se busca suele estar fuera.
@@ -409,20 +389,6 @@ export function CalendarView() {
           fueraDeHoy={fueraDeHoy}
           onAdd={() => openCreate(selectedDay)}
         />
-
-        {/* Debajo de la cabecera y encima de todo lo demás, porque manda sobre
-            todo lo demás: lo que se pinte a partir de aquí ya viene filtrado.
-            Dentro del mismo relleno lateral que la cabecera. */}
-        {sePuedeFiltrar && (
-          <div className="px-4 lg:px-0">
-            <PersonFilter
-              personas={personas}
-              ocultos={ocultos}
-              onToggle={alternarPersona}
-              onTodos={() => setOcultos(new Set())}
-            />
-          </div>
-        )}
 
         {/* Con el eje de horas delante, la pantalla es solo el eje: Google no
             pone lista al lado en Semana ni en Día, y con ella la rejilla se

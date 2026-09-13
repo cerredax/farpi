@@ -6,20 +6,34 @@ import { EventSheet } from '@/components/calendar/EventSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { fondoDePersona } from '@/lib/assignees'
-import { cumplesDeLaCasa, diaDeCumple, edadEnPalabras } from '@/lib/birthdays'
-import { DIAS_LISTA_CUMPLES, ROUTES } from '@/lib/constants'
+import { agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple, edadEnPalabras } from '@/lib/birthdays'
+import { DIAS_LISTA_CUMPLES, MINIMO_PARA_BUSCAR, ROUTES } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
 import { useStore } from '@/lib/store-context'
+import { normalizaParaBuscar } from '@/lib/text'
+import type { CumpleEnCasa } from '@/lib/birthdays'
 import type { Event } from '@/types'
 
 /**
- * Cumpleaños: los doce meses que vienen, de hoy al más lejano.
+ * Cumpleaños: los doce meses que vienen, mes a mes.
  *
  * Es la pantalla que faltaba para una pregunta que la app ya sabía contestar a
  * medias. Inicio avisa con dos semanas y el calendario enseña los del mes que
  * se está mirando, así que en septiembre no había dónde ver que la abuela
  * cumple en marzo. Aquí están todos y en orden, que es lo único que se le pide
  * a esta lista.
+ *
+ * **Repartidos por meses** desde el 13-09-2026: treinta y tantas filas iguales
+ * y seguidas se leen como una cuerda y no como un año, y para saber si en marzo
+ * hay algo había que ir bajando y mirando la columna de la izquierda renglón a
+ * renglón. El reparto lo hace `agrupaCumplesPorMes`, que vive en `birthdays.ts`
+ * porque es una cuenta de calendario y ahí es donde se prueban.
+ *
+ * **Y un buscador por nombre**, con el mismo umbral que el resto de la app: en
+ * una lista que abarca un año entero, buscar a alguien es tan normal como
+ * recorrerla. Solo mira el nombre —es lo único que hay— y sin tildes, como en
+ * las listas. Buscando se siguen viendo los meses: lo que se quiere saber de un
+ * nombre es justo cuándo cae.
  *
  * **Junta los dos orígenes** sin decir cuál es cuál: quien es de la casa sale
  * de su fecha de nacimiento en Ajustes y quien no, del cumpleaños apuntado en
@@ -46,11 +60,25 @@ export function BirthdaysView() {
   const { kids, members, allEvents, createEvent, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editando, setEditando] = useState<Event | null>(null)
+  const [busqueda, setBusqueda] = useState('')
+
+  const hoy = getLocalDateString()
 
   const cumples = useMemo(
-    () => cumplesDeLaCasa(kids, allEvents, getLocalDateString(), DIAS_LISTA_CUMPLES),
-    [kids, allEvents],
+    () => cumplesDeLaCasa(kids, allEvents, hoy, DIAS_LISTA_CUMPLES),
+    [kids, allEvents, hoy],
   )
+
+  const puedeBuscar = cumples.length >= MINIMO_PARA_BUSCAR
+  const termino = normalizaParaBuscar(busqueda.trim())
+  const buscando = puedeBuscar && termino.length > 0
+
+  const meses = useMemo(() => {
+    const visibles = buscando
+      ? cumples.filter(cumple => normalizaParaBuscar(cumple.nombre).includes(termino))
+      : cumples
+    return agrupaCumplesPorMes(visibles, hoy)
+  }, [cumples, buscando, termino, hoy])
 
   function abrirAlta() {
     setEditando(null)
@@ -62,6 +90,66 @@ export function BirthdaysView() {
     if (!evento) return
     setEditando(evento)
     setSheetOpen(true)
+  }
+
+  /**
+   * Una fila. Lo que se ve es igual en los dos casos —cuándo, quién y qué edad—
+   * porque de dónde sale el dato no es asunto de quien lo mira. Lo único que
+   * cambia es a dónde lleva.
+   */
+  function fila({ id, nombre, fecha, dias, edad, color, apuntado }: CumpleEnCasa) {
+    const contenido = (
+      <>
+        <span className="w-20 flex-shrink-0 text-xs font-bold text-primary-strong">
+          {diaDeCumple(fecha, dias)}
+        </span>
+        {/* El nombre sobre su color, como en Inicio y en la agenda. Quien no es
+            de la casa no tiene color y va sobre el gris: el color dice de quién
+            es algo, y un cumpleaños de fuera no es de nadie. */}
+        <span
+          className={`etiqueta-persona min-w-0 px-1 py-px text-[11px] ${color ? '' : 'bg-line'}`}
+          style={color ? { backgroundColor: fondoDePersona(color) } : undefined}
+        >
+          {nombre}
+        </span>
+        {edad !== null && (
+          <span className="ml-auto flex-shrink-0 text-xs font-semibold text-muted">
+            cumple {edadEnPalabras(edad)}
+          </span>
+        )}
+      </>
+    )
+
+    // `min-h-11` son los 44 px del criterio de la casa: con `py-3` y texto de
+    // 12 px la fila se queda en 40 y no la alcanza el dedo.
+    const clase = 'flex min-h-11 w-full items-baseline gap-2 px-4 py-3 text-left transition-colors hover:bg-surface'
+
+    return (
+      <li key={id}>
+        {apuntado ? (
+          <button
+            type="button"
+            onClick={() => abrirEdicion(id)}
+            aria-label={`Editar el cumpleaños de ${nombre}`}
+            className={clase}
+          >
+            {contenido}
+          </button>
+        ) : (
+          /* Enlace de verdad y no un botón: lleva a otra pantalla, así que se
+             puede abrir en otra pestaña y el navegador dice a dónde va. Con
+             `?seccion=familia` porque en móvil `/settings` a secas es el índice
+             de las cinco secciones, y la fecha de nacimiento está en Familia. */
+          <Link
+            href={`${ROUTES.settings}?seccion=familia`}
+            aria-label={`Cambiar la fecha de nacimiento de ${nombre} en Ajustes`}
+            className={clase}
+          >
+            {contenido}
+          </Link>
+        )}
+      </li>
+    )
   }
 
   // Lo mismo que hace el calendario: cambiar la clave remonta el sheet, y así el
@@ -79,74 +167,35 @@ export function BirthdaysView() {
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-3xl lg:px-6">
         <ViewHeader
           resumen={`${cumples.length} cumpleaños en los próximos doce meses`}
+          buscador={puedeBuscar ? {
+            value: busqueda,
+            onChange: setBusqueda,
+            placeholder: `Buscar en ${cumples.length} cumpleaños…`,
+            ariaLabel: 'Buscar un cumpleaños por nombre',
+          } : null}
           onAdd={abrirAlta}
           addLabel="Apuntar un cumpleaños"
         />
 
         {cumples.length === 0 ? (
           <EmptyState emoji="🎂" title="Sin cumpleaños" />
+        ) : meses.length === 0 ? (
+          <EmptyState
+            emoji="🔍"
+            title="Sin coincidencias"
+            description={`Nadie con «${busqueda.trim()}» en el nombre`}
+          />
         ) : (
-          <ul className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
-            {cumples.map(({ id, nombre, fecha, dias, edad, color, apuntado }) => {
-              /* Lo que se ve es igual en los dos casos —cuándo, quién y qué edad—
-                 porque de dónde sale el dato no es asunto de quien lo mira. Lo
-                 único que cambia es a dónde lleva la fila. */
-              const contenido = (
-                <>
-                  <span className="w-20 flex-shrink-0 text-xs font-bold text-primary-strong">
-                    {diaDeCumple(fecha, dias)}
-                  </span>
-                  {/* El nombre sobre su color, como en Inicio y en la agenda.
-                      Quien no es de la casa no tiene color y va sobre el gris: el
-                      color dice de quién es algo, y un cumpleaños de fuera no es
-                      de nadie. */}
-                  <span
-                    className={`etiqueta-persona min-w-0 px-1 py-px text-[11px] ${color ? '' : 'bg-line'}`}
-                    style={color ? { backgroundColor: fondoDePersona(color) } : undefined}
-                  >
-                    {nombre}
-                  </span>
-                  {edad !== null && (
-                    <span className="ml-auto flex-shrink-0 text-xs font-semibold text-muted">
-                      cumple {edadEnPalabras(edad)}
-                    </span>
-                  )}
-                </>
-              )
-
-              // `min-h-11` son los 44 px del criterio de la casa: con `py-3` y
-              // texto de 12 px la fila se queda en 40 y no la alcanza el dedo.
-              const clase = 'flex min-h-11 w-full items-baseline gap-2 px-4 py-3 text-left transition-colors hover:bg-surface'
-
-              return (
-                <li key={id}>
-                  {apuntado ? (
-                    <button
-                      type="button"
-                      onClick={() => abrirEdicion(id)}
-                      aria-label={`Editar el cumpleaños de ${nombre}`}
-                      className={clase}
-                    >
-                      {contenido}
-                    </button>
-                  ) : (
-                    /* Enlace de verdad y no un botón: lleva a otra pantalla, así
-                       que se puede abrir en otra pestaña y el navegador dice a
-                       dónde va. Con `?seccion=familia` porque en móvil
-                       `/settings` a secas es el índice de las cinco secciones, y
-                       la fecha de nacimiento está en Familia. */
-                    <Link
-                      href={`${ROUTES.settings}?seccion=familia`}
-                      aria-label={`Cambiar la fecha de nacimiento de ${nombre} en Ajustes`}
-                      className={clase}
-                    >
-                      {contenido}
-                    </Link>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+          meses.map(mes => (
+            <section key={mes.clave} className="space-y-2">
+              {/* El mismo rótulo que los tramos de la agenda: en versalitas y
+                  apagado, porque separa y no compite con los nombres. */}
+              <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">{mes.titulo}</h2>
+              <ul className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
+                {mes.cumples.map(fila)}
+              </ul>
+            </section>
+          ))
         )}
       </div>
 

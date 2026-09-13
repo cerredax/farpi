@@ -261,6 +261,28 @@ test('los cumpleaños se ven todos juntos y se apuntan desde su pantalla', async
   // parte, se deduce de su fecha de nacimiento, y la fila lleva a donde vive.
   await expect(page.getByRole('link', { name: /Cambiar la fecha de nacimiento de Cris/ }))
     .toHaveAttribute('href', '/settings?seccion=familia')
+
+  // Con un tercero aparece el buscador —el umbral es el mismo que en las
+  // listas— y la lista ya viene repartida por meses. Lo de los meses se prueba
+  // aquí porque `agrupaCumplesPorMes` solo dice qué grupos salen, no que la
+  // pantalla los pinte; lo del buscador, porque filtra sobre lo agrupado.
+  const dentroDeUnMes = new Date(hoy)
+  dentroDeUnMes.setDate(dentroDeUnMes.getDate() + 40)
+  const isoLejos = `${dentroDeUnMes.getFullYear()}-${String(dentroDeUnMes.getMonth() + 1).padStart(2, '0')}-${String(dentroDeUnMes.getDate()).padStart(2, '0')}`
+
+  await page.getByRole('button', { name: 'Apuntar un cumpleaños' }).click()
+  await page.locator('#event-title').fill('Tío Paco')
+  await page.locator('#event-date').fill(isoLejos)
+  await page.locator(GUARDAR_EVENTO).click()
+
+  const mesDeHoy = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(hoy)
+  const rotulo = mesDeHoy.charAt(0).toUpperCase() + mesDeHoy.slice(1)
+  await expect(page.getByRole('heading', { name: rotulo, exact: true })).toBeVisible()
+
+  // Sin tildes y sin mayúsculas, como en las listas: nadie las escribe al buscar.
+  await page.getByRole('searchbox', { name: 'Buscar un cumpleaños por nombre' }).fill('tio paco')
+  await expect(filas.filter({ hasText: 'Tío Paco' })).toBeVisible()
+  await expect(page.getByText('Abuela Carmen Ruiz')).toHaveCount(0)
 })
 
 /**

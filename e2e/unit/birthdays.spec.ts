@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
-import { cumplesDeLaCasa, diaDeCumple, edadEnPalabras, fraseDeCumplesDeLaCasa, proximoCumple, proximosCumples } from '@/lib/birthdays'
+import { agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple, edadEnPalabras, fraseDeCumplesDeLaCasa, proximoCumple, proximosCumples } from '@/lib/birthdays'
 import { event } from './fixtures'
+import type { CumpleEnCasa } from '@/lib/birthdays'
 import type { Child } from '@/types'
 
 // Un cumpleaños es una fecha que se repite todos los años menos uno: el 29 de
@@ -171,5 +172,44 @@ test.describe('cumplesDeLaCasa', () => {
   test('a quien no se le sabe la edad se le felicita igual', () => {
     const cumples = cumplesDeLaCasa([], [cumpleApuntado('la abuela Carmen', '2026-08-27T00:00:00')], HOY, 0)
     expect(fraseDeCumplesDeLaCasa(cumples)).toBe('Hoy es el cumpleaños de la abuela Carmen.')
+  })
+})
+
+// La pantalla de Cumpleaños abarca doce meses, que no son un año natural: el
+// mes de hoy aparece por los dos lados y el título tiene que distinguirlos.
+test.describe('agrupaCumplesPorMes', () => {
+  const cumple = (nombre: string, fecha: string): CumpleEnCasa =>
+    ({ id: `${nombre}-${fecha}`, nombre, fecha, dias: 0, edad: null, color: null, apuntado: true })
+
+  test('reparte por meses, en el orden en que vienen', () => {
+    const meses = agrupaCumplesPorMes([
+      cumple('Ana', '2026-08-30'),
+      cumple('Luis', '2026-09-02'),
+      cumple('Eva', '2026-09-20'),
+    ], HOY)
+    expect(meses.map(m => m.titulo)).toEqual(['Agosto', 'Septiembre'])
+    expect(meses.map(m => m.clave)).toEqual(['2026-08', '2026-09'])
+    expect(meses.map(m => m.cumples.map(c => c.nombre))).toEqual([['Ana'], ['Luis', 'Eva']])
+  })
+
+  test('el año solo se escribe cuando el mes ya no es de este año', () => {
+    const meses = agrupaCumplesPorMes([cumple('Marta', '2027-03-10')], HOY)
+    expect(meses[0].titulo).toBe('Marzo 2027')
+  })
+
+  // El de dentro de once meses y pico cae en el mismo mes que el de la semana
+  // que viene. Son dos grupos, cada uno en su sitio, y no uno al principio con
+  // un cumpleaños del año que viene metido dentro.
+  test('un mes que vuelve a aparecer es su propio grupo', () => {
+    const meses = agrupaCumplesPorMes([
+      cumple('Ana', '2026-08-30'),
+      cumple('Luis', '2026-12-01'),
+      cumple('Abuela Carmen', '2027-08-20'),
+    ], HOY)
+    expect(meses.map(m => m.titulo)).toEqual(['Agosto', 'Diciembre', 'Agosto 2027'])
+  })
+
+  test('sin cumpleaños no hay meses', () => {
+    expect(agrupaCumplesPorMes([], HOY)).toEqual([])
   })
 })

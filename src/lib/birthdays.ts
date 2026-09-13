@@ -229,3 +229,52 @@ export function fraseDeCumplesDeLaCasa(cumples: CumpleEnCasa[]): string {
   return `Hoy cumplen años ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}.`
 }
 
+/** Un mes de la lista de Cumpleaños, con los suyos dentro. */
+export interface MesDeCumples {
+  /** `yyyy-MM`. Es la clave del grupo en la lista. */
+  clave: string
+  /** "Septiembre", y "Septiembre 2027" cuando el mes ya no cae en este año. */
+  titulo: string
+  cumples: CumpleEnCasa[]
+}
+
+/**
+ * Los cumpleaños repartidos por meses, en el orden en que vienen.
+ *
+ * Doce meses seguidos son treinta y tantas filas iguales, y en una lista así no
+ * se lee "cuándo", se lee "una detrás de otra": para saber si en marzo hay algo
+ * había que ir bajando y mirando la columna de la izquierda fila a fila. Con el
+ * mes por delante la pregunta se contesta de un vistazo, que es lo único que se
+ * le pide a esta pantalla.
+ *
+ * **Cuenta con que la lista llega ordenada por fecha**, que es lo que devuelve
+ * `cumplesDeLaCasa`: va cerrando el mes en cuanto cambia la clave, como hace la
+ * agenda con sus tramos. Así un mes que vuelve a aparecer —septiembre sale dos
+ * veces, el que queda de este año y el del que viene, porque la ventana son
+ * doce meses y no un año natural— es su propio grupo y no se mezcla con el de
+ * hace once meses.
+ *
+ * El año solo se escribe cuando no es el de hoy: en septiembre, "Septiembre" es
+ * el de ahora mismo y "Septiembre 2027" el de dentro de un año.
+ */
+export function agrupaCumplesPorMes(
+  cumples: CumpleEnCasa[],
+  hoy = getLocalDateString(),
+): MesDeCumples[] {
+  const anoDeHoy = hoy.slice(0, 4)
+  const meses: MesDeCumples[] = []
+
+  for (const cumple of cumples) {
+    const clave = cumple.fecha.slice(0, 7)
+    const ultimo = meses[meses.length - 1]
+    if (ultimo && ultimo.clave === clave) {
+      ultimo.cumples.push(cumple)
+      continue
+    }
+    const ano = cumple.fecha.slice(0, 4)
+    const nombre = capitalize(format(parseLocalDate(cumple.fecha), 'LLLL', { locale: es }))
+    meses.push({ clave, titulo: ano === anoDeHoy ? nombre : `${nombre} ${ano}`, cumples: [cumple] })
+  }
+
+  return meses
+}

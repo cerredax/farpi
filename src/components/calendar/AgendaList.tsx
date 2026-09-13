@@ -342,6 +342,14 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
    * hoy ya está arriba del todo, así que animar el salto sería mover la pantalla
    * nada más abrirla. Y si el día no tiene nada no se pinta ninguna fila: no hay
    * a dónde ir, y la rejilla ya lo deja marcado.
+   *
+   * **`nearest` y no `center`** (13-09-2026): se mueve lo justo para que la fila
+   * entre, y si ya se ve no se mueve nada. Centrarla obligaba a desplazar la
+   * página aunque estuviera delante, y como la lista es más larga que el mes, el
+   * centro de una fila de fin de mes cae tan abajo que el mes se iba de la
+   * pantalla: a 1440 px, elegir el 30 de junio dejaba la rejilla 299 px por
+   * encima del borde. Deslizar hasta un día no puede costar perder de vista el
+   * calendario desde el que se ha elegido.
    */
   const primerRender = useRef(true)
   useEffect(() => {
@@ -349,7 +357,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
     if (!focusDay) return
     document
       .getElementById(idDeDia(focusDay))
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [focusDay])
 
   const buscando = !!buscador && buscador.valor.trim().length > 0

@@ -58,6 +58,22 @@ const MAX_FESTIVOS = 2
  */
 export const ALTO_FRANJA = 7
 
+/**
+ * Lo que separa el carril de la línea de arriba de la celda, en píxeles.
+ *
+ * El carril es gris `--color-line`, el mismo color que las líneas de la rejilla,
+ * así que pegado al borde se fundía con él: una ausencia de lunes a viernes se
+ * leía como un subrayado de colores de la fila de **arriba** y no como una banda
+ * de sus días (13-09-2026). Con dos píxeles de aire ya flota dentro de su fila.
+ * Solo se pagan cuando hay carril que separar.
+ */
+const AIRE_CARRIL = 2
+
+/** El hueco que reserva el carril de ausencias, con su aire. Lo comparten la celda y los días de fuera de mes, que tienen que casar al píxel. */
+export function estiloDeCarril(carril: number) {
+  return { height: carril * ALTO_FRANJA, marginTop: carril > 0 ? AIRE_CARRIL : 0 }
+}
+
 
 interface DayCellProps {
   day: Date
@@ -82,10 +98,11 @@ interface DayCellProps {
   ausenciaFamiliar?: { kind: EventKind; primero: boolean; ultimo: boolean } | null
   /**
    * Cuántas franjas de ausencia reserva la celda, tengan o no algo que pintar.
-   * Lo decide `carrilDeAusencias` mirando la **semana entera**: si un día de la
-   * fila tiene una ausencia, las siete reservan su hueco y los números se quedan
-   * todos a la misma altura. Sin esto, cada franja empujaba el número 7 px y la
-   * fila dejaba de leerse como una fila.
+   * Lo decide `carrilDeAusencias` mirando el **mes entero**: si un día del mes
+   * tiene una ausencia, todas las celdas reservan su hueco y los números se
+   * quedan a la misma altura. Sin esto, cada franja empujaba el número 7 px y la
+   * fila dejaba de leerse como una fila; midiendo solo la semana —como se hizo el
+   * 12-09-2026— las filas acababan con cinco alturas distintas.
    */
   carril: number
   /**
@@ -250,7 +267,27 @@ export function DayCell({
    *   los títulos que la celda escribe dentro.
    */
   const numberClass = (() => {
-    if (isToday) return 'bg-accent-strong text-white'
+    /**
+     * **Hoy es un aro salmón sobre un tinte muy claro, no un disco macizo**
+     * (13-09-2026).
+     *
+     * Fue un disco relleno de `accent-strong` con el número en blanco, y en una
+     * rejilla clara y aireada quedaba como una mancha: el elemento más oscuro y
+     * saturado de la pantalla, de 32 px en una celda de 51, para decir algo que
+     * ya se sabe. Y peor: `accent-strong` es un marrón rojizo, o sea de la misma
+     * familia que dos de los colores de persona, así que un disco macizo se leía
+     * como "algo de María" antes que como "hoy".
+     *
+     * El aro pesa lo justo —se encuentra de un vistazo y no tapa nada— y el
+     * tinte le da cuerpo para que no desaparezca en una pantalla grande, que es
+     * lo que le pasó al anillo de 2 px que hubo del 05 al 12-09-2026.
+     *
+     * Lo que no cambia: el número va en `accent-strong` sobre `accent-tint`
+     * (6,0:1, de sobra), y **hoy y el día elegido siguen siendo de naturaleza
+     * distinta** —uno es el número, el otro es la celda entera—, que es lo que
+     * los hace distinguibles sin fiarlo al color.
+     */
+    if (isToday) return 'bg-accent-tint text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
     return 'text-ink'
   })()
 
@@ -348,13 +385,13 @@ export function DayCell({
         */}
       {/**
         * El carril, con alto reservado **aunque este día no tenga nada** y medido
-        * por la semana entera (12-09-2026). Antes las franjas iban sueltas en el
+        * por el mes entero (12-09-2026, por semanas hasta el 13). Antes las franjas iban sueltas en el
         * flujo y cada una empujaba el número 7 px: en una fila con una sola
         * ausencia, ese día tenía el número 14 px más abajo que sus vecinos y la
-        * fila dejaba de leerse como una fila. El porqué y por qué por semanas, en
+        * fila dejaba de leerse como una fila. El porqué y por qué por el mes, en
         * `carrilDeAusencias`.
         */}
-      <span className="block w-full flex-shrink-0" style={{ height: carril * ALTO_FRANJA }} aria-hidden>
+      <span className="block w-full flex-shrink-0" style={estiloDeCarril(carril)} aria-hidden>
         {ausenciaFamiliar && (() => {
           const redondeo = `${ausenciaFamiliar.primero ? 'rounded-l-full' : ''} ${ausenciaFamiliar.ultimo ? 'rounded-r-full' : ''}`
           return (

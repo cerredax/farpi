@@ -1,5 +1,5 @@
 import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
-import { ALTO_FRANJA, DayCell } from './DayCell'
+import { DayCell, estiloDeCarril } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
 import { eventColor } from '@/lib/assignees'
@@ -63,8 +63,8 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
    * Lo que hay cada día, resuelto **antes** de pintar nada.
    *
    * Se calculaba dentro del `map` y ahora no puede: el carril de las franjas se
-   * reserva por semana, así que para saber cuánto reserva el lunes hay que haber
-   * mirado ya los otros seis días. Se hace una sola vez y lo aprovechan las dos
+   * reserva por el mes entero, así que para saber cuánto reserva el lunes hay que
+   * haber mirado ya todos los demás días. Se hace una sola vez y lo aprovechan las dos
    * ramas —la celda del mes y el hueco de fuera de mes—, que hasta ahora
    * repetían las mismas cuatro llamadas cada una.
    */
@@ -170,7 +170,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               >
                 {/* Con el mismo carril reservado que las celdas: es lo que hace
                     que un tramo entre en el mes vecino a la misma altura. */}
-                <span className="block w-full flex-shrink-0" style={{ height: carriles[i] * ALTO_FRANJA }}>
+                <span className="block w-full flex-shrink-0" style={estiloDeCarril(carriles[i])}>
                   {familia && bordes && (() => {
                     const redondeo = `${bordes.primero ? 'rounded-l-full' : ''} ${bordes.ultimo ? 'rounded-r-full' : ''}`
                     return (

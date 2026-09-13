@@ -123,6 +123,12 @@ export function CalendarView() {
    * deslizarse hasta él, y duplicada esos `id` se repetirían.
    */
   const esEscritorio = useMediaQuery('(min-width: 1024px)')
+  /**
+   * Si el mes y la agenda van **al lado** y no apilados. Es el mismo corte que
+   * usa la rejilla en `min-[1400px]:`, y aquí decide una sola cosa: si elegir un
+   * día desliza la lista hasta él (ver `focusDay`).
+   */
+  const dosColumnas = useMediaQuery('(min-width: 1400px)')
   const vista = esEscritorio ? vistaEscritorio : vistaMovil
   const setVista = esEscritorio ? setVistaEscritorio : setVistaMovil
   const vistas: VistaCalendario[] = esEscritorio
@@ -541,17 +547,31 @@ export function CalendarView() {
             {/* El aire entre el mes y la lista cuando van apilados: la propia
                 lista trae el suyo en móvil (`pt-4`) y lo quita en escritorio
                 (`lg:pt-0`), que es donde estaba al lado y no debajo. Entre 1024
-                y 1400 vuelve a ir debajo, así que hace falta otra vez. */}
-            <div className="lg:mt-6 min-[1400px]:mt-0">
+                y 1400 vuelve a ir debajo, así que hace falta otra vez.
+
+                **Al lado, la columna se desplaza por dentro** (13-09-2026). La
+                lista es bastante más alta que el mes, así que formando parte del
+                desplazamiento de la página arrastraba a todo el mundo: deslizarse
+                hasta el 30 de junio movía la ventana 292 px y dejaba la rejilla
+                159 px por encima del borde de arriba. Elegir un día no puede
+                costar perder de vista el calendario desde el que se elige. Con
+                scroll propio y `sticky`, el mes se queda donde está y lo único
+                que se mueve es la lista; y como nunca pasa del alto de la
+                ventana, no hay nada que quede fuera de alcance. */}
+            <div className="lg:mt-6 min-[1400px]:sticky min-[1400px]:top-4 min-[1400px]:mt-0 min-[1400px]:max-h-[calc(100vh-2rem)] min-[1400px]:overflow-y-auto">
               <AgendaList
                 desde={desdeAgenda}
-                /* El salto de la lista hasta el día elegido es **de escritorio**
-                   (28-08-2026). En móvil ahora el detalle sale pegado a la
-                   rejilla, así que además mover la página entera hasta una fila
-                   de la agenda era llevarse de delante justo lo que se acababa
-                   de abrir. En escritorio la agenda está en la columna de al
-                   lado, a la vista, y el salto sigue siendo lo que se espera. */
-                focusDay={esEscritorio ? selectedDay : undefined}
+                /* El salto de la lista hasta el día elegido solo tiene sentido
+                   con la agenda **al lado** (28-08-2026 para móvil, 13-09-2026
+                   para el escritorio estrecho). Si va debajo, deslizar la página
+                   hasta una fila de la lista es llevarse de delante justo lo que
+                   se acababa de abrir —el panel del día, pegado a la rejilla—, y
+                   medido era peor que eso: a 1280 px, elegir el 30 de junio
+                   mandaba la página de 572 a 1166 y dejaba el mes 1033 px por
+                   encima del borde de arriba. Se contesta con un `matchMedia` y
+                   no con el `lg` de siempre porque el corte de las dos columnas
+                   está en 1400. */
+                focusDay={dosColumnas ? selectedDay : undefined}
                 events={agendaEvents}
                 kids={kids}
                 members={members}

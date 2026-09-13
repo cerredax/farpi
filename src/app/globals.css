@@ -70,6 +70,7 @@
 
   --color-accent:         #D8A48F; /* salmón */
   --color-accent-strong:  #9B5A45; /* texto salmón legible: es el color de "hoy" */
+  --color-accent-tint:    #F3E2DB; /* fondo salmón muy claro: el disco de "hoy" en el mes */
   --color-sand:           #E9C46A; /* amarillo de marca: avisos suaves */
   --color-sand-hover:     #DDB652; /* hover del botón de aviso */
   --color-sand-strong:    #9A7D1A; /* texto legible sobre fondo sand */

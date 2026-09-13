@@ -261,8 +261,8 @@ export function topeDeFranjas(familia: EventKind | null): number {
 }
 
 /**
- * Cuánto carril de franjas reserva cada día de la rejilla: **el máximo de su
- * semana**, no el suyo.
+ * Cuánto carril de franjas reserva cada día de la rejilla: **el máximo del mes**,
+ * no el suyo ni el de su semana.
  *
  * Nace de un defecto medido (12-09-2026): las franjas iban en el flujo, así que
  * cada una empujaba el número 7 px hacia abajo. En la fila del 14 al 20, con una
@@ -271,20 +271,25 @@ export function topeDeFranjas(familia: EventKind | null): number {
  * franja quedaba tan pegada al borde de arriba que parecía del día anterior.
  *
  * Reservar el hueco siempre —aunque no haya nada— es lo que ya hace `DayActivity`
- * con los puntos, y por lo mismo. Lo que no se puede es reservarlo **en todas las
- * celdas**: son 14 px por fila y la rejilla del móvil pasaría de 289 px a 414.
- * Por semana sale gratis: una semana sin ausencias no reserva nada y sigue
- * midiendo lo que medía.
+ * con los puntos, y por lo mismo.
  *
- * Se hace por semanas y no por mes entero porque el desfase solo se ve entre
- * días que están a la misma altura: dos filas distintas no tienen con qué
- * compararse.
+ * **Se reservó por semanas del 12 al 13-09-2026**, con el argumento de que el
+ * desfase solo se ve entre días que están a la misma altura. Es falso, y se ve a
+ * la primera en un mes con dos ausencias: las filas medían 55, 62, 55, 69 y 62 px
+ * y los números arrancaban a cuatro alturas distintas. Una rejilla de calendario
+ * tiene con qué compararse aunque los días no estén en la misma fila —sus propias
+ * líneas— y con las filas desiguales deja de parecer una rejilla.
+ *
+ * Por mes no es lo mismo que reservar el máximo siempre, que es lo que sí está
+ * descartado (14 px por fila, y el móvil pasaría de 289 px a 414 aunque no haya
+ * una sola ausencia): un mes sin ausencias sigue midiendo lo que medía, y uno con
+ * una sola paga 7 px por fila. Se paga lo que el mes tiene, pero se paga entero.
  */
 export function carrilDeAusencias(franjasPorDia: number[]): number[] {
-  return franjasPorDia.map((_, i) => {
-    const inicio = Math.floor(i / 7) * 7
-    return Math.max(...franjasPorDia.slice(inicio, inicio + 7))
-  })
+  // El array de vuelta es de un valor repetido a propósito: la celda pregunta
+  // por su día y no tiene por qué saber que la respuesta es la misma para todos.
+  const maximo = Math.max(0, ...franjasPorDia)
+  return franjasPorDia.map(() => maximo)
 }
 
 /**

@@ -2456,7 +2456,16 @@ calendario entero, y no en la celda, que solo conoce su día.
 
 ### Hoy y el día elegido se distinguen por la forma (05-09-2026)
 
-El día elegido es un **disco relleno** y hoy un **anillo**, los dos en
+> Las dos formas cambiaron después, la regla no. Desde el 12-09-2026 no son dos
+> círculos: **hoy es el número y el día elegido es la celda entera**, y hoy pasó al
+> salmón (`accent-strong`), que es el color de «hoy» en el resto del calendario.
+> Desde el 13-09-2026, además, hoy es un **aro sobre un tinte claro** y no un disco
+> macizo: el disco era la mancha más oscura de la rejilla y, siendo `accent-strong`
+> un marrón rojizo, se confundía con los colores de persona. Lo que sigue en pie
+> —y es lo que cuenta esta sección— es que las dos señales no se distinguen por el
+> tono. El detalle, en `docs/project-status.md`.
+
+El día elegido era un **disco relleno** y hoy un **anillo**, los dos en
 `primary-strong`. Eran dos discos macizos que solo cambiaban de tono, y los tonos
 eran el verde y el salmón de marca: los mismos que el bloque de gráficos de
 `globals.css` documenta a **ΔE 2,3 en protanopía**. Para quien no distingue rojos

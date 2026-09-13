@@ -84,7 +84,8 @@ que todavía no existen (ver "Siguiente paso recomendado").
   dónde contestarse. En móvil se pasa de mes o de día **arrastrando el dedo**, y
   cuando lo que se mira no contiene hoy aparece un botón **«Hoy»** junto a las
   flechas (05-09-2026); mirando el presente no se pinta, porque no haría nada.
-- **Hoy es un disco salmón y el día elegido es la celda entera** (12-09-2026). Son
+- **Hoy es un aro salmón y el día elegido es la celda entera** (12-09-2026, el aro
+  desde el 13). Son
   dos señales de naturaleza distinta y no dos formas del mismo círculo, que es lo
   que fueron del 05 al 12-09-2026 —disco relleno el elegido, anillo hoy, los dos en
   `primary-strong`—. Dos cosas fallaban ahí: el mes era la única vista del
@@ -94,9 +95,16 @@ que todavía no existen (ver "Siguiente paso recomendado").
   elegido pasa a la celda (fondo `primary-tint` y borde interior) porque de él
   cuelga un panel entero debajo de la rejilla, y la respuesta a "¿qué estoy
   mirando?" tiene que ser del tamaño de lo que se mira. Se conserva lo que sigue
-  siendo verdad del 05-09-2026: el color no es la única diferencia —una es un disco
-  y la otra un fondo, así que sobrevive a cualquier dicromacia— y el blanco solo va
-  sobre un tono que lo admita (`accent-strong` da 6,29:1).
+  siendo verdad del 05-09-2026: el color no es la única diferencia —una es una marca
+  en el número y la otra un fondo de celda, así que sobrevive a cualquier
+  dicromacia—. **El disco macizo duró un día** (13-09-2026): en una rejilla clara
+  era el elemento más oscuro y saturado de la pantalla, una mancha de 32 px en una
+  celda de 51 para decir algo que ya se sabe, y encima `accent-strong` es un marrón
+  rojizo de la familia de dos colores de persona, así que se leía como "algo de
+  María" antes que como "hoy". Ahora es un **aro** de `accent-strong` sobre
+  `accent-tint`, con el número en `accent-strong` (6,0:1): pesa lo justo para
+  encontrarse y no tapa nada. El aro de 2 px pelado, sin tinte, es lo que no
+  funcionaba en una pantalla grande del 05 al 12-09.
 - **La celda del mes dice a qué hora es cada cosa** (12-09-2026), en escritorio:
   "9:00 Dentista" y no "Dentista". Sin el cero de delante, porque la celda mide ~81
   px cuando la agenda va al lado, y en `tabular-nums` para que las horas queden en

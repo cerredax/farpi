@@ -15,6 +15,58 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-13
 
+### Tres defectos mirando el mes: el salto al elegir un día, las filas desiguales y la mancha de hoy (13-09-2026)
+
+Tres cosas señaladas mirando la app, las tres reproducidas y medidas antes de tocar nada.
+
+**«Al hacer clic en el último día del mes hace algo raro».** No era del último día: era de
+cualquiera, y el último lo delataba por estar más abajo en la lista. Es una regresión del
+mismo día: al apilar las dos columnas por debajo de 1400 px, el «deslizar la agenda hasta
+el día elegido» pasó a arrastrar la ventana entera. Medido a 1280 px, elegir el 30 de
+junio mandaba la página de 572 a 1166 y dejaba la rejilla 1033 px por encima del borde de
+arriba: tocabas un día y el mes desaparecía. Y a 1024 la página se desplazaba sola nada
+más cargar, porque `useMediaQuery` pasa de `false` a `true` al hidratar y eso dispara el
+salto.
+
+Tres cambios, que atacan tres capas del mismo problema. El salto **solo ocurre con la
+agenda al lado** (≥ 1400), que es la condición que tenía desde el 28-08 para el móvil y que
+el escritorio estrecho había heredado sin cumplirla. `scrollIntoView` pasa de `center` a
+**`nearest`**: se mueve lo justo para que la fila entre, y si ya se ve no se mueve nada
+—centrar una fila de fin de mes obligaba a bajar aunque estuviera delante—. Y al lado, la
+columna de la agenda **se desplaza por dentro** (`sticky` + `max-h` + `overflow-y-auto`):
+la lista es bastante más alta que el mes, así que formando parte del desplazamiento de la
+página arrastraba a todo el mundo. Elegir un día no puede costar perder de vista el
+calendario desde el que se elige.
+
+**«La numeración no sale muy bien».** El carril de las franjas de ausencia se reservaba por
+semana (12-09-2026), con el argumento de que el desfase solo se ve entre días que están a
+la misma altura. Es falso, y se ve a la primera en un mes con dos ausencias: las filas
+medían 55, 62, 55, 69 y 62 px y los números arrancaban a cuatro alturas distintas. Una
+rejilla tiene con qué compararse aunque los días no estén en la misma fila —sus propias
+líneas—. Ahora se reserva **por mes entero**: todas las filas iguales. No es lo mismo que
+reservar el máximo siempre, que sigue descartado: un mes sin ausencias mide lo que medía y
+uno con una sola paga 7 px por fila. Se paga lo que el mes tiene, pero se paga entero.
+
+**«Hay que revisar cómo se ponen vacaciones y descanso».** El formulario está bien —tipo,
+título opcional, desde/hasta, a quién, «Apuntar 1 día»—; lo que fallaba era el dibujo. La
+franja va sobre un carril gris `--color-line`, que es **el mismo color que las líneas de la
+rejilla**, y pegada al borde de la celda se fundía con él: unas vacaciones de lunes a
+viernes se leían como un subrayado de colores de la fila de arriba y no como una banda de
+sus días. Dos píxeles de aire y ya flota dentro de su fila. El hueco lo calcula ahora
+`estiloDeCarril`, que comparten la celda y los días de fuera de mes: tenían la cuenta
+repetida y casan al píxel o el tramo se ve escalonado al cruzar la frontera del mes.
+
+**«El círculo de hoy no me convence».** Era un disco macizo de `accent-strong` con el
+número en blanco, y en una rejilla clara y aireada quedaba como una mancha: el elemento
+más oscuro y saturado de la pantalla, 32 px en una celda de 51, para decir algo que ya se
+sabe. Y `accent-strong` es un marrón rojizo, o sea de la familia de dos de los colores de
+persona, así que el disco se leía como «algo de María» antes que como «hoy». Se probaron
+cuatro sobre la app de verdad y ganó el **aro de `accent-strong` sobre `accent-tint`**: se
+encuentra de un vistazo y no tapa nada. El aro pelado sin tinte es justo lo que no
+funcionaba en una pantalla grande del 05 al 12-09, y el disco en salmón claro volvía a
+competir con los colores de persona. Se descartó también el número en color con una
+barrita debajo: choca con la fila de puntos.
+
 ### Fuera el filtro por personas, y apuntar deja de esconderse (13-09-2026)
 
 Dos preguntas de la misma tarde, mirando el móvil.

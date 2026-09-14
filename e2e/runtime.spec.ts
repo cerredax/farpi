@@ -60,7 +60,7 @@ const ROUTES = [
   '/tasks',
   '/lists',
   '/meals',
-  '/finanzas',
+  '/finances',
   '/notes',
   '/docs',
   '/birthdays',
@@ -93,7 +93,7 @@ const CREATE_SHEETS = [
   { route: '/tasks', button: 'Nueva tarea', dialog: 'Nueva tarea' },
   { route: '/lists', button: 'Nueva lista', dialog: 'Nueva lista' },
   { route: '/notes', button: 'Nueva nota', dialog: 'Nueva nota' },
-  { route: '/finanzas', button: 'Nuevo apunte', dialog: 'Nuevo apunte' },
+  { route: '/finances', button: 'Nuevo apunte', dialog: 'Nuevo apunte' },
   { route: '/docs', button: 'Añadir documento', dialog: 'Añadir documento' },
   { route: '/calendar', button: 'Apuntar algo', dialog: 'Apuntar en el calendario' },
   { route: '/meals', button: 'Añadir comida', dialog: 'Añadir comida' },
@@ -973,13 +973,14 @@ test('en Inicio, tocar un plan de hoy lo abre para editarlo', async ({ page }) =
 // aquí se comprueba que llega entera hasta la pantalla.
 
 test('un gasto apuntado mueve la partida de la que sale', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   // La demo está sembrada en junio de 2026, así que el mes en curso arranca
   // vacío: la partida de la compra empieza a cero y entera libre.
+  await abrirPartidas(page)
   const compra = page.getByRole('button').filter({ hasText: 'Compra' }).first()
-  await expect(compra).toContainText('Quedan 400 €')
+  await expect(compra).toContainText('Quedan 400,00 €')
 
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()
   await page.locator('#expense-amount').fill('24,90')
@@ -1005,7 +1006,7 @@ test('un gasto apuntado mueve la partida de la que sale', async ({ page }) => {
 // «Llevas 24,90 de 400» deja siempre la misma pregunta detrás: ¿en qué? Desde el
 // 03-09-2026 se contesta ahí mismo, sin bajar a la lista del mes entero.
 test('una partida se abre y enseña en qué se ha ido', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()
@@ -1015,6 +1016,7 @@ test('una partida se abre y enseña en qué se ha ido', async ({ page }) => {
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
 
+  await abrirPartidas(page)
   const partidas = page.locator('section[aria-label="Partidas del mes"]')
   const compra = partidas.getByRole('button').filter({ hasText: 'Compra' }).first()
   // Cerrada no enseña sus líneas: lo que se ve es la cuenta, no la lista.
@@ -1029,15 +1031,15 @@ test('una partida se abre y enseña en qué se ha ido', async ({ page }) => {
   await expect(page.locator('#expense-amount')).toHaveValue('24,90')
 })
 
-// «Nueva partida» abría «Lo fijo» y te dejaba allí, mirando otra pantalla, cuando
+// «Nueva partida» abría «Fijos» y te dejaba allí, mirando otra pantalla, cuando
 // lo que querías era una partida más en la lista que tenías delante (03-09-2026).
-test('«Nueva partida» abre el sheet en «El mes», sin cambiar de pestaña', async ({ page }) => {
-  await page.goto('/finanzas')
+test('«Nueva partida» abre el sheet en «Este mes», sin cambiar de pestaña', async ({ page }) => {
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   await page.getByRole('button', { name: 'Nueva partida' }).click()
   await expect(page.getByRole('dialog', { name: 'Nueva partida' })).toBeVisible()
-  await expect(page.getByRole('tab', { name: 'El mes', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Este mes', exact: true })).toHaveAttribute('aria-selected', 'true')
 
   await page.locator('#budget-name').fill('Vuelta al cole')
   await page.locator('#budget-limit').fill('200')
@@ -1045,23 +1047,25 @@ test('«Nueva partida» abre el sheet en «El mes», sin cambiar de pestaña', a
   await page.waitForTimeout(500)
 
   // Y se ve en el mes que se estaba mirando, sin ir a ninguna parte.
+  await abrirPartidas(page)
   await expect(page.locator('section[aria-label="Partidas del mes"]')).toContainText('Vuelta al cole')
 })
 
 // La cuenta del mes es el número que esta pantalla existe para dar, y sale de
 // tres sitios a la vez: los fijos sembrados, lo que se gasta y lo que entra.
 test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   // Sembrados: 1.650 + 1.480 de nóminas, 780 + 74 + 49,90 + 32 de recibos.
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
-  await expect(resumen).toContainText('3.130 €')
+  await expect(resumen).toContainText('3.130,00 €')
   await expect(resumen).toContainText('−935,90 €')
   await expect(resumen).toContainText('2.194,10 €')
 
+  await abrirPartidas(page)
   const compra = page.getByRole('button').filter({ hasText: 'Compra' }).first()
-  await expect(compra).toContainText('Quedan 400 €')
+  await expect(compra).toContainText('Quedan 400,00 €')
 
   // Un ingreso no pregunta por partida —el campo no está— y no mueve ninguna,
   // pero sí sube lo que queda del mes.
@@ -1073,14 +1077,14 @@ test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async
   await page.getByRole('button', { name: 'Apuntar ingreso' }).click()
   await page.waitForTimeout(500)
 
-  await expect(compra).toContainText('Quedan 400 €')
+  await expect(compra).toContainText('Quedan 400,00 €')
   await expect(resumen).toContainText('2.314,10 €')
 })
 
 test('un gasto fijo nuevo baja lo que queda para el mes', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Lo fijo' }).click()
+  await page.getByRole('tab', { name: 'Fijos' }).click()
 
   const sale = page.getByRole('region', { name: 'Sale al mes' })
   await expect(sale).toContainText('−935,90 €')
@@ -1094,8 +1098,8 @@ test('un gasto fijo nuevo baja lo que queda para el mes', async ({ page }) => {
   await expect(sale).toContainText('Gimnasio')
   await expect(sale).toContainText('−975,80 €')
 
-  // Y la cuenta de «El mes» se entera sin tocar nada más.
-  await page.getByRole('tab', { name: 'El mes', exact: true }).click()
+  // Y la cuenta de «Este mes» se entera sin tocar nada más.
+  await page.getByRole('tab', { name: 'Este mes', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Resumen del mes' })).toContainText('2.154,20 €')
 })
 
@@ -1134,13 +1138,13 @@ function nombreDelMes(salto: number): string {
  * la lista (`role="menu"`) para no chocar con el botón que la abre.
  */
 async function irAMes(page: import('@playwright/test').Page, salto: number) {
-  // El selector vive en la tarjeta de «El mes», así que desde otra pestaña su panel
+  // El selector vive en la tarjeta de «Este mes», así que desde otra pestaña su panel
   // está oculto y no se puede tocar. Se va, se cambia el mes y se vuelve: el mes es
-  // de la pantalla entera, no de la pestaña, y así los tests de «Cómo vamos» piden
+  // de la pantalla entera, no de la pestaña, y así los tests de «Evolución» piden
   // el cambio igual que los demás.
   const pestañas = page.getByRole('tablist', { name: 'Secciones de finanzas' })
   const activa = await pestañas.getByRole('tab', { selected: true }).textContent()
-  if (activa !== 'El mes') await pestañas.getByRole('tab', { name: 'El mes', exact: true }).click()
+  if (activa !== 'Este mes') await pestañas.getByRole('tab', { name: 'Este mes', exact: true }).click()
 
   // El botón que abre y el item de la lista dicen los dos «Junio 2026», así que se
   // abre por `aria-haspopup` y se elige por el rol de dentro del menú. Sin `exact`:
@@ -1149,7 +1153,7 @@ async function irAMes(page: import('@playwright/test').Page, salto: number) {
     .locator('[aria-haspopup="menu"]').click()
   await page.getByRole('menuitemradio', { name: nombreDelMes(salto) }).click()
 
-  if (activa && activa !== 'El mes') await pestañas.getByRole('tab', { name: activa }).click()
+  if (activa && activa !== 'Este mes') await pestañas.getByRole('tab', { name: activa }).click()
   await page.waitForTimeout(200)
 }
 
@@ -1158,8 +1162,23 @@ async function retroceder(page: import('@playwright/test').Page, meses: number) 
   await irAMes(page, -meses)
 }
 
+/**
+ * Despliega las partidas del mes, que desde el 14-09-2026 salen plegadas: al
+ * entrar se ve la cuenta del mes y debajo el día a día, y las barras están
+ * detrás de un toque. Todo lo que mire dentro de ellas tiene que abrirlas antes.
+ *
+ * Se busca por el nombre y no por `expanded`, porque las barras de cada partida
+ * también llevan `aria-expanded` y con la sección ya abierta se habría clicado
+ * la primera de ellas.
+ */
+async function abrirPartidas(page: import('@playwright/test').Page) {
+  const toggle = page.locator('section[aria-label="Partidas del mes"]')
+    .getByRole('button', { name: /^Partidas/ })
+  if (await toggle.getAttribute('aria-expanded') === 'false') await toggle.click()
+}
+
 test('un mes cerrado enseña los fijos que tenía entonces, no los de hoy', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
@@ -1177,9 +1196,9 @@ test('un mes cerrado enseña los fijos que tenía entonces, no los de hoy', asyn
 // El desglose de la tarjeta contestaba «¿cuánto?» y dejaba detrás «¿de qué?».
 // Desde el 04-09-2026 los dos totales de fijos se abren, y las líneas que enseñan
 // son las **de ese mes**: en junio el alquiler eran 760 € y no había seguro del
-// coche. Irse a «Lo fijo» a mirarlo daba la respuesta de otro mes.
+// coche. Irse a «Fijos» a mirarlo daba la respuesta de otro mes.
 test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
@@ -1191,24 +1210,24 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
   await gastos.click()
   await expect(gastos).toHaveAttribute('aria-expanded', 'true')
   await expect(resumen).toContainText('Seguro del coche')
-  await expect(resumen).toContainText('−780 €')
-  await expect(resumen).toContainText('−32 €')
+  await expect(resumen).toContainText('−780,00 €')
+  await expect(resumen).toContainText('−32,00 €')
 
 
   // Y en junio son los que hubo entonces, sin tocar nada más.
   await retroceder(page, 3)
   await expect(resumen).toContainText('Junio 2026')
-  await expect(resumen).toContainText('−760 €')
+  await expect(resumen).toContainText('−760,00 €')
   await expect(resumen).not.toContainText('Seguro del coche')
 
   // Los ingresos van por su lado, y en positivo.
   await resumen.getByRole('button', { name: 'Ingresos fijos' }).click()
   await expect(resumen).toContainText('Nómina de Carlos')
-  await expect(resumen).toContainText('1.650 €')
+  await expect(resumen).toContainText('1.650,00 €')
 })
 
 // Y desde el 04-09-2026 esas líneas se tocan sin salir del mes: el desglose es
-// donde se descubre que el alquiler está mal, e irse a «Lo fijo» a arreglarlo era
+// donde se descubre que el alquiler está mal, e irse a «Fijos» a arreglarlo era
 // cambiar de pestaña y volver.
 //
 // **Lo que se toca es el mes, no la referencia** (05-09-2026). El primer día
@@ -1216,7 +1235,7 @@ test('los totales de fijos se abren y enseñan las líneas de ese mes', async ({
 // en 800 para siempre. En un mes cerrado no se ofrece nada: la línea es una copia
 // que no sabe de qué fijo salió, y lo cerrado no se toca.
 test('un gasto fijo se ajusta en el mes sin mover su referencia', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
@@ -1233,16 +1252,16 @@ test('un gasto fijo se ajusta en el mes sin mover su referencia', async ({ page 
   await expect(resumen).toContainText('−955,90 €')
   // Y la fila cuenta las dos cifras, que es lo que distingue este mes de un mes
   // en el que el alquiler haya subido de verdad.
-  await expect(resumen).toContainText('suele ser −780 €')
+  await expect(resumen).toContainText('suele ser −780,00 €')
 
-  // La referencia no se ha movido: en «Lo fijo» el alquiler sigue en 780.
-  await page.getByRole('tab', { name: 'Lo fijo' }).click()
-  await expect(page.getByRole('region', { name: 'Sale al mes' })).toContainText('780 €')
+  // La referencia no se ha movido: en «Fijos» el alquiler sigue en 780.
+  await page.getByRole('tab', { name: 'Fijos' }).click()
+  await expect(page.getByRole('region', { name: 'Sale al mes' })).toContainText('780,00 €')
 
   // Y el ajuste se deshace desde donde se puso.
-  await page.getByRole('tab', { name: 'El mes', exact: true }).click()
+  await page.getByRole('tab', { name: 'Este mes', exact: true }).click()
   await resumen.getByRole('button', { name: 'Ajustar Alquiler en este mes' }).click()
-  await sheet.getByRole('button', { name: 'Volver a los 780 €' }).click()
+  await sheet.getByRole('button', { name: 'Volver a los 780,00 €' }).click()
   await expect(resumen).toContainText('−935,90 €')
   await expect(resumen).not.toContainText('suele ser')
 
@@ -1250,7 +1269,7 @@ test('un gasto fijo se ajusta en el mes sin mover su referencia', async ({ page 
   // abierto de antes: cambiar de mes no lo pliega.
   await retroceder(page, 3)
   await expect(resumen).toContainText('Junio 2026')
-  await expect(resumen).toContainText('−760 €')
+  await expect(resumen).toContainText('−760,00 €')
   await expect(resumen.getByRole('button', { name: /^Ajustar Alquiler/ })).toHaveCount(0)
 })
 
@@ -1258,7 +1277,7 @@ test('un gasto fijo se ajusta en el mes sin mover su referencia', async ({ page 
 // de todos los meses, se llega a la referencia de un toque y sin cambiar de
 // pestaña. Es lo que sostiene que el sheet corto no sea un callejón.
 test('desde el ajuste del mes se llega a cambiar la referencia', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
@@ -1279,28 +1298,29 @@ test('desde el ajuste del mes se llega a cambiar la referencia', async ({ page }
 })
 
 test('la partida de un mes cerrado se mide contra el límite de aquel mes', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
+  await abrirPartidas(page)
   const compraHoy = page.getByRole('button').filter({ hasText: 'Compra' }).first()
-  await expect(compraHoy).toContainText('de 400 €')
+  await expect(compraHoy).toContainText('de 400,00 €')
 
   // En junio la compra eran 350 €, y se gastaron 80,55 €.
   await retroceder(page, 3)
   // Junio tiene tres partidas (350, 150 y 120), así que el importe basta para
   // señalar la de la compra sin depender de la forma de la fila.
   const partidasJunio = page.locator('section[aria-label="Partidas del mes"]')
-  await expect(partidasJunio).toContainText('de 350 €')
+  await expect(partidasJunio).toContainText('de 350,00 €')
   await expect(partidasJunio).toContainText('Quedan 269,45 €')
 })
 
 // Cambiar la plantilla es lo que antes reescribía el pasado. Ahora solo mueve el
 // mes en curso, y es la comprobación que sostiene la decisión entera.
 test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
-  await page.getByRole('tab', { name: 'Lo fijo' }).click()
+  await page.getByRole('tab', { name: 'Fijos' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
   // Acotado al sheet: el del ajuste de mes vive montado al lado y su botón se
@@ -1309,7 +1329,7 @@ test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ pa
   await page.waitForTimeout(500)
 
   // Este mes lo nota al momento: 935,90 − 780 + 900 = 1.055,90.
-  await page.getByRole('tab', { name: 'El mes', exact: true }).click()
+  await page.getByRole('tab', { name: 'Este mes', exact: true }).click()
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
   await expect(resumen).toContainText('−1.055,90 €')
 
@@ -1322,7 +1342,7 @@ test('cambiar un fijo mueve este mes y no toca el que ya se cerró', async ({ pa
 // 40 € del 29 de septiembre y tienen que caber en septiembre. Estuvieron sin caber
 // un rato el 02-09-2026, por confundir las dos cosas.
 test('en un mes cerrado se sigue pudiendo apuntar, pero no tocar sus partidas', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   await retroceder(page, 3)
 
@@ -1330,6 +1350,7 @@ test('en un mes cerrado se sigue pudiendo apuntar, pero no tocar sus partidas', 
   // abren, que es mirar y no tocar: dentro salen sus líneas y no el enlace de
   // editar, que es lo único que cambiaría el plan.
   await expect(page.getByRole('button', { name: 'Nueva partida' })).toHaveCount(0)
+  await abrirPartidas(page)
   const partidas = page.locator('section[aria-label="Partidas del mes"]')
   await partidas.getByRole('button').filter({ hasText: 'Compra' }).first().click()
   await expect(partidas).toContainText('Compra semanal')
@@ -1351,7 +1372,7 @@ test('en un mes cerrado se sigue pudiendo apuntar, pero no tocar sus partidas', 
 
 // El atajo para preparar el mes que viene, y su vuelta atrás.
 test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   const resumen = page.getByRole('region', { name: 'Resumen del mes' })
@@ -1367,14 +1388,14 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
   await expect(resumen).toContainText('Mes cerrado')
 
   // Y desde aquí, tocar la plantilla ya no mueve este mes.
-  await page.getByRole('tab', { name: 'Lo fijo' }).click()
+  await page.getByRole('tab', { name: 'Fijos' }).click()
   await page.getByRole('region', { name: 'Sale al mes' }).getByText('Alquiler').click()
   await page.locator('#fixed-entry-amount').fill('900')
   // Acotado al sheet: el del ajuste de mes vive montado al lado y su botón se
   // llama igual (`inert` no lo saca de las consultas por rol de Playwright).
   await page.getByRole('dialog', { name: 'Editar fijo' }).getByRole('button', { name: 'Guardar' }).click()
   await page.waitForTimeout(500)
-  await page.getByRole('tab', { name: 'El mes', exact: true }).click()
+  await page.getByRole('tab', { name: 'Este mes', exact: true }).click()
   await expect(resumen).toContainText('−935,90 €')
 
   // Reabrirlo lo devuelve a seguir la plantilla, ya con los 900.
@@ -1388,7 +1409,7 @@ test('el mes se puede dar por cerrado a mano, y deshacerlo', async ({ page }) =>
 // puede poner a cero: es la salida para un mes que se cerró de oficio con una
 // plantilla que en aquel mes no existía (03-09-2026).
 test('un mes que ya terminó no vuelve a la plantilla, pero se puede poner a cero', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   await retroceder(page, 1)
   await expect(page.getByRole('button', { name: /Reabrir mes/ })).toHaveCount(0)
@@ -1399,7 +1420,7 @@ test('un mes que ya terminó no vuelve a la plantilla, pero se puede poner a cer
 // Y ponerlo a cero de verdad: agosto deja de decir «mes cerrado» con unos fijos
 // que nadie pagó y pasa a decir que de ese mes no se guardó nada.
 test('poner un mes pasado a cero le quita el plan y no toca lo apuntado', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   await retroceder(page, 1)
 
@@ -1432,7 +1453,7 @@ test('poner un mes pasado a cero le quita el plan y no toca lo apuntado', async 
 // 03-09-2026 lo puso en cero y escondió la previsión detrás de un enlace, porque
 // una cifra ahí se lee como un saldo aunque debajo diga que no.
 test('un mes que aún no ha empezado sale en cero, y las cuentas se piden', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   await irAMes(page, 1)
@@ -1463,7 +1484,7 @@ test('un mes que aún no ha empezado sale en cero, y las cuentas se piden', asyn
 // ha llegado. El caso es el IBI de octubre, y la pregunta que contesta es si
 // octubre cuadra **contándolo**; una tarea no suma en la cuenta del mes.
 test('en un mes que no ha empezado se puede apuntar lo que sabes que va a llegar', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   await irAMes(page, 1)
@@ -1494,7 +1515,7 @@ test('en un mes que no ha empezado se puede apuntar lo que sabes que va a llegar
 // Agosto no está sembrado: si sale como cerrado es que el cierre automático se
 // ha ejecutado solo al abrir la app, que es todo lo que se le pide.
 test('el mes pasado se cierra solo al abrir la app', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   await retroceder(page, 1)
@@ -1507,9 +1528,9 @@ test('el mes pasado se cierra solo al abrir la app', async ({ page }) => {
 // ─── El resumen ──────────────────────────────────────────────────────────────
 
 test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
+  await page.getByRole('tab', { name: 'Evolución' }).click()
 
   // La serie: junio y julio vienen cerrados en la demo y agosto lo cierra la app
   // al arrancar. Los números viven en la tabla plegada, que es la que hace que el
@@ -1520,7 +1541,7 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
   // congelados + 291,45 de gastos. La serie cuenta los fijos **y** lo apuntado,
   // que es lo que hace que la barra sea el mes entero y no solo su plan.
   const junio = serie.getByRole('row', { name: /Junio/ })
-  await expect(junio).toContainText('3.250 €')
+  await expect(junio).toContainText('3.250,00 €')
   await expect(junio).toContainText('−1.162,35 €')
   await expect(junio).toContainText('2.087,65 €')
   // De ese mes no hay plan guardado, así que no puede salir en la serie.
@@ -1536,13 +1557,13 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
   await expect(enQue).toContainText('83 %')
 })
 
-// Los dos bloques que entraron el 04-09-2026 con «Cómo vamos». El del ritmo es el
+// Los dos bloques que entraron el 04-09-2026 con «Evolución». El del ritmo es el
 // único de la pestaña que habla del mes en curso y no del que se esté mirando: la
 // pregunta «¿voy bien?» solo tiene respuesta mientras el mes está en marcha.
-test('«Cómo vamos» enseña el ritmo del mes y en qué se reparte lo que entra', async ({ page }) => {
-  await page.goto('/finanzas')
+test('«Evolución» enseña el ritmo del mes y en qué se reparte lo que entra', async ({ page }) => {
+  await page.goto('/finances')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
+  await page.getByRole('tab', { name: 'Evolución' }).click()
 
   // El ritmo compara con los meses cerrados, y la demo trae junio con gastos.
   const ritmo = page.getByRole('region', { name: 'Cómo va el mes' })
@@ -1552,7 +1573,7 @@ test('«Cómo vamos» enseña el ritmo del mes y en qué se reparte lo que entra
   // De cada 100 € que entran: 3.130 de nóminas, 935,90 de recibos, 2.194,10 que
   // quedan. Las partes van escritas, no solo dibujadas.
   const entra = page.getByRole('region', { name: /de cada 100/ })
-  await expect(entra).toContainText('3.130 €')
+  await expect(entra).toContainText('3.130,00 €')
   await expect(entra).toContainText('Gastos fijos')
   await expect(entra).toContainText('935,90 €')
   await expect(entra).toContainText('2.194,10 €')
@@ -1568,7 +1589,7 @@ test('«Cómo vamos» enseña el ritmo del mes y en qué se reparte lo que entra
 // La variación es lo que convierte el desglose en una señal: sin ella, «Compra
 // 100 €» no dice si eso es mucho para esta casa.
 test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   // En julio no hay nada y en junio la compra fueron 80,55 €. Cien en julio son
@@ -1581,7 +1602,7 @@ test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page 
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
 
-  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
+  await page.getByRole('tab', { name: 'Evolución' }).click()
   const enQue = page.getByRole('region', { name: /en qué se va/ })
   // Con palabras y en su renglón, no como un «+24 %» pegado al porcentaje del mes:
   // eran dos cifras con el mismo símbolo significando cosas distintas, y era lo que
@@ -1596,11 +1617,11 @@ test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page 
 })
 
 test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   await retroceder(page, 3)
 
-  await page.getByRole('tab', { name: 'Cómo vamos' }).click()
+  await page.getByRole('tab', { name: 'Evolución' }).click()
   // Junio: 870,90 € de fijos congelados más 291,45 € apuntados, 1.162,35 € en
   // total. Los fijos entran desde el 04-09-2026, y por eso el alquiler se lleva el
   // 65 % del mes; antes el bloque decía «291,45 €» y el alquiler no salía.
@@ -1615,7 +1636,7 @@ test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
 })
 
 test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   await page.getByRole('tab', { name: 'Presupuestos' }).click()
 
@@ -1641,7 +1662,7 @@ test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {
 // que el día a día se lea por días y que lo que ya se apuntó otra vez se ofrezca.
 
 test('el buscador cruza los meses y dice cuánto suma lo encontrado', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   // La demo está sembrada en junio y el mes que se abre es el de hoy, vacío: si
@@ -1672,7 +1693,7 @@ test('el buscador cruza los meses y dice cuánto suma lo encontrado', async ({ p
 })
 
 test('«El día a día» va por días, con lo que se fue en cada uno', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   // Atrás hasta junio, que es donde están los apuntes de la demo.
   for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Mes anterior' }).click()
@@ -1689,7 +1710,7 @@ test('«El día a día» va por días, con lo que se fue en cada uno', async ({ 
 })
 
 test('lo que ya se apuntó otra vez se ofrece, con su partida', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
 
   // Dos veces lo mismo, que es lo que hace una casa: la compra de cada semana.
@@ -1717,7 +1738,7 @@ test('lo que ya se apuntó otra vez se ofrece, con su partida', async ({ page })
 })
 
 test('un presupuesto aceptado se apunta en el mes que se paga', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(800)
   await page.getByRole('tab', { name: 'Presupuestos' }).click()
 
@@ -1735,6 +1756,6 @@ test('un presupuesto aceptado se apunta en el mes que se paga', async ({ page })
   // pregunta por la que se apunta: si el mes cuadra contándolo.
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
-  await expect(page.getByRole('tab', { name: 'El mes' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: 'Este mes' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.locator('section[aria-label="El día a día"]')).toContainText('Pintar el salón')
 })

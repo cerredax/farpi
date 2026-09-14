@@ -350,7 +350,7 @@ export const ROUTES = {
   tasks:     '/tasks',
   lists:     '/lists',
   meals:     '/meals',
-  finanzas:  '/finanzas',
+  finances:  '/finances',
   notes:     '/notes',
   docs:      '/docs',
   birthdays: '/birthdays',

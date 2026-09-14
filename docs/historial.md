@@ -15,6 +15,102 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-14
 
+### El menú de Finanzas se lee como un menú (14-09-2026)
+
+Esta misma mañana las cuatro pestañas habían dejado de arrastrarse: eran cuatro píldoras
+con `overflow-x-auto` y «Presupuestos» se quedaba fuera del borde a 390 px, así que
+pasaron a una barra segmentada que ocupa el ancho. Con la barra ya entera delante, lo que
+se vio al mirarla fue que seguía sin parecer una barra. Dos cosas, y las dos del mismo
+tipo: cada pieza se había elegido bien por su lado y ninguna se había elegido mirando a
+las otras tres.
+
+**Los nombres.** «El mes», «Cómo vamos», «Lo fijo» y «Presupuestos». Artículo y nombre,
+pregunta, adjetivo sustantivado y nombre a secas: cuatro formas gramaticales distintas en
+cuatro botones pegados. Cada una tenía su historia —«Lo fijo» llegó el 03-09 para no
+repetir la palabra «mes» al lado de «El mes», y «Cómo vamos» el 04-09 para nombrar lo que
+la pestaña contesta y no cómo lo pinta—, y las dos veces se había mirado el rótulo, no la
+fila. Juntos se leen como cuatro ocurrencias.
+
+Ahora son **«Este mes», «Evolución», «Fijos» y «Presupuestos»**. Se pierde algo y consta:
+«Evolución» nombra lo que la pestaña enseña y no lo que contesta, que es exactamente lo
+que el 04-09 se había ido a corregir, y «Este mes» se queda corto en cuanto se navega a
+agosto. Lo primero se acepta a cambio de que la barra se lea del tirón; lo segundo lo
+cubre la tarjeta de debajo, que dice el mes con su nombre grande y es donde se mira. Las
+claves internas siguen siendo `resumen` y `plantilla`, como las otras dos veces.
+
+**La forma.** Una caja blanca con borde y la pestaña activa en `primary-strong` maciza.
+Era el último verde relleno que quedaba en la app: Ajustes se lo había quitado el 02-09 y
+se había ido al tinte. Aquí se va por el otro camino, el del control nativo — canal gris y
+la activa como una **tarjeta blanca con sombra**, que dice «estás aquí» sin pintar nada de
+color.
+
+Y **los cuatro rótulos en tinta**, que es lo que más se discutió consigo mismo. Lo natural
+era el activo en tinta y los tres apagados en gris; no llega, y se midió: `muted` (#6E6861)
+sobre `surface` (#F0EDE8) da **4,24:1**, por debajo del 4,5 que pide un texto de 13 px, y
+poniendo `hairline` de canal tampoco (4,40:1). Lo que separa al activo del resto acaba
+siendo la tarjeta y el peso de la letra — que además es lo que hace un segmentado de iOS.
+Es la misma regla del 09-09: lo que hay que leer no se apaga con color.
+
+**Y las partidas salen plegadas.** En «Este mes» hay tres cosas una debajo de otra: la
+cuenta del mes, las partidas y el día a día. Con cinco partidas, las barras se comían
+media pantalla de móvil entre lo primero y lo último, y lo último es a lo que se entra:
+apuntar y mirar lo apuntado. Las partidas se consultan cuando se pregunta por ellas
+—«¿cuánto queda de la compra?»—, y esa pregunta se hace de vez en cuando; el día a día es
+de todos los días. Se pliegan con su número en el título, igual que «El día a día» de
+debajo, porque plegado el título es lo único que se ve.
+
+Se plegó esto en vez de subir el día a día por encima, que era la otra forma. El orden de
+la pestaña dice algo —la cuenta del mes, cómo se reparte y luego el detalle—, y subiendo
+el día a día las partidas se habrían quedado al fondo detrás de setenta filas, que es
+esconderlas más y no menos.
+
+Lo que costó de verdad no fue el componente: fueron los siete tests de navegador que
+miraban dentro de las partidas sin abrirlas. Se les puso un `abrirPartidas` delante, que
+busca el título por su nombre y no por `aria-expanded` — las barras de cada partida
+también lo llevan, y con la sección ya abierta se habría clicado la primera de ellas.
+
+**Y tres cosas más que salieron de mirar la pantalla ya cambiada.**
+
+*Los importes, siempre con dos decimales.* Había dos formatos y se usaban los dos:
+`formatCents` escribe «1.234,56 €» y `formatCentsCorto` se come el `,00` cuando el importe
+es redondo. El argumento del corto era bueno de uno en uno —una partida se pone en euros
+enteros y «400,00 €» hace leer dos ceros que no dicen nada—, y falla al mirar la pantalla
+entera: en una columna donde conviven «400 €», «74,70 €» y «1.234,56 €» la coma cae en un
+sitio distinto en cada renglón, y las cifras dejan de compararse de un vistazo, que es
+para lo que están una debajo de otra. Toda la sección pasa a `formatCents`.
+
+El corto no se borra: se queda para los dos sitios donde el importe no es una cifra que se
+compare. Los rótulos de dentro de los gráficos van redondeados al euro porque a 9 px
+«1.234,56 €» mide más que la columna de un mes y se mete en la del vecino; y el tope del
+validador —«Como mucho 1.000.000 €»— es un techo, no dinero de nadie. Dieciséis
+aserciones de la suite decían «400 €» y ahora dicen «400,00 €».
+
+*`/finanzas` pasa a `/finances`.* El 12-09 se había dejado dicho que se quedaba, y el
+argumento no era que estuviera bien: era que llevaba semanas viva, con la app instalada en
+los móviles de la familia, y cambiarla rompía marcadores. Lo que faltaba era el redirect, y
+cuesta una línea — un **308 permanente** en `next.config.ts`. Comprobado contra el build
+servido y no solo escrito: `/finanzas` devuelve 308 a `/finances`, y salta **antes** del
+control de sesión del proxy, así que quien vuelva por la vieja acaba en la nueva.
+
+Se renombran la ruta, `src/components/finances/` y `FinancesView`, que es exactamente lo
+que se renombró en Cumpleaños dos días antes. No se toca el código de dentro:
+`src/lib/finanzas.ts`, `useFinanzasState`, `CuentaDelMes`, `CadaMesPanel` y el rótulo
+«Finanzas» siguen en español, que es la convención del proyecto. Tampoco la categoría de
+documentos `'finanzas'`, que es un valor guardado en la base real. Ya no queda ninguna
+ruta en español.
+
+*Y fuera el punto de color de Cumpleaños.* Esta misma mañana el nombre había salido de una
+pastilla de color y el color se había movido a un punto de 8 px delante. El punto se va
+ahora por lo mismo que se fue la pastilla, solo que visto ya en la lista entera: casi todos
+salen iguales. En doce meses de cumpleaños los de la casa son cuatro o cinco, y el resto
+—la abuela, el amigo del cole— no tienen color y llevaban el punto en gris. Una columna de
+treinta puntos grises con cuatro de color no dice de quién es cada fila: dice que hay una
+decoración. El color sigue donde sirve, que es donde hay que distinguir a una persona de
+algo que no lo es: los planes de Inicio y la agenda del calendario.
+
+Suite entera en verde: 716 (542 unitarios + 174 de navegador).
+
+
 ### Ocho roces de uso diario, mirados uno a uno (14-09-2026)
 
 No es una funcionalidad: es una lista de ocho cosas que rozaban al usar la app en casa,

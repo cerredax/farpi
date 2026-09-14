@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Check, Plus, X } from 'lucide-react'
 import { estaCaducado, type GrupoDePresupuestos } from '@/lib/quotes'
-import { formatCentsCorto } from '@/lib/finanzas'
+import { formatCents } from '@/lib/finanzas'
 import type { Quote, QuoteStatus } from '@/types'
 
 interface QuoteGroupCardProps {
@@ -80,7 +80,7 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
                   </p>
                   <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted">
                     <span className={`font-bold ${descartado ? 'text-muted' : 'text-ink'}`}>
-                      {formatCentsCorto(quote.amount_cents)}
+                      {formatCents(quote.amount_cents)}
                     </span>
                     {quote.valid_until && (
                       <span className={caducado ? 'font-semibold text-danger-strong' : ''}>

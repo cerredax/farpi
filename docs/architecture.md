@@ -1352,10 +1352,10 @@ Ahora son **cuatro piezas y tres pestañas**, y cada pieza contesta una pregunta
 
 | Tabla | En pantalla | Dónde | Contesta |
 |---|---|---|---|
-| `fixed_entries` | **Fijos** | pestaña «Lo fijo» | ¿con cuánto contamos y qué está comprometido? |
-| `fixed_entry_overrides` | El importe de un fijo **en un mes** | pestaña «El mes» | ¿y el mes que salió distinto? |
-| `budgets` | **Partidas** | pestaña «Lo fijo», se ven en «El mes» | ¿me estoy pasando en lo que sí controlo? |
-| `expenses` | **El día a día** (una fila, un **apunte**) | pestaña «El mes» | ¿qué ha pasado este mes? |
+| `fixed_entries` | **Fijos** | pestaña «Fijos» | ¿con cuánto contamos y qué está comprometido? |
+| `fixed_entry_overrides` | El importe de un fijo **en un mes** | pestaña «Este mes» | ¿y el mes que salió distinto? |
+| `budgets` | **Partidas** | pestaña «Fijos», se ven plegadas en «Este mes» | ¿me estoy pasando en lo que sí controlo? |
+| `expenses` | **El día a día** (una fila, un **apunte**) | pestaña «Este mes» | ¿qué ha pasado este mes? |
 | `quotes` | **Presupuestos** | pestaña «Presupuestos» | ¿cuánto va a costar esto que aún no hemos hecho? |
 
 Con eso «presupuesto» pasa a significar **una sola cosa** en toda la app: lo que cuesta algo
@@ -1396,8 +1396,10 @@ llamara igual que una de sus piezas, las otras parecerían estar de prestado.
 
 Se llamó **Dinero** hasta el 01-09-2026. «Dinero» nombra la materia; «Finanzas» nombra lo
 que la familia hace con ella, que es de lo que va la pantalla: mirar el mes, abrir una partida,
-comparar tres presupuestos. El cambio bajó hasta el código —`/finanzas`, `src/lib/finanzas.ts`,
-`FinanzasView`— para que no hubiera que traducir mentalmente en cada archivo. Las tablas
+comparar tres presupuestos. El cambio bajó hasta el código —la ruta, `src/lib/finanzas.ts`,
+la vista— para que no hubiera que traducir mentalmente en cada archivo. (La ruta y la vista
+se llamaron `/finanzas` y `FinanzasView` hasta el 14-09-2026; hoy son `/finances` y
+`FinancesView`, y `src/lib/finanzas.ts` sigue en español porque es lógica.) Las tablas
 (`budgets`, `expenses`, `quotes`) no se tocaron: nunca llevaron ese nombre y renombrarlas
 habría exigido migrar la base real a cambio de nada. En `docs/historial.md` sigue apareciendo
 «Dinero» donde cuenta lo que pasó entonces, que es como debe ser.
@@ -2765,6 +2767,9 @@ hace semanas, con la app instalada en los móviles de la familia, y cambiarla si
 rompe lo que haya guardado en marcadores. Cumpleaños se renombra porque tiene un día de
 vida y no le ha dado tiempo a que nadie la guarde.
 
+> Se renombró dos días después, el 14-09-2026, con el redirect que aquí faltaba. Ver
+> «`/finanzas` pasa a `/finances`, con redirect».
+
 ### Buscar en Finanzas es buscar en todos los meses (14-09-2026)
 
 Finanzas era la única pantalla de contenido sin buscador, y ponerlo obligaba a decidir
@@ -2818,6 +2823,115 @@ dos cosas distintas y unirlas obligaría a decidir qué pasa al borrar una.
 Al guardarlo, la pantalla se va **al mes en el que ha caído** —con la previsión abierta si
 ese mes aún no ha llegado—, que es lo que contesta la pregunta por la que se apunta: si el
 mes cuadra contándolo.
+
+### El menú de Finanzas se lee como un menú (14-09-2026)
+
+Las cuatro secciones se ven enteras desde esta misma mañana, y la barra seguía sin
+parecer una barra. Dos cosas, las dos del mismo tipo: cada rótulo se había elegido bien
+por su lado y ninguno se había elegido mirando a los otros tres.
+
+**Los nombres.** Eran «El mes», «Cómo vamos», «Lo fijo» y «Presupuestos»: artículo y
+nombre, pregunta, adjetivo sustantivado y nombre a secas. Cuatro formas gramaticales
+distintas en cuatro botones pegados, que es lo que hace que un menú se lea como cuatro
+ocurrencias en vez de como las partes de una cosa. Ahora son **«Este mes», «Evolución»,
+«Fijos» y «Presupuestos»**: cuatro nombres, la misma forma, y entran los cuatro a 390 px
+con letra de 13 px.
+
+Se pierde algo y consta. «Cómo vamos» nombraba lo que la pestaña **contesta** y
+«Evolución» nombra lo que **enseña**, que es justo lo que el 04-09-2026 se había ido a
+corregir al quitarle el nombre de «Resumen»; y «Este mes» se queda corto en cuanto se
+navega a agosto. Lo primero se acepta a cambio de que la barra se lea del tirón; lo
+segundo lo cubre la tarjeta de debajo, que dice el mes con su nombre grande y es donde se
+mira. Las claves internas no se tocan (`resumen`, `plantilla`), como no se tocaron las
+otras dos veces: renombrarlas no le cambia nada a nadie.
+
+**La forma.** Era una caja blanca con borde y la pestaña activa en `primary-strong`
+maciza — el último verde relleno que quedaba en la app, porque Ajustes se lo había
+quitado el 02-09-2026. Ahora es un segmentado de verdad: **canal gris (`surface`) y la
+activa como una tarjeta blanca con sombra**, que dice «estás aquí» sin pintar nada de
+color.
+
+Y **los cuatro rótulos van en tinta**, no el activo en tinta y los demás en gris, que es
+lo que haría cualquier barra de pestañas. No llega: `muted` (#6E6861) sobre `surface`
+(#F0EDE8) da **4,24:1**, por debajo del 4,5 que pide un texto de 13 px, y con `hairline`
+de canal tampoco (4,40:1). Lo que separa al activo del resto es la tarjeta y el peso de
+la letra — que además es exactamente lo que hace un segmentado de iOS. Es la regla del
+09-09-2026: lo que hay que leer no se apaga con color.
+
+### Las partidas salen plegadas, y debajo está el día a día (14-09-2026)
+
+En «Este mes» hay tres cosas una debajo de otra: la cuenta del mes, las partidas y el día
+a día. Con cinco partidas, las barras se comían media pantalla de móvil entre lo primero
+y lo último, y lo último es a lo que se entra: apuntar y mirar lo apuntado. Las partidas
+se consultan cuando se pregunta por ellas —«¿cuánto queda de la compra?»—, y esa pregunta
+se hace de vez en cuando; el día a día es de todos los días.
+
+Así que se pliegan, con su número en el título —plegado es lo único que se ve, y sin él
+la línea no distingue «no hay ninguna» de «hay cinco»—, igual que «El día a día» de
+debajo.
+
+**Se pliega esto en vez de subir el día a día por encima**, que era la otra forma de
+resolverlo. El orden de la pestaña dice algo: la cuenta del mes, cómo se reparte y luego
+el detalle. Subiendo el día a día, las partidas se quedan al fondo detrás de setenta
+filas, que es esconderlas más y no menos.
+
+Abierto se queda **al cambiar de mes**: quien las abre suele estar comparando —«¿en junio
+también nos pasamos con la compra?»— y volver a abrirlas en cada salto sería pelearse con
+la pantalla. Al salir de la pantalla vuelven a plegarse, que es como se quieren al
+entrar; mismo criterio que `SeccionPlegable` en el calendario.
+
+### `/finanzas` pasa a `/finances`, con redirect (14-09-2026)
+
+El 12-09 se dejó dicho que se quedaba: era la única ruta en español y se libró del
+renombrado de Cumpleaños porque llevaba semanas viva, con la app instalada en los móviles
+de la familia. El argumento no era que estuviera bien, era que cambiarla rompía marcadores.
+
+Lo que faltaba era el redirect, y cuesta una línea: `next.config.ts` devuelve un **308
+permanente** de `/finanzas` a `/finances`. Es permanente porque no se va a deshacer, y se
+queda para siempre: no hay forma de saber qué marcadores siguen ahí. Comprobado contra el
+build servido, no solo escrito — y el redirect salta **antes** del control de sesión del
+proxy, así que quien vuelva por la ruta vieja acaba en la nueva y desde ahí en el login si
+hace falta.
+
+Se renombran la ruta, la carpeta de componentes (`src/components/finances/`) y
+`FinancesView`, que es exactamente lo que se renombró en Cumpleaños. Lo que **no** se
+toca es el código de dentro: `src/lib/finanzas.ts`, `useFinanzasState`, `CuentaDelMes`,
+`CadaMesPanel` y el rótulo «Finanzas» siguen en español, que es la convención del
+proyecto — lo que está en inglés es el nombre de la ruta y el del componente de pantalla,
+no la lógica. Tampoco la categoría de documentos `'finanzas'`, que es un valor guardado en
+la base, ni el nombre de la captura de la portada.
+
+Ya no queda ninguna ruta en español.
+
+### En Finanzas los importes llevan siempre sus dos decimales (14-09-2026)
+
+Había dos formatos y se usaban los dos: `formatCents` («1.234,56 €») y `formatCentsCorto`,
+que se come el `,00` cuando el importe es redondo. El argumento del corto era bueno de
+uno en uno: una partida se pone en euros enteros y «400,00 €» hace leer dos ceros que no
+dicen nada.
+
+La pega se ve al mirar la pantalla entera en vez de una cifra. En una columna donde
+conviven «400 €», «74,70 €» y «1.234,56 €», la coma cae en sitios distintos en cada
+renglón y las cifras dejan de compararse de un vistazo, que es para lo que están puestas
+una debajo de otra. Toda la sección pasa a `formatCents`.
+
+`formatCentsCorto` **se queda**, para los dos sitios donde el importe no es una cifra que
+se compare: los rótulos de dentro de los gráficos, que van redondeados al euro porque a
+9 px «1.234,56 €» mide más que la columna de un mes, y el tope del validador («Como mucho
+1.000.000 €»), que es un techo y no dinero de nadie.
+
+### En la lista de Cumpleaños no hay punto de color (14-09-2026)
+
+Esta misma mañana el nombre salió de una pastilla de color y el color se movió a un punto
+de 8 px delante. El punto se va ahora, y por lo mismo que se fue la pastilla, solo que
+visto ya en la lista entera: **casi todos salen iguales**. En doce meses de cumpleaños los
+de la casa son cuatro o cinco, y el resto —la abuela, el amigo del cole— no tienen color y
+llevaban el punto en gris. Una columna de treinta puntos grises con cuatro de color no
+dice de quién es cada fila: dice que hay una decoración.
+
+El color de una persona sigue donde sirve, que es donde hay que distinguirla de otras
+cosas que no son personas: los planes de Inicio y la agenda del calendario. Aquí lo que se
+viene a leer es un nombre y un día.
 
 ## Tono de la interfaz
 

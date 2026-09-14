@@ -95,7 +95,7 @@ function initDraft(
  * carga siempre al coche.
  *
  * Y por lo mismo **las partidas se ofrecen por uso** y no por el `sort_order` de
- * «Lo fijo»: la de la compra se elige cuatro de cada cinco veces, así que es la
+ * «Fijos»: la de la compra se elige cuatro de cada cinco veces, así que es la
  * que tiene que estar la primera. Lo que no cambia es el valor por defecto, que
  * sigue siendo «Sin partida»: la mitad de los gastos de una casa no caen en
  * ninguna, y adivinarla sería apuntar mal en nombre de la comodidad.

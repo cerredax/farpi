@@ -103,9 +103,17 @@ export function formatCents(centimos: number): string {
 /**
  * El mismo importe sin los `,00` cuando son redondos: `300 €`, `1.234,56 €`.
  *
- * Es el que se usa en las tarjetas y en las partidas, que es donde la cifra tiene
- * que leerse de un vistazo: un presupuesto se pone en euros enteros y "300,00 €"
- * hace leer dos ceros que no dicen nada.
+ * **Ya no es el de las tarjetas** (14-09-2026). Lo fue: el argumento era que un
+ * presupuesto se pone en euros enteros y «300,00 €» hace leer dos ceros que no
+ * dicen nada. La pega se ve al mirar la pantalla entera en vez de una cifra: en
+ * una columna donde conviven «400 €», «74,70 €» y «1.234,56 €», las comas caen
+ * en sitios distintos y las cifras dejan de compararse de un vistazo, que es
+ * justo lo que se pedía. Finanzas usa `formatCents` en todo lo que se lee.
+ *
+ * Queda para los dos sitios donde el importe **no es una cifra que se compara**:
+ * los rótulos de dentro de los gráficos, que van redondeados al euro porque a
+ * 9 px no cabe otra cosa, y el tope del validador («Como mucho 1.000.000 €»),
+ * que es un techo y no dinero de nadie.
  */
 export function formatCentsCorto(centimos: number): string {
   return centimos % 100 === 0

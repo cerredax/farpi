@@ -44,7 +44,7 @@ export const SECCIONES: Seccion[] = [
   { href: ROUTES.lists,     label: 'Listas',     icon: CheckSquare },
   { href: ROUTES.tasks,     label: 'Tareas',     icon: ClipboardList },
   { href: ROUTES.meals,     label: 'Comidas',    icon: UtensilsCrossed },
-  { href: ROUTES.finanzas,  label: 'Finanzas',   icon: Euro, enMas: true },
+  { href: ROUTES.finances,  label: 'Finanzas',   icon: Euro, enMas: true },
   { href: ROUTES.notes,     label: 'Notas',      icon: StickyNote, enMas: true },
   { href: ROUTES.birthdays, label: 'Cumpleaños', icon: Cake, enMas: true },
   { href: ROUTES.docs,      label: 'Documentos', icon: FolderOpen, enMas: true },

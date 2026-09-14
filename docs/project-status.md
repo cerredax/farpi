@@ -302,7 +302,7 @@ que todavía no existen (ver "Siguiente paso recomendado").
   campo de texto, en la única pantalla donde se escribe justo eso, y a la tercera nota
   es un renglón que nadie lee y que le quita sitio al formulario. Lo sigue diciendo
   `/privacidad`, que es donde se cuenta qué se guarda y cómo.
-- **Finanzas** (31-08-2026, rehecha el 01-09-2026; vocabulario afinado el 02-09-2026; cerrada el 14-09-2026): el dinero de la casa, en `/finanzas`,
+- **Finanzas** (31-08-2026, rehecha el 01-09-2026; vocabulario afinado el 02-09-2026; cerrada el 14-09-2026): el dinero de la casa, en `/finances`,
   con **cuatro pestañas** y cuatro piezas de vocabulario que no se pisan.
   **Las pestañas son una barra segmentada** (14-09-2026) que ocupa el ancho y se ve
   entera a 390 px: eran cuatro píldoras con `overflow-x-auto` y la cuarta se quedaba
@@ -312,7 +312,16 @@ que todavía no existen (ver "Siguiente paso recomendado").
   —en cuartos iguales había que bajar a 11 px para que «Presupuestos» cupiera—. Lo
   vigila `e2e/movil.spec.ts`, que mide las cuatro: el bucle de rutas no lo habría visto
   nunca, porque un contenedor que se arrastra no desborda la página.
-  **«Cómo vamos»** (02-09-2026 como «Resumen», podada el 03-09 y replanteada el
+  **Y se lee como un menú** (14-09-2026, segunda vuelta del mismo día). Los cuatro
+  rótulos tenían cuatro formas gramaticales distintas —artículo y nombre, pregunta,
+  adjetivo sustantivado, nombre a secas— y se leían como cuatro ocurrencias: ahora son
+  **«Este mes», «Evolución», «Fijos» y «Presupuestos»**, cuatro nombres con la misma
+  forma. Y la barra es un **segmentado de verdad** —canal gris y la activa como tarjeta
+  blanca con sombra— en vez de una caja blanca con la pestaña activa en verde macizo, que
+  era el último verde relleno que quedaba en la app. Los cuatro rótulos van **en tinta**:
+  `muted` sobre `surface` da 4,24:1 y no llega al 4,5 de un texto de 13 px, así que lo que
+  marca el activo es la tarjeta y el peso de la letra, no el color.
+  **«Evolución»** (02-09-2026 como «Resumen», podada el 03-09 y replanteada el
   04-09-2026): **cuatro bloques**, elegidos por lo que se pregunta una casa y no por lo
   que se puede dibujar, cada uno con su cifra escrita y su dibujo detrás.
   **¿Voy bien este mes?** — lo gastado acumulado día a día contra el ritmo de los meses
@@ -332,18 +341,18 @@ que todavía no existen (ver "Siguiente paso recomendado").
   Se descartaron el reparto por persona en el tiempo —sería una cuenta pendiente— y la
   estacionalidad, que con cuatro meses no es una tendencia. Todo SVG escrito a mano, sin
   librerías, y con los dos únicos colores de gráfico de la paleta.
-  **«Lo fijo»**: la plantilla —lo que entra y lo que sale todos los meses sin apuntar
+  **«Fijos»**: la plantilla —lo que entra y lo que sale todos los meses sin apuntar
   nada: las nóminas, el alquiler, la luz, las suscripciones— y **las partidas** en las que
   se reparte lo que varía, en tres bloques con su total y la cifra de «para el mes». No
   genera apuntes ni hay nada que marcar como pagado, y por eso no hay que abrir septiembre.
   Se copia a cada mes que empieza.
-  **«El mes»**: arriba **la cuenta** —ingresos fijos, gastos fijos, «para el mes», lo
+  **«Este mes»**: arriba **la cuenta** —ingresos fijos, gastos fijos, «para el mes», lo
   apuntado y **cuánto queda**—, que es el número que la sección existe para dar; los dos
   totales de fijos **se abren** (04-09-2026) y enseñan sus líneas, las de ese mes, y en un
   mes cuyo plan está vivo **cada línea se ajusta ahí mismo para ese mes** (05-09-2026):
-  un sheet corto pregunta cuánto ha sido **este mes** y la referencia de «Lo fijo» no se
+  un sheet corto pregunta cuánto ha sido **este mes** y la referencia de «Fijos» no se
   mueve —«la limpieza son 120 € al mes, pero en septiembre fueron 150»—, con un «Volver a
-  los 120 €» para deshacerlo y un enlace a «Lo fijo» para cuando lo que ha cambiado es lo
+  los 120 €» para deshacerlo y un enlace a «Fijos» para cuando lo que ha cambiado es lo
   de todos los meses. Un fijo ajustado lo dice en su fila: «suele ser 120 €». En un mes
   cerrado no se toca nada, que es una copia; debajo las
   **partidas** de ese mes con su barra —que **se abren** (03-09-2026) y enseñan sus
@@ -354,6 +363,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   gastos. Las barras dicen con
   palabras si te has pasado y por cuánto, no solo con el color. Sin ningún fijo puesto, la
   tarjeta enseña lo gastado, como antes, y ofrece ponerlos.
+  **Las partidas salen plegadas** (14-09-2026), con su número en el título, y debajo
+  queda el día a día: con cinco partidas las barras se comían media pantalla de móvil
+  entre la cuenta del mes y lo que se entra a hacer aquí, que es apuntar y mirar lo
+  apuntado. Se pliegan en vez de subir el día a día por encima porque el orden dice algo
+  —la cuenta, cómo se reparte y luego el detalle— y subiendo el día a día las partidas se
+  quedarían al fondo detrás de setenta filas. Abierto se queda al cambiar de mes, que es
+  cuando se comparan; al salir de la pantalla vuelven a plegarse.
   **El día a día va por días** (14-09-2026), cada uno con su rótulo y la cifra de lo que
   se fue ese día —«Martes 16 · 74,70 €»—, y hoy y ayer se llaman por su nombre. Era una
   lista plana en la que setenta apuntes eran setenta renglones iguales y saber qué se fue
@@ -371,7 +387,7 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **Apuntar ya no se teclea entero** (14-09-2026): el formulario ofrece **lo que esta casa
   apunta una y otra vez** —solo lo que se repite dos veces o más, que si no es el historial
   y no una sugerencia— y cada sugerencia **trae su partida**, la de la última vez. Por lo
-  mismo, los chips de partida salen **por uso** y no por el orden de «Lo fijo». Lo que no
+  mismo, los chips de partida salen **por uso** y no por el orden de «Fijos». Lo que no
   cambia es el valor por defecto, que sigue siendo «Sin partida»: adivinarla sería apuntar
   mal en nombre de la comodidad.
   **Cada mes enseña lo que valía entonces** (02-09-2026): el mes en curso refleja la
@@ -386,7 +402,7 @@ que todavía no existen (ver "Siguiente paso recomendado").
   preparado un cambio de plantilla para el mes que viene; mientras siga siendo el mes de hoy
   se puede deshacer, y un mes terminado no se reabre nunca. Un mes terminado que nunca llegó
   a cerrarse lo dice tal cual en vez de enseñar la plantilla de hoy, que es lo que hacía
-  antes. Los tres botones —cerrar, deshacer, poner a cero— van **al pie de «El mes»**, lo
+  antes. Los tres botones —cerrar, deshacer, poner a cero— van **al pie de «Este mes»**, lo
   último de todo (04-09-2026; estuvieron debajo de la tarjeta desde el 03-09), y son
   **botones** y no texto verde: «Cerrar mes», «Reabrir mes» y «Poner el mes a cero».
   **El mes se elige con las flechas y con el nombre** (04-09-2026), como en el
@@ -422,7 +438,9 @@ que todavía no existen (ver "Siguiente paso recomendado").
   catorce días van en su bloque; el aviso de las siete felicita el mismo día.
 - **Cumpleaños tiene pantalla propia** (11-09-2026), en "Más" entre Notas y Documentos.
   Su ruta es `/birthdays` desde el 12-09-2026: nació como `/cumples` y era la única del
-  grupo, junto a `/finanzas`, que no estaba en inglés como las demás.
+  grupo, junto a `/finanzas`, que no estaba en inglés como las demás. Aquella se renombró
+  a `/finances` el 14-09-2026, con redirect 308 permanente en `next.config.ts` para no
+  romper los marcadores de la familia; ya no queda ninguna ruta en español.
   Es la lista de los **doce meses** que vienen, de hoy al más lejano, y junta
   los dos orígenes sin distinguirlos: quien es de casa sale de su fecha de nacimiento y
   quien no, del cumpleaños apuntado. Existe porque esa era la pregunta que la app no
@@ -449,13 +467,16 @@ que todavía no existen (ver "Siguiente paso recomendado").
   (`MINIMO_PARA_BUSCAR`); mira solo el nombre —es lo único que hay— y sin tildes, como en
   las listas. Buscando se siguen viendo los meses: de un nombre lo que se quiere saber es
   justo cuándo cae.
-  **El nombre va en tinta, con un punto de su color delante** (14-09-2026). Iba dentro de
-  una pastilla de color, como en Inicio y en la agenda, y aquí no funcionaba: allí la
-  pastilla nombra a quien lleva un plan entre cosas que no son personas, y esta pantalla
-  es una columna en la que **todas** las filas son un nombre. Treinta pastillas seguidas,
-  unas de color y otras grises —quien no es de la casa no tiene—, se leen como una lista
-  de etiquetas mal alineadas y no como una lista de gente, y el gris del de fuera parecía
-  un fallo de pintado. El color no se pierde, cambia de sitio.
+  **El nombre va en tinta y sin nada delante** (14-09-2026, en dos pasos el mismo día).
+  Iba dentro de una pastilla de color, como en Inicio y en la agenda, y aquí no
+  funcionaba: allí la pastilla nombra a quien lleva un plan entre cosas que no son
+  personas, y esta pantalla es una columna en la que **todas** las filas son un nombre.
+  El arreglo fue mover el color a un punto de 8 px delante, y el punto se fue después por
+  lo mismo, visto ya en la lista entera: en doce meses de cumpleaños los de la casa son
+  cuatro o cinco y el resto —la abuela, el amigo del cole— no tienen color, así que era
+  una columna de treinta puntos grises con cuatro de color. Eso no dice de quién es cada
+  fila, dice que hay una decoración. El color de una persona sigue donde sirve: los planes
+  de Inicio y la agenda del calendario.
   En "Más" va **encima de Documentos** y no al final: entre las cuatro, Documentos es la
   que menos se abre y la última fila de una lista es el sitio de lo que menos se usa, no
   el de lo último que se añadió.
@@ -774,7 +795,7 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 542 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 14-09-2026 (los últimos, los de Finanzas del 14-09-2026 —agrupar los apuntes por días y por meses, con lo entrado y lo salido sin restarse; buscar cruzando los meses, sin tildes y también por el nombre de la partida, y que sin consulta no devuelve todo sino nada; qué se ofrece como «lo de siempre» —solo lo que se repite, con la partida y el texto de la última vez—; el orden de las partidas por uso; y si hay que cerrar el mes pasado, que es la regla que le da historia a la sección y vivía sin test dentro de `StoreProvider`—, y antes el reparto por meses de la lista de Cumpleaños —que un mes que vuelve a aparecer es su propio grupo y que el año solo se escribe cuando no es el de hoy—, y antes el reparto de las franjas de ausencia de un día del mes —que la franja de la casa solo se calla lo que ella misma dice, así que el descanso de quien no tiene cuenta se queda, y que el tope lo aplica quien pinta— y la agrupación por personas del bloque de vacaciones y descansos) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Cómo vamos»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - 542 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 14-09-2026 (los últimos, los de Finanzas del 14-09-2026 —agrupar los apuntes por días y por meses, con lo entrado y lo salido sin restarse; buscar cruzando los meses, sin tildes y también por el nombre de la partida, y que sin consulta no devuelve todo sino nada; qué se ofrece como «lo de siempre» —solo lo que se repite, con la partida y el texto de la última vez—; el orden de las partidas por uso; y si hay que cerrar el mes pasado, que es la regla que le da historia a la sección y vivía sin test dentro de `StoreProvider`—, y antes el reparto por meses de la lista de Cumpleaños —que un mes que vuelve a aparecer es su propio grupo y que el año solo se escribe cuando no es el de hoy—, y antes el reparto de las franjas de ausencia de un día del mes —que la franja de la casa solo se calla lo que ella misma dice, así que el descanso de quien no tiene cuenta se queda, y que el tope lo aplica quien pinta— y la agrupación por personas del bloque de vacaciones y descansos) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Evolución»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
   - 175 de navegador. La cifra sale de la pasada completa del 14-09-2026 (717 en total,
     542 unitarios; los últimos, los cinco de Finanzas del 14-09-2026 —que el buscador
     cruza los meses y dice cuánto suma lo encontrado, que «El día a día» va por días con

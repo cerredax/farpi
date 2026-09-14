@@ -161,7 +161,7 @@ export function CierreDelMes({
               <p>
                 Se guardan en <strong className="text-ink">{nombreDelMes}</strong> los
                 fijos y las partidas de ahora mismo. A partir de ahí este mes deja de
-                moverse cuando cambies la plantilla en «Lo fijo».
+                moverse cuando cambies la plantilla en «Fijos».
               </p>
               <p>No hace falta hacerlo: el día 1 se cierra solo.</p>
             </>

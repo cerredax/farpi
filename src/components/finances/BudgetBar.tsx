@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale'
 import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { resolveAssignee } from '@/lib/assignees'
-import { formatCentsCorto } from '@/lib/finanzas'
+import { formatCents } from '@/lib/finanzas'
 import type { ResumenPartida } from '@/lib/budgets'
 import type { Child, Expense, FamilyMember } from '@/types'
 
@@ -16,7 +16,7 @@ interface BudgetBarProps {
   /**
    * Editar la partida. **Va sin él en un mes que ya pasó**, y entonces el
    * desplegable no ofrece el enlace: lo que se está viendo es cómo fue ese mes y
-   * no hay nada que tocar ahí. Lo que se edita —la plantilla— está en «Lo fijo»,
+   * no hay nada que tocar ahí. Lo que se edita —la plantilla— está en «Fijos»,
    * y tocarlo no puede cambiar lo que dijo enero.
    */
   onEdit?: () => void
@@ -53,7 +53,7 @@ function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
         />
       )}
       <span className="flex-shrink-0 font-semibold tabular-nums text-ink">
-        {formatCentsCorto(apunte.amount_cents)}
+        {formatCents(apunte.amount_cents)}
       </span>
     </button>
   )
@@ -100,8 +100,8 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
       <div className="flex w-full items-baseline gap-2">
         {partida.emoji && <span className="flex-shrink-0 text-base leading-none" aria-hidden>{partida.emoji}</span>}
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{partida.name}</span>
-        <span className="flex-shrink-0 text-xs font-bold text-ink">{formatCentsCorto(gastado)}</span>
-        <span className="flex-shrink-0 text-xs text-muted">de {formatCentsCorto(partida.limiteCents)}</span>
+        <span className="flex-shrink-0 text-xs font-bold text-ink">{formatCents(gastado)}</span>
+        <span className="flex-shrink-0 text-xs text-muted">de {formatCents(partida.limiteCents)}</span>
       </div>
 
       {/* `aria-hidden` porque la barra no dice nada que no esté escrito encima y
@@ -121,8 +121,8 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
   const pie = (
     <span className={`text-[13px] ${pasado ? 'font-semibold text-danger-strong' : 'text-muted'}`}>
       {pasado
-        ? `Te has pasado por ${formatCentsCorto(-restante)}`
-        : `Quedan ${formatCentsCorto(restante)}`}
+        ? `Te has pasado por ${formatCents(-restante)}`
+        : `Quedan ${formatCents(restante)}`}
     </span>
   )
 

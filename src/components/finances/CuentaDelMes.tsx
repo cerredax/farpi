@@ -3,7 +3,7 @@
 import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { SelectorDeMes } from './SelectorDeMes'
-import { formatCents, formatCentsCorto } from '@/lib/finanzas'
+import { formatCents } from '@/lib/finanzas'
 import type { Aportacion, CuentaDelMes as Cuenta, FijoDelMes } from '@/lib/budgets'
 
 interface CuentaDelMesProps {
@@ -28,7 +28,7 @@ interface CuentaDelMesProps {
   previsionAbierta: boolean
   /** Pedirla, o volver a esconderla. Solo se ofrece en un mes por venir. */
   onVerPrevision: () => void
-  /** Lleva a «Lo fijo». Solo se ofrece cuando no hay ningún fijo puesto. */
+  /** Lleva a «Fijos». Solo se ofrece cuando no hay ningún fijo puesto. */
   onPonerFijos: () => void
   /**
    * Ajustar lo que un fijo vale **en este mes**. Solo llega en un mes cuyo plan
@@ -56,7 +56,7 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
     <div className="flex items-baseline justify-between gap-3 text-[13px]">
       <span className="truncate text-muted">{etiqueta}</span>
       <span className={`flex-shrink-0 font-semibold tabular-nums ${CLASE_IMPORTE[tono]}`}>
-        {formatCentsCorto(tono === 'sale' ? -importe : importe)}
+        {formatCents(tono === 'sale' ? -importe : importe)}
       </span>
     </div>
   )
@@ -72,7 +72,7 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  *
  * **Y se editan, cuando son los vivos** (04-09-2026). Nacieron sin editar, con el
  * argumento de que lo que se ve es el espejo de la plantilla y la plantilla se
- * edita en «Lo fijo». Sostenerlo obligaba a cambiar de pestaña para subir el
+ * edita en «Fijos». Sostenerlo obligaba a cambiar de pestaña para subir el
  * alquiler que acabas de ver mal escrito, y a volver luego al mes: el desglose ya
  * es el sitio donde se descubre.
  *
@@ -80,7 +80,7 @@ function Linea({ etiqueta, importe, tono = 'normal' }: {
  * línea abría el fijo entero, y eso hacía que corregir «la limpieza este mes han
  * sido 150» subiera la referencia a 150 para siempre. Ahora abre un sheet corto
  * que pregunta por este mes y deja la referencia donde estaba; desde ahí se llega
- * a «Lo fijo» de un toque, para cuando lo que ha cambiado es lo de todos los
+ * a «Fijos» de un toque, para cuando lo que ha cambiado es lo de todos los
  * meses. El detalle, en `AjusteDelMesSheet`.
  *
  * Un fijo ajustado se lee en la propia fila: debajo del nombre dice cuál es la
@@ -108,7 +108,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
   // partidas, y lo que la tarjeta tiene que dar de un vistazo es la cifra grande.
   const [abierta, setAbierta] = useState(false)
   const panelId = useId()
-  const signo = (centimos: number) => formatCentsCorto(tono === 'sale' ? -centimos : centimos)
+  const signo = (centimos: number) => formatCents(tono === 'sale' ? -centimos : centimos)
 
   return (
     <div>
@@ -152,7 +152,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
                   {/* Solo cuando este mes lleva ajuste. Es lo que distingue «este
                       mes han sido 150» de «ahora son 150»: sin esta línea, un mes
                       retocado se lee igual que uno normal y la referencia solo se
-                      ve yéndose a «Lo fijo». */}
+                      ve yéndose a «Fijos». */}
                   {fijo.referenciaCents !== null && (
                     <span className="block truncate text-[11px] text-muted">
                       suele ser {signo(fijo.referenciaCents)}
@@ -245,7 +245,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
  *
  * **Los dos totales de fijos se abren** (04-09-2026). «Gastos fijos −935,90 €»
  * dejaba detrás la misma pregunta que dejaba una partida antes de desplegarse
- * —«¿de qué?»— y contestarla obligaba a irse a «Lo fijo», que enseña la plantilla
+ * —«¿de qué?»— y contestarla obligaba a irse a «Fijos», que enseña la plantilla
  * de **hoy**: mirando junio, la respuesta que se encontraba allí era la de otro
  * mes. Ahora las líneas están dentro de su total y salen de la misma plantilla
  * resuelta que lo suma, así que un mes cerrado enseña los recibos que tuvo.
@@ -265,7 +265,7 @@ export function CuentaDelMes({
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
   // Ya vienen ordenados de `plantillaDelMes`, primero los que entran: filtrar
-  // conserva ese orden, que es el mismo con el que se leen en «Lo fijo».
+  // conserva ese orden, que es el mismo con el que se leen en «Fijos».
   const ingresos = fijos.filter(f => f.kind === 'ingreso')
   const gastos = fijos.filter(f => f.kind === 'gasto')
   const porVenir = cuenta.origen === 'por-venir'
@@ -353,7 +353,7 @@ export function CuentaDelMes({
           )}
           <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-1 text-[13px]">
             <span className="truncate font-semibold text-muted">Para el mes</span>
-            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(cuenta.paraElMes)}</span>
+            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(cuenta.paraElMes)}</span>
           </div>
           {ingresosApuntados > 0 && (
             <Linea etiqueta="Ingresos apuntados" importe={ingresosApuntados} tono="entra" />
@@ -367,7 +367,7 @@ export function CuentaDelMes({
           className="mt-2 min-h-11 w-full border-t border-hairline pt-2.5 text-left text-[13px] text-muted"
         >
           Pon tus ingresos y gastos de todos los meses en{' '}
-          <span className="font-semibold text-primary-strong">Lo fijo</span> y aquí
+          <span className="font-semibold text-primary-strong">Fijos</span> y aquí
           verás cuánto queda.
         </button>
       ) : null}
@@ -382,7 +382,7 @@ export function CuentaDelMes({
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: a.color }} aria-hidden />
               )}
               <span>{a.nombre}</span>
-              <span className="font-bold text-ink">{formatCentsCorto(a.total)}</span>
+              <span className="font-bold text-ink">{formatCents(a.total)}</span>
             </li>
           ))}
         </ul>

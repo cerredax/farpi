@@ -306,7 +306,7 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 
 - [ ] Se ven dos bloques —«Entra al mes» y «Sale al mes»— con las dos nóminas y los
       cuatro recibos de demo, cada uno con su total, y abajo «Para el mes».
-- [ ] Añadir un gasto fijo baja «Para el mes» y, al volver a «El mes», baja también
+- [ ] Añadir un gasto fijo baja «Para el mes» y, al volver a «Este mes», baja también
       «queda», sin recargar.
 - [ ] Cambiar de «Entra» a «Sale» dentro del sheet cambia los iconos que se ofrecen y el
       texto del botón, y el fijo salta de bloque al guardarlo.
@@ -315,7 +315,7 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       lo que dicen los meses pasados.
 - [ ] Ir a un mes de hace medio año: los fijos y «Para el mes» dicen exactamente lo mismo
       que en el mes actual.
-- [ ] Borrar todos los fijos deja «El mes» enseñando lo gastado (no «queda»), con el pie
+- [ ] Borrar todos los fijos deja «Este mes» enseñando lo gastado (no «queda»), con el pie
       que invita a ponerlos; volver a poner uno devuelve la cuenta completa.
 
 **El mes**
@@ -324,13 +324,27 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       apuntado y **cuánto queda**. Los números cuadran con los de la pestaña Fijos.
 - [ ] Gastar más de lo que hay deja «queda» en rojo y con la etiqueta «de más este mes»,
       y el importe se enseña **en positivo** (no «−120 € de más»).
-- [ ] La pestaña se llama **«Lo fijo»** y tiene tres bloques: entra, sale y se reparte
+- [ ] La pestaña se llama **«Fijos»** y tiene tres bloques: entra, sale y se reparte
       en. Las partidas se crean y se editan ahí.
 - [ ] El botón de alta está **arriba a la derecha**, como en el resto de la app, y no
       flotando abajo. Crea lo de la pestaña que se esté mirando.
 - [ ] Las cuatro pestañas **se ven enteras a 390 px, sin arrastrar** (14-09-2026): son
       una barra segmentada que ocupa el ancho. Si alguna se sale o queda recortada, se ha
       tocado el reparto. En escritorio la barra **no se estira**: se queda a su tamaño.
+- [ ] Se llaman **«Este mes», «Evolución», «Fijos» y «Presupuestos»** (14-09-2026) y la
+      barra es un **segmentado**: canal gris, la activa como una tarjeta blanca con
+      sombra. Los cuatro rótulos van **en tinta** — si los tres apagados salen en gris se
+      ha vuelto a meter `muted` sobre `surface`, que no llega a 4,5:1.
+- [ ] **Las partidas salen plegadas** (14-09-2026), con su número en el título, y debajo
+      se ve el día a día sin bajar. Se abren tocando el título, siguen abiertas al cambiar
+      de mes y vuelven a plegarse al salir de Finanzas y entrar otra vez.
+- [ ] **Todos los importes llevan sus dos decimales** (14-09-2026): «400,00 €», no
+      «400 €». Se mira en columna —la cuenta del mes, las partidas, el día a día—, que es
+      donde se nota. Las dos excepciones a propósito: los rótulos de dentro de los
+      gráficos de Evolución, redondeados al euro, y «Como mucho 1.000.000 €» del validador.
+- [ ] La ruta es **`/finances`** (14-09-2026), y **`/finanzas` sigue funcionando**: entrar
+      por la vieja lleva a la nueva con un 308. Se comprueba contra `npm run start`, no
+      contra el dev server.
 - [ ] **El día a día va por días**, con el rótulo de cada uno y lo que se fue ese día, y
       «Hoy» y «Ayer» por su nombre. La fila **no repite** la fecha del rótulo.
 - [ ] **Buscar** (a partir de tres apuntes, arriba junto al `+`): escribir algo del mes de
@@ -346,12 +360,12 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       y el trabajo escritos, y al guardarlo lleva al mes en el que ha caído. Sin aceptar,
       el enlace no está.
 
-**Cómo vamos** (se llamaba «Resumen» hasta el 04-09-2026)
+**Evolución** (se llamó «Resumen» hasta el 04-09-2026 y «Cómo vamos» hasta el 14-09-2026)
 
 - [ ] **La letra se lee**: el texto de Finanzas va a 13 px, no a 11. Si algo se ve
       diminuto es que se ha colado un `text-[11px]` nuevo.
 
-- [ ] La pestaña se llama **«Cómo vamos»** y tiene hasta **cuatro bloques**, en este
+- [ ] La pestaña se llama **«Evolución»** y tiene hasta **cuatro bloques**, en este
       orden: cómo va el mes, cómo van los meses, en qué se va y de cada 100 € que entran.
 - [ ] **«Cómo va el mes»** solo sale mirando el mes en curso: dice «A día N llevas X. A
       estas alturas sueles llevar Y», dibuja dos líneas —la de este mes cortada en hoy,
@@ -372,7 +386,7 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] Con todos los meses en positivo **no queda medio dibujo en blanco** bajo la línea
       del cero.
 - [ ] **Ningún bloque lleva pie**: «de dónde sale» se fue el 03-09-2026 porque repetía
-      el desglose de la tarjeta de «El mes».
+      el desglose de la tarjeta de «Este mes».
 - [ ] «En qué se va» y el desglose **sí** siguen al mes que se mira, y lo dicen en el
       título. Arriba se lee «Se han ido 291,45 €».
 - [ ] «En qué se va» enseña un **anillo** y debajo la lista. Los trozos van de mayor a
@@ -401,7 +415,7 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] **Ajustar un fijo en un mes** (05-09-2026): en el mes en curso, tocar «Alquiler»
       dentro del desglose abre «Alquiler en septiembre» con 780 escrito. Poner 800 y
       guardar baja la cuenta a **−955,90 €** y la fila pasa a decir **«suele ser −780 €»**.
-      En «Lo fijo» el alquiler **sigue en 780 €**: si ha subido a 800, se ha vuelto a
+      En «Fijos» el alquiler **sigue en 780 €**: si ha subido a 800, se ha vuelto a
       editar la referencia desde el mes.
 - [ ] Volver a abrirlo y pulsar **«Volver a los 780 €»** deja la cuenta en −935,90 € y
       quita el «suele ser». Y el ajuste es **de su mes**: el mes siguiente no lo hereda.
@@ -452,7 +466,7 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 - [ ] Ir tres meses atrás (junio): la tarjeta dice **«Mes cerrado»** y los fijos son los de
       entonces (−870,90 €), no los de hoy (−935,90 €).
 - [ ] La partida de la compra en junio se mide contra **350 €**, no contra los 400 de hoy.
-- [ ] Cambiar el alquiler en «Lo fijo» mueve **este mes al momento** y **no toca** junio.
+- [ ] Cambiar el alquiler en «Fijos» mueve **este mes al momento** y **no toca** junio.
 - [ ] En un mes cerrado **sí se puede apuntar** —el botón está—, y lo apuntado cae en ese
       mes sin mover sus fijos congelados. Lo que no se puede es crear ni editar partidas:
       no hay enlace de «Nueva partida», y una partida se abre —enseña sus líneas— pero
@@ -461,10 +475,10 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
       crearla no le pondría nada a ese mes, nace en la plantilla de hoy.
 - [ ] En el mes en curso, «+ Nueva partida» **abre el sheet ahí mismo** y no salta a «Lo
       fijo» (03-09-2026). Al crearla se ve en la lista de partidas sin cambiar de
-      pestaña, y también está en «Lo fijo», porque una partida es de la plantilla.
+      pestaña, y también está en «Fijos», porque una partida es de la plantilla.
 - [ ] En el mes en curso, «Cerrar mes» abre un **diálogo** (03-09-2026) que dice qué se
       guarda y que el día 1 se cierra solo; «Cancelar» y la ✕ no hacen nada. Tras
-      confirmarlo, cambiar el alquiler en «Lo fijo» ya no mueve este mes.
+      confirmarlo, cambiar el alquiler en «Fijos» ya no mueve este mes.
 - [ ] Los tres **parecen botones** (04-09-2026): fondo, borde y su icono, no texto verde
       centrado. No van a todo lo ancho. **«Cerrar mes» va en ámbar** y los otros dos en
       crema: el rojo es solo del diálogo de «Poner el mes a cero», que es el que borra.

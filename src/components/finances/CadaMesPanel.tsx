@@ -3,7 +3,7 @@
 import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { resolveAssignee } from '@/lib/assignees'
-import { formatCentsCorto } from '@/lib/finanzas'
+import { formatCents } from '@/lib/finanzas'
 import type { Budget, Child, FamilyMember, FixedEntry, MovementKind } from '@/types'
 
 interface CadaMesPanelProps {
@@ -90,7 +90,7 @@ function FijoRow({ fijo, members, kids, onEdit }: {
       </div>
 
       <span className="flex-shrink-0 text-sm font-bold tabular-nums text-ink">
-        {formatCentsCorto(fijo.amount_cents)}
+        {formatCents(fijo.amount_cents)}
       </span>
     </button>
   )
@@ -101,7 +101,7 @@ function FijoRow({ fijo, members, kids, onEdit }: {
  *
  * Aquí no hay mes al que referirse, así que no hay nada que llevar: lo que se
  * está diciendo es «en un mes normal, a la compra le tocan 400 €». La barra vive
- * en «El mes», que es donde sí hay gastos con los que compararla.
+ * en «Este mes», que es donde sí hay gastos con los que compararla.
  */
 function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }) {
   return (
@@ -112,28 +112,33 @@ function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }
       {partida.emoji && <span className="flex-shrink-0 text-base leading-none" aria-hidden>{partida.emoji}</span>}
       <p className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{partida.name}</p>
       <span className="flex-shrink-0 text-sm font-bold tabular-nums text-ink">
-        {formatCentsCorto(partida.monthly_limit_cents)}
+        {formatCents(partida.monthly_limit_cents)}
       </span>
     </button>
   )
 }
 
 /**
- * «Lo fijo»: cómo suele ser un mes en esta casa.
+ * «Fijos»: cómo suele ser un mes en esta casa.
  *
- * **El nombre, dos vueltas.** Fue «El mes tipo» hasta el 02-09-2026 —«tipo» es
+ * **El nombre, tres vueltas.** Fue «El mes tipo» hasta el 02-09-2026 —«tipo» es
  * una palabra de formulario: hay que pararse a deducir que significa «un mes
  * cualquiera»— y «Cada mes» un día, hasta el 03-09-2026. El problema de «Cada
- * mes» no era lo que decía, era dónde estaba: pegado a «El mes» en la misma fila
+ * mes» no era lo que decía, era dónde estaba: pegado a «Este mes» en la misma fila
  * de pestañas, dos etiquetas con la misma palabra y un determinante de
- * diferencia, y había que detenerse a mirar cuál era cuál. «Lo fijo» no repite
- * «mes», así que se distingue de un vistazo, y nombra lo único que tienen en
- * común las tres listas de aquí: que no cambian de un mes a otro.
+ * diferencia, y había que detenerse a mirar cuál era cuál. De ahí «Lo fijo», que
+ * no repite «mes» y nombra lo único que tienen en común las tres listas de aquí:
+ * que no cambian de un mes a otro.
+ *
+ * El 14-09-2026 se le cayó el «Lo» y se quedó en «Fijos». No por lo que decía,
+ * que seguía estando bien, sino por la compañía: cuatro rótulos con cuatro formas
+ * gramaticales distintas —artículo y nombre, pregunta, adjetivo sustantivado,
+ * nombre a secas— se leen como cuatro ocurrencias en vez de como un menú.
  *
  * Se acepta a sabiendas que **una partida no es un fijo** —es justamente lo que
  * varía— y que la etiqueta le queda ancha. Cabe porque lo que es fijo de una
  * partida es lo que se le da al empezar el mes, que es la cifra que se pone
- * aquí; lo que varía es cuánto llevas, y eso se ve en «El mes».
+ * aquí; lo que varía es cuánto llevas, y eso se ve en «Este mes».
  *
  * Dentro del código el concepto sigue llamándose **la plantilla**, que es lo que
  * es. La clave de la pestaña es `plantilla` y este componente conserva el nombre
@@ -145,7 +150,7 @@ function PartidaRow({ partida, onEdit }: { partida: Budget; onEdit: () => void }
  * terminaron**, que se quedaron con la copia que tenían. Esa es la decisión
  * entera de esta pantalla desde el 02-09-2026.
  *
- * **Las partidas viven aquí y no en «El mes».** Una partida es exactamente lo
+ * **Las partidas viven aquí y no en «Este mes».** Una partida es exactamente lo
  * mismo que un fijo —una cifra de la plantilla—, solo que en vez de gastarse sola se
  * va llenando. Tenerlas en el mes obligaba a decidir qué significaba cambiarlas a
  * mitad de mes; aquí no hay nada que decidir.
@@ -173,7 +178,7 @@ export function CadaMesPanel({
       <section aria-label="Entra al mes" className="space-y-2">
         <Cabecera
           titulo="Entra al mes"
-          total={ingresos.length > 0 ? formatCentsCorto(totalIngresos) : null}
+          total={ingresos.length > 0 ? formatCents(totalIngresos) : null}
           etiquetaNuevo="Nuevo ingreso"
           onNuevo={() => onNuevoFijo('ingreso')}
         />
@@ -194,7 +199,7 @@ export function CadaMesPanel({
       <section aria-label="Sale al mes" className="space-y-2">
         <Cabecera
           titulo="Sale al mes"
-          total={gastos.length > 0 ? formatCentsCorto(-totalGastos) : null}
+          total={gastos.length > 0 ? formatCents(-totalGastos) : null}
           etiquetaNuevo="Nuevo gasto"
           onNuevo={() => onNuevoFijo('gasto')}
         />
@@ -215,7 +220,7 @@ export function CadaMesPanel({
       <section aria-label="Partidas de cada mes" className="space-y-2">
         <Cabecera
           titulo="Se reparte en"
-          total={partidas.length > 0 ? formatCentsCorto(totalPartidas) : null}
+          total={partidas.length > 0 ? formatCents(totalPartidas) : null}
           etiquetaNuevo="Nueva partida"
           onNuevo={onNuevaPartida}
         />
@@ -240,7 +245,7 @@ export function CadaMesPanel({
             <p className="mt-0.5 text-[13px] text-muted">Lo que queda antes de gastar nada.</p>
           </div>
           <span className={`flex-shrink-0 text-lg font-extrabold tabular-nums ${paraElMes < 0 ? 'text-danger-strong' : 'text-ink'}`}>
-            {formatCentsCorto(paraElMes)}
+            {formatCents(paraElMes)}
           </span>
         </div>
       )}

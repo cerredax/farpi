@@ -1,7 +1,7 @@
 'use client'
 
 import { ExpenseRow } from './ExpenseRow'
-import { formatCentsCorto } from '@/lib/finanzas'
+import { formatCents } from '@/lib/finanzas'
 import type { GrupoDeApuntes } from '@/lib/budgets'
 import type { Budget, Child, Expense, FamilyMember } from '@/types'
 
@@ -49,10 +49,10 @@ export function ListaDeApuntes({ grupos, rotulo, conFecha = true, budgets, membe
               {rotulo(grupo.clave)}
             </h3>
             <p className="flex-shrink-0 text-xs font-bold tabular-nums text-muted">
-              {grupo.gastado > 0 && formatCentsCorto(grupo.gastado)}
+              {grupo.gastado > 0 && formatCents(grupo.gastado)}
               {grupo.gastado > 0 && grupo.ingresado > 0 && ' · '}
               {grupo.ingresado > 0 && (
-                <span className="text-primary-strong">+{formatCentsCorto(grupo.ingresado)}</span>
+                <span className="text-primary-strong">+{formatCents(grupo.ingresado)}</span>
               )}
             </p>
           </div>

@@ -806,6 +806,40 @@ técnicas pequeñas. El porqué de cada cosa, en `docs/historial.md`.
 - [x] Decidido **no** poner ventana temporal a `getExpenses` todavía, y escrito por qué y
       con qué umbral revisarlo (~3.000 apuntes) en `docs/project-status.md`.
 
+## Fase 8x - Finanzas: el menú se lee como un menú (14-09-2026)
+
+Segunda vuelta del mismo día, pedida al mirar la barra de pestañas ya terminada: se ven
+las cuatro, y aun así no parecía una barra. El porqué, en `docs/architecture.md`, «El
+menú de Finanzas se lee como un menú».
+
+- [x] **Cuatro nombres con la misma forma**: «Este mes», «Evolución», «Fijos» y
+      «Presupuestos». Los de antes eran artículo y nombre, pregunta, adjetivo
+      sustantivado y nombre a secas — cada uno bien elegido por su lado y los cuatro
+      juntos leyéndose como cuatro ocurrencias. Se acepta perder «Cómo vamos», que
+      nombraba lo que la pestaña contesta.
+- [x] **Segmentado de verdad**: canal gris (`surface`) y la activa como tarjeta blanca
+      con sombra, en vez de caja blanca con la pestaña activa en verde macizo — el último
+      verde relleno de la app, que Ajustes ya se había quitado el 02-09.
+- [x] **Los cuatro rótulos en tinta**: `muted` sobre `surface` da 4,24:1 y no llega al
+      4,5 que pide un texto de 13 px. Lo que marca el activo es la tarjeta y el peso.
+- [x] **Las partidas salen plegadas**, con su número en el título, y debajo queda el día
+      a día. Se pliega esto en vez de subir el día a día por encima: el orden de la
+      pestaña dice algo, y subirlo dejaría las partidas al fondo detrás de setenta filas.
+- [x] **Los importes llevan siempre sus dos decimales.** Había dos formatos y se usaban
+      los dos: en una columna con «400 €», «74,70 €» y «1.234,56 €» la coma cae en un
+      sitio distinto cada renglón y las cifras dejan de compararse de un vistazo.
+      `formatCentsCorto` se queda solo para los rótulos de dentro de los gráficos
+      —redondeados al euro porque a 9 px no cabe otra cosa— y el tope del validador.
+- [x] **`/finanzas` pasa a `/finances`**, con **redirect 308 permanente** en
+      `next.config.ts`, que es lo que faltaba el 12-09 para poder tocarla. Se renombran la
+      ruta, `src/components/finances/` y `FinancesView`; la lógica (`src/lib/finanzas.ts`,
+      `useFinanzasState`, los componentes en español) no se toca, igual que en Cumpleaños.
+      Ya no queda ninguna ruta en español.
+- [x] **Fuera el punto de color de la lista de Cumpleaños**: en doce meses, los de la casa
+      son cuatro o cinco y el resto no tienen color, así que eran treinta puntos grises
+      con cuatro de color — decoración, no información.
+- [x] Suite entera en verde: **716** (542 unitarios + 174 de navegador).
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

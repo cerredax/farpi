@@ -2,7 +2,8 @@
 
 import { format, parseISO, subDays } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, Plus } from 'lucide-react'
 import { AjusteDelMesSheet } from './AjusteDelMesSheet'
 import { BudgetBar } from './BudgetBar'
 import { BudgetSheet } from './BudgetSheet'
@@ -87,11 +88,11 @@ const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => strin
  * Y qué crea el `+`. Uno solo que hace lo de la pestaña que se mira: tres botones,
  * dos de ellos siempre inactivos, sería peor.
  *
- * En «Lo fijo» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
+ * En «Fijos» abre un gasto fijo —las nóminas se ponen una vez y son dos, y
  * lo que se añade después son recibos—, y de todos modos el tipo es lo primero que
  * hay dentro del sheet. Las partidas tienen su propio «+» en su bloque.
  *
- * En «Resumen» abre un apunte, igual que en «El mes»: es lo mismo que se está
+ * En «Evolución» abre un apunte, igual que en «Este mes»: es lo mismo que se está
  * mirando, y un `+` que no hiciera nada sería peor que uno que hace lo obvio.
  */
 const ETIQUETA_DE_ALTA: Record<PestañaFinanzas, string> = {
@@ -101,8 +102,20 @@ const ETIQUETA_DE_ALTA: Record<PestañaFinanzas, string> = {
   presupuestos: 'Nuevo presupuesto pedido',
 }
 
-export function FinanzasView() {
+export function FinancesView() {
   const s = useFinanzasState()
+
+  /**
+   * Si las partidas están desplegadas. Vive aquí y no en `useFinanzasState`
+   * porque no es un dato de la pantalla, es en qué postura la ha dejado quien
+   * mira: se abre, se consulta y al salir vuelve a estar plegada, que es como se
+   * quiere al entrar. Mismo criterio que `SeccionPlegable` en el calendario.
+   *
+   * Y **no se cierra al cambiar de mes**: quien la abre suele estar comparando
+   * meses —«¿en junio también nos pasamos con la compra?»—, y volver a abrirla en
+   * cada salto sería pelearse con la pantalla.
+   */
+  const [partidasAbiertas, setPartidasAbiertas] = useState(false)
 
   const nombreDelMes = capitalize(format(parseISO(`${s.mes}-01`), 'MMMM yyyy', { locale: es }))
 
@@ -149,9 +162,9 @@ export function FinanzasView() {
             cerrar. El resumen cambia con la pestaña porque el `+` también. */}
         <ViewHeader
           resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
-          // **El buscador, solo en «El mes»** (14-09-2026), que es donde están los
-          // apuntes: en «Lo fijo» hay seis líneas que se leen de un vistazo y en
-          // «Cómo vamos» no hay lista que filtrar. Era la única pantalla de
+          // **El buscador, solo en «Este mes»** (14-09-2026), que es donde están los
+          // apuntes: en «Fijos» hay seis líneas que se leen de un vistazo y en
+          // «Evolución» no hay lista que filtrar. Era la única pantalla de
           // contenido de la app que lo tenía apagado a mano, y eso dejaba sin
           // contestar las preguntas que no son de un mes —«¿cuánto llevamos en el
           // dentista?»— salvo yendo mes a mes con la tira.
@@ -186,11 +199,26 @@ export function FinanzasView() {
             las cuatro sin bajar la letra: con `flex-auto` cada una mide lo suyo y
             el hueco restante se reparte a prorrata, en vez de dar cuartos iguales
             —que a 390 px obligaba a bajar a 11 px para que «Presupuestos»
-            cupiera, justo lo que se había subido a 13 el 04-09—. El texto se
-            queda en los 12 px que ya tenía.
+            cupiera—.
 
-            `whitespace-nowrap` porque lo que no puede pasar es que «Cómo vamos»
+            `whitespace-nowrap` porque lo que no puede pasar es que un rótulo
             parta en dos renglones y suba la barra de alto.
+
+            **Y es un segmentado de verdad desde el 14-09-2026, no una pastilla
+            verde sobre una caja blanca.** Lo que había —caja blanca con borde y
+            la activa en `primary-strong` maciza— era el único verde relleno que
+            quedaba en la app: Ajustes se lo quitó el 02-09-2026 y se quedó con el
+            tinte. Aquí se va por el otro camino, que es el del control nativo: un
+            canal gris (`surface`) y la activa como una **tarjeta blanca con
+            sombra**, que es lo que dice «estás aquí» sin pintar nada de color.
+
+            **Los cuatro rótulos van en tinta**, no el activo en tinta y los demás
+            en gris, y no es un descuido: `muted` (#6E6861) sobre `surface`
+            (#F0EDE8) da 4,24:1, por debajo del 4,5 que pide un texto de 13 px, y
+            con `hairline` de canal tampoco llega (4,40:1). Lo que separa al activo
+            del resto es la tarjeta y el peso de la letra, que además es
+            exactamente lo que hace un segmentado de iOS. Es la regla de la casa
+            del 09-09-2026: lo que hay que leer no se apaga con color.
 
             **En escritorio no se estira** (`lg:w-fit`): ocupar el ancho tiene
             sentido a 390 px, donde el ancho es el que es y repartirlo es lo que
@@ -199,16 +227,29 @@ export function FinanzasView() {
         <div
           role="tablist"
           aria-label="Secciones de finanzas"
-          className="flex gap-1 rounded-2xl border border-line bg-white p-1 lg:w-fit"
+          className="flex gap-1 rounded-2xl bg-surface p-1 lg:w-fit"
         >
+          {/* **Cuatro nombres y no cuatro frases** (14-09-2026, pedido). Los de
+              antes —«El mes», «Cómo vamos», «Lo fijo», «Presupuestos»— tenían cada
+              uno una forma gramatical distinta: artículo y nombre, pregunta,
+              adjetivo sustantivado y nombre a secas. Cada uno se había elegido bien
+              por su lado y juntos se leían como cuatro ocurrencias en vez de como
+              un menú, que es lo que se veía al mirar la barra entera.
+
+              Se pierde algo y consta: «Cómo vamos» nombraba lo que la pestaña
+              contesta y «Evolución» nombra lo que enseña, que era justo lo que el
+              04-09-2026 se había ido a corregir. A cambio, las cuatro se leen del
+              tirón. Las claves no se tocan (`resumen`, `plantilla`): renombrarlas
+              no le cambia nada a nadie.
+
+              «Este mes» dice de qué habla la pestaña al entrar, que es el caso
+              normal; navegando a agosto el rótulo se queda corto, pero de qué mes
+              se está hablando lo dice la tarjeta de debajo con su nombre grande,
+              que es donde se mira. */}
           {([
-            { key: 'mes', label: 'El mes' },
-            // «Cómo vamos» y no «Resumen» (04-09-2026): nombra lo que contesta y no
-            // cómo lo pinta, que además es lo honesto cuando parte de lo que hay ahí
-            // es una frase y no un dibujo. La clave sigue siendo `resumen` porque
-            // renombrarla no le cambia nada a nadie.
-            { key: 'resumen', label: 'Cómo vamos' },
-            { key: 'plantilla', label: 'Lo fijo' },
+            { key: 'mes', label: 'Este mes' },
+            { key: 'resumen', label: 'Evolución' },
+            { key: 'plantilla', label: 'Fijos' },
             { key: 'presupuestos', label: 'Presupuestos' },
           ] as { key: PestañaFinanzas; label: string }[]).map(p => (
             <button
@@ -219,8 +260,10 @@ export function FinanzasView() {
               aria-selected={s.pestaña === p.key}
               aria-controls={`panel-${p.key}`}
               onClick={() => s.setPestaña(p.key)}
-              className={`min-h-11 flex-auto whitespace-nowrap rounded-xl px-2 text-xs font-bold transition-colors ${
-                s.pestaña === p.key ? 'bg-primary-strong text-white' : 'text-muted hover:bg-surface'
+              className={`min-h-11 flex-auto whitespace-nowrap rounded-xl px-2 text-[13px] text-ink transition-colors ${
+                s.pestaña === p.key
+                  ? 'bg-white font-bold shadow-sm'
+                  : 'font-semibold hover:bg-white/60'
               }`}
             >
               {p.label}
@@ -309,13 +352,49 @@ export function FinanzasView() {
               {(!s.esPorVenir || s.previsionAbierta) && (
                 <section aria-label="Partidas del mes" className="space-y-2">
                   <div className="flex items-center justify-between gap-3 px-1">
-                    <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Partidas</h2>
+                    {/* **Plegadas al entrar** (14-09-2026, pedido). Ocupaban media
+                        pantalla de móvil entre la cuenta del mes y el día a día: con
+                        cinco partidas hay que pasar por encima de cinco barras para
+                        llegar a lo que se viene a hacer aquí, que es apuntar y mirar
+                        lo apuntado. Las partidas se consultan cuando se pregunta por
+                        ellas —«¿cuánto queda de la compra?»—, y esa pregunta se hace
+                        de vez en cuando; el día a día es de todos los días.
+
+                        Se pliega esto en vez de subir el día a día por encima porque
+                        el orden de la pestaña dice algo: la cuenta del mes, cómo se
+                        reparte y luego el detalle. Subiendo el día a día, las
+                        partidas se quedan al fondo detrás de setenta filas, que es
+                        esconderlas más y no menos.
+
+                        El número va en el título porque plegado es lo único que se ve,
+                        igual que en «El día a día» de abajo: sin él, la línea no
+                        distingue «no hay ninguna» de «hay cinco». */}
+                    <h2 className="min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setPartidasAbiertas(v => !v)}
+                        aria-expanded={partidasAbiertas}
+                        aria-controls="partidas-del-mes"
+                        className="-ml-2 flex min-h-11 items-center gap-1.5 px-2 text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-ink"
+                      >
+                        Partidas
+                        {s.resumen.length > 0 && (
+                          <span className="tabular-nums">({s.resumen.length})</span>
+                        )}
+                        <ChevronDown
+                          size={14}
+                          strokeWidth={2.4}
+                          aria-hidden
+                          className={`transition-transform ${partidasAbiertas ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                    </h2>
                     {/* Solo se ofrece añadir donde las partidas son las vivas: en un mes
                         pasado —cerrado o no— lo que se mira es lo que hubo, y no hay nada
                         que tocar ahí.
 
                         **Abre el sheet aquí mismo** (03-09-2026). Hasta ese día mandaba a
-                        «Lo fijo», por una razón de vocabulario —una partida es de la
+                        «Fijos», por una razón de vocabulario —una partida es de la
                         plantilla y no de un mes, y crearla desde enero haría creer que se
                         está creando en enero— que ya no hace falta defender con un salto de
                         pestaña: de eso se encarga `planVivo`, que es lo que impide que este
@@ -338,34 +417,38 @@ export function FinanzasView() {
                     )}
                   </div>
 
-                  {s.resumen.length === 0 ? (
-                    /* Las tres ramas están en el título y no en una descripción
-                        debajo, porque no explican para qué sirven las partidas: dicen
-                        por qué no hay ninguna, y no es lo mismo un mes al que no se
-                        le puso ninguna que uno del que no se guardó el plan. Sin esa
-                        distinción, un "Sin partidas" a secas afirmaría algo que no
-                        consta. */
-                    <EmptyState
-                      emoji="🎯"
-                      title={s.planVivo
-                        ? 'Sin partidas'
-                        : s.planCongelado
-                          ? 'Ese mes se cerró sin partidas'
-                          : 'De ese mes no se guardó el plan'}
-                    />
-                  ) : (
-                    s.resumen.map(r => (
-                      <BudgetBar
-                        key={r.partida.key}
-                        resumen={r}
-                        members={s.members}
-                        kids={s.kids}
-                        onEdit={s.planVivo && r.partida.budgetId
-                          ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
-                          : undefined}
-                        onEditApunte={s.abrirApunte}
-                      />
-                    ))
+                  {partidasAbiertas && (
+                    <div id="partidas-del-mes" className="space-y-2">
+                      {s.resumen.length === 0 ? (
+                        /* Las tres ramas están en el título y no en una descripción
+                            debajo, porque no explican para qué sirven las partidas: dicen
+                            por qué no hay ninguna, y no es lo mismo un mes al que no se
+                            le puso ninguna que uno del que no se guardó el plan. Sin esa
+                            distinción, un "Sin partidas" a secas afirmaría algo que no
+                            consta. */
+                        <EmptyState
+                          emoji="🎯"
+                          title={s.planVivo
+                            ? 'Sin partidas'
+                            : s.planCongelado
+                              ? 'Ese mes se cerró sin partidas'
+                              : 'De ese mes no se guardó el plan'}
+                        />
+                      ) : (
+                        s.resumen.map(r => (
+                          <BudgetBar
+                            key={r.partida.key}
+                            resumen={r}
+                            members={s.members}
+                            kids={s.kids}
+                            onEdit={s.planVivo && r.partida.budgetId
+                              ? () => s.abrirPartidaPorId(r.partida.budgetId as string)
+                              : undefined}
+                            onEditApunte={s.abrirApunte}
+                          />
+                        ))
+                      )}
+                    </div>
                   )}
                 </section>
               )}
@@ -509,7 +592,7 @@ export function FinanzasView() {
       />
 
       {/* Lo que un fijo costó **en este mes**. Solo se abre desde el desglose de
-          «El mes», y por eso el mes que ajusta es siempre el que se está mirando:
+          «Este mes», y por eso el mes que ajusta es siempre el que se está mirando:
           no hay selector de mes dentro, sería otra pantalla. */}
       <AjusteDelMesSheet
         key={s.ajusteKey}

@@ -153,6 +153,21 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: SECURITY_HEADERS }];
   },
+  /**
+   * Finanzas se llamó `/finanzas` hasta el 14-09-2026 y era la única ruta en
+   * español. El redirect no es cortesía: la app lleva semanas instalada en los
+   * móviles de la familia, y eso deja marcadores, historial y lo que el
+   * navegador haya guardado de una pantalla que se visita a diario. Sin él,
+   * quien vuelva por ahí se encuentra un 404 — y el service worker hace
+   * network-first en las navegaciones, así que le serviría el 404, no la caché.
+   *
+   * Es `permanent: true` (308) porque el cambio no se va a deshacer, y así el
+   * navegador deja de pedir la vieja. Se queda para siempre: cuesta una línea y
+   * no hay forma de saber qué marcadores siguen ahí.
+   */
+  async redirects() {
+    return [{ source: '/finanzas', destination: '/finances', permanent: true }];
+  },
 };
 
 export default nextConfig;

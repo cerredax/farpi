@@ -3,7 +3,7 @@
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { resolveAssignee } from '@/lib/assignees'
-import { formatCentsCorto } from '@/lib/finanzas'
+import { formatCents } from '@/lib/finanzas'
 import type { Budget, Child, Expense, FamilyMember } from '@/types'
 
 interface ExpenseRowProps {
@@ -72,7 +72,7 @@ export function ExpenseRow({ expense, budgets, members, kids, conFecha = true, o
       </div>
 
       <span className={`flex-shrink-0 text-sm font-bold tabular-nums ${esIngreso ? 'text-primary-strong' : 'text-ink'}`}>
-        {esIngreso ? '+' : ''}{formatCentsCorto(expense.amount_cents)}
+        {esIngreso ? '+' : ''}{formatCents(expense.amount_cents)}
       </span>
     </button>
   )

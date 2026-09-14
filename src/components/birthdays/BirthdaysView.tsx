@@ -96,38 +96,35 @@ export function BirthdaysView() {
    * porque de dónde sale el dato no es asunto de quien lo mira. Lo único que
    * cambia es a dónde lleva.
    */
-  function fila({ id, nombre, fecha, dias, edad, color, apuntado }: CumpleEnCasa) {
+  function fila({ id, nombre, fecha, dias, edad, apuntado }: CumpleEnCasa) {
     const contenido = (
       <>
         <span className="w-20 flex-shrink-0 text-xs font-bold text-primary-strong">
           {diaDeCumple(fecha, dias)}
         </span>
         {/**
-          * **El nombre en tinta, con un punto de su color delante** (14-09-2026).
+          * **El nombre en tinta y nada delante** (14-09-2026, segunda vuelta del
+          * mismo día).
           *
-          * Iba dentro de una pastilla de color, como en Inicio y en la agenda, y
-          * aquí no funcionaba: allí la pastilla nombra a quien lleva un plan
-          * entre otras cosas que no son personas, y esta pantalla es una columna
-          * en la que **todas** las filas son un nombre. Treinta pastillas
-          * seguidas, unas de color y otras grises —quien no es de la casa no
-          * tiene—, se leen como una lista de etiquetas mal alineadas y no como
-          * una lista de gente. Encima el gris del de fuera parecía un fallo de
-          * pintado.
+          * Por la mañana iba dentro de una pastilla de color, como en Inicio y en
+          * la agenda, y no funcionaba: allí la pastilla nombra a quien lleva un
+          * plan entre otras cosas que no son personas, y esta pantalla es una
+          * columna en la que **todas** las filas son un nombre. Treinta pastillas
+          * seguidas se leen como una lista de etiquetas mal alineadas y no como
+          * una lista de gente.
           *
-          * El color no se pierde, cambia de sitio: un punto de 8 px delante, que
-          * es como lo dice la app cuando el nombre es el contenido de la fila
-          * (los planes de Inicio, la agenda del calendario). Y el nombre sube a
-          * 14 px en negrita, que es lo que se viene a leer aquí.
+          * El arreglo fue mover el color a un punto de 8 px delante, y el punto
+          * se va ahora por lo mismo que se fue la pastilla, solo que visto ya en
+          * la lista entera: **casi todos salen iguales**. En doce meses de
+          * cumpleaños, los de la casa son cuatro o cinco y el resto son de fuera
+          * —la abuela, el amigo del cole—, que no tienen color y llevaban el
+          * punto en gris. Una columna de treinta puntos grises con cuatro de
+          * color no dice de quién es cada fila: dice que hay una decoración.
           *
-          * Quien no es de la casa se queda con el punto en gris: el color dice de
-          * quién es algo y un cumpleaños de fuera no es de nadie, pero el hueco
-          * tiene que estar para que los nombres queden en columna.
+          * El color de una persona sigue estando donde sirve, que es donde hay
+          * que distinguirla de otras cosas: los planes de Inicio y la agenda del
+          * calendario. Aquí lo que se viene a leer es un nombre y un día.
           */}
-        <span
-          className="h-2 w-2 flex-shrink-0 self-center rounded-full"
-          style={{ backgroundColor: color ?? 'var(--color-line-strong)' }}
-          aria-hidden
-        />
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{nombre}</span>
         {edad !== null && (
           <span className="flex-shrink-0 pl-2 text-xs font-semibold text-muted">

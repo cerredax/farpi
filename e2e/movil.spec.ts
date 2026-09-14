@@ -15,7 +15,7 @@ import { elegirVista } from './vistas'
 
 // La barra de la página de inicio pública lleva la marca y los dos botones de
 // cuenta en una sola fila, que es justo lo que se sale a 390 px si crece.
-const RUTAS = ['/', '/home', '/calendar', '/tasks', '/lists', '/meals', '/finanzas', '/notes', '/docs', '/birthdays', '/settings']
+const RUTAS = ['/', '/home', '/calendar', '/tasks', '/lists', '/meals', '/finances', '/notes', '/docs', '/birthdays', '/settings']
 
 const MINIMO_TOQUE = 24
 
@@ -232,7 +232,7 @@ for (const ruta of RUTAS) {
 // bucle de arriba no lo habría visto nunca: un contenedor que se arrastra no
 // desborda la página.
 test('las cuatro pestañas de Finanzas caben enteras a 390 px', async ({ page }) => {
-  await page.goto('/finanzas')
+  await page.goto('/finances')
   await page.waitForTimeout(900)
 
   const barra = page.getByRole('tablist', { name: 'Secciones de finanzas' })
@@ -242,7 +242,7 @@ test('las cuatro pestañas de Finanzas caben enteras a 390 px', async ({ page })
   const medidas = await barra.evaluate(el => ({ scroll: el.scrollWidth, visible: el.clientWidth }))
   expect(medidas.scroll).toBeLessThanOrEqual(medidas.visible)
 
-  for (const nombre of ['El mes', 'Cómo vamos', 'Lo fijo', 'Presupuestos']) {
+  for (const nombre of ['Este mes', 'Evolución', 'Fijos', 'Presupuestos']) {
     const pestaña = page.getByRole('tab', { name: nombre })
     const caja = await pestaña.boundingBox()
     expect(caja, `falta la pestaña ${nombre}`).not.toBeNull()

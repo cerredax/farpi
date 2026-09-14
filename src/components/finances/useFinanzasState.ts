@@ -90,7 +90,7 @@ export function useFinanzasState() {
   const mesActual = mesDe(hoy)
 
   // Qué valía en el mes que se está mirando: la plantilla viva si no ha
-  // terminado, la copia congelada si terminó. Todo lo de «El mes» cuelga de aquí,
+  // terminado, la copia congelada si terminó. Todo lo de «Este mes» cuelga de aquí,
   // y por eso se calcula una sola vez y no en cada selector.
   const plantilla = useMemo(
     () => plantillaDelMes(mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, previsionAbierta),
@@ -136,7 +136,7 @@ export function useFinanzasState() {
     )
   }, [plantilla, expenses, mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans])
 
-  // Los tres datos de «Cómo vamos» que no salen de la serie ni del reparto.
+  // Los tres datos de «Evolución» que no salen de la serie ni del reparto.
   const acumulado = useMemo(() => gastoAcumulado(expenses, mes), [expenses, mes])
   const ritmo = useMemo(
     () => ritmoHabitual(monthPlans, expenses, mesActual),
@@ -167,7 +167,7 @@ export function useFinanzasState() {
 
   // ─── Buscar ────────────────────────────────────────────────────────────────
   //
-  // Lo encontrado **manda sobre el mes**: mientras haya algo escrito, «El mes»
+  // Lo encontrado **manda sobre el mes**: mientras haya algo escrito, «Este mes»
   // enseña los resultados y no la cuenta. Es lo mismo que hace Documentos con sus
   // categorías —«la búsqueda manda sobre el filtro»— y aquí el mes es el filtro:
   // encontrar los dos recibos del dentista no puede depender de en qué mes
@@ -326,7 +326,7 @@ export function useFinanzasState() {
       setFixedSheetOpen(true)
     },
     /**
-     * Tocar un fijo en el desglose de «El mes» **ajusta ese mes**, no la
+     * Tocar un fijo en el desglose de «Este mes» **ajusta ese mes**, no la
      * referencia (05-09-2026).
      *
      * Del 04 al 05-09 abría el fijo entero, y estaba mal: la limpieza son 120 € al
@@ -334,7 +334,7 @@ export function useFinanzasState() {
      * referencia a 150 y con ella todos los meses abiertos —la casa perdía el
      * «esto suele costar 120», que es justo el dato por el que se pone un fijo—.
      * Ahora el sheet corto pregunta por el mes y la referencia se sigue tocando en
-     * «Lo fijo», a donde ese mismo sheet lleva de un toque.
+     * «Fijos», a donde ese mismo sheet lleva de un toque.
      */
     abrirAjusteDelMes(fijo: FijoDelMes) {
       if (!fijo.fixedId) return
@@ -384,7 +384,7 @@ export function useFinanzasState() {
       setBudgetSheetOpen(true)
     },
     /**
-     * Editar una partida desde su barra en «El mes». La barra solo lleva el id
+     * Editar una partida desde su barra en «Este mes». La barra solo lleva el id
      * —lo demás lo tiene copiado, para poder pintar una partida ya borrada—, así
      * que hay que ir a buscar la viva. Si no está, no se abre nada.
      */

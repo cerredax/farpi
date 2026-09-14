@@ -8,7 +8,7 @@ const titles: Record<string, string> = {
   '/tasks':     'Tareas',
   '/lists':     'Listas',
   '/meals':     'Comidas',
-  '/finanzas':  'Finanzas',
+  '/finances':  'Finanzas',
   '/notes':     'Notas',
   '/docs':      'Documentos',
   '/birthdays': 'Cumpleaños',

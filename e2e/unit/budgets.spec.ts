@@ -382,7 +382,7 @@ test.describe('qué plantilla valía en un mes', () => {
     expect(p.partidas[0].limiteCents).toBe(40000)
   })
 
-  // Y por eso sus líneas se pueden abrir desde «El mes»: llevan el id del fijo
+  // Y por eso sus líneas se pueden abrir desde «Este mes»: llevan el id del fijo
   // vivo. Las de un mes cerrado no —son una copia que no sabe de dónde salió—, y
   // es lo que impide editar lo que ya se cerró.
   test('el espejo lleva el fijo vivo detrás; la copia, no', () => {
@@ -631,7 +631,7 @@ test.describe('lo que ya existía en un mes', () => {
   })
 })
 
-// Lo que dibuja «Cómo vamos» (04-09-2026). Lo interesante de estas cuatro no es la
+// Lo que dibuja «Evolución» (04-09-2026). Lo interesante de estas cuatro no es la
 // aritmética, es qué hacen cuando **no hay con qué comparar**: es la mitad de los
 // casos en una casa que lleva dos meses con la app.
 
@@ -1149,7 +1149,7 @@ test.describe('las partidas del formulario, por uso', () => {
     budget({ id: 'b3', name: 'Coche', sort_order: 2 }),
   ]
 
-  test('la más usada primero, aunque esté la última en «Lo fijo»', () => {
+  test('la más usada primero, aunque esté la última en «Fijos»', () => {
     const orden = partidasPorUso(PARTIDAS, [
       gasto({ id: 'g1', budget_id: 'b3' }),
       gasto({ id: 'g2', budget_id: 'b3' }),

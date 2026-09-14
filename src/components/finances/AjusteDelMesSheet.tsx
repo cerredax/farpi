@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetForm } from '@/hooks/useSheetForm'
-import { centsToInput, formatCentsCorto } from '@/lib/finanzas'
+import { centsToInput, formatCents } from '@/lib/finanzas'
 import { validateFixedOverrideDraft } from '@/lib/validators'
 import type { FijoDelMes } from '@/lib/budgets'
 import type { FixedOverrideDraft } from '@/types'
@@ -21,7 +21,7 @@ interface AjusteDelMesSheetProps {
   onSave: (draft: FixedOverrideDraft) => void
   /** Quitar el ajuste. Solo se ofrece si ese mes tiene uno. */
   onQuitar: () => void
-  /** Irse a la referencia, en «Lo fijo». Cierra este sheet y abre el del fijo. */
+  /** Irse a la referencia, en «Fijos». Cierra este sheet y abre el del fijo. */
   onEditarFijo: () => void
 }
 
@@ -35,7 +35,7 @@ interface AjusteDelMesSheetProps {
  * diferencia en el día a día mezclaba un recibo con la compra y dejaba «Gastos
  * fijos» diciendo lo que no fue.
  *
- * Así que son dos cifras y dos sitios: **la referencia se toca en «Lo fijo»** y el
+ * Así que son dos cifras y dos sitios: **la referencia se toca en «Fijos»** y el
  * mes se toca aquí. Y por eso este sheet es corto —un campo— en vez de ser el del
  * fijo con un selector de «solo este mes / siempre» arriba: ese selector convierte
  * un formulario en dos, y el que se equivoca de opción no se entera hasta un mes
@@ -98,7 +98,7 @@ export function AjusteDelMesSheet({
           />
           <p className="text-[10px] leading-relaxed text-muted">
             {referencia !== null
-              ? `Solo para ${mesEnMinuscula}. La referencia sigue siendo ${formatCentsCorto(referencia)} al mes y los demás meses no se tocan.`
+              ? `Solo para ${mesEnMinuscula}. La referencia sigue siendo ${formatCents(referencia)} al mes y los demás meses no se tocan.`
               : `Solo para ${mesEnMinuscula}: los demás meses siguen con ${esIngreso ? 'lo que entra' : 'lo que sale'} de siempre.`}
           </p>
         </Field>
@@ -113,7 +113,7 @@ export function AjusteDelMesSheet({
               fullWidth
               onClick={() => { onQuitar(); onClose() }}
             >
-              Volver a los {formatCentsCorto(referencia)}
+              Volver a los {formatCents(referencia)}
             </Button>
           )}
 

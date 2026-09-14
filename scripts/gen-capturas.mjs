@@ -83,7 +83,7 @@ const PANTALLAS = [
       await pagina.waitForTimeout(700)
     },
   },
-  { ruta: '/finanzas', nombre: 'finanzas',   espera: 'Compra semanal' },
+  { ruta: '/finances', nombre: 'finanzas',   espera: 'Compra semanal' },
   { ruta: '/notes',    nombre: 'notas',      espera: 'Wifi de casa' },
   { ruta: '/docs',     nombre: 'documentos', espera: 'Seguro del coche' },
 ]

@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { mediaQueQueda, mesCorto } from '@/lib/budgets'
-import { formatCentsCorto } from '@/lib/finanzas'
+import { formatCents, formatCentsCorto } from '@/lib/finanzas'
 import { capitalize } from '@/lib/text'
 import type {
   MesDeLaSerie, PartidaQueSePasa, RepartoDeLoQueEntra, TrozoDelReparto,
@@ -49,7 +49,7 @@ function enEuros(centimos: number): string {
  * Lo que llevas gastado, día a día, contra lo que sueles llevar.
  *
  * **Es el bloque que contesta la pregunta de mitad de mes** —«¿voy bien o voy
- * rápido?»— y hasta el 04-09-2026 no la contestaba nadie: «El mes» dice cuánto
+ * rápido?»— y hasta el 04-09-2026 no la contestaba nadie: «Este mes» dice cuánto
  * queda, que es un saldo, no un ritmo. Un saldo bueno el día 5 y el mismo saldo el
  * día 25 son dos meses distintos.
  *
@@ -89,8 +89,8 @@ function RitmoDelMes({ acumulado, ritmo, diaDeHoy }: {
   return (
     <div className="space-y-3">
       <p className="text-[13px] text-muted">
-        A día {hasta} llevas <span className="font-bold text-ink">{formatCentsCorto(llevas)}</span>.
-        {' '}A estas alturas sueles llevar {formatCentsCorto(sueles)}.
+        A día {hasta} llevas <span className="font-bold text-ink">{formatCents(llevas)}</span>.
+        {' '}A estas alturas sueles llevar {formatCents(sueles)}.
       </p>
 
       <svg viewBox={`0 0 ${ANCHO} ${ALTO + 16}`} className="w-full" aria-hidden>
@@ -213,7 +213,7 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
           className="mx-auto block"
           aria-hidden
         >
-          {/* El mes que se está mirando en «El mes», señalado por detrás: en una
+          {/* El mes que se está mirando en «Este mes», señalado por detrás: en una
               fila de barras iguales, encontrar cuál es septiembre era una búsqueda. */}
           {iMirado >= 0 && (
             <rect
@@ -302,10 +302,10 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
                 <th scope="row" className="py-1 text-left font-normal text-muted">
                   {capitalize(format(parseISO(`${m.mes}-01`), 'LLLL', { locale: es }))}
                 </th>
-                <td className="py-1 text-right tabular-nums text-ink">{formatCentsCorto(m.entra)}</td>
-                <td className="py-1 text-right tabular-nums text-ink">{formatCentsCorto(-m.sale)}</td>
+                <td className="py-1 text-right tabular-nums text-ink">{formatCents(m.entra)}</td>
+                <td className="py-1 text-right tabular-nums text-ink">{formatCents(-m.sale)}</td>
                 <td className={`py-1 text-right font-semibold tabular-nums ${m.queda < 0 ? 'text-danger-strong' : 'text-ink'}`}>
-                  {formatCentsCorto(m.queda)}
+                  {formatCents(m.queda)}
                 </td>
               </tr>
             ))}
@@ -378,7 +378,7 @@ function EnQueSeVa({ reparto, sePasan, mesAnterior }: {
   return (
     <div className="space-y-4">
       <p className="text-[13px] text-muted">
-        Se han ido <span className="font-bold text-ink">{formatCentsCorto(total)}</span>
+        Se han ido <span className="font-bold text-ink">{formatCents(total)}</span>
       </p>
 
       {/* `aria-hidden`: cada trozo está escrito debajo con su nombre, su importe y su
@@ -422,7 +422,7 @@ function EnQueSeVa({ reparto, sePasan, mesAnterior }: {
                 </span>
               )}
             </span>
-            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(trozo.total)}</span>
+            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(trozo.total)}</span>
             <span className="w-10 flex-shrink-0 text-right tabular-nums text-muted">{trozo.porcentaje} %</span>
           </li>
         ))}
@@ -487,9 +487,9 @@ function DeCadaCien({ entrada }: { entrada: RepartoDeLoQueEntra }) {
   return (
     <div className="space-y-3">
       <p className="text-[13px] text-muted">
-        Entran <span className="font-bold text-ink">{formatCentsCorto(entra)}</span>
+        Entran <span className="font-bold text-ink">{formatCents(entra)}</span>
         {queda < 0
-          ? <> y se van <span className="font-bold text-danger-strong">{formatCentsCorto(-queda)}</span> de más.</>
+          ? <> y se van <span className="font-bold text-danger-strong">{formatCents(-queda)}</span> de más.</>
           : <> y se queda el <span className="font-bold text-ink">{Math.round((queda / entra) * 100)} %</span>.</>}
       </p>
 
@@ -511,7 +511,7 @@ function DeCadaCien({ entrada }: { entrada: RepartoDeLoQueEntra }) {
               aria-hidden
             />
             <span className="min-w-0 flex-1 truncate text-muted">{t.nombre}</span>
-            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCentsCorto(t.valor)}</span>
+            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(t.valor)}</span>
             <span className="w-9 flex-shrink-0 text-right tabular-nums text-muted">
               {Math.round((t.valor / entra) * 100)} %
             </span>
@@ -534,17 +534,23 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
 }
 
 /**
- * «Cómo vamos»: cuatro preguntas sobre el dinero de la casa, cada una con su
+ * «Evolución»: cuatro preguntas sobre el dinero de la casa, cada una con su
  * cifra y su dibujo.
  *
- * **Se llamaba «Resumen» hasta el 04-09-2026**, y el nombre sobraba por dos
- * motivos: no resumía nada que no estuviera ya en «El mes», y prometía un resumen
- * donde lo que hay son respuestas. La clave interna sigue siendo `resumen` y el
- * archivo conserva su nombre, como `CadaMesPanel`: renombrarlos no le cambia nada
- * a nadie y rompe el historial del archivo.
+ * **Ha tenido tres nombres.** «Resumen» hasta el 04-09-2026, y sobraba por dos
+ * motivos: no resumía nada que no estuviera ya en «Este mes», y prometía un resumen
+ * donde lo que hay son respuestas. Luego «Cómo vamos», que nombraba justo lo que
+ * la pestaña contesta. Y «Evolución» desde el 14-09-2026, cuando se miró la barra
+ * entera en vez de cada rótulo por su lado: cuatro nombres se leen como un menú y
+ * cuatro formas gramaticales distintas, como cuatro ocurrencias. Se pierde la
+ * pregunta y se gana la barra.
  *
- * **Es una pestaña y no un trozo de «El mes»** porque la serie de varios meses no
- * cabe dentro de un mes concreto sin quedar rara, y porque «El mes» es la pantalla
+ * La clave interna sigue siendo `resumen` y el archivo conserva su nombre, como
+ * `CadaMesPanel`: renombrarlos no le cambia nada a nadie y rompe el historial del
+ * archivo.
+ *
+ * **Es una pestaña y no un trozo de «Este mes»** porque la serie de varios meses no
+ * cabe dentro de un mes concreto sin quedar rara, y porque «Este mes» es la pantalla
  * del uso diario —apuntar y mirar cuánto queda— y meterle cuatro gráficos delante
  * pone un scroll entero entre quien entra y lo que venía a hacer.
  *
@@ -552,7 +558,7 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
  * puede dibujar» sino «qué se pregunta una casa y hoy no contesta nadie»:
  *
  * 1. *¿Voy bien este mes?* — el ritmo, contra el de siempre. Era el hueco grande:
- *    «El mes» da un saldo, y un saldo bueno el día 5 y el mismo el día 25 son dos
+ *    «Este mes» da un saldo, y un saldo bueno el día 5 y el mismo el día 25 son dos
  *    meses distintos. Solo sale en el mes en curso, que es cuando la pregunta
  *    tiene sentido.
  * 2. *¿Estamos ahorrando más que antes?* — la serie de lo que quedó, con la media
@@ -565,7 +571,7 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
  * Se descartaron dos que parecían buenas. **El reparto por persona a lo largo del
  * tiempo**, porque en cuanto una app de casa acumula quién ha puesto más deja de
  * ser una app de casa y empieza a ser una cuenta pendiente — es la misma decisión
- * que ya impide los saldos en «El mes». Y **la estacionalidad**, que con cuatro
+ * que ya impide los saldos en «Este mes». Y **la estacionalidad**, que con cuatro
  * meses de datos sería una línea entre dos puntos disfrazada de tendencia.
  *
  * **Cada bloque empieza por la frase y sigue por el dibujo.** Un gráfico contesta
@@ -573,7 +579,7 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
  * primero que se quiere saber, y el dibujo detrás, a explicar la forma. Ninguno
  * lleva pie: por qué el gráfico es como es se cuenta aquí, no en la pantalla.
  *
- * Salvo el primero, todos hablan **del mes que se esté mirando en «El mes»**, y por
+ * Salvo el primero, todos hablan **del mes que se esté mirando en «Este mes»**, y por
  * eso lo dicen en su título: aquí no hay selector, que sería un segundo sitio donde
  * navegar meses.
  */
@@ -610,7 +616,7 @@ export function ResumenPanel({
               <p className="text-[13px] text-muted">
                 {media < 0 ? 'De media se van ' : 'De media quedan '}
                 <span className={`font-bold ${media < 0 ? 'text-danger-strong' : 'text-ink'}`}>
-                  {formatCentsCorto(Math.abs(media))}
+                  {formatCents(Math.abs(media))}
                 </span>
                 {media < 0 ? ' de más al mes.' : ' al mes.'}
               </p>
@@ -633,7 +639,7 @@ export function ResumenPanel({
 
       {/* Sin nada que entre no hay proporción que dar, y el bloque no se pinta en
           vez de enseñar un hueco: es lo que pasa en un mes sin fijos puestos, que
-          ya tiene su propio aviso en «El mes». */}
+          ya tiene su propio aviso en «Este mes». */}
       {entrada && (
         <Bloque titulo={`${nombreDelMes}: de cada 100 € que entran`}>
           <DeCadaCien entrada={entrada} />

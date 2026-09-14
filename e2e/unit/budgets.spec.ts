@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test'
 import {
-  agruparPresupuestos, ajusteDelMes, apuntesDelMes, conVariacion, cuentaDelMes, diasDelMes,
-  estaCaducado, existiaEnElMes, fijosDe, gastoAcumulado, mediaQueQueda, mesCorto,
-  mesDe, mesesNavegables, mesVecino, partidasQueSePasan, plantillaDelMes,
+  agrupaApuntesPorDia, agrupaApuntesPorMes, ajusteDelMes, apuntesDelMes, buscaApuntes,
+  conVariacion, cuentaDelMes, debeCerrarseElMesPasado, descripcionesFrecuentes, diasDelMes,
+  existiaEnElMes, fijosDe, gastoAcumulado, mediaQueQueda, mesCorto,
+  mesDe, mesesNavegables, mesVecino, partidasPorUso, partidasQueSePasan, plantillaDelMes,
   repartoDeLoQueEntra, repartoDelMes, repartoPorPartida, resumenPartidas,
-  ritmoHabitual, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
+  ritmoHabitual, serieDeMeses, sumaDeFijos,
 } from '@/lib/budgets'
 import type { TrozoDelReparto } from '@/lib/budgets'
 import type {
   Budget, Child, Expense, FamilyMember, FixedEntry, FixedEntryOverride, MonthPlan,
-  MonthPlanLine, Quote,
+  MonthPlanLine,
 } from '@/types'
 
 // Lo que la pantalla de Finanzas calcula y no está guardado en ninguna fila.
@@ -63,23 +64,6 @@ function fijo(over: Partial<FixedEntry> = {}): FixedEntry {
     child_id: null,
     member_id: null,
     sort_order: 0,
-    created_by: 'u1',
-    created_at: '2026-08-01T10:00:00',
-    updated_at: '2026-08-01T10:00:00',
-    ...over,
-  }
-}
-
-function pedido(over: Partial<Quote> = {}): Quote {
-  return {
-    id: 'p1',
-    family_id: 'f1',
-    title: 'Cambiar la caldera',
-    provider: 'Fontanería López',
-    amount_cents: 240000,
-    status: 'pedido',
-    valid_until: null,
-    notes: null,
     created_by: 'u1',
     created_at: '2026-08-01T10:00:00',
     updated_at: '2026-08-01T10:00:00',
@@ -1003,67 +987,229 @@ test.describe('repartoDelMes', () => {
   })
 })
 
-test.describe('agruparPresupuestos', () => {
-  test('junta los del mismo trabajo aunque se escriban distinto', () => {
-    const grupos = agruparPresupuestos([
-      pedido({ id: 'p1', title: 'Cambiar la caldera' }),
-      pedido({ id: 'p2', title: 'cambiar la  CALDERA', provider: 'Clima Ruiz', amount_cents: 215000 }),
-      pedido({ id: 'p3', title: 'Pintar el salón', provider: 'Nieto', amount_cents: 62000 }),
+// ─── El día a día: buscar y agrupar (14-09-2026) ──────────────────────────────
+
+test.describe('agrupar los apuntes', () => {
+  test('por días, con lo que se fue y lo que entró en cada uno', () => {
+    const dias = agrupaApuntesPorDia(apuntesDelMes([
+      gasto({ id: 'g1', date: '2026-08-15', amount_cents: 4000 }),
+      gasto({ id: 'g2', date: '2026-08-15', amount_cents: 2500 }),
+      gasto({ id: 'g3', date: '2026-08-03', amount_cents: 1000 }),
+    ], '2026-08'))
+
+    expect(dias.map(d => [d.clave, d.apuntes.length, d.gastado])).toEqual([
+      ['2026-08-15', 2, 6500],
+      ['2026-08-03', 1, 1000],
     ])
-    expect(grupos).toHaveLength(2)
-    const caldera = grupos.find(g => g.quotes.length === 2)!
-    expect(caldera.quotes.map(q => q.id)).toEqual(['p2', 'p1'])
   })
 
-  test('marca el más barato solo mientras el trabajo sigue sin decidir', () => {
-    const abierto = agruparPresupuestos([
-      pedido({ id: 'caro', amount_cents: 240000 }),
-      pedido({ id: 'barato', amount_cents: 215000 }),
-    ])[0]
-    expect(abierto.masBaratoId).toBe('barato')
-    expect(abierto.decidido).toBe(false)
-
-    // Ya se aceptó uno: marcar el barato sería un reproche a una decisión tomada.
-    const decidido = agruparPresupuestos([
-      pedido({ id: 'caro', amount_cents: 240000, status: 'aceptado' }),
-      pedido({ id: 'barato', amount_cents: 215000 }),
-    ])[0]
-    expect(decidido.masBaratoId).toBeNull()
-    expect(decidido.decidido).toBe(true)
-  })
-
-  test('un descartado no puede ser el más barato', () => {
-    const g = agruparPresupuestos([
-      pedido({ id: 'descartado', amount_cents: 100000, status: 'descartado' }),
-      pedido({ id: 'vivo', amount_cents: 215000 }),
-      pedido({ id: 'otro-vivo', amount_cents: 240000 }),
-    ])[0]
-    expect(g.masBaratoId).toBe('vivo')
-  })
-
-  test('uno solo no se marca: no hay con qué compararlo', () => {
-    expect(agruparPresupuestos([pedido()])[0].masBaratoId).toBeNull()
-  })
-
-  test('los grupos sin decidir van primero', () => {
-    const grupos = agruparPresupuestos([
-      pedido({ id: 'p1', title: 'Aaa pintar', status: 'aceptado' }),
-      pedido({ id: 'p2', title: 'Zzz caldera' }),
+  test('lo que entra y lo que sale van por separado, sin restarse', () => {
+    // Un día con una devolución de 40 € y una compra de 40 € no es un día en el
+    // que no pasó nada.
+    const [dia] = agrupaApuntesPorDia([
+      gasto({ id: 'g1', date: '2026-08-15', amount_cents: 4000 }),
+      ingreso({ id: 'i1', date: '2026-08-15', amount_cents: 4000 }),
     ])
-    expect(grupos.map(g => g.titulo)).toEqual(['Zzz caldera', 'Aaa pintar'])
+    expect([dia.gastado, dia.ingresado]).toEqual([4000, 4000])
   })
 
-  test('los títulos ya usados se ofrecen una sola vez', () => {
-    expect(titulosDePresupuestos([
-      pedido({ id: 'p1', title: 'Cambiar la caldera' }),
-      pedido({ id: 'p2', title: 'cambiar la caldera' }),
-      pedido({ id: 'p3', title: 'Pintar el salón' }),
-    ])).toEqual(['Cambiar la caldera', 'Pintar el salón'])
+  test('agrupar no reordena: los días salen como venían', () => {
+    const dias = agrupaApuntesPorDia([
+      gasto({ id: 'g1', date: '2026-08-03' }),
+      gasto({ id: 'g2', date: '2026-08-15' }),
+      gasto({ id: 'g3', date: '2026-08-03' }),
+    ])
+    // El 3 se vio primero, así que va primero, y el segundo apunte suyo se le
+    // junta aunque llegara detrás del día 15.
+    expect(dias.map(d => d.clave)).toEqual(['2026-08-03', '2026-08-15'])
+    expect(dias[0].apuntes.length).toBe(2)
+  })
+
+  test('por meses, que es como se leen los resultados de una búsqueda', () => {
+    const meses = agrupaApuntesPorMes([
+      gasto({ id: 'g1', date: '2026-09-02' }),
+      gasto({ id: 'g2', date: '2026-08-30' }),
+      gasto({ id: 'g3', date: '2026-08-01' }),
+    ])
+    expect(meses.map(m => [m.clave, m.apuntes.length])).toEqual([
+      ['2026-09', 1],
+      ['2026-08', 2],
+    ])
   })
 })
 
-test('estaCaducado solo con fecha, y el mismo día todavía vale', () => {
-  expect(estaCaducado(pedido({ valid_until: null }), '2026-08-31')).toBe(false)
-  expect(estaCaducado(pedido({ valid_until: '2026-08-31' }), '2026-08-31')).toBe(false)
-  expect(estaCaducado(pedido({ valid_until: '2026-08-30' }), '2026-08-31')).toBe(true)
+test.describe('buscar apuntes', () => {
+  const PARTIDAS = [budget({ id: 'b1', name: 'Salud' })]
+  const APUNTES = [
+    gasto({ id: 'g1', date: '2026-09-10', description: 'Dentista', budget_id: null }),
+    gasto({ id: 'g2', date: '2026-07-04', description: 'Farmacia', budget_id: 'b1' }),
+    gasto({ id: 'g3', date: '2026-08-20', description: 'Compra semanal', budget_id: null }),
+  ]
+
+  test('cruza los meses: no busca solo en el que se esté mirando', () => {
+    // Es la razón de ser del buscador. Julio y septiembre en la misma respuesta.
+    const r = buscaApuntes(APUNTES, PARTIDAS, 'a')
+    expect(r.map(e => e.id).sort()).toEqual(['g1', 'g2', 'g3'])
+  })
+
+  test('sin tildes y sin mayúsculas', () => {
+    expect(buscaApuntes(
+      [gasto({ id: 'g1', description: 'Óptica' })], [], 'optica',
+    ).map(e => e.id)).toEqual(['g1'])
+  })
+
+  test('encuentra también por el nombre de la partida', () => {
+    // Unos se acuerdan de «farmacia» y otros de «salud».
+    expect(buscaApuntes(APUNTES, PARTIDAS, 'salud').map(e => e.id)).toEqual(['g2'])
+  })
+
+  test('sin consulta devuelve la lista vacía, no todo', () => {
+    // Quien llama pinta el mes normal mientras no haya nada escrito; devolver los
+    // mil apuntes de la casa sería prestarse a que alguien los pinte.
+    expect(buscaApuntes(APUNTES, PARTIDAS, '')).toEqual([])
+    expect(buscaApuntes(APUNTES, PARTIDAS, '   ')).toEqual([])
+  })
+
+  test('lo encontrado sale de lo más reciente a lo más antiguo', () => {
+    expect(buscaApuntes(APUNTES, PARTIDAS, 'a').map(e => e.date)).toEqual([
+      '2026-09-10', '2026-08-20', '2026-07-04',
+    ])
+  })
+
+  test('un apunte sin descripción no rompe la búsqueda', () => {
+    expect(buscaApuntes([gasto({ id: 'g1', description: null })], [], 'x')).toEqual([])
+  })
+})
+
+test.describe('lo que ya se ha apuntado otras veces', () => {
+  test('solo lo que se repite, y de más veces a menos', () => {
+    const s = descripcionesFrecuentes([
+      gasto({ id: 'g1', date: '2026-09-01', description: 'Compra semanal' }),
+      gasto({ id: 'g2', date: '2026-09-08', description: 'Compra semanal' }),
+      gasto({ id: 'g3', date: '2026-09-09', description: 'Gasolina' }),
+      gasto({ id: 'g4', date: '2026-09-10', description: 'Gasolina' }),
+      gasto({ id: 'g5', date: '2026-09-11', description: 'Gasolina' }),
+      // Una sola vez: eso es el historial, no una sugerencia.
+      gasto({ id: 'g6', date: '2026-09-12', description: 'Cortapelos' }),
+    ], 'gasto')
+
+    expect(s.map(x => x.texto)).toEqual(['Gasolina', 'Compra semanal'])
+  })
+
+  test('cada una se lleva la partida de la última vez', () => {
+    const s = descripcionesFrecuentes([
+      gasto({ id: 'g1', date: '2026-08-01', description: 'Gasolina', budget_id: null }),
+      gasto({ id: 'g2', date: '2026-09-01', description: 'Gasolina', budget_id: 'b9' }),
+    ], 'gasto')
+    expect(s).toEqual([{ texto: 'Gasolina', budgetId: 'b9' }])
+  })
+
+  test('las mayúsculas y las tildes no parten una sugerencia en dos', () => {
+    const s = descripcionesFrecuentes([
+      gasto({ id: 'g1', date: '2026-08-01', description: 'farmacia' }),
+      gasto({ id: 'g2', date: '2026-09-01', description: 'Farmacia' }),
+    ], 'gasto')
+    // Una sola, y con el texto de la última vez: es el que se está usando ahora.
+    expect(s.map(x => x.texto)).toEqual(['Farmacia'])
+  })
+
+  test('los ingresos no se mezclan con los gastos', () => {
+    const apuntes = [
+      gasto({ id: 'g1', date: '2026-08-01', description: 'Compra' }),
+      gasto({ id: 'g2', date: '2026-08-02', description: 'Compra' }),
+      ingreso({ id: 'i1', date: '2026-08-03', description: 'Devolución' }),
+      ingreso({ id: 'i2', date: '2026-08-04', description: 'Devolución' }),
+    ]
+    expect(descripcionesFrecuentes(apuntes, 'gasto').map(x => x.texto)).toEqual(['Compra'])
+    expect(descripcionesFrecuentes(apuntes, 'ingreso').map(x => x.texto)).toEqual(['Devolución'])
+  })
+
+  test('lo que no se escribió no se sugiere', () => {
+    const s = descripcionesFrecuentes([
+      gasto({ id: 'g1', description: null }),
+      gasto({ id: 'g2', description: '   ' }),
+    ], 'gasto')
+    expect(s).toEqual([])
+  })
+
+  test('no pasa del tope', () => {
+    const muchas = Array.from({ length: 20 }, (_, i) => [
+      gasto({ id: `a${i}`, date: '2026-08-01', description: `Cosa ${i}` }),
+      gasto({ id: `b${i}`, date: '2026-08-02', description: `Cosa ${i}` }),
+    ]).flat()
+    expect(descripcionesFrecuentes(muchas, 'gasto').length).toBe(6)
+    expect(descripcionesFrecuentes(muchas, 'gasto', 3).length).toBe(3)
+  })
+})
+
+test.describe('las partidas del formulario, por uso', () => {
+  const PARTIDAS = [
+    budget({ id: 'b1', name: 'Compra', sort_order: 0 }),
+    budget({ id: 'b2', name: 'Ocio', sort_order: 1 }),
+    budget({ id: 'b3', name: 'Coche', sort_order: 2 }),
+  ]
+
+  test('la más usada primero, aunque esté la última en «Lo fijo»', () => {
+    const orden = partidasPorUso(PARTIDAS, [
+      gasto({ id: 'g1', budget_id: 'b3' }),
+      gasto({ id: 'g2', budget_id: 'b3' }),
+      gasto({ id: 'g3', budget_id: 'b2' }),
+    ])
+    expect(orden.map(b => b.id)).toEqual(['b3', 'b2', 'b1'])
+  })
+
+  test('sin historia, el orden de siempre', () => {
+    expect(partidasPorUso(PARTIDAS, []).map(b => b.id)).toEqual(['b1', 'b2', 'b3'])
+  })
+
+  test('las que nunca se han usado se quedan detrás en su orden', () => {
+    const orden = partidasPorUso(PARTIDAS, [gasto({ id: 'g1', budget_id: 'b3' })])
+    expect(orden.map(b => b.id)).toEqual(['b3', 'b1', 'b2'])
+  })
+
+  test('los ingresos y lo que no cuelga de una partida no cuentan', () => {
+    const orden = partidasPorUso(PARTIDAS, [
+      ingreso({ id: 'i1', budget_id: null }),
+      gasto({ id: 'g1', budget_id: null }),
+      gasto({ id: 'g2', budget_id: 'b2' }),
+    ])
+    expect(orden[0].id).toBe('b2')
+  })
+})
+
+// La regla que le da historia a Finanzas entera. Vivía dentro de `StoreProvider`,
+// donde no se podía probar (14-09-2026).
+test.describe('cerrar el mes pasado', () => {
+  test('si falta, se cierra', () => {
+    expect(debeCerrarseElMesPasado('2026-09-13', '2026-01-01T00:00:00Z', [])).toBe(true)
+  })
+
+  test('si ya está, no: es lo que pasa treinta días de cada treinta y uno', () => {
+    expect(debeCerrarseElMesPasado('2026-09-13', '2026-01-01T00:00:00Z', [
+      plan('2026-08', []),
+    ])).toBe(false)
+  })
+
+  test('no se le inventa un pasado a una familia recién creada', () => {
+    expect(debeCerrarseElMesPasado('2026-09-13', '2026-09-13T10:00:00Z', [])).toBe(false)
+  })
+
+  test('el mes en que nació la familia sí se cierra', () => {
+    // Nació en agosto y estamos en septiembre: agosto lo vivió entero o en parte,
+    // y es lo que se guarda.
+    expect(debeCerrarseElMesPasado('2026-09-01', '2026-08-20T10:00:00Z', [])).toBe(true)
+  })
+
+  test('el plan de otro mes no cuenta como el del mes pasado', () => {
+    expect(debeCerrarseElMesPasado('2026-09-13', '2026-01-01T00:00:00Z', [
+      plan('2026-07', []),
+    ])).toBe(true)
+  })
+
+  test('en enero mira a diciembre del año anterior', () => {
+    expect(debeCerrarseElMesPasado('2027-01-04', '2026-01-01T00:00:00Z', [])).toBe(true)
+    expect(debeCerrarseElMesPasado('2027-01-04', '2026-01-01T00:00:00Z', [
+      plan('2026-12', []),
+    ])).toBe(false)
+  })
 })

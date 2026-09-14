@@ -4,18 +4,22 @@ import { resolveAssignee } from './assignees'
 import { normalizaParaBuscar } from './text'
 import type {
   Budget, Child, Expense, FamilyMember, FixedEntry, FixedEntryOverride, MonthPlan,
-  MovementKind, Quote,
+  MovementKind,
 } from '@/types'
 
 /**
  * Lo que la pantalla de Finanzas necesita saber y no está guardado en ninguna
- * fila: cuánto queda del mes, cuánto llevamos de cada partida, quién puso el dinero
- * y cuál de los tres presupuestos de la caldera es el más barato.
+ * fila: cuánto queda del mes, cuánto llevamos de cada partida, en qué día se fue
+ * cada euro y quién puso el dinero.
  *
  * Todo son funciones puras sobre lo que el store ya tiene en memoria. No hay
  * vistas en la base ni sumas guardadas: una casa tiene decenas de gastos al mes,
  * no millones, y un total precalculado es un número que se queda viejo sin que
  * nadie se entere.
+ *
+ * Los **presupuestos pedidos** no están aquí: viven en `quotes.ts` desde el
+ * 14-09-2026, que es lo único que impedía que este archivo tuviera dentro los
+ * dos significados de «presupuesto».
  */
 
 // ─── El mes ───────────────────────────────────────────────────────────────────
@@ -123,9 +127,19 @@ export function mesesNavegables(
  * en qué día se quedó uno.
  */
 export function apuntesDelMes(expenses: Expense[], mes: string): Expense[] {
-  return expenses
-    .filter(e => mesDe(e.date) === mes)
-    .sort((a, b) => (a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date)))
+  return expenses.filter(e => mesDe(e.date) === mes).sort(porFechaDesc)
+}
+
+/**
+ * De lo más reciente a lo más antiguo y, dentro del mismo día, lo último que se
+ * apuntó primero: dos gastos del sábado se leen en el orden en que se metieron,
+ * que es el orden en el que se recuerdan.
+ *
+ * Lo comparten la lista del mes, la búsqueda y las sugerencias, que tienen que
+ * estar de acuerdo en cuál es «la última vez» que se apuntó algo.
+ */
+function porFechaDesc(a: Expense, b: Expense): number {
+  return a.date === b.date ? b.created_at.localeCompare(a.created_at) : b.date.localeCompare(a.date)
 }
 
 /** Solo lo que sale. Lo que miran las partidas y el reparto. */
@@ -1004,78 +1018,211 @@ export function repartoDelMes(
   return [...acumulado.values()].sort((a, b) => b.total - a.total)
 }
 
-// ─── Los presupuestos que te pasan de fuera ───────────────────────────────────
-
-export interface GrupoDePresupuestos {
-  /** Para qué es, tal y como se escribió la primera vez. */
-  titulo: string
-  quotes: Quote[]
-  /** El id del más barato del grupo. `null` si solo hay uno: no hay comparación. */
-  masBaratoId: string | null
-  /** Ya se ha aceptado uno, así que el grupo está decidido. */
-  decidido: boolean
-}
+// ─── El día a día: buscar y agrupar ───────────────────────────────────────────
 
 /**
- * Cómo se comparan dos claves de agrupación. Sin tildes, sin mayúsculas y sin
- * espacios de más: "Cambiar la caldera" y "cambiar la  Caldera" son el mismo
- * trabajo, y que salieran en dos bloques distintos rompería lo único que esta
- * pantalla hace de verdad.
+ * Un puñado de apuntes que van juntos —los de un día, los de un mes— con lo que
+ * se fue y lo que entró en ellos.
+ *
+ * Las dos cifras van separadas y no restadas: un día con una devolución de 40 €
+ * y una compra de 40 € no es un día en el que no pasó nada.
  */
-function claveDe(titulo: string): string {
-  return normalizaParaBuscar(titulo.trim()).replace(/\s+/g, ' ')
+export interface GrupoDeApuntes {
+  /** `YYYY-MM-DD` agrupando por día, `YYYY-MM` agrupando por mes. */
+  clave: string
+  apuntes: Expense[]
+  gastado: number
+  ingresado: number
 }
 
-/**
- * Los presupuestos pedidos, agrupados por para qué son.
- *
- * Los grupos sin decidir van primero: son los que piden algo de quien mira. Y
- * dentro de cada grupo, de más barato a más caro, porque es el orden en el que
- * se leen tres precios que se están comparando.
- *
- * El más barato solo se marca **si el grupo sigue abierto**. Marcarlo en uno ya
- * decidido sería un reproche —"el que aceptaste no era el barato"— y esa
- * decisión ya está tomada, a veces por buenas razones que la app no sabe.
- */
-export function agruparPresupuestos(quotes: Quote[]): GrupoDePresupuestos[] {
-  const grupos = new Map<string, GrupoDePresupuestos>()
-
-  for (const quote of quotes) {
-    const clave = claveDe(quote.title)
-    const grupo = grupos.get(clave)
-    if (grupo) grupo.quotes.push(quote)
-    else grupos.set(clave, { titulo: quote.title.trim(), quotes: [quote], masBaratoId: null, decidido: false })
+function agrupaApuntes(apuntes: Expense[], claveDe: (apunte: Expense) => string): GrupoDeApuntes[] {
+  const grupos = new Map<string, GrupoDeApuntes>()
+  for (const apunte of apuntes) {
+    const clave = claveDe(apunte)
+    const grupo = grupos.get(clave) ?? { clave, apuntes: [], gastado: 0, ingresado: 0 }
+    grupo.apuntes.push(apunte)
+    if (apunte.kind === 'ingreso') grupo.ingresado += apunte.amount_cents
+    else grupo.gastado += apunte.amount_cents
+    grupos.set(clave, grupo)
   }
+  // Por orden de aparición: lo que entra ya viene ordenado y agrupar no es
+  // reordenar. Con un Map de por medio, el orden de las claves es el de la
+  // primera vez que se vio cada una, que es justo el de la lista.
+  return [...grupos.values()]
+}
 
-  const lista = [...grupos.values()].map(grupo => {
-    const quotes = [...grupo.quotes].sort((a, b) => a.amount_cents - b.amount_cents)
-    const decidido = quotes.some(q => q.status === 'aceptado')
-    const vivos = quotes.filter(q => q.status !== 'descartado')
-    return {
-      ...grupo,
-      quotes,
-      decidido,
-      masBaratoId: !decidido && vivos.length > 1 ? vivos[0].id : null,
+/**
+ * «El día a día», repartido por días.
+ *
+ * Un mes con setenta apuntes eran setenta filas iguales con la fecha en gris de
+ * 11 px, y para saber qué se fue el sábado había que ir leyendo la columna de la
+ * izquierda renglón a renglón. Es el mismo problema que tenían los doce meses de
+ * Cumpleaños y se arregla igual: cada día con su rótulo encima.
+ *
+ * Y ya que hay rótulo, lleva la cifra del día: «Sábado 13 · 96,40 €» contesta de
+ * un vistazo una pregunta que antes había que sumar a mano.
+ */
+export function agrupaApuntesPorDia(apuntes: Expense[]): GrupoDeApuntes[] {
+  return agrupaApuntes(apuntes, apunte => apunte.date)
+}
+
+/**
+ * Y lo mismo por meses, que es como se leen los resultados de una búsqueda: lo
+ * que se busca cruza los meses, así que de cada resultado lo primero que hace
+ * falta saber es de cuándo es.
+ */
+export function agrupaApuntesPorMes(apuntes: Expense[]): GrupoDeApuntes[] {
+  return agrupaApuntes(apuntes, apunte => mesDe(apunte.date))
+}
+
+/**
+ * Buscar en los apuntes, **en todos los meses y no solo en el que se mira**.
+ *
+ * Es la única forma de que la búsqueda conteste lo que lleva a buscar: «¿cuánto
+ * llevamos en el dentista?» o «¿cuándo pagamos la ITV?» no son preguntas de
+ * septiembre, son preguntas de la casa. Un buscador que solo mirase el mes
+ * abierto obligaría a repetirlo mes a mes con las flechas, que es exactamente lo
+ * que se hacía antes de que hubiera buscador.
+ *
+ * Mira **lo que se escribió y la partida de la que sale**, que son las dos formas
+ * en las que una casa nombra un gasto: unos se acuerdan de «farmacia» y otros de
+ * «salud». No mira el importe —nadie busca «24,90»— ni quién lo pagó, que ya se
+ * lee entero en el reparto de la cuenta.
+ *
+ * Sin consulta devuelve **la lista vacía y no todo**: quien llama pinta el mes
+ * normal mientras no haya nada escrito, y devolver los mil apuntes de la casa
+ * para que los tire sería prestarse a que alguien los pinte.
+ */
+export function buscaApuntes(expenses: Expense[], budgets: Budget[], query: string): Expense[] {
+  const consulta = normalizaParaBuscar(query.trim())
+  if (!consulta) return []
+  const nombreDePartida = new Map(budgets.map(b => [b.id, b.name]))
+  return expenses
+    .filter(apunte => {
+      const partida = apunte.budget_id ? nombreDePartida.get(apunte.budget_id) ?? '' : ''
+      return normalizaParaBuscar(`${apunte.description ?? ''} ${partida}`).includes(consulta)
+    })
+    .sort(porFechaDesc)
+}
+
+// ─── Lo que ya se ha apuntado otras veces ─────────────────────────────────────
+
+/** Algo que ya se apuntó antes, listo para volver a apuntarlo. */
+export interface ApunteSugerido {
+  /** El texto tal y como se escribió la última vez. */
+  texto: string
+  /** Y la partida de la que salió esa última vez, que casi siempre es la suya. */
+  budgetId: string | null
+}
+
+/**
+ * Lo que esta casa apunta una y otra vez: «Compra semanal», «Gasolina»,
+ * «Farmacia».
+ *
+ * Apuntar es la acción que más se repite de la sección —cincuenta veces al mes,
+ * frente a dos toques al año en «Lo fijo»— y hasta el 14-09-2026 se tecleaba
+ * entera cada vez, incluida la mitad de las veces en que era literalmente lo
+ * mismo que la semana pasada.
+ *
+ * **Solo lo que se repite** (dos veces o más). Sugerir algo que se escribió una
+ * vez no es una sugerencia, es el historial; y un cajón de sugerencias donde está
+ * todo no ahorra ni un toque, porque hay que leerlo entero para encontrar la
+ * buena.
+ *
+ * Cada una se lleva **su partida**, la de la última vez: quien apunta «Gasolina»
+ * la carga siempre al coche, y que el chip hubiera que tocarlo igual dejaba el
+ * ahorro a medias. No cambia el valor por defecto de un apunte nuevo, que sigue
+ * siendo «Sin partida»: solo la trae quien elige una sugerencia.
+ *
+ * El texto que se enseña es el de la última vez y no el de la primera, porque es
+ * el que se está usando ahora.
+ */
+export function descripcionesFrecuentes(
+  expenses: Expense[],
+  kind: MovementKind,
+  tope = 6,
+): ApunteSugerido[] {
+  const vistas = new Map<string, { veces: number; ultimo: Expense }>()
+
+  for (const apunte of expenses) {
+    if (apunte.kind !== kind) continue
+    const texto = apunte.description?.trim()
+    if (!texto) continue
+    const clave = normalizaParaBuscar(texto)
+    const visto = vistas.get(clave)
+    if (!visto) vistas.set(clave, { veces: 1, ultimo: apunte })
+    else {
+      visto.veces += 1
+      if (porFechaDesc(apunte, visto.ultimo) < 0) visto.ultimo = apunte
     }
-  })
-
-  return lista.sort((a, b) => {
-    if (a.decidido !== b.decidido) return a.decidido ? 1 : -1
-    return a.titulo.localeCompare(b.titulo, 'es')
-  })
-}
-
-/** Un precio que ya no vale: tenía fecha y quedó atrás. */
-export function estaCaducado(quote: Quote, hoy: string): boolean {
-  return quote.valid_until !== null && quote.valid_until < hoy
-}
-
-/** Los títulos ya usados, para ofrecerlos al apuntar otro del mismo trabajo. */
-export function titulosDePresupuestos(quotes: Quote[]): string[] {
-  const vistos = new Map<string, string>()
-  for (const q of quotes) {
-    const clave = claveDe(q.title)
-    if (!vistos.has(clave)) vistos.set(clave, q.title.trim())
   }
-  return [...vistos.values()].sort((a, b) => a.localeCompare(b, 'es'))
+
+  return [...vistas.values()]
+    .filter(vista => vista.veces > 1)
+    .sort((a, b) => (a.veces === b.veces ? porFechaDesc(a.ultimo, b.ultimo) : b.veces - a.veces))
+    .slice(0, tope)
+    .map(vista => ({
+      texto: vista.ultimo.description?.trim() ?? '',
+      budgetId: vista.ultimo.budget_id,
+    }))
+}
+
+/**
+ * Las partidas en el orden de siempre: el que se les dio en «Lo fijo» y, a
+ * igualdad, por nombre.
+ */
+export function partidasOrdenadas(budgets: Budget[]): Budget[] {
+  return [...budgets].sort((a, b) => (
+    a.sort_order === b.sort_order ? a.name.localeCompare(b.name, 'es') : a.sort_order - b.sort_order
+  ))
+}
+
+/**
+ * Y las mismas, ordenadas por **lo que se usa cada una al apuntar**.
+ *
+ * Solo en el formulario del apunte, que es donde el orden de siempre no ayuda:
+ * ahí lo que se quiere es que la partida de la compra esté la primera porque es
+ * la que se elige cuatro de cada cinco veces, y no donde la dejó el `sort_order`
+ * de una pantalla que se toca dos veces al año.
+ *
+ * Las que nunca se han usado se quedan detrás en su orden de siempre, sin
+ * mezclarse: una partida recién creada no tiene por qué irse al final del todo
+ * por no tener historia.
+ */
+export function partidasPorUso(budgets: Budget[], expenses: Expense[]): Budget[] {
+  const usos = new Map<string, number>()
+  for (const apunte of expenses) {
+    if (apunte.kind !== 'gasto' || !apunte.budget_id) continue
+    usos.set(apunte.budget_id, (usos.get(apunte.budget_id) ?? 0) + 1)
+  }
+  if (usos.size === 0) return partidasOrdenadas(budgets)
+  return partidasOrdenadas(budgets).sort((a, b) => (usos.get(b.id) ?? 0) - (usos.get(a.id) ?? 0))
+}
+
+// ─── El cierre del mes pasado ─────────────────────────────────────────────────
+
+/**
+ * Si al abrir la app hay que cerrar el mes pasado.
+ *
+ * **Es la regla que le da historia a Finanzas entera** —de ella sale que un mes
+ * terminado enseñe lo que valía entonces y no la plantilla de hoy— y hasta el
+ * 14-09-2026 vivía dentro de `StoreProvider`, que es donde no se puede probar.
+ * Aquí son tres líneas puras con su test; el viaje a la base sigue estando allí.
+ *
+ * Dos condiciones, y las dos son «no»:
+ *
+ * 1. **Si ya está cerrado, no.** Es lo que pasa treinta días de cada treinta y
+ *    uno, y por eso el caso normal no cuesta ni una consulta.
+ * 2. **Si la familia no existía, tampoco.** Una familia creada hoy no tuvo
+ *    agosto, y guardarle un agosto vacío sería inventarle un pasado que además
+ *    luego se lee como «ese mes no pusisteis nada».
+ */
+export function debeCerrarseElMesPasado(
+  hoy: string,
+  familiaCreada: string,
+  planes: MonthPlan[],
+): boolean {
+  const mesPasado = mesVecino(mesDe(hoy), -1)
+  if (planes.some(plan => plan.month === mesPasado)) return false
+  return mesDe(familiaCreada) <= mesPasado
 }

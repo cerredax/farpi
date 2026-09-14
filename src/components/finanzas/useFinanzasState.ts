@@ -3,13 +3,17 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
-  agruparPresupuestos, apuntesDelMes, conVariacion, cuentaDelMes, fijosDe,
-  gastoAcumulado, mesDe, mesVecino, mesesNavegables, partidasQueSePasan,
-  plantillaDelMes, repartoDeLoQueEntra, repartoDelMes, repartoPorPartida,
-  resumenPartidas, ritmoHabitual, serieDeMeses, sumaDeFijos, titulosDePresupuestos,
+  agrupaApuntesPorDia, agrupaApuntesPorMes, apuntesDelMes, buscaApuntes, conVariacion,
+  cuentaDelMes, fijosDe, gastoAcumulado, mesDe, mesVecino, mesesNavegables,
+  partidasOrdenadas, partidasQueSePasan, plantillaDelMes, repartoDeLoQueEntra,
+  repartoDelMes, repartoPorPartida, resumenPartidas, ritmoHabitual, serieDeMeses,
+  soloGastos, soloIngresos, sumaDe, sumaDeFijos,
   type FijoDelMes,
 } from '@/lib/budgets'
+import { agruparPresupuestos, titulosDePresupuestos } from '@/lib/quotes'
+import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
+import { centsToInput } from '@/lib/finanzas'
 import type {
   Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
   FixedOverrideDraft, MovementKind, Quote, QuoteDraft,
@@ -49,6 +53,12 @@ export function useFinanzasState() {
    * con cifras sin que nadie las hubiera pedido.
    */
   const [previsionAbierta, setPrevisionAbierta] = useState(false)
+  /**
+   * Lo que se está buscando. **No se borra al cambiar de mes ni de pestaña**, al
+   * revés que la previsión: una búsqueda cruza los meses por definición, así que
+   * no es de ninguno.
+   */
+  const [busqueda, setBusqueda] = useState('')
 
   const [fixedSheetOpen, setFixedSheetOpen] = useState(false)
   const [editingFixed, setEditingFixed] = useState<FixedEntry | null>(null)
@@ -63,6 +73,15 @@ export function useFinanzasState() {
   const [ajusteSheetOpen, setAjusteSheetOpen] = useState(false)
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
+  /**
+   * Un apunte nuevo que nace con algo escrito: el que sale de aceptar un
+   * presupuesto. Es lo único que rellena un apunte sin que nadie lo teclee, y por
+   * eso es un estado aparte y no un `editingExpense` a medias: lo que hay aquí no
+   * es un apunte que exista, es lo que se sabe de él.
+   */
+  const [apunteDeUnPresupuesto, setApunteDeUnPresupuesto] = useState<
+    { quoteId: string; amount: string; description: string } | null
+  >(null)
   const [budgetSheetOpen, setBudgetSheetOpen] = useState(false)
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null)
   const [quoteSheetOpen, setQuoteSheetOpen] = useState(false)
@@ -83,12 +102,13 @@ export function useFinanzasState() {
   const cuenta = useMemo(() => cuentaDelMes(plantilla, expenses, mes), [plantilla, expenses, mes])
   const ingresosFijos = useMemo(() => fijosDe(fixedEntries, 'ingreso'), [fixedEntries])
   const gastosFijos = useMemo(() => fijosDe(fixedEntries, 'gasto'), [fixedEntries])
-  const partidasPlantilla = useMemo(
-    () => [...budgets].sort((a, b) => (
-      a.sort_order === b.sort_order ? a.name.localeCompare(b.name, 'es') : a.sort_order - b.sort_order
-    )),
-    [budgets],
-  )
+  const partidasPlantilla = useMemo(() => partidasOrdenadas(budgets), [budgets])
+  /**
+   * «El día a día», por días. Setenta filas seguidas con la fecha en gris no se
+   * leen: lo que se busca ahí es «¿qué se fue el sábado?», y eso se contesta con
+   * un rótulo por día, no bajando renglón a renglón.
+   */
+  const porDias = useMemo(() => agrupaApuntesPorDia(delMes), [delMes])
   const totalPartidas = useMemo(
     () => budgets.reduce((total, b) => total + b.monthly_limit_cents, 0),
     [budgets],
@@ -145,6 +165,29 @@ export function useFinanzasState() {
     [mesActual, monthPlans, expenses, mes],
   )
 
+  // ─── Buscar ────────────────────────────────────────────────────────────────
+  //
+  // Lo encontrado **manda sobre el mes**: mientras haya algo escrito, «El mes»
+  // enseña los resultados y no la cuenta. Es lo mismo que hace Documentos con sus
+  // categorías —«la búsqueda manda sobre el filtro»— y aquí el mes es el filtro:
+  // encontrar los dos recibos del dentista no puede depender de en qué mes
+  // estuvieras cuando se te ocurrió buscarlos.
+  const buscando = busqueda.trim().length > 0
+  const encontrados = useMemo(
+    () => buscaApuntes(expenses, budgets, busqueda),
+    [expenses, budgets, busqueda],
+  )
+  /** Agrupados por mes: lo primero que hace falta saber de un resultado es de cuándo es. */
+  const porMeses = useMemo(() => agrupaApuntesPorMes(encontrados), [encontrados])
+  /**
+   * Y lo que suman, que es la mitad de la razón para buscar: «¿cuánto llevamos en
+   * el dentista?» no se contesta con una lista, se contesta con una cifra.
+   */
+  const encontrado = useMemo(() => ({
+    gastado: sumaDe(soloGastos(encontrados)),
+    ingresado: sumaDe(soloIngresos(encontrados)),
+  }), [encontrados])
+
   // Los sheets se remontan al cambiar de cosa editada, como en el resto de la
   // app: sin esto, editar un apunte justo después de otro deja los valores del
   // primero escritos en los campos.
@@ -159,7 +202,14 @@ export function useFinanzasState() {
   // son dos formularios distintos, y sin esto el segundo abriría con el importe
   // del primero escrito.
   const ajusteKey = ajustando ? `ajuste-${ajustando.fixedId}-${mes}` : 'ajuste-ninguno'
-  const expenseKey = editingExpense ? `apunte-${editingExpense.id}` : `apunte-nuevo-${mes}`
+  // El que nace de un presupuesto lleva su id: abrir el de la caldera y luego el
+  // del dentista son dos formularios distintos, y sin esto el segundo se abriría
+  // con el importe del primero escrito.
+  const expenseKey = editingExpense
+    ? `apunte-${editingExpense.id}`
+    : apunteDeUnPresupuesto
+      ? `apunte-presupuesto-${apunteDeUnPresupuesto.quoteId}`
+      : `apunte-nuevo-${mes}`
   const budgetKey = editingBudget ? `partida-${editingBudget.id}` : 'partida-nueva'
   const quoteKey = editingQuote ? `pedido-${editingQuote.id}` : 'pedido-nuevo'
 
@@ -243,7 +293,16 @@ export function useFinanzasState() {
     pestaña, setPestaña,
 
     budgets, members, kids,
-    resumen, delMes, cuenta, grupos, titulos,
+    resumen, delMes, porDias, cuenta, grupos, titulos,
+    /**
+     * El buscador aparece a partir de tres apuntes, como en Listas y en
+     * Documentos: esconder una herramienta hasta que hace falta solo funciona si
+     * quien la usa sabe que existe.
+     */
+    puedeBuscar: expenses.length >= MINIMO_PARA_BUSCAR,
+    /** Cuántos hay en total, para el «Buscar en 128 apuntes…» del campo. */
+    totalApuntes: expenses.length,
+    busqueda, setBusqueda, buscando, encontrados, porMeses, encontrado,
     repartoPorPersona, serie, reparto, acumulado, ritmo, sePasan, entrada,
     /** Qué día es hoy, para saber hasta dónde llega la línea del ritmo. */
     diaDeHoy: Number(hoy.slice(8, 10)),
@@ -253,7 +312,7 @@ export function useFinanzasState() {
 
     fixedSheetOpen, setFixedSheetOpen, editingFixed, kindNuevoFijo, fixedKey,
     ajusteSheetOpen, setAjusteSheetOpen, ajustando, ajusteKey,
-    expenseSheetOpen, setExpenseSheetOpen, editingExpense, expenseKey,
+    expenseSheetOpen, setExpenseSheetOpen, editingExpense, expenseKey, apunteDeUnPresupuesto,
     budgetSheetOpen, setBudgetSheetOpen, editingBudget, budgetKey,
     quoteSheetOpen, setQuoteSheetOpen, editingQuote, quoteKey,
 
@@ -296,6 +355,28 @@ export function useFinanzasState() {
     },
     abrirApunte(expense: Expense | null) {
       setEditingExpense(expense)
+      setApunteDeUnPresupuesto(null)
+      setExpenseSheetOpen(true)
+    },
+    /**
+     * Apuntar el gasto de un presupuesto aceptado (14-09-2026).
+     *
+     * Era el único cabo suelto de la sección: aceptabas los 1.200 € de la caldera
+     * y ahí se quedaban, marcados «Aceptado», sin aparecer en la cuenta de ningún
+     * mes. Las dos mitades de Finanzas compartían pantalla y no se hablaban.
+     *
+     * Lo que viaja es **lo que consta**: el importe y para qué era. Ni la partida
+     * —un presupuesto no sabe de qué partida sale— ni quién lo paga. Y no se crea
+     * nada solo: esto abre el formulario de siempre con dos campos escritos, que
+     * es un atajo y no un automatismo. Aceptar un presupuesto no es pagarlo.
+     */
+    abrirApunteDeUnPresupuesto(quote: Quote) {
+      setEditingExpense(null)
+      setApunteDeUnPresupuesto({
+        quoteId: quote.id,
+        amount: centsToInput(quote.amount_cents),
+        description: quote.title.trim(),
+      })
       setExpenseSheetOpen(true)
     },
     abrirPartida(budget: Budget | null) {
@@ -340,6 +421,16 @@ export function useFinanzasState() {
     guardarApunte(draft: ExpenseDraft) {
       if (editingExpense) updateExpense(editingExpense.id, draft)
       else createExpense(draft)
+      // El que viene de un presupuesto se apunta desde otra pestaña, así que sin
+      // esto se guarda y no se ve nada: ni la pestaña de «Presupuestos» lo enseña
+      // ni tiene por qué caer en el mes que estuviera abierto. Se va a verlo donde
+      // ha caído, que además es lo que contesta la pregunta por la que se apunta
+      // —«¿cuadra el mes con esto dentro?»—.
+      if (apunteDeUnPresupuesto) {
+        setMes(mesDe(draft.date))
+        setPrevisionAbierta(true)
+        setPestaña('mes')
+      }
     },
     guardarPartida(draft: BudgetDraft) {
       if (editingBudget) updateBudget(editingBudget.id, draft)

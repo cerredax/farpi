@@ -2757,6 +2757,60 @@ hace semanas, con la app instalada en los móviles de la familia, y cambiarla si
 rompe lo que haya guardado en marcadores. Cumpleaños se renombra porque tiene un día de
 vida y no le ha dado tiempo a que nadie la guarde.
 
+### Buscar en Finanzas es buscar en todos los meses (14-09-2026)
+
+Finanzas era la única pantalla de contenido sin buscador, y ponerlo obligaba a decidir
+tres cosas que luego no conviene deshacer sin leer esto.
+
+**Busca en todos los meses, no en el que se está mirando.** Lo que lleva a buscar aquí no
+es una pregunta de septiembre: es «¿cuánto llevamos en el dentista?», «¿cuándo pagamos la
+ITV?». Un buscador que solo mirase el mes abierto obligaría a repetirlo mes a mes, que es
+exactamente lo que se hacía antes de que hubiera buscador.
+
+**Mientras se busca, la cuenta del mes y las partidas no están.** Las dos hablan de un mes
+concreto y lo que hay debajo ya no es de ninguno; dejar «quedan 758 €» encima de una lista
+que cruza julio y septiembre sería una cifra que no habla de lo que tiene debajo. Es la
+misma regla que Documentos ya tenía con sus categorías —la búsqueda manda sobre el
+filtro—, con el mes haciendo de filtro.
+
+**Y la respuesta empieza por la cifra**: «7 apuntes con «farmacia». Se han ido 134,20 €».
+A la pregunta que trae a alguien aquí no se contesta con una lista.
+
+### Lo que ya se apuntó se ofrece, pero no se adivina (14-09-2026)
+
+Apuntar es la acción más repetida de Finanzas —cincuenta veces al mes frente a dos toques
+al año en «Lo fijo»— y la mitad de las veces es lo mismo que la semana pasada. Las
+sugerencias de «Lo de siempre» salen del propio historial, con dos límites:
+
+- **Solo lo que se repite** (dos veces o más). Sugerir algo escrito una sola vez no es una
+  sugerencia, es el historial; y un cajón donde está todo no ahorra ni un toque, porque
+  hay que leerlo entero para encontrar el bueno.
+- **Traen su partida**, la de la última vez: quien apunta «Gasolina» la carga siempre al
+  coche, y dejar el chip por tocar dejaba el ahorro a medias.
+
+**Lo que no cambia es el valor por defecto de un apunte nuevo, que sigue siendo «Sin
+partida».** La mitad de los gastos de una casa no caen en ninguna —es la decisión del
+01-09 que puso «Sin partida» la primera— y adivinar una sería apuntar mal en nombre de la
+comodidad. La partida solo la trae quien elige una sugerencia, que es alguien diciendo
+«esto otra vez».
+
+### Aceptar un presupuesto no es pagarlo (14-09-2026)
+
+Un presupuesto aceptado ofrece **apuntarse** como gasto del mes en que se pague, y hasta
+ahí llega el puente entre las dos mitades de Finanzas. Antes no había ninguno: aceptabas
+los 620 € de pintar el salón y no aparecían en la cuenta de ningún mes.
+
+**No se crea nada solo**, y no es prudencia de más: aceptar es decir «con este me quedo», y
+puede pasar un mes hasta que el pintor cobre. Lo que hace el enlace es abrir el formulario
+de siempre con lo que consta —el importe y para qué era—; la fecha no viaja, porque un
+presupuesto no sabe cuándo se paga, y la partida tampoco, porque no es algo que un
+presupuesto tenga. Tampoco queda vínculo en la base entre el presupuesto y el apunte: son
+dos cosas distintas y unirlas obligaría a decidir qué pasa al borrar una.
+
+Al guardarlo, la pantalla se va **al mes en el que ha caído** —con la previsión abierta si
+ese mes aún no ha llegado—, que es lo que contesta la pregunta por la que se apunta: si el
+mes cuadra contándolo.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

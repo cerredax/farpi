@@ -224,3 +224,31 @@ for (const ruta of RUTAS) {
     expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px en ${ruta}`).toEqual([])
   })
 }
+
+// Las cuatro pestañas de Finanzas pasaron a ser una barra segmentada el
+// 14-09-2026, y lo que esa barra promete es que se ve entera: antes eran cuatro
+// píldoras con `overflow-x-auto` y a 390 px la cuarta se quedaba fuera del borde,
+// así que «Presupuestos» solo aparecía si a alguien se le ocurría arrastrar. El
+// bucle de arriba no lo habría visto nunca: un contenedor que se arrastra no
+// desborda la página.
+test('las cuatro pestañas de Finanzas caben enteras a 390 px', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(900)
+
+  const barra = page.getByRole('tablist', { name: 'Secciones de finanzas' })
+  await expect(barra).toBeVisible()
+
+  // Sin arrastre: lo que se ve es todo lo que hay.
+  const medidas = await barra.evaluate(el => ({ scroll: el.scrollWidth, visible: el.clientWidth }))
+  expect(medidas.scroll).toBeLessThanOrEqual(medidas.visible)
+
+  for (const nombre of ['El mes', 'Cómo vamos', 'Lo fijo', 'Presupuestos']) {
+    const pestaña = page.getByRole('tab', { name: nombre })
+    const caja = await pestaña.boundingBox()
+    expect(caja, `falta la pestaña ${nombre}`).not.toBeNull()
+    // Dentro de la pantalla y con el nombre sin recortar.
+    expect(caja!.x + caja!.width, `${nombre} se sale a la derecha`).toBeLessThanOrEqual(390)
+    const recortada = await pestaña.evaluate(el => el.scrollWidth > el.clientWidth)
+    expect(recortada, `${nombre} sale recortada`).toBe(false)
+  }
+})

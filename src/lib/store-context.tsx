@@ -5,7 +5,7 @@ import * as store from './store'
 import { mockRepos } from './mock-repos'
 import { supabaseRepos } from './supabase-repos'
 import { IS_DEMO_MODE } from './supabase/client'
-import { mesDe, mesVecino } from './budgets'
+import { debeCerrarseElMesPasado } from './budgets'
 import { mensajeDeError } from './errores'
 import { CargandoFarpi, ErrorDeArranque } from '@/components/layout/CargandoFarpi'
 import { getLocalDateString } from './date-utils'
@@ -267,17 +267,14 @@ const EMPTY_SLICES = {
 /**
  * Cierra el mes pasado si todavía no lo estaba, y devuelve los planes buenos.
  *
- * Tres cosas que no son evidentes:
+ * **Si hay que cerrarlo o no lo decide `debeCerrarseElMesPasado`**, que vive en
+ * `budgets.ts` con su test desde el 14-09-2026: son dos reglas —que no esté ya
+ * cerrado y que la familia existiera— y aquí no se podían probar. Lo que se queda
+ * aquí es el viaje a la base, que es lo único que esta función sabe hacer.
  *
- * 1. **Solo se llama cuando falta el mes pasado.** El resto de los días del mes
- *    esto no hace ni un viaje, que es lo que permite tenerlo en la carga.
- * 2. **No se cierra el mes anterior a que existiera la familia.** Una familia
- *    creada hoy no tuvo agosto, y guardarle un agosto vacío sería inventarle un
- *    pasado que además luego se lee como «ese mes no pusisteis nada».
- * 3. **Si falla, no pasa nada.** Se devuelven los planes que ya había. No poder
- *    cerrar agosto no puede dejar Finanzas en blanco, y sobre todo no puede
- *    escribir en consola: `e2e/runtime.spec.ts` tumba la suite ante cualquier
- *    `console.error`.
+ * Y **si falla, no pasa nada**: se devuelven los planes que ya había. No poder
+ * cerrar agosto no puede dejar Finanzas en blanco, y sobre todo no puede escribir
+ * en consola: `e2e/runtime.spec.ts` tumba la suite ante cualquier `console.error`.
  */
 async function cerrarMesPasadoSiFalta(
   repos: Repos,
@@ -285,9 +282,8 @@ async function cerrarMesPasadoSiFalta(
   family: Family,
   planes: MonthPlan[],
 ): Promise<MonthPlan[]> {
-  const mesPasado = mesVecino(mesDe(getLocalDateString(new Date())), -1)
-  if (planes.some(p => p.month === mesPasado)) return planes
-  if (mesDe(family.created_at) > mesPasado) return planes
+  const hoy = getLocalDateString(new Date())
+  if (!debeCerrarseElMesPasado(hoy, family.created_at, planes)) return planes
 
   try {
     const cerrado = await repos.monthPlans.closePreviousMonth(familyId)

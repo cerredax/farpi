@@ -13,6 +13,100 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-14
+
+### Finanzas cerrada: buscar, leer el día a día y apuntar sin teclearlo entero (14-09-2026)
+
+Era la última sección sin dar por cerrada, y la pregunta era qué le faltaba. Mirándola con
+las dos gafas —la de quien la usa en casa y la de quien mantiene el código— no salieron
+funciones nuevas: salieron tres sitios donde el uso diario rozaba, un cabo suelto entre
+sus dos mitades y dos deudas pequeñas. Nada de banco, de saldos entre adultos ni de
+categorizar solo: los cinco siguen descartados y por las mismas razones de siempre.
+
+**No se podía buscar.** Finanzas era la única pantalla de contenido de la app con el
+buscador apagado a mano (`buscador={null}`), y eso dejaba sin contestar justo las
+preguntas que no son de un mes: «¿cuánto llevamos gastado en el dentista?», «¿cuándo
+pagamos la ITV?». La única salida era ir mes a mes con la tira, leyendo. Así que el
+buscador **cruza todos los meses**, que es la mitad de la decisión; la otra mitad es que
+la respuesta **empieza por la cifra** —«7 apuntes con «farmacia». Se han ido 134,20 €»—
+porque a esa pregunta no se contesta con una lista. Mira lo que se escribió **y el nombre
+de la partida**, que son las dos formas en las que una casa nombra un gasto: unos se
+acuerdan de «farmacia» y otros de «salud». Y mientras se busca, la cuenta del mes y las
+partidas se van: hablan de un mes, y lo que hay debajo ya no es de ninguno. Es la misma
+regla que Documentos tenía escrita desde el principio —«la búsqueda manda sobre el
+filtro»—, con el mes haciendo de filtro.
+
+**«El día a día» era una lista plana.** Setenta apuntes eran setenta renglones iguales en
+los que lo único que los separaba era la fecha, en gris de 11 px, repetida en cada uno:
+para saber qué se fue el sábado había que ir bajando y leyendo la columna de la izquierda
+uno a uno. Es literalmente el mismo problema que tenían los doce meses seguidos de
+Cumpleaños el día antes, así que se arregla igual —cada día con su rótulo encima— y con lo
+que un rótulo puede dar gratis: la cifra del día. «Martes 16 · 74,70 €» contesta de un
+vistazo algo que antes había que sumar a mano. Hoy y ayer se llaman por su nombre, porque
+son los dos días en los que se apunta de verdad. Y la fila **deja de repetir la fecha**
+que ya dice su rótulo, que es el mismo criterio por el que no se escribe «de casa» en cada
+renglón. Lo entrado y lo salido van separados y no restados: un día con una devolución de
+40 € y una compra de 40 € no es un día en el que no pasó nada.
+
+**Apuntar se tecleaba entero cincuenta veces al mes.** Es la acción más repetida de la
+sección con diferencia —frente a dos toques al año en «Lo fijo»— y la mitad de esas veces
+es literalmente lo mismo que la semana pasada. Ahora el formulario ofrece **lo que esta
+casa apunta una y otra vez**, con dos decisiones dentro: solo lo que se repite **dos veces
+o más** —sugerir algo escrito una sola vez no es una sugerencia, es el historial, y un
+cajón donde está todo no ahorra ni un toque porque hay que leerlo entero— y cada
+sugerencia **trae su partida**, la de la última vez, porque quien apunta «Gasolina» la
+carga siempre al coche y dejar el chip por tocar dejaba el ahorro a medias. Por lo mismo
+los chips de partida salen **por uso** y no por el `sort_order` de una pantalla que se
+toca dos veces al año. Lo que **no** cambia es el valor por defecto, que sigue siendo «Sin
+partida»: la mitad de los gastos de una casa no caen en ninguna, y adivinarla sería
+apuntar mal en nombre de la comodidad.
+
+**Un presupuesto aceptado no llevaba a ningún sitio.** Aceptabas los 620 € de pintar el
+salón y ahí se quedaban, marcados «Aceptado», sin aparecer en la cuenta de ningún mes: las
+dos mitades de Finanzas compartían pantalla y no se hablaban, que era el único sitio donde
+la sección no cerraba el círculo. Ahora el aceptado ofrece **apuntarse**, y la forma
+importa tanto como el hecho: abre el formulario de siempre con el importe y el trabajo ya
+escritos, y nada más. **No se crea nada solo**, porque aceptar un presupuesto no es
+pagarlo, y no viajan ni la fecha —un presupuesto no sabe cuándo se paga— ni la partida,
+que no es algo que un presupuesto tenga. Al guardarlo, la pantalla se va al mes en el que
+ha caído, con la previsión abierta si ese mes no ha llegado: es lo que contesta la
+pregunta por la que se apunta, que es si el mes cuadra contándolo.
+
+**Y el menú de la sección.** Las cuatro pestañas eran cuatro píldoras con
+`overflow-x-auto`: a 390 px la cuarta se quedaba fuera del borde, así que «Presupuestos»
+solo aparecía si a alguien se le ocurría arrastrar, y la tira no decía cuántas secciones
+hay. Un menú de cuatro sitios fijos se enseña entero o no es un menú. Ahora es una barra
+segmentada que ocupa el ancho, y el reparto es lo que tiene miga: en cuartos iguales
+(89 px cada uno) «Presupuestos» obligaba a bajar la letra a 11 px, que es justo lo que se
+había subido a 13 el 04-09 por ilegible. Con `flex-auto` cada pestaña mide lo que mide su
+nombre y el hueco sobrante se reparte a prorrata, así que **las cuatro caben con los 12 px
+que ya tenían**. Medido en el navegador: 358 px de barra, las cuatro dentro, ninguna
+recortada, 44 px de alto. Lo vigila `movil.spec.ts` con un test propio, porque el bucle de
+rutas no lo habría visto nunca: un contenedor que se arrastra no desborda la página.
+
+**Dos deudas técnicas, y una tercera que se decidió no pagar todavía.** Los presupuestos
+pedidos salen de `budgets.ts` a **`quotes.ts`**: un archivo llamado `budgets.ts` con las
+partidas y los presupuestos dentro era exactamente la confusión que la sección entera se
+dedicó a deshacer el 01-09 —«presupuesto» en español son dos cosas y aquí solo significa
+una—, y obligaba a traducir mentalmente cada vez que se abría. Y
+**`debeCerrarseElMesPasado`** sale de `StoreProvider` a `budgets.ts` con seis tests: es la
+regla que le da historia a Finanzas entera —de ella sale que un mes terminado enseñe lo
+que valía entonces— y no tenía ni uno, porque donde vivía no se podía probar. La que **no**
+se ha tocado es la ventana temporal de `getExpenses`, que trae todos los apuntes desde
+siempre en cada arranque. Es la tabla que más crece, pero la miran cuatro cosas que
+necesitan la historia entera —hasta dónde llega la tira de meses, la serie de seis, el
+ritmo habitual y el buscador nuevo—, así que no es «añadir un filtro» sino decidir hasta
+dónde se puede mirar y traer los agregados por otro lado. Con el tamaño de hoy no se nota
+y el índice ya está, así que lo que queda escrito es el umbral en vez del trabajo:
+revisarlo al pasar de unos 3.000 apuntes, que son tres años de uso.
+
+De paso, un test de antes se volvió ambiguo y se afinó en vez de taparse: «un gasto
+apuntado mueve la partida de la que sale» buscaba «Compra semanal» en la página entera, y
+ahora ese texto está dos veces —la fila y la sugerencia, que existe porque con la de la
+demo ya van dos—. Mira dentro de «El día a día», que es donde está la fila que quiere ver.
+
+**717 en la pasada completa** (542 unitarios + 175 de navegador), 26 y 5 más que antes.
+
 ## Cerrado el 2026-09-13
 
 ### Tres defectos mirando el mes: el salto al elegir un día, las filas desiguales y la mancha de hoy (13-09-2026)

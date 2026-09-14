@@ -1019,7 +1019,15 @@ test('un gasto apuntado mueve la partida de la que sale', async ({ page }) => {
   await page.waitForTimeout(500)
 
   // El importe se lee igual en la fila y en la partida, y el resto sale de restar.
-  await expect(page.getByText('Compra semanal')).toBeVisible()
+  //
+  // Se mira dentro de «El día a día» y no en la página entera desde el
+  // 14-09-2026: el sheet cerrado sigue montado y ahora lleva dentro las
+  // sugerencias —«Compra semanal» acaba de convertirse en una, porque con la de
+  // la demo ya van dos—, así que un `getByText` a pelo encuentra dos cosas. Lo
+  // que este test quiere ver es la fila, y la fila está aquí.
+  await expect(
+    page.locator('section[aria-label="El día a día"]').getByText('Compra semanal'),
+  ).toBeVisible()
   await expect(compra).toContainText('24,90 €')
   await expect(compra).toContainText('Quedan 375,10 €')
 })
@@ -1654,4 +1662,109 @@ test('dos presupuestos para lo mismo se comparan juntos', async ({ page }) => {
   await page.waitForTimeout(500)
   await expect(caldera).toContainText('Decidido')
   await expect(caldera.getByText('Más barato')).toHaveCount(0)
+})
+
+// ─── Buscar, agrupar y apuntar sin teclearlo todo (14-09-2026) ────────────────
+//
+// Lo que faltaba para cerrar la sección, y las tres cosas se comprueban en el
+// navegador porque las tres son de pantalla: que lo encontrado cruce los meses,
+// que el día a día se lea por días y que lo que ya se apuntó otra vez se ofrezca.
+
+test('el buscador cruza los meses y dice cuánto suma lo encontrado', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  // La demo está sembrada en junio y el mes que se abre es el de hoy, vacío: si
+  // la búsqueda solo mirara el mes abierto, esto no encontraría nada.
+  const buscador = page.getByLabel('Buscar en los apuntes')
+  await buscador.fill('farmacia')
+  await page.waitForTimeout(300)
+
+  const panel = page.locator('#panel-mes')
+  await expect(panel).toContainText('1 apunte con «farmacia»')
+  await expect(panel).toContainText('Se han ido 12,30 €')
+  // Agrupado por su mes, que es lo primero que hace falta saber de un resultado.
+  await expect(panel).toContainText('Junio')
+  // Y mientras se busca, la cuenta del mes no está: habla de un mes y lo que hay
+  // debajo ya no es de ninguno.
+  await expect(panel.getByLabel('Resumen del mes')).toHaveCount(0)
+
+  // Busca también por el nombre de la partida, no solo por lo que se escribió.
+  await buscador.fill('coche')
+  await page.waitForTimeout(300)
+  await expect(panel).toContainText('Gasolina')
+  await expect(panel).toContainText('Taller: cambio de aceite')
+
+  // Al vaciarlo vuelve el mes de siempre.
+  await buscador.fill('')
+  await page.waitForTimeout(300)
+  await expect(panel.getByLabel('Resumen del mes')).toBeVisible()
+})
+
+test('«El día a día» va por días, con lo que se fue en cada uno', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  // Atrás hasta junio, que es donde están los apuntes de la demo.
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Mes anterior' }).click()
+  await page.waitForTimeout(300)
+
+  const dia = page.locator('section[aria-label="El día a día"]')
+  // El martes 16 tuvo dos apuntes —la compra y la farmacia— y su rótulo los suma.
+  await expect(dia.getByRole('heading', { name: 'Martes 16' })).toBeVisible()
+  await expect(dia).toContainText('74,70 €')
+
+  // Y la fila ya no repite la fecha que dice el rótulo de su día.
+  const fila = dia.getByRole('button', { name: /Compra semanal/ })
+  await expect(fila).not.toContainText('16 jun')
+})
+
+test('lo que ya se apuntó otra vez se ofrece, con su partida', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+
+  // Dos veces lo mismo, que es lo que hace una casa: la compra de cada semana.
+  for (const dia of ['01', '08']) {
+    await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+    await page.locator('#expense-amount').fill('62,40')
+    await page.locator('#expense-date').fill(`2026-09-${dia}`)
+    await page.locator('#expense-description').fill('Compra semanal')
+    await page.getByRole('button', { name: 'Compra', exact: true }).click()
+    await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+    await page.waitForTimeout(500)
+  }
+
+  // A la tercera ya no hay que escribirlo: está ahí, y trae la partida detrás.
+  await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Nuevo apunte' })
+  await expect(sheet).toContainText('Lo de siempre')
+  await sheet.getByRole('button', { name: 'Compra semanal' }).click()
+
+  await expect(page.locator('#expense-description')).toHaveValue('Compra semanal')
+  // Y la partida queda elegida sin tocarla: el chip de «Compra» se pinta como
+  // seleccionado, que es lo que `SelectChip` hace con el fondo de marca.
+  await expect(sheet.getByRole('button', { name: 'Compra', exact: true }))
+    .toHaveClass(/bg-primary-strong/)
+})
+
+test('un presupuesto aceptado se apunta en el mes que se paga', async ({ page }) => {
+  await page.goto('/finanzas')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Presupuestos' }).click()
+
+  // «Pintar el salón» viene sembrado ya aceptado, con los 620 € de Pinturas Nieto.
+  const salon = page.getByRole('region', { name: 'Pintar el salón' })
+  await salon.getByRole('button', { name: 'Apuntar el gasto de Pinturas Nieto' }).click()
+
+  // El formulario de siempre, con lo que consta del presupuesto ya escrito.
+  const sheet = page.getByRole('dialog', { name: 'Nuevo apunte' })
+  await expect(sheet).toBeVisible()
+  await expect(page.locator('#expense-amount')).toHaveValue('620')
+  await expect(page.locator('#expense-description')).toHaveValue('Pintar el salón')
+
+  // Y al guardarlo se va a verlo donde ha caído, que es lo que contesta la
+  // pregunta por la que se apunta: si el mes cuadra contándolo.
+  await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+  await page.waitForTimeout(500)
+  await expect(page.getByRole('tab', { name: 'El mes' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('section[aria-label="El día a día"]')).toContainText('Pintar el salón')
 })

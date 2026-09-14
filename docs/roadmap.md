@@ -773,6 +773,39 @@ Deuda de los dos días anteriores, no trabajo nuevo.
       de claridad justamente para que ahí el reparto blanco/tinta funcione (el peor,
       Ladrillo, 5,42:1). `.etiqueta-persona` es para los nombres.
 
+## Fase 8w - Finanzas: buscar, leer y apuntar (14-09-2026)
+
+Lo que faltaba para dar la sección por cerrada. No son funciones nuevas: son los tres
+sitios donde el uso diario rozaba, el cabo suelto entre sus dos mitades y dos deudas
+técnicas pequeñas. El porqué de cada cosa, en `docs/historial.md`.
+
+- [x] **Buscador, y en todos los meses.** Finanzas era la única pantalla de contenido con
+      `buscador={null}` a mano. Mira lo escrito **y el nombre de la partida**, y la
+      respuesta empieza por la cifra —«7 apuntes con «farmacia». Se han ido 134,20 €»—
+      con lo encontrado agrupado por su mes. Mientras se busca, la cuenta del mes y las
+      partidas no están: hablan de un mes y lo que hay debajo ya no es de ninguno.
+- [x] **«El día a día», por días**, cada uno con su rótulo y su cifra, y «Hoy» y «Ayer»
+      por su nombre. La fila deja de repetir la fecha que dice el rótulo. Mismo arreglo
+      que el de los doce meses de Cumpleaños del día antes.
+- [x] **Apuntar deja de teclearse entero**: se ofrece lo que ya se apuntó **dos veces o
+      más**, cada sugerencia trae **su partida**, y los chips de partida salen por uso.
+      El valor por defecto sigue siendo «Sin partida»: adivinarla sería apuntar mal.
+- [x] **Un presupuesto aceptado se puede apuntar** en el mes en que se paga, con el
+      importe y el trabajo ya escritos, y al guardarlo lleva a ese mes. No se crea nada
+      solo: aceptar un presupuesto no es pagarlo.
+- [x] **Las cuatro pestañas se ven enteras a 390 px** (barra segmentada que reparte el
+      ancho sobrante con `flex-auto`), sin bajar la letra. Eran cuatro píldoras que se
+      arrastraban con «Presupuestos» fuera del borde.
+- [x] **`quotes.ts`**, aparte de `budgets.ts`: un archivo llamado `budgets.ts` con las
+      partidas **y** los presupuestos pedidos dentro era justo la confusión que la sección
+      se dedicó a deshacer el 01-09. Con sus tests, en `e2e/unit/quotes.spec.ts`.
+- [x] **`debeCerrarseElMesPasado` sale de `StoreProvider`** a `budgets.ts`, con seis
+      tests: es la regla que le da historia a la sección y no tenía ninguno, porque donde
+      vivía no se podía probar.
+- [x] **26 unitarios y 5 de navegador nuevos: 717** en la pasada completa (542 + 175).
+- [x] Decidido **no** poner ventana temporal a `getExpenses` todavía, y escrito por qué y
+      con qué umbral revisarlo (~3.000 apuntes) en `docs/project-status.md`.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

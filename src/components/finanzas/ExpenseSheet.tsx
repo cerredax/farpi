@@ -1,19 +1,33 @@
 'use client'
 
+import { useMemo } from 'react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
+import { Suggestions } from '@/components/ui/Suggestions'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { useStore } from '@/lib/store-context'
+import { descripcionesFrecuentes, partidasPorUso } from '@/lib/budgets'
 import { centsToInput } from '@/lib/finanzas'
 import { validateExpenseDraft } from '@/lib/validators'
 import type { Budget, Expense, ExpenseDraft } from '@/types'
 
+/** Lo que se sabe de un apunte antes de que nadie teclee: de dónde sale y cuánto. */
+export interface ApunteEmpezado {
+  amount: string
+  description: string
+}
+
 interface ExpenseSheetProps {
   open: boolean
   initial?: Expense | null
+  /**
+   * Un apunte nuevo que ya viene con algo escrito: el que sale de aceptar un
+   * presupuesto. No se mezcla con `initial`, que es un apunte que existe.
+   */
+  empezado?: ApunteEmpezado | null
   /** Con qué fecha nace un apunte nuevo: hoy, o el día 1 si se mira otro mes. */
   fechaPorDefecto: string
   budgets: Budget[]
@@ -22,7 +36,11 @@ interface ExpenseSheetProps {
   onDelete: (id: string) => void
 }
 
-function initDraft(initial: Expense | null | undefined, fechaPorDefecto: string): ExpenseDraft {
+function initDraft(
+  initial: Expense | null | undefined,
+  empezado: ApunteEmpezado | null | undefined,
+  fechaPorDefecto: string,
+): ExpenseDraft {
   if (initial) {
     return {
       kind: initial.kind,
@@ -36,7 +54,15 @@ function initDraft(initial: Expense | null | undefined, fechaPorDefecto: string)
   }
   // Nace como gasto: es lo que se apunta noventa y nueve veces de cada cien. Lo
   // que entra de verdad todos los meses son los fijos, no esto.
-  return { kind: 'gasto', amount: '', date: fechaPorDefecto, description: '', budget_id: null, child_id: null, member_id: null }
+  return {
+    kind: 'gasto',
+    amount: empezado?.amount ?? '',
+    date: fechaPorDefecto,
+    description: empezado?.description ?? '',
+    budget_id: null,
+    child_id: null,
+    member_id: null,
+  }
 }
 
 /**
@@ -60,17 +86,38 @@ function initDraft(initial: Expense | null | undefined, fechaPorDefecto: string)
  * "Quién lo pagó" reutiliza el selector de personas de eventos y tareas, con lo
  * que significa aquí: sin elegir a nadie, el gasto es de la casa. Eso es lo
  * normal —la cuenta común— y por eso es lo que viene puesto.
+ *
+ * **Lo que ya se ha apuntado otras veces se ofrece** (14-09-2026). Este
+ * formulario se abre cincuenta veces al mes y la mitad de esas veces es
+ * literalmente lo mismo que la semana pasada —«Compra semanal», «Gasolina»— y se
+ * tecleaba entero cada vez. Las sugerencias son las mismas pastillas de las
+ * listas y de las comidas, y **traen su partida**: quien apunta «Gasolina» la
+ * carga siempre al coche.
+ *
+ * Y por lo mismo **las partidas se ofrecen por uso** y no por el `sort_order` de
+ * «Lo fijo»: la de la compra se elige cuatro de cada cinco veces, así que es la
+ * que tiene que estar la primera. Lo que no cambia es el valor por defecto, que
+ * sigue siendo «Sin partida»: la mitad de los gastos de una casa no caen en
+ * ninguna, y adivinarla sería apuntar mal en nombre de la comodidad.
  */
-export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose, onSave, onDelete }: ExpenseSheetProps) {
-  const { members, kids } = useStore()
+export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets, onClose, onSave, onDelete }: ExpenseSheetProps) {
+  const { members, kids, expenses } = useStore()
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ExpenseDraft>({
     open,
-    initialDraft: () => initDraft(initial, fechaPorDefecto),
+    initialDraft: () => initDraft(initial, empezado, fechaPorDefecto),
     validate: validateExpenseDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
   const esIngreso = draft.kind === 'ingreso'
+
+  // Las de su tipo: lo que se repite al apuntar gastos no tiene nada que ver con
+  // lo que se repite al apuntar ingresos.
+  const sugerencias = useMemo(
+    () => descripcionesFrecuentes(expenses, draft.kind),
+    [expenses, draft.kind],
+  )
+  const partidas = useMemo(() => partidasPorUso(budgets, expenses), [budgets, expenses])
 
   const handleSubmit = submitHandler(valid => {
     onSave(valid)
@@ -150,6 +197,22 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
           />
         </Field>
 
+        {/* Lo de siempre, con su partida detrás. En un ingreso la partida no
+            viaja: ahí ni existe el campo, y mandarla rompería el `check` de la
+            base. */}
+        {sugerencias.length > 0 && (
+          <Suggestions
+            label="Lo de siempre"
+            values={sugerencias.map(x => x.texto)}
+            onPick={texto => {
+              const elegida = sugerencias.find(x => x.texto === texto)
+              patch(esIngreso
+                ? { description: texto }
+                : { description: texto, budget_id: elegida?.budgetId ?? null })
+            }}
+          />
+        )}
+
         {/* Sin partida es una opción de verdad y va la primera: la mitad de los
             gastos de una casa no caen en ninguna categoría, y obligar a elegir
             una haría que se apuntaran mal o no se apuntaran. */}
@@ -159,7 +222,7 @@ export function ExpenseSheet({ open, initial, fechaPorDefecto, budgets, onClose,
               <SelectChip selected={draft.budget_id === null} onClick={() => patch({ budget_id: null })}>
                 Sin partida
               </SelectChip>
-              {budgets.map(budget => (
+              {partidas.map(budget => (
                 <SelectChip
                   key={budget.id}
                   selected={draft.budget_id === budget.id}

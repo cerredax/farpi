@@ -11,6 +11,14 @@ interface ExpenseRowProps {
   budgets: Budget[]
   members: FamilyMember[]
   kids: Child[]
+  /**
+   * Si la fila dice su fecha. **No** cuando va bajo el rótulo de su día —«Martes
+   * 16» encima y «16 jun» en cada fila es decir dos veces lo mismo, que es ruido
+   * exactamente igual que lo sería repetir «de casa» en cada renglón—, y **sí**
+   * en los resultados de una búsqueda, que van por meses y donde el día es justo
+   * lo que se ha ido a buscar.
+   */
+  conFecha?: boolean
   onEdit: () => void
 }
 
@@ -29,7 +37,7 @@ interface ExpenseRowProps {
  * Cuando lo pagó la cuenta común no se pinta nada: "de casa" es el caso normal y
  * repetirlo en cada fila sería ruido.
  */
-export function ExpenseRow({ expense, budgets, members, kids, onEdit }: ExpenseRowProps) {
+export function ExpenseRow({ expense, budgets, members, kids, conFecha = true, onEdit }: ExpenseRowProps) {
   const budget = budgets.find(b => b.id === expense.budget_id)
   const quienPago = resolveAssignee(expense, members, kids)
   const esIngreso = expense.kind === 'ingreso'
@@ -44,7 +52,7 @@ export function ExpenseRow({ expense, budgets, members, kids, onEdit }: ExpenseR
           {expense.description ?? (budget ? budget.name : esIngreso ? 'Ingreso' : 'Gasto')}
         </p>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
-          <span>{format(parseISO(expense.date), 'd MMM', { locale: es })}</span>
+          {conFecha && <span>{format(parseISO(expense.date), 'd MMM', { locale: es })}</span>}
           {budget && (
             <span className="truncate">
               {budget.emoji ? `${budget.emoji} ` : ''}{budget.name}

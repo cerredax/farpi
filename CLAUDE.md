@@ -85,8 +85,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 516 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 686 (516 unitarios + 170 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 542 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 717 (542 unitarios + 175 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -248,7 +248,7 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto 
 
 ## Convenciones de código
 
-- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts`, `agenda.ts` (los tramos de la agenda) y `text.ts`: mírala antes de reescribirla.
+- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts`, `agenda.ts` (los tramos de la agenda), `budgets.ts` (el dinero del mes: la plantilla, la cuenta, las partidas, buscar y agrupar apuntes), `quotes.ts` (los presupuestos que te pasan de fuera, aparte de `budgets.ts` para que un archivo no tenga dentro los dos significados de «presupuesto») y `text.ts`: mírala antes de reescribirla.
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - **Un sheet no va dentro de un contenedor con `space-y-*`**: va fuera, como hermano suyo,

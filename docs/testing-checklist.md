@@ -318,7 +318,23 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       en. Las partidas se crean y se editan ahí.
 - [ ] El botón de alta está **arriba a la derecha**, como en el resto de la app, y no
       flotando abajo. Crea lo de la pestaña que se esté mirando.
-- [ ] Las cuatro pestañas se arrastran a 390 px sin desbordar.
+- [ ] Las cuatro pestañas **se ven enteras a 390 px, sin arrastrar** (14-09-2026): son
+      una barra segmentada que ocupa el ancho. Si alguna se sale o queda recortada, se ha
+      tocado el reparto. En escritorio la barra **no se estira**: se queda a su tamaño.
+- [ ] **El día a día va por días**, con el rótulo de cada uno y lo que se fue ese día, y
+      «Hoy» y «Ayer» por su nombre. La fila **no repite** la fecha del rótulo.
+- [ ] **Buscar** (a partir de tres apuntes, arriba junto al `+`): escribir algo del mes de
+      junio estando en septiembre lo encuentra igual, la respuesta empieza por la cifra y
+      lo encontrado sale agrupado por su mes. Mientras se busca, la cuenta del mes y las
+      partidas no están; al vaciar el campo vuelven.
+- [ ] Buscar el **nombre de una partida** («coche») encuentra sus gastos aunque no lo
+      lleven escrito.
+- [ ] Apuntar dos veces lo mismo hace que a la tercera salga en **«Lo de siempre»**, y
+      tocarlo escribe el texto **y elige su partida**. Lo que no cambia es lo que viene
+      puesto en un apunte nuevo: «Sin partida».
+- [ ] Un presupuesto **aceptado** ofrece «Apuntar el gasto»: abre el apunte con el importe
+      y el trabajo escritos, y al guardarlo lleva al mes en el que ha caído. Sin aceptar,
+      el enlace no está.
 
 **Cómo vamos** (se llamaba «Resumen» hasta el 04-09-2026)
 

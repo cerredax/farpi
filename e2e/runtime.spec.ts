@@ -166,10 +166,10 @@ test('el buscador de ítems aparece al crecer la lista y filtra', async ({ page 
   const buscador = page.getByLabel('Buscar ítems en la lista')
   await expect(buscador).toHaveCount(0)
 
+  const apuntar = page.getByLabel('Apuntar algo en Lista de prueba')
   for (const texto of ['Zumo de naranja', 'Leche entera', 'Galletas']) {
-    await page.getByRole('button', { name: 'Añadir ítem' }).click()
-    await page.locator('#item-text').fill(texto)
-    await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+    await apuntar.fill(texto)
+    await apuntar.press('Enter')
     await page.waitForTimeout(250)
   }
 
@@ -251,21 +251,23 @@ test('unas vacaciones no pueden acabar antes de empezar', async ({ page }) => {
   await expect(page.getByText('El último día no puede ser anterior al primero')).toBeVisible()
 })
 
-// Añadir dos ítems seguidos dejaba el texto del primero en el campo: la vista
-// reutiliza el mismo sheet de creación, así que el formulario tiene que
-// rearmarse en cada apertura.
-test('el sheet de crear ítem llega vacío la segunda vez', async ({ page }) => {
+// Apuntar dos cosas seguidas es el caso normal de una compra —se abre la nevera
+// y se cantan seis—, así que después de cada una el campo tiene que quedarse
+// vacío y con el foco puesto. Es justo lo que trajo la barra el 14-09-2026: con
+// el sheet había que volver a abrirlo cada vez.
+test('la barra de apuntar se vacía y se queda lista para lo siguiente', async ({ page }) => {
   await page.goto('/lists')
   await page.waitForTimeout(700)
   await page.getByText('Farmacia').first().click()
 
-  await page.getByRole('button', { name: 'Añadir ítem' }).click()
-  await page.locator('#item-text').fill('Ibuprofeno')
-  await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+  const apuntar = page.getByLabel('Apuntar algo en Farmacia')
+  await apuntar.fill('Ibuprofeno')
+  await apuntar.press('Enter')
   await page.waitForTimeout(300)
 
-  await page.getByRole('button', { name: 'Añadir ítem' }).click()
-  await expect(page.locator('#item-text')).toHaveValue('')
+  await expect(page.getByRole('button', { name: 'Ibuprofeno', exact: true })).toBeVisible()
+  await expect(apuntar).toHaveValue('')
+  await expect(apuntar).toBeFocused()
 })
 
 // Un ítem se apunta donde estás y luego resulta que iba en otra cesta. Mover
@@ -276,9 +278,8 @@ test('un ítem se puede mover de una lista a otra', async ({ page }) => {
   await page.waitForTimeout(700)
 
   await page.getByText('Farmacia').first().click()
-  await page.getByRole('button', { name: 'Añadir ítem' }).click()
-  await page.locator('#item-text').fill('Jabón neutro')
-  await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+  await page.getByLabel('Apuntar algo en Farmacia').fill('Jabón neutro')
+  await page.getByLabel('Apuntar algo en Farmacia').press('Enter')
   await page.waitForTimeout(300)
 
   await page.getByRole('button', { name: 'Jabón neutro', exact: true }).click()
@@ -437,36 +438,6 @@ test('una tarea se puede asignar a alguien y se ve de quién es', async ({ page 
   // La tarea aparece con el nombre de quien la lleva.
   const fila = page.locator('div').filter({ hasText: /^Regar las plantas/ }).first()
   await expect(fila).toContainText('María')
-})
-
-// «Hoy» y «Mañana» son casi todas las fechas que se ponen en una casa, y hasta
-// ahora la de hoy costaba abrir el calendario del móvil y buscar el día en la
-// rejilla. El atajo la pone de un toque y la quita con otro.
-test('la fecha de una tarea se pone con los atajos, y se quita', async ({ page }) => {
-  const hoy = new Date()
-  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
-
-  await page.goto('/tasks')
-  await page.waitForTimeout(700)
-
-  await page.getByRole('button', { name: 'Nueva tarea' }).click()
-  const sheet = page.getByRole('dialog', { name: 'Nueva tarea' })
-  await page.locator('#task-title').fill('Cambiar el filtro del agua')
-
-  const atajoHoy = sheet.getByRole('button', { name: 'Hoy', exact: true })
-  await atajoHoy.click()
-  await expect(page.locator('#task-due')).toHaveValue(iso)
-
-  // El mismo chip la quita: no hace falta un botón de vaciar.
-  await atajoHoy.click()
-  await expect(page.locator('#task-due')).toHaveValue('')
-
-  await atajoHoy.click()
-  await page.getByRole('button', { name: 'Crear tarea' }).click()
-  await page.waitForTimeout(400)
-
-  const fila = page.locator('div').filter({ hasText: /^Cambiar el filtro del agua/ }).first()
-  await expect(fila).toContainText('Hoy')
 })
 
 // Con el tiempo la lista se hace larga y "¿apunté lo de la vitamina?" solo se
@@ -894,9 +865,8 @@ test('las unidades de la compra se cambian desde la fila', async ({ page }) => {
   await page.getByText('Farmacia').first().click()
   await page.waitForTimeout(500)
 
-  await page.getByRole('button', { name: 'Añadir ítem' }).click()
-  await page.locator('#item-text').fill('Ibuprofeno')
-  await page.getByRole('button', { name: 'Añadir', exact: true }).click()
+  await page.getByLabel('Apuntar algo en Farmacia').fill('Ibuprofeno')
+  await page.getByLabel('Apuntar algo en Farmacia').press('Enter')
 
   const mas = page.getByRole('button', { name: 'Añadir una unidad de Ibuprofeno' })
   const menos = page.getByRole('button', { name: 'Quitar una unidad de Ibuprofeno' })

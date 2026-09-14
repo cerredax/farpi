@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { EventSheet } from '@/components/calendar/EventSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ViewHeader } from '@/components/ui/ViewHeader'
-import { fondoDePersona } from '@/lib/assignees'
 import { agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple, edadEnPalabras } from '@/lib/birthdays'
 import { DIAS_LISTA_CUMPLES, MINIMO_PARA_BUSCAR, ROUTES } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -103,17 +102,35 @@ export function BirthdaysView() {
         <span className="w-20 flex-shrink-0 text-xs font-bold text-primary-strong">
           {diaDeCumple(fecha, dias)}
         </span>
-        {/* El nombre sobre su color, como en Inicio y en la agenda. Quien no es
-            de la casa no tiene color y va sobre el gris: el color dice de quién
-            es algo, y un cumpleaños de fuera no es de nadie. */}
+        {/**
+          * **El nombre en tinta, con un punto de su color delante** (14-09-2026).
+          *
+          * Iba dentro de una pastilla de color, como en Inicio y en la agenda, y
+          * aquí no funcionaba: allí la pastilla nombra a quien lleva un plan
+          * entre otras cosas que no son personas, y esta pantalla es una columna
+          * en la que **todas** las filas son un nombre. Treinta pastillas
+          * seguidas, unas de color y otras grises —quien no es de la casa no
+          * tiene—, se leen como una lista de etiquetas mal alineadas y no como
+          * una lista de gente. Encima el gris del de fuera parecía un fallo de
+          * pintado.
+          *
+          * El color no se pierde, cambia de sitio: un punto de 8 px delante, que
+          * es como lo dice la app cuando el nombre es el contenido de la fila
+          * (los planes de Inicio, la agenda del calendario). Y el nombre sube a
+          * 14 px en negrita, que es lo que se viene a leer aquí.
+          *
+          * Quien no es de la casa se queda con el punto en gris: el color dice de
+          * quién es algo y un cumpleaños de fuera no es de nadie, pero el hueco
+          * tiene que estar para que los nombres queden en columna.
+          */}
         <span
-          className={`etiqueta-persona min-w-0 px-1 py-px text-[11px] ${color ? '' : 'bg-line'}`}
-          style={color ? { backgroundColor: fondoDePersona(color) } : undefined}
-        >
-          {nombre}
-        </span>
+          className="h-2 w-2 flex-shrink-0 self-center rounded-full"
+          style={{ backgroundColor: color ?? 'var(--color-line-strong)' }}
+          aria-hidden
+        />
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{nombre}</span>
         {edad !== null && (
-          <span className="ml-auto flex-shrink-0 text-xs font-semibold text-muted">
+          <span className="flex-shrink-0 pl-2 text-xs font-semibold text-muted">
             cumple {edadEnPalabras(edad)}
           </span>
         )}

@@ -1,4 +1,4 @@
-import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
+import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, getDay, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
 import { DayCell, estiloDeCarril } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
@@ -60,6 +60,18 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
   const hoyStr = getLocalDateString(new Date())
 
   /**
+   * La columna en la que cae hoy, para marcarla en la cabecera. `null` cuando el
+   * mes que se está mirando no es el de hoy: ahí no hay ninguna columna que sea
+   * "la de hoy" y pintarla sería señalar un día que no está en pantalla.
+   *
+   * `getDay` da 0 para el domingo y la rejilla empieza en lunes, de ahí el
+   * desplazamiento: es la misma cuenta que ordena `DAY_LABELS`.
+   */
+  const columnaDeHoy = days.some(d => isToday(d) && isSameMonth(d, currentMonth))
+    ? (getDay(new Date()) + 6) % 7
+    : null
+
+  /**
    * Lo que hay cada día, resuelto **antes** de pintar nada.
    *
    * Se calculaba dentro del `map` y ahora no puede: el carril de las franjas se
@@ -115,11 +127,27 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
             // letras, que si no la columna arranca a media altura. Aquí se mira el
             // índice de columna y no una fecha —no hay ninguna—: son las dos
             // últimas de `DAY_LABELS`.
-            className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted ${
+            className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest ${
               i >= 5 ? 'dia-libre' : ''
-            }`}
+            } ${columnaDeHoy === i ? 'text-accent-strong' : 'text-muted'}`}
           >
-            {label}
+            {/**
+              * **La letra de hoy va sobre una pastilla salmón** (14-09-2026).
+              * Hoy se marcaba solo en su número, un aro de 32 px perdido entre
+              * treinta y tantos, y en una pantalla de 1440 px había que buscarlo.
+              * Desde la cabecera la columna se encuentra de un vistazo y el aro
+              * remata la búsqueda en la fila que toque.
+              *
+              * El color es el mismo de siempre —`accent-strong` sobre
+              * `accent-tint`, 6,0:1— y no es lo único que la distingue: es la
+              * única letra de la fila con fondo. Va dentro de un `span` y no en
+              * el `div` de la columna para que la pastilla mida lo que la letra
+              * y no el ancho entero, que sobre la trama del sábado se leería
+              * como que ese día está apagado.
+              */}
+            <span className={columnaDeHoy === i ? 'rounded-full bg-accent-tint px-2 py-0.5' : ''}>
+              {label}
+            </span>
           </div>
         ))}
       </div>

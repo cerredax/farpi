@@ -1,4 +1,3 @@
-import { Fragment } from 'react'
 import { format, isSameMonth, isToday, isTomorrow, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Armchair, Palmtree } from 'lucide-react'
@@ -37,9 +36,19 @@ import type { Event, Child, FamilyMember } from '@/types'
  * personas es el de toda la app —familia, adultos, hijos— porque lo pone
  * `buildAssignees` y este bloque no inventa uno propio.
  *
- * Dentro de cada persona, la segunda ausencia del mismo tipo no repite el verbo:
- * "descansa el 15 sep · el 22 sep" y no "descansa el 15 sep · descansa el 22
- * sep". Es la misma economía que el nombre, una línea más abajo.
+ * Dentro de cada persona, **cada ausencia se dice entera y en su propia
+ * pastilla** (14-09-2026). Del 12 al 14-09 hubo una economía más: la segunda
+ * ausencia del mismo tipo se quedaba sin verbo y sin icono, separada de la
+ * anterior por un punto volado, así que dos turnos de Carlos salían como
+ * "descansa el 15 sep · el 22 sep". Ahorraba una palabra y costaba la frase: "el
+ * 22 sep" sin verbo delante no dice si ese día está fuera o está en casa, y
+ * parecía el final de un rango que empezaba el 15. El punto, además, podía caer
+ * al principio de un renglón cuando la fila se partía, que es donde se veía que
+ * aquello no eran frases sino trozos.
+ *
+ * La economía que sí se queda es la del nombre: se dice una vez por persona, que
+ * es la que ahorra el ancho de verdad. Lo demás es una pastilla por ausencia, con
+ * su icono y su verbo, que envuelven solas y se leen sueltas.
  */
 
 interface AvailabilityProps {
@@ -58,18 +67,23 @@ function diaYMes(fecha: Date): string {
 /**
  * En qué estado deja a alguien una ausencia, dicho como se diría en casa.
  *
- * De un solo día se dice cuándo: "hoy", "mañana" o la fecha. De varios, si ya ha
- * empezado se dice hasta cuándo —lo que hace falta saber es cuándo vuelve— y si
- * no, el rango entero. El mes solo se repite cuando el tramo cruza de mes, que
- * si no "del 3 al 9 sept" ya lo dice una vez.
+ * De un solo día se dice cuándo: "hoy", "mañana" o la fecha. De varios, **si está
+ * ocurriendo ahora** se dice hasta cuándo —lo que hace falta saber es cuándo
+ * vuelve— y en los demás casos, el rango entero. El mes solo se repite cuando el
+ * tramo cruza de mes, que si no "del 3 al 9 sept" ya lo dice una vez.
+ *
+ * Lo de "está ocurriendo ahora" hay que decirlo, y es el arreglo del 14-09-2026:
+ * antes bastaba con que hubiera **empezado**, y el mes que se mira casi nunca es
+ * solo el futuro. Unas vacaciones del 8 al 12 vistas el día 17 salían como "de
+ * vacaciones hasta el 12 jun", que es una frase sobre alguien que sigue fuera,
+ * cinco días después de haber vuelto. Y en un mes ya pasado lo eran todas. Ahora
+ * una ausencia terminada dice su rango, como la que aún no ha llegado: la
+ * diferencia entre las dos la pone la fecha, que está escrita.
  */
-function estadoDe(event: Event, sinVerbo = false): string {
+function estadoDe(event: Event): string {
   const inicio = parseISO(extractDate(event.start_at))
   const fin = parseISO(extractDate(event.end_at ?? event.start_at))
-  // Sin verbo cuando la ausencia de al lado ya lo dijo: "descansa el 15 sep ·
-  // el 22 sep". La etiqueta accesible siempre lo pide entero, que ahí no hay
-  // vecina que lo haya dicho.
-  const verbo = sinVerbo ? '' : (isVacation(event) ? 'de vacaciones ' : 'descansa ')
+  const verbo = isVacation(event) ? 'de vacaciones ' : 'descansa '
 
   if (extractDate(event.start_at) === getLocalDateString(fin)) {
     if (isToday(inicio)) return `${verbo}hoy`
@@ -77,8 +91,9 @@ function estadoDe(event: Event, sinVerbo = false): string {
     return `${verbo}el ${diaYMes(inicio)}`
   }
 
-  const empezado = extractDate(event.start_at) <= getLocalDateString(new Date())
-  if (empezado) return `${verbo}hasta el ${diaYMes(fin)}`
+  const hoy = getLocalDateString(new Date())
+  const enCurso = extractDate(event.start_at) <= hoy && getLocalDateString(fin) >= hoy
+  if (enCurso) return `${verbo}hasta el ${diaYMes(fin)}`
 
   const desde = isSameMonth(inicio, fin) ? format(inicio, 'd', { locale: es }) : diaYMes(inicio)
   return `${verbo}del ${desde} al ${diaYMes(fin)}`
@@ -90,7 +105,7 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
   const grupos = agruparAusenciasPorPersona(ausencias, buildAssignees(members, kids))
 
   return (
-    <SeccionPlegable titulo="Vacaciones y descansos" cuantos={ausencias.length}>
+    <SeccionPlegable titulo="Vacaciones y descansos">
       <ul>
         {grupos.map(({ persona, ausencias: suyas }) => (
           <li key={persona.key} className="flex items-start gap-2 px-1 py-0.5">
@@ -112,37 +127,35 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
             {/* Los estados, en línea y con salto: en un móvil de 390 px, una
                 persona con cuatro turnos ocupa dos renglones en vez de cuatro
                 filas. Cada uno es su botón, que es lo que conserva poder abrir
-                esa ausencia concreta. */}
-            <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
-              {suyas.map((a, i) => {
+                esa ausencia concreta.
+
+                `gap-1` y no `gap-x-1`: al partirse la fila hacen falta los dos
+                huecos, y sin el vertical las pastillas de la segunda línea se
+                pegaban a las de la primera. */}
+            <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
+              {suyas.map(a => {
                 // Un sillón y no una taza: un descanso no es una pausa para el
                 // café, es que ese día no puedes contar con esa persona. Y a 13 px
                 // una taza y una palmera se confunden.
                 const Icono = isVacation(a) ? Palmtree : Armchair
-                // El verbo solo la primera vez que aparece ese tipo: seguidas,
-                // "descansa el 15 sep · el 22 sep" dice lo mismo con la mitad.
-                const repite = i > 0 && isVacation(suyas[i - 1]) === isVacation(a)
-                const estado = estadoDe(a, repite)
+                const estado = estadoDe(a)
 
                 return (
-                  <Fragment key={a.id}>
-                    {i > 0 && <span className="text-faint" aria-hidden>·</span>}
-                    <button
-                      type="button"
-                      onClick={() => onEdit(a)}
-                      // La etiqueta accesible dice la frase entera, con el nombre
-                      // y con el verbo: fuera de la fila, "el 22 sep" no dice de
-                      // quién es ni qué le pasa ese día.
-                      aria-label={`Editar ${a.title}: ${persona.name} ${estadoDe(a, false)}`}
-                      className="flex min-h-8 items-center gap-1 rounded-xl px-1 text-left text-[11px] text-muted transition-colors hover:bg-surface hover:text-ink"
-                    >
-                      {/* El icono solo cuando el tipo cambia: repetido en cada
-                          pastilla de la misma persona sería una hilera de
-                          sillones diciendo lo que ya dice la palabra. */}
-                      {!repite && <Icono size={13} strokeWidth={2.2} className="flex-shrink-0" aria-hidden />}
-                      {estado}
-                    </button>
-                  </Fragment>
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => onEdit(a)}
+                    // La etiqueta accesible dice la frase entera, con el nombre:
+                    // fuera de la fila, "descansa el 22 sep" no dice de quién es.
+                    aria-label={`Editar ${a.title}: ${persona.name} ${estado}`}
+                    // El fondo es lo que separa una pastilla de la siguiente
+                    // ahora que no hay punto volado entre ellas: dos frases
+                    // seguidas sobre el blanco se leían como una sola.
+                    className="flex min-h-8 items-center gap-1 rounded-xl bg-surface px-1.5 text-left text-[11px] text-muted transition-colors hover:bg-line hover:text-ink"
+                  >
+                    <Icono size={13} strokeWidth={2.2} className="flex-shrink-0" aria-hidden />
+                    {estado}
+                  </button>
                 )
               })}
             </span>

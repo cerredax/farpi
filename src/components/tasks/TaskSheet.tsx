@@ -1,13 +1,10 @@
 'use client'
 
-import { addDays } from 'date-fns'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
-import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
-import { getLocalDateString } from '@/lib/date-utils'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateTaskDraft } from '@/lib/validators'
 import type { Child, FamilyMember, Task, TaskDraft } from '@/types'
@@ -63,11 +60,6 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
 
   const hasRecurrence = draft.recurrence !== 'none'
 
-  // En cada render y no en una constante del módulo: la app se queda abierta
-  // días en un móvil, y una fecha calculada al importar ofrecería anteayer.
-  const hoy = getLocalDateString()
-  const manana = getLocalDateString(addDays(new Date(), 1))
-
   return (
     <BottomSheet
       open={open}
@@ -103,20 +95,12 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
             segundo. Estaba al fondo, detrás de las dos rejillas de chips, con
             las notas —que casi nunca se escriben— ocupando este sitio.
 
-            «Hoy» y «Mañana» delante del campo porque son casi todas las fechas
-            que se ponen en casa: sacar la basura, llamar al fontanero. Sin ellos
-            había que abrir el calendario del móvil para elegir el día de hoy.
-            Vuelven a tocarse para quitar la fecha, como el chip de fijar una
-            nota: no hace falta un tercer botón para vaciarla. */}
+            Solo el campo de fecha. Tuvo delante dos chips, «Hoy» y «Mañana», y se
+            van el 14-09-2026: el selector de fecha del móvil ya abre por hoy, así
+            que ahorraban un toque para añadir dos controles fijos y un estado
+            —pulsado, sin pulsar, y qué pasa si la fecha del campo es justo esa—
+            a la pregunta más sencilla del formulario. */}
         <Field label={hasRecurrence ? 'Empieza el' : 'Vencimiento'} htmlFor="task-due" spacing="group">
-          <div className="flex gap-1.5">
-            <SelectChip selected={draft.due_date === hoy} onClick={() => patch({ due_date: draft.due_date === hoy ? '' : hoy })}>
-              Hoy
-            </SelectChip>
-            <SelectChip selected={draft.due_date === manana} onClick={() => patch({ due_date: draft.due_date === manana ? '' : manana })}>
-              Mañana
-            </SelectChip>
-          </div>
           <input
             id="task-due"
             type="date"

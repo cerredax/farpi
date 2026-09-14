@@ -150,6 +150,17 @@ function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: Upcomin
  * nuevos y no significan de quién es el plan —eso lo dice el punto de cada
  * fila—, solo a qué distancia está. Cada caja desaparece si no tiene nada, así
  * que una semana con todo mañana se sigue viendo como un solo bloque.
+ *
+ * **Las tres van dentro de un mismo envoltorio** (14-09-2026), y eso es
+ * escritorio: Inicio reparte sus secciones en dos columnas, y como cajas sueltas
+ * "Mañana" caía a la izquierda y "Próximos días" a la derecha, a la misma altura
+ * y con el mismo aspecto. Tres tramos de una misma cuesta —hoy, mañana, la
+ * semana— leídos en paralelo dejan de ser una cuesta: para saber qué va antes
+ * había que leer los rótulos, que es justo lo que el orden tenía que ahorrar.
+ * Juntas ocupan una sola celda de la rejilla y se leen de arriba abajo.
+ *
+ * En móvil no cambia nada: el envoltorio repite el `space-y-6` que el contenedor
+ * de Inicio les ponía entre hermanas, así que se ven exactamente igual.
  */
 export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, members, onOpen }: UpcomingEventsProps) {
   // Sin nada que enseñar no se pinta el bloque: una tarjeta vacía diciendo
@@ -159,7 +170,7 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
   const { manana, proximos, proximaSemana } = partirPlanesProximos(events)
 
   return (
-    <>
+    <div className="space-y-6 lg:space-y-5">
       {manana.length > 0 && (
         <HomeSection
           label="Mañana"
@@ -192,6 +203,6 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
           <ListaDePlanes events={proximaSemana} kids={kids} members={members} onOpen={onOpen} />
         </HomeSection>
       )}
-    </>
+    </div>
   )
 })

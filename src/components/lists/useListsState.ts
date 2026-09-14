@@ -19,7 +19,6 @@ export function useListsState() {
   const [editingItem,    setEditingItem]    = useState<ListItem | null>(null)
   const [movingItem,     setMovingItem]     = useState<ListItem | null>(null)
   const [listMode,       setListMode]       = useState<'create' | 'edit'>('create')
-  const [itemMode,       setItemMode]       = useState<'create' | 'edit'>('create')
 
   // Las claves llevan prefijo porque los dos sheets son hermanos: sin él, al
   // no haber nada en edición ambos valían 'create' y React avisaba de claves
@@ -29,8 +28,10 @@ export function useListsState() {
 
   function openCreateList()         { setEditingList(null);  setListMode('create'); setListSheetOpen(true) }
   function openEditList(l: List)    { setEditingList(l);     setListMode('edit');   setListSheetOpen(true) }
-  function openAddItem()            { setEditingItem(null);  setItemMode('create'); setItemSheetOpen(true) }
-  function openEditItem(i: ListItem){ setEditingItem(i);     setItemMode('edit');   setItemSheetOpen(true) }
+  // Sin `openAddItem`: el sheet de ítem dejó de crear el 14-09-2026, cuando la
+  // lista estrenó la barra de apuntar de abajo. Lo que apunta sigue siendo
+  // `handleCreateItem`, que ahora llama esa barra.
+  function openEditItem(i: ListItem){ setEditingItem(i);     setItemSheetOpen(true) }
 
   function handleDeleteList(id: string)           { deleteList(id); setSelectedListId(null) }
   function handleCreateItem(draft: ListItemDraft) { if (selectedListId) createListItem(selectedListId, draft) }
@@ -86,10 +87,10 @@ export function useListsState() {
     listSheetOpen, setListSheetOpen,
     itemSheetOpen, setItemSheetOpen,
     editingList, editingItem, itemsDeListaEditada,
-    listMode, itemMode,
+    listMode,
     listSheetKey, itemSheetKey,
     movingItem, moveSheetOpen, openMoveItem, closeMoveItem, handleMoveItem,
-    openCreateList, openEditList, openAddItem, openEditItem,
+    openCreateList, openEditList, openEditItem,
     createList, updateList, handleDeleteList,
     handleCreateItem, updateListItem, deleteListItem,
     toggleListItem,

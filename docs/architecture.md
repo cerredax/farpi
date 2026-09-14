@@ -2461,9 +2461,14 @@ calendario entero, y no en la celda, que solo conoce su día.
 > salmón (`accent-strong`), que es el color de «hoy» en el resto del calendario.
 > Desde el 13-09-2026, además, hoy es un **aro sobre un tinte claro** y no un disco
 > macizo: el disco era la mancha más oscura de la rejilla y, siendo `accent-strong`
-> un marrón rojizo, se confundía con los colores de persona. Lo que sigue en pie
-> —y es lo que cuenta esta sección— es que las dos señales no se distinguen por el
-> tono. El detalle, en `docs/project-status.md`.
+> un marrón rojizo, se confundía con los colores de persona. Y desde el 14-09-2026
+> el aro **no va solo**: la letra de su columna se marca en la cabecera y la celda
+> lleva un filete salmón al pie, porque un aro de 32 px entre treinta y tantos
+> números seguía costando de encontrar. Se descartó entonces teñir la celda de hoy
+> en salmón claro, que era la opción con más presencia, justamente por lo que
+> cuenta esta sección: habría dejado hoy y el día elegido distinguidos solo por el
+> tono. Lo que sigue en pie —y es lo que cuenta esta sección— es que las dos
+> señales no se distinguen por el tono. El detalle, en `docs/project-status.md`.
 
 El día elegido era un **disco relleno** y hoy un **anillo**, los dos en
 `primary-strong`. Eran dos discos macizos que solo cambiaban de tono, y los tonos
@@ -2537,11 +2542,14 @@ repite, y ahora eso pasa dos campos más arriba de donde se toca la repetición.
 —la etiqueta sigue siendo correcta se mire cuando se mire—, y a cambio la fecha del 95 %
 de las tareas, que no repiten, se pone sin bajar.
 
-**Y la fecha lleva «Hoy» y «Mañana» delante del campo.** Son casi todas las fechas que se
-ponen en una casa —sacar la basura, llamar al fontanero— y hasta ahora la de hoy costaba
-abrir el calendario del móvil y buscar el día en una rejilla. Los dos chips se vuelven a
-tocar para quitar la fecha, como el de fijar una nota: no hace falta un tercer botón para
-vaciarla. El campo de fecha se queda debajo para todo lo demás.
+**Y la fecha llevó «Hoy» y «Mañana» delante del campo, del 07 al 14-09-2026.** El
+argumento era que son casi todas las fechas que se ponen en una casa —sacar la basura,
+llamar al fontanero— y que la de hoy costaba abrir el calendario del móvil y buscar el día
+en una rejilla. **Se quitaron el 14-09-2026**: el selector de fecha del móvil ya abre por
+hoy, así que lo que ahorraban era un toque, y a cambio metían dos controles fijos y un
+estado —pulsado, sin pulsar, y qué pasa si la fecha del campo es justo esa— en la pregunta
+más sencilla del formulario. Lo que se queda de aquel cambio es lo de arriba: que la fecha
+va en segundo lugar. Ahora el campo está solo.
 
 ### Cuatro borrados preguntan en vez de armarse (08-09-2026)
 

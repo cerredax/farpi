@@ -34,17 +34,23 @@ import type { Event, Child, FamilyMember } from '@/types'
  * de filas que no se leen ni se van: el día 12 de un septiembre normal, dos de
  * cada tres cumpleaños del mes ya han pasado y se llevan dos tercios del bloque.
  *
- * Esconderlos del todo no vale, y esa es la parte que sigue siendo verdad del
- * 05-09-2026: el recuento del título bajaría solo según avanza el mes —"3" el
- * día 1 y "1" el día 20, como si alguien los hubiera borrado—, el bloque dejaría
- * de decir la verdad sobre el mes que se está mirando, y en un mes pasado se
- * quedaría vacío, que con `cumples.length === 0` es desaparecer entero. Y
- * "¿cuándo fue el cumple de la abuela?" es una pregunta legítima.
+ * Esconderlos del todo no vale: en un mes pasado el bloque se quedaría vacío,
+ * que con `cumples.length === 0` es desaparecer entero, y "¿cuándo fue el cumple
+ * de la abuela?" es una pregunta legítima.
  *
- * Así que se pliegan, no se van: el título sigue contándolos **todos**, arriba
- * quedan los que quedan por venir y una línea al final dice cuántos pasaron y
- * los despliega. En un mes que no es el de hoy no hay nada que separar —o son
- * todos pasados o todos futuros— y la lista sale entera, como siempre.
+ * Así que se pliegan, no se van: arriba quedan los que quedan por venir y una
+ * línea al final dice cuántos pasaron y los despliega. En un mes que no es el de
+ * hoy no hay nada que separar —o son todos pasados o todos futuros— y la lista
+ * sale entera, como siempre.
+ *
+ * Y **el número del título cuenta los que quedan, no los del mes** (14-09-2026).
+ * Contó el mes entero del 05 al 14-09 para que no bajara solo según avanzan los
+ * días, y visto en la pantalla real ese argumento no se sostiene: el bloque va
+ * plegado, así que ese número es lo único que se lee de él, y "5" el día 20
+ * cuando quedan dos por venir es la app avisando de tres cosas que ya no hay que
+ * preparar. El número contesta "¿de cuántos me tengo que acordar?", y eso baja
+ * según pasa el mes, como baja el de las tareas pendientes. Los que pasaron
+ * siguen dentro, contados en su propia línea.
  *
  * Solo los **apuntados**. El cumpleaños de quien es de la casa se deduce de su
  * fecha de nacimiento y se dice en Inicio, que es donde hace falta; no está
@@ -150,10 +156,12 @@ export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
   const hayCorte = pasados.length > 0 && proximos.length > 0
 
   return (
-    // El título los cuenta **todos**, pasados incluidos: es el recuento del mes y
-    // no puede bajar solo según avanzan los días. Ese fue el motivo por el que
-    // esconderlos se revirtió el 05-09-2026.
-    <SeccionPlegable titulo="Cumpleaños" cuantos={cumples.length}>
+    /* El número es el de los que quedan por venir, que son los que hay que
+       preparar. Sin corte —un mes ya pasado, o uno en el que no ha caído
+       ninguno todavía— la lista sale entera y el número la cuenta entera: ahí
+       no hay dos grupos que distinguir y decir "0" sobre un bloque con cinco
+       filas dentro sería mentir. */
+    <SeccionPlegable titulo="Cumpleaños" cuantos={hayCorte ? proximos.length : cumples.length}>
       <ul>
         {(hayCorte ? proximos : cumples).map(cumple => (
           <FilaCumple

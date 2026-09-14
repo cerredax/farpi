@@ -291,6 +291,35 @@ export function DayCell({
     return 'text-ink'
   })()
 
+  /**
+   * El fondo de la celda: el anillo verde del día elegido y el filete salmón de
+   * hoy, en una sola sombra.
+   *
+   * **Hoy también marca su celda desde el 14-09-2026**, no solo su número. El aro
+   * del número se encontraba mal en una rejilla de treinta y tantos —era la queja
+   * que lo trajo aquí—, así que ahora se dice dos veces y en dos tallas: la letra
+   * de su columna en la cabecera, para llegar, y un filete de 3 px al pie de la
+   * celda, para rematar.
+   *
+   * Al pie y no arriba porque arriba vive el carril de las ausencias, que se
+   * pinta en gris de lado a lado: un filete ahí quedaría tapado justo los meses
+   * en los que hay alguien fuera.
+   *
+   * **Sigue sin competir con el día elegido**, que es el anillo verde de la celda
+   * entera: uno rodea y el otro subraya, así que cuando coinciden se ven los dos
+   * y no hay que desempatar nada. Van juntos en la misma sombra porque dos clases
+   * `shadow-[…]` se pisan, y escritas enteras y no montadas con plantillas porque
+   * Tailwind lee el código como texto y no generaría una clase que solo existe en
+   * tiempo de ejecución.
+   */
+  const sombraDeCelda = isSelected && isToday
+    ? 'shadow-[inset_0_0_0_2px_var(--color-primary-line),inset_0_-3px_0_0_var(--color-accent-strong)]'
+    : isSelected
+      ? 'shadow-[inset_0_0_0_2px_var(--color-primary-line)]'
+      : isToday
+        ? 'shadow-[inset_0_-3px_0_0_var(--color-accent-strong)]'
+        : ''
+
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
   const resumen = resumenDelDia({
     planes: events.length - vacaciones.length - descansos.length,
@@ -347,8 +376,8 @@ export function DayCell({
         // clase de día es. El borde interior es lo que lo cierra como una caja y
         // no como una mancha, que a 52 px de celda se leía como un resaltado
         // suelto.
-        isSelected ? 'bg-primary-tint shadow-[inset_0_0_0_2px_var(--color-primary-line)]' : ''
-      }`}
+        isSelected ? 'bg-primary-tint' : ''
+      } ${sombraDeCelda}`}
     >
       {/**
         * Las franjas de ausencia, pegadas al borde de arriba y **antes que nada**.

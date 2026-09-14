@@ -112,6 +112,12 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] Como mucho dos por celda.
 - [ ] El bloque «Vacaciones y descansos» dice el nombre de la persona y su estado:
       «de vacaciones hasta el 28 ago», «descansa hoy», «descansa del 3 al 4 sep».
+- [ ] **El título no lleva número.** Contaba apuntes y no cosas que preparar.
+- [ ] Con **dos o más ausencias de la misma persona**, cada una va en su pastilla y se
+      dice entera —icono y verbo incluidos—, sin puntos volados sueltos entre ellas.
+- [ ] Una ausencia **que ya terminó** dice su rango («de vacaciones del 8 al 12 jun»), no
+      «hasta el 12 jun»: eso es solo para la que está ocurriendo ahora. Míralo apuntando
+      unas vacaciones que acabaran la semana pasada.
 - [ ] Una ausencia de varios días sale **una vez** en el bloque, no una por día, y no
       aparece como fila en la agenda.
 - [ ] Se editan desde ese bloque, que es el único sitio.
@@ -167,8 +173,13 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
       (automatizado en `e2e/runtime.spec.ts`: «borrar una lista pregunta cuánto se lleva
       por delante»).
 - [ ] Se puede abrir detalle.
-- [ ] Se puede crear ítem.
-- [ ] Se puede editar ítem.
+- [ ] **Se apunta desde la barra de abajo**: escribir y pulsar Intro (o el `+`) lo mete en
+      la lista, y el campo se queda vacío y con el foco para lo siguiente. Apunta tres
+      cosas seguidas sin levantar las manos del teclado.
+- [ ] Mientras se escribe salen las **coincidencias del historial** de toda la familia;
+      con el campo vacío, no sale ninguna.
+- [ ] Con el campo vacío, pulsar el `+` no apunta nada y el navegador dice que falta.
+- [ ] Se puede editar ítem tocando su nombre (el sheet ya solo edita, no crea).
 - [ ] Marcar un ítem lo baja al catálogo ("Apuntar de lo de siempre"), que sale abierto al entrar en la lista y se puede plegar a mano.
 - [ ] En el catálogo el botón es un `+`, no un tic: vuelve a apuntar que hace falta.
 - [ ] Se puede mover un ítem a otra lista; la lista en la que ya está no se ofrece.
@@ -281,7 +292,6 @@ verdad, que es que el otro vea el documento sin conectar nada.
 - [ ] Una nota sin contenido vale; una sin título, no (el botón se queda apagado).
 - [ ] El buscador encuentra por título y por cuerpo, sin tildes y sin mayúsculas.
 - [ ] Marcar «Arriba del todo» la sube; desmarcarla la devuelve a su sitio por fecha.
-- [ ] El sheet avisa de que Farpi no es un gestor de contraseñas, bajo el contenido.
 - [ ] Una nota muy larga se corta a seis líneas en la tarjeta y se lee entera al abrirla.
 - [ ] En escritorio las tarjetas van en rejilla (dos desde `lg`, tres desde `xl`) y una
       nota corta no se estira hasta el alto de la más larga de su fila.

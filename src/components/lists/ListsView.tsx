@@ -40,15 +40,19 @@ export function ListsView() {
           onBack={() => s.setSelectedListId(null)}
           onToggle={s.toggleListItem}
           onQuantity={s.setListItemQuantity}
+          historial={s.historialItems}
           onOpenEdit={() => s.openEditList(s.selectedList!)}
-          onOpenAddItem={s.openAddItem}
+          onQuickAdd={text => s.handleCreateItem({ text })}
           onOpenEditItem={s.openEditItem}
         />
         {listSheet}
+        {/* Solo para editar: apuntar se hace en la barra de abajo de la lista
+            desde el 14-09-2026. `onCreate` va porque el contrato lo pide, pero
+            aquí no hay camino que llegue a él. */}
         <ItemSheet
           key={s.itemSheetKey}
           open={s.itemSheetOpen}
-          mode={s.itemMode}
+          mode="edit"
           initial={s.editingItem}
           historial={s.historialItems}
           onMove={s.lists.length > 1 && s.editingItem

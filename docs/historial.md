@@ -15,6 +15,93 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-14
 
+### Ocho roces de uso diario, mirados uno a uno (14-09-2026)
+
+No es una funcionalidad: es una lista de ocho cosas que rozaban al usar la app en casa,
+apuntadas de una sentada y resueltas de una sentada. Va junta en un cierre porque
+separarlas en ocho commits de tres líneas cada uno habría contado peor lo mismo.
+
+**«Mañana» y «Próximos días» se leían en paralelo.** En escritorio Inicio reparte sus
+secciones en dos columnas, y las tres cajas de lo que viene eran tres hijos sueltos de esa
+rejilla: «Mañana» caía a la izquierda y «Próximos días» a la derecha, a la misma altura y
+con el mismo aspecto. Tres tramos de una misma cuesta —hoy, mañana, la semana— leídos en
+paralelo dejan de ser una cuesta, y para saber qué iba antes había que leer los rótulos,
+que es justo lo que el orden tenía que ahorrar. Ahora van dentro de un mismo envoltorio y
+ocupan una sola celda. En móvil no cambia nada: el envoltorio repite el `space-y-6` que el
+contenedor ya les ponía entre hermanas.
+
+**El bloque de ausencias hablaba a trozos.** Del 12 al 14-09 la segunda ausencia del mismo
+tipo de una persona se quedaba sin verbo y sin icono, separada de la anterior por un punto
+volado: «descansa el 15 sep · el 22 sep». Ahorraba una palabra y costaba la frase, porque
+«el 22 sep» a secas no dice si ese día esa persona está fuera o está en casa, y parecía el
+final de un rango que empezaba el 15. El punto, además, podía caer al principio de un
+renglón cuando la fila se partía, que es donde se veía que aquello no eran frases sino
+trozos. Ahora cada ausencia es una pastilla con su icono y su verbo, que envuelven solas.
+La economía que sí se queda es la del nombre —una vez por persona—, que es la que ahorra
+el ancho de verdad.
+
+Y mirándolo con datos de verdad salió **un fallo que no era de forma**: una ausencia que
+ya había terminado decía «de vacaciones **hasta** el 12 jun». El texto solo miraba si
+había empezado, y el mes que se mira casi nunca es solo futuro: unas vacaciones del 8 al
+12 vistas el día 17 anunciaban a alguien que sigue fuera cinco días después de haber
+vuelto, y en un mes ya pasado lo eran todas. Ahora «hasta» es solo para lo que está
+ocurriendo ahora; lo terminado dice su rango, como lo que aún no ha llegado.
+
+**Dos contadores que no contestaban nada.** El de «Vacaciones y descansos» contaba
+apuntes: tres turnos sueltos de la misma persona contaban tres y la respuesta seguía
+siendo «falta Carlos». Se va, y `SeccionPlegable` pasa a llevar el número como opcional.
+El de «Cumpleaños» se queda pero **cuenta los que quedan**, no los del mes. Contó el mes
+entero del 05 al 14-09 con el argumento de que un número que baja solo se lee como si
+alguien hubiera borrado algo; visto en la pantalla real no se sostiene, porque el bloque va
+plegado y ese número es lo único que se lee de él: «5» el día 20 con dos por venir es la
+app avisando de tres cosas que ya no hay que preparar. En un mes sin corte —uno que ya
+terminó, o uno en el que no ha caído ninguno— la lista sale entera y el número la cuenta
+entera, que decir «0» sobre un bloque con cinco filas dentro sería mentir.
+
+**Hoy se marcaba poco.** Era un aro salmón en el número, y en una rejilla de treinta y
+tantos números había que buscarlo. Ahora se dice dos veces y en dos tallas: la letra de su
+columna va sobre una pastilla `accent-tint` en la cabecera —para llegar— y la celda lleva
+un filete salmón de 3 px al pie —para rematar—. Al pie y no arriba porque arriba vive el
+carril gris de las ausencias, que lo taparía justo los meses en los que hay alguien fuera.
+Sigue sin competir con el día elegido, que es el anillo verde de la celda entera: uno
+rodea y el otro subraya, así que cuando coinciden se ven los dos y no hay que desempatar
+nada. Se descartó teñir la celda de hoy en salmón claro: dejaba hoy y el día elegido
+distinguidos solo por el tono, y verde y salmón están a ΔE 2,3 en protanopía.
+
+**Apuntar en una lista costaba cinco pasos por palabra.** Tocar el botón, esperar la
+persiana, escribir, tocar «Añadir», esperar a que se cierre. Y una compra no se apunta de
+una en una: se abre la nevera y se cantan seis seguidas, así que había que repetirlos seis
+veces. Ahora la lista tiene una barra al pie: se escribe, se pulsa Intro y el campo se
+queda puesto y con el foco para la siguiente. Trae las sugerencias del historial, que son
+la otra mitad del ahorro, y solo mientras se escribe, porque la barra vive pegada al borde
+de abajo y cinco pastillas fijas ahí le comen sitio a la lista. No es un camino nuevo:
+apunta con `handleCreateItem`, el mismo que usaba el sheet. El sheet se queda para editar
+un ítem —ahí sí hay más de un campo que tocar— y para apuntar desde Inicio, donde no hay
+una lista abierta delante.
+
+**Dos cosas que sobraban en dos formularios.** Los chips «Hoy» y «Mañana» del vencimiento
+de una tarea: el selector de fecha del móvil ya abre por hoy, así que ahorraban un toque a
+cambio de dos controles fijos y un estado —pulsado, sin pulsar, y qué pasa si la fecha del
+campo es justo esa— en la pregunta más sencilla del formulario. Y el aviso de las claves
+en el sheet de una nota («Farpi no es un gestor de contraseñas»): estaba debajo del campo
+de texto, en la única pantalla donde se escribe justo eso, y a la tercera nota es un
+renglón que nadie lee. Lo sigue diciendo `/privacidad`, que es donde se cuenta qué se
+guarda y cómo.
+
+**Los nombres de la lista de Cumpleaños.** Iban dentro de una pastilla de color, como en
+Inicio y en la agenda, y aquí no funcionaba: allí la pastilla nombra a quien lleva un plan
+entre cosas que no son personas, y esta pantalla es una columna en la que todas las filas
+son un nombre. Treinta pastillas seguidas, unas de color y otras grises —quien no es de la
+casa no tiene—, se leen como una lista de etiquetas mal alineadas y no como una lista de
+gente, y el gris del de fuera parecía un fallo de pintado. Ahora el nombre va en tinta a
+14 px, que es lo que se viene a leer, con un punto de su color delante: el color no se
+pierde, cambia de sitio.
+
+La suite se queda en **716** (542 unitarios + 174 de navegador): se fue el test del atajo
+«Hoy» del vencimiento, que ya no existe, y el de «el sheet de crear ítem llega vacío la
+segunda vez» pasa a comprobar lo que ahora hace esa misma pregunta —que la barra se vacía
+y se queda con el foco para lo siguiente—.
+
 ### Finanzas cerrada: buscar, leer el día a día y apuntar sin teclearlo entero (14-09-2026)
 
 Era la última sección sin dar por cerrada, y la pregunta era qué le faltaba. Mirándola con

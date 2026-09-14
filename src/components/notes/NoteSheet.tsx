@@ -107,14 +107,6 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
             placeholder={'Red: FARPI_2G\nClave: …'}
             className="field-input resize-none"
           />
-          {/* Dicho aquí y no en la letra pequeña de `/privacidad`: quien va a
-              escribir una contraseña la escribe en este campo, no leyendo la
-              política. Es texto plano en la base, protegido por la RLS y por
-              nada más. */}
-          <p className="text-[10px] leading-relaxed text-muted">
-            Solo lo ve tu familia. Farpi no es un gestor de contraseñas: no guardes
-            aquí las claves del banco o del correo.
-          </p>
         </Field>
 
         {/* Fijar se marca aquí y no en la tarjeta: es un gesto que se hace una
@@ -122,9 +114,9 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
             la tarjeta en dos zonas pulsables.
 
             Va delante del icono, y no al fondo del sheet, porque decide dónde se
-            lee la nota y el icono solo la nombra. Detrás del textarea, del aviso
-            de las claves y de tres filas de emoji, un chip de un toque se queda
-            fuera de la pantalla en un móvil de 390 px. Y sin párrafo debajo:
+            lee la nota y el icono solo la nombra. Detrás del textarea y de tres
+            filas de emoji, un chip de un toque se queda fuera de la pantalla en un
+            móvil de 390 px. Y sin párrafo debajo:
             «Fijar» y «Arriba del todo» ya lo dicen. */}
         <Field label="Fijar" spacing="group">
           <SelectChip selected={draft.pinned} onClick={() => patch({ pinned: !draft.pinned })}>

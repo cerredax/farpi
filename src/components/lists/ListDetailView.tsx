@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Plus, ArrowLeft, ChevronDown, Pencil, Share2 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
+import { Suggestions } from '@/components/ui/Suggestions'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
-import { selectListItemGroups } from '@/lib/selectors'
+import { selectListItemGroups, selectSuggestions } from '@/lib/selectors'
 import { listaParaCompartir, normalizaParaBuscar } from '@/lib/text'
 import { useIsClient } from '@/hooks/useIsClient'
 import type { List, ListItem } from '@/types'
@@ -12,11 +13,14 @@ import { ListItemRow } from './ListItemRow'
 interface ListDetailViewProps {
   list: List
   items: ListItem[]
+  /** Lo que la familia ha apuntado alguna vez; de aquí salen las sugerencias. */
+  historial: string[]
   onBack: () => void
   onToggle: (id: string) => void
   onQuantity: (id: string, quantity: number) => void
   onOpenEdit: () => void
-  onOpenAddItem: () => void
+  /** Apuntar algo en esta lista desde la barra de abajo. */
+  onQuickAdd: (text: string) => void
   onOpenEditItem: (item: ListItem) => void
 }
 
@@ -45,9 +49,12 @@ function GrupoTitulo({ titulo, cuenta, accion }: { titulo: string; cuenta?: numb
 }
 
 export function ListDetailView({
-  list, items, onBack, onToggle, onQuantity, onOpenEdit, onOpenAddItem, onOpenEditItem,
+  list, items, historial, onBack, onToggle, onQuantity, onOpenEdit, onQuickAdd, onOpenEditItem,
 }: ListDetailViewProps) {
   const [busqueda, setBusqueda] = useState('')
+  /** Lo que se está apuntando en la barra de abajo. */
+  const [nuevo, setNuevo] = useState('')
+  const campoNuevo = useRef<HTMLInputElement>(null)
 
   /**
    * Si el navegador sabe compartir. **Se pregunta en el cliente y por eso hay
@@ -97,6 +104,10 @@ export function ListDetailView({
       // Cancelado, o el navegador no ha querido. No hay nada que contar.
     }
   }
+
+  // Lo que la familia suele apuntar y encaja con lo que se está escribiendo.
+  // Vacío el campo, no se sugiere nada: el porqué está en la barra de abajo.
+  const sugerencias = nuevo.trim() ? selectSuggestions(historial, nuevo) : []
 
   // Buscando se enseña todo: si lo único que coincide está en el catálogo,
   // esconderlo detrás del plegado sería contestar "no hay nada" a una búsqueda
@@ -219,16 +230,64 @@ export function ListDetailView({
         )}
       </div>
 
-      {/* Añadir ítem */}
-      <div className="px-4 pb-6 pt-2 border-t border-hairline">
-        <button
-          onClick={onOpenAddItem}
-          className="w-full flex items-center gap-2 py-3 px-4 rounded-2xl border-2 border-dashed border-line-strong text-primary-strong hover:border-primary-strong hover:bg-primary-tint transition-colors text-sm font-semibold"
-        >
-          <Plus size={16} />
-          Añadir ítem
-        </button>
-      </div>
+      {/**
+        * **Apuntar se hace aquí mismo, escribiendo** (14-09-2026).
+        *
+        * Hasta hoy era un botón que abría un sheet: tocar, esperar la persiana,
+        * escribir, tocar "Añadir", esperar a que se cierre. Cinco pasos para una
+        * palabra, y una compra no se apunta de una en una —se apunta abriendo la
+        * nevera y cantando seis cosas seguidas—, así que había que repetirlos
+        * seis veces. Ahora se escribe y se pulsa Intro, y el campo se queda
+        * puesto y con el foco para la siguiente.
+        *
+        * Es el mismo camino de siempre, no uno nuevo: lo que apunta es
+        * `handleCreateItem`, el que usaba el sheet. El sheet se queda para editar
+        * un ítem, que es cuando sí hay más de un campo que tocar —el nombre,
+        * moverlo a otra lista, borrarlo—, y sigue siendo el formulario de apuntar
+        * **desde Inicio**, donde no hay una lista abierta delante.
+        *
+        * Las sugerencias del historial vienen con él: son la otra mitad del
+        * ahorro —"leche" sale sola en cuanto se escribe "le"— y sin ellas este
+        * atajo sería más rápido pero más tonto que el sheet. Solo mientras se
+        * escribe: la barra vive pegada al borde de abajo, y cinco pastillas fijas
+        * ahí le comen sitio a la lista sin que nadie las haya pedido.
+        */}
+      <form
+        onSubmit={e => {
+          e.preventDefault()
+          const texto = nuevo.trim()
+          if (!texto) return
+          onQuickAdd(texto)
+          setNuevo('')
+          // El foco se va al botón al pulsarlo, y lo siguiente que se quiere
+          // hacer es escribir otra cosa. Se devuelve a mano.
+          campoNuevo.current?.focus()
+        }}
+        className="space-y-2 border-t border-hairline px-4 pb-6 pt-2"
+      >
+        <Suggestions values={sugerencias} onPick={setNuevo} label="Coincidencias" />
+        <div className="flex items-center gap-2">
+          <input
+            ref={campoNuevo}
+            type="text"
+            value={nuevo}
+            onChange={e => setNuevo(e.target.value)}
+            placeholder="Apuntar algo…"
+            aria-label={`Apuntar algo en ${list.name}`}
+            // `required` y no un botón apagado: pulsar con el campo vacío tiene
+            // que decir qué falta, y un botón gris no dice nada.
+            required
+            className="field-input flex-1"
+          />
+          <button
+            type="submit"
+            aria-label={`Apuntar en ${list.name}`}
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary-strong text-white transition-colors hover:bg-primary-strong/90"
+          >
+            <Plus size={18} strokeWidth={2.6} aria-hidden />
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

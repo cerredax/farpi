@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-12.
+Última revisión: 2026-09-14.
 
 ## Resumen
 
@@ -27,7 +27,12 @@ que todavía no existen (ver "Siguiente paso recomendado").
   juntos; mañana se separó porque es la pregunta que se hace de verdad al acostarse. El
   segundo corte es el **domingo** y no "dentro de tres días": en casa se habla de esta
   semana y la que viene, así que un sábado la caja del medio no se pinta y el lunes sale
-  ya en "próxima semana". El horizonte siguen siendo siete días. En las dos cajas que
+  ya en "próxima semana". El horizonte siguen siendo siete días. **En escritorio las
+  tres van juntas en una misma columna** (14-09-2026): Inicio reparte sus secciones en
+  dos, y sueltas "Mañana" caía a la izquierda y "Próximos días" a la derecha, a la misma
+  altura y con el mismo aspecto; tres tramos de una misma cuesta leídos en paralelo
+  dejan de ser una cuesta, y para saber qué va antes había que leer los rótulos.
+  En móvil no cambia nada. En las dos cajas que
   llevan fecha, **cada día es un bloque con su rótulo encima** (12-09-2026): el día se
   escribe una vez, entero ("Miércoles 6"), en la misma franja gris con la que
   `PendingItems` encabeza cada cesta, y las filas se quedan con la hora, que es lo que
@@ -61,20 +66,35 @@ que todavía no existen (ver "Siguiente paso recomendado").
   comparte línea con el buscador (28-08-2026: eran dos bandas apiladas encima de la
   lista para dos controles que caben en una). Debajo del mes van los dos bloques que
   dicen cómo es el mes y no qué hacer: "Vacaciones y descansos" y **"Cumpleaños"**
-  (28-08-2026), los dos **plegados** por defecto y con cuántos hay en el título;
+  (28-08-2026), los dos **plegados** por defecto. **Solo Cumpleaños lleva número en el
+  título** (14-09-2026): en "Vacaciones y descansos" contaba apuntes y no cosas que
+  preparar —tres turnos sueltos de la misma persona contaban tres y la respuesta seguía
+  siendo "falta Carlos"—, mientras que cinco cumpleaños son cinco personas a las que
+  felicitar;
   los cumpleaños salen además en la franja de "todo el día" de las
   vistas Día y Semana, que no tienen bloque debajo al que mirar. Un cumpleaños del
   mes en curso **que ya pasó se pliega aparte** (12-09-2026): arriba quedan los que
-  vienen y al pie una línea —"2 que ya pasaron"— los despliega. El título los sigue
-  contando **todos**, que es lo que no puede cambiar: el bloque habla del mes que se
-  mira, y un recuento que baja solo según avanzan los días se lee como si alguien los
-  hubiera borrado. Estuvieron atenuados al 55 % desde el 05-09-2026, y en un mes por
+  vienen y al pie una línea —"2 que ya pasaron"— los despliega. **El título cuenta los que
+  quedan** (14-09-2026): contó el mes entero del 05 al 14-09 para que no bajara solo
+  según avanzan los días, y visto en pantalla ese argumento no se sostiene, porque el
+  bloque va plegado y ese número es lo único que se lee de él. "5" el día 20 con dos por
+  venir es avisar de tres cosas que ya no hay que preparar. En un mes sin corte —uno que
+  ya terminó, o uno en el que no ha caído ninguno todavía— la lista sale entera y el
+  número la cuenta entera: decir "0" sobre un bloque con cinco filas dentro sería
+  mentir. Estuvieron atenuados al 55 % desde el 05-09-2026, y en un mes por
   la mitad eso dejaba dos de cada tres filas sin leerse y sin irse. En un mes que no es
   el de hoy no hay nada que separar y salen todos, atenuados si el mes ya terminó.
   **"Vacaciones y descansos" va por personas** y no por fechas (12-09-2026): el nombre
-  se dice una vez y sus ausencias van detrás en línea —"Carlos · de vacaciones hasta el
-  11 sep · descansa el 15 sep · el 22 sep"—, con el verbo solo la primera vez de cada
-  tipo. Siete filas con "Carlos" en tres de ellas pasan a tres. Cada ausencia sigue
+  se dice una vez y sus ausencias van detrás, **cada una en su pastilla y dicha entera**
+  (14-09-2026): "Carlos — de vacaciones hasta el 11 sep · descansa el 15 sep · descansa
+  el 22 sep". Del 12 al 14-09 la segunda del mismo tipo se quedaba sin verbo y sin
+  icono, separada de la anterior por un punto volado, y "el 22 sep" a secas no dice si
+  ese día esa persona está fuera o en casa; el punto, además, caía al principio del
+  renglón cuando la fila se partía. Siete filas con "Carlos" en tres de ellas siguen
+  siendo tres. Y **una ausencia que ya terminó dice su rango y no "hasta"**
+  (14-09-2026): unas vacaciones del 8 al 12 vistas el día 17 salían como "de vacaciones
+  hasta el 12 jun", una frase sobre alguien que sigue fuera cinco días después de haber
+  vuelto, y en un mes ya pasado lo eran todas. Cada ausencia sigue
   siendo la suya y sigue abriéndose: agrupar mueve el rótulo, no fusiona eventos.
   **Quién lleva cada cosa se mira en la agenda**, con su eje "Por persona"
   (27-08-2026): el calendario no tiene filtro por personas. Lo tuvo del 12 al
@@ -104,7 +124,14 @@ que todavía no existen (ver "Siguiente paso recomendado").
   María" antes que como "hoy". Ahora es un **aro** de `accent-strong` sobre
   `accent-tint`, con el número en `accent-strong` (6,0:1): pesa lo justo para
   encontrarse y no tapa nada. El aro de 2 px pelado, sin tinte, es lo que no
-  funcionaba en una pantalla grande del 05 al 12-09.
+  funcionaba en una pantalla grande del 05 al 12-09. **Y hoy se dice dos veces y en dos
+  tallas** (14-09-2026): la letra de su columna va sobre una pastilla `accent-tint` en
+  la cabecera —para llegar— y la celda lleva un filete salmón de 3 px al pie —para
+  rematar—. El aro solo no se encontraba en una rejilla de treinta y tantos números, que
+  era la queja. El filete va al pie y no arriba porque arriba vive el carril gris de las
+  ausencias, que lo taparía justo los meses en los que hay alguien fuera; y sigue sin
+  competir con el día elegido, que rodea la celda entera en verde: uno rodea y el otro
+  subraya, así que cuando coinciden se ven los dos.
 - **La celda del mes dice a qué hora es cada cosa** (12-09-2026), en escritorio:
   "9:00 Dentista" y no "Dentista". Sin el cero de delante, porque la celda mide ~81
   px cuando la agenda va al lado, y en `tabular-nums` para que las horas queden en
@@ -186,8 +213,23 @@ que todavía no existen (ver "Siguiente paso recomendado").
   anuncia un lector de pantalla.
 - Tareas: recurrencia, prioridad, dueño (un adulto o un hijo) y quién la marcó. Buscar
   enseña también las completadas —y mientras se busca no se pliegan—, y el vacío
-  distingue «sin tareas todavía» de «todo al día».
+  distingue «sin tareas todavía» de «todo al día». El vencimiento es **solo el campo de
+  fecha** (14-09-2026): tuvo delante dos chips, «Hoy» y «Mañana», y se fueron porque el
+  selector del móvil ya abre por hoy, así que ahorraban un toque a cambio de dos
+  controles fijos y un estado —pulsado, sin pulsar, y qué pasa si la fecha del campo es
+  justo esa— en la pregunta más sencilla del formulario.
 - Listas e ítems: lo que falta arriba, lo que ya tenéis debajo como catálogo, abierto al entrar (se vuelve a pedir con un `+`, no con un tic), mover un ítem de una lista a otra.
+- **Apuntar en una lista se hace escribiendo, al pie de la pantalla** (14-09-2026).
+  Era un botón que abría un sheet: tocar, esperar la persiana, escribir, tocar «Añadir»
+  y esperar a que se cierre. Cinco pasos por palabra, y una compra no se apunta de una
+  en una —se abre la nevera y se cantan seis seguidas—, así que había que repetirlos
+  seis veces. Ahora se escribe, se pulsa Intro y el campo se queda puesto y con el foco
+  para la siguiente. Trae las **sugerencias del historial**, que son la otra mitad del
+  ahorro, y solo mientras se escribe: la barra vive pegada al borde de abajo y cinco
+  pastillas fijas ahí le comen sitio a la lista. No es un camino nuevo —apunta lo mismo
+  que apuntaba el sheet—, y el sheet se queda para **editar** un ítem, que es cuando sí
+  hay más de un campo que tocar, y para apuntar **desde Inicio**, donde no hay una lista
+  abierta delante.
 - Búsqueda en listas, tareas, notas, documentos y calendario. La del calendario encuentra
   eventos pasados, no solo los del tramo pintado.
 - **Borrar desde una fila pide confirmación** (05-09-2026): la papelera de un ítem y la
@@ -255,7 +297,11 @@ que todavía no existen (ver "Siguiente paso recomendado").
   campos y sin tipos de nota: con veinte notas manda el buscador. Se lee entera desde la
   tarjeta, sin abrir nada. Vive en "Más", delante de Documentos, y **no sale en Inicio**:
   la clave del wifi no es de hoy, es de siempre. Ojo con lo que se guarda ahí: es texto
-  plano en la base, protegido por la RLS y por nada más, y el propio sheet lo dice.
+  plano en la base, protegido por la RLS y por nada más. **El sheet ya no lo avisa**
+  (14-09-2026): el aviso —"Farpi no es un gestor de contraseñas"— estaba debajo del
+  campo de texto, en la única pantalla donde se escribe justo eso, y a la tercera nota
+  es un renglón que nadie lee y que le quita sitio al formulario. Lo sigue diciendo
+  `/privacidad`, que es donde se cuenta qué se guarda y cómo.
 - **Finanzas** (31-08-2026, rehecha el 01-09-2026; vocabulario afinado el 02-09-2026; cerrada el 14-09-2026): el dinero de la casa, en `/finanzas`,
   con **cuatro pestañas** y cuatro piezas de vocabulario que no se pisan.
   **Las pestañas son una barra segmentada** (14-09-2026) que ocupa el ancho y se ve
@@ -403,6 +449,13 @@ que todavía no existen (ver "Siguiente paso recomendado").
   (`MINIMO_PARA_BUSCAR`); mira solo el nombre —es lo único que hay— y sin tildes, como en
   las listas. Buscando se siguen viendo los meses: de un nombre lo que se quiere saber es
   justo cuándo cae.
+  **El nombre va en tinta, con un punto de su color delante** (14-09-2026). Iba dentro de
+  una pastilla de color, como en Inicio y en la agenda, y aquí no funcionaba: allí la
+  pastilla nombra a quien lleva un plan entre cosas que no son personas, y esta pantalla
+  es una columna en la que **todas** las filas son un nombre. Treinta pastillas seguidas,
+  unas de color y otras grises —quien no es de la casa no tiene—, se leen como una lista
+  de etiquetas mal alineadas y no como una lista de gente, y el gris del de fuera parecía
+  un fallo de pintado. El color no se pierde, cambia de sitio.
   En "Más" va **encima de Documentos** y no al final: entre las cuatro, Documentos es la
   que menos se abre y la última fila de una lista es el sitio de lo que menos se usa, no
   el de lo último que se añadió.

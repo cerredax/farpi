@@ -92,7 +92,7 @@ const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => strin
  * lo que se añade después son recibos—, y de todos modos el tipo es lo primero que
  * hay dentro del sheet. Las partidas tienen su propio «+» en su bloque.
  *
- * En «Evolución» abre un apunte, igual que en «Este mes»: es lo mismo que se está
+ * En «Estadísticas» abre un apunte, igual que en «Este mes»: es lo mismo que se está
  * mirando, y un `+` que no hiciera nada sería peor que uno que hace lo obvio.
  */
 const ETIQUETA_DE_ALTA: Record<PestañaFinanzas, string> = {
@@ -164,7 +164,7 @@ export function FinancesView() {
           resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
           // **El buscador, solo en «Este mes»** (14-09-2026), que es donde están los
           // apuntes: en «Fijos» hay seis líneas que se leen de un vistazo y en
-          // «Evolución» no hay lista que filtrar. Era la única pantalla de
+          // «Estadísticas» no hay lista que filtrar. Era la única pantalla de
           // contenido de la app que lo tenía apagado a mano, y eso dejaba sin
           // contestar las preguntas que no son de un mes —«¿cuánto llevamos en el
           // dentista?»— salvo yendo mes a mes con la tira.
@@ -237,10 +237,14 @@ export function FinancesView() {
               un menú, que es lo que se veía al mirar la barra entera.
 
               Se pierde algo y consta: «Cómo vamos» nombraba lo que la pestaña
-              contesta y «Evolución» nombra lo que enseña, que era justo lo que el
-              04-09-2026 se había ido a corregir. A cambio, las cuatro se leen del
-              tirón. Las claves no se tocan (`resumen`, `plantilla`): renombrarlas
-              no le cambia nada a nadie.
+              contesta y los nombres de después nombran lo que enseña, que era justo
+              lo que el 04-09-2026 se había ido a corregir. A cambio, las cuatro se
+              leen del tirón. Las claves no se tocan (`resumen`, `plantilla`):
+              renombrarlas no le cambia nada a nadie.
+
+              Esa pestaña fue «Evolución» unas horas y es **«Estadísticas»** desde
+              el mismo 14-09-2026: «evolución» promete una tendencia, y con cuatro
+              meses de datos no hay ninguna que enseñar sin mentir.
 
               «Este mes» dice de qué habla la pestaña al entrar, que es el caso
               normal; navegando a agosto el rótulo se queda corto, pero de qué mes
@@ -248,7 +252,7 @@ export function FinancesView() {
               que es donde se mira. */}
           {([
             { key: 'mes', label: 'Este mes' },
-            { key: 'resumen', label: 'Evolución' },
+            { key: 'resumen', label: 'Estadísticas' },
             { key: 'plantilla', label: 'Fijos' },
             { key: 'presupuestos', label: 'Presupuestos' },
           ] as { key: PestañaFinanzas; label: string }[]).map(p => (
@@ -524,6 +528,9 @@ export function FinancesView() {
             esMesActual={s.esMesActual}
             sePasan={s.sePasan}
             entrada={s.entrada}
+            delAño={s.delAño}
+            repartoDelAño={s.repartoDelAño}
+            repetidos={s.repetidos}
             mesAnterior={format(parseISO(`${mesVecino(s.mes, -1)}-01`), 'MMMM', { locale: es })}
           />
         </div>

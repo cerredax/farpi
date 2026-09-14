@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import {
-  agrupaApuntesPorDia, agrupaApuntesPorMes, apuntesDelMes, buscaApuntes, conVariacion,
+  agrupaApuntesPorDia, agrupaApuntesPorMes, apuntesDelMes, buscaApuntes,
+  conceptosRepetidos, conVariacion, cuentasDelAño, repartoAcumulado,
   cuentaDelMes, fijosDe, gastoAcumulado, mesDe, mesVecino, mesesNavegables,
   partidasOrdenadas, partidasQueSePasan, plantillaDelMes, repartoDeLoQueEntra,
   repartoDelMes, repartoPorPartida, resumenPartidas, ritmoHabitual, serieDeMeses,
@@ -136,7 +137,7 @@ export function useFinanzasState() {
     )
   }, [plantilla, expenses, mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans])
 
-  // Los tres datos de «Evolución» que no salen de la serie ni del reparto.
+  // Los tres datos de «Estadísticas» que no salen de la serie ni del reparto.
   const acumulado = useMemo(() => gastoAcumulado(expenses, mes), [expenses, mes])
   const ritmo = useMemo(
     () => ritmoHabitual(monthPlans, expenses, mesActual),
@@ -150,6 +151,28 @@ export function useFinanzasState() {
     () => repartoDeLoQueEntra(plantilla, expenses, mes),
     [plantilla, expenses, mes],
   )
+  // ─── Las tres cuentas del año, que son de lo que va «Estadísticas» ──────
+  //
+  // El año natural y no una ventana móvil: es el periodo que la gente ya tiene
+  // en la cabeza. Se saca del **mes de hoy** y no del que se esté mirando, igual
+  // que la serie: mirando junio, el año sigue siendo el año.
+  const añoActual = mesActual.slice(0, 4)
+  const delAño = useMemo(
+    () => cuentasDelAño(añoActual, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses),
+    [añoActual, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses],
+  )
+  // En qué se va, sumando el año entero. Se le pasan **los meses que la propia
+  // cuenta del año encontró**, que ya vienen filtrados: los que no tienen plan y
+  // los que no han llegado no están ahí.
+  const repartoDelAño = useMemo(
+    () => repartoAcumulado(
+      delAño.meses.map(m => m.mes),
+      mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses,
+    ),
+    [delAño, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses],
+  )
+  const repetidos = useMemo(() => conceptosRepetidos(expenses, añoActual), [expenses, añoActual])
+
   const grupos = useMemo(() => agruparPresupuestos(quotes), [quotes])
   const titulos = useMemo(() => titulosDePresupuestos(quotes), [quotes])
 
@@ -304,6 +327,7 @@ export function useFinanzasState() {
     totalApuntes: expenses.length,
     busqueda, setBusqueda, buscando, encontrados, porMeses, encontrado,
     repartoPorPersona, serie, reparto, acumulado, ritmo, sePasan, entrada,
+    delAño, repartoDelAño, repetidos,
     /** Qué día es hoy, para saber hasta dónde llega la línea del ritmo. */
     diaDeHoy: Number(hoy.slice(8, 10)),
     ingresosFijos, gastosFijos, partidasPlantilla, totalPartidas,

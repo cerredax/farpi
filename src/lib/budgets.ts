@@ -716,6 +716,63 @@ export function mediaQueQueda(serie: MesDeLaSerie[]): number {
   return Math.round(serie.reduce((total, m) => total + m.queda, 0) / serie.length)
 }
 
+// ─── Las cuentas del año ──────────────────────────────────────────────────────
+
+export interface CuentasDelAño {
+  /** `YYYY`. */
+  año: string
+  /** Los meses de ese año **de los que consta algo**, del más viejo al más nuevo. */
+  meses: MesDeLaSerie[]
+  entra: number
+  sale: number
+  queda: number
+  /** Lo que se queda de media al mes, sobre `meses.length`. Cero si no hay ninguno. */
+  media: number
+}
+
+/**
+ * Lo que ha entrado, salido y quedado **en un año natural**.
+ *
+ * Es la única cuenta de la sección que no habla de un mes, y por eso existe: el
+ * resto de Finanzas contesta «¿cómo va septiembre?» y nadie contestaba «¿cómo va
+ * el año?». Se eligió el año natural y no una ventana de doce meses ni «todo lo
+ * que haya» porque es el periodo que la gente ya tiene en la cabeza.
+ *
+ * **Se apoya en `serieDeMeses` y no repite su lógica**, que es la que sabe qué
+ * mes se puede contar: pide los doce de ese año terminando en diciembre y deja
+ * que ella tire los que no tienen plan y los que no han llegado. De ahí que
+ * `meses` pueda traer menos de doce, y de ahí que la pantalla tenga que decir
+ * **sobre cuántos** está hecha la media: «de media quedan X» sobre cuatro meses y
+ * sobre doce no son la misma frase.
+ *
+ * El mes en curso entra con sus fijos enteros y solo con los apuntes que lleve,
+ * que es exactamente lo que enseña «Este mes». No se prorratea nada: inventar
+ * catorce treintavos del alquiler sería una cifra que no le consta a nadie.
+ */
+export function cuentasDelAño(
+  año: string,
+  mesActual: string,
+  fixed: FixedEntry[],
+  overrides: FixedEntryOverride[],
+  budgets: Budget[],
+  planes: MonthPlan[],
+  expenses: Expense[],
+): CuentasDelAño {
+  const meses = serieDeMeses(`${año}-12`, 12, mesActual, fixed, overrides, budgets, planes, expenses)
+  const entra = meses.reduce((suma, m) => suma + m.entra, 0)
+  const sale = meses.reduce((suma, m) => suma + m.sale, 0)
+  return {
+    año,
+    meses,
+    entra,
+    sale,
+    queda: entra - sale,
+    // Al céntimo y con `Math.round`, como `mediaQueQueda`: truncar escondería
+    // medio céntimo por mes sin motivo.
+    media: meses.length === 0 ? 0 : Math.round((entra - sale) / meses.length),
+  }
+}
+
 export interface TrozoDelReparto {
   key: string
   nombre: string
@@ -850,6 +907,168 @@ export function conVariacion(
     if (!antes || antes.total === 0) return trozo
     return { ...trozo, variacion: Math.round(((trozo.total - antes.total) / antes.total) * 100) }
   })
+}
+
+/**
+ * En qué se ha ido el dinero **de varios meses juntos**, de más a menos.
+ *
+ * Es `repartoPorPartida` sumado, y existe porque la pregunta que más se hace de
+ * una casa no es de un mes: «¿cuánto llevamos en el dentista?», «¿en qué se nos
+ * va, en general?». Hasta el 14-09-2026 solo se podía contestar yendo mes a mes
+ * con la tira, o buscando a mano en el buscador.
+ *
+ * **Se agrupa por el nombre y no por la clave.** Las claves no valen aquí: la de
+ * un fijo es el id de su línea, y cada mes cerrado guardó la suya, así que el
+ * mismo alquiler trae doce claves distintas. Lo que una persona reconoce es el
+ * nombre, y el nombre es lo que se copió en cada mes. Se normaliza para que
+ * «Gasolina» y «gasolina» no salgan dos veces.
+ *
+ * Cada mes se resuelve con **su** plantilla —la copia congelada si se cerró, la
+ * viva si es el de hoy—, que es lo que hace que la suma cuente lo que de verdad
+ * pasó: si el alquiler subió en julio, julio pone 800 y junio 780.
+ *
+ * Los meses sin plan y los que no han llegado se caen solos, porque los tira
+ * `plantillaDelMes`. De un mes del que no consta nada no se suma un cero: se
+ * salta, igual que en la serie.
+ */
+export function repartoAcumulado(
+  meses: string[],
+  mesActual: string,
+  fixed: FixedEntry[],
+  overrides: FixedEntryOverride[],
+  budgets: Budget[],
+  planes: MonthPlan[],
+  expenses: Expense[],
+  maximo = 7,
+): TrozoDelReparto[] {
+  /** nombre normalizado -> lo acumulado, con el nombre y el emoji tal y como se escribieron. */
+  const porNombre = new Map<string, { nombre: string; emoji: string | null; total: number }>()
+
+  const suma = (nombre: string, emoji: string | null, cents: number) => {
+    if (cents <= 0) return
+    const clave = normalizaParaBuscar(nombre)
+    const visto = porNombre.get(clave)
+    if (visto) {
+      visto.total += cents
+      // El emoji de la última vez que se vio con uno: si se le puso icono en
+      // agosto, la fila lo lleva aunque en junio no lo tuviera.
+      if (emoji) visto.emoji = emoji
+    } else {
+      porNombre.set(clave, { nombre, emoji, total: cents })
+    }
+  }
+
+  for (const mes of meses) {
+    const plantilla = plantillaDelMes(mes, mesActual, fixed, overrides, budgets, planes)
+    if (plantilla.origen === 'sin-plan' || plantilla.origen === 'por-venir') continue
+
+    const gastos = soloGastos(apuntesDelMes(expenses, mes))
+
+    for (const fijo of plantilla.fijos) {
+      if (fijo.kind !== 'gasto') continue
+      suma(fijo.name, fijo.emoji, fijo.amountCents)
+    }
+    for (const partida of plantilla.partidas) {
+      if (partida.budgetId === null) continue
+      suma(partida.name, partida.emoji, sumaDe(gastos.filter(g => g.budget_id === partida.budgetId)))
+    }
+    suma('Sin partida', null, sumaDe(gastos.filter(g => !g.budget_id)))
+  }
+
+  const trozos: TrozoDelReparto[] = [...porNombre.entries()]
+    .map(([clave, v]) => ({
+      key: clave,
+      nombre: v.nombre,
+      emoji: v.emoji,
+      total: v.total,
+      porcentaje: 0,
+      // Aquí no hay «mes anterior» contra el que comparar: el bloque habla de
+      // todo el año de una vez. Se deja a `null`, que es «no consta».
+      variacion: null,
+    }))
+    .sort((a, b) => b.total - a.total)
+
+  const total = trozos.reduce((s, t) => s + t.total, 0)
+  if (total === 0) return []
+
+  const visibles = trozos.slice(0, maximo)
+  const resto = trozos.slice(maximo)
+  if (resto.length > 0) {
+    visibles.push({
+      key: 'otras',
+      nombre: 'Otras',
+      emoji: null,
+      total: resto.reduce((s, t) => s + t.total, 0),
+      porcentaje: 0,
+      variacion: null,
+    })
+  }
+
+  return visibles.map(t => ({ ...t, porcentaje: Math.round((t.total / total) * 100) }))
+}
+
+/** Un concepto que se apunta una y otra vez, con lo que suma. */
+export interface ConceptoRepetido {
+  /** El texto tal y como se escribió la última vez. */
+  texto: string
+  veces: number
+  total: number
+  /** Lo que cuesta de media cada vez. Al céntimo. */
+  media: number
+}
+
+/**
+ * Lo que más se repite en el día a día, por lo que **suma**: «Compra semanal, 34
+ * veces, 1.204,50 €, 35,40 € de media».
+ *
+ * Es primo de `descripcionesFrecuentes`, y no el mismo: aquella ordena por veces
+ * y sirve para ahorrar tecleo al apuntar; esta ordena por dinero y sirve para
+ * contestar en qué se va sin darse cuenta. Un café de 1,20 € tomado ochenta veces
+ * es la primera de aquella lista y casi la última de esta, y las dos tienen razón.
+ *
+ * **Solo gastos y solo lo que se repite** (dos veces o más). Un gasto único no es
+ * un hábito: es una compra, y ya sale en el desglose por partida.
+ *
+ * Se agrupa por el texto normalizado —sin tildes ni mayúsculas—, como el buscador,
+ * porque quien apunta «Farmacia» y «farmacia» está apuntando lo mismo.
+ */
+export function conceptosRepetidos(
+  expenses: Expense[],
+  año: string,
+  tope = 6,
+): ConceptoRepetido[] {
+  const vistos = new Map<string, { texto: string; veces: number; total: number; ultimo: Expense }>()
+
+  for (const apunte of soloGastos(expenses)) {
+    if (apunte.date.slice(0, 4) !== año) continue
+    const texto = apunte.description?.trim()
+    if (!texto) continue
+    const clave = normalizaParaBuscar(texto)
+    const visto = vistos.get(clave)
+    if (!visto) {
+      vistos.set(clave, { texto, veces: 1, total: apunte.amount_cents, ultimo: apunte })
+    } else {
+      visto.veces += 1
+      visto.total += apunte.amount_cents
+      // El texto que se enseña es el de la última vez, que es el que se está
+      // usando ahora. Mismo criterio que `descripcionesFrecuentes`.
+      if (porFechaDesc(apunte, visto.ultimo) < 0) {
+        visto.ultimo = apunte
+        visto.texto = texto
+      }
+    }
+  }
+
+  return [...vistos.values()]
+    .filter(v => v.veces > 1)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, tope)
+    .map(v => ({
+      texto: v.texto,
+      veces: v.veces,
+      total: v.total,
+      media: Math.round(v.total / v.veces),
+    }))
 }
 
 /** Una partida que se pasa de su límite más veces de las que no. */

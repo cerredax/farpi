@@ -242,7 +242,7 @@ test('las cuatro pestañas de Finanzas caben enteras a 390 px', async ({ page })
   const medidas = await barra.evaluate(el => ({ scroll: el.scrollWidth, visible: el.clientWidth }))
   expect(medidas.scroll).toBeLessThanOrEqual(medidas.visible)
 
-  for (const nombre of ['Este mes', 'Evolución', 'Fijos', 'Presupuestos']) {
+  for (const nombre of ['Este mes', 'Estadísticas', 'Fijos', 'Presupuestos']) {
     const pestaña = page.getByRole('tab', { name: nombre })
     const caja = await pestaña.boundingBox()
     expect(caja, `falta la pestaña ${nombre}`).not.toBeNull()

@@ -7,12 +7,19 @@ import { mediaQueQueda, mesCorto } from '@/lib/budgets'
 import { formatCents, formatCentsCorto } from '@/lib/finanzas'
 import { capitalize } from '@/lib/text'
 import type {
-  MesDeLaSerie, PartidaQueSePasa, RepartoDeLoQueEntra, TrozoDelReparto,
+  ConceptoRepetido, CuentasDelAño, MesDeLaSerie, PartidaQueSePasa, RepartoDeLoQueEntra,
+  TrozoDelReparto,
 } from '@/lib/budgets'
 
 interface ResumenPanelProps {
   serie: MesDeLaSerie[]
   reparto: TrozoDelReparto[]
+  /** Lo que ha entrado, salido y quedado en el año natural. */
+  delAño: CuentasDelAño
+  /** En qué se ha ido ese mismo año, sumado. */
+  repartoDelAño: TrozoDelReparto[]
+  /** Los conceptos del día a día que más suman en el año. */
+  repetidos: ConceptoRepetido[]
   /** `YYYY-MM` del mes que se está mirando, para señalarlo en la serie. */
   mes: string
   nombreDelMes: string
@@ -176,17 +183,40 @@ function RitmoDelMes({ acumulado, ritmo, diaDeHoy }: {
  * Divergentes se comparaban bien contra el cero y mal entre sí, que es justo lo que
  * se quiere ver aquí: si la verde le saca mucho a la salmón, ese mes fue bueno.
  *
+ * **Y lo que quedó se dibuja además de escribirse** (14-09-2026, pedido): una línea
+ * en tinta con un punto por mes, sobre las barras. Lo que aporta es la **forma**:
+ * tres meses cuesta abajo se ven de un vistazo y leyendo cuatro cifras, no. La
+ * cifra sigue escrita encima porque leerla de un punto obligaría a estimarla contra
+ * una escala que este gráfico no tiene.
+ *
+ * En tinta y no en un tercer color de gráfico: `entra` y `sale` están a **ΔE 3,8 en
+ * protanopía** (medido, no estimado), así que meter un tercer tono entre esos dos
+ * sería añadir otra confusión. La tinta separa de las dos por encima de ΔE 28, y
+ * además es **otro tipo de marca** —una línea con puntos entre rectángulos
+ * rellenos—, que se distingue sin mirar el color.
+ *
+ * Si algún mes se fue en rojo, el dibujo abre **sótano** por debajo del cero y
+ * aparece la línea del cero. Sin ningún mes negativo eso vale cero y el gráfico
+ * queda exactamente como estaba: no se pinta una raya bajo las barras que no diría
+ * nada.
+ *
  * **Lleva leyenda**, y es de los dos únicos gráficos de la app que la lleva —el otro
- * es el ritmo del mes—: son dos series y lo que las distingue es el color, así que
- * hay que decir cuál es cuál. Los demás no la tienen porque no hay dos cosas que
+ * es el ritmo del mes—: son tres series y a dos de ellas solo las separa el color,
+ * así que hay que decir cuál es cuál. Los demás no la tienen porque no hay nada que
  * separar.
  *
  * `aria-hidden` y la tabla de verdad debajo, plegada, con los tres números exactos
  * de cada mes. Es la regla de siempre: el dibujo acompaña, los números se escriben.
  */
 function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
-  // La escala la manda lo que más se mueve en cualquiera de las dos series.
-  const tope = Math.max(...serie.flatMap(m => [m.entra, m.sale]), 1)
+  // La escala la manda lo que más se mueve en cualquiera de las tres series.
+  const tope = Math.max(...serie.flatMap(m => [m.entra, m.sale, m.queda]), 1)
+  /**
+   * Y el suelo lo manda el peor mes, si es que alguno se fue en rojo. Sin ningún
+   * mes en negativo esto vale cero y el dibujo sale exactamente como salía: la
+   * línea del cero coincide con la base de las barras y no se pinta nada nuevo.
+   */
+  const fondo = Math.min(0, ...serie.map(m => m.queda))
   // La columna se estira para llenar la tarjeta —318 px es lo que queda dentro a
   // 390 px— y se para en 72: con cuatro meses, barras estrechas dejaban el dibujo
   // encogido en el centro de un blanco enorme.
@@ -197,11 +227,17 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
   /** Hueco arriba para la cifra de lo que quedó, que va escrita sobre cada mes. */
   const AIRE = 16
   const ancho = serie.length * ANCHO_MES
-  const alto = ALTO + AIRE
-  const suelo = alto
+  /** Lo que hay que reservar por debajo del cero para el mes que se fue en rojo. */
+  const SOTANO = fondo < 0 ? Math.round((-fondo / tope) * ALTO) : 0
+  const alto = ALTO + AIRE + SOTANO
+  /** La `y` del cero. Con todos los meses en positivo es la base del dibujo. */
+  const suelo = AIRE + ALTO
 
   const alturaDe = (v: number) => Math.max(2, Math.round((v / tope) * ALTO))
+  /** La `y` de un importe cualquiera, que para `queda` puede quedar bajo el cero. */
+  const yDe = (v: number) => suelo - Math.round((v / tope) * ALTO)
   const iMirado = serie.findIndex(m => m.mes === mes)
+  const centroDe = (i: number) => i * ANCHO_MES + ANCHO_MES / 2
 
   return (
     <>
@@ -222,8 +258,18 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
             />
           )}
 
+          {/* La línea del cero, y solo cuando hace falta: con todos los meses en
+              positivo cae justo en la base de las barras y sería una raya bajo el
+              dibujo que no dice nada. */}
+          {SOTANO > 0 && (
+            <line
+              x1="0" y1={suelo} x2={ancho} y2={suelo}
+              stroke="var(--color-line-strong)" strokeWidth="1"
+            />
+          )}
+
           {serie.map(m => {
-            const centro = serie.indexOf(m) * ANCHO_MES + ANCHO_MES / 2
+            const centro = centroDe(serie.indexOf(m))
             const hEntra = alturaDe(m.entra)
             const hSale = alturaDe(m.sale)
             return (
@@ -242,9 +288,10 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
                   width={ANCHO_BARRA} height={hSale}
                   rx="3" fill="var(--color-chart-sale)"
                 />
-                {/* Lo que quedó, escrito encima de su par de barras: es la resta de
-                    las dos y no se puede dibujar sin una tercera barra que aquí no
-                    cabe. Es además la cifra que se viene a buscar. */}
+                {/* Y lo que quedó, escrito encima de su par de barras. Se escribe
+                    **además** de dibujarse: es la cifra que se viene a buscar, y
+                    leerla en un punto de una línea obliga a estimar contra una
+                    escala que este gráfico no tiene. */}
                 <text
                   x={centro} y="11" textAnchor="middle"
                   fontSize="10" fontWeight="700"
@@ -255,6 +302,41 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
               </g>
             )
           })}
+
+          {/* **Lo que quedó, dibujado** (14-09-2026, pedido). Hasta ese día solo
+              estaba escrito, con el argumento de que es la resta de las dos barras
+              y no cabía una tercera. Cabe, pero no como barra: como **línea**, que
+              es lo que hace que se vea la forma del año —tres meses cuesta abajo se
+              ven de un vistazo y leyendo cuatro cifras no—.
+
+              Va en tinta y no en un tercer color de gráfico, y es a propósito.
+              `chart-entra` y `chart-sale` son verde y naranja, que en protanopía
+              están a ΔE 3,8: meter un tercer tono de la paleta entre esos dos sería
+              añadir otra confusión. La tinta separa de las dos con ΔE 28 largos, y
+              además **no es del mismo tipo de marca**: una línea con puntos entre
+              barras rellenas se distingue sin mirar el color.
+
+              Se dibuja sobre las barras, después del `map`, para que la línea no
+              quede partida por detrás de cada rectángulo. */}
+          <polyline
+            points={serie.map((m, i) => `${centroDe(i)},${yDe(m.queda)}`).join(' ')}
+            fill="none"
+            stroke="var(--color-ink)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {serie.map((m, i) => (
+            // El aro del color de la tarjeta separa el punto de la barra que tiene
+            // debajo: sin él, un punto oscuro sobre la barra verde se lee como una
+            // muesca de la barra y no como otra serie.
+            <circle
+              key={m.mes}
+              cx={centroDe(i)} cy={yDe(m.queda)} r="3.5"
+              fill="var(--color-ink)"
+              stroke="var(--color-farpi-white)" strokeWidth="2"
+            />
+          ))}
         </svg>
 
         <div className="mx-auto flex" style={{ width: ancho }}>
@@ -268,10 +350,15 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
         </div>
       </div>
 
-      {/* Con dos series **sí** hace falta leyenda: son dos cosas distintas y lo que
-          las separa es el color. El resto de gráficos de la app no la lleva porque
-          no tiene dos cosas que separar. */}
-      <div className="flex justify-center gap-4 text-[13px] text-muted">
+      {/* Con tres series **sí** hace falta leyenda: son tres cosas distintas y dos
+          de ellas solo las separa el color. El resto de gráficos de la app no la
+          lleva porque no tiene nada que separar.
+
+          Las muestras son de la forma de su marca —cuadrado para las barras, una
+          rayita con su punto para la línea—, que es lo que la hace encontrable sin
+          depender del tono. El texto va en `muted` y no en el color de su serie:
+          el color lo lleva la muestra de al lado. */}
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[13px] text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-chart-entra" aria-hidden />
           Entra
@@ -280,7 +367,13 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
           <span className="h-2.5 w-2.5 rounded-sm bg-chart-sale" aria-hidden />
           Sale
         </span>
-        <span className="text-muted">y encima, lo que quedó</span>
+        <span className="flex items-center gap-1.5">
+          <span className="relative flex h-2.5 w-4 items-center" aria-hidden>
+            <span className="h-0.5 w-full rounded-full bg-ink" />
+            <span className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-ink" />
+          </span>
+          Queda
+        </span>
       </div>
 
       <details className="mt-3">
@@ -348,11 +441,20 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
  * —a la derecha, en su columna, junto al importe— y la otra es una frase debajo del
  * nombre que dice de qué habla.
  */
-function EnQueSeVa({ reparto, sePasan, mesAnterior }: {
+function EnQueSeVa({ reparto, sePasan = [], mesAnterior }: {
   reparto: TrozoDelReparto[]
-  sePasan: PartidaQueSePasa[]
-  /** «junio», para poder decir «24 % más que en junio» y no «que el mes pasado». */
-  mesAnterior: string
+  /**
+   * Las partidas que se pasan a menudo. **Opcional desde el 14-09-2026**: el
+   * mismo componente pinta el desglose del año, y ahí no pinta nada un aviso
+   * sobre el mes —«se pasa 4 de 6 meses» ya es la conclusión del año entero—.
+   */
+  sePasan?: PartidaQueSePasa[]
+  /**
+   * «junio», para poder decir «24 % más que en junio» y no «que el mes pasado».
+   * Sobra en el desglose del año, que no se compara con nada: allí la variación
+   * viene a `null` en todos los trozos y no se escribe.
+   */
+  mesAnterior?: string
 }) {
   const total = reparto.reduce((t, r) => t + r.total, 0)
 
@@ -533,17 +635,130 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
   )
 }
 
+// ─── El año ───────────────────────────────────────────────────────────────────
+
 /**
- * «Evolución»: cuatro preguntas sobre el dinero de la casa, cada una con su
+ * Las tres cifras del año, abriendo la pestaña.
+ *
+ * **Es lo primero porque es lo único que no dice nadie más** (14-09-2026). El
+ * resto de Finanzas contesta «¿cómo va septiembre?»: la cuenta del mes, las
+ * partidas, el reparto, el ritmo. «¿Cómo va el año?» no la contestaba ninguna
+ * pantalla, y es la pregunta con la que se entra en unas estadísticas.
+ *
+ * También arregla algo que se notaba al entrar: la pestaña abría con un gráfico.
+ * Un dibujo contesta «¿cómo de distinto?» y no contesta «¿cuánto?», y lo primero
+ * que se quiere de unas cuentas es el cuánto.
+ *
+ * **No es un gráfico y no debería serlo.** Tres totales no tienen forma que
+ * enseñar: son tres números, y el dibujo de tres números son tres números.
+ *
+ * **Dice sobre cuántos meses está hecho.** «De media quedan 2.169 € al mes» sobre
+ * cuatro meses y sobre doce no son la misma frase, y quien lo lee tiene derecho a
+ * saber cuál de las dos está leyendo. Los meses de los que no consta nada no
+ * entran —los tira `cuentasDelAño`—, así que la cuenta puede ser de menos meses
+ * de los que han pasado, y por eso hay que decirlo.
+ */
+function ElAño({ cuentas }: { cuentas: CuentasDelAño }) {
+  const { entra, sale, queda, meses, media } = cuentas
+
+  return (
+    <div className="space-y-3">
+      {/* Las tres en fila y no una grande y dos pequeñas: las tres son la misma
+          clase de dato y jerarquizarlas obligaría a elegir una, que sería «queda»
+          — y «queda» sin saber cuánto entró no se puede juzgar. */}
+      <div className="flex gap-2">
+        {([
+          { rotulo: 'Ha entrado', valor: entra, clase: 'text-primary-strong' },
+          { rotulo: 'Ha salido', valor: -sale, clase: 'text-ink' },
+          { rotulo: 'Se ha quedado', valor: queda, clase: queda < 0 ? 'text-danger-strong' : 'text-ink' },
+        ]).map(c => (
+          <div key={c.rotulo} className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted">{c.rotulo}</p>
+            {/* `text-base` y no más grande: son tres cifras de hasta nueve
+                caracteres («−12.345,67 €») en 358 px, y a 20 px la del medio parte
+                en dos renglones. `tabular-nums` para que las tres se alineen. */}
+            <p className={`truncate text-base font-extrabold tabular-nums ${c.clase}`}>
+              {formatCents(c.valor)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="border-t border-hairline pt-2.5 text-[13px] text-muted">
+        {meses.length === 1 ? 'Sobre 1 mes' : `Sobre ${meses.length} meses`}
+        {meses.length > 1 && (
+          <>
+            {media < 0 ? ', de media se van ' : ', de media quedan '}
+            <span className={`font-bold ${media < 0 ? 'text-danger-strong' : 'text-ink'}`}>
+              {formatCents(Math.abs(media))}
+            </span>
+            {media < 0 ? ' de más al mes' : ' al mes'}
+          </>
+        )}
+        .
+      </p>
+    </div>
+  )
+}
+
+// ─── Lo que más se repite ─────────────────────────────────────────────────────
+
+/**
+ * Los conceptos del día a día que más suman en el año, con cuántas veces y cuánto
+ * de media.
+ *
+ * **Contesta una pregunta que el desglose por partida no puede** (14-09-2026): en
+ * qué se va el dinero **sin darse cuenta**. «En qué se va» dice «Compra, 1.204 €»,
+ * que es una partida entera y no sorprende a nadie; esto dice «Compra semanal, 34
+ * veces, 35,40 € de media», y ahí está la respuesta de por qué la compra son 1.204.
+ *
+ * **Ordena por dinero y no por veces**, que es lo que la separa de las sugerencias
+ * de apuntar. Un café de 1,20 € tomado ochenta veces encabeza aquella lista y casi
+ * cierra esta, y las dos tienen razón: allí se pregunta «¿qué escribo?» y aquí
+ * «¿dónde se va?».
+ *
+ * **Sin gráfico, a propósito.** Es una lista ordenada de seis cosas con tres
+ * números cada una: una tabla lo dice mejor que cualquier dibujo, y las barras
+ * repetirían con el tamaño lo que ya dice el orden — que es el mismo argumento por
+ * el que el anillo de «en qué se va» no colorea cada trozo distinto.
+ */
+function LoQueSeRepite({ conceptos }: { conceptos: ConceptoRepetido[] }) {
+  return (
+    <ul className="divide-y divide-hairline">
+      {conceptos.map(c => (
+        <li key={c.texto} className="flex items-baseline gap-3 py-2 first:pt-0 last:pb-0">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-ink">{c.texto}</span>
+            {/* Las veces y la media, en una línea a media voz: son el porqué de la
+                cifra de la derecha, no otra cifra que comparar. */}
+            <span className="block text-[13px] text-muted">
+              {c.veces} veces · {formatCents(c.media)} de media
+            </span>
+          </span>
+          <span className="flex-shrink-0 text-sm font-bold tabular-nums text-ink">
+            {formatCents(c.total)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/**
+ * «Estadísticas»: cuatro preguntas sobre el dinero de la casa, cada una con su
  * cifra y su dibujo.
  *
- * **Ha tenido tres nombres.** «Resumen» hasta el 04-09-2026, y sobraba por dos
+ * **Ha tenido cuatro nombres.** «Resumen» hasta el 04-09-2026, y sobraba por dos
  * motivos: no resumía nada que no estuviera ya en «Este mes», y prometía un resumen
  * donde lo que hay son respuestas. Luego «Cómo vamos», que nombraba justo lo que
- * la pestaña contesta. Y «Evolución» desde el 14-09-2026, cuando se miró la barra
- * entera en vez de cada rótulo por su lado: cuatro nombres se leen como un menú y
- * cuatro formas gramaticales distintas, como cuatro ocurrencias. Se pierde la
- * pregunta y se gana la barra.
+ * la pestaña contesta. Y «Evolución» el 14-09-2026, cuando se miró la barra entera
+ * en vez de cada rótulo por su lado: cuatro nombres se leen como un menú y cuatro
+ * formas gramaticales distintas, como cuatro ocurrencias.
+ *
+ * «Evolución» duró unas horas. Prometía una tendencia, y con cuatro meses de datos
+ * no hay ninguna que enseñar sin mentir — es la misma razón por la que aquí dentro
+ * se descartó la estacionalidad. **«Estadísticas»** no promete dirección: promete
+ * cuentas hechas, que es lo que hay.
  *
  * La clave interna sigue siendo `resumen` y el archivo conserva su nombre, como
  * `CadaMesPanel`: renombrarlos no le cambia nada a nadie y rompe el historial del
@@ -585,7 +800,7 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
  */
 export function ResumenPanel({
   serie, reparto, mes, nombreDelMes, acumulado, ritmo, diaDeHoy, esMesActual,
-  sePasan, entrada, mesAnterior,
+  sePasan, entrada, mesAnterior, delAño, repartoDelAño, repetidos,
 }: ResumenPanelProps) {
   const media = mediaQueQueda(serie)
   // El ritmo solo se enseña donde significa algo: en el mes en curso y habiendo
@@ -595,13 +810,50 @@ export function ResumenPanel({
   const hayRitmo = esMesActual && ritmo.length > 0 && acumulado.length > 0
 
   return (
+    /**
+     * **De lo ancho a lo estrecho**: el año, luego los meses, luego el mes que se
+     * esté mirando. Es el orden desde el 14-09-2026, cuando entraron los bloques
+     * del año y la pestaña quedó alternando —año, mes, meses, mes, año, mes, año—,
+     * que obliga a cambiar de escala en cada tarjeta y es lo que hace que un
+     * cuadro de mandos se lea como un montón de tarjetas sueltas.
+     *
+     * Se paga un precio y consta: «Cómo va el mes», que es el único bloque
+     * **accionable** —vas rápido, frena—, baja del primer sitio al quinto. Se
+     * acepta porque solo sale en el mes en curso y porque la alternativa era que
+     * el resto no se entendiera.
+     */
     <div className="space-y-5">
-      {hayRitmo && (
-        <Bloque titulo="Cómo va el mes">
-          <RitmoDelMes acumulado={acumulado} ritmo={ritmo} diaDeHoy={diaDeHoy} />
+      {/* ── El año ─────────────────────────────────────────────────────────
+          Va primero y sin condición: mientras haya un mes con datos hay algo que
+          decir, y si no lo hay, lo dice. Es además el único que no depende de qué
+          mes se esté mirando. */}
+      <Bloque titulo={`En ${delAño.año}`}>
+        {delAño.meses.length === 0 ? (
+          <EmptyState emoji="📅" title="Todavía no hay ningún mes cerrado" />
+        ) : (
+          <ElAño cuentas={delAño} />
+        )}
+      </Bloque>
+
+      {/* El mismo desglose del mes pero sumando el año, reusando `EnQueSeVa` sin
+          el aviso de las partidas que se pasan, que es del mes. Con un solo mes no
+          se pinta: sería el bloque de abajo repetido palabra por palabra. */}
+      {repartoDelAño.length > 0 && delAño.meses.length > 1 && (
+        <Bloque titulo={`En ${delAño.año}: en qué se va`}>
+          <EnQueSeVa reparto={repartoDelAño} />
         </Bloque>
       )}
 
+      {/* Solo si hay algo que repetir. Es el bloque más fino —contesta «¿en qué se
+          nos va sin darnos cuenta?»— y una casa que apunta poco no lo verá nunca,
+          que está bien: sin conceptos repetidos no hay hábito que contar. */}
+      {repetidos.length > 0 && (
+        <Bloque titulo={`En ${delAño.año}: lo que más se repite`}>
+          <LoQueSeRepite conceptos={repetidos} />
+        </Bloque>
+      )}
+
+      {/* ── Los meses ──────────────────────────────────────────────────── */}
       <Bloque titulo="Cómo van los meses">
         {serie.length === 0 ? (
           <EmptyState
@@ -625,6 +877,13 @@ export function ResumenPanel({
           </div>
         )}
       </Bloque>
+
+      {/* ── El mes que se está mirando ─────────────────────────────────── */}
+      {hayRitmo && (
+        <Bloque titulo="Cómo va el mes">
+          <RitmoDelMes acumulado={acumulado} ritmo={ritmo} diaDeHoy={diaDeHoy} />
+        </Bloque>
+      )}
 
       <Bloque titulo={`${nombreDelMes}: en qué se va`}>
         {reparto.length === 0 ? (

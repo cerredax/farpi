@@ -802,7 +802,7 @@ técnicas pequeñas. El porqué de cada cosa, en `docs/historial.md`.
 - [x] **`debeCerrarseElMesPasado` sale de `StoreProvider`** a `budgets.ts`, con seis
       tests: es la regla que le da historia a la sección y no tenía ninguno, porque donde
       vivía no se podía probar.
-- [x] **26 unitarios y 5 de navegador nuevos: 717** en la pasada completa (542 + 175).
+- [x] **26 unitarios y 5 de navegador nuevos: 716** en la pasada completa (542 + 174).
 - [x] Decidido **no** poner ventana temporal a `getExpenses` todavía, y escrito por qué y
       con qué umbral revisarlo (~3.000 apuntes) en `docs/project-status.md`.
 
@@ -864,6 +864,42 @@ que faltaba; aquí se hace lo contrario y se juntan los que nombran **una sola f
       columnas. Separados en la rejilla para que no se comparen de un vistazo, pero el
       problema sigue ahí. Alternativa: 🧾 para impuestos —un recibo de papel, y el IBI lo
       es— a cambio de ser genérico y de repetirse con los iconos de ingreso.
+
+## Fase 8z - Finanzas: «Estadísticas», y que lo sean (14-09-2026)
+
+Tercera vuelta del mismo día. El nombre «Evolución» duró unas horas: promete una
+tendencia, y con cuatro meses de datos no hay ninguna que enseñar sin mentir. Con el
+nombre nuevo venía el encargo de que la pestaña lo fuera. El porqué de cada cosa, en
+`docs/architecture.md`, «"Estadísticas" habla del año, no solo del mes».
+
+- [x] **«Evolución» pasa a «Estadísticas»**, cuarto nombre de la pestaña. La clave interna
+      sigue siendo `resumen`.
+- [x] **Tres bloques del año natural**, que es lo que no contestaba nadie: la **cabecera**
+      —entra, sale, queda y la media mensual—, **en qué se va sumando el año** y **lo que
+      más se repite** en el día a día, por lo que suma.
+- [x] La media **dice sobre cuántos meses está hecha**, y los meses que nunca se cerraron
+      no entran: de un mes del que no consta nada no se suma un cero.
+- [x] El desglose del año **se agrupa por el nombre y no por la clave**: cada mes cerrado
+      guardó la suya, y por clave el mismo alquiler habría salido cuatro veces.
+- [x] **Lo que quedó cada mes se dibuja**, además de escribirse: una línea con un punto por
+      mes sobre las barras. En tinta y no en un tercer color de gráfico — `chart-entra` y
+      `chart-sale` están a ΔE 3,8 en protanopía, así que un tercer tono habría añadido otra
+      confusión. Y con **sótano** bajo el cero si algún mes se fue en rojo.
+- [x] La pestaña se reordena **de lo ancho a lo estrecho**: el año, los meses, el mes. Se
+      paga que «Cómo va el mes» baja del primer sitio al quinto.
+- [x] Tres funciones puras nuevas en `budgets.ts` (`cuentasDelAño`, `repartoAcumulado`,
+      `conceptosRepetidos`) con **21 unitarios**, y 3 de navegador.
+- [x] Suite entera en verde: **740** (563 unitarios + 177 de navegador).
+- [ ] **Las barras de entra y sale siguen sin separar**: verde y naranja una al lado de
+      otra, ΔE 3,8 en protanopía y 13,6 con visión normal, por debajo del suelo de 15. La
+      salida limpia es cambiar uno de los dos colores, y probando la familia el único
+      candidato que pasa es un **azul** (ΔE 12,8): verde contra cualquier naranja o rojo no
+      pasa nunca. Cambiar el verde de «entra» es tocar el color de marca, así que se decide
+      aparte.
+- [ ] **«Lo que más se repite» no se ve en la demo**: sus siete apuntes son siete cosas
+      distintas. Sembrar un par de repetidos movería las cifras de junio que media suite
+      comprueba, así que se deja — el bloque se cubre con unitarios y con un test que
+      apunta dos veces lo mismo.
 
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 

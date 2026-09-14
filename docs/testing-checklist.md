@@ -366,7 +366,22 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       y el trabajo escritos, y al guardarlo lleva al mes en el que ha caído. Sin aceptar,
       el enlace no está.
 
-**Evolución** (se llamó «Resumen» hasta el 04-09-2026 y «Cómo vamos» hasta el 14-09-2026)
+**Estadísticas** (fue «Resumen», «Cómo vamos» y, unas horas, «Evolución»)
+
+- [ ] Los bloques van **de lo ancho a lo estrecho** (14-09-2026): primero los del año
+      —las cifras, en qué se va, lo que más se repite—, luego «Cómo van los meses», y al
+      final los del mes que se esté mirando. Si alternan escalas, se ha movido alguno.
+- [ ] **La cabecera del año** abre la pestaña con tres cifras, no con un gráfico, y dice
+      **sobre cuántos meses** está hecha la media. Lo que queda tiene que ser lo que ha
+      entrado menos lo que ha salido, al céntimo.
+- [ ] **«En qué se va» del año** suma todos los meses: el alquiler de ahí es la suma de
+      los de cada mes, no el de uno. Y su total cuadra con «ha salido» de la cabecera.
+- [ ] **«Lo que más se repite»** solo sale si hay algún concepto apuntado dos veces o más
+      —en la demo no hay ninguno, así que el bloque no está, y es correcto—. Ordena por lo
+      que suma, no por veces.
+- [ ] **La línea de «Queda»** cruza el gráfico de los meses con un punto por mes, en
+      tinta, y la leyenda dice las tres series. Si algún mes está en rojo, aparece la línea
+      del cero y el punto cae por debajo.
 
 - [ ] **La letra se lee**: el texto de Finanzas va a 13 px, no a 11. Si algo se ve
       diminuto es que se ha colado un `text-[11px]` nuevo.

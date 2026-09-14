@@ -2833,14 +2833,20 @@ por su lado y ninguno se había elegido mirando a los otros tres.
 **Los nombres.** Eran «El mes», «Cómo vamos», «Lo fijo» y «Presupuestos»: artículo y
 nombre, pregunta, adjetivo sustantivado y nombre a secas. Cuatro formas gramaticales
 distintas en cuatro botones pegados, que es lo que hace que un menú se lea como cuatro
-ocurrencias en vez de como las partes de una cosa. Ahora son **«Este mes», «Evolución»,
-«Fijos» y «Presupuestos»**: cuatro nombres, la misma forma, y entran los cuatro a 390 px
-con letra de 13 px.
+ocurrencias en vez de como las partes de una cosa. Ahora son **«Este mes»,
+«Estadísticas», «Fijos» y «Presupuestos»**: cuatro nombres, la misma forma, y entran los
+cuatro a 390 px con letra de 13 px.
 
-Se pierde algo y consta. «Cómo vamos» nombraba lo que la pestaña **contesta** y
-«Evolución» nombra lo que **enseña**, que es justo lo que el 04-09-2026 se había ido a
-corregir al quitarle el nombre de «Resumen»; y «Este mes» se queda corto en cuanto se
-navega a agosto. Lo primero se acepta a cambio de que la barra se lea del tirón; lo
+La segunda fue «Evolución» unas horas, el mismo día. Se cambió por **«Estadísticas»**
+porque «evolución» promete una **tendencia**, y con cuatro meses de datos no hay ninguna
+que enseñar sin mentir — que es exactamente la razón por la que dentro de esa pestaña se
+había descartado la estacionalidad. «Estadísticas» no promete dirección: promete cuentas
+hechas, que es lo que hay.
+
+Se pierde algo y consta. «Cómo vamos» nombraba lo que la pestaña **contesta** y los dos
+nombres de después nombran lo que **enseña**, que es justo lo que el 04-09-2026 se había
+ido a corregir al quitarle el nombre de «Resumen»; y «Este mes» se queda corto en cuanto
+se navega a agosto. Lo primero se acepta a cambio de que la barra se lea del tirón; lo
 segundo lo cubre la tarjeta de debajo, que dice el mes con su nombre grande y es donde se
 mira. Las claves internas no se tocan (`resumen`, `plantilla`), como no se tocaron las
 otras dos veces: renombrarlas no le cambia nada a nadie.
@@ -2932,6 +2938,81 @@ dice de quién es cada fila: dice que hay una decoración.
 El color de una persona sigue donde sirve, que es donde hay que distinguirla de otras
 cosas que no son personas: los planes de Inicio y la agenda del calendario. Aquí lo que se
 viene a leer es un nombre y un día.
+
+### «Estadísticas» habla del año, no solo del mes (14-09-2026)
+
+La pestaña contestaba cuatro preguntas y las cuatro eran del mes que estuvieras mirando,
+salvo la serie. «¿Cuánto llevamos en el dentista este año?» no la contestaba nadie: había
+que ir mes a mes con la tira, o buscar «dentista» a mano. Entran tres bloques del **año
+natural** —el periodo que la gente ya tiene en la cabeza, frente a una ventana móvil de
+doce meses que nadie usa para hablar— y la pestaña pasa de cuatro bloques a siete.
+
+1. **La cabecera.** Lo que ha entrado, lo que ha salido y lo que se ha quedado, y debajo
+   la media mensual. Va primero porque antes la pestaña **abría con un gráfico**: un
+   dibujo contesta «¿cómo de distinto?» y no contesta «¿cuánto?», y lo primero que se
+   quiere de unas cuentas es el cuánto. No es un gráfico ni debería serlo: el dibujo de
+   tres números son tres números.
+2. **En qué se va, sumando el año.** El mismo componente del desglose del mes, reusado
+   sin el aviso de las partidas que se pasan, que es del mes.
+3. **Lo que más se repite.** Los conceptos del día a día ordenados por lo que suman, con
+   cuántas veces y cuánto de media.
+
+**Dice sobre cuántos meses está hecha la media**, y no es un detalle: «de media quedan
+2.169 € al mes» sobre cuatro meses y sobre doce no son la misma frase. Los meses de los
+que no consta nada —los que nunca se cerraron— **no entran**, así que la cuenta puede ser
+de menos meses de los que han pasado. Es la misma regla que ya tenía la serie: de un mes
+del que no se sabe nada no se suma un cero.
+
+**El desglose del año se agrupa por el nombre y no por la clave.** La clave de un fijo es
+el id de su línea y cada mes cerrado guardó la suya, así que agrupar por clave daría el
+mismo alquiler repetido una vez por mes. Lo que una persona reconoce es el nombre, y el
+nombre es lo que se copió en cada cierre.
+
+**«Lo que más se repite» ordena por dinero, no por veces**, y ahí está lo que lo separa
+de las sugerencias de apuntar, que son la misma materia ordenada al revés. Un café de
+1,20 € tomado ochenta veces encabeza aquella lista y casi cierra esta: allí la pregunta es
+«¿qué escribo?» y aquí «¿dónde se va?». Solo cuenta lo que se repite dos veces o más — un
+gasto único no es un hábito, es una compra, y ya sale en el desglose.
+
+**Y el orden de la pestaña pasa a ser de lo ancho a lo estrecho**: el año, los meses, el
+mes que se mira. Con los bloques nuevos metidos donde cayeron, la pestaña alternaba
+escalas en cada tarjeta —año, mes, meses, mes, año, mes, año—, que es lo que hace que un
+cuadro de mandos se lea como un montón de tarjetas sueltas. Se paga un precio y consta:
+«Cómo va el mes», que es el único bloque **accionable** —vas rápido, frena—, baja del
+primer sitio al quinto. Se acepta porque solo sale en el mes en curso y porque la
+alternativa era que el resto no se entendiera.
+
+### Lo que quedó cada mes se dibuja, y va en tinta (14-09-2026)
+
+El gráfico de «cómo van los meses» tenía dos barras por mes —lo que entra y lo que sale—
+y la cifra de lo que quedó **escrita** encima de cada par, con el argumento de que es la
+resta de las dos y no cabía una tercera barra. Cabe, pero no como barra: como **línea con
+un punto por mes**, encima de las barras.
+
+Lo que aporta es la **forma**. Tres meses cuesta abajo se ven de un vistazo; leyendo
+cuatro cifras, no. La cifra sigue escrita encima, porque leerla de un punto obligaría a
+estimarla contra una escala que este gráfico no tiene y no va a tener.
+
+**Va en tinta y no en un tercer color de gráfico, y eso se midió.** `chart-entra` (#5C7A59)
+y `chart-sale` (#B26A3C) están a **ΔE 3,8 en protanopía y 13,6 con visión normal**, por
+debajo del suelo de 15: como par categórico no separan, y por eso los tokens los declaran
+**divergentes**, donde el trabajo lo hace la posición respecto al cero. Meter un tercer
+tono de la paleta entre esos dos sería añadir otra confusión a la que ya hay. La tinta
+separa de las dos por encima de ΔE 28, y además **no es el mismo tipo de marca**: una
+línea con puntos entre rectángulos rellenos se distingue sin mirar el color. Cada punto
+lleva un aro del color de la tarjeta para no leerse como una muesca de la barra que tiene
+debajo.
+
+Si algún mes se fue en rojo, el dibujo abre **sótano** por debajo del cero y aparece la
+línea del cero. Sin ningún mes negativo eso vale cero y el gráfico queda exactamente como
+estaba: no se pinta una raya bajo las barras que no diría nada.
+
+**Lo que no se ha arreglado, y consta.** Las dos barras siguen siendo verde y naranja, una
+al lado de otra, distinguidas solo por el tono: siguen fallando el suelo de contraste. La
+salida limpia es cambiar uno de los dos colores, y el único candidato de la familia que
+pasa la separación CVD es un azul (ΔE 12,8 en protanopía) — verde contra cualquier
+naranja o rojo no pasa nunca, que es la confusión rojo-verde de siempre. Cambiar el verde
+de «entra» es tocar el color de marca, así que no se hace sin decidirlo aparte.
 
 ## Tono de la interfaz
 

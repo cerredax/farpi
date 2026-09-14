@@ -1527,10 +1527,17 @@ test('el mes pasado se cierra solo al abrir la app', async ({ page }) => {
 
 // ─── El resumen ──────────────────────────────────────────────────────────────
 
+/**
+ * El desglose **del mes**, que desde el 14-09-2026 no es el único: al lado vive el
+ * del año entero («En 2026: en qué se va»). El `(?!En )` es lo que los separa, y
+ * está escrito así y no con el nombre del mes porque estos tests navegan meses.
+ */
+const DESGLOSE_DEL_MES = /^(?!En )\S+ \d{4}: en qué se va$/
+
 test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ page }) => {
   await page.goto('/finances')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Evolución' }).click()
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
 
   // La serie: junio y julio vienen cerrados en la demo y agosto lo cierra la app
   // al arrancar. Los números viven en la tabla plegada, que es la que hace que el
@@ -1551,7 +1558,7 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
   // apuntado nada** (04-09-2026): los gastos fijos entran en el reparto, así que
   // septiembre dice que se han ido los 935,90 € de recibos, con el alquiler
   // llevándose el 83 % del mes.
-  const enQue = page.getByRole('region', { name: /en qué se va/ })
+  const enQue = page.getByRole('region', { name: DESGLOSE_DEL_MES })
   await expect(enQue).toContainText('Se han ido 935,90 €')
   await expect(enQue).toContainText('Alquiler')
   await expect(enQue).toContainText('83 %')
@@ -1563,7 +1570,7 @@ test('el resumen dibuja la serie de meses y en qué se va el dinero', async ({ p
 test('«Evolución» enseña el ritmo del mes y en qué se reparte lo que entra', async ({ page }) => {
   await page.goto('/finances')
   await page.waitForTimeout(800)
-  await page.getByRole('tab', { name: 'Evolución' }).click()
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
 
   // El ritmo compara con los meses cerrados, y la demo trae junio con gastos.
   const ritmo = page.getByRole('region', { name: 'Cómo va el mes' })
@@ -1583,7 +1590,86 @@ test('«Evolución» enseña el ritmo del mes y en qué se reparte lo que entra'
   await irAMes(page, -3)
   await expect(page.getByRole('region', { name: 'Cómo va el mes' })).toHaveCount(0)
   // Los otros sí siguen al mes que se mira.
-  await expect(page.getByRole('region', { name: /en qué se va/ })).toContainText('Junio 2026')
+  await expect(page.getByRole('region', { name: DESGLOSE_DEL_MES })).toContainText('Junio 2026')
+})
+
+// ─── Los tres bloques del año (14-09-2026) ───────────────────────────────────
+//
+// «Estadísticas» solo hablaba del mes que se estuviera mirando, salvo la serie.
+// Estos tres contestan del año, que es la pregunta con la que se entra aquí.
+
+test('la cabecera del año suma los meses que hay, y dice cuántos son', async ({ page }) => {
+  await page.goto('/finances')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
+
+  const año = page.getByRole('region', { name: 'En 2026', exact: true })
+  await expect(año).toContainText('Ha entrado')
+  await expect(año).toContainText('Se ha quedado')
+
+  // La demo tiene cuatro meses con datos —junio, julio, agosto y el de hoy— y
+  // decirlo es la mitad del bloque: «de media quedan X» sobre cuatro meses y
+  // sobre doce no son la misma frase.
+  await expect(año).toContainText('Sobre 4 meses')
+  await expect(año).toContainText('de media quedan')
+
+  // Y las tres cifras cuadran entre ellas, que es lo único que no puede fallar:
+  // lo que queda es lo que entró menos lo que salió.
+  const texto = (await año.textContent()) ?? ''
+  const cifras = [...texto.matchAll(/−?[\d.]+,\d{2} €/g)].map(m => m[0])
+  const aCentimos = (s: string) =>
+    Number(s.replace('−', '-').replace(' €', '').replace(/\./g, '').replace(',', ''))
+  expect(aCentimos(cifras[0]) + aCentimos(cifras[1])).toBe(aCentimos(cifras[2]))
+})
+
+// La pregunta que hasta hoy solo se contestaba yendo mes a mes con la tira:
+// «¿cuánto llevamos en esto?».
+test('el desglose del año suma todos los meses, no el que se mira', async ({ page }) => {
+  await page.goto('/finances')
+  await page.waitForTimeout(800)
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
+
+  const delAño = page.getByRole('region', { name: 'En 2026: en qué se va' })
+  const delMes = page.getByRole('region', { name: DESGLOSE_DEL_MES })
+
+  // El alquiler del año son los de junio, julio, agosto y septiembre juntos:
+  // 760 + 780 + 780 + 780. El del mes, uno solo.
+  await expect(delAño).toContainText('3.100,00 €')
+  await expect(delMes).toContainText('780,00 €')
+
+  // Y lo que dice el desglose del año es lo mismo que la cabecera dice que ha
+  // salido: dos cuentas distintas que tienen que dar lo mismo.
+  const salido = ((await page.getByRole('region', { name: 'En 2026', exact: true }).textContent()) ?? '')
+    .match(/−([\d.]+,\d{2}) €/)![1]
+  await expect(delAño).toContainText(`Se han ido ${salido} €`)
+})
+
+// Ordena por dinero y no por veces, que es lo que lo separa de las sugerencias
+// de apuntar. Y solo cuenta lo que se repite: un gasto único es una compra.
+test('«lo que más se repite» aparece al repetir un apunte, con sus tres cifras', async ({ page }) => {
+  await page.goto('/finances')
+  await page.waitForTimeout(800)
+
+  // La demo no trae ningún concepto repetido a propósito —sus siete apuntes son
+  // siete cosas distintas—, así que el bloque no está hasta que lo hay.
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
+  await expect(page.getByRole('region', { name: /lo que más se repite/ })).toHaveCount(0)
+
+  await page.getByRole('tab', { name: 'Este mes', exact: true }).click()
+  for (const importe of ['40', '60']) {
+    await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+    await page.locator('#expense-amount').fill(importe)
+    await page.locator('#expense-description').fill('Panadería')
+    await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+    await page.waitForTimeout(400)
+  }
+
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
+  const repetidos = page.getByRole('region', { name: 'En 2026: lo que más se repite' })
+  await expect(repetidos).toContainText('Panadería')
+  await expect(repetidos).toContainText('2 veces')
+  await expect(repetidos).toContainText('50,00 € de media')
+  await expect(repetidos).toContainText('100,00 €')
 })
 
 // La variación es lo que convierte el desglose en una señal: sin ella, «Compra
@@ -1602,8 +1688,8 @@ test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page 
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
 
-  await page.getByRole('tab', { name: 'Evolución' }).click()
-  const enQue = page.getByRole('region', { name: /en qué se va/ })
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
+  const enQue = page.getByRole('region', { name: DESGLOSE_DEL_MES })
   // Con palabras y en su renglón, no como un «+24 %» pegado al porcentaje del mes:
   // eran dos cifras con el mismo símbolo significando cosas distintas, y era lo que
   // hacía el bloque ilegible.
@@ -1621,11 +1707,11 @@ test('el resumen sigue al mes que se esté mirando', async ({ page }) => {
   await page.waitForTimeout(800)
   await retroceder(page, 3)
 
-  await page.getByRole('tab', { name: 'Evolución' }).click()
+  await page.getByRole('tab', { name: 'Estadísticas' }).click()
   // Junio: 870,90 € de fijos congelados más 291,45 € apuntados, 1.162,35 € en
   // total. Los fijos entran desde el 04-09-2026, y por eso el alquiler se lleva el
   // 65 % del mes; antes el bloque decía «291,45 €» y el alquiler no salía.
-  const enQueSeVa = page.getByRole('region', { name: /en qué se va/ })
+  const enQueSeVa = page.getByRole('region', { name: DESGLOSE_DEL_MES })
   await expect(enQueSeVa).toContainText('Junio 2026')
   await expect(enQueSeVa).toContainText('Se han ido 1.162,35 €')
   await expect(enQueSeVa).toContainText('Alquiler')

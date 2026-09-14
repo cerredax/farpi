@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test'
 import {
   agrupaApuntesPorDia, agrupaApuntesPorMes, ajusteDelMes, apuntesDelMes, buscaApuntes,
-  conVariacion, cuentaDelMes, debeCerrarseElMesPasado, descripcionesFrecuentes, diasDelMes,
+  conceptosRepetidos, conVariacion, cuentaDelMes, cuentasDelAño, debeCerrarseElMesPasado,
+  descripcionesFrecuentes, diasDelMes,
   existiaEnElMes, fijosDe, gastoAcumulado, mediaQueQueda, mesCorto,
   mesDe, mesesNavegables, mesVecino, partidasPorUso, partidasQueSePasan, plantillaDelMes,
-  repartoDeLoQueEntra, repartoDelMes, repartoPorPartida, resumenPartidas,
+  repartoAcumulado, repartoDeLoQueEntra, repartoDelMes, repartoPorPartida, resumenPartidas,
   ritmoHabitual, serieDeMeses, sumaDeFijos,
 } from '@/lib/budgets'
 import type { TrozoDelReparto } from '@/lib/budgets'
@@ -817,6 +818,212 @@ test.describe('en qué se reparte lo que entra', () => {
       '2026-08',
     )!
     expect(r.queda).toBe(-80000)
+  })
+})
+
+// ─── Las cuentas del año (14-09-2026) ────────────────────────────────────────
+//
+// El bloque de cabecera de «Estadísticas». Lo que hay que comprobar no es la
+// suma —eso es un `reduce`— sino **sobre qué** suma: que un mes del que no consta
+// nada no entra, y que por tanto la media se hace sobre los meses que hay y no
+// sobre doce.
+test.describe('las cuentas del año', () => {
+  const FIJOS = [
+    fijo({ id: 'in1', kind: 'ingreso', name: 'Nómina', amount_cents: 200000 }),
+    fijo({ id: 'ga1', kind: 'gasto', name: 'Alquiler', amount_cents: 80000 }),
+  ]
+  const JUNIO = plan('2026-06', [
+    linea({ id: 'j1', month: '2026-06', line: 'ingreso', name: 'Nómina', amount_cents: 150000 }),
+    linea({ id: 'j2', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+  ])
+  const JULIO = plan('2026-07', [
+    linea({ id: 'l1', month: '2026-07', line: 'ingreso', name: 'Nómina', amount_cents: 150000 }),
+    linea({ id: 'l2', month: '2026-07', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+  ])
+
+  test('suma los meses del año que tienen datos, y solo esos', () => {
+    const r = cuentasDelAño('2026', '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
+    expect(r.meses.map(m => m.mes)).toEqual(['2026-06', '2026-07', '2026-08'])
+    // 150.000 + 150.000 + 200.000 de lo que entra; 76.000 + 76.000 + 80.000 de lo que sale.
+    expect(r.entra).toBe(500000)
+    expect(r.sale).toBe(232000)
+    expect(r.queda).toBe(268000)
+  })
+
+  // Lo que sostiene la frase de la pantalla: «de media quedan X al mes». Si se
+  // promediara sobre doce, un año recién empezado diría una cifra ridícula.
+  test('la media se hace sobre los meses que hay, no sobre doce', () => {
+    const r = cuentasDelAño('2026', '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
+    expect(r.meses).toHaveLength(3)
+    expect(r.media).toBe(Math.round(268000 / 3))
+  })
+
+  test('un mes del que no consta nada no entra, ni siquiera como cero', () => {
+    // Sin el plan de julio, julio es un mes pasado que nunca se cerró.
+    const r = cuentasDelAño('2026', '2026-08', FIJOS, [], [], [JUNIO], [])
+    expect(r.meses.map(m => m.mes)).toEqual(['2026-06', '2026-08'])
+    expect(r.media).toBe(Math.round(r.queda / 2))
+  })
+
+  test('los meses que aún no han llegado no cuentan', () => {
+    const r = cuentasDelAño('2026', '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
+    // Agosto es el último: septiembre y los que vienen no salen.
+    expect(r.meses.at(-1)!.mes).toBe('2026-08')
+  })
+
+  test('un año sin nada no divide entre cero', () => {
+    const r = cuentasDelAño('2025', '2026-08', FIJOS, [], [], [], [])
+    expect(r).toMatchObject({ meses: [], entra: 0, sale: 0, queda: 0, media: 0 })
+  })
+
+  test('lo apuntado a mano suma al año por su fecha', () => {
+    const r = cuentasDelAño('2026', '2026-08', FIJOS, [], [], [JUNIO, JULIO], [
+      gasto({ id: 'g', amount_cents: 5000, date: '2026-08-10' }),
+      gasto({ id: 'otro-ano', amount_cents: 99900, date: '2025-08-10' }),
+    ])
+    expect(r.sale).toBe(237000)
+  })
+})
+
+// ─── En qué se va, de varios meses (14-09-2026) ──────────────────────────────
+//
+// Lo delicado aquí es por qué se agrupa por el nombre: la clave de un fijo es el
+// id de su línea y cada mes cerrado guardó la suya, así que agrupar por clave
+// daría el mismo alquiler repetido una vez por mes.
+test.describe('el reparto acumulado', () => {
+  const FIJOS = [fijo({ id: 'ga1', kind: 'gasto', name: 'Alquiler', amount_cents: 80000 })]
+  const JUNIO = plan('2026-06', [
+    linea({ id: 'j1', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+  ])
+  const JULIO = plan('2026-07', [
+    linea({ id: 'l1', month: '2026-07', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+  ])
+
+  test('el mismo fijo de tres meses es una fila, no tres', () => {
+    const r = repartoAcumulado(['2026-06', '2026-07', '2026-08'], '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
+    expect(r).toHaveLength(1)
+    expect(r[0]).toMatchObject({ nombre: 'Alquiler', total: 232000, porcentaje: 100 })
+  })
+
+  // Cada mes con su importe: si el alquiler subió, la suma lo nota.
+  test('cada mes entra con lo que valía entonces', () => {
+    const r = repartoAcumulado(['2026-06', '2026-08'], '2026-08', FIJOS, [], [], [JUNIO], [])
+    expect(r[0].total).toBe(156000)
+  })
+
+  test('el nombre se agrupa sin tildes ni mayúsculas', () => {
+    const r = repartoAcumulado(['2026-06', '2026-07'], '2026-08', [], [], [], [
+      plan('2026-06', [linea({ id: 'a', month: '2026-06', line: 'gasto', name: 'Farmacia', amount_cents: 1000 })]),
+      plan('2026-07', [linea({ id: 'b', month: '2026-07', line: 'gasto', name: 'farmacia', amount_cents: 2000 })]),
+    ], [])
+    expect(r).toHaveLength(1)
+    expect(r[0].total).toBe(3000)
+  })
+
+  test('un mes sin plan se salta, no suma cero', () => {
+    // Julio no tiene plan: sus cifras no existen y no deben inventarse.
+    const r = repartoAcumulado(['2026-06', '2026-07'], '2026-08', FIJOS, [], [], [JUNIO], [])
+    expect(r[0].total).toBe(76000)
+  })
+
+  test('lo apuntado sin partida se cuenta aparte y se nombra', () => {
+    const r = repartoAcumulado(['2026-08'], '2026-08', [], [], [], [], [
+      gasto({ id: 'g', budget_id: null, amount_cents: 4000, date: '2026-08-02' }),
+    ])
+    expect(r.map(t => t.nombre)).toEqual(['Sin partida'])
+  })
+
+  // Doce filas dejan de ser un gráfico y son una lista, igual que en el reparto
+  // de un mes.
+  test('corta en el máximo y junta el resto en «Otras»', () => {
+    const planGordo = plan('2026-08', Array.from({ length: 5 }, (_, i) => linea({
+      id: `x${i}`, month: '2026-08', line: 'gasto', name: `Cosa ${i}`, amount_cents: (5 - i) * 1000,
+    })))
+    const r = repartoAcumulado(['2026-08'], '2026-09', [], [], [], [planGordo], [], 3)
+    expect(r.map(t => t.nombre)).toEqual(['Cosa 0', 'Cosa 1', 'Cosa 2', 'Otras'])
+    expect(r.at(-1)!.total).toBe(3000)
+  })
+
+  test('sin nada que repartir viene vacío', () => {
+    expect(repartoAcumulado(['2026-08'], '2026-08', [], [], [], [], [])).toEqual([])
+  })
+
+  // Los porcentajes son sobre el total, incluida «Otras»: si no, la lista no
+  // sumaría el año y el anillo mentiría.
+  test('los porcentajes se calculan sobre el total entero', () => {
+    const r = repartoAcumulado(['2026-08'], '2026-08', [], [], [], [], [
+      gasto({ id: 'a', budget_id: null, amount_cents: 7500, date: '2026-08-01' }),
+    ])
+    expect(r[0].porcentaje).toBe(100)
+  })
+})
+
+// ─── Lo que más se repite (14-09-2026) ───────────────────────────────────────
+//
+// Es primo de `descripcionesFrecuentes` y hace lo contrario: aquella ordena por
+// veces para ahorrar tecleo; esta por dinero, para contestar en qué se va.
+test.describe('los conceptos repetidos', () => {
+  test('ordena por lo que suman y no por cuántas veces', () => {
+    const r = conceptosRepetidos([
+      gasto({ id: 'c1', description: 'Café', amount_cents: 120, date: '2026-08-01' }),
+      gasto({ id: 'c2', description: 'Café', amount_cents: 120, date: '2026-08-02' }),
+      gasto({ id: 'c3', description: 'Café', amount_cents: 120, date: '2026-08-03' }),
+      gasto({ id: 'd1', description: 'Dentista', amount_cents: 9000, date: '2026-08-04' }),
+      gasto({ id: 'd2', description: 'Dentista', amount_cents: 9000, date: '2026-08-05' }),
+    ], '2026')
+    expect(r.map(c => c.texto)).toEqual(['Dentista', 'Café'])
+    expect(r[0]).toMatchObject({ veces: 2, total: 18000, media: 9000 })
+  })
+
+  // Un gasto único no es un hábito: es una compra, y ya sale en el desglose.
+  test('lo que solo pasó una vez no es un concepto repetido', () => {
+    const r = conceptosRepetidos([
+      gasto({ id: 'u', description: 'Lavadora', amount_cents: 40000, date: '2026-08-01' }),
+    ], '2026')
+    expect(r).toEqual([])
+  })
+
+  test('agrupa sin tildes ni mayúsculas, como el buscador', () => {
+    const r = conceptosRepetidos([
+      gasto({ id: 'a', description: 'Farmacia', amount_cents: 1000, date: '2026-08-01' }),
+      gasto({ id: 'b', description: 'farmacía', amount_cents: 3000, date: '2026-08-02' }),
+    ], '2026')
+    expect(r).toHaveLength(1)
+    expect(r[0]).toMatchObject({ veces: 2, total: 4000, media: 2000 })
+  })
+
+  test('el texto que se enseña es el de la última vez', () => {
+    const r = conceptosRepetidos([
+      gasto({ id: 'a', description: 'compra', amount_cents: 1000, date: '2026-08-01' }),
+      gasto({ id: 'c', description: 'COMPRA', amount_cents: 1000, date: '2026-08-10' }),
+    ], '2026')
+    expect(r[0].texto).toBe('COMPRA')
+  })
+
+  test('solo cuenta el año que se le pide', () => {
+    const r = conceptosRepetidos([
+      gasto({ id: 'a', description: 'Gasolina', amount_cents: 5000, date: '2026-08-01' }),
+      gasto({ id: 'b', description: 'Gasolina', amount_cents: 5000, date: '2026-08-02' }),
+      gasto({ id: 'c', description: 'Gasolina', amount_cents: 9900, date: '2025-08-02' }),
+    ], '2026')
+    expect(r[0]).toMatchObject({ veces: 2, total: 10000 })
+  })
+
+  // Un ingreso no se «va» a ninguna parte, igual que en el reparto.
+  test('los ingresos no cuentan', () => {
+    const r = conceptosRepetidos([
+      ingreso({ id: 'a', description: 'Clases', amount_cents: 5000, date: '2026-08-01' }),
+      ingreso({ id: 'b', description: 'Clases', amount_cents: 5000, date: '2026-08-02' }),
+    ], '2026')
+    expect(r).toEqual([])
+  })
+
+  test('un apunte sin texto no es un concepto', () => {
+    const r = conceptosRepetidos([
+      gasto({ id: 'a', description: null, amount_cents: 1000, date: '2026-08-01' }),
+      gasto({ id: 'b', description: '   ', amount_cents: 1000, date: '2026-08-02' }),
+    ], '2026')
+    expect(r).toEqual([])
   })
 })
 

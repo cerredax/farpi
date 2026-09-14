@@ -15,6 +15,54 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-14
 
+### Los iconos de un fijo nombran facturas, no cosas (14-09-2026)
+
+El juego de iconos de gasto había crecido el 04-09 de la forma obvia: faltaban cosas y se
+añadieron ocho, de dieciséis a veinticuatro. Usándolo se ve que el problema era el
+contrario. Estaban 💡 la luz, 💧 el agua y 🔥 el gas, y una casa no paga eso: paga
+**suministros**, un recibo. Estaban 📱 el móvil y 🌐 internet, y llegan en la misma
+factura. El juego nombraba las cosas del mundo en vez de los papeles que se pagan, que es
+lo que un fijo es.
+
+    💡 💧 🔥  →  🔌      un recibo, no tres
+    📱 🌐     →  📶      fibra y móvil vienen juntos
+    🧽        →  🧹      la esponja a 20 px parece una piedra
+    💳        →  🔁      una tarjeta es cómo se paga, no qué se paga
+
+Lo de 🔁 es lo que más se pensó. 💳 llevaba «cuotas y suscripciones» desde el 04-09 y
+nombra un medio de pago: la mitad de los fijos de una casa se pagan con tarjeta, así que
+no distingue nada. Lo que define una suscripción es que **se repite**, y eso es el bucle.
+
+La escoba cambia también en las partidas, que tenían la misma esponja. Son dos juegos
+distintos a propósito —una partida es lo que varía y un fijo lo que no—, pero «limpieza»
+es el mismo concepto en los dos y no puede enseñar dos dibujos.
+
+Y entran dos que no tenían dónde caer: 🏛️ los impuestos —el IBI, la tasa de residuos, el
+del coche: se pagan una o dos veces al año y son tan fijos como el alquiler— y ⚽ las
+extraescolares, que acababan en el 🎒 del material del cole siendo una cuota mensual por
+hijo.
+
+**Quitar seis iconos no toca nada de lo guardado**, y conviene tenerlo claro porque
+Supabase está en producción con los fijos reales de una familia: un fijo que ya lleve 💡
+lo sigue enseñando en su fila. Lo único que cambia es que al abrirlo para editarlo el
+selector no marca ninguno, porque el suyo ya no se ofrece; guardar sin tocar el icono lo
+deja como estaba. En los datos del modo demo sí se actualizan los dos que motivaban el
+cambio —«Luz y gas» a 🔌 y «Internet y móvil» a 📶—, y **las copias congeladas de junio y
+julio se quedan con los viejos**: un mes cerrado enseña lo que tuvo, que es la decisión
+central de la sección.
+
+Lo que no se resolvió, y queda escrito para no olvidarlo. Son **23 y no 24**, así que la
+última fila va con siete: es un hueco a la espera y no un descuadre que tapar metiendo
+cualquier cosa (el mejor candidato es 🦷, la ortodoncia, que se paga clavada dos años y
+hoy cae en el 🏥 del seguro médico). Y **🏛️ y 🏦 se parecen**: en la tipografía de
+Android los dos son un edificio con columnas, y eso solo se ve mirando la rejilla
+pintada, no leyendo la lista en el código. Están separados —los impuestos arriba con los
+recibos de la casa, el banco abajo— para que no se comparen de un vistazo, que quita la
+molestia sin arreglar la causa. La alternativa sería 🧾 para impuestos, que es un recibo
+de papel y el IBI lo es, a cambio de ser genérico (todos los fijos son recibos) y de
+repetirse con los iconos de ingreso.
+
+
 ### El menú de Finanzas se lee como un menú (14-09-2026)
 
 Esta misma mañana las cuatro pestañas habían dejado de arrastrarse: eran cuatro píldoras

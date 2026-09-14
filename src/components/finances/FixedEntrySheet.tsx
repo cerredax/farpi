@@ -16,12 +16,36 @@ import type { FixedEntry, FixedEntryDraft, MovementKind } from '@/types'
 // viene el dinero; los de gasto, los recibos de una casa. El último de cada juego
 // es el que viene puesto y vale para cualquier cosa.
 //
-// **Los de gasto pasan de dieciséis a veinticuatro el 04-09-2026**, pedido, «con
-// uno de limpieza»: entran la limpieza (🧽), internet (🌐) —que se colaba en el
-// 📱 del móvil sin serlo—, el colegio o la guardería (🏫), el comedor (🍽️), las
-// cuotas y suscripciones (💳), la comunidad (🧱), el combustible (⛽) y la música
-// (🎵). Todos son recibos que una casa paga clavados y no tenían dónde caer. Ocho
-// y no los que fueran, para que la rejilla siga cuadrando a ocho por fila.
+// **Los de gasto se rehacen el 14-09-2026**, pedido, y la idea es la contraria a
+// la del 04-09: allí se pasó de dieciséis a veinticuatro añadiendo lo que faltaba,
+// y aquí se juntan los que nombran **una sola factura**. Una casa no paga la luz,
+// el agua y el gas por separado: paga suministros. Ni el móvil por un lado e
+// internet por otro: paga la factura del teléfono.
+//
+//   💡 💧 🔥  →  🔌   un recibo de suministros, no tres
+//   📱 🌐     →  📶   fibra y móvil vienen juntos
+//   🧽        →  🧹   la esponja a 20 px parece una piedra; la escoba se lee
+//   💳        →  🔁   una tarjeta es cómo se paga, no qué se paga: lo que define
+//                     una suscripción es que se repite
+//
+// Y entran dos que no tenían dónde caer: los impuestos (🏛️) —el IBI, la tasa de
+// residuos, el del coche: se pagan una o dos veces al año y son tan fijos como el
+// alquiler— y las extraescolares (⚽), que acababan en el 🎒 del material del cole
+// siendo una cuota mensual por hijo.
+//
+// **Quedan 23 y no 24**, así que la última fila va con siete: es un hueco a la
+// espera, no un descuadre que arreglar metiendo cualquier cosa. Candidatos si
+// hace falta: 🦷 (la ortodoncia se paga clavada dos años y hoy cae en el 🏥 del
+// seguro médico) o 🐷 (lo que se aparta todos los meses a propósito).
+//
+// Van agrupados por lo que son —la casa, moverse y los hijos, y el resto— y no en
+// el orden en que se fueron añadiendo, que es lo que había: quitando seis y
+// metiendo cinco, las filas quedaban rotas de todas formas.
+//
+// Quitar 💡, 💧, 🔥, 📱, 🌐 y 💳 **no toca nada de lo guardado**: un fijo que ya
+// los lleve los sigue enseñando en su fila. Lo que pasa es que al abrirlo para
+// editarlo el selector no marca ninguno, porque el suyo ya no está entre los que
+// se ofrecen.
 //
 // Los de ingreso se quedan en dieciséis: de dónde entra el dinero en una casa hay
 // menos variedad que de dónde sale, y no había ninguno pedido. Los dos juegos no
@@ -32,9 +56,16 @@ const EMOJIS: Record<MovementKind, string[]> = {
     '🏠', '🚚', '🎨', '💻', '🤝', '🎁', '🧑‍🌾', '💶',
   ],
   gasto: [
-    '🏠', '💡', '💧', '🔥', '📱', '📺', '🚗', '🚌',
-    '🎒', '🏥', '🐾', '🏋️', '🛡️', '🏦', '🎬', '🧽',
-    '🌐', '🏫', '🍽️', '💳', '🧱', '⛽', '🎵', '💶',
+    // La casa y sus recibos. El 🏛️ de los impuestos va aquí y no abajo con el
+    // 🏦 del banco: en la tipografía de Android los dos son un edificio con
+    // columnas y a 20 px, uno al lado del otro, no se distinguen. Separarlos no
+    // arregla que se parezcan, pero quita la comparación de delante — y además
+    // el IBI y la tasa de basuras son de la casa, así que aquí están en su sitio.
+    '🏠', '🔌', '📶', '📺', '🧱', '🏛️', '🧹', '🔁',
+    // Moverse y los hijos.
+    '🚗', '⛽', '🚌', '🎒', '🏫', '🍽️', '⚽', '🎵',
+    // Salud, dinero y lo que queda.
+    '🏥', '🛡️', '🐾', '🏋️', '🏦', '🎬', '💶',
   ],
 }
 

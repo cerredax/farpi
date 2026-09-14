@@ -25,10 +25,16 @@ import type { Budget, BudgetDraft } from '@/types'
 // es un **fijo**, se paga clavada y no se le pone partida —colgarla de una la
 // llenaría sola, que es la regla que separa las dos pestañas—, así que ofrecerla
 // aquí invitaba justo a lo que no hay que hacer. Salir es de lo primero en lo que
-// una casa se pasa, y no tenía icono. La 💡 sigue, donde sí toca, en los fijos.
+// una casa se pasa, y no tenía icono. En los fijos la luz ya no es la 💡 sino el
+// 🔌 de suministros, desde el 14-09-2026, pero la razón para que no esté aquí es
+// la misma.
+//
+// **La esponja pasa a escoba el 14-09-2026** (🧽 → 🧹), a la vez que en los
+// fijos: a 20 px la esponja parece una piedra y la escoba se lee de un vistazo.
+// Es el mismo concepto en los dos juegos y tiene que enseñar el mismo dibujo.
 const EMOJIS = [
   '🛒', '🏠', '🚗', '🎒', '🏥', '👶', '🍽️', '👕',
-  '🐾', '✈️', '🎁', '📱', '🍺', '🎬', '🏋️', '🧽',
+  '🐾', '✈️', '🎁', '📱', '🍺', '🎬', '🏋️', '🧹',
   '💊', '💇', '🧸', '📚', '☕', '🪴', '🔧', '💶',
 ]
 

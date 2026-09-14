@@ -346,6 +346,20 @@ que todavía no existen (ver "Siguiente paso recomendado").
   se reparte lo que varía, en tres bloques con su total y la cifra de «para el mes». No
   genera apuntes ni hay nada que marcar como pagado, y por eso no hay que abrir septiembre.
   Se copia a cada mes que empieza.
+  **Los iconos de gasto se rehicieron el 14-09-2026** (pedido) juntando los que nombraban
+  una sola factura: 💡💧🔥 pasan a **🔌 suministros** —una casa no paga la luz, el agua y
+  el gas por separado— y 📱🌐 a **📶**, que es la factura del teléfono y la fibra. 🧽 pasa
+  a **🧹**, que a 20 px se lee (la esponja parecía una piedra), y 💳 a **🔁**: una tarjeta
+  es cómo se paga, no qué se paga, y lo que define una suscripción es que se repite. La
+  escoba cambia **también en las partidas**: mismo concepto, mismo dibujo. Entran 🏛️
+  (IBI, basuras) y ⚽ (extraescolares, que caían en el 🎒 del material).
+  Quedan **23 y no 24**, así que la última fila va con siete. Dos cosas abiertas a
+  propósito, a la espera de decidirlas: el hueco vigesimocuarto —el mejor candidato es
+  🦷, la ortodoncia, que hoy cae en el 🏥 del seguro médico— y que **🏛️ y 🏦 se parecen**
+  en la tipografía de Android (los dos son un edificio con columnas). Están separados en
+  la rejilla para que no se comparen de un vistazo; la alternativa sería 🧾 para impuestos.
+  Quitar los seis **no toca nada de lo guardado**: un fijo que ya los lleve los sigue
+  enseñando; lo que pasa es que al editarlo el selector no marca ninguno.
   **«Este mes»**: arriba **la cuenta** —ingresos fijos, gastos fijos, «para el mes», lo
   apuntado y **cuánto queda**—, que es el número que la sección existe para dar; los dos
   totales de fijos **se abren** (04-09-2026) y enseñan sus líneas, las de ese mes, y en un

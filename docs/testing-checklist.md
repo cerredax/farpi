@@ -308,6 +308,12 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       cuatro recibos de demo, cada uno con su total, y abajo «Para el mes».
 - [ ] Añadir un gasto fijo baja «Para el mes» y, al volver a «Este mes», baja también
       «queda», sin recargar.
+- [ ] Los iconos de gasto son **23** (14-09-2026), en filas de 8, 8 y 7: 🔌 para
+      suministros, 📶 para el teléfono, 🧹 para limpieza, 🔁 para suscripciones, y 🏛️ y ⚽
+      nuevos. No están 💡, 💧, 🔥, 📱, 🌐 ni 💳. 🧹 sale también en las partidas.
+- [ ] Un fijo **que ya tenga uno de los seis retirados** sigue enseñándolo en su fila; al
+      abrirlo para editarlo el selector no marca ninguno, y guardar sin tocar el icono lo
+      deja como estaba. Es lo esperado, no un fallo.
 - [ ] Cambiar de «Entra» a «Sale» dentro del sheet cambia los iconos que se ofrecen y el
       texto del botón, y el fijo salta de bloque al guardarlo.
 - [ ] Un fijo con persona pinta su punto de color y su nombre; sin persona no pinta nada.

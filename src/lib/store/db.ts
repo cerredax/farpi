@@ -138,8 +138,8 @@ export const db: DB = {
     { id: 'fx1', family_id: 'f1', kind: 'ingreso' as const, name: 'Nómina de Carlos', emoji: '💼', amount_cents: 165000, child_id: null, member_id: 'm1',  sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
     { id: 'fx2', family_id: 'f1', kind: 'ingreso' as const, name: 'Nómina de María',  emoji: '💼', amount_cents: 148000, child_id: null, member_id: 'm2',  sort_order: 1, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
     { id: 'fx3', family_id: 'f1', kind: 'gasto'   as const, name: 'Alquiler',         emoji: '🏠', amount_cents: 78000,  child_id: null, member_id: null, sort_order: 0, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
-    { id: 'fx4', family_id: 'f1', kind: 'gasto'   as const, name: 'Luz y gas',        emoji: '💡', amount_cents: 7400,   child_id: null, member_id: null, sort_order: 1, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
-    { id: 'fx5', family_id: 'f1', kind: 'gasto'   as const, name: 'Internet y móvil', emoji: '📱', amount_cents: 4990,   child_id: null, member_id: null, sort_order: 2, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx4', family_id: 'f1', kind: 'gasto'   as const, name: 'Luz y gas',        emoji: '🔌', amount_cents: 7400,   child_id: null, member_id: null, sort_order: 1, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
+    { id: 'fx5', family_id: 'f1', kind: 'gasto'   as const, name: 'Internet y móvil', emoji: '📶', amount_cents: 4990,   child_id: null, member_id: null, sort_order: 2, created_by: 'u2', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
     { id: 'fx6', family_id: 'f1', kind: 'gasto'   as const, name: 'Seguro del coche', emoji: '🚗', amount_cents: 3200,   child_id: null, member_id: null, sort_order: 3, created_by: 'u1', created_at: '2026-06-01T00:00:00', updated_at: '2026-06-01T00:00:00' },
   ],
 

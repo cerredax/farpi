@@ -840,6 +840,31 @@ menú de Finanzas se lee como un menú».
       con cuatro de color — decoración, no información.
 - [x] Suite entera en verde: **716** (542 unitarios + 174 de navegador).
 
+## Fase 8y - Finanzas: los iconos nombran facturas, no cosas (14-09-2026)
+
+Pedido al usar la pestaña de fijos. El juego de gasto había crecido el 04-09 añadiendo lo
+que faltaba; aquí se hace lo contrario y se juntan los que nombran **una sola factura**.
+
+- [x] **💡 💧 🔥 → 🔌**: una casa no paga la luz, el agua y el gas por separado, paga
+      suministros.
+- [x] **📱 🌐 → 📶**: la fibra y el móvil vienen en la misma factura.
+- [x] **🧽 → 🧹**, en los fijos **y en las partidas**: a 20 px la esponja parece una
+      piedra. Mismo concepto en los dos juegos, mismo dibujo.
+- [x] **💳 → 🔁**: una tarjeta es cómo se paga, no qué se paga; lo que define una
+      suscripción es que se repite.
+- [x] Entran **🏛️** (IBI, tasa de residuos) y **⚽** (extraescolares, que caían en el 🎒
+      del material del cole).
+- [x] Datos del modo demo: «Luz y gas» pasa a 🔌 y «Internet y móvil» a 📶. Las copias
+      congeladas de junio y julio **se quedan con los viejos**: un mes cerrado enseña lo
+      que tuvo, que es la decisión central de la sección.
+- [ ] **Queda un hueco**: son 23 y la última fila va con siete. Mejor candidato, 🦷 (la
+      ortodoncia se paga clavada dos años y hoy cae en el 🏥 del seguro médico); después,
+      🐷 (ahorro), 🔒 (alarma) y 🅿️ (parking, que hoy acaba en el 🚗 del seguro).
+- [ ] **🏛️ y 🏦 se parecen** en la tipografía de Android: los dos son un edificio con
+      columnas. Separados en la rejilla para que no se comparen de un vistazo, pero el
+      problema sigue ahí. Alternativa: 🧾 para impuestos —un recibo de papel, y el IBI lo
+      es— a cambio de ser genérico y de repetirse con los iconos de ingreso.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

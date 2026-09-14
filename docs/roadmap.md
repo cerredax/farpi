@@ -901,6 +901,31 @@ nombre nuevo venía el encargo de que la pestaña lo fuera. El porqué de cada c
       comprueba, así que se deja — el bloque se cubre con unitarios y con un test que
       apunta dos veces lo mismo.
 
+## Fase 8aa - Finanzas: un mes fantasma dejaba de contar (14-09-2026)
+
+Salió de una pregunta —cómo se cierra un mes que dice «no se guardó ningún fijo ni ninguna
+partida» pero que sí existe en la base— y acabó en un fallo de estadística. El porqué, en
+`docs/architecture.md`, «Un mes cerrado y vacío no cuenta como un mes».
+
+- [x] **Un mes cerrado y vacío sin apuntes ya no entra en la serie ni en la media del
+      año.** Ponía una barra a cero y, peor, contaba en el divisor: la cabecera del año
+      decía «Sobre 5 meses» cuando fueron cuatro. La regla ya existía para los meses sin
+      plan, y miraba **cómo estaba guardado** el mes en vez de **lo que dice**.
+- [x] **Con apuntes sí se queda**, que es la guarda que impide que el arreglo esconda
+      dinero de verdad. Y solo vale para meses cerrados: el mes en curso vacío no es «no se
+      sabe», es «todavía no ha pasado nada».
+- [x] **Corregido el comentario de `empty_month`** en `supabase/schema.sql`, que prometía
+      una vuelta atrás inexistente: con la cabecera en pie, `close_month_copy` se sale por
+      su `on conflict` y no rellena nada. Se escriben al lado los dos caminos reales de
+      recuperación por SQL Editor. **Ninguna línea ejecutable del esquema cambia**, solo
+      comentarios, así que no se ha corrido `scripts/validate-rls.mjs`.
+- [x] **6 unitarios nuevos**, y uno viejo corregido: esperaba 64.667 de media, o sea el mes
+      fantasma en el divisor. Era el fallo escrito como si fuera la regla.
+- [x] Suite entera en verde: **746** (569 unitarios + 177 de navegador).
+- [ ] **Dar salida por la app a un mes así.** Hoy solo se recupera por SQL Editor. Sería
+      una RPC nueva —borrar la cabecera y recopiar en una sola operación—, y por tanto
+      `scripts/validate-rls.mjs` y `docs/supabase-validation.md` detrás.
+
 ## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
 
 Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles

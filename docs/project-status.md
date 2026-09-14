@@ -335,7 +335,14 @@ que todavía no existen (ver "Siguiente paso recomendado").
   línea y cada mes cerrado guardó la suya) y **lo que más se repite**, que ordena los
   conceptos del día a día por lo que suman —«Compra semanal · 34 veces · 35,40 € de
   media»— y contesta en qué se va sin darse cuenta. Los meses de los que no consta nada
-  no entran en ninguno de los tres: no se inventa un cero.
+  no entran en ninguno de los tres: no se inventa un cero. **Ni tampoco un mes cerrado y
+  vacío sin apuntes** (14-09-2026): la regla que ya tiraba los meses sin plan miraba cómo
+  estaba guardado el mes y no lo que dice, y uno con la cabecera de `month_plans` pero sin
+  una sola línea afirma lo mismo —de ese mes no se sabe nada—. Se colaba con `entra = 0` y
+  `sale = 0`: una barra a cero en el gráfico y un mes de más en el divisor de la media, que
+  decía «Sobre 5 meses» cuando fueron cuatro. Si ese mes **tiene apuntes** sí se queda, que
+  es lo que impide que el arreglo esconda dinero de verdad, y el mes en curso vacío también:
+  ahí no es que no se sepa, es que todavía no ha pasado nada.
   **¿Voy bien este mes?** — lo gastado acumulado día a día contra el ritmo de los meses
   cerrados, con las dos cifras escritas; solo en el mes en curso y habiendo con qué
   comparar.

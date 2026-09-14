@@ -1036,16 +1036,23 @@ test.describe('la serie de meses del resumen', () => {
     linea({ id: 'j1', month: '2026-06', line: 'ingreso', name: 'Nómina', amount_cents: 150000 }),
     linea({ id: 'j2', month: '2026-06', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
   ])
+  // Julio con contenido. Estos tests solo necesitaban un mes en medio, y hasta el
+  // 14-09-2026 valía uno cerrado y vacío; desde que esos se saltan, un julio vacío
+  // haría que probaran otra cosa.
+  const JULIO = plan('2026-07', [
+    linea({ id: 'l1', month: '2026-07', line: 'ingreso', name: 'Nómina', amount_cents: 150000 }),
+    linea({ id: 'l2', month: '2026-07', line: 'gasto', name: 'Alquiler', amount_cents: 76000 }),
+  ])
 
   test('va del más viejo al más nuevo, que es como se leen las barras', () => {
-    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
     expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-07', '2026-08'])
   })
 
   // Cada mes con **sus** fijos: junio se cerró con 150.000 de nómina y agosto,
   // que está en curso, tira de la plantilla, que dice 200.000.
   test('cada mes cuenta con los fijos que tenía entonces', () => {
-    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
     expect(r[0]).toMatchObject({ mes: '2026-06', entra: 150000, sale: 76000, queda: 74000 })
     expect(r[2]).toMatchObject({ mes: '2026-08', entra: 200000, sale: 80000, queda: 120000 })
   })
@@ -1066,6 +1073,54 @@ test.describe('la serie de meses del resumen', () => {
     expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-08'])
   })
 
+  // ─── Un mes cerrado y vacío (14-09-2026) ───────────────────────────────────
+  //
+  // La regla de arriba miraba cómo está **guardado** el mes y no lo que dice. Un
+  // mes sin cabecera y uno con la cabecera pero sin líneas afirman lo mismo —de
+  // ese mes no se sabe nada— y el segundo se colaba a cero.
+  test('un mes cerrado del que no se guardó nada tampoco entra', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
+    expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-08'])
+  })
+
+  // La guarda que impide que la regla esconda dinero de verdad: un mes que se
+  // cerró sin plantilla pero en el que se apuntaron gastos sí tiene algo que
+  // contar, y saltárselo los borraría de las estadísticas.
+  test('pero si ese mes tiene apuntes, se queda', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [
+      gasto({ id: 'j', amount_cents: 20000, date: '2026-07-14' }),
+    ])
+    expect(r.map(m => m.mes)).toEqual(['2026-06', '2026-07', '2026-08'])
+    expect(r[1]).toMatchObject({ mes: '2026-07', entra: 0, sale: 20000, queda: -20000 })
+  })
+
+  // Y un ingreso cuenta igual que un gasto: lo que decide es que haya pasado
+  // algo, no en qué dirección.
+  test('un ingreso suelto también lo sostiene', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [
+      ingreso({ id: 'i', amount_cents: 5000, date: '2026-07-02' }),
+    ])
+    expect(r.map(m => m.mes)).toContain('2026-07')
+  })
+
+  // El mes en curso vacío se queda: ahí no es que no se sepa, es que todavía no
+  // ha pasado nada, que es otra cosa. Agosto está cerrado a cero y septiembre en
+  // curso sin nada puesto.
+  test('el mes en curso vacío no se salta, que es otra cosa', () => {
+    const r = serieDeMeses('2026-09', 2, '2026-09', [], [], [], [plan('2026-08', [])], [])
+    expect(r.map(m => m.mes)).toEqual(['2026-09'])
+  })
+
+  // Un mes cerrado con partidas pero sin fijos ni apuntes no está vacío: de ese
+  // mes sí consta el plan que tuvo, aunque no moviera dinero.
+  test('con partidas guardadas el mes no está vacío', () => {
+    const conPartida = plan('2026-07', [
+      linea({ id: 'p1', month: '2026-07', line: 'partida', name: 'Compra', amount_cents: 30000 }),
+    ])
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, conPartida], [])
+    expect(r.map(m => m.mes)).toContain('2026-07')
+  })
+
   test('sin nada que enseñar, la serie viene vacía', () => {
     expect(serieDeMeses('2026-08', 3, '2026-09', [], [], [], [], [])).toEqual([])
   })
@@ -1079,9 +1134,19 @@ test.describe('la serie de meses del resumen', () => {
   })
 
   test('la media de lo que queda sale de los meses que hay', () => {
+    const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, JULIO], [])
+    // Junio 74.000, julio 74.000 y agosto 120.000.
+    expect(mediaQueQueda(r)).toBe(89333)
+  })
+
+  // Este test decía lo contrario hasta el 14-09-2026: con julio cerrado y vacío
+  // esperaba 64.667, o sea que el mes fantasma contaba en el divisor y bajaba la
+  // media de todo el año. Era el bug, escrito como si fuera la regla.
+  test('y un mes cerrado y vacío no cuenta en el divisor', () => {
     const r = serieDeMeses('2026-08', 3, '2026-08', FIJOS, [], [], [JUNIO, plan('2026-07', [])], [])
-    // Junio 74.000, julio 0 (se cerró sin líneas) y agosto 120.000.
-    expect(mediaQueQueda(r)).toBe(64667)
+    expect(r).toHaveLength(2)
+    // Junio 74.000 y agosto 120.000, entre dos y no entre tres.
+    expect(mediaQueQueda(r)).toBe(97000)
   })
 
   test('sin meses no hay media', () => {

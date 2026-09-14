@@ -3014,6 +3014,68 @@ pasa la separación CVD es un azul (ΔE 12,8 en protanopía) — verde contra cu
 naranja o rojo no pasa nunca, que es la confusión rojo-verde de siempre. Cambiar el verde
 de «entra» es tocar el color de marca, así que no se hace sin decidirlo aparte.
 
+### Un mes cerrado y vacío no cuenta como un mes (14-09-2026)
+
+La serie ya tiraba los meses **sin plan**, y el porqué estaba escrito en la propia
+función: «es la diferencia entre *ese mes no gastasteis nada* y *de ese mes no sabemos*;
+una barra a cero dice lo primero y sería mentira». La regla tenía un agujero: miraba cómo
+está **guardado** el mes y no lo que **dice**.
+
+Un mes sin cabecera en `month_plans` y un mes con la cabecera pero sin una sola línea
+afirman exactamente lo mismo —de ese mes no se sabe nada—. El primero se saltaba; el
+segundo se colaba con `entra = 0` y `sale = 0`, y eso hacía dos daños:
+
+- Una **barra a cero** en «Cómo van los meses», que es la mentira que la regla existía para
+  evitar.
+- **Un mes más en el divisor de la media** de `cuentasDelAño`, que bajaba la media de todo
+  el año y hacía que la cabecera dijera «Sobre 5 meses» cuando fueron cuatro.
+
+Lo segundo salió al construir los bloques del año esa misma tarde: antes de que existiera
+la cabecera del año, un mes fantasma solo ponía una barra fea; con ella, corrompe una
+cifra.
+
+**Se pide que esté vacío y que no tenga apuntes, y lo segundo no sobra.** Un mes que se
+cerró sin plantilla pero en el que se apuntaron 200 € de gastos sí tiene algo que contar, y
+saltárselo escondería dinero de verdad — que es exactamente el error contrario y peor.
+Como la plantilla está vacía, `entra` y `sale` a cero significa justo eso: que tampoco hay
+apuntes.
+
+**Solo se aplica a los meses cerrados.** El mes en curso vacío se queda: ahí no es que no
+se sepa, es que todavía no ha pasado nada, y son dos cosas distintas.
+
+Lo que **no** cambia es lo que dice la tarjeta al navegar a ese mes: sigue distinguiendo
+«De este mes no se guardó ningún fijo ni ninguna partida» —hay cabecera, consta que se
+cerró vacío— de «De este mes no se guardó el plan» —no hay cabecera, nunca se cerró—. Esa
+distinción es verdad y se mantiene; lo que se iguala es **cuánto cuentan**, que es nada.
+
+Un test lo decía al revés hasta ese día: esperaba que la media de junio, un julio cerrado
+y vacío, y agosto fuera 64.667 —o sea, el mes fantasma en el divisor—. Era el fallo
+escrito como si fuera la regla, y ahora hay uno que comprueba lo contrario.
+
+### `empty_month` no tiene vuelta atrás, y el esquema decía que sí (14-09-2026)
+
+El comentario de `empty_month` en `supabase/schema.sql` prometía una red de seguridad para
+una acción destructiva: «quien se equivoque tiene la vuelta a mano —`close_month_now`
+vuelve a copiar la plantilla de hoy en ese mes—». Es falso, y se corrige.
+
+`empty_month` borra las líneas y **deja la cabecera en pie**, a propósito: sin cabecera,
+`close_previous_month` vería «falta el mes pasado» en la siguiente carga y lo cerraría otra
+vez con la plantilla de hoy. Pero con la cabecera puesta, `close_month_copy` se sale por su
+`insert … on conflict do nothing` seguido de `if v_filas = 0 then return false`, sin
+escribir nada. Así que después de un `empty_month` no hay **ninguna** llamada que rellene
+ese mes: la UI no ofrece nada —un mes pasado con copia vacía falla las tres condiciones de
+`CierreDelMes`— y la RPC contesta `false`.
+
+Recuperarlo es cosa del SQL Editor, y son dos caminos según lo que haya pasado: borrar la
+cabecera y llamar a `close_month_now`, que recopia **solo lo que existía antes de que el
+mes acabara**, o escribir las líneas a mano, que es lo único que sirve cuando la plantilla
+es posterior a ese mes.
+
+No se le ha dado salida por la app **todavía**. Hacerlo es una RPC nueva —borrar la
+cabecera y recopiar en una sola operación— y por tanto `scripts/validate-rls.mjs` y
+`docs/supabase-validation.md` detrás. Lo que sí deja de doler es la estadística, que es lo
+que hacía urgente el arreglo: ver arriba.
+
 ## Tono de la interfaz
 
 La app habla como se habla en una casa, y desafina en cuanto se cuela el registro

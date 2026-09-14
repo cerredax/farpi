@@ -1971,9 +1971,25 @@ grant execute on function public.reopen_month(uuid, text) to authenticated;
 -- **Solo meses terminados.** El mes en curso no se pone a cero: si se cerró antes
 -- de tiempo, lo que se quiere es `reopen_month`, que lo devuelve a seguir la
 -- plantilla. Y **los apuntes no se tocan**: lo que se vacía es el plan, no el día
--- a día. Quien se equivoque tiene la vuelta a mano —`close_month_now` vuelve a
--- copiar la plantilla de hoy en ese mes—, y por eso la UI pide confirmación pero
--- no promete deshacer.
+-- a día.
+--
+-- **No tiene vuelta atrás, y hay que decirlo.** Aquí ponía que quien se
+-- equivocara la tenía a mano, «`close_month_now` vuelve a copiar la plantilla de
+-- hoy en ese mes», y era falso (corregido el 14-09-2026). Esta función deja la
+-- cabecera en pie a propósito —ver el párrafo de arriba—, y con la cabecera puesta
+-- `close_month_copy` se sale por su `on conflict do nothing` sin escribir nada. Así
+-- que después de un `empty_month` no hay ninguna llamada que rellene ese mes: la
+-- UI no ofrece nada —un mes pasado con copia vacía falla las tres condiciones de
+-- `CierreDelMes`— y la RPC contesta `false`.
+--
+-- Recuperarlo es cosa del SQL Editor, y son dos caminos según lo que haya pasado:
+-- borrar la cabecera y llamar a `close_month_now`, que recopia **solo lo que
+-- existía antes de que el mes acabara**, o escribir las líneas a mano, que es lo
+-- único que sirve cuando la plantilla es posterior a ese mes.
+--
+-- Por eso la UI pide confirmación y no promete deshacer. Lo que sí deja de doler
+-- desde el 14-09-2026 es la estadística: un mes cerrado y vacío sin apuntes ya no
+-- entra en la serie ni en la media del año (ver `serieDeMeses`).
 create or replace function public.empty_month(p_family_id uuid, p_month text)
 returns boolean
 language plpgsql

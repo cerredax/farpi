@@ -654,6 +654,22 @@ export interface MesDeLaSerie {
  * primero y sería mentira. Un hueco en medio de la serie es más honesto y además
  * se explica solo.
  *
+ * **Y un mes cerrado del que no se guardó nada tampoco entra** (14-09-2026). Esa
+ * regla de arriba tenía un agujero: miraba cómo está **guardado** el mes y no lo
+ * que **dice**. Un mes sin cabecera en `month_plans` y uno con la cabecera pero sin
+ * una sola línea afirman exactamente lo mismo —de ese mes no se sabe nada—, y sin
+ * embargo el segundo se colaba con `entra = 0` y `sale = 0`: una barra a cero en el
+ * gráfico y, peor, **un mes más en el divisor de la media** de `cuentasDelAño`, que
+ * decía «sobre 5 meses» cuando fueron cuatro.
+ *
+ * Se pide que esté vacío **y** que no tenga apuntes, y lo segundo no sobra: un mes
+ * que se cerró sin plantilla pero en el que se apuntaron 200 € de gastos sí tiene
+ * algo que contar, y saltárselo escondería dinero de verdad. Con la plantilla
+ * vacía, `entra` y `sale` a cero es justo eso: que tampoco hay apuntes.
+ *
+ * Solo se aplica a los meses **cerrados**. El mes en curso vacío se queda: ahí no
+ * es que no se sepa, es que todavía no ha pasado nada, que es otra cosa.
+ *
  * `entra` y `sale` llevan los fijos **de ese mes** y lo apuntado a mano. Los fijos
  * salen de la copia congelada si el mes está cerrado, así que la serie cuenta lo
  * que de verdad pasó y no lo que pasaría con la plantilla de hoy. Antes del
@@ -694,6 +710,13 @@ export function serieDeMeses(
     const cuenta = cuentaDelMes(plantilla, expenses, mes)
     const entra = cuenta.ingresosFijos + cuenta.ingresosApuntados
     const sale = cuenta.gastosFijos + cuenta.gastosApuntados
+
+    // Un mes cerrado del que no se guardó nada **y** en el que no se apuntó nada:
+    // dice lo mismo que un mes sin plan, así que cuenta lo mismo que él, que es
+    // nada. Ver el bloque de arriba.
+    const vacio = plantilla.fijos.length === 0 && plantilla.partidas.length === 0
+    if (plantilla.origen === 'copia' && vacio && entra === 0 && sale === 0) continue
+
     meses.push({ mes, entra, sale, queda: entra - sale, origen: plantilla.origen })
   }
 

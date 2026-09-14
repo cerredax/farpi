@@ -15,6 +15,63 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-14
 
+### Un mes fantasma dejaba de contar (14-09-2026)
+
+Salió de una pregunta, no de una revisión: cómo se cierra un mes que dice «De este mes no
+se guardó ningún fijo ni ninguna partida» pero que **sí existe** en la base. Tirando del
+hilo aparecieron tres cosas, y solo la tercera era la importante.
+
+**La primera: no se puede, y son tres cerraduras.** Un mes pasado con copia vacía falla las
+tres condiciones de `CierreDelMes` —cerrar exige el mes vivo, reabrir exige el mes en curso
+y poner a cero exige que no esté ya vacío—, así que el bloque entero hace `return null`. Y
+llamar a la RPC a mano tampoco sirve: `close_month_now` delega en `close_month_copy`, que
+empieza con un `insert … on conflict do nothing` y se sale con `return false` en cuanto ve
+que la cabecera existe. Eso es exactamente lo que significa «existe en base de datos».
+
+**La segunda: el esquema mentía.** El comentario de `empty_month` prometía que «quien se
+equivoque tiene la vuelta a mano: `close_month_now` vuelve a copiar la plantilla de hoy en
+ese mes». No es verdad, por lo de arriba — `empty_month` deja la cabecera en pie a
+propósito, y con la cabecera puesta no hay llamada que rellene ese mes. Una red de
+seguridad prometida para una acción destructiva, que no existe. Corregido, con los dos
+caminos reales de recuperación escritos al lado.
+
+**Y la tercera, que es la que valía la pena:** ese mes fantasma **estaba ensuciando las
+estadísticas**. `serieDeMeses` solo tiraba los meses sin plan, así que uno cerrado y vacío
+entraba con `entra = 0` y `sale = 0`: una barra a cero en el gráfico y —peor, y esto solo
+se ve desde esta misma tarde— **un mes más en el divisor de la media del año**. La cabecera
+nueva decía «Sobre 5 meses» cuando fueron cuatro, y la media de todo el año salía baja.
+
+La regla que ya existía era la correcta y estaba escrita en la propia función: «es la
+diferencia entre *ese mes no gastasteis nada* y *de ese mes no sabemos*; una barra a cero
+dice lo primero y sería mentira». Lo que fallaba es que miraba **cómo está guardado** el
+mes —hay cabecera o no la hay— en vez de **lo que dice**. Un mes sin cabecera y uno con la
+cabecera pero sin una sola línea afirman lo mismo, y ahora cuentan lo mismo: nada.
+
+Se le puso una guarda que no sobra: hace falta que esté vacío **y** que no tenga apuntes.
+Un mes que se cerró sin plantilla pero en el que se apuntaron 200 € de gastos sí tiene algo
+que contar, y saltárselo habría escondido dinero de verdad, que es el error contrario y
+peor. Y solo vale para meses cerrados: el mes en curso vacío se queda, porque ahí no es que
+no se sepa, es que todavía no ha pasado nada.
+
+Lo bonito del arreglo es lo que encontró de camino. **Un test decía lo contrario**:
+esperaba que la media de junio, un julio cerrado y vacío, y agosto fuera 64.667 — o sea,
+el mes fantasma contando en el divisor. Era el fallo escrito como si fuera la regla, y
+llevaba ahí desde el 04-09. Ahora hay uno que comprueba lo de verdad, y tres más que
+sostienen la guarda de los apuntes.
+
+Se descartó **borrar la cabecera en la base**, que era la salida rápida y la primera que se
+propuso. Arregla ese mes y solo ese; y si ese mes tuviera apuntes, borrarla lo sacaría
+entero de las estadísticas y escondería gastos reales. La regla en el código vale para
+siempre, no toca la base de producción y no esconde nada.
+
+Lo que **no** se ha hecho y queda apuntado: dar salida por la app a un mes así. Es una RPC
+nueva —borrar la cabecera y recopiar en una sola operación— y por tanto `validate-rls.mjs`
+y `docs/supabase-validation.md` detrás. De momento se recupera por SQL Editor, con los dos
+caminos escritos en el esquema.
+
+Suite entera en verde: **746** (569 unitarios + 177 de navegador), 6 unitarios nuevos.
+
+
 ### «Evolución» pasa a «Estadísticas», y se le pide que lo sean (14-09-2026)
 
 El nombre duró unas horas. «Evolución» promete una **tendencia**, y con cuatro meses de

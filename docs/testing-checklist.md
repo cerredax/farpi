@@ -382,6 +382,10 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] **La línea de «Queda»** cruza el gráfico de los meses con un punto por mes, en
       tinta, y la leyenda dice las tres series. Si algún mes está en rojo, aparece la línea
       del cero y el punto cae por debajo.
+- [ ] **Un mes cerrado y vacío no sale** (14-09-2026): ni barra a cero en «Cómo van los
+      meses» ni un mes de más en el «Sobre N meses» de la cabecera. Se comprueba mirando
+      que N es igual al número de barras del gráfico. Si ese mes tiene apuntes, **sí sale**
+      —con lo apuntado—, que es lo que evita esconder gastos reales.
 
 - [ ] **La letra se lee**: el texto de Finanzas va a 13 px, no a 11. Si algo se ve
       diminuto es que se ha colado un `text-[11px]` nuevo.

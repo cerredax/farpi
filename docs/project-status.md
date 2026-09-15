@@ -821,7 +821,9 @@ que todavía no existen (ver "Siguiente paso recomendado").
   consulta anónima que la RLS deja siempre en cero filas— y contesta **200 si las dos
   van, 503 si alguna falla**, con los milisegundos de cada una y sin un dato de nadie
   dentro. Va **fuera del `matcher` del proxy** a propósito: lo que vigila a Supabase no
-  puede atravesar la pieza que puede estar colgada. Falta darla de alta en un vigía.
+  puede atravesar la pieza que puede estar colgada. **Dada de alta en UptimeRobot el
+  15-09-2026**, cada cinco minutos y con aviso por correo, contra el `www` y no contra
+  el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
 - **767 tests con el runner de Playwright**, sin dependencias nuevas. Este es el

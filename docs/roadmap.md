@@ -994,10 +994,19 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
      milisegundos de cada una. No lleva dentro un dato de nadie, que es lo que la
      hace publicable. **Queda fuera del `matcher` del proxy** a propósito: lo que
      vigila a Supabase no puede atravesar la pieza que puede estar colgada.
-  4. **Un vigía externo gratuito** (UptimeRobot o similar) apuntando a esa ruta cada
-     pocos minutos, con aviso por correo. Tiene que ser externo: si el que vigila se
-     cae con la app, no vigila nada. **Es lo único que falta**: la ruta ya está y
-     contesta lo que esos servicios entienden.
+  4. ✅ **Un vigía externo** (15-09-2026). UptimeRobot mirando
+     `https://www.farpi.app/api/salud` cada cinco minutos, con aviso por correo. Tiene
+     que ser externo: si el que vigila se cae con la app, no vigila nada.
+
+     **Con el `www` y no con el ápice**: `farpi.app` contesta un 308 que sirve Vercel en
+     el borde, sin llegar a la app. UptimeRobot sigue los redirects, así que apuntando
+     ahí también funcionaba —y así estuvo un rato— pero mide 1,3 s de rodeo y, si ese
+     ajuste se apagara alguna vez, daría por bueno el 308 sin tocar Supabase jamás:
+     verde permanente y falso.
+
+     De propina, mantiene Supabase despierto mejor que el cron: son ~17.000 consultas
+     al día contra una. Y no le hace ruido, porque `/api/salud` guarda su medida diez
+     segundos (`VALIDEZ_MS`).
 
   Lo que **no** hay que hacer: montar telemetría de errores del cliente. Es una app
   familiar con datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo

@@ -15,6 +15,39 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-15
 
+### El dominio, movido a www.farpi.app (15-09-2026)
+
+El último atado del cambio de nombre del 31-08-2026. Cinco sitios tenían que decir lo
+mismo —Vercel Domains, dos variables de entorno, dos valores de Supabase y el cliente
+OAuth de Google— y todo con `www`, porque la cookie de estado del OAuth de Drive es
+*host-only* y un flujo que mezcle los dos hosts falla siempre.
+
+Cuatro de los cinco salieron a la primera. El quinto, conectar Drive, dio
+`redirect_uri_mismatch` **dos veces seguidas y por dos causas distintas**:
+
+1. `GOOGLE_REDIRECT_URI` en Vercel seguía en el dominio viejo. Mirando el panel parecía
+   todo correcto, porque una variable con un valor viejo tiene exactamente el mismo
+   aspecto que una correcta.
+2. Y en Google lo registrado era el **ápice**, `https://farpi.app/…`, no el `www`. La
+   ficha de `produccion.md` daba esa URI por añadida desde el 31-08 y no lo estaba.
+
+**Lo que hay que recordar de esto** no es ninguno de los dos fallos, sino cómo se
+encontraron. Los dos se parecían a «Google todavía no ha propagado el cambio», que es la
+respuesta cómoda —Google avisa de que tarda de minutos a horas— y era falsa las dos
+veces. Esperar habría costado la tarde. La salida estaba dentro del propio error: el 400
+de Google **nombra el `redirect_uri` que se envió**, y compararlo con lo registrado
+resuelve el fallo en un minuto. La primera vez decía `nido-xi.vercel.app` y señalaba a
+Vercel; la segunda decía `www` y, como lo registrado era el ápice, señalaba a Google.
+
+Para Google `farpi.app` y `www.farpi.app` son dos hosts distintos aunque uno redirija al
+otro: valida la cadena entera **antes** de redirigir a ninguna parte, así que el 308 del
+ápice no salva nada. Es la misma regla que ya estaba escrita para la cookie del `state`,
+vista desde el otro lado.
+
+Cerrado con las tres pruebas de la ficha: entrar por magic link, abrir un documento ya
+subido y reconectar Drive.
+
+
 ### Los correos de Farpi llevaban la N de Nido (15-09-2026)
 
 Repasando lo que faltaba para dar la app por cerrada, quedaba un punto barato: pegar las

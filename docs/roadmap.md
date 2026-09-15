@@ -937,10 +937,14 @@ ajenos, y el detalle de cada uno —con su riesgo y su orden— vive en `docs/pr
       borrada) y repositorio de GitHub (`cerredax/farpi`).
 - [x] Pantalla de consentimiento de Google, con la redirect URI de `www.farpi.app`
       **añadida** por adelantado al cliente OAuth.
-- [ ] **Apuntar `www.farpi.app`.** Dominio ya registrado. Es lo que más ata: Vercel,
-      dos valores de Supabase y una variable de entorno tienen que decir lo mismo, y
-      todo con `www` porque la cookie del OAuth de Drive es *host-only*. Google ya está
-      preparado, así que en el corte solo hay que retirar lo viejo al final.
+- [x] **`www.farpi.app` apuntado** (15-09-2026). Vercel, las dos variables, los dos
+      valores de Supabase y el cliente OAuth de Google dicen ya lo mismo, y las tres
+      pruebas pasan: magic link, abrir un documento y reconectar Drive.
+
+      Google no estaba preparado, al contrario de lo que decía la ficha: lo registrado
+      era el ápice, sin `www`, y `GOOGLE_REDIRECT_URI` seguía en el dominio viejo. Los
+      dos fallos daban el mismo `redirect_uri_mismatch` y los dos se parecían a una
+      propagación lenta de Google. El detalle en `produccion.md` §0.
 - [x] **Plantillas de correo pegadas en el panel de Supabase** (15-09-2026). Las
       invitaciones y los magic links ya no firman como Nido. Antes de pegarlas salió
       que el logo de las seis seguía pintando una `N`, con «Farpi» escrito debajo: el

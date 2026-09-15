@@ -21,8 +21,9 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       **por eso mismo** había que actualizar el remoto: si no, todo sigue funcionando y te
       quedas años apuntando a un nombre que ya no existe sin enterarte. Queda comprobar
       que Vercel sigue viendo el repositorio (Settings → Git) en el próximo despliegue.
-- [ ] **Dominio**: `farpi.app` registrado el 31-08-2026. El host que se usa es
-      **`www.farpi.app`**, con el ápice redirigido a él.
+- [x] **Dominio**: `www.farpi.app` sirviendo desde el **15-09-2026**, con el ápice
+      redirigido a él con un 308. Los cinco sitios de abajo dicen ya lo mismo y las tres
+      pruebas del final pasan. Registrado el 31-08-2026.
 
       **Un solo host, y estricto.** La cookie de estado del OAuth de Drive se pone
       *host-only* (`start/route.ts` no le da atributo `domain`), así que una cookie de
@@ -43,9 +44,9 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       5. **Google Cloud → Credenciales → cliente OAuth → Authorized redirect URIs**:
          `https://www.farpi.app/api/documents/providers/google/callback`, **idéntica** a la
          del punto 2. Google compara la cadena entera; una barra de más y contesta
-         `redirect_uri_mismatch`. **Ya está añadida** (31-08-2026), junto a la del dominio
-         viejo, así que en el corte no hay que tocar Google: solo retirar la vieja al
-         final.
+         `redirect_uri_mismatch`. Este documento la dio por añadida desde el 31-08-2026
+         y **no lo estaba**: lo registrado era el ápice, `https://farpi.app/…`, sin `www`.
+         Ver abajo.
 
       **En qué orden, para no tener caída**: primero el dominio en Vercel (1) y la entrada
       nueva en Supabase (4) **sin quitar las viejas** —Supabase y Google admiten varias—;
@@ -53,9 +54,26 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       todo responda, retirar las entradas del dominio antiguo. Con (5) ya hecho, el único
       orden que importa es no cambiar las variables antes de tener el dominio sirviendo.
 
+      **Lo que enseñó el corte** (15-09-2026). Conectar Drive dio `redirect_uri_mismatch`
+      dos veces seguidas, por dos causas distintas y las dos invisibles desde el panel:
+
+      - `GOOGLE_REDIRECT_URI` seguía en el dominio viejo. Mirando Vercel «parecía todo
+        bien», porque una variable con un valor viejo tiene exactamente el mismo aspecto
+        que una correcta.
+      - Y en Google lo registrado era el **ápice**, `https://farpi.app/…`. Para Google
+        `farpi.app` y `www.farpi.app` son dos hosts distintos aunque uno redirija al otro:
+        valida la cadena **antes** de redirigir a ninguna parte, así que el 308 no salva
+        nada.
+
+      Los dos fallos se parecen a «Google aún no ha propagado el cambio», que es la
+      respuesta cómoda y era falsa las dos veces. **La salida está en el propio error**:
+      el 400 de Google nombra el `redirect_uri` que se envió. Leerlo y compararlo con lo
+      registrado resuelve esto en un minuto; esperar no resuelve nada.
+
       **Cómo comprobar que quedó bien**, en este orden: entrar por magic link (prueba 3 y
       4), abrir un documento ya subido (prueba que el token de Drive sigue vivo) y
-      **desconectar y volver a conectar Drive** (única prueba real de 2 y 5).
+      **desconectar y volver a conectar Drive** (única prueba real de 2 y 5). Las tres
+      hechas el 15-09-2026.
 
 - [x] **Plantillas de correo del panel de Supabase**: las seis pegadas en el panel
       el **15-09-2026**, con sus asuntos. Ya no queda nada firmando como Nido.
@@ -106,8 +124,8 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
 El backend está **validado** (§4): **165/165** comprobaciones de RLS, RPCs e integridad
-(04-09-2026). La app está desplegada y operativa en https://nido-xi.vercel.app, que sigue
-sirviendo hasta que se apunte **`www.farpi.app`**, ya registrado (§0).
+(04-09-2026). La app está desplegada y operativa en **https://www.farpi.app** desde el
+15-09-2026 (§0). La URL de Vercel sigue sirviendo, pero el host de la casa es ese.
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
 

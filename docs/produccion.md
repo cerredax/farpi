@@ -94,14 +94,41 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       Google compara la cadena entera y la app sigue mandando la del dominio viejo hasta
       que se cambie la variable en Vercel.
 
-      Queda un resto para cuando el dominio esté vivo, y solo entonces: en *Branding*,
-      **App Domain** (homepage, privacidad y términos → `https://www.farpi.app/…`) y
-      **Authorized Domains** (`farpi.app`). Ojo, Google suele exigir que el dominio esté
-      verificado en Search Console para admitirlo como *Authorized Domain*.
+      **Branding, cerrado el 15-09-2026** con el dominio ya vivo: *App Domain* (homepage,
+      privacidad y términos a `https://www.farpi.app/…`), *Authorized Domains*
+      (`farpi.app`) y el logo.
+
+      **El logo tiene precio y conviene saberlo**: sin él la app no pasa por
+      verificación, porque `drive.file` no es un scope sensible. Subirlo la mete en la
+      cola de verificación de marca. Enviada el 15-09-2026; mientras se revisa no cambia
+      nada —quien conecta Drive no ve ningún aviso— y si Google dijera que no, se queda
+      todo como estaba. El archivo se generó a 120×120 desde la variante **maskable**
+      del icono, la del fondo a sangre: Google recorta en círculo y la del icono de app,
+      con sus esquinas redondeadas y su margen, deja halo.
+
+      De la verificación salieron dos avisos. El primero, que el dominio no constaba
+      tuyo, se resolvió verificándolo en **Search Console** con un TXT en el DNS (ver
+      más abajo). El segundo decía que la portada «está protegida por una página de
+      acceso», y es **un falso positivo**: `/` es pública —está en `PUBLIC_ROUTES`— y
+      enseña el hero, las capturas y las preguntas sin sesión, pero lleva `AuthCard`
+      incrustada (`LandingPage.tsx`), así que el clasificador de Google ve un campo de
+      contraseña en la home. Arreglarlo de verdad sería sacar el formulario de la
+      portada, deshaciendo lo que se unificó el 01 y el 02-09. No se hizo.
 
       Dos cosas que **no** hay que hacer nunca aquí, porque sí tumbarían las conexiones:
       borrar y recrear el cliente OAuth —se caen todos los permisos concedidos— y devolver
-      la app a *Testing*, donde los refresh tokens caducan a los siete días.
+      la app a *Testing*, donde los refresh tokens caducan a los siete días. Ojo con no
+      confundir eso con la verificación de marca: lo que hace caducar los tokens es el
+      **estado de publicación**, no el logo.
+
+- [x] **Search Console**: `farpi.app` verificado el 15-09-2026 como propiedad de tipo
+      *Dominio*, que cubre el ápice, el `www` y cualquier subdominio de una vez. Hizo
+      falta para que Google admitiera el dominio en el Branding.
+
+      **El registro TXT no se borra nunca.** Vive en el DNS de Vercel —el dominio está
+      registrado ahí y con sus nameservers— y se puso con
+      `vercel dns add farpi.app @ TXT "google-site-verification=…"`. Si desaparece,
+      Google des-verifica la propiedad y el Branding vuelve a dar error.
 - [ ] **Play Store**: el *package name* es irreversible. Todavía no se ha publicado, que
       es justo por lo que este era el momento de cambiar el nombre.
 

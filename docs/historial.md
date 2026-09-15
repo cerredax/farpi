@@ -15,6 +15,48 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-15
 
+### El logo de Google, y lo que cuesta ponerlo (15-09-2026)
+
+Con el dominio ya vivo se pudo cerrar el Branding de la pantalla de consentimiento —App
+Domain y Authorized Domains— que llevaba esperando desde el 31-08 justamente a eso.
+Quedaba el logo, y ahí hubo discusión.
+
+**La recomendación fue no ponerlo**, y el argumento era de precio: Farpi no pasa por
+verificación de Google porque solo pide `drive.file`, que no es un scope sensible, y eso
+está buscado a propósito. El logo es lo único que la mete en la cola. A cambio se compra
+un icono en una pantalla que cada miembro de la casa ve **una vez en la vida**, el día
+que conecta su Drive.
+
+Se decidió ponerlo igualmente, y bien decidido: a mitad de camino el argumento ya no se
+sostenía. Estar en verificación no rompe nada mientras se revisa, quien conecta Drive no
+ve ningún aviso porque el scope no es sensible, y el peor caso realista no es que algo se
+estropee sino quedarse como se estaba. La mitad del precio —verificar el dominio— sirve
+además para otras cosas.
+
+**Los dos avisos que dio la verificación**, que es lo que merece quedar escrito:
+
+1. *«El sitio web de tu página principal no está registrado a tu nombre.»* Real y con
+   arreglo: verificar `farpi.app` en Search Console. Como el dominio está registrado en
+   Vercel y con sus nameservers, el TXT se puso desde el CLI
+   (`vercel dns add farpi.app @ TXT …`) y el DNS público ya lo servía en segundos. **Ese
+   registro no se borra nunca**: si desaparece, Google des-verifica la propiedad.
+2. *«Tu página principal está protegida por una página de acceso.»* **Falso positivo.**
+   `/` es pública —está en `PUBLIC_ROUTES`— y enseña el titular, las capturas, cómo
+   funciona y las preguntas sin sesión ninguna; se comprobó pidiéndola sin cookies. Pero
+   lleva `AuthCard` incrustada, con sus campos de correo y contraseña, así que el
+   clasificador automático de Google ve un `password` en la home y la etiqueta como
+   pantalla de acceso. Arreglarlo de verdad sería sacar el formulario de la portada,
+   deshaciendo lo que se unificó el 01 y el 02-09. No se hizo, y acabó dejando publicar
+   igual.
+
+El archivo se generó a 120×120 desde la variante **maskable** del icono, la del fondo a
+sangre, y no desde `icon-512.png`: Google recorta el logo en círculo, y la del icono de
+app —esquinas redondeadas y margen— habría perdido el borde y dejado un halo claro.
+
+Y una confusión que conviene no repetir: **lo que hace caducar los refresh tokens a los
+siete días es el estado de publicación** (*Testing* contra *In production*), no la
+verificación de marca ni el logo. Son dos cosas distintas en la misma pantalla.
+
 ### El cron de la mañana, revisado con el CLI de Vercel (15-09-2026)
 
 Quedaba por comprobar que la tarea de las 07:00 —el keep-alive de Supabase, el aviso de

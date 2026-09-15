@@ -951,8 +951,11 @@ ajenos, y el detalle de cada uno —con su riesgo y su orden— vive en `docs/pr
       cambio de nombre no había llegado al primer correo que ve alguien invitado. Se
       arregló en el generador, `scripts/gen-email-templates.py`, que es de donde salen
       las seis.
-- [ ] **Branding de Google**: App Domain y Authorized Domains. Solo cuando el dominio
-      esté vivo, y puede pedir verificarlo en Search Console.
+- [x] **Branding de Google** (15-09-2026): App Domain, Authorized Domains y el logo,
+      con `farpi.app` verificado en Search Console por un TXT en el DNS de Vercel —ese
+      registro no se borra nunca—. El logo mete la app en la cola de verificación de
+      marca, que es el único precio de todo esto; enviada, y mientras se revisa no
+      cambia nada. Detalle en `produccion.md` §0.
 - [ ] Comprobar que Vercel sigue viendo el repositorio tras el renombrado
       (Settings → Git), en el próximo despliegue.
 

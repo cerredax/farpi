@@ -1,4 +1,5 @@
 import { IS_DEMO_MODE } from './supabase/env'
+import { pedirApi } from './supabase-repos/api-farpi'
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''
 
@@ -190,12 +191,40 @@ export async function enablePush(): Promise<void> {
     }))
 
   const json = subscription.toJSON()
-  const res = await fetch('/api/push', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
-  })
-  if (!res.ok) throw new Error('No se pudo guardar la suscripción.')
+  // Por `pedirApi` y no con un `fetch` a pelo: sin sesión, el proxy contesta 307 a
+  // `/auth/login` antes de que la ruta llegue a devolver su 401, `fetch` sigue el
+  // redirect y lo que vuelve es un 200 con el HTML del login. Mirando `res.ok` —que
+  // es lo que se hacía— la app daba por guardada una suscripción que no existía, y
+  // el botón se quedaba en «Desactivar notificaciones» para siempre sin recibir un
+  // aviso jamás. `pedirApi` lo detecta por `res.redirected`.
+  await pedirApi('/api/push', { endpoint: json.endpoint, keys: json.keys })
+}
+
+/**
+ * ¿Está este dispositivo suscrito **de verdad**?
+ *
+ * Son dos preguntas y hay que hacer las dos: si el navegador tiene suscripción, y
+ * si el servidor la tiene guardada. Fiarse solo de la primera —lo que hacía la
+ * tarjeta de Ajustes— enseña «activado» en un móvil que no va a recibir nada,
+ * porque el cron borra las suscripciones que el servidor de push da por muertas y
+ * porque un alta pudo no llegar a guardarse.
+ *
+ * Si la consulta falla, la respuesta es `false`: quien llama enseñará «Activar», y
+ * pulsarlo repara la situación en vez de dejarla como estaba.
+ */
+export async function pushActivo(): Promise<boolean> {
+  if (!pushSupported() || !pushConfigured()) return false
+
+  const registration = await registroListo()
+  const subscription = await registration.pushManager.getSubscription()
+  if (!subscription) return false
+
+  try {
+    const { endpoints } = await pedirApi<{ endpoints: string[] }>('/api/push', undefined, 'GET')
+    return endpoints.includes(subscription.endpoint)
+  } catch {
+    return false
+  }
 }
 
 /** Cancela la suscripción local y la borra del backend. */
@@ -205,10 +234,9 @@ export async function disablePush(): Promise<void> {
   const registration = await registroListo()
   const subscription = await registration.pushManager.getSubscription()
   if (!subscription) return
-  await fetch('/api/push', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ endpoint: subscription.endpoint }),
-  }).catch(() => {})
+  // El fallo se traga a propósito, como siempre: lo que importa es que el navegador
+  // deje de estar suscrito, y una fila que sobreviva en la base se limpia sola —el
+  // primer envío del cron a una suscripción ya cancelada devuelve 410 y la borra—.
+  await pedirApi('/api/push', { endpoint: subscription.endpoint }, 'DELETE').catch(() => {})
   await subscription.unsubscribe()
 }

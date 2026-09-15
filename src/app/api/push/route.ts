@@ -3,6 +3,40 @@ import { requiereSesion } from '@/lib/supabase/guard'
 import { clavesDePushValidas, endpointDePushValido } from '@/lib/push'
 
 /**
+ * ¿Qué direcciones tiene guardadas este usuario?
+ *
+ * Existe porque la tarjeta de Ajustes decidía si los avisos estaban activados
+ * mirando **solo al navegador** (`pushManager.getSubscription()`), y eso miente
+ * en los dos sentidos: el cron borra la suscripción en cuanto el servidor de push
+ * la da por muerta, y un alta puede no haberse llegado a guardar. El resultado era
+ * un móvil que decía «Desactivar notificaciones» sin tener fila en la base — y por
+ * tanto sin recibir un aviso jamás, sin nada que lo delatara. Pasó de verdad: entre
+ * el 11 y el 15-09-2026 la única suscripción de la casa era la de otro navegador.
+ *
+ * Devuelve los endpoints del propio usuario y es quien llama quien compara con el
+ * suyo: así no hay que meter una dirección de push en una query string, que acaba
+ * escrita en los registros de la plataforma.
+ */
+export async function GET(req: NextRequest) {
+  const guardia = await requiereSesion(req)
+  if (guardia.fallo) return guardia.fallo
+  const { supabase, user } = guardia
+
+  // El `eq` sobra con la RLS delante y se queda igual: esta tabla guarda las
+  // direcciones que el cron visita cada día, y aquí no se cuelan las de nadie más.
+  const { data, error } = await supabase
+    .from('push_subscriptions')
+    .select('endpoint')
+    .eq('user_id', user.id)
+  if (error) {
+    console.error('[push] consulta de suscripciones:', error.message)
+    return NextResponse.json({ error: 'No se pudo consultar la suscripción' }, { status: 500 })
+  }
+
+  return NextResponse.json({ endpoints: (data ?? []).map(fila => fila.endpoint) })
+}
+
+/**
  * Lo que se guarda aquí **no es un dato, es una dirección que el servidor
  * visita**: el cron le hace un POST a cada suscripción todos los días. Por eso se
  * comprueba que sea uno de los cuatro servidores de push que existen y no

@@ -13,6 +13,71 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 > es Farpi antes de llamarse así. Lo que sí se actualizó es todo lo que habla en
 > presente: `CLAUDE.md`, `project-status.md`, `architecture.md` y los papeles.
 
+## Cerrado el 2026-09-15
+
+### Las notificaciones «no funcionaban»: era un dispositivo sin suscribir (15-09-2026)
+
+La queja fue «las notificaciones no funcionan aún», y la documentación decía justo lo
+contrario desde el 28-08-2026. Las dos cosas eran ciertas: el sistema funcionaba y a la
+casa no le llegaba nada. El diagnóstico se hizo entero con lecturas, sin tocar la base.
+
+**Lo que se encontró.** Había **una sola suscripción** y era de otro navegador, no del
+móvil. Cada navegador tiene la suya —la tabla va por `endpoint`, y eso ya estaba escrito—
+pero nada en la interfaz lo dice ni deja verlo. Y los tres días anteriores **no había nada
+que contar**: ni un plan, ni una tarea vencida, ni un papel caducando. El cron acertaba al
+no enviar nada, así que el silencio parecía un fallo del sistema cuando eran dos cosas
+distintas sumadas: un aviso legítimamente mudo y un teléfono que nunca se había dado de
+alta. Un push de prueba a la suscripción guardada volvió con 201 y la clave VAPID local
+resultó ser pareja de la pública: el camino entero estaba sano.
+
+**Por qué nadie se enteró, que es lo que había que arreglar.** La tarjeta de Ajustes
+decidía si los avisos estaban activados preguntándole **solo al navegador**
+(`pushManager.getSubscription()`), y esa respuesta no dice nada de si el servidor tiene la
+fila. Miente en los dos sentidos: el cron borra las suscripciones que el servidor de push
+da por muertas (404/410), y un alta puede no haberse llegado a guardar. El resultado es el
+peor de los estados posibles —«Desactivar notificaciones» en un móvil que no va a recibir
+nada— porque quien lo lee no vuelve a pulsar. Ahora hay un `GET /api/push` que devuelve los
+endpoints del propio usuario y `pushActivo()` compara con el de este navegador; en duda
+enseña «Activar», y pulsarlo repara en vez de dejarlo como estaba.
+
+**Y el alta daba por bueno el login.** `enablePush` guardaba con un `fetch` a pelo mirando
+`res.ok`. Es la trampa que este repositorio ya conocía y tenía resuelta en otro sitio: sin
+sesión, el proxy contesta **307 a `/auth/login`** antes de que la ruta llegue a devolver su
+401, `fetch` sigue el redirect y lo que vuelve es un 200 con el HTML del login. La app daba
+la suscripción por guardada. Activar y desactivar pasan ya por `pedirApi`, que lo detecta
+con `res.redirected`. El mismo efecto se llevó por delante el último
+`navigator.serviceWorker.ready` a pelo que quedaba —la promesa que no rechaza nunca—, que
+seguía en el `useEffect` de la tarjeta después de que el arreglo del 28-08 limpiara los
+demás.
+
+**El aviso pasó a decir qué hay, no cuántas cosas hay.** «Tenéis 1 evento para hoy» obliga
+a abrir la app a las nueve de la mañana para saber cuál. Ahora el título es el día
+(«Martes 15») y el cuerpo nombra los planes con su hora: «Fisio, a las 11:00.» Con más de
+uno van en lista —«Fisio (11:00) y Dentista (16:30).»—, del cuarto en adelante se cuentan
+(«y 2 más»), y lo de todo el día va primero y sin hora inventada. Se aceptó a sabiendas lo
+que cuesta: el aviso se lee en la pantalla de bloqueo, así que el título del plan se ve sin
+desbloquear el teléfono. Las tareas se siguen contando, que es lo que se quiere saber de
+ellas.
+
+Todo ese texto vivía dentro de la ruta del cron, donde no se podía probar sin levantar
+nada, y se fue a `src/lib/reminders.ts` con 21 unitarios: las dos cosas que pueden salir
+mal ahí son la hora de otro huso —el servidor de Vercel va en UTC, y `extractTime` de
+`date-utils` lee la hora **del que mira**— y el plural de una frase.
+
+**El badge, además, no era un badge.** Se le pasaba `icon-192.png`, el icono a color.
+Android solo mira el canal alfa de esa imagen y la tiñe él, así que lo que quedaba en la
+barra de estado era la silueta de la **caja** del icono, un cuadrado redondeado con la casa
+perdida dentro. Ahora hay un `icon-badge-96.png` monocromo, generado por el mismo
+`gen-icons.cjs` y por el mismo camino que la silueta del favicon. No entra en `PRECACHE`: no
+merece invalidar la caché de todos los móviles por un icono de 96 px que solo hace falta
+cuando hay red.
+
+Queda un cabo que no se puede cerrar desde aquí: **que el cron de Vercel dispare de verdad
+cada mañana** no está comprobado. El `CRON_SECRET` sí está puesto —la ruta contesta 401 y
+no el 503 de «cron no configurado»—, pero eso prueba la variable, no la tarea. El cierre de
+agosto en `month_plans` (2026-09-02 a las 12:05 UTC) no sirve de prueba porque el cierre de
+meses se estrenó ese mismo día; el 1 de octubre sí será una lectura limpia.
+
 ## Cerrado el 2026-09-14
 
 ### Un mes fantasma dejaba de contar (14-09-2026)

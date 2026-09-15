@@ -5,6 +5,7 @@ import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
 import { fraseDeCumplesDeLaCasa, proximosCumples, type CumpleEnCasa } from '@/lib/birthdays'
 import { RANGE_KINDS } from '@/lib/events'
+import { avisoDelDia, type PlanDelAviso } from '@/lib/reminders'
 
 export const runtime = 'nodejs'
 
@@ -233,10 +234,13 @@ export async function GET(req: NextRequest) {
     // plan que haya que recordarle a nadie a las siete. El filtro se arma con la
     // misma lista que usa `isPlan`, para que no puedan separarse otra vez.
     // Los cumpleaños apuntados vienen en esta misma consulta —son eventos, y
-    // caen en el día como cualquier otro— pero no se cuentan como "1 evento":
-    // se separan abajo con `kind` y van a la frase de felicitar. Por eso el
-    // select trae el título y el año, que un recuento no necesitaría.
-    supabase.from('events').select('family_id, id, kind, title, birth_year').not('kind', 'in', `(${RANGE_KINDS.join(',')})`).gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
+    // caen en el día como cualquier otro— pero no se cuentan como un plan más:
+    // se separan abajo con `kind` y van a la frase de felicitar.
+    //
+    // `start_at` y `all_day` vienen desde el 15-09-2026, cuando el aviso pasó de
+    // contar los planes a nombrarlos: sin ellos no hay hora que decir, y un plan
+    // de todo el día no puede salir "a las 00:00".
+    supabase.from('events').select('family_id, id, kind, title, birth_year, start_at, all_day').not('kind', 'in', `(${RANGE_KINDS.join(',')})`).gte('start_at', startOfDay).lt('start_at', endOfDay).in('family_id', familyIds),
     supabase.from('tasks').select('family_id').eq('completed', false).lte('due_date', today).in('family_id', familyIds),
     // `expires_on` viene con los datos porque un papel vencido y uno que vence
     // la semana que viene no se cuentan en la misma frase.
@@ -264,7 +268,11 @@ export async function GET(req: NextRequest) {
   for (const userId of userIds) {
     const fams = (members ?? []).filter(m => m.user_id === userId).map(m => m.family_id)
     const eventosUsuario = (events ?? []).filter(e => fams.includes(e.family_id))
-    const eventCount = eventosUsuario.filter(e => e.kind !== 'cumple').length
+    // Los planes de hoy, con su hora, para poder nombrarlos. Un plan de todo el
+    // día no la lleva: `null` dice "no hay hora", que no es lo mismo que las 00:00.
+    const planes: PlanDelAviso[] = eventosUsuario
+      .filter(e => e.kind !== 'cumple')
+      .map(e => ({ titulo: e.title, empiezaEn: e.all_day ? null : e.start_at }))
     const taskCount = (tasks ?? []).filter(t => fams.includes(t.family_id)).length
     const docsUsuario = (docs ?? []).filter(d => fams.includes(d.family_id))
     const vencidos = docsUsuario.filter(d => d.expires_on !== null && d.expires_on < today).length
@@ -287,39 +295,24 @@ export async function GET(req: NextRequest) {
           apuntado: true,
         })),
     ]
-    if (eventCount === 0 && taskCount === 0 && docsUsuario.length === 0 && cumplesHoy.length === 0) continue
+    if (planes.length === 0 && taskCount === 0 && docsUsuario.length === 0 && cumplesHoy.length === 0) continue
 
-    const parts: string[] = []
-    if (eventCount > 0) parts.push(`${eventCount} evento${eventCount !== 1 ? 's' : ''}`)
-    if (taskCount > 0) parts.push(`${taskCount} tarea${taskCount !== 1 ? 's' : ''} pendiente${taskCount !== 1 ? 's' : ''}`)
+    // El texto entero lo escribe `reminders.ts`, con sus tests detrás. Aquí solo
+    // se le pasa lo que se ha averiguado: qué hay hoy, cuántas tareas quedan, qué
+    // papeles caducan y a quién hay que felicitar.
+    const { title, body } = avisoDelDia(
+      {
+        felicitacion: fraseDeCumplesDeLaCasa(cumplesHoy),
+        planes,
+        tareas: taskCount,
+        documentosVencidos: vencidos,
+        documentosPorVencer: porVencer,
+      },
+      new Date(),
+      REMINDER_TIME_ZONE,
+    )
 
-    // Lo que caduca va en frase aparte: no es de hoy, es un aviso con margen, y
-    // colarlo en "para hoy" haría correr por algo que aún no corre prisa.
-    const cuerpo = parts.length > 0 ? `Tenéis ${parts.join(' y ')} para hoy.` : ''
-
-    // Lo ya vencido se sigue avisando cada día a propósito —un papel caducado no
-    // avisa por su cuenta, igual que en la tarjeta del documento—, pero no puede
-    // decir que "caduca este mes" algo que venció en marzo. Son dos frases.
-    const avisos: string[] = []
-    if (vencidos > 0) {
-      avisos.push(vencidos === 1 ? '1 documento está caducado.' : `${vencidos} documentos están caducados.`)
-    }
-    if (porVencer > 0) {
-      avisos.push(porVencer === 1 ? '1 documento caduca este mes.' : `${porVencer} documentos caducan este mes.`)
-    }
-    const caducan = avisos.join(' ')
-
-    // El cumpleaños abre el aviso. Es lo único de los tres que **caduca el mismo
-    // día** —una tarea se hace por la tarde, un papel caduca dentro de un mes—, y
-    // leído detrás de "tenéis 2 tareas pendientes" se queda en la segunda línea
-    // que ya nadie mira.
-    const felicitacion = fraseDeCumplesDeLaCasa(cumplesHoy)
-
-    const payload = JSON.stringify({
-      title: 'Hoy en casa',
-      body: [felicitacion, cuerpo, caducan].filter(Boolean).join(' '),
-      url: '/home',
-    })
+    const payload = JSON.stringify({ title, body, url: '/home' })
 
     for (const sub of subs.filter(s => s.user_id === userId)) {
       try {

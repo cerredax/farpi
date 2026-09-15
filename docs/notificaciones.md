@@ -6,7 +6,7 @@ Estado y pasos para activar los recordatorios por notificación push.
 
 - **Service worker** (`public/sw.js`): maneja `push` (muestra la notificación) y `notificationclick` (enfoca/abre la app).
 - **Cliente** (`src/lib/push.ts`): pedir permiso, suscribirse y cancelar. Degrada solo si el navegador no soporta o falta configuración.
-- **API** (`src/app/api/push/route.ts`): `POST` guarda la suscripción, `DELETE` la borra (autenticado; bloqueada en modo demo).
+- **API** (`src/app/api/push/route.ts`): `POST` guarda la suscripción, `DELETE` la borra y `GET` devuelve los endpoints del propio usuario, que es como Ajustes sabe si **este** navegador está suscrito de verdad (autenticado; bloqueada en modo demo).
   El `POST` **solo acepta los cuatro servidores de push que existen** (`fcm.googleapis.com`,
   `updates.push.services.mozilla.com`, `web.push.apple.com` y `*.notify.windows.com`), porque lo que
   se guarda no es un dato: es una dirección que el cron visita todos los días. La lista y el porqué
@@ -21,10 +21,16 @@ La UI solo ofrece activar cuando hay **backend real** y **clave VAPID pública**
 
 ## Estado: funcionando desde el 28-08-2026
 
-No falta nada. El camino se recorrió entero por primera vez ese día: claves VAPID
-en Vercel, activar los avisos desde Ajustes con una cuenta real y el cron
-devolviendo `{ ok: true, sent: 1, fallidos: 0 }`. Lo que sigue queda como
-referencia de configuración, no como pendientes.
+El camino se recorrió entero por primera vez ese día: claves VAPID en Vercel,
+activar los avisos desde Ajustes con una cuenta real y el cron devolviendo
+`{ ok: true, sent: 1, fallidos: 0 }`. Lo que sigue queda como referencia de
+configuración, no como pendientes.
+
+**Que funcione no significa que le llegue a alguien**, y esa distinción costó una
+semana de silencio en septiembre: ver **"Una suscripción es un navegador, no una
+persona"** más abajo. Lo único que sigue sin comprobarse es que el cron de Vercel
+dispare solo cada mañana; el `CRON_SECRET` está puesto —la ruta contesta 401 y no
+el 503 de "cron no configurado"— pero eso prueba la variable, no la tarea.
 
 Costó encontrar por qué no arrancaba, y el motivo no estaba en nada de esto: ver
 **"El botón que se quedaba en Guardando…"** al final.
@@ -131,6 +137,69 @@ Y una lección de interfaz que vale más allá de las notificaciones: **un botó
 estado de carga tiene que poder rendirse**. Mientras la espera no tuvo límite, el
 fallo se veía como una app rota sin explicación; con límite, se ve como un error
 que dice qué hacer.
+
+## Una suscripción es un navegador, no una persona
+
+Del 11 al 15-09-2026 las notificaciones estuvieron "sin funcionar" sin que nada
+estuviera roto. En la base había **una sola suscripción y era de otro navegador**:
+el móvil no se había dado de alta nunca. Y los tres días anteriores no había nada
+que contar —ni un plan, ni una tarea vencida, ni un papel caducando—, así que el
+cron acertaba al no enviar nada. Dos cosas distintas que por separado se explican y
+juntas parecen una app rota.
+
+Lo que hay que saber, y lo que se arregló:
+
+- **Cada navegador tiene la suya.** La tabla va por `endpoint`: activar los avisos
+  en el portátil no suscribe el teléfono. Activarlos hay que hacerlo **en cada
+  dispositivo**, y desactivarlos también.
+- **La tarjeta de Ajustes le pregunta al servidor**, no solo al navegador. Decidirlo
+  con `pushManager.getSubscription()` a secas —lo que se hacía— enseña "Desactivar
+  notificaciones" en un móvil sin fila en la base, que es el peor estado posible:
+  quien lo lee no vuelve a pulsar. Lo contesta `GET /api/push`, que devuelve los
+  endpoints del propio usuario, y `pushActivo()` compara con el de este navegador.
+  Si la consulta falla, se enseña "Activar": pulsar repara.
+- **Guardar el alta pasa por `pedirApi`.** Con un `fetch` a pelo, una sesión caducada
+  se daba por éxito: el proxy contesta 307 a `/auth/login` antes de que la ruta
+  devuelva su 401 y `fetch` sigue el redirect, así que llega un 200 con el HTML del
+  login y `res.ok` dice que todo fue bien.
+
+### Cómo mirar qué hay guardado
+
+Con el service role, y **sin escribir nada**:
+
+```sql
+select user_id, created_at, left(endpoint, 40) from push_subscriptions;
+```
+
+Una fila por dispositivo. Si falta la del móvil, es que ese móvil no está suscrito,
+diga lo que diga su pantalla de Ajustes.
+
+## Qué dice el aviso
+
+Desde el 15-09-2026 el aviso **nombra** lo que hay en vez de contarlo. El texto lo
+escribe `src/lib/reminders.ts` —fuera de la ruta del cron, para poder probarlo sin
+levantar nada, con sus 21 unitarios en `e2e/unit/reminders.spec.ts`—:
+
+- El **título es el día**: "Martes 15".
+- Un solo plan se dice entero: "Fisio, a las 11:00."
+- Varios van en lista con la hora entre paréntesis: "Fisio (11:00) y Dentista (16:30)."
+- Del **cuarto en adelante se cuentan**: "…y 2 más."
+- Lo de **todo el día** va primero y no se inventa una hora: "Excursión (todo el día)".
+- Las **tareas se cuentan**, no se nombran, y cierran la lista.
+- El **cumpleaños abre** el cuerpo y lo que **caduca** va en frase aparte.
+
+La hora se calcula en `Europe/Madrid` y no con `extractTime` de `date-utils`: esa lee
+la hora **del que mira**, y quien mira aquí es una función de Vercel que va en UTC.
+
+Y el precio, que se aceptó a sabiendas: **el aviso se lee en la pantalla de bloqueo**,
+así que el título de un plan se ve sin desbloquear el teléfono. Si algún día eso
+estorba, lo que hay que cambiar es `fraseDeLoDeHoy`, en un solo sitio.
+
+El **badge** —el iconito de la barra de estado de Android— es `icon-badge-96.png`,
+monocromo sobre transparente, porque el sistema solo mira el canal alfa y lo tiñe él:
+con el icono a color lo que se veía era la silueta de la caja del icono. Lo genera
+`node scripts/gen-icons.cjs` y **no** entra en `PRECACHE`, para no invalidar la caché
+de todos los móviles por un icono que solo hace falta con red.
 
 ## Notas
 - iOS soporta Web Push solo si la PWA está **instalada** en la pantalla de inicio (iOS 16.4+).

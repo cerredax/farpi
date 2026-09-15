@@ -115,7 +115,11 @@ self.addEventListener('push', event => {
   const options = {
     body: payload.body || '',
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    // El badge no es el icono: es la marca monocroma de la barra de estado de
+    // Android, que el sistema tiñe usando solo el canal alfa. Con `icon-192`
+    // —lo que había hasta el 15-09-2026— lo que quedaba arriba era la silueta
+    // de la caja del icono, un cuadrado redondeado con la casa perdida dentro.
+    badge: '/icon-badge-96.png',
     data: { url: payload.url || '/home' },
   }
   event.waitUntil(self.registration.showNotification(title, options))

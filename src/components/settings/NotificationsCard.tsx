@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Bell, BellOff, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import { pushSupported, pushConfigured, currentPermission, enablePush, disablePush, iosSinInstalar } from '@/lib/push'
+import { pushSupported, pushConfigured, currentPermission, enablePush, disablePush, iosSinInstalar, pushActivo } from '@/lib/push'
 
 export function NotificationsCard() {
   const [supported] = useState(() => pushSupported())
@@ -14,12 +14,21 @@ export function NotificationsCard() {
   // Como `supported`: se resuelve una vez al montar, no en cada render.
   const [pendienteInstalar] = useState(() => iosSinInstalar())
 
+  // Se le pregunta **al servidor**, no solo al navegador. Tener suscripción aquí
+  // no significa estar suscrito: el cron borra las que el servidor de push da por
+  // muertas, y un alta puede no haberse llegado a guardar. Mientras esto miró solo
+  // a `getSubscription()`, un móvil sin fila en la base enseñaba «Desactivar
+  // notificaciones» y no recibía un aviso en su vida.
+  //
+  // Y no se espera a `serviceWorker.ready` a pelo: esa promesa no rechaza nunca si
+  // no hay worker activo. `pushActivo` pasa por `registroListo`, que lleva reloj.
   useEffect(() => {
     if (!supported || !configured) return
-    navigator.serviceWorker.ready
-      .then(reg => reg.pushManager.getSubscription())
-      .then(sub => setSubscribed(!!sub))
+    let vigente = true
+    pushActivo()
+      .then(activo => { if (vigente) setSubscribed(activo) })
       .catch(() => {})
+    return () => { vigente = false }
   }, [supported, configured])
 
   async function toggle() {

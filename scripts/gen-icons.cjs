@@ -36,6 +36,16 @@ const faviconSvg = `<svg width="256" height="256" viewBox="0 0 64 64" xmlns="htt
   <path transform="translate(32 32.2) scale(1.1) translate(-32 -32.2)" d="M14.3 30.9C13.4 30.1 13.3 28.7 14.1 27.8L29 15.4C30.7 14 33.3 14 35 15.4L49.9 27.8C50.8 28.7 50.7 30.1 49.7 30.9C48.9 31.7 47.6 31.7 46.7 31L45.5 30V44.2C45.5 47.4 42.9 50 39.7 50H24.3C21.1 50 18.5 47.4 18.5 44.2V30L17.3 31C16.4 31.7 15.1 31.7 14.3 30.9Z" fill="#FAF7F2"/>
 </svg>`
 
+// Badge de la notificación: el iconito de la barra de estado de Android.
+// El sistema **solo mira el canal alfa** y lo tiñe él, así que va la casa en
+// blanco sobre transparente y sin la caja verde: pasarle el icono a color
+// —lo que se hacía hasta el 15-09-2026— deja una silueta cuadrada, que es la
+// caja, y la casa se pierde dentro. Las figuras de dentro se quedan fuera por
+// lo mismo que en el favicon: a ese tamaño se emborronan.
+const badgeSvg = `<svg width="96" height="96" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <path transform="translate(32 32.2) scale(1.15) translate(-32 -32.2)" d="M14.3 30.9C13.4 30.1 13.3 28.7 14.1 27.8L29 15.4C30.7 14 33.3 14 35 15.4L49.9 27.8C50.8 28.7 50.7 30.1 49.7 30.9C48.9 31.7 47.6 31.7 46.7 31L45.5 30V44.2C45.5 47.4 42.9 50 39.7 50H24.3C21.1 50 18.5 47.4 18.5 44.2V30L17.3 31C16.4 31.7 15.1 31.7 14.3 30.9Z" fill="#FFFFFF"/>
+</svg>`
+
 async function render(svg, size, outPath) {
   await sharp(Buffer.from(svg)).resize(size, size).png().toFile(outPath)
   console.log('✓', path.relative(ROOT, outPath))
@@ -89,6 +99,7 @@ async function main() {
   await render(anySvg, 512, path.join(PUBLIC, 'icon-512.png'))
   await render(maskableSvg, 192, path.join(PUBLIC, 'icon-192-maskable.png'))
   await render(maskableSvg, 512, path.join(PUBLIC, 'icon-512-maskable.png'))
+  await render(badgeSvg, 96, path.join(PUBLIC, 'icon-badge-96.png'))
   // Apple touch icon: sin transparencia, App Router lo sirve desde src/app.
   await render(maskableSvg, 180, path.join(APP, 'apple-icon.png'))
   fs.writeFileSync(path.join(APP, 'icon.svg'), faviconSvg)

@@ -15,6 +15,34 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-15
 
+### El cron de la mañana, revisado con el CLI de Vercel (15-09-2026)
+
+Quedaba por comprobar que la tarea de las 07:00 —el keep-alive de Supabase, el aviso de
+la mañana y el cierre de los meses de Finanzas— siguiera disparándose sola después de
+cambiar el `CRON_SECRET` (28-08) y el texto del aviso (14-09). Falla en silencio
+absoluto: si dejara de correr, nadie recibe nada y el primer síntoma sería Supabase
+pausado.
+
+Mirar los logs del dashboard no servía: **en plan Hobby caducan en un par de horas**, así
+que a las 11 de la mañana lo de las 07:00 ya no estaba y lo único visible era una llamada
+de prueba hecha a mano. Con el CLI (`npm i -g vercel`) sí se pudo:
+
+- `vercel crons ls` → el trabajo está registrado, `0 7 * * *`.
+- La API del proyecto → `enabledAt` el 17-06-2026, **`disabledAt: null`** —nunca se ha
+  desactivado— y apuntando al despliegue vigente.
+- `vercel crons run` → lo dispara por la misma vía que usa Vercel: **200**.
+
+No es exactamente lo mismo que ver la ejecución de las 07:00, y queda dicho así en
+`project-status.md`; es la misma invocación por el mismo camino.
+
+**Y un hallazgo que vale por sí solo**: cada ejecución del cron sale marcada como
+`error` en los logs de Vercel, y no lo es. Es un `DeprecationWarning` de `url.parse()`
+que escribe `web-push@3.6.7` por stderr, y Vercel pinta de rojo todo lo que salga por
+ahí; el `responseStatusCode` de esa misma línea dice 200. Es ruido de una dependencia,
+no hay nada que arreglar — pero es justo la clase de rojo permanente que enseña a no
+mirar los logs, así que mejor saberlo antes que descubrirlo el día que el rojo sea de
+verdad.
+
 ### El dominio, movido a www.farpi.app (15-09-2026)
 
 El último atado del cambio de nombre del 31-08-2026. Cinco sitios tenían que decir lo

@@ -1006,7 +1006,11 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   (comprobado el 28-08-2026, la llamada de prueba devolvía 401); igualado y
   comprobado con una llamada a mano.
 - ✅ **Cron automático confirmado** en los logs de Vercel el 06-08-2026: la ejecución
-  de las 07:00 UTC dispara sola y devuelve `keptAlive: true`.
+  de las 07:00 UTC dispara sola y devuelve `keptAlive: true`. **Revisado el
+  15-09-2026** con el CLI, después de cambiar el `CRON_SECRET` y el texto del aviso:
+  registrado, `disabledAt: null` desde el 17-06, enganchado al despliegue vigente y
+  devolviendo 200 al dispararlo por la vía de Vercel. Sale marcado como `error` en los
+  logs y no lo es: es un `DeprecationWarning` de `web-push` por stderr.
 - ✅ **RLS revalidado** por última vez el 27-08-2026: **79/79**, con el esquema
   entero validado, incluidas las conexiones de Google Drive (Fase 3) y el cierre de
   una familia.

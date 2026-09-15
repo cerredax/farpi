@@ -1147,10 +1147,19 @@ Las dos que había aquí se cerraron el 06-08-2026:
    ya no se fía solo del navegador —`GET /api/push` dice qué endpoints tiene
    guardados el usuario, y en duda se enseña "Activar", que repara al pulsarlo—, y
    el aviso **nombra** los planes con su hora en vez de contarlos, con el texto en
-   `src/lib/reminders.ts` y sus 21 unitarios. Y queda un cabo sin comprobar: **que
-   el cron de Vercel dispare solo cada mañana**. El `CRON_SECRET` está puesto —la
-   ruta contesta 401 y no el 503 de "cron no configurado"— pero eso prueba la
-   variable, no la tarea.
+   `src/lib/reminders.ts` y sus 21 unitarios. **El cabo del cron se cerró ese mismo
+   día**, con el CLI de Vercel: el trabajo está registrado (`0 7 * * *`), activo desde
+   el 17-06-2026 con `disabledAt: null`, enganchado al despliegue vigente, y disparado
+   a mano por el propio Vercel (`vercel crons run`) contesta **200**. La ruta responde
+   401 y no el 503 de "cron no configurado", así que el `CRON_SECRET` también está.
+
+   Dicho con precisión: no se llegó a ver **la ejecución de las 07:00 UTC en los
+   logs** —en plan Hobby caducan en un par de horas y se miró a las 11— pero sí la
+   misma invocación por la misma vía. Y una cosa que conviene saber antes de
+   asustarse: **cada ejecución sale marcada como `error` en los logs de Vercel**, y no
+   lo es. Es un `DeprecationWarning` de `url.parse()` que escribe `web-push@3.6.7` por
+   stderr, y Vercel pinta de rojo todo lo que salga por ahí. El `responseStatusCode`
+   de esa misma línea dice 200.
 2. ~~**Backup/export de datos de la familia.**~~ **Hecho el 27-08-2026** (ver
    "Copia de seguridad" en `docs/historial.md`). Lo que sigue siendo verdad, y por lo
    que era insustituible: con

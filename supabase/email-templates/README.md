@@ -19,11 +19,11 @@ En el asunto también se pueden usar variables, y en el de reautenticación comp
 
 ## Cómo están escritas
 
-Con **tablas y estilos en línea**, que es lo único que soportan todos los clientes de correo: nada de flexbox, grid ni hojas de estilo externas. Parece HTML antiguo porque es lo que funciona en todas partes. Los colores son los tokens de `src/app/globals.css`, copiados como literales porque aquí no hay variables CSS que valgan.
+Con **tablas y estilos en línea**, que es lo único que soportan todos los clientes de correo: nada de flexbox, grid ni hojas de estilo externas. Parece HTML antiguo porque es lo que funciona en todas partes. Los colores son los tokens de `src/app/globals.css`, copiados como literales porque aquí no hay variables CSS que valgan. Copiados quiere decir **sin enlazar**: si se toca la paleta hay que volver a pasar por aquí, o se quedan atrás sin que nada avise. Y la regla de la paleta vale igual en el correo: `muted-soft` no es color de texto (el pie iba en él, a 2,56:1, hasta el 15-09-2026).
 
 Detalles que conviene no romper al editarlas:
 
-- **El logo no es una imagen.** Es una celda de tabla con fondo y la letra `N`. Los clientes de correo bloquean las imágenes externas por defecto, así que un `<img>` desaparecería justo en la primera impresión, que es cuando más importa.
+- **El logo no es una imagen.** Es una celda de tabla con fondo y la letra `F`. Los clientes de correo bloquean las imágenes externas por defecto, así que un `<img>` con `app-icon.svg` desaparecería justo en la primera impresión, que es cuando más importa. Fue una `N` —de Nido— hasta el 15-09-2026, con «Farpi» escrito debajo: el último resto del cambio de nombre, y caía en el primer correo que ve alguien invitado.
 - **El botón es una tabla con `bgcolor`**, no un `<div>` con fondo. Es lo que hace que también se vea en Outlook.
 - **El enlace aparece dos veces**: en el botón y como texto copiable. Hay clientes y filtros corporativos que desactivan los botones.
 - **El primer `<div>` oculto** es el texto de vista previa que se lee en la bandeja de entrada, antes de abrir el mensaje.

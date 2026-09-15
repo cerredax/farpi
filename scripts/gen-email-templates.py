@@ -5,6 +5,16 @@ import io, os
 SALIDA = 'supabase/email-templates'
 FUENTE = "'Trebuchet MS',Verdana,sans-serif"
 
+# Los colores son literales de los tokens de `src/app/globals.css`: aquí no hay
+# variables CSS que valgan. Como no están enlazados, se quedan atrás solos
+# —`#77716A` y `#5C7A59` sobrevivieron aquí meses después de que la app los
+# subiera a `#6E6861` y `#597656` por décimas de contraste (15-09-2026)—, así
+# que si se toca la paleta hay que volver a pasar por aquí.
+#
+# El pie iba en `muted-soft` (`#A39B93`) y da 2,56:1 sobre el crema: la propia
+# paleta dice que ese token no es color de texto, y en el correo llevaba una
+# frase entera. Ahora va en `muted`, como el resto (5,15:1).
+
 
 def esqueleto(preview, titulo, cuerpo, accion, nota):
     """accion: HTML del bloque central (botón + enlace, o código)."""
@@ -17,11 +27,11 @@ def esqueleto(preview, titulo, cuerpo, accion, nota):
           <td align="center" style="padding:8px 0 28px 0;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
               <tr>
-                <td width="56" height="56" align="center" valign="middle" bgcolor="#3D5C3A" style="width:56px;height:56px;border-radius:16px;font-family:{FUENTE};font-size:26px;font-weight:bold;color:#FFFFFF;line-height:56px;">N</td>
+                <td width="56" height="56" align="center" valign="middle" bgcolor="#3D5C3A" style="width:56px;height:56px;border-radius:16px;font-family:{FUENTE};font-size:26px;font-weight:bold;color:#FFFFFF;line-height:56px;">F</td>
               </tr>
             </table>
             <div style="font-family:{FUENTE};font-size:20px;font-weight:bold;color:#252525;padding-top:12px;letter-spacing:-0.2px;">Farpi</div>
-            <div style="font-family:{FUENTE};font-size:11px;font-weight:bold;color:#77716A;padding-top:4px;letter-spacing:2px;text-transform:uppercase;">Familia en calma</div>
+            <div style="font-family:{FUENTE};font-size:11px;font-weight:bold;color:#6E6861;padding-top:4px;letter-spacing:2px;text-transform:uppercase;">Familia en calma</div>
           </td>
         </tr>
         <tr>
@@ -31,7 +41,7 @@ def esqueleto(preview, titulo, cuerpo, accion, nota):
                 <td style="font-family:{FUENTE};font-size:24px;line-height:32px;font-weight:bold;color:#252525;padding-bottom:16px;">{titulo}</td>
               </tr>
               <tr>
-                <td style="font-family:{FUENTE};font-size:15px;line-height:24px;color:#77716A;padding-bottom:32px;">{cuerpo}</td>
+                <td style="font-family:{FUENTE};font-size:15px;line-height:24px;color:#6E6861;padding-bottom:32px;">{cuerpo}</td>
               </tr>
 {accion}
             </table>
@@ -41,13 +51,13 @@ def esqueleto(preview, titulo, cuerpo, accion, nota):
           <td style="padding-top:24px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFF8EF;border-radius:16px;">
               <tr>
-                <td style="font-family:{FUENTE};font-size:13px;line-height:20px;color:#77716A;padding:16px 20px;">{nota}</td>
+                <td style="font-family:{FUENTE};font-size:13px;line-height:20px;color:#6E6861;padding:16px 20px;">{nota}</td>
               </tr>
             </table>
           </td>
         </tr>
         <tr>
-          <td align="center" style="font-family:{FUENTE};font-size:12px;line-height:20px;color:#A39B93;padding:28px 16px 8px 16px;">
+          <td align="center" style="font-family:{FUENTE};font-size:12px;line-height:20px;color:#6E6861;padding:28px 16px 8px 16px;">
             Farpi es un espacio privado para tu familia.<br>Solo vosotros veis vuestros datos.
           </td>
         </tr>
@@ -64,7 +74,7 @@ def boton(texto):
                 <td align="center" style="padding-bottom:28px;">
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                     <tr>
-                      <td align="center" bgcolor="#5C7A59" style="border-radius:16px;">
+                      <td align="center" bgcolor="#597656" style="border-radius:16px;">
                         <a href="{{{{ .ConfirmationURL }}}}" style="display:inline-block;padding:16px 40px;font-family:{FUENTE};font-size:15px;font-weight:bold;color:#FFFFFF;text-decoration:none;border-radius:16px;">{texto}</a>
                       </td>
                     </tr>
@@ -72,9 +82,9 @@ def boton(texto):
                 </td>
               </tr>
               <tr>
-                <td style="font-family:{FUENTE};font-size:13px;line-height:20px;color:#77716A;border-top:1px solid #EDE9E3;padding-top:24px;">
+                <td style="font-family:{FUENTE};font-size:13px;line-height:20px;color:#6E6861;border-top:1px solid #EDE9E3;padding-top:24px;">
                   Si el botón no funciona, copia esta dirección en tu navegador:<br>
-                  <a href="{{{{ .ConfirmationURL }}}}" style="color:#5C7A59;word-break:break-all;">{{{{ .ConfirmationURL }}}}</a>
+                  <a href="{{{{ .ConfirmationURL }}}}" style="color:#597656;word-break:break-all;">{{{{ .ConfirmationURL }}}}</a>
                 </td>
               </tr>'''
 

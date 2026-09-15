@@ -60,6 +60,12 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
 - [ ] **Plantillas de correo del panel de Supabase**: las de `supabase/email-templates/`
       ya dicen Farpi, pero se aplican **a mano**. Hasta que se peguen, los correos que
       salen siguen diciendo Nido.
+
+      Repasadas el 15-09-2026 y arregladas tres cosas antes de pegarlas: el cuadrado
+      del logo pintaba una **`N`** —de Nido— con «Farpi» escrito justo debajo, en las
+      seis; el pie iba en `muted-soft`, que la paleta reserva para decoración, y daba
+      2,56:1; y el botón y el cuerpo se habían quedado con los valores anteriores de
+      `primary-strong` y `muted`. Ahora lo más flojo del correo da 5,06:1.
 - [x] **Pantalla de consentimiento de Google**: el nombre de la app pasa a «Farpi»
       (31-08-2026) y se aplicó directamente, sin cola de verificación de marca. En la misma
       pasada se **añadió** —no sustituyó— la redirect URI de `www.farpi.app` al cliente

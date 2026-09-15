@@ -941,10 +941,12 @@ ajenos, y el detalle de cada uno —con su riesgo y su orden— vive en `docs/pr
       dos valores de Supabase y una variable de entorno tienen que decir lo mismo, y
       todo con `www` porque la cookie del OAuth de Drive es *host-only*. Google ya está
       preparado, así que en el corte solo hay que retirar lo viejo al final.
-- [ ] **Pegar las plantillas de correo en el panel de Supabase.** Las de
-      `supabase/email-templates/` ya dicen Farpi, pero se aplican a mano: hasta que se
-      peguen, las invitaciones y los magic links siguen firmando como Nido. Es lo más
-      visible de lo que queda y no depende del dominio, así que se puede hacer ya.
+- [x] **Plantillas de correo pegadas en el panel de Supabase** (15-09-2026). Las
+      invitaciones y los magic links ya no firman como Nido. Antes de pegarlas salió
+      que el logo de las seis seguía pintando una `N`, con «Farpi» escrito debajo: el
+      cambio de nombre no había llegado al primer correo que ve alguien invitado. Se
+      arregló en el generador, `scripts/gen-email-templates.py`, que es de donde salen
+      las seis.
 - [ ] **Branding de Google**: App Domain y Authorized Domains. Solo cuando el dominio
       esté vivo, y puede pedir verificarlo en Search Console.
 - [ ] Comprobar que Vercel sigue viendo el repositorio tras el renombrado

@@ -15,6 +15,39 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-15
 
+### Los correos de Farpi llevaban la N de Nido (15-09-2026)
+
+Repasando lo que faltaba para dar la app por cerrada, quedaba un punto barato: pegar las
+plantillas de correo en el panel de Supabase, pendiente desde el cambio de nombre del
+31-08-2026. Antes de pegarlas se revisaron, y menos mal.
+
+**Las seis pintaban una `N`.** El logo del correo no es una imagen —los clientes bloquean
+las externas por defecto, así que un `<img>` desaparecería justo en la primera
+impresión—: es una celda de tabla con fondo verde y una letra dentro. Esa letra seguía
+siendo la de Nido, con «Farpi» escrito justo debajo en el mismo bloque. Nadie lo vio
+porque estas plantillas no se aplican solas y en el repositorio el fallo era un carácter
+dentro de un `style` de sesenta. Y caía en el peor sitio: el primer correo que ve alguien
+a quien acaban de invitar a la familia.
+
+**De paso salieron dos cosas de color**, al medirlo. El pie —«Farpi es un espacio privado
+para tu familia»— iba en `muted-soft`: **2,56:1** sobre el crema. La paleta dice de ese
+token que no es color de texto, y en la app se respeta; en el correo llevaba una frase
+entera. Y el botón y el cuerpo se habían quedado con los valores anteriores de
+`primary-strong` y `muted`, de cuando la app los subió por décimas de contraste: pasaban
+AA, así que no era un fallo, era que ya no eran los colores de la app. Lo más flojo del
+correo pasa de 2,56:1 a **5,06:1**.
+
+**La lección, y va escrita en el generador**: aquí los colores son literales copiados de
+`globals.css`, porque en un correo no hay variables CSS que valgan. Copiados quiere decir
+**sin enlazar**. Se quedan atrás solos y nada avisa — igual que se quedó atrás la letra.
+El README, además, documentaba la `N` como si fuera lo correcto.
+
+Se arregló en `scripts/gen-email-templates.py`, que es de donde salen las seis, y se
+regeneraron. **Pegadas en el panel el mismo día**, con sus asuntos. Ese último paso es a
+mano y seguirá siéndolo: Supabase no lee el repositorio, así que tocar una plantilla
+obliga a volver a pegarla.
+
+
 ### Las notificaciones «no funcionaban»: era un dispositivo sin suscribir (15-09-2026)
 
 La queja fue «las notificaciones no funcionan aún», y la documentación decía justo lo

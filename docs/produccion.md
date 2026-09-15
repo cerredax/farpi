@@ -57,11 +57,14 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       4), abrir un documento ya subido (prueba que el token de Drive sigue vivo) y
       **desconectar y volver a conectar Drive** (única prueba real de 2 y 5).
 
-- [ ] **Plantillas de correo del panel de Supabase**: las de `supabase/email-templates/`
-      ya dicen Farpi, pero se aplican **a mano**. Hasta que se peguen, los correos que
-      salen siguen diciendo Nido.
+- [x] **Plantillas de correo del panel de Supabase**: las seis pegadas en el panel
+      el **15-09-2026**, con sus asuntos. Ya no queda nada firmando como Nido.
 
-      Repasadas el 15-09-2026 y arregladas tres cosas antes de pegarlas: el cuadrado
+      Se aplican **a mano** —Supabase no las lee del repositorio—, así que si se vuelve
+      a tocar `supabase/email-templates/` hay que volver a pegarlas: el fichero y el
+      panel no se enteran el uno del otro.
+
+      Repasadas ese mismo día y arregladas tres cosas antes de pegarlas: el cuadrado
       del logo pintaba una **`N`** —de Nido— con «Farpi» escrito justo debajo, en las
       seis; el pie iba en `muted-soft`, que la paleta reserva para decoración, y daba
       2,56:1; y el botón y el cuerpo se habían quedado con los valores anteriores de

@@ -248,10 +248,20 @@ En **Google Cloud Console → APIs y servicios**:
 
 - [ ] Habilitar la **Google Drive API** en el proyecto.
 - [ ] Crear un **ID de cliente de OAuth** de tipo *Aplicación web*. En **URI de
-      redirección autorizados**, añadir la de producción y, si se va a probar en
-      local, `http://localhost:3000/api/documents/providers/google/callback`.
-      Google compara la cadena **entera**: un preview de Vercel con URL aleatoria
-      no puede conectar, solo producción y localhost.
+      redirección autorizados**, **solo la de producción**. Google compara la cadena
+      **entera**, así que un preview de Vercel con URL aleatoria no puede conectar.
+
+      **Nada de `localhost` aquí** (15-09-2026). La había, para poder conectar Drive
+      desde `npm run dev`, y Google avisó: *«tu app no está configurada para usar flujos
+      OAuth seguros y puede ser vulnerable a la suplantación de identidad»*. Las
+      redirecciones a IP de bucle invertido son para apps de escritorio; en un cliente
+      web son un agujero, porque cualquier programa que escuche en ese puerto de la
+      máquina se queda con el código. Se borró y se pierde poco: en local se siguen
+      **viendo y abriendo** los documentos —eso va por proxy con el token del dueño, que
+      se descifra con `DOCS_TOKEN_KEY`—, lo único que no se puede es *conectar* un Drive
+      nuevo. Si alguna vez hace falta, se añade un rato y se vuelve a quitar; y si se
+      fuera a trabajar a fondo en documentos, lo limpio es un **segundo cliente OAuth
+      solo para desarrollo**, con su propio id y secreto en `.env.local`.
 - [ ] En la pantalla de consentimiento, dejar como único scope
       `https://www.googleapis.com/auth/drive.file`. Es **no sensible**, así que no
       hace falta verificación ni auditoría CASA. Añadir `drive` o `drive.readonly`

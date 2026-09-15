@@ -57,6 +57,21 @@ Y una confusión que conviene no repetir: **lo que hace caducar los refresh toke
 siete días es el estado de publicación** (*Testing* contra *In production*), no la
 verificación de marca ni el logo. Son dos cosas distintas en la misma pantalla.
 
+**Y de propina, fuera el `localhost` del cliente OAuth.** Google avisó en la misma
+pantalla: *«tu app no está configurada para usar flujos OAuth seguros y puede ser
+vulnerable a la suplantación de identidad»*. Lo disparaba
+`http://localhost:3000/api/documents/providers/google/callback`, que estaba ahí para
+poder conectar Drive desde `npm run dev`. Las redirecciones a IP de bucle invertido son
+para apps de escritorio; en un cliente web las está retirando, y con razón: cualquier
+programa que escuche en ese puerto de la máquina se queda con el código de autorización.
+
+Se borró, y cuesta menos de lo que parece. En local se siguen **viendo y abriendo** los
+documentos, porque eso va por proxy con el token del dueño y se descifra con
+`DOCS_TOKEN_KEY`; lo único que se pierde es *conectar* un Drive nuevo desde el servidor
+de desarrollo. Si algún día hace falta, se añade un rato y se quita; y si se fuera a
+trabajar a fondo en documentos, lo limpio es un segundo cliente OAuth solo para
+desarrollo, con su propio id y secreto.
+
 ### El cron de la mañana, revisado con el CLI de Vercel (15-09-2026)
 
 Quedaba por comprobar que la tarea de las 07:00 —el keep-alive de Supabase, el aviso de

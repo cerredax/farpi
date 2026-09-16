@@ -319,6 +319,15 @@ anterior: `with check` solo ve la nueva. El hueco que cerraba era poder poner a 
 de un papel ajeno y dejarlo sin abrirse para toda la casa —no se lleva nada, con `drive.file`
 el token de quien mira no ve lo que subió otro, pero es sabotaje que la RLS no veía—.
 
+**Y el trigger tiene una excepción, que no es un descuido.** `documents.storage_owner` es
+`on delete set null` contra `auth.users`, y Postgres ejecuta esa acción referencial como un
+**update** sobre `documents`: entra por el trigger. Sin la excepción, borrar la cuenta de
+quien subió papeles a una familia que le sobrevive —dos adultos, los dos admin, uno ha
+subido— se cae entero con un 500 permanente. El trigger deja pasar ese caso y **solo** ese,
+y lo reconoce por de dónde sale y no por quién lo pide: que el dueño anterior ya no exista en
+`auth.users`, un estado que nadie puede fabricar porque nadie puede borrarle la cuenta a
+otro. El detalle está comentado en `schema.sql`, junto a la función.
+
 Estuvo todo en una sola policy `for all` con el `with check` del dueño, y **eso rompía el
 renombrado**: Postgres aplica el `with check` a la fila nueva de cualquier escritura, y la de
 un renombrado sigue llevando dentro el dueño de quien subió el papel, así que nadie podía

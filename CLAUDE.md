@@ -78,6 +78,12 @@ habían hecho. Un detalle para leer los commits: **la app se llamó Nido hasta e
 - Si cambias un flujo del mock, comprueba la persistencia en `localStorage`.
 - Si tocas una migración, una policy o una RPC: ejecuta `node scripts/validate-rls.mjs`
   y actualiza `docs/supabase-validation.md`.
+- **Al cerrar algo, escribe también la comprobación que dice qué tiene que seguir
+  funcionando.** No es una preferencia: en el arnés de RLS, esa comprobación ha encontrado
+  el fallo **dos veces** —la policy `for all` que dejó a nadie poder renombrar la ficha de
+  un documento ajeno, y el trigger que rompió el borrado de cuenta—, y las dos veces el
+  caso malo estaba en verde. Que un trigger esté escrito no prueba que salte, y una prueba
+  que pasa no siempre prueba lo que dice.
 - Para cambios relevantes, ejecuta `npm run lint` y `npm run build`.
 - **La suite entera se corre una vez, justo antes del commit.** `npm run test:e2e` levanta
   el servidor y tarda unos dos minutos; encadenarla tras cada retoque no aporta nada y se

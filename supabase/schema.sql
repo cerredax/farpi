@@ -94,6 +94,10 @@ create table if not exists public.families (
   meal_slots  text[] not null default array['breakfast', 'lunch', 'snack', 'dinner']::text[],
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
+  -- `cardinality` y no `array_length`: con el array vacío `array_length` devuelve
+  -- null, un `check` que sale null se considera cumplido y `{}` se colaría — una
+  -- familia sin ninguna franja de comida, que es justo lo que esto impide. Se ve
+  -- rechazado en `scripts/validate-rls.mjs`, no solo en el razonamiento.
   constraint families_meal_slots_validos check (
     meal_slots <@ array['breakfast', 'lunch', 'school', 'dinner', 'snack']::text[]
     and cardinality(meal_slots) between 1 and 5

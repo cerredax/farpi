@@ -1,361 +1,66 @@
 # Validación Supabase
 
+Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la última vez. El
+relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
+día; aquí queda el recuento y lo que sigue vigilándose.
+
 ## Última ejecución: 169/169 (05-09-2026, los ajustes de un fijo en un mes)
 
-Con `fixed_entry_overrides` y el `coalesce` de `close_month_copy` aplicados en el
-proyecto real. **169/169 comprobaciones correctas.**
+Con `fixed_entry_overrides` y el `coalesce` de `close_month_copy` aplicados en el proyecto
+real. **169/169 comprobaciones correctas.**
 
-Son las 165 anteriores más cuatro, todas de `fixed_entry_overrides`, la tabla que guarda
-lo que un fijo costó en un mes suelto cuando no fue lo de siempre:
+Son las 165 anteriores más cuatro, todas de `fixed_entry_overrides`, la tabla que guarda lo
+que un fijo costó en un mes suelto cuando no fue lo de siempre:
 
-- **A crea un ajuste en su familia** y **B no lo ve**: la tabla entra en el barrido de
-  §2, que recorre todas las tablas de contenido comprobando que nadie ve lo de otra casa.
-  No es una tabla menor para esto — un ajuste dice cuánto se pagó de algo y en qué mes.
+- **A crea un ajuste en su familia** y **B no lo ve**: la tabla entra en el barrido que
+  recorre todas las tablas de contenido comprobando que nadie ve lo de otra casa. No es una
+  tabla menor para esto — un ajuste dice cuánto se pagó de algo y en qué mes.
 - **B no puede ajustar un fijo de la familia de A.** El equivalente al «B NO puede crear
   fijos en la familia de A» que ya había: la escritura, no solo la lectura.
-- **Rechaza un ajuste sobre un fijo de otra familia** (§4, triggers de integridad). Es la
-  que había que escribir sí o sí: la fila lleva `family_id` propio —para que su policy
-  sea `family_id in (select my_family_ids())` y no un `exists` contra `fixed_entries`—, y
-  eso abre la puerta a insertar un `family_id` propio apuntando al fijo de otro. La RLS
-  sola lo dejaría pasar: la fila **es** de tu familia. Lo para
-  `trg_fixed_entry_override_family`, mismo patrón que los pares de asignación.
+- **Rechaza un ajuste sobre un fijo de otra familia.** Es la que había que escribir sí o sí:
+  la fila lleva `family_id` propio —para que su policy sea
+  `family_id in (select my_family_ids())` y no un `exists` contra `fixed_entries`—, y eso
+  abre la puerta a insertar un `family_id` propio apuntando al fijo de otro. La RLS sola lo
+  dejaría pasar: la fila **es** de tu familia. Lo para `trg_fixed_entry_override_family`,
+  mismo patrón que los pares de asignación.
 
-El `coalesce` de `close_month_copy` —que un mes se cierre con el importe ajustado y no
-con la referencia— no lo cubre el arnés: es comportamiento, no permisos, y lo prueban los
-tests unitarios de `plantillaDelMes` y del mock.
+El `coalesce` de `close_month_copy` —que un mes se cierre con el importe ajustado y no con
+la referencia— no lo cubre el arnés: es comportamiento, no permisos, y lo prueban los tests
+unitarios de `plantillaDelMes` y del mock.
 
-## Antes: 165/165 (04-09-2026, borrar la cuenta vuelve a funcionar)
+## Cómo se valida
 
-Con el arreglo de `check_document_storage_inmutable` aplicado en el proyecto real.
-**165/165 comprobaciones correctas.**
+Backend validado contra el proyecto real con cuatro usuarios y tres familias de prueba,
+creados y eliminados durante la ejecución. **Los datos reales de la familia no se tocan.**
 
-Son las 163 anteriores más dos, las dos en la §12, y las dos de las que dicen qué tiene
-que **seguir funcionando**: que se puede borrar la cuenta de quien subió un papel a una
-familia que le sobrevive, y que su ficha se queda en la casa, sin dueño.
+**Método.** En lugar de `set role` desde el SQL Editor, las pruebas se ejecutan con
+**sesiones de usuario reales**: se autentican los usuarios, se obtiene su JWT y se ataca la
+API REST con él. Es el mismo trayecto que recorre la app (JWT → PostgREST → RLS), así que
+valida también que las policies se aplican con el token del usuario y no solo a nivel de rol
+de base de datos.
 
-### El arreglo del día anterior se pisaba con el esquema
+**Cuatro usuarios, no dos.** A y B empiezan en familias distintas, pero en la sección de
+invitaciones B acepta unirse a la familia de A y deja de ser ajeno. Por eso existe un tercer
+usuario C que nunca entra en ninguna familia: es el que prueba el aislamiento a partir de ese
+punto, y sin él media suite pasaría por el motivo equivocado. El cuarto, D, nace **después**
+de escribirse una invitación: prueba que registrarse con el correo de otra persona al ver su
+`invite_id` no abre ninguna puerta, y sirve además para lo contrario —borrar su cuenta
+teniendo un papel suyo en una familia que sigue viva—, que es el caso que tiene que
+**funcionar**.
 
-`documents.storage_owner` es `on delete set null` contra `auth.users`, y Postgres ejecuta
-esa acción referencial como un **update** sobre `documents`: entra por
-`trg_document_storage_inmutable`, el trigger que se puso el 03-09-2026 para que nadie
-reescribiera el dueño de una ficha ajena. Las dos piezas se pisaban, y el caso es el
-normal de esta casa: dos adultos, los dos admin, uno ha subido papeles. Al borrar su
-cuenta la familia no se cierra —queda la otra persona—, así que las fichas siguen ahí
-cuando `/api/account/delete` llama a `deleteUser`; la acción referencial intenta poner el
-dueño a nulo, el trigger salta y se cae el borrado entero. Un 500 permanente, sin salida
-por la interfaz.
+**Y el orden de la limpieza importa.** Borra las familias **antes** que los usuarios, y con
+la familia se van las fichas en cascada; así, cuando le toca el turno al usuario, ya no queda
+nada apuntando a él. Eso es un orden que la app no recorre, y durante un tiempo escondió un
+fallo real: las comprobaciones que tocan el borrado de cuenta usan a D y una ficha que se
+queda en una familia viva, que es el orden de verdad.
 
-Ahora el trigger deja pasar ese caso y **solo** ese, y lo reconoce por de dónde sale y no
-por quién lo pide: que el dueño anterior ya no exista en `auth.users`. Ese estado no lo
-puede fabricar nadie, porque nadie puede borrarle la cuenta a otro. Las cuatro
-comprobaciones del sabotaje siguen en verde, que era lo que no había que romper.
+Repetible con `node scripts/validate-rls.mjs`. Hay que ejecutarlo después de tocar una
+migración, una policy o una RPC. No se incluyen aquí URLs privadas, claves ni datos
+personales.
 
-**Las 163 no lo veían**, y el motivo merece quedar escrito: la limpieza del arnés borra
-las familias **antes** que los usuarios, y con la familia se van las fichas en cascada,
-así que cuando le tocaba el turno al usuario ya no quedaba nada apuntando a él. El arnés
-se probaba a sí mismo un orden que la app no recorre. Las dos nuevas usan al usuario D y
-una ficha que se queda en una familia viva, que es el orden de verdad.
+## Qué se comprueba
 
-Y un límite de esta pasada, dicho para que nadie lo lea de más: **estas dos en verde
-prueban que ahora funciona, no que antes fallara**. Para lo segundo habría que volver a
-poner el trigger roto en la base real, y eso no se hace. Lo que sostiene el diagnóstico
-es la semántica de Postgres, no una ejecución.
-
-## Antes: 163/163 (03-09-2026, la revisión de seguridad a la contra)
-
-Con las cuatro secciones de la revisión de seguridad aplicadas en el proyecto
-real. **163/163 comprobaciones correctas.**
-
-Son las 154 anteriores más nueve: dos en la §3 (miembros), dos en la §7 (invitaciones) y
-cinco en la §12 (documentos).
-
-- **§3, dos**: un admin **no** puede meter a un tercero a mano en su familia, y ese
-  tercero sigue sin ver nada. Se podía hasta hoy: la policy de `insert` de
-  `family_members` solo exigía que la familia fuera suya, así que se podía escribir una
-  fila con el `user_id` de cualquiera, sin invitación y sin que esa persona lo supiera. No
-  le abre los datos de nadie —al contrario, se lo mete en su casa— pero le hace aparecer
-  una familia ajena en el conmutador. La policy se fue entera: quien crea miembros de
-  verdad son `create_family_with_admin` y `accept_family_invite`, las dos
-  `security definer`.
-- **§7, dos**: una cuenta creada **después** de escribirse la invitación no puede
-  aceptarla, y sigue sin ver nada de la familia. Se montan con un cuarto usuario de prueba
-  (D) creado a propósito después de la invitación, que es exactamente el atacante: alguien
-  que ve un `invite_id` y se registra con el correo de la persona invitada. Antes bastaba
-  con que el correo cuadrara, y que eso probara algo dependía del ajuste «Confirm email»
-  del panel de Supabase, que se apaga en un click. `email_confirmed_at` no servía: apagado
-  el ajuste, esa columna viene rellena de fábrica.
-- **§12, cinco**: ni poner a nulo el dueño de un documento ajeno, ni reclamarlo para sí,
-  ni mover la ficha a otro archivo de Drive; que el dueño y la ruta siguen siendo los de A
-  después de intentarlo; y que renombrar la ficha **sí** sigue pudiendo cualquier miembro.
-
-### La última de las nueve encontró un fallo que no era de seguridad
-
-Con la §1 y la §2 aplicadas la pasada dio **160/161**, y el que falló fue justo el que se
-había escrito para vigilar que el trigger nuevo **no** rompiera nada: «pero editar el
-nombre de la ficha sigue pudiendo cualquier miembro», con
-`42501: new row violates row-level security policy`.
-
-No lo rompía el trigger: estaba roto desde unas horas antes, y lo rompía la policy
-`for all` con el `with check` de `storage_owner` que había entrado esa misma mañana.
-Postgres aplica el `with check` a la fila nueva de **cualquier** escritura, `update`
-incluido, y la fila nueva de un renombrado sigue llevando dentro el `storage_owner` de
-quien subió el papel: **nadie podía editar la ficha de un documento ajeno**, ni el nombre,
-ni la carpeta, ni la caducidad. La regla que se quería escribir era «la llave prestada
-solo se presta la de uno», no «la ficha es de quien la subió», y esas dos se parecen solo
-si se lee la policy en vez de probarla.
-
-Arreglado partiendo la policy en cuatro (§3 del parche): la regla del dueño vive solo en
-el `insert` y que después no cambie lo dice el trigger. **Las dos piezas van juntas**: sin
-el trigger, ese `update` sin `with check` de dueño volvería a dejar señalar el Drive de un
-tercero, esta vez editando en vez de insertando.
-
-Es la segunda vez que una comprobación escrita para vigilar el caso bueno encuentra el
-fallo. Si hay que sacar una regla de aquí: cada vez que se cierra algo, se escribe también
-la que dice qué tiene que seguir funcionando.
-
-## Antes: 154/154 (03-09-2026, la invitación que caduca)
-
-Con **la invitación que caduca** y los tres índices por
-`family_id` que faltaban ya aplicados en el proyecto real. **154/154 comprobaciones
-correctas.**
-
-Son las 152 anteriores más dos, las dos en la §7. Una invitación no vale para siempre: el
-enlace del correo lo caduca Supabase a las pocas horas, pero lo que mete en la familia es el
-`invite_id` de la URL de vuelta, y esa URL se puede guardar — quien la tuviera apuntada
-entraba en casa un año después, con solo iniciar sesión y volver a visitarla. Ahora la RPC
-rechaza lo que lleve más de 30 días esperando, y la comprobación va **después** de la del
-email para que solo se entere de la caducidad quien de verdad estaba invitado.
-
-Las dos comprobaciones envejecen la fila 40 días con el service role, que es la única forma
-de probar el paso del tiempo sin esperarlo, e intentan aceptarla con C. El caso bueno no se
-monta aparte: es B aceptando la suya recién hecha, seis líneas más arriba en la misma
-sección, y eso es lo que impide que estas dos pasen con una RPC que rechazara **todas** las
-invitaciones.
-
-La segunda de las dos —«y quien la guardaba sigue fuera de la familia»— parece redundante y
-no lo es: es la que avisa del efecto en cascada. La primera pasada con la RPC sin aplicar dio
-**148/154**, y cuatro de los seis fallos eran de secciones muy posteriores («un ajeno NO ve
-el menú del comedor», el festivo, los cumpleaños, el documento). El motivo era uno solo: C
-había entrado en la familia y había dejado de ser el ajeno permanente que esas secciones
-necesitan. Si un día vuelven a caerse cuatro comprobaciones de «ajeno» a la vez, mirar aquí
-antes que allí.
-
-Los tres índices —`children`, `lists` y `list_items` por `family_id`— no se comprueban aquí
-porque no cambian ninguna respuesta, solo el tiempo. La app pide siempre `?family_id=eq.…`
-en esas tres tablas y `list_items` solo tenía el índice por lista: vale para pintar una
-cesta abierta, no para traerse las de la casa.
-
-## Antes: 152/152 (03-09-2026, la llave prestada que solo se presta la de uno)
-
-Son las 149 anteriores más tres, todas en la §12, y las tres van de la misma columna:
-`storage_owner`. Esa columna dice en el Drive de quién está el archivo, y
-`/api/documents/[id]/file` se la cree —lee el dueño y con él pide prestado su token, ya con
-el cliente de servicio y sin RLS que le pare—. La policy de `documents` era `for all using`
-a secas, así que Postgres reutilizaba la expresión de lectura para comprobar la escritura y
-**cualquier miembro podía escribir ahí el id de otro** por PostgREST. La app solo actualiza
-nombre, carpeta y fecha, pero la app no es el único camino hasta la base.
-
-Las dos primeras son las que estaban abiertas: que B, **siendo miembro de la familia de
-A**, no puede crear una ficha que apunte al Drive de A, ni cambiarle el dueño a una ficha
-que ya existe poniendo a un tercero. Se comprobaron en rojo antes de aplicar el `with
-check` —150/152— y en verde después, que es lo que dice que prueban algo. La tercera es la
-que evita pasarse de celo: B **sí** puede subir su propio documento a la familia de A, que
-es el caso normal y el que un `with check` mal escrito habría roto.
-
-Lo que se prohíbe es señalar a otro, no reclamar lo propio: si B se pone a sí mismo como
-dueño de un papel de A, el archivo deja de abrirse —su token no ve lo que subió A— pero
-nadie se lleva nada, y borrar ese documento ya podía cualquier miembro por diseño.
-
-El índice no se comprueba aquí porque no cambia ninguna respuesta, solo el tiempo:
-`my_family_ids()` busca por `user_id` y es la función que se evalúa en toda comprobación de
-RLS de toda consulta de la app. El `unique(family_id, user_id)` de la tabla no le servía.
-
-## Antes: 149/149 (03-09-2026, el cierre que no inventa meses y `empty_month`)
-
-Son las 139 anteriores más diez. **Ocho son las del mes que no se vivió**, todas en la §4
-bis de los meses cerrados; las otras dos las dispara el propio arnés, porque esa sección
-siembra ahora dos filas más de plantilla —un fijo y una partida con `created_at` viejo— y
-cada `sembrar(...)` comprueba por su cuenta que A puede crear en su familia.
-
-Dos de las ocho son de la guarda del cierre: que cerrar el mes pasado **no copia una
-plantilla creada después** —la familia de prueba siembra la suya un segundo antes de
-llamar, así que no estuvo en ese mes— y que ese mes **se queda sin plan** en vez de con uno
-inventado. Es el caso de agosto, cerrado el 1 de septiembre con unas nóminas creadas ese
-mismo día. Y la que ya había sobre el cierre no es nueva pero sí más exigente: con una
-plantilla sembrada con `created_at` viejo, el plan copia **solo lo que ya existía en aquel
-mes**.
-
-Las otras seis son de `empty_month`: que A puede poner a cero un mes terminado, que
-se van sus líneas, que **la cabecera se queda** —si se borrara, `close_previous_month` vería «falta el
-mes pasado» en la siguiente carga y lo cerraría otra vez con la plantilla de hoy—, que
-volver a cerrarlo devuelve `false` y no lo revive, que **no** se puede poner a cero el mes
-en curso —para eso está `reopen_month`, que lo devuelve a espejo— y que B no puede ponerle
-a cero un mes a la familia de A.
-
-## Antes: 139/139 (02-09-2026, los meses cerrados)
-
-Eran las 117 de la víspera más las **veintidós de los meses cerrados**, que van juntas en
-una §4 bis propia. `month_plans` y `month_plan_lines` son las dos primeras tablas de contenido con
-policy de **solo `select`**, y eso es exactamente lo que había que ver funcionar: lo que
-hace que un mes cerrado signifique algo no es que esté guardado, es que la app no pueda
-reescribirlo.
-
-Cuatro son del cierre en sí: que A puede cerrar el mes pasado de su familia con
-`close_previous_month`, que el plan queda escrito, que copia los fijos **y** las partidas
-de la plantilla, y que **cerrar dos veces no duplica las líneas** —la RPC la llaman el cron
-y la app sin coordinarse, así que la idempotencia no es un adorno—.
-
-Cuatro son de acceso: que B no ve ni los meses ni las líneas de la familia de A, que B no
-puede cerrarle el mes a A, y que **nadie puede llamar a `close_month` directamente**. Esa
-última es la que más importa de todas: `close_month` es `security definer` y no comprueba
-familia, y Postgres concede `execute` a `public` por defecto en cada función nueva. Si el
-`revoke` se cayera —o si alguien recreara la función sin él— cualquiera podría congelarle el
-mes a cualquier casa con la plantilla equivocada. Se comprueba desde B, con su token.
-
-Cuatro son la parte de solo lectura, todas contra **A, el propio dueño**: que no puede
-insertar un mes a mano, ni añadir una línea a uno cerrado, ni reescribir el importe de una
-línea, ni borrar un mes. Comprobarlas con el dueño y no con un ajeno es el punto: contra un
-ajeno bastaba la RLS de siempre, y lo que aquí se está afirmando es más fuerte.
-
-Y las diez últimas son del **cierre a mano** y de deshacerlo. Que `close_month_copy` —la
-que de verdad escribe y la única sin ninguna guarda de fecha— tampoco se puede llamar desde
-fuera. Que A puede cerrar el mes en curso y queda cerrado, que **no** puede cerrar uno que
-no ha llegado —congelar noviembre en septiembre guardaría una foto de tres meses antes que
-nadie recordaría— y que B no puede cerrárselo a A. Y las de `reopen_month`: que A deshace su
-propio cierre anticipado, que **NO puede reabrir un mes que ya terminó**, que ese mes sigue
-cerrado después del intento, y que B no puede reabrirle nada a A. La de reabrir el pasado es
-la que sostiene lo demás: si un mes terminado se pudiera reabrir, no estaría cerrado y las
-veintiuna anteriores no afirmarían nada.
-
-Lo que este arnés **no** cubre y hay que mirar a mano una vez: que el relleno de los meses
-que ya habían pasado escribió lo que tenía que escribir. El arnés trabaja con familias de
-prueba que crea y borra, así que no puede decir nada de los datos reales. La consulta vivía
-en el archivo suelto del cierre de meses, que se fue el 15-09-2026; es esta, y no cambia
-nada —dice qué meses quedaron cerrados y con cuántas líneas cada uno—:
-
-```sql
-select p.month,
-       count(l.id) filter (where l.line in ('ingreso', 'gasto')) as fijos,
-       count(l.id) filter (where l.line = 'partida')             as partidas,
-       p.closed_at
-from public.month_plans p
-left join public.month_plan_lines l on l.family_id = p.family_id and l.month = p.month
-group by p.family_id, p.month, p.closed_at
-order by p.month desc;
-```
-
-## Antes: 117/117 (02-09-2026, el comedor y las carpetas)
-
-Son las 106 anteriores más las **once del comedor y las carpetas**, repartidas por las
-secciones que ya existían. Siete son la §8 bis: que el comedor **no** viene puesto en una
-familia nueva (el `default` de la columna no cambió, y una casa donde nadie come fuera no
-se despierta con una fila que llenar siete veces por semana), que caben las cinco franjas
-—el `check` del array pasó de cuatro elementos a cinco—, que un menú con los tres platos
-se guarda y se lee tal cual, que una comida sin segundo ni postre sigue valiendo, que una
-franja inventada se rechaza y que un ajeno no ve el menú del comedor de otra casa. Las
-otras cuatro son de la §12: que las siete categorías nuevas de `documents.category` entran
-—«Vivienda» y las seis restantes—, que una inventada se rechaza y que un papel sin carpeta
-sigue admitiendo nulo. Ese `check` es la copia en la base de `DOC_CATEGORIES`, y si las dos
-listas dejan de decir lo mismo, guardar un papel de una carpeta que la app ya ofrece falla
-en producción; por eso se comprueba una por una y no solo la primera.
-
-Son las 99 anteriores más las **siete de los fijos y el tipo de apunte**. Tres son las
-de siempre sobre una tabla nueva —que A crea un fijo en su familia, que B no lo ve y que B
-no puede escribirlo—, y pesan más que en otras tablas porque `fixed_entries` guarda lo que
-más dice de una casa: cuánto cobra cada uno. Dos son los **triggers de integridad entre
-familias**: un fijo se asigna con el mismo par `child_id`/`member_id` de siempre, así que
-tiene el mismo modo de asignarse mal, y se rechaza. Y las dos últimas son los `check` que
-sostienen el vocabulario en la base y no en la pantalla: un apunte con un `kind` que no
-existe, y **un ingreso colgado de una partida** —que es el que había que ver fallar de verdad,
-porque si pasara, una devolución de 40 € liberaría 40 € de la compra sin que nadie haya
-dejado de comprar—.
-
-Son las 89 anteriores más las **diez de `budgets`, `expenses` y `quotes`**, aplicadas a
-mano en el SQL Editor ese día. Seis son las de siempre —que A crea en su familia y que B
-no ve nada de las tres tablas—, una es que B tampoco puede **escribir** un gasto en la
-familia de A, y las tres que importan son los **triggers de `expenses`**: un gasto apunta
-a un presupuesto, a un hijo y a un miembro, y los tres se rechazan si son de otra familia.
-Con `budget_id` no bastaba la RLS —el id ajeno no se ve, pero escribirlo a ciegas habría
-llegado a la tabla si nadie lo comprueba—, así que ese es el caso que había que ver
-fallar de verdad. No hay RPC ni policy nueva: las tres tablas se protegen con la de
-siempre por `family_id`.
-
-Las 89 eran las 86 más las **tres de `notes`**, la tabla que estrena la sección de
-notas: que A la crea en su familia, que B no ve las de A y que B no puede escribir una
-en la familia de A. Tres y no más porque la tabla no tiene nada que enredar —ni claves
-ajenas a hijos o miembros, ni RPC, ni columnas con `check`—: todo lo que la protege es
-la policy por `family_id`, y eso es exactamente lo que se comprueba. Importa más que en
-otras tablas porque es donde la familia escribe la clave del wifi.
-
-Las 86 eran las 79 más las **siete de la §9 bis, cumpleaños de fuera de casa**: que el
-quinto valor de `kind` (`cumple`) entra, con y sin `birth_year`; que la base rechaza un
-cumpleaños con día final o con hora —es de día completo y de un solo día, al revés que un
-festivo—; que un año de nacimiento colgado de algo que no es un cumpleaños no pasa; que un
-año imposible tampoco; y que un ajeno no los ve.
-
-Las 79 eran las 70 del esquema con los documentos en Drive más las **nueve de la §13,
-cerrar una familia** (`delete_family`): que no la cierra ni un miembro no admin, ni un
-ajeno, ni un `delete` directo saltándose la RPC; que nadie se queda sin ninguna familia; y
-que el camino bueno se lleva en cascada lo que colgaba de ella.
-
-> De 80 a 79 no es una regresión. La pasada del 26-08-2026 dio 69, y la primera del
-> 27-08 dio 80 con las once del paso de los documentos a Google Drive (siete de
-> `storage_connections` y cuatro de las columnas nuevas de `documents`). Después se
-> borró el bucket `documents` y con él las **diez comprobaciones de Storage** del arnés,
-> que ya no tenían nada que comprobar: 80 − 10 + 9 = 79. Las secciones se renumeraron
-> entonces: lo que era §9…§13 pasó a §8…§12, y la §13 es ahora la del borrado.
-
-La limpieza borró los tres usuarios y las dos familias de
-prueba que quedaban en pie —la tercera, la que crea la §13, la cierra el propio arnés—;
-los datos reales no se tocaron.
-
-## Estado
-
-Backend validado contra el proyecto real con cuatro usuarios y tres familias de prueba, creados y eliminados durante la ejecución. Los datos reales de la familia no se tocaron.
-
-**Método.** En lugar de `set role` desde el SQL Editor, las pruebas se ejecutaron con **sesiones de usuario reales**: se autentican los usuarios, se obtiene su JWT y se ataca la API REST y la de Storage con él. Es el mismo trayecto que recorre la app (JWT → PostgREST → RLS), así que valida también que las policies se aplican con el token del usuario y no solo a nivel de rol de base de datos.
-
-Repetible con `node scripts/validate-rls.mjs`. Conviene ejecutarlo después de tocar una migración, una policy o una RPC.
-
-**Cuatro usuarios, no dos.** A y B empiezan en familias distintas, pero en la sección de invitaciones B acepta unirse a la familia de A y deja de ser ajeno. Por eso existe un tercer usuario C que nunca entra en ninguna familia: es el que prueba el aislamiento a partir de ese punto, y sin él media suite pasaría por el motivo equivocado. Desde el 03-09-2026 hay un cuarto, D, que nace **después** de escribirse una invitación: es el que prueba que registrarse con el correo de otra persona al ver su `invite_id` no abre ninguna puerta. Y desde el 04-09-2026 sirve además para lo contrario —borrar su cuenta teniendo un papel suyo en una familia que sigue viva—, que es el caso que tiene que **funcionar**.
-
-No se incluyen aquí URLs privadas, claves ni datos personales.
-
-## Migraciones — histórico cerrado (hasta el 26-08-2026)
-
-**Estos veintiún archivos ya no existen**: se aplastaron en `supabase/schema.sql` el
-26-08-2026 y viven en el historial de git. La lista se queda porque cuenta algo que el
-esquema no sabe contar —qué se aplicó en la base real y qué día—, pero los números **no
-son un identificador**: nada de lo que hay hoy en el repositorio se llama `014` ni `019`.
-Para lo que cambió después de esa fecha, la referencia son las secciones de pasadas de
-arriba, cada una con su recuento.
-
-Verificadas en su momento por la existencia de sus objetos (tablas, funciones, columnas y
-bucket) en el proyecto:
-
-- [x] `001_initial_schema.sql` — las 10 tablas del MVP existen
-- [x] `002_rls_policies.sql` — RLS activo; `my_family_ids()` expuesta
-- [x] `003_rpc.sql` — `create_family_with_admin`, `update_my_family_profile`
-- [x] `004_family_invites_storage.sql` — `family_invites` y bucket `documents` privado
-- [x] `005_task_recurrence.sql` — columnas de recurrencia en `tasks`
-- [x] `006_event_recurrence.sql` — `recurrence_group_id` en `events`
-- [x] `007_cross_family_integrity.sql` — triggers verificados en caliente (ver Integridad)
-- [x] `008_admin_rpcs.sql` — `remove_family_member`, `update_family_member_role`
-- [x] `009_accept_invite_rpc.sql` — `accept_family_invite(p_invite_id uuid)`
-- [x] `010_push_subscriptions.sql` — tabla `push_subscriptions`
-- [x] `011_account_deletion.sql` — `created_by` es nullable en las tablas de contenido
-- [x] `012_member_assignment.sql` — `member_id` en `events` y `documents` *(comprobado a mano el 04-08-2026, no por el arnés)*
-- [x] `013_event_kind.sql` — `kind` en `events` *(comprobado a mano el 04-08-2026)*
-- [x] `014_member_profile.sql` — `family_members.color` y `update_family_member_profile`; `update_my_family_profile` ya no existe *(comprobado a mano el 04-08-2026)*
-- [x] `015_task_assignment.sql` — `child_id` y `member_id` en `tasks`; sus dos triggers cross-family rechazan identificadores de otra familia *(validado el 06-08-2026)*
-- [x] `016_document_expiry.sql` — `documents.expires_on`; columna nullable que no altera el aislamiento: `documents` sigue pasando lectura, escritura y Storage *(validado el 06-08-2026)*
-- [x] `017_event_kind_descanso.sql` — amplía el `check` de `events.kind` a `descanso` *(aplicada y revalidada el 21-08-2026)*
-- [x] `018_person_kind.sql` — `kind` en `children` (`hijo` | `adulto`), los adultos sin cuenta *(aplicada y revalidada el 21-08-2026; la columna se comprobó además leyéndola contra la base real)*
-- [x] `019_meal_slots.sql` — `meal_slots` en `families`, qué franjas de comida se ven *(aplicada y validada el 24-08-2026, con siete comprobaciones propias en el arnés)*
-- [x] `020_event_kind_festivo.sql` — `kind` admite `festivo` y su restricción de rango *(aplicada y validada el 26-08-2026, con cinco comprobaciones propias en el arnés)*
-- [x] `021_list_item_quantity.sql` — `quantity` en `list_items`, cuántas unidades hacen falta *(aplicada y validada el 26-08-2026, con seis comprobaciones propias en el arnés)*
-
-## Validación RLS
+### RLS
 
 - [x] Usuario A puede ver datos de familia A.
 - [x] Usuario A no puede ver datos de familia B.
@@ -368,9 +73,9 @@ Tablas cubiertas, comprobando que B recibe 0 filas de la familia de A:
 
 - [x] `families` — B no la ve; su UPDATE afecta a 0 filas
 - [x] `family_members` — **no inserta nadie**: ni B a sí mismo, ni un admin metiendo a un
-      tercero a mano en su propia familia (03-09-2026). La tabla se quedó solo con `select`;
-      las altas de verdad las escriben `create_family_with_admin` y `accept_family_invite`,
-      que son `security definer` y comprueban lo suyo antes
+      tercero a mano en su propia familia. La tabla se quedó solo con `select`; las altas de
+      verdad las escriben `create_family_with_admin` y `accept_family_invite`, que son
+      `security definer` y comprueban lo suyo antes
 - [x] `family_invites` — B recibe 403 al intentar invitar en la familia de A
 - [x] `children`
 - [x] `events`
@@ -381,17 +86,19 @@ Tablas cubiertas, comprobando que B recibe 0 filas de la familia de A:
 - [x] `documents`
 - [x] `notes`
 - [x] `fixed_entries` — la tabla con lo que cobra cada uno, así que pesa más que las otras
+- [x] `fixed_entry_overrides`
 - [x] `budgets`
 - [x] `expenses` — además, el POST de B en la familia de A se rechaza
 - [x] `quotes`
 
-Detalle importante: los intentos de lectura ajena **no dan error, devuelven lista vacía**, que es el comportamiento correcto de RLS. Los de escritura sí devuelven 403.
+Detalle importante: los intentos de lectura ajena **no dan error, devuelven lista vacía**,
+que es el comportamiento correcto de RLS. Los de escritura sí devuelven 403.
 
-## Validación RPCs
+### RPCs
 
 - [x] `create_family_with_admin` — crea la familia y deja al llamante como `admin`
-- [x] `update_family_member_profile` — A edita su nombre y color; el color queda guardado, un nombre vacío se rechaza y B (admin solo de su familia) no puede tocar el perfil de A
-  *(sustituyó el 04-08-2026 a `update_my_family_profile`, migración 014; validada con el arnés el 06-08-2026)*
+- [x] `update_family_member_profile` — A edita su nombre y color; el color queda guardado, un
+      nombre vacío se rechaza y B (admin solo de su familia) no puede tocar el perfil de A
 - [x] `remove_family_member`
 - [x] `update_family_member_role`
 - [x] `accept_family_invite`
@@ -402,33 +109,21 @@ Casos obligatorios:
 - [x] No se puede degradar al último admin (400).
 - [x] Un usuario ajeno no puede eliminar ni cambiar el rol de miembros de otra familia.
 - [x] Una invitación pendiente solo la puede aceptar el email invitado.
-- [x] Una invitación de más de **30 días** ya no vale, aunque el correo cuadre (03-09-2026).
+- [x] Una invitación de más de **30 días** ya no vale, aunque el correo cuadre.
 - [x] Y una cuenta creada **después** de escribirse la invitación tampoco puede aceptarla,
-      aunque el correo cuadre: es el registro oportunista de quien ve el `invite_id` en la URL
-      de vuelta y se apunta con el correo ajeno (03-09-2026).
+      aunque el correo cuadre: es el registro oportunista de quien ve el `invite_id` en la
+      URL de vuelta y se apunta con el correo ajeno.
 - [x] Aceptar invitación crea `family_member` y marca la invitación como `accepted`.
-- [x] Tras aceptar, el nuevo miembro **sí** ve los datos de la familia, y como no-admin no puede eliminar miembros ni invitar.
+- [x] Tras aceptar, el nuevo miembro **sí** ve los datos de la familia, y como no-admin no
+      puede eliminar miembros ni invitar.
 
-## Validación Storage — retirada (27-08-2026)
+### Las conexiones de almacenamiento
 
-Aquí había **diez comprobaciones** del bucket privado `documents`: que existía y no era
-público, que un miembro subía, firmaba, descargaba y borraba, y que un ajeno no podía
-firmar, descargar, listar ni borrar aunque conociera la ruta exacta. Todas pasaron en la
-pasada del 27-08-2026, y después el bucket se borró: los archivos viven en el Google Drive
-de quien los sube y los sirve Farpi.
-
-Se retiran porque no quedaba nada que comprobar, no porque dejaran de importar. Lo que
-cubre ahora ese terreno son las dos secciones siguientes, y el aislamiento que probaban
-—conocer el identificador de un archivo no da acceso a él— se comprueba igual, con el
-`fileId` de Drive en vez de con la ruta del bucket.
-
-## Validación de las conexiones de almacenamiento
-
-La tabla `storage_connections` guarda los permisos de Google Drive de cada persona, con
-los tokens cifrados. Tiene RLS activada y **ninguna policy**, a propósito: solo entra el
-service role desde una ruta API. Es la comprobación que no puede fallar de todo el
-documento — dentro hay refresh tokens, y la CSP de Farpi lleva `'unsafe-inline'` en los
-scripts, así que no para un XSS en línea.
+La tabla `storage_connections` guarda los permisos de Google Drive de cada persona, con los
+tokens cifrados. Tiene RLS activada y **ninguna policy**, a propósito: solo entra el service
+role desde una ruta API. Es la comprobación que no puede fallar de todo el documento —dentro
+hay refresh tokens, y la CSP de Farpi lleva `'unsafe-inline'` en los scripts, así que no para
+un XSS en línea—.
 
 - [x] El service role **sí** puede sembrar una conexión (201). Por ahí entran las rutas API.
 - [x] A **no** puede leer **su propia** conexión. Es el caso que parece inofensivo y no lo es.
@@ -437,30 +132,37 @@ scripts, así que no para un XSS en línea.
 - [x] A **no** puede insertarse una conexión a mano.
 - [x] A **no** puede borrar su conexión por PostgREST. Desconectar se hace por
       `DELETE /api/documents/providers`, que además revoca el permiso en Google.
-- [x] El `check` de `provider` rechaza un proveedor que no existe (`dropbox`), que es lo
-      que habrá que ampliar el día que se añada de verdad.
+- [x] El `check` de `provider` rechaza un proveedor que no existe (`dropbox`), que es lo que
+      habrá que ampliar el día que se añada de verdad.
 
-## Validación de los documentos en Drive
+### Los documentos en Drive
 
 - [x] Un miembro crea un documento con `storage_owner` (201).
 - [x] `storage_provider` vale `google_drive` por defecto, sin que la app lo mande.
 - [x] El `check` rechaza un proveedor inventado.
-- [x] Un ajeno **no** ve el documento aunque conozca su identificador de archivo de Drive.
-      Es lo que sostiene el modelo proxy: el identificador no es un secreto, el acceso lo
-      decide la RLS.
+- [x] Un ajeno **no** ve el documento aunque conozca su identificador de archivo de Drive. Es
+      lo que sostiene el modelo proxy: el identificador no es un secreto, el acceso lo decide
+      la RLS.
 - [x] Un miembro de la casa **no** puede crear una ficha que apunte al Drive de otro.
 - [x] Ni cambiarle el dueño a una ficha que ya existe, ni ponérselo a nulo, ni reclamarla
       para sí, ni mover la ficha a otro archivo: las cuatro fallan contra el trigger
-      `trg_document_storage_inmutable`, y al terminar el dueño y la ruta siguen siendo los
-      de quien subió el papel (03-09-2026).
-- [x] **Pero renombrar la ficha lo sigue pudiendo cualquier miembro.** Es lo que hace la
-      app, y es la comprobación que descubrió que la policy `for all` lo había roto.
-- [x] Borrar la cuenta de quien subió un papel a una familia que le sobrevive **funciona**,
-      y su ficha se queda en la casa sin dueño (04-09-2026). Es la pareja de las cuatro de
-      arriba por el otro lado: aquellas dicen qué no se puede tocar, y esta, qué no se
-      puede romper por cerrarlo.
+      `trg_document_storage_inmutable`, y al terminar el dueño y la ruta siguen siendo los de
+      quien subió el papel.
+- [x] **Pero renombrar la ficha lo sigue pudiendo cualquier miembro.** Es lo que hace la app,
+      y es la comprobación que descubrió que la policy `for all` lo había roto.
+- [x] Borrar la cuenta de quien subió un papel a una familia que le sobrevive **funciona**, y
+      su ficha se queda en la casa sin dueño. Es la pareja de las cuatro de arriba por el otro
+      lado: aquellas dicen qué no se puede tocar, y esta, qué no se puede romper por cerrarlo.
 
-## Validación Integridad
+> **Aquí hubo diez comprobaciones del bucket privado `documents`** —que existía y no era
+> público, que un miembro subía, firmaba, descargaba y borraba, y que un ajeno no podía
+> firmar, descargar, listar ni borrar aunque conociera la ruta exacta—. Todas pasaron en la
+> pasada del 27-08-2026 y después el bucket se borró. Se retiraron porque no quedaba nada que
+> comprobar, no porque dejaran de importar: lo que probaban —conocer el identificador de un
+> archivo no da acceso a él— se comprueba igual, con el `fileId` de Drive en vez de con la
+> ruta del bucket.
+
+### Integridad
 
 - [x] No se puede crear `list_item` con `family_id` de una familia y `list_id` de otra.
 - [x] No se puede crear `event` con `child_id` de otra familia.
@@ -472,154 +174,59 @@ scripts, así que no para un XSS en línea.
 - [x] No se puede crear `expense` con `member_id` de otra familia.
 - [x] No se puede crear `fixed_entry` con `child_id` de otra familia.
 - [x] No se puede crear `fixed_entry` con `member_id` de otra familia.
+- [x] No se puede crear `fixed_entry_override` sobre un fijo de otra familia.
 
-Los diez devuelven 400 desde el trigger. Los tres primeros vienen de
-`007_cross_family_integrity.sql`; los dos de `tasks`, de `015_task_assignment.sql`; los
-tres de `expenses` entraron con Finanzas el 01-09-2026 y los dos de `fixed_entries`, con la
-reforma de los fijos de esa misma tarde. Son el mismo patrón repetido, que es justo lo que
-se quería: nada puede señalar a nada que no sea de su casa.
+Todos devuelven 400 desde el trigger. Son el mismo patrón repetido, que es justo lo que se
+quería: **nada puede señalar a nada que no sea de su casa.**
 
 ## Resultado
 
-**El aislamiento entre familias funciona.** Un usuario solo ve y escribe en las familias donde figura en `family_members`; lo demás le resulta invisible en lectura y prohibido en escritura. La regla del último admin la aplica el servidor, no solo la UI. Los triggers de integridad impiden mezclar identificadores entre familias.
+**El aislamiento entre familias funciona.** Un usuario solo ve y escribe en las familias
+donde figura en `family_members`; lo demás le resulta invisible en lectura y prohibido en
+escritura. La regla del último admin la aplica el servidor, no solo la UI. Los triggers de
+integridad impiden mezclar identificadores entre familias.
 
-**Ya no hay Storage que aislar.** El bucket se borró el 27-08-2026 tras comprobar por
-última vez que aislaba bien. Lo que hay que sostener ahora es lo mismo dicho de otra
-forma: conocer el identificador de un archivo de Drive no da acceso al documento — lo
-decide la RLS, y el proveedor solo es el disco.
+**Ya no hay Storage que aislar.** El bucket se borró el 27-08-2026 tras comprobar por última
+vez que aislaba bien. Lo que hay que sostener ahora es lo mismo dicho de otra forma: conocer
+el identificador de un archivo de Drive no da acceso al documento — lo decide la RLS, y el
+proveedor solo es el disco.
 
 **Los tokens de Google Drive no salen de la base.** `storage_connections` no se puede leer
 por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fila. Solo entra
-el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
-que puede ver el documento del que cuelga el token.
+el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario que
+puede ver el documento del que cuelga el token.
 
-**La última pasada no dejó nada en rojo:** 169/169 el 05-09-2026, con los ajustes de un
-fijo en un mes ya dentro y, antes, el borrado de cuenta arreglado y las cuatro secciones
-de la revisión de seguridad. El detalle está arriba del todo, y la cadena entera de
-pasadas anteriores en las secciones «Antes» que siguen.
+## Las pasadas anteriores
+
+El recuento sube con cada cambio de esquema, así que la cifra sola no dice nada: lo que dice
+algo es que ninguna se quedó en rojo.
+
+| Fecha | Recuento | Qué entró |
+|---|---|---|
+| 05-09-2026 | **169/169** | `fixed_entry_overrides`: el ajuste de un fijo en un mes suelto |
+| 04-09-2026 | 165/165 | el borrado de cuenta, que el trigger del día anterior había roto |
+| 03-09-2026 | 163/163 | la revisión de seguridad a la contra, en cuatro tandas (163, 154, 152 y 149) |
+| 02-09-2026 | 139/139 | los meses cerrados de Finanzas |
+| 02-09-2026 | 117/117 | la franja del comedor con sus platos, y las once carpetas de documentos |
+| 01-09-2026 | 106/106 | la reforma de los fijos: `fixed_entries` y `expenses.kind` |
+| 01-09-2026 | 99/99 | las tres tablas de Finanzas: `budgets`, `expenses`, `quotes` |
+| 27-08-2026 | 80/80 | los documentos en Google Drive, y el bucket retirado |
+| 26-08-2026 | 69/69 | el festivo y las unidades de la lista de la compra |
+| 24-08-2026 | 58/58 | las franjas de comida por familia |
+| 21-08-2026 | 51/51 | el descanso y los adultos sin cuenta (sin comprobación nueva) |
+| 06-08-2026 | 51/51 | la asignación de tareas y la caducidad de los documentos |
+| 03-08-2026 | 47/47 | la primera pasada completa |
+
+Dos cosas que aquellas pasadas dejaron escritas y conviene no volver a aprender:
+
+- **Una prueba que pasa no siempre prueba lo que dice.** Dos versiones intermedias del arnés
+  daban falsos positivos —una por omitir el nombre del bucket en la ruta, con lo que fallaba
+  todo, incluidas las operaciones legítimas; otra por usar como «ajeno» a un usuario que ya se
+  había unido a la familia—.
+- **Que un trigger esté escrito no prueba que salte.** Cada vez que una clave nueva apunta a
+  otra tabla con `family_id`, la comprobación se escribe y se ve fallar el caso malo.
 
 ## Pendiente
 
 Nada. Volver a ejecutar `node scripts/validate-rls.mjs` y actualizar este documento la
 próxima vez que se toque una migración, una policy o una RPC.
-
-### Notas de la ejecución (02-09-2026)
-
-- **117/117.** Dos cambios de esquema del mismo día, los dos aplicados a mano en el SQL
-  Editor: la franja del comedor con las dos columnas de platos (`meal_plans.second_course`
-  y `dessert`, más los `check` de `slot` y de `families.meal_slots`, este último ahora de
-  1 a 5) y las once carpetas de `documents.category`.
-- Lo que había que ver de verdad no es que el valor nuevo entre, sino que **el comedor
-  siga apagado por defecto**. Es la mitad de la decisión: si el `default` de la columna
-  hubiera crecido con el `check`, todas las familias existentes se habrían despertado con
-  una fila vacía en la pantalla de Comidas. El arnés lo comprueba en la familia que crea
-  desde cero, que es el único sitio donde se ve el `default` de verdad.
-- Las categorías se comprueban **una por una** y no con una muestra. El `check` de la base
-  y `DOC_CATEGORIES` son dos listas que tienen que decir lo mismo, escritas en dos
-  archivos distintos; una que se quede fuera no da error al desplegar, lo da el día que
-  alguien guarda ese papel.
-- **Ni RPC ni policy nuevas.** Las dos son columnas y `check` sobre tablas que ya estaban
-  protegidas por la policy de `family_id`, así que el aislamiento no cambia — y aun así se
-  comprueba con C, el usuario que nunca entra en ninguna familia, que el menú del comedor
-  de una casa no se ve desde fuera.
-
-### Notas de la ejecución (01-09-2026)
-
-- **99/99.** Las tres tablas de Finanzas (`budgets`, `expenses`, `quotes`) se aplicaron a
-  mano en el SQL Editor ese día y el arnés gana **diez comprobaciones**, repartidas por
-  las secciones que ya existían en vez de en una nueva: no hay nada estructuralmente
-  distinto que probar, solo tres tablas más con la policy de siempre.
-- La que había que ver fallar es **el gasto con `budget_id` de otra familia**. Las otras
-  dos claves de `expenses` —`child_id` y `member_id`— repiten un patrón ya validado en
-  `events` y `tasks`, pero `budget_id` apunta a una tabla nueva y su trigger se escribió
-  con Finanzas. Que estuviera escrito no probaba que saltara. Salta.
-- **No hay RPC nueva ni policy nueva.** Un presupuesto, un gasto y un presupuesto pedido
-  son filas con `family_id` y nada más, así que la de siempre los cubre. Lo que sí tienen
-  son `check` de importe (entre 1 céntimo y un millón de euros) y de estado, que la app
-  ya valida antes; ahí no hay comprobación automática todavía.
-- La limpieza los borra en cascada con las familias de prueba: cuelgan de `families` con
-  `on delete cascade`, así que no hizo falta tocar el arnés por ese lado.
-
-### Notas de la ejecución (27-08-2026)
-
-- **80/80.** El esquema de los documentos en Google Drive se aplicó a mano en el SQL
-  Editor ese día (las dos columnas de `documents` y la tabla `storage_connections`), y el
-  arnés gana **dos secciones y once comprobaciones**.
-- La **§11** (§12 en la pasada del 27) es la que justifica el cambio. `storage_connections` es la primera tabla del
-  proyecto con RLS activada y **cero policies**, y eso es exactamente lo que hay que
-  verificar: que no es un olvido que deje la puerta abierta, sino la puerta cerrada. Se
-  prueba con A sobre **su propia fila** —el caso que parece inofensivo— y también con B,
-  que está en su misma familia, y con C, que es ajeno. Los tres reciben cero filas.
-  También se comprueba que A no puede insertar ni borrar por ahí: desconectar pasa por la
-  ruta API, que además revoca el permiso del lado de Google.
-- La fila de prueba se siembra con el service role, porque por el otro camino no hay forma
-  de meterla — que es justo lo que se está comprobando.
-- La **§12** cubre las dos columnas nuevas de `documents`. La que importa es la última: un
-  ajeno **no** ve el documento aunque conozca su identificador de archivo de Drive. Es lo
-  que sostiene el modelo proxy — el identificador viaja en la ficha y no es un secreto; lo
-  que decide el acceso es la RLS, y el proveedor solo es el disco.
-- El `check` de `storage_provider` rechaza un valor inventado y por defecto pone
-  `google_drive`, así que las filas que ya existían quedan bien sin tocarlas.
-- La sección de Storage (§8) se queda, con el título cambiado: el bucket ya no se usa pero
-  sigue existiendo, y mientras exista se comprueba.
-
-### Notas de la ejecución (26-08-2026)
-
-- **69/69.** Se aplicaron a mano dos migraciones ese día y el arnés gana dos secciones.
-- La **021** trae **seis comprobaciones** (§11). Tampoco tiene policy propia —una unidad
-  es una columna más de `list_items`—, así que lo que se comprueba es el `default` y el
-  `check`: que un ítem nace en 1 (lo que ya existía no cambia de significado), que se
-  puede cambiar y queda guardado, que **el cero se rechaza** y que **pasarse del tope
-  también**, y que tras los dos rechazos el valor sigue siendo el bueno. El tope lo acotan
-  además los dos repositorios, para que el botón deje de subir en vez de rebotar aquí.
-- La **020** trae **cinco comprobaciones** (§10). La 020 no trae policy propia —un festivo
-  es una fila de `events` como las demás—, así que lo que hay que comprobar es que los
-  dos `check` hacen su trabajo.
-- Las cinco: que un festivo con rango se guarda, que un `kind` inventado se rechaza, que
-  un festivo **sin día final** se rechaza y que uno **que no sea de día completo** también
-  —las dos condiciones de `events_festivo_con_rango`, que es la red bajo lo que
-  `validateEventDraft` ya exige en la app—, y que un ajeno no ve el festivo de otra
-  familia, o sea que la RLS de siempre sigue cubriendo al tipo nuevo sin tocar nada.
-
-### Notas de la ejecución (24-08-2026)
-
-- **58/58.** La 019 se aplicó a mano en el SQL Editor ese día y el arnés gana **siete
-  comprobaciones**, en una sección nueva (§9). Aquí sí valía la pena: la 019 no trae
-  policy propia —reutiliza la de update de la 002— y eso es exactamente lo que hay que
-  comprobar, que esa policy sigue diciendo «solo admin» ahora que hay una columna más que
-  tocar.
-- Las siete: que una familia nueva nace con las cuatro franjas (el `default` de la
-  columna), que un admin las cambia y quedan guardadas, que el `check` rechaza una franja
-  inventada y también quedarse sin ninguna, que **un miembro no admin no las puede
-  cambiar** —B ya es miembro de la familia de A a esas alturas, así que es el caso real y
-  no un ajeno— y que después de los dos rechazos el valor sigue siendo el bueno.
-- El caso del array vacío es el que justificó usar `cardinality` en vez de
-  `array_length` en el `check`: con el array vacío `array_length` devuelve null, un `check`
-  que sale null se considera cumplido y `{}` se habría colado. Se ve rechazado en la
-  ejecución, no solo en el razonamiento.
-
-### Notas de la ejecución (21-08-2026)
-
-- **51/51, el mismo recuento que el 06-08-2026**, y era lo esperado: la 017 y la 018 no
-  tocan policies ni aislamiento. La 017 son dos `check` de `events` y la 018 una columna
-  de `children`, tabla que ya se valida por las vías de siempre. `kind` no cambia quién
-  ve qué, así que el arnés no gana comprobaciones.
-- Que las dos migraciones estuvieran aplicadas se comprobó **leyendo la base real**:
-  `children.kind` y `events.kind` responden 200 y devuelven `hijo` y `evento`. Los dos
-  `check` (que `events.kind` acepte `descanso` y `children.kind` acepte `adulto`) no se
-  pueden verificar sin escribir, así que ahí no hay comprobación automática: se ven al
-  crear un descanso o un adulto desde la app.
-
-### Notas de la ejecución (06-08-2026)
-
-- Las cuatro comprobaciones nuevas pasaron a la primera. Las de los triggers de `tasks`
-  eran las que más se querían ver: la 015 metió en `tasks` dos columnas que apuntan a
-  otra tabla con `family_id`, y que el trigger estuviera escrito no probaba que saltara.
-- La 016 no añade comprobación propia: `expires_on` es una columna nullable y el
-  aislamiento de `documents` se sigue validando por las vías de siempre (RLS de lectura,
-  403 en escritura ajena y las nueve de Storage).
-
-### Notas de la ejecución (03-08-2026)
-
-- Se detectó que `architecture.md` y `project-status.md` documentaban la RPC como `accept_family_invite(invite_id)`, cuando la migración y el código usan `p_invite_id`. Corregido.
-- Dos versiones intermedias del arnés daban falsos positivos en Storage: primero por omitir el nombre del bucket en la ruta (todo fallaba, incluidas las operaciones legítimas) y después por usar como "ajeno" a un usuario que ya se había unido a la familia. Ambos casos servían de recordatorio de que una prueba que pasa no siempre prueba lo que dice.

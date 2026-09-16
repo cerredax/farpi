@@ -229,8 +229,7 @@ Objetivo: preparar uso diario.
   documento que hubiera subido otra persona. Detrás fueron los seis endurecimientos
   menores —guarda de CSRF propia, el `ref` de una subida atado a su familia,
   `family_members` solo con `select`, `/api/salud` sin amplificar, el `Origin` de la
-  subida desde `SITE_URL` y el `CRON_SECRET` en tiempo constante—. El relato en
-  `docs/historial.md`; el SQL quedó en `supabase/schema.sql`, **aplicado y validado el
+  subida desde `SITE_URL` y el `CRON_SECRET` en tiempo constante—. El SQL quedó en `supabase/schema.sql`, **aplicado y validado el
   mismo día**: 163/163.
 - ✅ **Borrar la cuenta vuelve a funcionar** (04-09-2026). El
   arreglo del día anterior se pisaba con el esquema: `documents.storage_owner` es
@@ -404,7 +403,7 @@ pregunta que se hace en una casa a mitad de mes. El porqué entero está en
 ## Fase 8g - Finanzas: fuera las palabras de banco (02-09-2026)
 
 Los nombres que puso la fase anterior duraron un día. El porqué está en
-`docs/architecture.md`, en «"Topes" y "movimientos" duraron un día».
+`docs/architecture.md`, «Cuatro piezas y una sola palabra «presupuesto»».
 
 - [x] Los `budgets` dejan de ser «topes» y pasan a ser **partidas**: la palabra nombra el
       apartado con dinero asignado, no solo el techo que no se puede pasar.
@@ -418,7 +417,7 @@ Los nombres que puso la fase anterior duraron un día. El porqué está en
 
 Lo que pedía el uso real: que la cuenta de un mes se cargue de los fijos y **quede
 guardada aunque luego los cambies**. El porqué y las alternativas descartadas, en
-`docs/architecture.md`, «La plantilla («Lo fijo») y los meses cerrados».
+`docs/architecture.md`, «La plantilla y los meses cerrados».
 
 - [x] La plantilla es cómo suele ser un mes; el mes en curso la refleja; el mes que
       termina se queda con una copia congelada. Sin ningún botón de cerrar nada.
@@ -469,8 +468,7 @@ guardada aunque luego los cambies**. El porqué y las alternativas descartadas, 
 ## Fase 8j - Finanzas: los gráficos otra vez, «Cada mes» y el mes que no ha llegado (02-09-2026)
 
 Tres cosas que se vieron al usar la pantalla, no al escribirla. El porqué de cada
-una, en `docs/architecture.md`: «La segunda vuelta de los gráficos» y el cuarto
-estado, `por-venir`.
+una, en `docs/architecture.md`: «Los gráficos» y «Los cuatro estados de un mes».
 
 - [x] **«El mes tipo» pasa a llamarse «Cada mes».** «Tipo» es una palabra de
       formulario. Dentro del código el concepto sigue siendo **la plantilla**, y el
@@ -492,7 +490,7 @@ estado, `por-venir`.
 ## Fase 8k - Finanzas: «Lo fijo», los meses que no se vivieron y el mes en cero (03-09-2026)
 
 Todo salió de usar la pantalla un día. El porqué de cada cosa, en
-`docs/architecture.md`: «La plantilla («Lo fijo») y los meses cerrados».
+`docs/architecture.md`: «La plantilla y los meses cerrados».
 
 - [x] **«Cada mes» pasa a llamarse «Lo fijo».** El problema no era lo que decía, era
       estar pegado a «El mes» en la misma fila de pestañas: dos etiquetas con la
@@ -521,7 +519,7 @@ Todo salió de usar la pantalla un día. El porqué de cada cosa, en
 ## Fase 8l - Finanzas: las partidas se abren y el resumen adelgaza (03-09-2026)
 
 Salió de mirar la pantalla y no entender los gráficos. El porqué, en
-`docs/architecture.md`: «La tercera vuelta: menos» y «Las partidas se abren».
+`docs/architecture.md`: «Los gráficos» y «Los apuntes y las partidas».
 
 - [x] **Las partidas se despliegan** y enseñan sus líneas —fecha, concepto, quién y
       cuánto—, que salen del mismo recorrido que suma su cifra. Tocar una línea abre
@@ -552,7 +550,7 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
 ## Fase 8m - Finanzas: los fijos de la cuenta se abren (04-09-2026)
 
 Lo mismo que se le hizo a las partidas el día antes, un nivel más arriba. El porqué, en
-`docs/architecture.md`: «Los fijos de la cuenta se abren».
+`docs/architecture.md`: «Los fijos».
 
 - [x] **«Ingresos fijos» y «Gastos fijos» se despliegan** y enseñan sus líneas —emoji,
       nombre e importe—, con el signo del total y sumando lo que este dice. Salen de la
@@ -672,7 +670,7 @@ decisión, en `docs/architecture.md`.
 ## Fase 8r - Documentos, Comidas e Inicio: tres repasos (08-09-2026)
 
 Tres tandas pequeñas y sin relación entre ellas. El porqué de cada decisión, en
-`docs/architecture.md`; el relato, en `docs/historial.md`.
+`docs/architecture.md`.
 
 - [x] **Documentos: una ficha sin dueño lo dice.** Las rutas resolvían el
       `storage_owner` nulo con el Drive de quien mira, así que salía «conecta tu
@@ -700,8 +698,8 @@ Tres tandas pequeñas y sin relación entre ellas. El porqué de cada decisión,
 ## Fase 8s - El orden de los sheets de Notas y Tareas (08-09-2026)
 
 Segunda vuelta a Listas, Tareas y Notas, ahora leyendo los formularios como quien los
-rellena. Listas se queda como está. El porqué, en `docs/architecture.md`, «El orden de un
-sheet lo manda lo que más se contesta».
+rellena. Listas se queda como está. El porqué, en `docs/architecture.md`, «UI compartida» → el
+orden de los campos de un sheet.
 
 - [x] **«Fijar» sube por delante del icono** en el sheet de una nota: estaba el último,
       detrás del textarea, del aviso de las claves y de tres filas de emoji, y en un móvil
@@ -723,8 +721,8 @@ sheet lo manda lo que más se contesta».
 ## Fase 8t - Los borrados que se llevan lo que no se ve (08-09-2026)
 
 Dos preguntas sobre el botón de eliminar: el rojo y el doble toque. El porqué, en
-`docs/architecture.md` («Cuatro borrados preguntan en vez de armarse» y «El rojo de borrar
-sube de contraste»); el relato, en `docs/historial.md`.
+`docs/architecture.md` («UI compartida»: el doble toque, los cuatro borrados que preguntan
+y el rojo de borrar).
 
 - [x] **Cuatro borrados preguntan en un diálogo**: lista, partida, persona (hijo, adulto o
       miembro) y familia. Es la misma excepción que el cierre del mes —*el doble toque vale
@@ -757,7 +755,7 @@ sube de contraste»); el relato, en `docs/historial.md`.
 ## Fase 8u - Cinco arreglos de lectura (09-09-2026)
 
 Cinco cosas señaladas de una tirada mirando la app, todas de cómo se lee. El porqué de
-cada una, en `docs/architecture.md`; el relato, en `docs/historial.md`.
+cada una, en `docs/architecture.md`.
 
 - [x] **Inicio parte lo que viene en tres cajas**: «Mañana», «Próximos días» y «Próxima
       semana». El primer corte es mañana —la pregunta que se hace al acostarse— y el
@@ -809,7 +807,7 @@ Deuda de los dos días anteriores, no trabajo nuevo.
 
 Lo que faltaba para dar la sección por cerrada. No son funciones nuevas: son los tres
 sitios donde el uso diario rozaba, el cabo suelto entre sus dos mitades y dos deudas
-técnicas pequeñas. El porqué de cada cosa, en `docs/historial.md`.
+técnicas pequeñas. El porqué de cada cosa, en el cuerpo de su commit.
 
 - [x] **Buscador, y en todos los meses.** Finanzas era la única pantalla de contenido con
       `buscador={null}` a mano. Mira lo escrito **y el nombre de la partida**, y la
@@ -841,8 +839,8 @@ técnicas pequeñas. El porqué de cada cosa, en `docs/historial.md`.
 ## Fase 8x - Finanzas: el menú se lee como un menú (14-09-2026)
 
 Segunda vuelta del mismo día, pedida al mirar la barra de pestañas ya terminada: se ven
-las cuatro, y aun así no parecía una barra. El porqué, en `docs/architecture.md`, «El
-menú de Finanzas se lee como un menú».
+las cuatro, y aun así no parecía una barra. El porqué, en `docs/architecture.md`, «Cuatro
+piezas y una sola palabra «presupuesto»».
 
 - [x] **Cuatro nombres con la misma forma**: «Este mes», «Evolución», «Fijos» y
       «Presupuestos». Los de antes eran artículo y nombre, pregunta, adjetivo
@@ -902,7 +900,7 @@ que faltaba; aquí se hace lo contrario y se juntan los que nombran **una sola f
 Tercera vuelta del mismo día. El nombre «Evolución» duró unas horas: promete una
 tendencia, y con cuatro meses de datos no hay ninguna que enseñar sin mentir. Con el
 nombre nuevo venía el encargo de que la pestaña lo fuera. El porqué de cada cosa, en
-`docs/architecture.md`, «"Estadísticas" habla del año, no solo del mes».
+`docs/architecture.md`, «Estadísticas».
 
 - [x] **«Evolución» pasa a «Estadísticas»**, cuarto nombre de la pestaña. La clave interna
       sigue siendo `resumen`.
@@ -937,7 +935,7 @@ nombre nuevo venía el encargo de que la pestaña lo fuera. El porqué de cada c
 
 Salió de una pregunta —cómo se cierra un mes que dice «no se guardó ningún fijo ni ninguna
 partida» pero que sí existe en la base— y acabó en un fallo de estadística. El porqué, en
-`docs/architecture.md`, «Un mes cerrado y vacío no cuenta como un mes».
+`docs/architecture.md`, «Los cuatro estados de un mes».
 
 - [x] **Un mes cerrado y vacío sin apuntes ya no entra en la serie ni en la media del
       año.** Ponía una barra a cero y, peor, contaba en el divisor: la cabecera del año
@@ -961,7 +959,7 @@ partida» pero que sí existe en la base— y acabó en un fallo de estadística
 ## Fase 8ab - Un solo .sql en `supabase/` (15-09-2026)
 
 La carpeta tenía seis archivos de SQL y uno llevaba doce días desincronizado sin que nadie
-lo viera. El relato entero, en `docs/historial.md`.
+lo viera. El relato entero, en el cuerpo del commit.
 
 - [x] **Borrados los cinco archivos sueltos**: `aplicar-ajustes-de-fijos.sql`,
       `aplicar-invitacion-caduca.sql`, `aplicar-meses-cerrados.sql`,
@@ -1036,7 +1034,7 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
      `/no-disponible` —503 por `rewrite`, sin cambiar la URL, para que recargar
      reintente donde estabas—. **No se manda al login**: parecería que se ha caído tu
      sesión. La RLS no se toca: el middleware es experiencia de uso, no seguridad. El
-     relato, en `docs/historial.md`.
+     relato, en el cuerpo del commit.
   3. ✅ **Ruta `/api/salud`** (28-08-2026). Mide las dos mitades de Supabase por
      separado —`/auth/v1/health` y una consulta anónima que la RLS deja en cero
      filas— y devuelve **200 si las dos van, 503 si alguna falla**, con los

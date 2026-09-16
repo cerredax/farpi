@@ -784,8 +784,7 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   carpeta de migraciones rehaciéndose por la puerta de atrás. Se fueron porque la regla
   que los sostenía («se reescribe entero en cada cambio») se incumplió las dos veces que
   importaba: una dejó doce días la copia del cierre de mes sin el `coalesce` de los
-  ajustes de un fijo, debajo de una cabecera que invitaba a reejecutarla. El relato, en
-  `docs/historial.md`. Si algún día hace falta un backfill de datos —lo único que un
+  ajustes de un fijo, debajo de una cabecera que invitaba a reejecutarla. Si algún día hace falta un backfill de datos —lo único que un
   archivo de esquema no sabe contar— irá suelto a `supabase/datos/` con su fecha.
 - **El archivo y la base de la familia divergen en una cosa, y solo en una** (15-09-2026):
   tres índices que sobraban —`tasks_family_idx`, `meal_plans_family_date_idx` e
@@ -1217,7 +1216,7 @@ donde vive el detalle; aquí está la lista entera para no tener que reconstruir
 Lo que **ya no está** en esta lista, porque se cerró: las notificaciones push (28-08-2026),
 la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
-(169/169 el 05-09-2026). El relato de cada una, en `docs/historial.md`.
+(169/169 el 05-09-2026). El relato de cada una, en el cuerpo de su commit.
 
 ### 1. Hay que tener un aparato delante
 
@@ -1269,4 +1268,6 @@ porque ninguno se arregla sin tocar algo que no es suyo:
 
 ## Historial
 
-Los trabajos ya cerrados, con su porqué, están en `docs/historial.md`.
+Los trabajos ya cerrados, con su porqué, están en los cuerpos de los commits
+(`git log`). No hay un documento de historial: tenerlo era contar dos veces lo mismo,
+y la copia era la que se quedaba vieja.

@@ -58,7 +58,6 @@ python scripts/gen-email-templates.py   # plantillas de correo de Supabase
 ## Documentación interna
 
 - [Estado del proyecto](./docs/project-status.md): qué está hecho, qué falta y cuál es el siguiente paso.
-- [Historial de trabajo](./docs/historial.md): lo ya cerrado, con su porqué, de lo más reciente a lo más antiguo.
 - [Arquitectura](./docs/architecture.md): decisiones técnicas, modo demo, Supabase, repositorios y datos.
 - [Roadmap](./docs/roadmap.md): orden recomendado de trabajo por fases.
 - [Puesta en producción](./docs/produccion.md): checklist de despliegue en Vercel + Supabase.

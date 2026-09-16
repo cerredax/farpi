@@ -445,7 +445,7 @@ test('la semana se recorre a lo ancho sin perder las horas', async ({ page }) =>
  *
  * Que devuelva 503 cuando Supabase está caído no se puede probar desde aquí
  * —haría falta un Supabase caído—; eso se comprobó a mano contra el build
- * servido y está contado en `docs/historial.md`.
+ * servido, y está contado en `docs/project-status.md` y en el commit que la trajo.
  */
 test('la ruta de salud contesta y no se cachea', async ({ request }) => {
   const res = await request.get('/api/salud')

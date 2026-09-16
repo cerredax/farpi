@@ -53,7 +53,7 @@
 -- pega a mano. Lo único que este archivo no sabe contar son las migraciones de
 -- **datos** —un backfill ocurre una vez y no se deriva de la forma—; ha habido
 -- una en toda la vida del proyecto (cerrar los meses pasados que ya tenían
--- gastos, 02-09-2026, en `docs/historial.md`). Si algún día aparece la segunda,
+-- gastos, 02-09-2026; el porqué, en el commit de ese día). Si algún día aparece la segunda,
 -- vivirá suelta en `supabase/datos/` con su fecha y sin arrastrar una convención
 -- para todo lo demás.
 --

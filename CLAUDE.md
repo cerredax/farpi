@@ -17,9 +17,10 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 ## Lee primero
 
 - `docs/project-status.md` — estado real y pendientes (fuente de verdad). Cuenta
-  **cómo está** el proyecto, no cómo se llegó: lo ya cerrado vive en
-  `docs/historial.md` desde el 28-08-2026, cuando el historial se había comido al
-  estado (1030 de 1488 líneas) y dejaba de leerse justo lo que había que leer.
+  **cómo está** el proyecto, no cómo se llegó. El relato de cada cierre vive en el
+  **cuerpo de su commit**, que es donde se escribió primero; este documento se quedó sin
+  él el 28-08-2026, cuando se lo había comido (1030 de 1488 líneas) y dejaba de leerse
+  justo lo que había que leer.
 - `docs/architecture.md` — decisiones técnicas (RLS, RPCs, repositorios) y también las
   **decisiones de producto** y el **tono de la interfaz**.
 - `docs/roadmap.md` — orden de trabajo.
@@ -27,6 +28,13 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 - `docs/produccion.md` — checklist de despliegue (Vercel + Supabase) y variables de entorno.
 - `docs/supabase-validation.md` — resultado de la última validación de RLS.
 - `docs/notificaciones.md` — qué falta para activar las notificaciones push.
+
+Y `git log`, que es el séptimo documento: **los 350 commits llevan cuerpo** —unas 10.000
+líneas— y ahí está el porqué de cada cosa, escrito el día que se hizo. Hubo un
+`docs/historial.md` que lo volvía a contar; se borró el 16-09-2026 porque una copia de algo
+que git ya guarda solo puede hacer una cosa, quedarse vieja, y ya lo había hecho. Un detalle
+para leerlo: **la app se llamó Nido hasta el 31-08-2026**, así que un commit anterior que
+diga «Nido» es Farpi antes de llamarse así.
 
 ## Reglas de trabajo
 
@@ -308,6 +316,7 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en
   `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`, como el resto del historial.
 - Al cerrar un trabajo relevante, actualiza `docs/project-status.md` y marca lo que
   toque en `docs/roadmap.md`. Son la fuente de verdad y se desactualizan solas. El
-  **relato** del cierre va a `docs/historial.md`, bajo su fecha; en `project-status.md`
-  solo lo que siga siendo verdad hoy. Escribir el relato en el estado es exactamente
-  lo que lo infló hasta hacerlo ilegible.
+  **relato** del cierre va en el **cuerpo del commit** y en ningún documento más; en
+  `project-status.md` y en `architecture.md`, solo lo que siga siendo verdad hoy. Escribir
+  el relato en el estado es exactamente lo que lo infló hasta hacerlo ilegible, y tenerlo
+  además en un archivo aparte era contarlo dos veces: `git log` no se desincroniza.

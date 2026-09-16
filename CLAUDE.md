@@ -250,7 +250,7 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en
 
 ## Convenciones de código
 
-- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts`, `agenda.ts` (los tramos de la agenda), `budgets.ts` (el dinero del mes: la plantilla, la cuenta, las partidas, buscar y agrupar apuntes), `quotes.ts` (los presupuestos que te pasan de fuera, aparte de `budgets.ts` para que un archivo no tenga dentro los dos significados de «presupuesto») y `text.ts`: mírala antes de reescribirla.
+- Constantes compartidas en `src/lib/constants.ts`; fechas **locales** en `src/lib/date-utils.ts` (no usar `toISOString().split('T')[0]` para fechas familiares); validaciones ligeras en `src/lib/validators.ts`; datos derivados en `src/lib/selectors.ts`; recurrencias en `src/lib/recurrence.ts`. También hay lógica ya escrita en `assignees.ts` (a quién se asigna algo), `events.ts` (qué días ocupa un evento y quién no está disponible), `meal-slots.ts` (qué franjas se pueden apagar), `push.ts`, `family-config.ts`, `agenda.ts` (los tramos de la agenda), `budgets.ts` (el dinero del mes: la plantilla, la cuenta, las partidas, buscar y agrupar apuntes), `quotes.ts` (los presupuestos que te pasan de fuera, aparte de `budgets.ts` para que un archivo no tenga dentro los dos significados de «presupuesto»), `finanzas.ts` (el dinero en céntimos y enteros, y cómo se escribe), `timeline.ts` (dónde cae cada evento en el eje de horas y cómo se reparten los que coinciden), `birthdays.ts` (quién cumple y cuántos), `reminders.ts` (el texto del aviso de las siete), `errores.ts` (el fallo de Postgres dicho en castellano), `export.ts` (la copia de seguridad de la familia), `peticiones.ts` (lo que se sabe de una petición sin levantar un servidor) y `text.ts`: mírala antes de reescribirla. La regla que las junta a todas: **si se puede probar sin navegador, vive en `src/lib/` y no dentro de un componente ni de una ruta**.
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - **Un sheet no va dentro de un contenedor con `space-y-*`**: va fuera, como hermano suyo,
@@ -291,7 +291,7 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en
   baja saturación y dos tonos que parecen distintos pueden no serlo (el verde y el
   salmón están a ΔE 2,3 en protanopía). Los tokens y el porqué, en `globals.css`,
   bloque «Gráficos de Finanzas».
-- Hooks compartidos en `src/hooks/`: además de los dos de los sheets, `useConfirmAction`, `useIsClient` y `useMediaQuery`.
+- Hooks compartidos en `src/hooks/`: además de los tres de los sheets —`useSheetForm`, `useSheetDelete` y `useSheetDeleteDialog`, los tres en `useSheetForm.ts`—, `useConfirmAction`, `useIsClient`, `useMediaQuery` y `useSwipe` (pasar de mes o de día con el dedo, en `CalendarView` y en `Timeline`).
 - Tailwind v4 (sin `tailwind.config`; tokens en `src/app/globals.css`).
 
 ## Entregar el trabajo

@@ -1006,7 +1006,9 @@ lo viera. El relato entero, en `docs/historial.md`.
 
 Objetivo: que la app funcione sola, sin nadie mirándola.
 
-- [ ] **Un teléfono de verdad.** Los cuatro puntos abiertos de la Fase 2. Es lo
+- [ ] **Un teléfono de verdad.** Los **dos** puntos que siguen abiertos en la Fase 2:
+  Safari de iOS y la PWA instalada. Los otros dos —el teclado sobre un sheet y el scroll
+  con inercia— se cerraron en la prueba del 05-08-2026, que fue en Android. Es lo
   primero, porque es lo que puede sacar un fallo que no ve ninguna herramienta.
 - ✅ **Notificaciones push, probadas de punta a punta** el 28-08-2026: activar desde
   Ajustes con una cuenta real, suscripción guardada y cron devolviendo
@@ -1015,7 +1017,8 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   `serviceWorker.ready` no rechaza nunca— contado en `docs/notificaciones.md`.
   El cabo que quedaba —el `CRON_SECRET` de Vercel desalineado con el local— ya
   está resuelto (ver más abajo).
-- [ ] **Enterarse cuando la casa se cae.** El 28-08-2026 Supabase tuvo una caída de
+- ✅ **Enterarse cuando la casa se cae** (cerrado el 15-09-2026 con el vigía externo, que
+  era la última de las cuatro). El 28-08-2026 Supabase tuvo una caída de
   latencia (incidencia abierta a las 01:38 UTC, "additional latency and error rates")
   y Farpi se quedó **inservible durante horas sin que nada lo dijera**: el middleware
   tardaba entre 150 y 224 segundos en cada ruta con sesión —contra 3 ms sin ella—

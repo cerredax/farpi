@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-15.
+Última revisión: 2026-09-16.
 
 ## Resumen
 
@@ -13,8 +13,9 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
 seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisión había
 dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —el ajuste
 de un fijo en un mes suelto—: tabla, índice,
-policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Lo que queda no es código de producto: funcionalidades
-que todavía no existen (ver "Siguiente paso recomendado").
+policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. **Lo que queda no es código de producto**: pruebas que piden un aparato
+delante, una decisión sin tomar, dos funcionalidades que no existen y tres acabados
+menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
 
 ## Implementado
 
@@ -1207,73 +1208,64 @@ esto; aquí solo el titular.
 
 ## Siguiente paso recomendado
 
-La app está en producción y en uso diario por la familia, y probada en un móvil
-real. Lo que queda son dos comprobaciones baratas y funcionalidades que no existen.
+La app está en producción y en uso diario por la familia. **No queda código de producto
+pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
+pruebas que exigen un aparato en la mano, una decisión sin tomar, dos funcionalidades que
+no existen y tres acabados menores. Cada una tiene su fase en `docs/roadmap.md`, que es
+donde vive el detalle; aquí está la lista entera para no tener que reconstruirla.
 
-### Las comprobaciones que quedaban: ninguna
+Lo que **ya no está** en esta lista, porque se cerró: las notificaciones push (28-08-2026),
+la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
+de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
+(169/169 el 05-09-2026). El relato de cada una, en `docs/historial.md`.
 
-Las dos que había aquí se cerraron el 06-08-2026:
+### 1. Hay que tener un aparato delante
 
-- **RLS revalidado** tras las migraciones 015 y 016: 51/51. Los triggers de `tasks`
-  saltan de verdad, que era la duda — que estuvieran escritos no probaba que lo
-  hicieran.
-- **El cron corre solo** a las 07:00 UTC y devuelve `keptAlive: true`, comprobado en
-  los logs de Vercel. Supabase no se va a pausar por inactividad.
+Es lo único que no ve ninguna herramienta, y por eso va primero.
 
-### Funcionalidades que faltan, no riesgos
+- **Safari de iOS** (Fase 2). El móvil de verdad del 05-08-2026 era Android, y Safari es
+  otro motor: el teclado, el `100vh` y la safe-area se comportan distinto.
+- **La PWA instalada** (Fase 2): icono, splash, el notch y la barra de abajo. Instalada no
+  es lo mismo que abierta en el navegador, y el service worker solo se prueba de verdad
+  contra `npm run start`, nunca contra `npm run dev`.
+- **El flujo de documentos con dos cuentas** (Fase 6b, `docs/testing-checklist.md` §8.1):
+  que A suba un papel a su Drive y B lo abra sin conectar nada. Es la mitad de la
+  decisión del 27-08-2026 que no prueba ningún test.
 
-1. ~~**Notificaciones push.**~~ **Hecho.** Probadas de punta a punta el 28-08-2026
-   con una cuenta real (`sent: 1, fallidos: 0`), con las claves VAPID ya en Vercel.
-   El `CRON_SECRET` de Vercel, desalineado con el local, ya está igualado y
-   comprobado. El arreglo del service worker (revertido por error en `652ce96`,
-   creyendo que había roto el arranque) volvió en `ced89ed` el mismo día: la causa
-   real fue una caída de Supabase, no el código. Ver `docs/notificaciones.md`.
+### 2. Decisión sin tomar
 
-   **Lo que sigue siendo verdad tras el 15-09-2026**, cuando estuvieron una semana
-   "sin funcionar" sin estar rotas: **una suscripción es un navegador, no una
-   persona**, así que hay que activarlas en cada dispositivo. La tarjeta de Ajustes
-   ya no se fía solo del navegador —`GET /api/push` dice qué endpoints tiene
-   guardados el usuario, y en duda se enseña "Activar", que repara al pulsarlo—, y
-   el aviso **nombra** los planes con su hora en vez de contarlos, con el texto en
-   `src/lib/reminders.ts` y sus 21 unitarios. **El cabo del cron se cerró ese mismo
-   día**, con el CLI de Vercel: el trabajo está registrado (`0 7 * * *`), activo desde
-   el 17-06-2026 con `disabledAt: null`, enganchado al despliegue vigente, y disparado
-   a mano por el propio Vercel (`vercel crons run`) contesta **200**. La ruta responde
-   401 y no el 503 de "cron no configurado", así que el `CRON_SECRET` también está.
+- **Google Play (TWA)**: falta el package name definitivo —es irreversible—, el SHA-256 de
+  la firma, `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`. La PWA y
+  la política de privacidad, que es lo que Google exige, ya están.
 
-   Dicho con precisión: **de esa revisión** no salió la ejecución de las 07:00 UTC
-   **de aquel día** —en plan Hobby los logs caducan en un par de horas y se miró a las
-   11—, sino la misma invocación por la misma vía. La ejecución automática sí se vio en
-   los logs en su momento, el 06-08-2026, y es la que se da por buena más arriba. Lo
-   que el CLI añade es que la tarea sigue registrada y enganchada hoy, que era la duda
-   después de tocar el `CRON_SECRET`. Y una cosa que conviene saber antes de
-   asustarse: **cada ejecución sale marcada como `error` en los logs de Vercel**, y no
-   lo es. Es un `DeprecationWarning` de `url.parse()` que escribe `web-push@3.6.7` por
-   stderr, y Vercel pinta de rojo todo lo que salga por ahí. El `responseStatusCode`
-   de esa misma línea dice 200.
-2. ~~**Backup/export de datos de la familia.**~~ **Hecho el 27-08-2026** (ver
-   "Copia de seguridad" en `docs/historial.md`). Lo que sigue siendo verdad, y por lo
-   que era insustituible: con
-   los documentos en Drive el riesgo cambia de forma más que de tamaño: los archivos
-   están ahora en una cuenta de Google de verdad (con su propia papelera y su propio
-   backup), pero a cambio dependen de que esa persona siga en la familia y con el
-   permiso dado. El calendario y las fichas siguen en un único proyecto Supabase del
-   plan gratuito, sin exportación.
+### 3. Funcionalidad que no existe
 
-### Decisión abierta
+- **Una sección de ayuda** (Fase 8u). Es la contrapartida de haber vaciado los estados
+  vacíos de manual de estreno. No urge: lo que se quitó se leía una vez.
+- **Dar salida por la app a un mes fantasma** (Fase 8aa). Hoy un mes cerrado y vacío solo
+  se recupera por el SQL Editor. Sería una RPC nueva —borrar la cabecera y recopiar en una
+  sola operación— y, detrás, `scripts/validate-rls.mjs` y `docs/supabase-validation.md`.
 
-3. **Google Play (TWA)**: falta el package name definitivo,
-   `public/.well-known/assetlinks.json` (necesita el SHA-256 de la firma) y la guía
-   `docs/play-store.md`. La PWA y la política de privacidad ya están.
+### 4. Acabados de Finanzas
 
-### Después
+Los tres salieron medidos de su propia fase y se dejaron escritos en vez de arreglados,
+porque ninguno se arregla sin tocar algo que no es suyo:
 
-4. ~~Medir el contraste de la paleta.~~ **Hecho.** El resto de la revisión de
-   accesibilidad —roles, labels, foco, `inert` en los sheets— ya estaba (Fase 8 del
-   roadmap); el contraste se midió nodo a nodo en el navegador el 09-09-2026 y lo que
-   quedó anotado se cerró el 10-09-2026. Ya no hay texto sobre `danger`: el último era el
-   «Sí, ponerlo a cero» del cierre del mes (3,33:1 → 5,41:1). `danger` se queda para lo
-   que no es texto, donde 3,33:1 cumple el 3:1 de la 1.4.11.
+- **Las barras de «entra» y «sale» no se separan** (Fase 8z): ΔE 3,8 en protanopía y 13,6
+  con visión normal, por debajo del suelo de 15. El único candidato que pasa es un **azul**
+  (ΔE 12,8), y verde contra cualquier naranja o rojo no pasa nunca. Cambiar el verde es
+  tocar el color de marca, así que se decide aparte.
+- **La rejilla de iconos de un fijo va con un hueco** (Fase 8y): son 23 y la última fila
+  lleva siete. Mejor candidato, 🦷.
+- **🏛️ y 🏦 se parecen** en la tipografía de Android (Fase 8y). Están separados en la
+  rejilla para que no se comparen de un vistazo, pero el problema sigue ahí.
+
+### Lo que no hay que hacer
+
+- **Telemetría de errores del cliente.** Es una app familiar con DNI e informes médicos
+  dentro; mandar trazas a un tercero cuesta más de lo que resuelve.
+- **Volver a numerar migraciones.** Sin un runner que apunte cuáles se aplicaron es una
+  lista que hay que creerse, y aquí el SQL se pega a mano. La regla está en `CLAUDE.md`.
 
 ## Historial
 

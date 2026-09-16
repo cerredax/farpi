@@ -100,13 +100,14 @@ Regla central de RLS:
 Detalles de seguridad:
 
 - `my_family_ids()` es `security definer` con `set search_path = public`.
-- `family_members` **solo tiene policy de `select`**: ni `insert`, ni `update`, ni `delete` (el `insert` se retiró el 03-09-2026). El perfil se edita con `update_family_member_profile` (RPC, `014`), que restringe los campos a `display_name` y `color`, y permite hacerlo a uno mismo o a un admin de esa familia. Sustituye a `update_my_family_profile`, que solo dejaba editarse a uno mismo.
+- `family_members` **solo tiene policy de `select`**: ni `insert`, ni `update`, ni `delete` (el `insert` se retiró el 03-09-2026). El perfil se edita con `update_family_member_profile` (RPC `security definer`), que restringe los campos a `display_name` y `color`, y permite hacerlo a uno mismo o a un admin de esa familia. Sustituye a `update_my_family_profile`, que solo dejaba editarse a uno mismo.
 - Las policies de `family_invites` para UPDATE incluyen `using` y `with check`.
 
 ## Superficie de seguridad fuera de la base de datos
 
-La validación 47/47 cubre RLS, RPCs y Storage: la base de datos. Lo que queda por
-encima —las rutas API y el callback de correo— se revisó el 2026-08-05:
+El arnés de `scripts/validate-rls.mjs` cubre RLS, RPCs e integridad: la base de datos,
+y nada más. Lo que queda por encima —las rutas API y el callback de correo— no lo ve, y
+se revisó a mano el 2026-08-05 y otra vez el 03-09-2026:
 
 - `/api/invite` usa la service role **solo** para mandar el email; la invitación
   se inserta con el cliente del usuario (RLS) y antes comprueba que quien llama
@@ -1049,7 +1050,7 @@ en "lo que hay que hacer hoy", en "esta semana" y en el correo de las siete de l
 mañana, donde un festivo se anunciaba como "tenéis 1 evento".
 
 La causa era que la regla estaba escrita de cuatro maneras por la app y dos de ellas
-solo apartaban las vacaciones, así que al entrar el descanso (017) y el festivo (020)
+solo apartaban las vacaciones, así que al entrar el descanso (21-08-2026) y el festivo (26-08-2026)
 nadie volvió a mirarlas. Ahora es **una sola**: `isPlan(event)` en `src/lib/events.ts`,
 lo contrario de `isRangeKind`, y el cron arma su filtro contra Postgres con la misma
 lista (`RANGE_KINDS`). Los tests que la cubrían también miraban solo las vacaciones,

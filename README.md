@@ -45,12 +45,13 @@ npm run dev         # servidor de desarrollo, puerto 3000
 npm run build       # build de producción
 npm run start       # servir el build
 npm run lint        # eslint
-npm run test:unit   # ~315 tests de lógica pura, sin servidor (~2 s)
-npm run test:e2e    # la suite entera: unitarios + navegador, en modo demo
+npm run test:unit   # 590 tests de lógica pura, sin servidor (~2 s)
+npm run test:e2e    # la suite entera: 767 (590 unitarios + 177 de navegador), en modo demo
 
 node scripts/validate-rls.mjs    # valida RLS, RPCs y triggers contra el Supabase real
 node scripts/gen-vapid.cjs       # genera el par de claves para las notificaciones push
 node scripts/gen-icons.cjs       # regenera los iconos de la PWA
+node scripts/gen-capturas.mjs    # capturas de la portada y og.png, contra la app en demo
 python scripts/gen-email-templates.py   # plantillas de correo de Supabase
 ```
 

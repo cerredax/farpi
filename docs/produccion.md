@@ -363,10 +363,14 @@ Resultados en **`docs/supabase-validation.md`**: 169/169 comprobaciones correcta
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).
 - [x] Tokenizar los colores one-off (hecho 2026-08-03: 109 → 36 apariciones).
 - [x] Tests e2e de flujos CRUD (`e2e/runtime.spec.ts`) y de móvil a 390 px (`e2e/movil.spec.ts`).
-- [ ] Backup/export de datos de la familia.
+- [x] Backup/export de datos de la familia (27-08-2026). Desde Ajustes, un JSON con todo
+  lo de la casa; la lógica, en `src/lib/export.ts`. No se lleva los archivos de los
+  documentos, que viven en el Drive de quien los sube y tienen su propia papelera.
 - [ ] Publicar en Google Play como TWA: package name, SHA-256 de la firma,
   `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`.
-- [ ] Medir el contraste de la paleta.
+- [x] Medir el contraste de la paleta (09-09-2026, cerrado el 10). Medido nodo a nodo en el
+  navegador: 83 fallos, y el último texto sobre `danger` se fue con el «Sí, ponerlo a cero»
+  del cierre del mes. `danger` se queda para lo que no es texto.
 
 ---
 

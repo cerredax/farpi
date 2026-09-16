@@ -118,7 +118,7 @@ Pantallas (src/components/**)
 ```
 
 - **Toda escritura declara qué datos toca.** `runMutation(accion, ['tasks'])` recarga solo
-  esa porción; sin el segundo argumento se recargan las 18, que es lo que hacían todas
+  esa porción; sin el segundo argumento se recargan las 19, que es lo que hacían todas
   hasta el 03-09-2026 —marcar la leche en la compra volvía a descargar los eventos, las
   comidas, los gastos y los documentos—. Qué declarar **no** es «la tabla en la que
   escribo», es esa y todas a las que llegue el esquema solo: `supabase/schema.sql` está
@@ -133,9 +133,9 @@ Pantallas (src/components/**)
 
 ### Next.js 16
 
-- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, finances, notes, docs, birthdays, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo y sin sesión: `/privacidad` y `/terminos` (públicas, y requisito para publicar en Google Play) y `/offline` (fallback del service worker).
+- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, finances, notes, docs, birthdays, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo, las **cinco** que se ven sin sesión, que son exactamente las de `PUBLIC_ROUTES`: `/` (la portada, que redirige a `/home` si ya has entrado), `/privacidad` y `/terminos` (requisito para publicar en Google Play), `/offline` (fallback del service worker) y `/no-disponible` (la cara del "Supabase no contesta", que el proxy sirve por `rewrite` sin cambiar la URL).
 - El middleware es **`src/proxy.ts`** (renombrado en Next 16, exporta `proxy()`), que delega en `src/lib/supabase/middleware.ts` para refrescar la sesión.
-- **Las rutas públicas son una lista blanca a mano**: `PUBLIC_ROUTES` en `src/lib/supabase/middleware.ts`. Si añades una página que se ve sin sesión y no la metes ahí, redirige al login. Lo mismo por el otro lado: el `matcher` de `src/proxy.ts` deja fuera `sw.js` y `manifest.json` a propósito — si pasan por el control de sesión responden con redirect y el navegador se niega a registrar el service worker.
+- **Las rutas públicas son una lista blanca a mano**: `PUBLIC_ROUTES` en `src/lib/supabase/middleware.ts`, y es la lista de arriba. Si añades una página que se ve sin sesión y no la metes ahí, redirige al login. `/api/cron/*` pasa también, por prefijo y no por la lista: el cron de Vercel llama sin sesión y se protege él solo con `CRON_SECRET`. Lo mismo por el otro lado: el `matcher` de `src/proxy.ts` deja fuera `sw.js` y `manifest.json` a propósito — si pasan por el control de sesión responden con redirect y el navegador se niega a registrar el service worker.
 - Ante dudas de API o convención, consultar la documentación local en `node_modules/next/dist/docs/` antes de asumir comportamiento antiguo.
 
 ### Clientes Supabase
@@ -244,7 +244,9 @@ Regla de RLS: un usuario solo accede a datos de familias donde figura en `family
 
 Lo que **no** se hace con policies va por RPC `security definer`: `create_family_with_admin`, `update_family_member_profile`, `remove_family_member`, `update_family_member_role`, `accept_family_invite`. Regla del último admin (una familia siempre tiene ≥1 admin) validada en esas RPCs y en `/api/account/delete`; la UI solo la refuerza.
 
-Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el `alter` suelto en el SQL Editor —las dos cosas, o el archivo miente—, y actualiza los tipos en `src/types/index.ts`, el mock y la documentación.
+Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en el SQL Editor —las dos cosas, o el archivo miente—, y actualiza los tipos en `src/types/index.ts`, el mock y la documentación.
+
+**El trozo suelto sale de `git diff supabase/schema.sql` y no se guarda en el repositorio.** `schema.sql` es el único `.sql` que hay, y no se le añaden compañeros: ni `aplicar-*.sql` para pegar en el editor ni `parche-fecha.sql` como registro del día. Hubo cinco entre el 02 y el 05-09-2026 y eran una carpeta de migraciones rehaciéndose por la puerta de atrás. Se fueron el 15-09-2026, y no por estética: copiar en un segundo archivo un `create or replace` que ya está en `schema.sql` es mantener dos veces lo mismo, y las dos veces que se hizo se desincronizó —una dejó la RPC de invitación insegura esperando a que alguien la reejecutase, la otra el `close_month_copy` de antes de los ajustes de un fijo—. El delta lo calcula git solo y no puede mentir. Lo único que `schema.sql` no sabe contar son los backfills de datos; si aparece uno, va suelto a `supabase/datos/` con su fecha.
 
 ## Convenciones de código
 

@@ -57,8 +57,9 @@ Estado:
   Storage a Google Drive el 27-08-2026.
 - Validación aislada completada (2026-08-03): 47/47 comprobaciones de RLS, RPCs, integridad y Storage. Ver `docs/supabase-validation.md`.
 - Esquema al día y revalidado. La última pasada de `node scripts/validate-rls.mjs`
-  es del 04-09-2026: **165/165**, con la revisión de seguridad del día anterior dentro y
-  el borrado de cuenta arreglado. El historial de cada pasada está en
+  es del 05-09-2026: **169/169**, con `fixed_entry_overrides` dentro —el ajuste de un
+  fijo en un mes suelto— y, antes, la revisión de seguridad del 03-09 y el borrado de
+  cuenta arreglado el 04-09. El historial de cada pasada está en
   `docs/supabase-validation.md`, que es donde vive.
 - `mapFamily` (`src/lib/supabase-repos/family.ts`) normaliza `meal_slots` ausente a "las
   cuatro franjas". Para producción ya no hace falta, pero es lo que permite desplegar
@@ -170,7 +171,7 @@ mentira y aparentando funcionar, que es la clase de avería que nadie mira.
 
 **Implementación:** No se implementa con policies RLS (que no tienen acceso fácil a recuentos de roles). Se implementa mediante RPCs `security definer` en Supabase para la gestión de miembros, y el endpoint `/api/account/delete` bloquea borrar la cuenta si eso dejaría una familia compartida sin admin.
 
-### RPCs implementadas (migración 008)
+### RPCs implementadas
 
 - `remove_family_member(p_member_id uuid)` — elimina un miembro; valida que el llamante es admin y que no es el único admin.
 - `update_family_member_role(p_member_id uuid, p_role text)` — cambia el rol; mismas validaciones.
@@ -179,9 +180,8 @@ Ambas son `security definer` con `set search_path = public, auth`. Sobre `family
 
 ### Invitaciones
 
-La migración `009_accept_invite_rpc.sql` añade `accept_family_invite(p_invite_id uuid)`.
-
-Esta RPC:
+Entrar en una familia va por `accept_family_invite(p_invite_id uuid)`
+(`supabase/schema.sql`), que:
 
 1. Verifica que el usuario está autenticado.
 2. Busca la invitación y comprueba que es **para su email**.
@@ -241,7 +241,7 @@ Un evento, una tarea o un documento puede pertenecer a **toda la familia**, a **
 adulto** o a **un hijo**, nunca a dos a la vez. Se modela con dos columnas nullables,
 `child_id` y `member_id`, y un `check` que impide que ambas estén rellenas.
 
-Las tareas llegaron las últimas (migración 015) y son donde más falta hacía: en una casa
+Las tareas llegaron las últimas y son donde más falta hacía: en una casa
 compartida la pregunta de una tarea es "¿quién la hace?". Guardan además `completed_by`,
 porque `completed_at` decía cuándo pero no quién.
 
@@ -500,12 +500,15 @@ Cada vista aprovecha el ancho como le conviene, no todas con la misma plantilla:
   hasta `lg:max-w-3xl`, porque una lista de la compra sigue siendo una columna.
 - `DocsView`: rejilla de tarjetas (dos y tres) y los filtros sin arrastre, que en
   escritorio caben los cinco.
-- `SettingsView`: las secciones se ponen de pie. En móvil son una fila de etiquetas
-  encima del contenido; desde `lg` son una columna de 13 rem a la izquierda —con icono,
-  y pegada con `lg:sticky` para que sigan a la vista al bajar— y el contenido ocupa el
-  resto hasta `lg:max-w-5xl`. Es **el mismo `role="tablist"`**, no uno por tamaño:
-  duplicarlo repetiría los `id` de cada pestaña y dejaría los `aria-controls` apuntando
-  a dos sitios. Lo único que cambia es cómo se coloca.
+- `SettingsView`: las secciones se ponen de pie. Desde `lg` son una columna de 13 rem a
+  la izquierda —con icono, y pegada con `lg:sticky` para que sigan a la vista al bajar— y
+  el contenido ocupa el resto hasta `lg:max-w-5xl`. Esa columna es el `role="tablist"`, y
+  **hay uno solo**: duplicarlo repetiría los `id` de cada pestaña y dejaría los
+  `aria-controls` apuntando a dos sitios. Por debajo de `lg` las secciones dejaron de ser
+  pestañas el 09-09-2026 y son un **índice** de filas con icono y chevrón —enlaces de
+  verdad a `?seccion=…`, ver «En el móvil, Ajustes es un índice»—, así que ahí no hay
+  `tablist` ninguno que duplicar: ocupa el mismo hueco de la rejilla y se apagan el uno
+  al otro con `lg:hidden` / `hidden lg:flex`.
 
 Home sigue siendo la columna de móvil centrada.
 
@@ -604,7 +607,7 @@ En la lista sí queda señal de color —la banda de 4 px al borde de la tarjeta
 que además lleva el nombre al lado. Es la misma distinción de forma y sitio que separa la
 franja de vacaciones de la etiqueta de un evento.
 
-**Las franjas de comida se eligen, y son de la familia** (migración 019). Las de casa
+**Las franjas de comida se eligen, y son de la familia** (24-08-2026). Las de casa
 —desayuno, comida, merienda y cena, más el comedor desde el 02-09-2026— están fijas en el
 código, pero en una casa que no merienda esa fila es un hueco que la app pide llenar siete
 veces por semana. En Ajustes se

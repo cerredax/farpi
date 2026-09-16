@@ -15,6 +15,66 @@ queda el relato de cada cierre, y en los cuerpos de los commits, el detalle.
 
 ## Cerrado el 2026-09-15
 
+### Un solo .sql, y el que sobraba llevaba doce días mintiendo (15-09-2026)
+
+`supabase/` tenía seis archivos de SQL: `schema.sql` y cinco más. Tres `aplicar-*.sql`
+—hechos para pegarse en el SQL Editor sin reaplicar el esquema entero— y dos
+`parche-*.sql` —el registro de lo que se pasó por el editor un día concreto—. La línea
+entre las dos familias se había trazado el 03-09-2026 y estaba escrita en las cabeceras:
+los `aplicar-*` se reescriben enteros en cada cambio porque están hechos para
+reejecutarse; los `parche-*` no se tocan y no se repiten.
+
+**La regla se volvió a incumplir, y esta vez nadie lo vio.** Comparando función por
+función contra `schema.sql` —normalizando comentarios y espacios— todo coincidía menos una
+cosa: el `close_month_copy` de `aplicar-meses-cerrados.sql` era el de antes del
+05-09-2026, sin el `coalesce` contra `fixed_entry_overrides`. Ese día entraron los ajustes
+de un fijo en un mes suelto y se actualizaron `schema.sql` y el archivo nuevo, pero no
+este, que llevaba desde el 03 sin tocarse. Debajo de una cabecera que dice «es seguro
+volver a ejecutarlo tantas veces como haga falta», esperando a que alguien lo pegara para
+dejar el cierre de mes ignorando otra vez los ajustes. Sin error y sin rastro.
+
+Es la segunda vez. La primera fue `aplicar-invitacion-caduca.sql` el 03-09-2026, con la
+RPC de invitación insegura, y de ahí salió la regla que ahora se ha incumplido. Una regla
+que depende de que alguien se acuerde de actualizar un segundo archivo no es una regla: es
+una cuenta atrás.
+
+**Se van los cinco. Queda `schema.sql` y nada más.** El delta para el SQL Editor no se
+escribe: sale de `git diff supabase/schema.sql`, lo calcula git solo y no se puede
+desincronizar, porque no existe hasta que se pide. Numerar migraciones tampoco vuelve —se
+aplastaron veintiuna el 26-08-2026—: numerar sin un runner que apunte cuáles se aplicaron
+es una lista que hay que creerse, y aquí el SQL se pega a mano en un editor web, con un
+solo proyecto Supabase y una sola persona.
+
+Lo único que un archivo de esquema no sabe contar son las **migraciones de datos**: un
+backfill ocurre una vez y no se deriva de la forma. Ha habido una en toda la vida del
+proyecto —cerrar los meses pasados que ya tenían gastos, 02-09-2026—, y está ejecutada. Si
+aparece la segunda, irá suelta a `supabase/datos/` con su fecha, sin arrastrar una
+convención para todo lo demás. La consulta de comprobación que vivía en el bloque 7 del
+archivo de los meses cerrados se ha mudado a `docs/supabase-validation.md`, que es donde
+tenía sentido desde el principio.
+
+**Nada que arreglar en la base.** La versión buena de `close_month_copy` lleva en
+producción desde el 05-09; el archivo caducado no se reejecutó nunca. El daño era
+potencial, y ahora ya no puede ocurrir.
+
+**Y con el archivo ya solo en la carpeta, se leyó entero.** Que es lo que no se había
+hecho nunca: mirarlo como lo que ahora es, la plantilla con la que alguien levantaría esta
+base de cero. Sale sano —20 tablas, las 20 con RLS, las 27 funciones `security definer`
+con `set search_path`, ni una dependencia declarada antes de existir— y con tres índices
+que sobraban. `tasks_family_idx` era prefijo exacto de `tasks(family_id, due_date)` y de
+`tasks(family_id, completed)`; `meal_plans_family_date_idx`, del que ya crea el
+`unique(family_id, date, slot)`; e `idx_events_kind` no lo usaba nadie, porque `events` se
+lee por `family_id` o por `recurrence_group_id` y el único filtro por `kind` de la app es
+sobre `fixed_entries`. Un btree sirve para cualquier **prefijo** de sus columnas, así que
+los tres se cobraban en cada escritura sin acelerar una sola lectura.
+
+Se quitaron del archivo y **no** de la base. Tres índices de más en una casa de veinte
+filas por tabla no valen un cambio en producción, y el archivo no tiene por qué heredar un
+error solo porque la base lo tenga: quien lo aplique mañana en un proyecto vacío no debe
+nacer con basura que nadie pidió. Que ahí está la única divergencia conocida entre los dos
+lo dice la cabecera, y el `drop` de los tres está escrito al final del bloque de índices,
+listo para quien quiera alinear una base anterior a hoy.
+
 ### El logo de Google, y lo que cuesta ponerlo (15-09-2026)
 
 Con el dominio ya vivo se pudo cerrar el Branding de la pantalla de consentimiento —App
@@ -2128,11 +2188,15 @@ respondiendo. Se resincronizó con `schema.sql` y adoptó la regla que ya tenía
 `aplicar-meses-cerrados.sql`: no crece con parches, se reescribe entero. La regla estaba
 inventada y sin escribir, y por eso no se aplicó.
 
-De ahí sale la línea que ahora separa las dos familias de archivos: los `aplicar-*` se
+De ahí sale la línea que separa las dos familias de archivos: los `aplicar-*` se
 mantienen al día porque están hechos para reejecutarse; los `parche-*` son el registro de
 lo que se pasó por el editor un día, no se tocan y **no se repiten**. `parche-2026-09-03.sql`
 lleva dentro el trigger viejo, así que se quedó como estaba con el aviso de no volver a
 pasarlo.
+
+> Esa línea duró doce días. El 15-09-2026 los cinco archivos se fueron y quedó solo
+> `schema.sql`, porque la regla de «se reescribe entero» volvió a incumplirse sin que
+> nadie lo viera. Lo de abajo cuenta aquel día, no el de hoy.
 
 **Y los papeles decían cosas que ya no eran verdad.** La que más: `architecture.md` y
 `project-status.md` describían como viva la policy `Admin inserta miembros`, que es

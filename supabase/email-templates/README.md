@@ -31,7 +31,7 @@ Detalles que conviene no romper al editarlas:
 
 ## Variables
 
-`{{ .ConfirmationURL }}`, `{{ .Token }}`, `{{ .TokenHash }}`, `{{ .Email }}`, `{{ .SiteURL }}`, y `{{ .NewEmail }}` solo en el cambio de dirección.
+Supabase ofrece `{{ .ConfirmationURL }}`, `{{ .Token }}`, `{{ .TokenHash }}`, `{{ .Email }}`, `{{ .SiteURL }}` y `{{ .NewEmail }}`. De esas, aquí se usan cuatro: `{{ .ConfirmationURL }}` en las cuatro plantillas con enlace, `{{ .Token }}` en la de reautenticación, y `{{ .Email }}` y `{{ .NewEmail }}` en el cambio de dirección, que enseña las dos direcciones para que se vea de dónde a dónde va el cambio. Ninguna plantilla escribe un dominio a pelo: el enlace siempre sale de la variable, así que un cambio de dominio no obliga a volver por aquí.
 
 `reautenticacion.html` es la única que **no** lleva enlace: muestra el código de un solo uso, que es como funciona esa operación.
 
@@ -39,4 +39,6 @@ Detalles que conviene no romper al editarlas:
 
 Sustituye las variables por valores de ejemplo y abre el fichero en el navegador. Conviene mirarla en móvil: la mayoría de estos correos se abren desde el teléfono.
 
-Las seis se generan desde un esqueleto común. Si hay que cambiar el diseño de todas a la vez, edita el generador en lugar de tocarlas una por una — está descrito en el commit que las introdujo.
+Las seis se generan desde un esqueleto común, `scripts/gen-email-templates.py`. Si hay que cambiar el diseño de todas a la vez —o la paleta—, se edita el generador y se vuelve a ejecutar (`python scripts/gen-email-templates.py`), en lugar de tocar los seis ficheros a mano.
+
+Y al revés también: **estos seis `.html` son su salida y no se editan sueltos**, o la siguiente pasada del generador se lleva por delante el arreglo sin avisar. Es la misma trampa que costó los cinco `.sql` sueltos de `supabase/` el 15-09-2026: dos copias de lo mismo y ninguna manera de saber cuál vale. Para comprobar que no ha pasado, se regenera en otra carpeta y se comparan los seis ficheros; el 15-09-2026 salían idénticos.

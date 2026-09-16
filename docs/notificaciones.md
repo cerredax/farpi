@@ -28,9 +28,20 @@ configuración, no como pendientes.
 
 **Que funcione no significa que le llegue a alguien**, y esa distinción costó una
 semana de silencio en septiembre: ver **"Una suscripción es un navegador, no una
-persona"** más abajo. Lo único que sigue sin comprobarse es que el cron de Vercel
-dispare solo cada mañana; el `CRON_SECRET` está puesto —la ruta contesta 401 y no
-el 503 de "cron no configurado"— pero eso prueba la variable, no la tarea.
+persona"** más abajo.
+
+**El cron dispara solo**, y eso ya no es una suposición. Se vio en los logs de Vercel
+el 06-08-2026 (la ejecución de las 07:00 UTC devolviendo `keptAlive: true`) y se
+revisó otra vez el 15-09-2026 con el CLI, después de cambiar el `CRON_SECRET` y el
+texto del aviso: el trabajo está registrado (`0 7 * * *`), activo desde el 17-06-2026
+con `disabledAt: null`, enganchado al despliegue vigente, y disparado por la vía del
+propio Vercel (`vercel crons run`) contesta 200. El `CRON_SECRET` también está: la
+ruta responde 401 y no el 503 de "cron no configurado".
+
+Y una cosa que conviene saber antes de asustarse: **cada ejecución sale marcada como
+`error` en los logs de Vercel**, y no lo es. Es un `DeprecationWarning` de `url.parse()`
+que escribe `web-push@3.6.7` por stderr, y Vercel pinta de rojo todo lo que salga por
+ahí. El `responseStatusCode` de esa misma línea dice 200.
 
 Costó encontrar por qué no arrancaba, y el motivo no estaba en nada de esto: ver
 **"El botón que se quedaba en Guardando…"** al final.
@@ -56,10 +67,10 @@ activar avisos sigue sin aparecer.
 
 Con `NEXT_PUBLIC_VAPID_PUBLIC_KEY` presente, la tarjeta de Ajustes ya deja **activar** y guarda la suscripción en `push_subscriptions`.
 
-### 3. Aplicar la migración (hecho)
-`010_push_subscriptions.sql` ya está aplicada en el proyecto real, con la tabla
-`push_subscriptions` y su RLS por usuario verificadas en la validación del
-2026-08-03.
+### 3. La tabla (hecha)
+`push_subscriptions` ya está en el proyecto real, con su RLS por usuario verificada en
+la validación del 2026-08-03. Vive en `supabase/schema.sql`, que desde el 26-08-2026 es
+el único sitio donde se describe la base.
 
 ### 3 bis. Probarlo en local
 

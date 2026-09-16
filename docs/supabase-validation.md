@@ -2,8 +2,8 @@
 
 ## Última ejecución: 169/169 (05-09-2026, los ajustes de un fijo en un mes)
 
-Con `supabase/aplicar-ajustes-de-fijos.sql` aplicado en el proyecto real. **169/169
-comprobaciones correctas.**
+Con `fixed_entry_overrides` y el `coalesce` de `close_month_copy` aplicados en el
+proyecto real. **169/169 comprobaciones correctas.**
 
 Son las 165 anteriores más cuatro, todas de `fixed_entry_overrides`, la tabla que guarda
 lo que un fijo costó en un mes suelto cuando no fue lo de siempre:
@@ -26,8 +26,8 @@ tests unitarios de `plantillaDelMes` y del mock.
 
 ## Antes: 165/165 (04-09-2026, borrar la cuenta vuelve a funcionar)
 
-Con `supabase/parche-2026-09-04.sql` aplicado en el proyecto real. **165/165
-comprobaciones correctas.**
+Con el arreglo de `check_document_storage_inmutable` aplicado en el proyecto real.
+**165/165 comprobaciones correctas.**
 
 Son las 163 anteriores más dos, las dos en la §12, y las dos de las que dicen qué tiene
 que **seguir funcionando**: que se puede borrar la cuenta de quien subió un papel a una
@@ -63,7 +63,7 @@ es la semántica de Postgres, no una ejecución.
 
 ## Antes: 163/163 (03-09-2026, la revisión de seguridad a la contra)
 
-Con las cuatro secciones de `supabase/parche-2026-09-03.sql` aplicadas en el proyecto
+Con las cuatro secciones de la revisión de seguridad aplicadas en el proyecto
 real. **163/163 comprobaciones correctas.**
 
 Son las 154 anteriores más nueve: dos en la §3 (miembros), dos en la §7 (invitaciones) y
@@ -229,8 +229,20 @@ veintiuna anteriores no afirmarían nada.
 
 Lo que este arnés **no** cubre y hay que mirar a mano una vez: que el relleno de los meses
 que ya habían pasado escribió lo que tenía que escribir. El arnés trabaja con familias de
-prueba que crea y borra, así que no puede decir nada de los datos reales. La consulta está
-en `supabase/aplicar-meses-cerrados.sql`, bloque 7.
+prueba que crea y borra, así que no puede decir nada de los datos reales. La consulta vivía
+en el archivo suelto del cierre de meses, que se fue el 15-09-2026; es esta, y no cambia
+nada —dice qué meses quedaron cerrados y con cuántas líneas cada uno—:
+
+```sql
+select p.month,
+       count(l.id) filter (where l.line in ('ingreso', 'gasto')) as fijos,
+       count(l.id) filter (where l.line = 'partida')             as partidas,
+       p.closed_at
+from public.month_plans p
+left join public.month_plan_lines l on l.family_id = p.family_id and l.month = p.month
+group by p.family_id, p.month, p.closed_at
+order by p.month desc;
+```
 
 ## Antes: 117/117 (02-09-2026, el comedor y las carpetas)
 
@@ -309,9 +321,17 @@ Repetible con `node scripts/validate-rls.mjs`. Conviene ejecutarlo después de t
 
 No se incluyen aquí URLs privadas, claves ni datos personales.
 
-## Migraciones
+## Migraciones — histórico cerrado (hasta el 26-08-2026)
 
-Verificadas por la existencia de sus objetos (tablas, funciones, columnas y bucket) en el proyecto:
+**Estos veintiún archivos ya no existen**: se aplastaron en `supabase/schema.sql` el
+26-08-2026 y viven en el historial de git. La lista se queda porque cuenta algo que el
+esquema no sabe contar —qué se aplicó en la base real y qué día—, pero los números **no
+son un identificador**: nada de lo que hay hoy en el repositorio se llama `014` ni `019`.
+Para lo que cambió después de esa fecha, la referencia son las secciones de pasadas de
+arriba, cada una con su recuento.
+
+Verificadas en su momento por la existencia de sus objetos (tablas, funciones, columnas y
+bucket) en el proyecto:
 
 - [x] `001_initial_schema.sql` — las 10 tablas del MVP existen
 - [x] `002_rls_policies.sql` — RLS activo; `my_family_ids()` expuesta
@@ -473,10 +493,10 @@ por PostgREST con ninguna sesión de usuario, ni siquiera la del dueño de la fi
 el service role, y solo desde una ruta API que antes comprueba con el cliente del usuario
 que puede ver el documento del que cuelga el token.
 
-**La última pasada no dejó nada en rojo:** 165/165 el 04-09-2026, con el borrado de
-cuenta arreglado y las cuatro secciones de la revisión de seguridad ya dentro. El detalle
-está arriba del todo, y la cadena entera de pasadas anteriores en las secciones «Antes»
-que siguen.
+**La última pasada no dejó nada en rojo:** 169/169 el 05-09-2026, con los ajustes de un
+fijo en un mes ya dentro y, antes, el borrado de cuenta arreglado y las cuatro secciones
+de la revisión de seguridad. El detalle está arriba del todo, y la cadena entera de
+pasadas anteriores en las secciones «Antes» que siguen.
 
 ## Pendiente
 

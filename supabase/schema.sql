@@ -6,6 +6,12 @@
 -- Aplicándolo sobre un proyecto Supabase vacío queda una base idéntica a la de
 -- producción: tablas, restricciones, índices, triggers, funciones, RLS y RPCs.
 --
+-- Con una diferencia, y está escrita donde toca: la base de la familia tiene tres
+-- índices de más que este archivo ya no crea, porque no servían para nada. No se
+-- borraron allí —no compensaba tocar producción por eso— y el `drop` de los tres
+-- está al final del bloque de índices, por si alguien quiere alinear una base que
+-- venga de antes del 15-09-2026. Es la única divergencia conocida.
+--
 -- Ya no hay Storage. Los archivos de los documentos viven en el Google Drive de
 -- quien los sube desde el 27-08-2026; aquí queda la ficha y, en
 -- `storage_connections`, el permiso prestado de cada persona.
@@ -21,11 +27,35 @@
 -- Supabase enlazada al proyecto a propósito, porque local y producción apuntan
 -- al mismo sitio y un `db push` distraído escribiría sobre datos reales.
 --
--- **Cómo se cambia**: editando este archivo *y* aplicando el `alter` suelto en
--- el SQL Editor. Las dos cosas, o el archivo miente. Después, `node
+-- **Cómo se cambia**: editando este archivo *y* aplicando el trozo suelto en el
+-- SQL Editor. Las dos cosas, o el archivo miente. Después, `node
 -- scripts/validate-rls.mjs`, que comprueba contra la base de verdad que las
 -- policies y las RPCs siguen haciendo lo que dicen, y se anota el resultado en
 -- `docs/supabase-validation.md`.
+--
+-- **El trozo suelto sale de `git diff supabase/schema.sql`, y no se guarda.**
+-- Es la regla que cerró el 15-09-2026 y la única que hay: este es el único .sql
+-- del repositorio. Entre el 02 y el 05-09-2026 convivieron cinco archivos más
+-- —tres `aplicar-*.sql` para pegar en el editor y dos `parche-*.sql` como
+-- registro del día— y eran una carpeta de migraciones rehaciéndose por la puerta
+-- de atrás, justo lo que se quitó el 26-08-2026. Copiar aquí un `create or
+-- replace` que ya está más abajo es mantener dos veces lo mismo, y las dos veces
+-- que se hizo salió mal: `aplicar-invitacion-caduca.sql` se quedó un día con la
+-- RPC de invitación insegura mientras la base ya tenía la buena, y
+-- `aplicar-meses-cerrados.sql` se quedó doce días con el `close_month_copy` de
+-- antes de los ajustes de un fijo —el que cierra el mes ignorándolos— debajo de
+-- una cabecera que invitaba a reejecutarlo. Nadie lo reejecutó; el daño era
+-- silencioso si alguien lo hacía. El delta correcto lo calcula git solo y nunca
+-- se desincroniza, porque no existe hasta que se pide.
+--
+-- Lo de «numerar las migraciones» tampoco vuelve: numerar sin un runner que
+-- apunte cuáles se aplicaron es una lista que hay que creerse, y aquí el SQL se
+-- pega a mano. Lo único que este archivo no sabe contar son las migraciones de
+-- **datos** —un backfill ocurre una vez y no se deriva de la forma—; ha habido
+-- una en toda la vida del proyecto (cerrar los meses pasados que ya tenían
+-- gastos, 02-09-2026, en `docs/historial.md`). Si algún día aparece la segunda,
+-- vivirá suelta en `supabase/datos/` con su fecha y sin arrastrar una convención
+-- para todo lo demás.
 --
 -- Es idempotente donde se puede (`if not exists`, `drop policy if exists`), así
 -- que volver a pasarlo entero sobre una base ya montada no rompe nada. Lo que no
@@ -649,7 +679,6 @@ create table if not exists public.push_subscriptions (
 create index if not exists family_members_user_idx on public.family_members(user_id);
 
 create index if not exists events_family_start_idx     on public.events(family_id, start_at);
-create index if not exists idx_events_kind             on public.events(kind);
 create index if not exists idx_events_member           on public.events(member_id);
 create index if not exists events_recurrence_group_idx on public.events(recurrence_group_id)
   where recurrence_group_id is not null;
@@ -666,7 +695,9 @@ create index if not exists list_items_family_idx   on public.list_items(family_i
 create index if not exists list_items_list_idx      on public.list_items(list_id, sort_order);
 -- Las fijadas primero y luego lo tocado hace menos, que es el orden en que se leen.
 create index if not exists notes_family_idx         on public.notes(family_id, pinned desc, updated_at desc);
-create index if not exists meal_plans_family_date_idx on public.meal_plans(family_id, date);
+-- Las comidas no llevan índice propio: el `unique(family_id, date, slot)` de la
+-- tabla ya crea uno, y `(family_id, date)` es su prefijo exacto. Ver la nota del
+-- final del bloque.
 
 -- Los fijos se leen enteros y siempre juntos: son ocho o diez filas por familia
 -- y la pantalla los pinta todos, así que basta con pedirlos ya ordenados.
@@ -683,10 +714,11 @@ create index if not exists budgets_family_idx        on public.budgets(family_id
 create index if not exists expenses_family_date_idx  on public.expenses(family_id, date desc);
 create index if not exists idx_expenses_budget       on public.expenses(budget_id);
 
--- El plan de un mes se lee entero y de golpe, siempre por familia y mes.
-create index if not exists month_plan_lines_mes_idx  on public.month_plan_lines(family_id, month, sort_order);
 create index if not exists idx_expenses_member       on public.expenses(member_id);
 create index if not exists idx_expenses_child        on public.expenses(child_id);
+
+-- El plan de un mes se lee entero y de golpe, siempre por familia y mes.
+create index if not exists month_plan_lines_mes_idx  on public.month_plan_lines(family_id, month, sort_order);
 -- Los presupuestos pedidos se agrupan por «para qué es», así que se piden ya
 -- juntos por título.
 create index if not exists quotes_family_idx         on public.quotes(family_id, title, amount_cents);
@@ -698,7 +730,7 @@ create index if not exists idx_documents_expires   on public.documents(family_id
 -- dejarán de poder abrirse".
 create index if not exists idx_documents_storage_owner on public.documents(storage_owner);
 
-create index if not exists tasks_family_idx    on public.tasks(family_id);
+-- Tampoco lleva uno de `(family_id)` a secas: es el prefijo de los dos de abajo.
 create index if not exists tasks_due_date_idx  on public.tasks(family_id, due_date);
 create index if not exists tasks_completed_idx on public.tasks(family_id, completed);
 create index if not exists idx_tasks_child     on public.tasks(child_id);
@@ -712,6 +744,33 @@ create unique index if not exists family_invites_pending_email_idx
   where status = 'pending';
 
 create index if not exists push_subscriptions_user_idx on public.push_subscriptions(user_id);
+
+-- ── Tres que estuvieron aquí y ya no (15-09-2026) ────────────────────────────
+--
+-- Un índice btree sirve para cualquier consulta que restrinja **un prefijo** de
+-- sus columnas, así que uno de `(a)` sobrando al lado de otro de `(a, b)` no
+-- acelera nada: se paga en cada `insert`, `update` y `delete` de esa tabla y no
+-- se lee nunca. Había tres así, y salieron al revisar el archivo entero cuando se
+-- quedó solo en la carpeta:
+--
+--   tasks_family_idx          on tasks(family_id)            prefijo de tasks(family_id, due_date)
+--                                                            y de tasks(family_id, completed)
+--   meal_plans_family_date_idx on meal_plans(family_id, date) prefijo del índice que ya
+--                                                            crea unique(family_id, date, slot)
+--   idx_events_kind           on events(kind)                no lo usa ninguna consulta: la app
+--                                                            lee `events` por family_id o por
+--                                                            recurrence_group_id, y el único
+--                                                            filtro por `kind` que existe es
+--                                                            sobre fixed_entries
+--
+-- **En la base de la familia siguen estando**: el archivo se limpió, la base no
+-- se tocó, porque tres índices de más en una app de veinte filas por tabla no
+-- justifican un cambio en producción. Una base nueva nace ya sin ellos. Para
+-- alinear una que venga de antes, esto y nada más —no borra datos ni bloquea—:
+--
+--   drop index if exists public.tasks_family_idx;
+--   drop index if exists public.meal_plans_family_date_idx;
+--   drop index if exists public.idx_events_kind;
 
 -- ============================================================================
 -- 3. Funciones y triggers

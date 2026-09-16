@@ -28,11 +28,13 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] La barra de abajo muestra seis pastillas: Inicio, Calendario, Listas, Tareas,
       Comidas y «Más». Documentos ya no es una de ellas (28-08-2026) y Notas nunca lo
       fue (31-08-2026): están dentro de «Más», con su nombre entero. En la barra lateral
-      de escritorio salen las siete.
+      de escritorio no hay «Más»: salen las nueve secciones seguidas —esas cinco más
+      Finanzas, Notas, Cumpleaños y Documentos—, que es la lista entera de `SECCIONES`.
 - [ ] La ruta activa se resalta correctamente. «Más» no se marca activa en /docs ni en
       /settings: no es una pantalla, es por dónde se llega.
-- [ ] «Más» abre Notas y Documentos —en ese orden—, Ajustes y, en su propia tarjeta,
-      cerrar sesión.
+- [ ] «Más» abre Finanzas, Notas, Cumpleaños y Documentos —en ese orden—, luego Ajustes
+      y, en su propia tarjeta, cerrar sesión. Cumpleaños va **encima** de Documentos a
+      propósito: la última fila es el sitio de lo que menos se usa.
 - [ ] La cabecera de móvil no lleva ningún icono a la derecha: ni rueda de Ajustes
       (26-08-2026) ni círculo de cuenta (28-08-2026). Solo el título.
 - [ ] La barra de abajo no tapa contenido.
@@ -561,11 +563,48 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
       mismo grupo, y el título ya usado se ofrece bajo el campo.
 - [ ] Un precio con fecha pasada dice «Caducó el…» y **no** se esconde.
 
+## 8d. Cumpleaños
+
+> La pantalla `/birthdays`, que vive dentro de «Más». Los repartos por meses y la
+> ventana de doce meses están cubiertos por unitarios en `e2e/unit/birthdays.spec.ts`;
+> lo de aquí es lo que hay que ver con la app delante.
+
+- [ ] La cabecera dice «N cumpleaños en los próximos doce meses». La ventana son
+      **364 días** (`DIAS_LISTA_CUMPLES`): alguien que cumplió hace un mes no sale, y el
+      mismo nombre no aparece dos veces.
+- [ ] Van **repartidos por meses**, con el mes de título. El año solo se escribe cuando
+      no es el de hoy: en septiembre, «Septiembre» es este y «Septiembre 2027» el de
+      dentro de un año.
+- [ ] Cada fila dice **cuándo, quién y qué edad**: «Hoy», «Mañana» o «Jue 4 sep» a la
+      izquierda, el nombre en tinta y «cumple 8 años» a la derecha. De quien no se sabe
+      el año de nacimiento no se escribe edad.
+- [ ] **Ni pastilla de color ni punto** delante del nombre (14-09-2026): en una columna
+      donde todas las filas son una persona, el color no distingue nada y casi todos
+      salen iguales. El color de cada uno sigue donde sirve, en Inicio y en la agenda.
+- [ ] **Los dos orígenes se ven igual.** Ponle a un hijo la fecha de nacimiento en
+      Ajustes y apunta el de la abuela con el `+`: las dos filas se leen igual, sin decir
+      de dónde sale cada una.
+- [ ] **Pero llevan a sitios distintos.** La del cumpleaños apuntado abre aquí mismo el
+      sheet del calendario; la de quien es de la casa lleva a Ajustes
+      (`?seccion=familia`), que es donde vive la fecha de nacimiento. Esta segunda es un
+      **enlace de verdad**: se puede abrir en otra pestaña.
+- [ ] El `+` dice «Apuntar un cumpleaños» y solo sirve para **los de fuera**. A quien
+      vive en casa no se le apunta: se le pone la fecha de nacimiento en su ficha.
+- [ ] Editar cambia **el cumpleaños de este año**, como en el calendario. Borrar sí
+      pregunta por la serie entera.
+- [ ] **El buscador aparece a partir de tres** cumpleaños (`MINIMO_PARA_BUSCAR`). Busca
+      solo por nombre y **sin tildes**; buscando se siguen viendo los meses, porque lo
+      que se quiere saber de un nombre es cuándo cae.
+- [ ] Con un término que no está: «Sin coincidencias», con el texto buscado. Sin ningún
+      cumpleaños en toda la ventana: la tarta y «Sin cumpleaños».
+- [ ] Las filas se tocan cómodas: 44 px de alto, no 40.
+
 ## 9. Ajustes - familias
 
 > Automatizado en `e2e/escritorio.spec.ts`: que a 1440 px las secciones sean la columna
-> de la izquierda, a la altura del contenido y pegadas al bajar, y que a 1023 px sigan
-> siendo una fila encima.
+> de la izquierda, a la altura del contenido y pegadas al bajar, y que a 1023 px esa
+> columna **no** se cuele y mande el índice de secciones, que es lo que hay por debajo
+> de `lg` desde el 09-09-2026.
 
 - [ ] Con las cinco secciones (fuera de modo demo) la fila de móvil envuelve a dos
       líneas y no se arrastra; la activa se lee en verde clarito y las demás, en gris.
@@ -690,8 +729,11 @@ cada uno hace a su manera:
       colgando solo en una segunda línea.
 - [ ] En el calendario, las vistas Día y Semana enseñan el día entero sin cortarlo, y la
       rejilla del mes se ve con sus líneas.
-- [ ] Ajustes sigue con el ancho de móvil centrado (`SettingsView` no tiene ni una
-      variante `lg:`): se ve raro pero no roto. Es lo que queda del layout de escritorio.
+- [ ] Ajustes se pone de pie (02-09-2026): las cinco secciones son una columna de 13 rem
+      a la izquierda, con su icono, y el contenido ocupa el resto hasta `lg:max-w-5xl`.
+      La columna queda **pegada** al bajar (`lg:sticky lg:top-6`) y la sección activa se
+      marca como en la barra lateral: fondo verde muy claro y letra verde oscura, no
+      verde macizo. Por debajo de `lg` no se ve esa columna, sino el índice de móvil.
 
 ## 14. Persistencia
 
@@ -705,7 +747,7 @@ cada uno hace a su manera:
 > sesiones de usuario reales y crea y borra sus propios usuarios y familias de
 > prueba. Ejecutarlo (`node scripts/validate-rls.mjs`) es más fiable que ir a mano, y
 > es lo que pide `CLAUDE.md` después de tocar el esquema, una policy o una RPC. La
-> última pasada fue de **165/165** (04-09-2026).
+> última pasada fue de **169/169** (05-09-2026).
 > Lo de abajo queda como referencia de qué cubre.
 
 - [ ] `supabase/schema.sql` aplicado (sustituye a las 21 migraciones desde el 26-08-2026).

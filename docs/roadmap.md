@@ -230,8 +230,8 @@ Objetivo: preparar uso diario.
   menores —guarda de CSRF propia, el `ref` de una subida atado a su familia,
   `family_members` solo con `select`, `/api/salud` sin amplificar, el `Origin` de la
   subida desde `SITE_URL` y el `CRON_SECRET` en tiempo constante—. El relato en
-  `docs/historial.md`; el SQL, **aplicado y validado el mismo día** (163/163), en
-  `supabase/parche-2026-09-03.sql`.
+  `docs/historial.md`; el SQL quedó en `supabase/schema.sql`, **aplicado y validado el
+  mismo día**: 163/163.
 - ✅ **Borrar la cuenta vuelve a funcionar** (04-09-2026). El
   arreglo del día anterior se pisaba con el esquema: `documents.storage_owner` es
   `on delete set null` contra `auth.users`, y Postgres ejecuta esa acción referencial como
@@ -240,7 +240,7 @@ Objetivo: preparar uso diario.
   sin salida. El trigger deja pasar ahora ese caso y solo ese —se reconoce en que el dueño
   anterior ya no existe en `auth.users`, que no lo puede fabricar nadie—, y el arnés lleva
   las dos comprobaciones que faltaban, las de lo que **tiene que seguir funcionando**. El
-  SQL, en `supabase/parche-2026-09-04.sql`, aplicado y validado el mismo día: **165/165**.
+  SQL, en `supabase/schema.sql`, aplicado y validado el mismo día: **165/165**.
 - ✅ **Copia de seguridad de la familia** (27-08-2026): un botón en Ajustes descarga
   un `.json` con todo. Sin ruta API ni tabla nueva —el store ya lo tenía todo en
   memoria— y sin tokens dentro. Nació de una incoherencia: los papeles ya prometían
@@ -288,6 +288,39 @@ Objetivo: preparar uso diario.
 - [x] En "Más" delante de Documentos, y en `SideNav` en escritorio.
 - [x] En la copia de seguridad y en `/privacidad`, con el aviso de que no es un gestor de contraseñas.
 - [x] Aplicado en el SQL Editor del proyecto real y validado: `node scripts/validate-rls.mjs` da **89/89** (31-08-2026).
+
+## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
+
+Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles
+ajenos, y el detalle de cada uno —con su riesgo y su orden— vive en `docs/produccion.md`
+§0, que es donde hay que mirar antes de tocar nada.
+
+- [x] Código, documentación, claves internas y tests.
+- [x] Proyecto de Vercel, proyecto de Supabase, carpeta de Google Drive (renombrada, no
+      borrada) y repositorio de GitHub (`cerredax/farpi`).
+- [x] Pantalla de consentimiento de Google, con la redirect URI de `www.farpi.app`
+      **añadida** por adelantado al cliente OAuth.
+- [x] **`www.farpi.app` apuntado** (15-09-2026). Vercel, las dos variables, los dos
+      valores de Supabase y el cliente OAuth de Google dicen ya lo mismo, y las tres
+      pruebas pasan: magic link, abrir un documento y reconectar Drive.
+
+      Google no estaba preparado, al contrario de lo que decía la ficha: lo registrado
+      era el ápice, sin `www`, y `GOOGLE_REDIRECT_URI` seguía en el dominio viejo. Los
+      dos fallos daban el mismo `redirect_uri_mismatch` y los dos se parecían a una
+      propagación lenta de Google. El detalle en `produccion.md` §0.
+- [x] **Plantillas de correo pegadas en el panel de Supabase** (15-09-2026). Las
+      invitaciones y los magic links ya no firman como Nido. Antes de pegarlas salió
+      que el logo de las seis seguía pintando una `N`, con «Farpi» escrito debajo: el
+      cambio de nombre no había llegado al primer correo que ve alguien invitado. Se
+      arregló en el generador, `scripts/gen-email-templates.py`, que es de donde salen
+      las seis.
+- [x] **Branding de Google** (15-09-2026): App Domain, Authorized Domains y el logo,
+      con `farpi.app` verificado en Search Console por un TXT en el DNS de Vercel —ese
+      registro no se borra nunca—. El logo mete la app en la cola de verificación de
+      marca, que es el único precio de todo esto; enviada, y mientras se revisa no
+      cambia nada. Detalle en `produccion.md` §0.
+- [ ] Comprobar que Vercel sigue viendo el repositorio tras el renombrado
+      (Settings → Git), en el próximo despliegue.
 
 ## Fase 8d - Finanzas (31-08-2026)
 
@@ -416,8 +449,7 @@ guardada aunque luego los cambies**. El porqué y las alternativas descartadas, 
 - [x] 15 unitarios nuevos y 7 flujos de navegador; 22 comprobaciones nuevas en el
       arnés de RLS, en una §4 bis propia.
 - [x] Aplicado en el SQL Editor del proyecto real y revalidado el 02-09-2026:
-      **139/139**. El delta, idempotente y reescrito entero en cada cambio, queda en
-      `supabase/aplicar-meses-cerrados.sql`.
+      **139/139**. El esquema resultante, en `supabase/schema.sql`.
 
 ## Fase 8i - Finanzas: el resumen, y el `+` de vuelta arriba (02-09-2026)
 
@@ -483,8 +515,8 @@ Todo salió de usar la pantalla un día. El porqué de cada cosa, en
       en `scripts/validate-rls.mjs` (diez en total, con las dos del sembrado).
 - [x] **Aplicado en el SQL Editor** (`close_month_copy` y `empty_month`;
       `reopen_month` solo cambió de comentario) y validado: **149/149** en
-      `node scripts/validate-rls.mjs`, ver `docs/supabase-validation.md`. El delta,
-      reescrito entero, sigue en `supabase/aplicar-meses-cerrados.sql`.
+      `node scripts/validate-rls.mjs`, ver `docs/supabase-validation.md`. Las seis
+      funciones, en `supabase/schema.sql`.
 
 ## Fase 8l - Finanzas: las partidas se abren y el resumen adelgaza (03-09-2026)
 
@@ -517,39 +549,24 @@ Salió de mirar la pantalla y no entender los gráficos. El porqué, en
       a junio, y «este» señalaba a dos meses a la vez. Se vuelve con la flecha.
 - [x] 2 unitarios nuevos y dos flujos de navegador más: **546** en la pasada completa.
 
-## Fase 8o - Finanzas: segunda vuelta a «Cómo vamos» (04-09-2026)
+## Fase 8m - Finanzas: los fijos de la cuenta se abren (04-09-2026)
 
-Salió de mirar la pestaña recién hecha. El porqué, en `docs/architecture.md`.
+Lo mismo que se le hizo a las partidas el día antes, un nivel más arriba. El porqué, en
+`docs/architecture.md`: «Los fijos de la cuenta se abren».
 
-- [x] **Los gastos fijos entran en «en qué se va».** No era una preferencia: el bloque
-      decía «se han ido 291,45 €» en un mes en el que se fueron 1.162,35, y el alquiler
-      —el mayor gasto de la casa— no salía. El tope de trozos sube de 5 a 7.
-- [x] **La variación pasa a su renglón y con palabras** («24 % más que en junio»): dos
-      cifras con el mismo símbolo pegadas en la misma fila eran ilegibles.
-- [x] **El anillo vuelve**, con el color ordenado de mayor a menor por claridad —así dos
-      porciones parecidas no se confunden— y sin leyenda, porque la lista lo es.
-- [x] **La serie vuelve a dos barras**, entra y sale, con lo que quedó escrito encima.
-- [x] **La letra de Finanzas sube de 11 a 13 px.**
-- [x] Deshecho: los fijos de «El mes» vuelven a salir plegados.
-
-## Fase 8ñ - Finanzas: «Cómo vamos», y cuatro arreglos del mes (04-09-2026)
-
-Cinco peticiones tras usar la pantalla recién entregada. El porqué de cada una, en
-`docs/architecture.md`.
-
-- [x] **«Cerrar mes» en ámbar** (variante `warn` de `Button`), no en rojo: cerrar no
-      destruye nada y el rojo se reserva para «Poner el mes a cero», que sí borra.
-- [x] **Los dos totales de fijos salen abiertos.**
-- [x] **La tira de meses se cambia por flechas + desplegable**, como el calendario.
-      `mesesNavegables` se queda: era lo bueno de la tira y no depende de cómo se pinte.
-- [x] **Fuera la nota** de «Hay 3 gastos sin partida», y con ella `gastosSinPartida`,
-      que se quedaba sin consumidor.
-- [x] **«Resumen» pasa a «Cómo vamos»** y a cuatro bloques, elegidos por lo que se
-      pregunta una casa: el ritmo del mes contra el de siempre (nuevo), la serie con la
-      media dibujada y el mejor y el peor marcados, el desglose con la variación frente
-      al mes pasado y las partidas que se pasan, y en qué se reparte lo que entra
-      (nuevo). Descartados el reparto por persona en el tiempo y la estacionalidad.
-- [x] 16 unitarios nuevos y 2 flujos de navegador más: **578** en la pasada completa.
+- [x] **«Ingresos fijos» y «Gastos fijos» se despliegan** y enseñan sus líneas —emoji,
+      nombre e importe—, con el signo del total y sumando lo que este dice. Salen de la
+      misma plantilla resuelta que lo suma, así que un mes cerrado enseña los recibos
+      que tuvo y no los de hoy, que era lo que se veía yendo a «Lo fijo» a mirarlo.
+- [x] **Los apuntados no se abren**: sus líneas son «El día a día», que está entero un
+      poco más abajo en la misma pantalla.
+- [x] **Dentro no se edita nada**, como en una partida de un mes pasado: un fijo
+      congelado no se toca y el del mes en curso se toca en «Lo fijo».
+- [x] La tarjeta deja de ser una `dl`: desde que la fila entera es el botón, un `button`
+      no cabe entre un `dt` y un `dd`.
+- [x] «Editar la partida» pasa a **«Editar partida»**, que es como se llama el sheet que
+      abre.
+- [x] Un flujo de navegador más: **555** en la pasada completa.
 
 ## Fase 8n - Finanzas: apuntar lo que va a llegar y elegir mes de un toque (04-09-2026)
 
@@ -572,24 +589,39 @@ una, en `docs/architecture.md`.
 - [x] El hueco del día a día de un mes por venir **invita en vez de explicar**.
 - [x] 6 unitarios nuevos y 1 flujo de navegador más: **562** en la pasada completa.
 
-## Fase 8m - Finanzas: los fijos de la cuenta se abren (04-09-2026)
+## Fase 8ñ - Finanzas: «Cómo vamos», y cuatro arreglos del mes (04-09-2026)
 
-Lo mismo que se le hizo a las partidas el día antes, un nivel más arriba. El porqué, en
-`docs/architecture.md`: «Los fijos de la cuenta se abren».
+Cinco peticiones tras usar la pantalla recién entregada. El porqué de cada una, en
+`docs/architecture.md`.
 
-- [x] **«Ingresos fijos» y «Gastos fijos» se despliegan** y enseñan sus líneas —emoji,
-      nombre e importe—, con el signo del total y sumando lo que este dice. Salen de la
-      misma plantilla resuelta que lo suma, así que un mes cerrado enseña los recibos
-      que tuvo y no los de hoy, que era lo que se veía yendo a «Lo fijo» a mirarlo.
-- [x] **Los apuntados no se abren**: sus líneas son «El día a día», que está entero un
-      poco más abajo en la misma pantalla.
-- [x] **Dentro no se edita nada**, como en una partida de un mes pasado: un fijo
-      congelado no se toca y el del mes en curso se toca en «Lo fijo».
-- [x] La tarjeta deja de ser una `dl`: desde que la fila entera es el botón, un `button`
-      no cabe entre un `dt` y un `dd`.
-- [x] «Editar la partida» pasa a **«Editar partida»**, que es como se llama el sheet que
-      abre.
-- [x] Un flujo de navegador más: **555** en la pasada completa.
+- [x] **«Cerrar mes» en ámbar** (variante `warn` de `Button`), no en rojo: cerrar no
+      destruye nada y el rojo se reserva para «Poner el mes a cero», que sí borra.
+- [x] **Los dos totales de fijos salen abiertos.**
+- [x] **La tira de meses se cambia por flechas + desplegable**, como el calendario.
+      `mesesNavegables` se queda: era lo bueno de la tira y no depende de cómo se pinte.
+- [x] **Fuera la nota** de «Hay 3 gastos sin partida», y con ella `gastosSinPartida`,
+      que se quedaba sin consumidor.
+- [x] **«Resumen» pasa a «Cómo vamos»** y a cuatro bloques, elegidos por lo que se
+      pregunta una casa: el ritmo del mes contra el de siempre (nuevo), la serie con la
+      media dibujada y el mejor y el peor marcados, el desglose con la variación frente
+      al mes pasado y las partidas que se pasan, y en qué se reparte lo que entra
+      (nuevo). Descartados el reparto por persona en el tiempo y la estacionalidad.
+- [x] 16 unitarios nuevos y 2 flujos de navegador más: **578** en la pasada completa.
+
+## Fase 8o - Finanzas: segunda vuelta a «Cómo vamos» (04-09-2026)
+
+Salió de mirar la pestaña recién hecha. El porqué, en `docs/architecture.md`.
+
+- [x] **Los gastos fijos entran en «en qué se va».** No era una preferencia: el bloque
+      decía «se han ido 291,45 €» en un mes en el que se fueron 1.162,35, y el alquiler
+      —el mayor gasto de la casa— no salía. El tope de trozos sube de 5 a 7.
+- [x] **La variación pasa a su renglón y con palabras** («24 % más que en junio»): dos
+      cifras con el mismo símbolo pegadas en la misma fila eran ilegibles.
+- [x] **El anillo vuelve**, con el color ordenado de mayor a menor por claridad —así dos
+      porciones parecidas no se confunden— y sin leyenda, porque la lista lo es.
+- [x] **La serie vuelve a dos barras**, entra y sale, con lo que quedó escrito encima.
+- [x] **La letra de Finanzas sube de 11 a 13 px.**
+- [x] Deshecho: los fijos de «El mes» vuelven a salir plegados.
 
 ## Fase 8p - Finanzas: un fijo que sale distinto un mes (05-09-2026)
 
@@ -613,7 +645,7 @@ porqué, en `docs/architecture.md`: «Un fijo puede valer otra cosa en un mes su
 - [x] Un fijo ajustado lo dice en su fila: **«suele ser 120 €»**.
 - [x] Nueve unitarios y dos de navegador: **592** en la pasada completa. Y cuatro
       comprobaciones más en `validate-rls.mjs`, aplicado y validado el mismo día:
-      **169/169**, con `supabase/aplicar-ajustes-de-fijos.sql`.
+      **169/169**.
 
 ## Fase 8q - Auditadas Listas, Tareas y Notas (05-09-2026)
 
@@ -926,38 +958,49 @@ partida» pero que sí existe en la base— y acabó en un fallo de estadística
       una RPC nueva —borrar la cabecera y recopiar en una sola operación—, y por tanto
       `scripts/validate-rls.mjs` y `docs/supabase-validation.md` detrás.
 
-## Fase 8c - Cambio de nombre a Farpi (31-08-2026)
+## Fase 8ab - Un solo .sql en `supabase/` (15-09-2026)
 
-Lo del repositorio está hecho y desplegado. Lo que queda **no es código**: son paneles
-ajenos, y el detalle de cada uno —con su riesgo y su orden— vive en `docs/produccion.md`
-§0, que es donde hay que mirar antes de tocar nada.
+La carpeta tenía seis archivos de SQL y uno llevaba doce días desincronizado sin que nadie
+lo viera. El relato entero, en `docs/historial.md`.
 
-- [x] Código, documentación, claves internas y tests.
-- [x] Proyecto de Vercel, proyecto de Supabase, carpeta de Google Drive (renombrada, no
-      borrada) y repositorio de GitHub (`cerredax/farpi`).
-- [x] Pantalla de consentimiento de Google, con la redirect URI de `www.farpi.app`
-      **añadida** por adelantado al cliente OAuth.
-- [x] **`www.farpi.app` apuntado** (15-09-2026). Vercel, las dos variables, los dos
-      valores de Supabase y el cliente OAuth de Google dicen ya lo mismo, y las tres
-      pruebas pasan: magic link, abrir un documento y reconectar Drive.
-
-      Google no estaba preparado, al contrario de lo que decía la ficha: lo registrado
-      era el ápice, sin `www`, y `GOOGLE_REDIRECT_URI` seguía en el dominio viejo. Los
-      dos fallos daban el mismo `redirect_uri_mismatch` y los dos se parecían a una
-      propagación lenta de Google. El detalle en `produccion.md` §0.
-- [x] **Plantillas de correo pegadas en el panel de Supabase** (15-09-2026). Las
-      invitaciones y los magic links ya no firman como Nido. Antes de pegarlas salió
-      que el logo de las seis seguía pintando una `N`, con «Farpi» escrito debajo: el
-      cambio de nombre no había llegado al primer correo que ve alguien invitado. Se
-      arregló en el generador, `scripts/gen-email-templates.py`, que es de donde salen
-      las seis.
-- [x] **Branding de Google** (15-09-2026): App Domain, Authorized Domains y el logo,
-      con `farpi.app` verificado en Search Console por un TXT en el DNS de Vercel —ese
-      registro no se borra nunca—. El logo mete la app en la cola de verificación de
-      marca, que es el único precio de todo esto; enviada, y mientras se revisa no
-      cambia nada. Detalle en `produccion.md` §0.
-- [ ] Comprobar que Vercel sigue viendo el repositorio tras el renombrado
-      (Settings → Git), en el próximo despliegue.
+- [x] **Borrados los cinco archivos sueltos**: `aplicar-ajustes-de-fijos.sql`,
+      `aplicar-invitacion-caduca.sql`, `aplicar-meses-cerrados.sql`,
+      `parche-2026-09-03.sql` y `parche-2026-09-04.sql`. Queda `schema.sql` y
+      `email-templates/`.
+- [x] **El motivo no es estética.** Comparando función por función contra `schema.sql`,
+      todo coincidía menos el `close_month_copy` de `aplicar-meses-cerrados.sql`: era el
+      de antes del 05-09-2026, sin el `coalesce` contra `fixed_entry_overrides`, debajo de
+      una cabecera que decía «es seguro volver a ejecutarlo tantas veces como haga falta».
+      Reejecutarlo habría dejado el cierre de mes ignorando los ajustes de un fijo, sin
+      error y sin rastro. Es la segunda vez que falla la regla de «se reescribe entero»;
+      la primera fue la RPC de invitación el 03-09-2026.
+- [x] **La regla nueva, escrita en `schema.sql` y en `CLAUDE.md`**: el trozo suelto para el
+      SQL Editor sale de `git diff supabase/schema.sql` y no se guarda. Numerar migraciones
+      no vuelve: sin un runner que apunte cuáles se aplicaron es una lista que hay que
+      creerse, y aquí el SQL se pega a mano.
+- [x] **Rescatada la consulta de comprobación** del bloque 7 del archivo de meses cerrados
+      —qué meses quedaron cerrados y con cuántas líneas—, ahora en
+      `docs/supabase-validation.md`, que es donde tenía sentido.
+- [x] **Ni una línea ejecutable del esquema cambia**, solo comentarios de cabecera, así que
+      no se ha corrido `scripts/validate-rls.mjs` ni se ha tocado la base real. La versión
+      buena de `close_month_copy` lleva en producción desde el 05-09.
+- [x] **Fuera tres índices que sobraban**, encontrados al revisar el archivo ya limpio.
+      `tasks_family_idx` es prefijo exacto de `tasks(family_id, due_date)` y de
+      `tasks(family_id, completed)`; `meal_plans_family_date_idx` lo es del índice que ya
+      crea el `unique(family_id, date, slot)`; e `idx_events_kind` no lo usa ninguna
+      consulta —`events` se lee por `family_id` o por `recurrence_group_id`, y el único
+      filtro por `kind` de la app es sobre `fixed_entries`—. Un btree sirve para cualquier
+      prefijo de sus columnas, así que los tres se pagaban en cada escritura sin acelerar
+      una sola lectura.
+- [x] **Quitados del archivo, no de la base.** Tres índices de más en una app de veinte
+      filas por tabla no justifican tocar producción. Una base nueva nace ya sin ellos, y
+      el `drop` de los tres está al final del bloque de índices de `supabase/schema.sql`
+      para quien quiera alinear una que venga de antes. La cabecera lo declara como la
+      única divergencia conocida entre el archivo y la base de la familia.
+- [x] **Revisado que el archivo levanta una base de cero**: 20 tablas, las 20 con RLS
+      —`storage_connections` es la única sin policy, y es a propósito—, las 27 funciones
+      `security definer` con `set search_path`, y ni una FK, trigger, índice o policy que
+      dependa de algo que se cree más abajo.
 
 ## Fase 9 - Uso diario
 
@@ -1023,9 +1066,10 @@ Objetivo: que la app funcione sola, sin nadie mirándola.
   registrado, `disabledAt: null` desde el 17-06, enganchado al despliegue vigente y
   devolviendo 200 al dispararlo por la vía de Vercel. Sale marcado como `error` en los
   logs y no lo es: es un `DeprecationWarning` de `web-push` por stderr.
-- ✅ **RLS revalidado** por última vez el 27-08-2026: **79/79**, con el esquema
-  entero validado, incluidas las conexiones de Google Drive (Fase 3) y el cierre de
-  una familia.
+- ✅ **RLS revalidado** por última vez el 05-09-2026: **169/169**, con el esquema
+  entero validado. El recuento sube con cada cambio de esquema y las pasadas están
+  contadas una a una en `docs/supabase-validation.md`; la del 27-08-2026 (79/79) fue
+  la que añadió las conexiones de Google Drive (Fase 3) y el cierre de una familia.
 - ✅ **Las 21 migraciones, aplastadas en `supabase/schema.sql`** (26-08-2026). Un
   solo archivo que describe la base como está, en vez de veintiuno que cuentan
   cómo llegó hasta aquí. El historial se queda en git. Falta el único aval que no

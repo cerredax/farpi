@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-14.
+Última revisión: 2026-09-15.
 
 ## Resumen
 
@@ -12,7 +12,7 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
 03-09-2026 dos más: el cierre que ya no inventa meses, con `empty_month`, y la revisión de
 seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisión había
 dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —el ajuste
-de un fijo en un mes suelto— con `supabase/aplicar-ajustes-de-fijos.sql`: tabla, índice,
+de un fijo en un mes suelto—: tabla, índice,
 policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Lo que queda no es código de producto: funcionalidades
 que todavía no existen (ver "Siguiente paso recomendado").
 
@@ -774,11 +774,28 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **169/169** (05-09-2026, con los ajustes de un fijo en un mes). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
-  veces. Cuando el esquema cambie se edita ese archivo, se aplica el `alter` suelto en el
+  veces. Cuando el esquema cambie se edita ese archivo, se aplica el trozo suelto en el
   SQL Editor y se vuelve a pasar `node scripts/validate-rls.mjs`.
+- **Y es lo único que hay, literalmente: un solo `.sql` en la carpeta** (15-09-2026). El
+  trozo suelto que se pega en el editor sale de `git diff supabase/schema.sql` y **no se
+  guarda**. Entre el 02 y el 05-09-2026 llegó a haber cinco archivos más —tres
+  `aplicar-*.sql` para reejecutar y dos `parche-*.sql` como registro del día— y eran una
+  carpeta de migraciones rehaciéndose por la puerta de atrás. Se fueron porque la regla
+  que los sostenía («se reescribe entero en cada cambio») se incumplió las dos veces que
+  importaba: una dejó doce días la copia del cierre de mes sin el `coalesce` de los
+  ajustes de un fijo, debajo de una cabecera que invitaba a reejecutarla. El relato, en
+  `docs/historial.md`. Si algún día hace falta un backfill de datos —lo único que un
+  archivo de esquema no sabe contar— irá suelto a `supabase/datos/` con su fecha.
+- **El archivo y la base de la familia divergen en una cosa, y solo en una** (15-09-2026):
+  tres índices que sobraban —`tasks_family_idx`, `meal_plans_family_date_idx` e
+  `idx_events_kind`— se quitaron del archivo y **no** de la base, porque tres índices de
+  más en una app de veinte filas por tabla no justifican tocar producción. Los dos
+  primeros eran prefijos exactos de índices que ya existen y el tercero no lo usaba
+  ninguna consulta. Una base nueva nace ya sin ellos; el `drop` para alinear una vieja
+  está al final del bloque de índices de `supabase/schema.sql`, y la cabecera lo declara.
 - RLS base por familia con `my_family_ids()` endurecida (`set search_path = public`).
 - RPC `create_family_with_admin` con nombre normalizado.
-- RPC `update_family_member_profile` (migración 014): nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
+- RPC `update_family_member_profile`: nombre y color del miembro, editables por él mismo o por un admin de su familia. Sustituye a `update_my_family_profile`.
 - Tabla de invitaciones con policies idempotentes y `with check`.
 - ~~Bucket privado `documents`~~: **borrado el 27-08-2026**, con sus cuatro policies y
   las diez comprobaciones que tenía en el arnés de RLS. Farpi ya no guarda archivos. La
@@ -791,12 +808,12 @@ que todavía no existen (ver "Siguiente paso recomendado").
   los de `tasks` que llegaron con la 015.
 - RPCs admin `remove_family_member` y `update_family_member_role` con control de último admin.
 - RPC `accept_family_invite(p_invite_id uuid)`.
-- Asignación de eventos y documentos a cualquier miembro de la familia, no solo a hijos (migración 012).
-- Vacaciones: eventos de varios días por persona, pintados como franja en el calendario (migración 013). Solo se ven en el calendario: fuera de la lista de eventos y de los planes de hoy.
-- Perfil del miembro: nombre editable también por el admin, y color propio elegible como el de los hijos (migración 014).
-- Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó (migración 015).
-- Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario (migración 016).
-- Adultos sin cuenta: un abuelo se da de alta con nombre y color, sin correo y sin acceso a la app, y se le asigna igual que a un hijo (migración 018). Viven en `children` con `kind = 'adulto'`; el porqué está en «Decisiones de producto» de `docs/architecture.md`.
+- Asignación de eventos y documentos a cualquier miembro de la familia, no solo a hijos.
+- Vacaciones: eventos de varios días por persona, pintados como franja en el calendario. Solo se ven en el calendario: fuera de la lista de eventos y de los planes de hoy.
+- Perfil del miembro: nombre editable también por el admin, y color propio elegible como el de los hijos.
+- Tareas con dueño: se asignan a un adulto o a un hijo como los eventos y los documentos, y se guarda quién las marcó.
+- Caducidad de documentos: fecha opcional, aviso en la tarjeta a 30 días (`DIAS_AVISO_CADUCIDAD`) y en el recordatorio diario.
+- Adultos sin cuenta: un abuelo se da de alta con nombre y color, sin correo y sin acceso a la app, y se le asigna igual que a un hijo (21-08-2026). Viven en `children` con `kind = 'adulto'`; el porqué está en «Decisiones de producto» de `docs/architecture.md`.
 - `supabase/schema.sql`, el esquema entero en un archivo para levantar un proyecto de cero. Sustituye desde el 26-08-2026 a las 21 migraciones numeradas y al `all_in_one.sql` generado.
 
 ### Calidad / infraestructura
@@ -830,7 +847,77 @@ que todavía no existen (ver "Siguiente paso recomendado").
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - 590 unitarios de lógica pura en `e2e/unit/`, contados en la pasada del 15-09-2026 (los últimos, los veintiuno del aviso de las nueve del 15-09-2026 —qué dice la notificación de la mañana: que el título es el día en el calendario de la familia y no en el del servidor, que la hora de un plan se traduce a la de Madrid y no a la de la función de Vercel que la envía, que un plan de todo el día no se inventa las 00:00, que del cuarto en adelante se cuentan en vez de nombrarse y que sin ningún plan las tareas necesitan el verbo delante—, y antes los de Finanzas del 14-09-2026 —agrupar los apuntes por días y por meses, con lo entrado y lo salido sin restarse; buscar cruzando los meses, sin tildes y también por el nombre de la partida, y que sin consulta no devuelve todo sino nada; qué se ofrece como «lo de siempre» —solo lo que se repite, con la partida y el texto de la última vez—; el orden de las partidas por uso; y si hay que cerrar el mes pasado, que es la regla que le da historia a la sección y vivía sin test dentro de `StoreProvider`—, y antes el reparto por meses de la lista de Cumpleaños —que un mes que vuelve a aparecer es su propio grupo y que el año solo se escribe cuando no es el de hoy—, y antes el reparto de las franjas de ausencia de un día del mes —que la franja de la casa solo se calla lo que ella misma dice, así que el descanso de quien no tiene cuenta se queda, y que el tope lo aplica quien pinta— y la agrupación por personas del bloque de vacaciones y descansos) (recurrencia, fechas —incluido el tramo del día en la hora de Madrid, que deciden en el servidor la portada y el login—, selectores, validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje de horas, franjas de comida —con el comedor y los platos de una comida desde el 02-09-2026—, detección de modo demo, el almacenamiento de documentos —caducidad del token, URL de consentimiento, traducción de los errores de Google y cifrado— y, desde el 31-08-2026, el dinero: la conversión de lo tecleado a céntimos en las dos direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has pasado, quién ha puesto qué— la agrupación de los presupuestos pedidos desde el 01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un ingreso ni toca las partidas ni entra en el reparto— y, desde el 02-09-2026, los meses cerrados —qué plantilla valía en cada mes, que la copia manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se inventa uno— y, desde el 03-09-2026, qué categorías se ofrecen como filtro en Documentos y qué direcciones acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que evita que el cron visite cualquier URL— las líneas que enseña cada partida al abrirse, que tienen que sumar exactamente su cifra, y qué `?next=` se acepta al volver de un enlace de correo —incluidos los caracteres que el navegador borra de una URL antes de interpretarla, que se colaban por el filtro— y qué peticiones se dan por venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que escriben y, desde el 04-09-2026, qué meses ofrece la tira de Finanzas —que llega hasta el más viejo con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que esté— y que los doce meses abreviados miden lo mismo, y —desde «Estadísticas»— el ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que estira el último día de un mes corto en vez de hundirlo a cero), la variación de cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que entra— y, desde el 05-09-2026, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás fijos, y que un mes cerrado no los mira— y qué plan de hoy ha pasado ya y cuál es el siguiente, y qué papeles caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién cuenta, cuántos hacen falta y dónde empieza y acaba el tramo— y, desde el 08-09-2026, con qué nombre sale un documento de Farpi —la extensión no está en el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la ficha no tiene dueño). No levantan servidor: `npm run test:unit`. Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una línea.
+  - **590 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
+    15-09-2026. No levantan servidor: `npm run test:unit`.
+
+    *Los últimos en entrar*, del más reciente al más antiguo:
+
+    - Los **veintiuno del aviso de las nueve** (15-09-2026): qué dice la notificación de
+      la mañana. Que el título es el día en el calendario de la familia y no en el del
+      servidor, que la hora de un plan se traduce a la de Madrid y no a la de la función
+      de Vercel que la envía, que un plan de todo el día no se inventa las 00:00, que del
+      cuarto en adelante se cuentan en vez de nombrarse y que sin ningún plan las tareas
+      necesitan el verbo delante.
+    - Los de **Finanzas** (14-09-2026): agrupar los apuntes por días y por meses, con lo
+      entrado y lo salido sin restarse; buscar cruzando los meses, sin tildes y también
+      por el nombre de la partida, y que sin consulta no devuelve todo sino nada; qué se
+      ofrece como «lo de siempre» —solo lo que se repite, con la partida y el texto de la
+      última vez—; el orden de las partidas por uso; y si hay que cerrar el mes pasado,
+      que es la regla que le da historia a la sección y vivía sin test dentro de
+      `StoreProvider`.
+    - El **reparto por meses de la lista de Cumpleaños**: que un mes que vuelve a
+      aparecer es su propio grupo y que el año solo se escribe cuando no es el de hoy.
+    - El **reparto de las franjas de ausencia** de un día del mes —que la franja de la
+      casa solo se calla lo que ella misma dice, así que el descanso de quien no tiene
+      cuenta se queda, y que el tope lo aplica quien pinta— y la agrupación por personas
+      del bloque de vacaciones y descansos.
+
+    *Qué cubren en total.* De siempre: recurrencia, fechas —incluido el tramo del día en
+    la hora de Madrid, que deciden en el servidor la portada y el login—, selectores,
+    validadores, asignaciones, eventos, tramos y agrupación por persona de la agenda, eje
+    de horas, franjas de comida —con el comedor y los platos de una comida desde el
+    02-09-2026—, detección de modo demo y el almacenamiento de documentos —caducidad del
+    token, URL de consentimiento, traducción de los errores de Google y cifrado—. Y por
+    fechas:
+
+    - **31-08-2026**, el dinero: la conversión de lo tecleado a céntimos en las dos
+      direcciones, el formato en euros, las partidas —cuánto llevas, cuánto te has
+      pasado, quién ha puesto qué—, la agrupación de los presupuestos pedidos desde el
+      01-09-2026, los fijos y la cuenta del mes —qué entra, qué sale, qué queda, y que un
+      ingreso ni toca las partidas ni entra en el reparto—.
+    - **02-09-2026**, los meses cerrados: qué plantilla valía en cada mes, que la copia
+      manda sobre el espejo aunque el mes no haya terminado, y que un mes sin plan no se
+      inventa uno.
+    - **03-09-2026**: qué categorías se ofrecen como filtro en Documentos; qué direcciones
+      acepta `/api/push` —la lista blanca de los cuatro servidores de push, que es lo que
+      evita que el cron visite cualquier URL—; las líneas que enseña cada partida al
+      abrirse, que tienen que sumar exactamente su cifra; qué `?next=` se acepta al volver
+      de un enlace de correo —incluidos los caracteres que el navegador borra de una URL
+      antes de interpretarla, que se colaban por el filtro—; y qué peticiones se dan por
+      venidas de otra web, que es lo que sostiene la guarda de CSRF de las rutas que
+      escriben.
+    - **04-09-2026**: qué meses ofrece la tira de Finanzas —que llega hasta el más viejo
+      con algo y no más, y que ningún mes con un apunte se queda fuera por lejos que
+      esté— y que los doce meses abreviados miden lo mismo. Y, desde «Estadísticas», el
+      ritmo de gasto acumulado día a día (que nunca baja, que ignora los ingresos y que
+      estira el último día de un mes corto en vez de hundirlo a cero), la variación de
+      cada partida frente al mes anterior (casada por nombre, y `null` cuando no hay con
+      qué comparar, que no es lo mismo que cero), las partidas que se pasan a menudo y el
+      reparto de lo que entra, cuyas cuatro partes tienen que sumar exactamente lo que
+      entra.
+    - **05-09-2026**, los ajustes de un fijo en un mes: que el mes ajustado vale el ajuste
+      y guarda la referencia al lado, que no se contagia al mes siguiente ni a los demás
+      fijos, y que un mes cerrado no los mira.
+    - Sin fecha propia: qué plan de hoy ha pasado ya y cuál es el siguiente, qué papeles
+      caducan o han caducado, y cuándo un día es de ausencia de la familia entera —quién
+      cuenta, cuántos hacen falta y dónde empieza y acaba el tramo—.
+    - **08-09-2026**: con qué nombre sale un documento de Farpi —la extensión no está en
+      el nombre guardado y sin ella no abre nada— y qué mensaje lee la familia cuando la
+      ficha no tiene dueño.
+
+    Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
+    **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
+    línea.
   - 177 de navegador. La cifra sale de la pasada completa del 15-09-2026 (767 en total,
     590 unitarios; los últimos, los cinco de Finanzas del 14-09-2026 —que el buscador
     cruza los meses y dice cuánto suma lo encontrado, que «El día a día» va por días con
@@ -1011,7 +1098,7 @@ que todavía no existen (ver "Siguiente paso recomendado").
   Lo que de esto era SQL —el trigger de inmutabilidad y las cuatro policies de
   `documents`— se aplicó en el proyecto real el mismo día, junto con la RPC de la
   invitación y la retirada del `insert` de `family_members` que sale en la lista de abajo:
-  son las cuatro secciones de `supabase/parche-2026-09-03.sql`. Lo demás (`safeNextPath`,
+  son las cuatro piezas de SQL de aquel día. Lo demás (`safeNextPath`,
   HSTS, el corte del build) es código y viaja con el despliegue. Validado después:
   **163/163**.
 
@@ -1067,14 +1154,14 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 ## Validación Supabase
 
 Sin pendientes. La última pasada es del **05-09-2026**: **169/169**, con
-`supabase/aplicar-ajustes-de-fijos.sql` aplicado —la tabla `fixed_entry_overrides`, lo
+`fixed_entry_overrides` aplicada —lo
 que un fijo costó en un mes suelto cuando no fue lo de siempre— y cuatro comprobaciones
 nuevas. La que había que escribir sí o sí es la del trigger: la fila lleva `family_id`
 propio para que su policy sea barata, así que la RLS sola dejaría insertar un ajuste
 **de tu familia** apuntando al fijo de otra; lo para `trg_fixed_entry_override_family`.
 
-Antes de esa, la del **04-09-2026**: **165/165**, con
-`supabase/parche-2026-09-04.sql` aplicado —el `on delete set null` de
+Antes de esa, la del **04-09-2026**: **165/165**, con el arreglo del trigger
+aplicado —el `on delete set null` de
 `documents.storage_owner` se pisaba con el trigger de inmutabilidad del día anterior y
 dejaba un 500 sin salida a quien hubiera subido un papel a una familia que le sobrevive— y
 las dos comprobaciones nuevas, que son de las que dicen qué tiene que **seguir
@@ -1082,14 +1169,13 @@ funcionando**.
 
 Antes de esa, la del **03-09-2026**, con
 `node scripts/validate-rls.mjs` contra la base real y ya con las cuatro secciones de
-`supabase/parche-2026-09-03.sql` aplicadas: **163/163**. El detalle
+la revisión de seguridad aplicadas: **163/163**. El detalle
 —y por qué las que más importan son que nadie pueda llamar a `close_month_copy`
 directamente, que un mes terminado no se pueda reabrir, que poner un mes a cero deje la
 cabecera del plan, que nadie pueda apuntar una ficha al Drive de otro y que ni un admin
 pueda meter a nadie en su familia a mano— está en
-`docs/supabase-validation.md`. El delta que se aplicó a mano quedó guardado en
-`supabase/aplicar-meses-cerrados.sql`, reescrito entero —como manda su cabecera— con las
-seis funciones tal y como están hoy en `supabase/schema.sql`.
+`docs/supabase-validation.md`. El delta que se aplicó a mano no se guardó: lo que vale es
+`supabase/schema.sql`, y el trozo suelto de cada cambio sale de su `git diff`.
 
 Entre aquella y esta hubo cinco pasadas más —117/117 y 139/139 el 02-09-2026, y 149/149, 152/152 y 154/154 el 03-09-2026—, contadas una a una en `docs/supabase-validation.md`. Antes de todas ellas, la pasada del **01-09-2026 (tarde)** dio **106/106**. Las siete últimas son de la reforma de los fijos:
 tres de las de siempre sobre la tabla nueva —A crea, B no ve, B no puede escribir—, que
@@ -1155,9 +1241,12 @@ Las dos que había aquí se cerraron el 06-08-2026:
    a mano por el propio Vercel (`vercel crons run`) contesta **200**. La ruta responde
    401 y no el 503 de "cron no configurado", así que el `CRON_SECRET` también está.
 
-   Dicho con precisión: no se llegó a ver **la ejecución de las 07:00 UTC en los
-   logs** —en plan Hobby caducan en un par de horas y se miró a las 11— pero sí la
-   misma invocación por la misma vía. Y una cosa que conviene saber antes de
+   Dicho con precisión: **de esa revisión** no salió la ejecución de las 07:00 UTC
+   **de aquel día** —en plan Hobby los logs caducan en un par de horas y se miró a las
+   11—, sino la misma invocación por la misma vía. La ejecución automática sí se vio en
+   los logs en su momento, el 06-08-2026, y es la que se da por buena más arriba. Lo
+   que el CLI añade es que la tarea sigue registrada y enganchada hoy, que era la duda
+   después de tocar el `CRON_SECRET`. Y una cosa que conviene saber antes de
    asustarse: **cada ejecución sale marcada como `error` en los logs de Vercel**, y no
    lo es. Es un `DeprecationWarning` de `url.parse()` que escribe `web-push@3.6.7` por
    stderr, y Vercel pinta de rojo todo lo que salga por ahí. El `responseStatusCode`

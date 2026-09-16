@@ -2,7 +2,7 @@
 
 Estado y pasos para llevar Farpi a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-08-31.
+> Última actualización: 2026-09-15.
 
 ## 0. El cambio de nombre a Farpi
 
@@ -150,8 +150,8 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-El backend está **validado** (§4): **165/165** comprobaciones de RLS, RPCs e integridad
-(04-09-2026). La app está desplegada y operativa en **https://www.farpi.app** desde el
+El backend está **validado** (§4): **169/169** comprobaciones de RLS, RPCs e integridad
+(05-09-2026). La app está desplegada y operativa en **https://www.farpi.app** desde el
 15-09-2026 (§0). La URL de Vercel sigue sirviendo, pero el host de la casa es ese.
 
 Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
@@ -174,10 +174,10 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 
 - [x] `CRON_SECRET` — **obligatoria para que el cron diario funcione**. Cualquier cadena larga y aleatoria. Vercel la envía sola en la cabecera `Authorization` cuando la variable se llama así. Sin ella, `/api/cron/reminders` responde 503 y no se ejecuta el keep-alive de Supabase. *(Añadida el 04-08-2026; el endpoint responde 200 con `keptAlive: true`.)*
 
-- [ ] `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` — *(opcional)* sin ellas las notificaciones push quedan desactivadas: el botón de activarlas no aparece (`src/lib/push.ts`) y el cron responde `skipped: 'VAPID no configurado'` pero mantiene el keep-alive. Se generan con `node scripts/gen-vapid.cjs`, que las imprime ya con el nombre de cada variable. Después de guardarlas hay que **volver a desplegar**: las `NEXT_PUBLIC_*` se hornean en el build.
+- [x] `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` — **puestas en Vercel** y probadas de punta a punta el 28-08-2026 (`sent: 1, fallidos: 0`). Son *opcionales* solo en el sentido de que la app arranca sin ellas: faltando, las notificaciones push quedan desactivadas —el botón de activarlas no aparece (`src/lib/push.ts`) y el cron responde `skipped: 'VAPID no configurado'`, aunque mantiene el keep-alive—. Se generan con `node scripts/gen-vapid.cjs`, que las imprime ya con el nombre de cada variable. Después de guardarlas hay que **volver a desplegar**: las `NEXT_PUBLIC_*` se hornean en el build.
 
-- [ ] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — **obligatorias para los documentos**. Sin ellas, las rutas de `/api/documents/*` responden 503 y no se puede subir ni abrir ningún papel. La `REDIRECT_URI` tiene que ser exactamente `https://<dominio>/api/documents/providers/google/callback`.
-- [ ] `DOCS_TOKEN_KEY` — clave de 32 bytes con la que se cifran los tokens de Drive antes de guardarlos (`openssl rand -hex 32`). **Si se pierde o se rota, todas las conexiones guardadas dejan de descifrarse** y cada persona tiene que volver a conectar su Drive.
+- [x] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` — puestas, y la `REDIRECT_URI` corregida al dominio `www` el 15-09-2026 (§0). Son **obligatorias para los documentos**: sin ellas, las rutas de `/api/documents/*` responden 503 y no se puede subir ni abrir ningún papel. La `REDIRECT_URI` tiene que ser exactamente `https://<dominio>/api/documents/providers/google/callback`.
+- [x] `DOCS_TOKEN_KEY` — puesta. Clave de 32 bytes con la que se cifran los tokens de Drive antes de guardarlos (`openssl rand -hex 32`). **Si se pierde o se rota, todas las conexiones guardadas dejan de descifrarse** y cada persona tiene que volver a conectar su Drive.
 
 > La lista completa, incluidas las de notificaciones push (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`), `CRON_SECRET` y `FARPI_TIME_ZONE` (esta última opcional y nunca definida: el cron usa `Europe/Madrid`), está en **`.env.example`** en la raíz del repositorio. Ese fichero es la plantilla de referencia: no lo lee ningún código, pero es el inventario de lo que la app necesita.
 
@@ -186,6 +186,12 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 > Sin `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` válidas, la app arranca en **modo demo** (datos locales). Es el comportamiento correcto, pero no es lo que quieres en producción.
 
 ### 2.2 Supabase — base de datos
+
+> Las tres primeras casillas hablan de **migraciones numeradas, que ya no existen**: se
+> aplastaron en `supabase/schema.sql` el 26-08-2026 y están en el historial de git. Se
+> quedan escritas porque dicen qué se aplicó en la base real y qué día, que es lo único
+> que un archivo de esquema no sabe contar. De ahí para abajo, cada casilla nombra lo que
+> cambió, no un número.
 
 - [x] Migraciones `001`–`016` aplicadas en el proyecto de producción (SQL Editor o CLI). Verificado el 04-08-2026 contra la base real: existen `events.kind` (013), `events.member_id` y `documents.member_id` (012) y `family_members.color` (014). Las 015 y 016 se aplicaron el 05-08-2026 y quedaron **revalidadas el 06-08-2026** con `node scripts/validate-rls.mjs`: 51/51 (§4).
 - [x] Migraciones `017_event_kind_descanso.sql` (guardar un descanso) y `018_person_kind.sql` (`children.kind`, los adultos sin cuenta) aplicadas el 21-08-2026 y **revalidadas** ese mismo día: 51/51 (§4).
@@ -210,10 +216,10 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 - [x] **La revisión de seguridad del 03-09-2026**: el trigger
       `trg_document_storage_inmutable` y las cuatro policies de `documents` —la regla del
       dueño vive solo en el `insert`—, y `family_members` sin ninguna policy de escritura.
-      Aplicado con `supabase/parche-2026-09-03.sql` y validado ese mismo día: **163/163**.
-      La cuarta sección de ese parche, la RPC `accept_family_invite`, va anotada en §2.3
+      Aplicado y validado ese mismo día: **163/163**.
+      La cuarta pieza de aquel día, la RPC `accept_family_invite`, va anotada en §2.3
       por ser de Auth.
-- [x] **`supabase/parche-2026-09-04.sql` aplicado** el 04-09-2026 y validado ese mismo
+- [x] **Arreglo del trigger aplicado** el 04-09-2026 y validado ese mismo
       día: **165/165**. Corrige el trigger de la línea de arriba, que se pisaba con el
       `on delete set null` de `documents.storage_owner` y dejaba sin poder borrar su cuenta
       a quien hubiera subido un papel a una familia que le sobrevive.
@@ -224,8 +230,8 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 
 - [x] **Authentication → URL Configuration → Site URL**: el dominio de producción.
 - [x] **Redirect URLs**: añadir `https://<dominio>/auth/callback` (y `http://localhost:3000/auth/callback` para desarrollo).
-- [x] **Parche SQL del 03-09-2026 aplicado** (`supabase/parche-2026-09-03.sql`, cuatro
-      secciones). De Auth es la RPC `accept_family_invite`, que ahora exige además que la
+- [x] **Parche SQL del 03-09-2026 aplicado** (cuatro secciones, hoy en
+      `supabase/schema.sql`). De Auth es la RPC `accept_family_invite`, que ahora exige además que la
       invitación no lleve más de 30 días esperando y que la cuenta no se haya creado
       después de escribirse. Las otras tres son de base de datos y están anotadas en §2.2.
       Validado después con `node scripts/validate-rls.mjs`: **163/163**.
@@ -244,10 +250,13 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
 
 ### 2.4 Google Cloud — Drive para los documentos
 
-En **Google Cloud Console → APIs y servicios**:
+**Está todo hecho**: los documentos llevan en producción desde el 27-08-2026 y la
+redirect URI y el Branding se cerraron el 15-09-2026 (§0). Lo de aquí abajo queda como
+la lista de lo que hay que tener puesto en **Google Cloud Console → APIs y servicios**,
+que es lo que hace falta para rehacerlo o para entender qué se rompe si alguien lo toca:
 
-- [ ] Habilitar la **Google Drive API** en el proyecto.
-- [ ] Crear un **ID de cliente de OAuth** de tipo *Aplicación web*. En **URI de
+- [x] Habilitar la **Google Drive API** en el proyecto.
+- [x] Crear un **ID de cliente de OAuth** de tipo *Aplicación web*. En **URI de
       redirección autorizados**, **solo la de producción**. Google compara la cadena
       **entera**, así que un preview de Vercel con URL aleatoria no puede conectar.
 
@@ -262,11 +271,11 @@ En **Google Cloud Console → APIs y servicios**:
       nuevo. Si alguna vez hace falta, se añade un rato y se vuelve a quitar; y si se
       fuera a trabajar a fondo en documentos, lo limpio es un **segundo cliente OAuth
       solo para desarrollo**, con su propio id y secreto en `.env.local`.
-- [ ] En la pantalla de consentimiento, dejar como único scope
+- [x] En la pantalla de consentimiento, dejar como único scope
       `https://www.googleapis.com/auth/drive.file`. Es **no sensible**, así que no
       hace falta verificación ni auditoría CASA. Añadir `drive` o `drive.readonly`
       metería el proyecto en un proceso de semanas.
-- [ ] **Publicar la app: estado "In production", no "Testing".** Es el punto que
+- [x] **Publicar la app: estado "In production", no "Testing".** Es el punto que
       rompe el sistema en silencio si se olvida:
       - en *Testing*, Google **caduca los refresh tokens a los 7 días** y toda la
         familia tendría que reconectar cada semana;
@@ -289,7 +298,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 165/165 comprobaciones correctas, con el esquema entero validado (última pasada, 04-09-2026). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 169/169 comprobaciones correctas, con el esquema entero validado (última pasada, 05-09-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Cuatro usuarios y tres familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
@@ -306,11 +315,25 @@ Resultados en **`docs/supabase-validation.md`**: 165/165 comprobaciones correcta
 
 ## 5. Smoke post-deploy (manual, en el dominio real)
 
+> **Las casillas se quedan sin marcar a propósito**: esto no es un registro de lo hecho
+> sino un procedimiento que se vuelve a correr entero cada vez que cambia el dominio o
+> algo de §2. Lo de si funciona ya lo contesta otra cosa: la app está en **uso diario por
+> la familia** desde el 05-08-2026, así que entrar, crear, invitar y abrir un papel se
+> prueban solos todos los días.
+>
+> **La última pasada fue el 15-09-2026**, con el dominio nuevo, y no entera: las tres que
+> el cambio de host podía romper —entrar por magic link, abrir un documento ya subido y
+> desconectar y volver a conectar Drive—. Pasaron las tres; el detalle, en §0. Instalar
+> como PWA sigue sin comprobarse en un móvil de verdad, y es el mismo punto abierto que
+> arrastra la Fase 2 del roadmap.
+
 - [ ] `/auth/login` muestra el **formulario real** (no "Modo local activo").
 - [ ] Registro → confirmación por email → login.
 - [ ] Onboarding: crear familia.
 - [ ] Crear evento, tarea, lista + ítem y comida; recargar y comprobar persistencia.
-- [ ] Subir un documento y pulsar **Abrir documento** (signed URL).
+- [ ] Subir un documento y pulsar **Abrir documento**: el archivo va al Google Drive de
+      quien lo sube y lo sirve Farpi por proxy (`/api/documents/[id]/file`). Ya no hay
+      signed URLs ni bucket, desde el 27-08-2026.
 - [ ] Invitar a un segundo email → llega el magic link → aceptar → se une a la familia.
 - [ ] Cambiar rol de un miembro; comprobar que no se puede degradar al único admin.
 - [ ] Cerrar sesión.
@@ -330,7 +353,7 @@ Resultados en **`docs/supabase-validation.md`**: 165/165 comprobaciones correcta
 - [x] `CRON_SECRET` en Vercel y cron respondiendo 200 (04-08-2026).
 - [x] Revalidar RLS tras las migraciones 015 y 016 — hecho el 06-08-2026, 51/51 (§4).
 - [ ] Revisar límites de envío de email del proveedor (Gmail SMTP: ~500/día).
-- [ ] Claves VAPID si se quieren notificaciones push reales (§2.1).
+- [x] Claves VAPID en Vercel y push funcionando (28-08-2026, §2.1).
 - [x] Ejecución automática de las 07:00 UTC comprobada en los logs de Vercel (06-08-2026). El keep-alive de Supabase corre solo, no solo a mano.
 - [x] Pasar la app por un móvil de verdad (05-08-2026): sin incidencias. Quedan
   sueltos Safari de iOS y la PWA instalada, según el móvil de la prueba. Ver

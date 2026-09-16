@@ -23,18 +23,19 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
   justo lo que había que leer.
 - `docs/architecture.md` — decisiones técnicas (RLS, RPCs, repositorios) y también las
   **decisiones de producto** y el **tono de la interfaz**.
-- `docs/roadmap.md` — orden de trabajo.
 - `docs/testing-checklist.md` — QA manual, y qué está ya automatizado.
 - `docs/produccion.md` — checklist de despliegue (Vercel + Supabase) y variables de entorno.
 - `docs/supabase-validation.md` — resultado de la última validación de RLS.
 - `docs/notificaciones.md` — qué falta para activar las notificaciones push.
 
-Y `git log`, que es el séptimo documento: **los 350 commits llevan cuerpo** —unas 10.000
-líneas— y ahí está el porqué de cada cosa, escrito el día que se hizo. Hubo un
-`docs/historial.md` que lo volvía a contar; se borró el 16-09-2026 porque una copia de algo
-que git ya guarda solo puede hacer una cosa, quedarse vieja, y ya lo había hecho. Un detalle
-para leerlo: **la app se llamó Nido hasta el 31-08-2026**, así que un commit anterior que
-diga «Nido» es Farpi antes de llamarse así.
+Y `git log`, que es el séptimo documento: **todos los commits llevan cuerpo** —unas 10.000
+líneas en total— y ahí está el porqué de cada cosa, escrito el día que se hizo. Por eso ya
+no hay ni historial ni roadmap: el 16-09-2026 se borraron `docs/historial.md`, que volvía a
+contar lo que ya cuentan los commits, y `docs/roadmap.md`, que eran 1.080 líneas de fases
+cerradas y una lista de pendientes que `project-status.md` ya tenía mejor ordenada. Una
+copia de algo que otro sitio guarda solo puede hacer una cosa: quedarse vieja, y las dos lo
+habían hecho. Un detalle para leer los commits: **la app se llamó Nido hasta el
+31-08-2026**, así que uno anterior que diga «Nido» es Farpi antes de llamarse así.
 
 ## Reglas de trabajo
 
@@ -314,8 +315,8 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en
   merece commit propio.
 - Autor: Omar García <cerredax@gmail.com>. Y cierra con el trailer
   `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`, como el resto del historial.
-- Al cerrar un trabajo relevante, actualiza `docs/project-status.md` y marca lo que
-  toque en `docs/roadmap.md`. Son la fuente de verdad y se desactualizan solas. El
+- Al cerrar un trabajo relevante, actualiza `docs/project-status.md`: es la fuente de
+  verdad del estado **y de lo que falta**, y se desactualiza sola. El
   **relato** del cierre va en el **cuerpo del commit** y en ningún documento más; en
   `project-status.md` y en `architecture.md`, solo lo que siga siendo verdad hoy. Escribir
   el relato en el estado es exactamente lo que lo infló hasta hacerlo ilegible, y tenerlo

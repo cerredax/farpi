@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { elegirVista } from './vistas'
 
-// QA de móvil, automatizada. La Fase 2 del roadmap pedía revisar la app a
+// QA de móvil, automatizada. El repaso visual del MVP pedía revisar la app a
 // 390×844 —el ancho de un iPhone normal, más estrecho que el Pixel 7 con el que
 // corre el resto de la suite— y esto deja fijas las dos comprobaciones que se
 // pueden hacer sin un teléfono en la mano:

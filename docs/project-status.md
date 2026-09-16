@@ -335,7 +335,10 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   pero sumando el año** (agrupado por nombre y no por clave: la de un fijo es la de su
   línea y cada mes cerrado guardó la suya) y **lo que más se repite**, que ordena los
   conceptos del día a día por lo que suman —«Compra semanal · 34 veces · 35,40 € de
-  media»— y contesta en qué se va sin darse cuenta. Los meses de los que no consta nada
+  media»— y contesta en qué se va sin darse cuenta. Ese último **no se ve en el modo demo**,
+  y es a propósito: sus siete apuntes son siete cosas distintas, y sembrar un par de
+  repetidos movería las cifras de junio que media suite comprueba. Se cubre con unitarios y
+  con un test que apunta dos veces lo mismo. Los meses de los que no consta nada
   no entran en ninguno de los tres: no se inventa un cero. **Ni tampoco un mes cerrado y
   vacío sin apuntes** (14-09-2026): la regla que ya tiraba los meses sin plan miraba cómo
   estaba guardado el mes y no lo que dice, y uno con la cabecera de `month_plans` pero sin
@@ -1210,8 +1213,8 @@ esto; aquí solo el titular.
 La app está en producción y en uso diario por la familia. **No queda código de producto
 pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
 pruebas que exigen un aparato en la mano, una decisión sin tomar, dos funcionalidades que
-no existen y tres acabados menores. Cada una tiene su fase en `docs/roadmap.md`, que es
-donde vive el detalle; aquí está la lista entera para no tener que reconstruirla.
+no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
+falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
 Lo que **ya no está** en esta lista, porque se cerró: las notificaciones push (28-08-2026),
 la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
@@ -1222,12 +1225,12 @@ de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidac
 
 Es lo único que no ve ninguna herramienta, y por eso va primero.
 
-- **Safari de iOS** (Fase 2). El móvil de verdad del 05-08-2026 era Android, y Safari es
+- **Safari de iOS.** El móvil de verdad del 05-08-2026 era Android, y Safari es
   otro motor: el teclado, el `100vh` y la safe-area se comportan distinto.
-- **La PWA instalada** (Fase 2): icono, splash, el notch y la barra de abajo. Instalada no
+- **La PWA instalada**: icono, splash, el notch y la barra de abajo. Instalada no
   es lo mismo que abierta en el navegador, y el service worker solo se prueba de verdad
   contra `npm run start`, nunca contra `npm run dev`.
-- **El flujo de documentos con dos cuentas** (Fase 6b, `docs/testing-checklist.md` §8.1):
+- **El flujo de documentos con dos cuentas** (`docs/testing-checklist.md` §8.1):
   que A suba un papel a su Drive y B lo abra sin conectar nada. Es la mitad de la
   decisión del 27-08-2026 que no prueba ningún test.
 
@@ -1239,24 +1242,24 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
 
 ### 3. Funcionalidad que no existe
 
-- **Una sección de ayuda** (Fase 8u). Es la contrapartida de haber vaciado los estados
+- **Una sección de ayuda.** Es la contrapartida de haber vaciado los estados
   vacíos de manual de estreno. No urge: lo que se quitó se leía una vez.
-- **Dar salida por la app a un mes fantasma** (Fase 8aa). Hoy un mes cerrado y vacío solo
+- **Dar salida por la app a un mes fantasma.** Hoy un mes cerrado y vacío solo
   se recupera por el SQL Editor. Sería una RPC nueva —borrar la cabecera y recopiar en una
   sola operación— y, detrás, `scripts/validate-rls.mjs` y `docs/supabase-validation.md`.
 
 ### 4. Acabados de Finanzas
 
-Los tres salieron medidos de su propia fase y se dejaron escritos en vez de arreglados,
+Los tres salieron medidos el día que se hicieron y se dejaron escritos en vez de arreglados,
 porque ninguno se arregla sin tocar algo que no es suyo:
 
-- **Las barras de «entra» y «sale» no se separan** (Fase 8z): ΔE 3,8 en protanopía y 13,6
+- **Las barras de «entra» y «sale» no se separan**: ΔE 3,8 en protanopía y 13,6
   con visión normal, por debajo del suelo de 15. El único candidato que pasa es un **azul**
   (ΔE 12,8), y verde contra cualquier naranja o rojo no pasa nunca. Cambiar el verde es
   tocar el color de marca, así que se decide aparte.
-- **La rejilla de iconos de un fijo va con un hueco** (Fase 8y): son 23 y la última fila
+- **La rejilla de iconos de un fijo va con un hueco**: son 23 y la última fila
   lleva siete. Mejor candidato, 🦷.
-- **🏛️ y 🏦 se parecen** en la tipografía de Android (Fase 8y). Están separados en la
+- **🏛️ y 🏦 se parecen** en la tipografía de Android. Están separados en la
   rejilla para que no se comparen de un vistazo, pero el problema sigue ahí.
 
 ### Lo que no hay que hacer

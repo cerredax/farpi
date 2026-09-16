@@ -154,7 +154,7 @@ El backend está **validado** (§4): **169/169** comprobaciones de RLS, RPCs e i
 (05-09-2026). La app está desplegada y operativa en **https://www.farpi.app** desde el
 15-09-2026 (§0). La URL de Vercel sigue sirviendo, pero el host de la casa es ese.
 
-Arquitectura y detalle: `architecture.md`. Estado: `project-status.md`. Roadmap: `roadmap.md`.
+Arquitectura y detalle: `architecture.md`. Estado y lo que falta: `project-status.md`.
 
 ---
 
@@ -296,7 +296,7 @@ Build local de comprobación: `npm run build`.
 
 ---
 
-## 4. Validación Supabase (Fase 3) — COMPLETADA (2026-08-06)
+## 4. Validación Supabase — COMPLETADA (2026-08-06)
 
 Resultados en **`docs/supabase-validation.md`**: 169/169 comprobaciones correctas, con el esquema entero validado (última pasada, 05-09-2026). Repetible con `node scripts/validate-rls.mjs`.
 
@@ -325,7 +325,7 @@ Resultados en **`docs/supabase-validation.md`**: 169/169 comprobaciones correcta
 > el cambio de host podía romper —entrar por magic link, abrir un documento ya subido y
 > desconectar y volver a conectar Drive—. Pasaron las tres; el detalle, en §0. Instalar
 > como PWA sigue sin comprobarse en un móvil de verdad, y es el mismo punto abierto que
-> arrastra la Fase 2 del roadmap.
+> arrastra desde la primera prueba en un móvil de verdad.
 
 - [ ] `/auth/login` muestra el **formulario real** (no "Modo local activo").
 - [ ] Registro → confirmación por email → login.
@@ -338,6 +338,25 @@ Resultados en **`docs/supabase-validation.md`**: 169/169 comprobaciones correcta
 - [ ] Cambiar rol de un miembro; comprobar que no se puede degradar al único admin.
 - [ ] Cerrar sesión.
 - [ ] Instalar como PWA en móvil (icono correcto).
+
+### Vigilancia continua
+
+**UptimeRobot mirando `https://www.farpi.app/api/salud` cada cinco minutos, con aviso por
+correo** (puesto el 15-09-2026). Tiene que ser externo: si el que vigila se cae con la app,
+no vigila nada.
+
+**Con el `www` y no con el ápice**, y esto es lo que hay que recordar si alguien lo vuelve
+a configurar: `farpi.app` contesta un 308 que sirve Vercel **en el borde**, sin llegar a la
+app. UptimeRobot sigue los redirects, así que apuntando ahí también parece funcionar —y así
+estuvo un rato—, pero mide 1,3 s de rodeo y, si ese ajuste se apagara alguna vez, daría por
+bueno el 308 sin tocar Supabase jamás: verde permanente y falso.
+
+De propina, mantiene Supabase despierto mejor que el cron: son ~17.000 consultas al día
+contra una. Y no le hace ruido, porque `/api/salud` guarda su medida diez segundos
+(`VALIDEZ_MS`).
+
+Lo que **no** hay que montar: telemetría de errores del cliente. Es una app familiar con
+datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo que resuelve.
 
 ---
 
@@ -356,8 +375,8 @@ Resultados en **`docs/supabase-validation.md`**: 169/169 comprobaciones correcta
 - [x] Claves VAPID en Vercel y push funcionando (28-08-2026, §2.1).
 - [x] Ejecución automática de las 07:00 UTC comprobada en los logs de Vercel (06-08-2026). El keep-alive de Supabase corre solo, no solo a mano.
 - [x] Pasar la app por un móvil de verdad (05-08-2026): sin incidencias. Quedan
-  sueltos Safari de iOS y la PWA instalada, según el móvil de la prueba. Ver
-  `roadmap.md`, Fase 2.
+  sueltos Safari de iOS y la PWA instalada, porque la prueba fue en Android. Ver
+  `project-status.md`, «Siguiente paso recomendado».
 
 ### Mejoras futuras (opcional)
 - [x] PWA **offline** (service worker registrado en producción, con fallback `/offline`).

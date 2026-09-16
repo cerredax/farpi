@@ -59,7 +59,6 @@ python scripts/gen-email-templates.py   # plantillas de correo de Supabase
 
 - [Estado del proyecto](./docs/project-status.md): qué está hecho, qué falta y cuál es el siguiente paso.
 - [Arquitectura](./docs/architecture.md): decisiones técnicas, modo demo, Supabase, repositorios y datos.
-- [Roadmap](./docs/roadmap.md): orden recomendado de trabajo por fases.
 - [Puesta en producción](./docs/produccion.md): checklist de despliegue en Vercel + Supabase.
 - [Checklist de pruebas](./docs/testing-checklist.md): QA manual, y qué está ya automatizado.
 - [Validación Supabase](./docs/supabase-validation.md): resultado de la última pasada de RLS, RPCs e integridad contra la base real.
@@ -85,7 +84,7 @@ src/proxy.ts               Middleware de Next 16, refresca la sesión
 e2e                        Tests de navegador; e2e/unit, los de lógica pura
 scripts                    Validación de RLS, claves VAPID e iconos de la PWA
 supabase/schema.sql        Esquema, RLS, RPCs, integridad e invitaciones
-docs                       Documentación de proyecto, QA y roadmap
+docs                       Documentación de proyecto, arquitectura y QA
 ```
 
 ## Principios

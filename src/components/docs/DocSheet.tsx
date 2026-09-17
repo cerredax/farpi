@@ -59,7 +59,7 @@ interface DocSheetProps {
 }
 
 export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, onDelete, onOpenFile, conexion = null, connectUrl = null }: DocSheetProps) {
-  const { draft, setDraft, patch, firstFieldRef, submitHandler } = useSheetForm<DocumentDraft>({
+  const { draft, setDraft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<DocumentDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
     validate: d => (d.name.trim() ? null : 'El nombre es obligatorio.'),
@@ -77,11 +77,38 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
   const [guardando, setGuardando] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Lo que `useSheetForm` no lleva: el archivo elegido y los avisos del campo.
+  // Al crear, la vista reutiliza siempre la misma `key`, así que el sheet no se
+  // remonta entre altas: cerrarlo sin guardar dejaba el archivo anterior puesto
+  // —y su error— en el siguiente alta, con el resto del formulario ya en blanco.
+  // Es el mismo ajuste en render que hace el draft, y por lo mismo.
+  const [abiertoAntes, setAbiertoAntes] = useState(open)
+  if (open !== abiertoAntes) {
+    setAbiertoAntes(open)
+    if (open) {
+      setFileName('')
+      setSelectedFile(null)
+      setFileError('')
+      setOpenError('')
+    }
+  }
+
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
+    // El input se vacía siempre: si no, volver a elegir **el mismo** archivo tras
+    // un error no dispara `change` y el toque no hace nada.
+    e.target.value = ''
     if (!file) return
     const validation = validateDocumentFile(file)
-    if (!validation.ok) { setFileError(validation.message); return }
+    if (!validation.ok) {
+      // Y se suelta el que hubiera: dejar en pantalla un archivo válido con un
+      // error debajo cuenta dos cosas distintas del mismo campo, y la buena ya
+      // no se puede guardar.
+      setSelectedFile(null)
+      setFileName('')
+      setFileError(validation.message)
+      return
+    }
     setFileError('')
     setSelectedFile(file)
     setFileName(file.name)
@@ -92,6 +119,24 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
       size_bytes: file.size,
     }))
   }
+
+  /**
+   * Hay que conectar antes de poder subir. **Solo al crear.**
+   *
+   * Editar la ficha de un papel ya guardado es cambiar una fila de la base: el
+   * archivo sigue en el Drive de quien lo subió y nadie lo toca. Sin el `mode`,
+   * una conexión caída apagaba también el botón de guardar del sheet de edición,
+   * donde no se pinta el cartel de conectar: no se podía corregir una fecha de
+   * caducidad ni un nombre, y la pantalla no decía por qué.
+   *
+   * Mientras la respuesta no ha llegado (`null`) se da por buena la conexión y se
+   * enseña el selector de archivo de siempre: quien ya está conectado —que va a
+   * ser el caso normal— no ve ni un parpadeo, y en el caso raro de que no lo
+   * esté, la subida falla con el mensaje del servidor. Al revés, todo el mundo
+   * vería un aviso de conectar durante medio segundo cada vez que abre el sheet.
+   */
+  const faltaConectar =
+    mode === 'create' && !!conexion && !conexion.conectada && !conexion.demo && !!connectUrl
 
   /**
    * Guardar, y **no cerrar hasta que esté guardado de verdad**.
@@ -112,6 +157,18 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     // El botón está deshabilitado mientras se guarda, pero un Enter en un campo
     // envía el formulario igual: sin esta guarda se subiría el archivo dos veces.
     if (guardando) return
+    // Lo que falta se cuenta al pulsar, porque el botón ya no se apaga por un
+    // campo vacío: apagado sin explicación no dice qué falta. El de conectar va
+    // al pie —donde `SheetFooter` lo anuncia con `role="alert"`— porque en esa
+    // rama el hueco del archivo lo ocupa el cartel de `ConnectStorage` y el
+    // mensaje del campo no llegaría a pintarse.
+    if (faltaConectar) {
+      setFormError('Conecta tu Google Drive para poder subir el documento.')
+      return
+    }
+    // El archivo que no vale ya lo dice el campo: repetirlo aquí lo taparía con
+    // un «selecciona un archivo» que no es lo que pasa.
+    if (fileError) return
     if (mode === 'create' && !selectedFile) {
       setFileError('Selecciona un archivo.')
       return
@@ -121,14 +178,8 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     const guardado = await onSave({ ...valid, file: selectedFile ?? undefined })
     setGuardando(false)
     if (!guardado) return
-
-    if (mode === 'create') {
-      // La vista reutiliza la misma `key` al crear, así que el sheet no se
-      // remonta entre altas y hay que limpiarlo a mano.
-      setDraft({ ...EMPTY_DRAFT })
-      setFileName('')
-      setSelectedFile(null)
-    }
+    // Sin limpiar nada: lo hace la próxima apertura, y así el formulario no
+    // parpadea en blanco durante los 300 ms que tarda el sheet en cerrarse.
     onClose()
   })
 
@@ -151,17 +202,6 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     }
   }
 
-  /**
-   * Hay que conectar antes de poder subir.
-   *
-   * Mientras la respuesta no ha llegado (`null`) se da por buena la conexión y se
-   * enseña el selector de archivo de siempre: quien ya está conectado —que va a
-   * ser el caso normal— no ve ni un parpadeo, y en el caso raro de que no lo
-   * esté, la subida falla con el mensaje del servidor. Al revés, todo el mundo
-   * vería un aviso de conectar durante medio segundo cada vez que abre el sheet.
-   */
-  const faltaConectar = !!conexion && !conexion.conectada && !conexion.demo && !!connectUrl
-
   return (
     <BottomSheet
       open={open}
@@ -177,7 +217,8 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
               ? (mode === 'create' ? 'Subiendo el archivo…' : 'Guardando…')
               : (mode === 'create' ? 'Guardar documento' : 'Guardar cambios')
           }
-          disabled={guardando || !!fileError || faltaConectar || (mode === 'create' && !selectedFile)}
+          error={formError}
+          disabled={guardando}
           onDelete={mode === 'edit' && onDelete
             ? { confirming: confirmDelete, onClick: handleDelete, idleLabel: 'Eliminar documento', confirmLabel: 'Confirmar eliminación' }
             : undefined}
@@ -186,7 +227,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     >
       <form id="doc-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         <Field label="Archivo" spacing="group">
-          {mode === 'create' && faltaConectar && conexion ? (
+          {faltaConectar && conexion ? (
             <ConnectStorage conexion={conexion} connectUrl={connectUrl} />
           ) : mode === 'create' ? (
             <>

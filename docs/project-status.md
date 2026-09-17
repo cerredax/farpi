@@ -846,7 +846,7 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **767 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **769 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
@@ -921,11 +921,14 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 177 de navegador. La cifra sale de la pasada completa del 15-09-2026 (767 en total,
-    590 unitarios; los últimos, los cinco de Finanzas del 14-09-2026 —que el buscador
-    cruza los meses y dice cuánto suma lo encontrado, que «El día a día» va por días con
-    la cifra de cada uno, que lo apuntado dos veces se ofrece con su partida, que un
-    presupuesto aceptado se apunta y lleva al mes en el que cae, y que las cuatro
+  - 179 de navegador. La cifra sale de la pasada completa del 17-09-2026 (769 en total,
+    590 unitarios; los últimos, los **dos del sheet de documentos** del 17-09-2026 —que
+    dice qué falta en vez de apagar el botón de guardar, y que el archivo elegido no se
+    queda puesto para el siguiente documento—, y antes los cinco de Finanzas del
+    14-09-2026 —que el buscador cruza los meses y dice cuánto suma lo encontrado, que
+    «El día a día» va por días con la cifra de cada uno, que lo apuntado dos veces se
+    ofrece con su partida, que un presupuesto aceptado se apunta y lleva al mes en el
+    que cae, y que las cuatro
     pestañas caben enteras a 390 px sin arrastrar— y antes la pantalla de Cumpleaños: que junta los dos orígenes sin
     distinguirlos, que su `+` abre el sheet del calendario sin el selector de «Qué es» y
     —desde el 13-09-2026, dentro de ese mismo recorrido— que la lista sale repartida por

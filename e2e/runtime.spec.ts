@@ -631,6 +631,64 @@ test('en modo demo el sheet de documentos no ofrece conectar Drive', async ({ pa
   await expect(dialog.getByRole('link', { name: /Conectar Google Drive/ })).toHaveCount(0)
 })
 
+// Un botón de guardar no se apaga porque falte un campo: se deja pulsable y que
+// hable el validador. El de documentos era el único que se apagaba —sin archivo,
+// con un archivo que no valía o sin Drive conectado—, así que el
+// «Selecciona un archivo.» que hay escrito no se podía ver nunca: el botón que
+// tenía que enseñarlo estaba muerto. El nombre va primero porque su `required`
+// corta antes, que es justo el orden en que se leen los dos avisos.
+test('el sheet de documentos dice qué falta en vez de apagar el botón', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir documento' })
+  await expect(dialog).toBeVisible()
+
+  const guardar = page.getByRole('button', { name: 'Guardar documento' })
+  await expect(guardar).toBeEnabled()
+
+  await dialog.getByLabel('Nombre', { exact: true }).fill('Contrato del gas')
+  await guardar.click()
+
+  await expect(dialog.getByText('Selecciona un archivo.')).toBeVisible()
+  // Y sigue abierto con lo escrito donde estaba: el aviso no sirve de nada si se
+  // lleva por delante el formulario.
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('Contrato del gas')
+})
+
+// Al crear, la vista reutiliza siempre la misma `key`, así que el sheet no se
+// remonta entre altas: el archivo elegido y su error son estado local del
+// componente y sobrevivían a cerrarlo sin guardar. El siguiente documento
+// arrancaba con medio formulario en blanco —el nombre— y medio puesto —el
+// archivo del anterior—, listo para subir un papel que nadie había vuelto a
+// elegir.
+test('el archivo elegido no se queda puesto para el siguiente documento', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir documento' })
+  await expect(dialog).toBeVisible()
+
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: 'recibo-del-agua.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4 farpi'),
+  })
+  await expect(dialog.getByText('recibo-del-agua.pdf')).toBeVisible()
+  // El nombre del documento se rellena solo con el del archivo, sin la extensión.
+  await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('recibo-del-agua')
+
+  await dialog.getByRole('button', { name: 'Cerrar' }).click()
+  await page.waitForTimeout(500)
+
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  await expect(dialog.getByText('Seleccionar archivo…')).toBeVisible()
+  await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('')
+})
+
 // Buscar en el calendario mira todo el histórico y no el tramo que se pinta:
 // "¿cuándo fue la revisión?" es una pregunta sobre el pasado.
 test('el calendario busca también en el pasado', async ({ page }) => {

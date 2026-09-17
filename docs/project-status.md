@@ -14,8 +14,9 @@ seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisi�
 dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —el ajuste
 de un fijo en un mes suelto—: tabla, índice,
 policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. **Lo que queda no es código de producto**: pruebas que piden un aparato
-delante, una decisión sin tomar, dos funcionalidades que no existen y tres acabados
-menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
+delante, una decisión sin tomar, dos funcionalidades que no existen, tres acabados
+menores de Finanzas y un listón que no llega dentro de los sheets. La lista entera, en
+"Siguiente paso recomendado".
 
 ## Implementado
 
@@ -846,7 +847,7 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **769 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **771 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
@@ -921,10 +922,12 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 179 de navegador. La cifra sale de la pasada completa del 17-09-2026 (769 en total,
-    590 unitarios; los últimos, los **dos del sheet de documentos** del 17-09-2026 —que
-    dice qué falta en vez de apagar el botón de guardar, y que el archivo elegido no se
-    queda puesto para el siguiente documento—, y antes los cinco de Finanzas del
+  - 181 de navegador. La cifra sale de la pasada completa del 17-09-2026 (771 en total,
+    590 unitarios; los últimos, los **cuatro de Documentos** del 17-09-2026 —que el sheet
+    dice qué falta en vez de apagar el botón de guardar, que el archivo elegido no se
+    queda puesto para el siguiente documento, y que llegan a 44 px los controles del sheet
+    de edición y los del aviso de vuelta de Drive, los dos sitios que el bucle de rutas no
+    podía ver—, y antes los cinco de Finanzas del
     14-09-2026 —que el buscador cruza los meses y dice cuánto suma lo encontrado, que
     «El día a día» va por días con la cifra de cada uno, que lo apuntado dos veces se
     ofrece con su partida, que un presupuesto aceptado se apunta y lleva al mes en el
@@ -968,6 +971,11 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   de una frase —el correo de la carta de la portada—, que no se agranda sin romper el
   renglón. Queda `.area-de-toque` en globals.css para los iconos que no pueden crecer a
   lo ancho; hoy no lo usa nadie de forma crítica.
+  **Pero el bucle mide las pantallas, no los formularios**: salta lo que cuelga de un
+  `[inert]`, y un sheet cerrado lo es. Dentro de los sheets siguen quedando controles
+  cortos, medidos el 17-09-2026 y anotados en "Siguiente paso recomendado". De
+  Documentos ya no: su sheet de creación estaba limpio, y el de edición y el aviso de
+  Drive se arreglaron y se vigilan desde ese día.
 - **Los sheets atrapan el foco y lo devuelven** (`BottomSheet`, 09-09-2026): el panel dice
   `aria-modal` pero el `Tab` se escapaba a la pantalla de detrás, y al cerrar el foco se
   iba al `body` en vez de al botón desde el que se entró.
@@ -1214,9 +1222,9 @@ esto; aquí solo el titular.
 ## Siguiente paso recomendado
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
-pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
+pendiente.** Lo que sigue son cinco clases de cosa distintas, y conviene no mezclarlas:
 pruebas que exigen un aparato en la mano, una decisión sin tomar, dos funcionalidades que
-no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
+no existen, tres acabados menores y un listón que se quedó a medio camino. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
 Lo que **ya no está** en esta lista, porque se cerró: las notificaciones push (28-08-2026),
@@ -1264,6 +1272,24 @@ porque ninguno se arregla sin tocar algo que no es suyo:
   lleva siete. Mejor candidato, 🦷.
 - **🏛️ y 🏦 se parecen** en la tipografía de Android. Están separados en la
   rejilla para que no se comparen de un vistazo, pero el problema sigue ahí.
+
+### 5. Los 44 px no llegan dentro de los sheets
+
+El bucle de `e2e/movil.spec.ts` salta lo que cuelga de un `[inert]`, y un sheet cerrado lo
+es: «ningún control baja de 44×44» se comprobaba en las pantallas y **nunca en los
+formularios**, que es donde más se toca. Medido a 390 px con los sheets abiertos
+(17-09-2026), dentro quedan:
+
+- **Tareas**: los chips de prioridad y de recurrencia, 34 px de alto.
+- **Calendario**: los tres chips de repetición, 32; y el interruptor de todo el día, 44×24.
+- **Notas y Listas**: la rejilla de emojis, 36×36.
+- **Comidas**: las sugerencias de plato, 28 de alto.
+- **Finanzas**: los chips de tipo y de partida, 30.
+
+No es un arreglo de una línea ni es de una sección: casi todo es `SelectChip` y
+`EmojiPicker`, que comparten cinco pantallas, y subirlos cambia el alto de todos los
+formularios. Se mide con `controlesCortos()` de `e2e/movil.spec.ts`, que ya acepta un
+sheet abierto como raíz.
 
 ### Lo que no hay que hacer
 

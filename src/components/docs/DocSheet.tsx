@@ -268,7 +268,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                   type="button"
                   onClick={handleOpen}
                   disabled={opening}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary-strong transition-colors hover:bg-primary-tint disabled:opacity-60"
+                  className="w-full flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary-strong transition-colors hover:bg-primary-tint disabled:opacity-60"
                 >
                   {opening
                     ? <><Loader2 size={15} className="animate-spin" /> Abriendo…</>

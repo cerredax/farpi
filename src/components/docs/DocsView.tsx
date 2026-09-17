@@ -59,7 +59,7 @@ export function DocsView() {
       {s.avisoDrive && (
         <div
           role="status"
-          className={`flex items-start gap-3 rounded-2xl border px-4 py-3 ${s.avisoDrive === 'ok' ? 'border-line bg-primary-tint' : 'border-danger-line bg-danger-soft'}`}
+          className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${s.avisoDrive === 'ok' ? 'border-line bg-primary-tint' : 'border-danger-line bg-danger-soft'}`}
         >
           <p className="min-w-0 flex-1 text-xs font-semibold leading-relaxed text-ink">
             {s.avisoDrive === 'ok'
@@ -70,7 +70,7 @@ export function DocsView() {
             type="button"
             onClick={s.cerrarAvisoDrive}
             aria-label="Cerrar aviso"
-            className="-m-1.5 flex-shrink-0 rounded-full p-1.5 text-muted transition-colors hover:bg-white/60 hover:text-ink"
+            className="-my-2 -mr-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/60 hover:text-ink"
           >
             <X size={16} strokeWidth={2.4} />
           </button>

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { elegirVista } from './vistas'
 
 // QA de móvil, automatizada. El repaso visual del MVP pedía revisar la app a
@@ -192,38 +192,92 @@ test('con el botón «Hoy» puesto, la cabecera del calendario sigue cabiendo a 
 // mezclarlas haría que un control de 30 px fallase diciendo "mínimo 24".
 const MINIMO_COMODO = 44
 
+/**
+ * Los controles de `raiz` que no llegan a `MINIMO_COMODO` por alguno de sus dos
+ * lados, con el texto y la medida de cada uno para no tener que adivinarlo.
+ *
+ * Es una función y no otra copia del bucle porque ya no mide solo las rutas: lo
+ * que hay dentro de un sheet abierto se mide con esta misma regla, y la regla
+ * tiene que ser una.
+ */
+async function controlesCortos(page: Page, raiz = 'body'): Promise<string[]> {
+  return page.evaluate(({ minimo, raiz }) => {
+    const dentro = document.querySelector(raiz)
+    // Que el sheet no se haya abierto no puede salir como "ningún control corto".
+    if (!dentro) return [`no hay ningún ${raiz} en la página`]
+
+    return [...dentro.querySelectorAll('button, a[href], input, select, textarea')]
+      .filter(el => {
+        const r = el.getBoundingClientRect()
+        if (r.width === 0 || r.height === 0) return false
+        if (el.closest('[inert]')) return false
+        // La excepción que la propia WCAG 2.5.8 llama "inline": un enlace
+        // dentro de una frase no se puede agrandar sin romper el renglón del
+        // texto que lo rodea. Son los de la portada —el correo dentro de la
+        // carta, Privacidad y Términos al pie—, no controles de la app.
+        if (getComputedStyle(el).display === 'inline') return false
+        // `area-de-toque` amplía el alto 8 px por arriba y por abajo con un
+        // pseudoelemento, que `getBoundingClientRect` no ve.
+        const extra = el.classList.contains('area-de-toque') ? 16 : 0
+        return r.width < minimo || r.height + extra < minimo
+      })
+      .slice(0, 8)
+      .map(el => {
+        const r = el.getBoundingClientRect()
+        const texto = el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 30) || el.tagName
+        return `${texto} (${Math.round(r.width)}×${Math.round(r.height)})`
+      })
+  }, { minimo: MINIMO_COMODO, raiz })
+}
+
 for (const ruta of RUTAS) {
   test(`los controles llegan a ${MINIMO_COMODO}px en ${ruta}`, async ({ page }) => {
     await page.goto(ruta)
     await page.waitForTimeout(900)
 
-    const cortos = await page.evaluate(minimo => {
-      return [...document.querySelectorAll('button, a[href], input, select, textarea')]
-        .filter(el => {
-          const r = el.getBoundingClientRect()
-          if (r.width === 0 || r.height === 0) return false
-          if (el.closest('[inert]')) return false
-          // La excepción que la propia WCAG 2.5.8 llama "inline": un enlace
-          // dentro de una frase no se puede agrandar sin romper el renglón del
-          // texto que lo rodea. Son los de la portada —el correo dentro de la
-          // carta, Privacidad y Términos al pie—, no controles de la app.
-          if (getComputedStyle(el).display === 'inline') return false
-          // `area-de-toque` amplía el alto 8 px por arriba y por abajo con un
-          // pseudoelemento, que `getBoundingClientRect` no ve.
-          const extra = el.classList.contains('area-de-toque') ? 16 : 0
-          return r.width < minimo || r.height + extra < minimo
-        })
-        .slice(0, 8)
-        .map(el => {
-          const r = el.getBoundingClientRect()
-          const texto = el.getAttribute('aria-label') || el.textContent?.trim().slice(0, 30) || el.tagName
-          return `${texto} (${Math.round(r.width)}×${Math.round(r.height)})`
-        })
-    }, MINIMO_COMODO)
+    const cortos = await controlesCortos(page)
 
     expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px en ${ruta}`).toEqual([])
   })
 }
+
+// Los dos sitios de Documentos que el bucle de arriba **no puede ver**, y que por
+// eso se habían quedado atrás: 42 px el de abrir el archivo y 28 el aspa del
+// aviso. Uno vive dentro de un sheet —inerte mientras está cerrado, así que el
+// filtro lo salta— y el otro solo aparece al volver de conectar Google Drive,
+// con un parámetro en la URL que ninguna ruta de la lista lleva.
+//
+// Van acotados a Documentos y no a toda la app a propósito: **dentro de los
+// sheets del resto de secciones sigue habiendo controles de 28 a 36 px**, casi
+// todos de dos componentes compartidos, y subirlos es otro trabajo. La lista
+// medida está en docs/project-status.md.
+test(`el aviso de vuelta de Drive llega a ${MINIMO_COMODO}px`, async ({ page }) => {
+  await page.goto('/docs?drive=ok')
+  await page.waitForTimeout(900)
+
+  // Por el texto: en la página hay dos `role="status"`, este y la región viva
+  // —vacía— con la que `SaveStatus` cuenta lo que no se ha guardado.
+  await expect(page.getByRole('status').filter({ hasText: 'Google Drive conectado' })).toBeVisible()
+  // Y se mide la ruta entera, no solo el aviso: con el parámetro puesto es una
+  // pantalla más de la app, y nadie más la estaba mirando.
+  const cortos = await controlesCortos(page)
+
+  expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px en el aviso de Drive`).toEqual([])
+})
+
+test(`los controles del sheet de editar un documento llegan a ${MINIMO_COMODO}px`, async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(900)
+
+  await page.getByRole('button', { name: /DNI de Carlos/ }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Editar documento' })
+  await expect(sheet).toBeVisible()
+  await page.waitForTimeout(400)
+
+  const cortos = await controlesCortos(page, '[role="dialog"]:not([inert])')
+
+  expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px al editar un documento`).toEqual([])
+})
 
 // Las cuatro pestañas de Finanzas pasaron a ser una barra segmentada el
 // 14-09-2026, y lo que esa barra promete es que se ve entera: antes eran cuatro

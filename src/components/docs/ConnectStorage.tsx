@@ -7,6 +7,12 @@ interface ConnectStorageProps {
   conexion: StorageConnection
   /** Nunca es `null` aquí: quien decide pintar esto ya lo ha comprobado. */
   connectUrl: string
+  /**
+   * Se avisa **antes** de salir hacia Google, que es una navegación de verdad y
+   * se lleva por delante lo que hubiera escrito en el sheet. Quien guarda es
+   * `DocSheet`, que es el que tiene el borrador.
+   */
+  onIrAConectar?: () => void
 }
 
 /**
@@ -25,7 +31,7 @@ interface ConnectStorageProps {
  * selector de archivo de siempre funciona, guardando en el navegador. Quien decide
  * es `faltaConectar` en `DocSheet`.
  */
-export function ConnectStorage({ conexion, connectUrl }: ConnectStorageProps) {
+export function ConnectStorage({ conexion, connectUrl, onIrAConectar }: ConnectStorageProps) {
   return (
     <div className="space-y-2 rounded-xl border border-line bg-canvas px-4 py-3">
       <p className="text-sm font-bold text-ink">
@@ -41,6 +47,7 @@ export function ConnectStorage({ conexion, connectUrl }: ConnectStorageProps) {
       </p>
       <a
         href={connectUrl}
+        onClick={onIrAConectar}
         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
       >
         <HardDriveUpload size={16} strokeWidth={2.3} />

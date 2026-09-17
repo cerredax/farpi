@@ -847,15 +847,22 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **774 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **786 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - **592 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
+  - **603 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
     17-09-2026. No levantan servidor: `npm run test:unit`.
 
     *Los últimos en entrar*, del más reciente al más antiguo:
 
+    - Los **seis del borrador que sobrevive al viaje a Google** (17-09-2026): que
+      vuelve tal y como se dejó, que se recupera una sola vez, que lo guardado sin
+      forma de borrador se descarta, que el archivo no viaja y que sin almacén no
+      revienta nada.
+    - Los **cinco de `selectVisibleDocuments`** (17-09-2026): la categoría acota y la
+      búsqueda busca dentro de lo acotado. Vivía suelto dentro de `useDocsState`, que
+      es un hook y no se prueba sin navegador.
     - Los **dos de cómo se llama un archivo en una frase** (17-09-2026): «Documento
       PDF», «Imagen JPG», y qué se dice de un tipo que hoy ya no se deja subir. La
       función vivía dentro de `FileTypeIcon.tsx`, así que no la probaba nadie.
@@ -925,12 +932,14 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 182 de navegador. La cifra sale de la pasada completa del 17-09-2026 (774 en total,
-    592 unitarios; los últimos, los **cinco de Documentos** del 17-09-2026 —que el sheet
+  - 183 de navegador. La cifra sale de la pasada completa del 17-09-2026 (786 en total,
+    603 unitarios; los últimos, los **seis de Documentos** del 17-09-2026 —que el sheet
     dice qué falta en vez de apagar el botón de guardar, que el archivo elegido no se
-    queda puesto para el siguiente documento, que llegan a 44 px los controles del sheet
-    de edición y los del aviso de vuelta de Drive —los dos sitios que el bucle de rutas no
-    podía ver—, y que la tira de categorías dice cuál está puesta y se vuelve a plegar—, y antes los cinco de Finanzas del
+    queda puesto para el siguiente documento, que lo escrito antes de ir a conectar Drive
+    sigue ahí al volver y se gasta al recuperarlo, que llegan a 44 px los controles del
+    sheet de edición y los del aviso de vuelta de Drive —los dos sitios que el bucle de
+    rutas no podía ver— y que la tira de categorías dice cuál está puesta y se vuelve a
+    plegar—, y antes los cinco de Finanzas del
     14-09-2026 —que el buscador cruza los meses y dice cuánto suma lo encontrado, que
     «El día a día» va por días con la cifra de cada uno, que lo apuntado dos veces se
     ofrece con su partida, que un presupuesto aceptado se apunta y lleva al mes en el

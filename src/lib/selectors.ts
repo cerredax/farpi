@@ -493,6 +493,27 @@ export function selectDocCategoryFilters(
 }
 
 /**
+ * Los documentos que se ven en la pantalla: los de la categoría puesta y, de
+ * esos, los que casan con lo buscado.
+ *
+ * Vivía suelto dentro de `useDocsState`, que es un hook y no se prueba sin
+ * navegador. Es la única parte de la sección donde dos filtros se pisan, o sea
+ * justo la que hay que dejar escrita: **la categoría acota y la búsqueda busca
+ * dentro de lo acotado**. Buscar «seguro» con Personal puesto no saca los
+ * papeles de Seguros.
+ */
+export function selectVisibleDocuments(
+  documents: Document[],
+  category: DocCategory | null,
+  query: string,
+): Document[] {
+  const deLaCategoria = category
+    ? documents.filter(d => docCategoryOf(d) === category)
+    : documents
+  return selectDocumentMatches(deLaCategoria, query)
+}
+
+/**
  * Las notas en el orden en que se leen: las fijadas primero y, dentro de cada
  * grupo, lo tocado hace menos.
  *

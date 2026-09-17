@@ -689,6 +689,37 @@ test('el archivo elegido no se queda puesto para el siguiente documento', async 
   await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('')
 })
 
+// Conectar Drive es salir de Farpi: el navegador se va a Google y vuelve con la
+// app recargada, así que lo escrito en el sheet se perdía. La ida no se puede
+// tocar aquí —en modo demo el cartel de conectar no se pinta— pero la vuelta sí,
+// que es la mitad que se veía vacía: se deja lo que deja `guardaBorrador` y se
+// abre el alta.
+test('lo escrito antes de ir a conectar Drive sigue ahí al volver', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  await page.evaluate(() => {
+    sessionStorage.setItem('farpi_borrador_documento', JSON.stringify({
+      name: 'Contrato del gas', description: 'Tarifa nueva', category: 'vivienda',
+      child_id: null, member_id: null, mime_type: 'application/pdf',
+      size_bytes: 0, expires_on: '2027-03-01',
+    }))
+  })
+
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Añadir documento' })
+  await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('Contrato del gas')
+  await expect(dialog.getByRole('button', { name: 'Vivienda' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(dialog.getByLabel('Caduca el')).toHaveValue('2027-03-01')
+
+  // Y se gasta al recuperarlo: un borrador de hace media hora no puede aparecer
+  // dentro de un alta que no tiene nada que ver.
+  await dialog.getByRole('button', { name: 'Cerrar' }).click()
+  await page.waitForTimeout(500)
+  await page.getByRole('button', { name: 'Añadir documento' }).click()
+  await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('')
+})
+
 // Dos cosas de la tira de filtros que se arreglaron juntas porque son la misma:
 // la tira no contaba lo que hacía. Cuál estaba puesta se decía solo con el color
 // —quien usa un lector de pantalla oía ocho botones iguales— y «+4 más» abría

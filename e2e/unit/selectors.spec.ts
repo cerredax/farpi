@@ -22,6 +22,7 @@ import {
   selectExpiringDocs,
   invitacionCaducada,
   selectDocCategoryFilters,
+  selectVisibleDocuments,
   selectTodayEvents,
   selectTodayMeals,
   selectUpcomingEvents,
@@ -704,6 +705,42 @@ test.describe('selectDocCategoryFilters', () => {
   test('la activa no se duplica si además tiene documentos', () => {
     const r = selectDocCategoryFilters([document({ category: 'salud' })], 'salud')
     expect(r.map(c => c.key)).toEqual(['salud'])
+  })
+})
+
+// Lo que se ve en la pantalla cuando hay una categoría puesta y algo escrito en
+// el buscador: los dos filtros a la vez y en este orden. Vivía dentro del hook,
+// donde no lo miraba ningún test.
+test.describe('selectVisibleDocuments', () => {
+  const PAPELES = [
+    document({ name: 'DNI de Carlos', category: 'personal' }),
+    document({ name: 'Seguro del coche', category: 'vehiculo' }),
+    document({ name: 'Seguro del hogar', category: 'vivienda' }),
+  ]
+
+  test('sin categoría ni búsqueda salen todos', () => {
+    expect(selectVisibleDocuments(PAPELES, null, '')).toHaveLength(3)
+  })
+
+  test('la categoría acota', () => {
+    const r = selectVisibleDocuments(PAPELES, 'vehiculo', '')
+    expect(r.map(d => d.name)).toEqual(['Seguro del coche'])
+  })
+
+  // La búsqueda mira dentro de lo acotado y no por encima: con «Vivienda»
+  // puesto, «seguro» no saca el del coche.
+  test('la búsqueda busca dentro de la categoría puesta', () => {
+    const r = selectVisibleDocuments(PAPELES, 'vivienda', 'seguro')
+    expect(r.map(d => d.name)).toEqual(['Seguro del hogar'])
+  })
+
+  test('sin categoría, la búsqueda mira en todos', () => {
+    const r = selectVisibleDocuments(PAPELES, null, 'seguro')
+    expect(r.map(d => d.name)).toEqual(['Seguro del coche', 'Seguro del hogar'])
+  })
+
+  test('lo que no casa con las dos cosas no sale', () => {
+    expect(selectVisibleDocuments(PAPELES, 'personal', 'seguro')).toEqual([])
   })
 })
 

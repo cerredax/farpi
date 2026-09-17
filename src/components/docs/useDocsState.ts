@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useStore } from '@/lib/store-context'
 import { useIsClient } from '@/hooks/useIsClient'
-import { docCategoryOf, selectDocCategoryFilters, selectDocumentMatches } from '@/lib/selectors'
+import { selectDocCategoryFilters, selectVisibleDocuments } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import type { DocCategory, Document, DocumentDraft } from '@/types'
 
@@ -79,12 +79,7 @@ export function useDocsState() {
       : createDocument(draft)
   }
 
-  // La búsqueda manda sobre el filtro: si buscas "seguro" y está en Personal,
-  // encontrarlo no debería depender de qué pestaña tuvieras abierta.
-  const porCategoria = activeFilter
-    ? documents.filter(d => docCategoryOf(d) === activeFilter)
-    : documents
-  const filtered = selectDocumentMatches(porCategoria, busqueda)
+  const filtered = selectVisibleDocuments(documents, activeFilter, busqueda)
 
   const puedeBuscar = documents.length >= MINIMO_PARA_BUSCAR
 

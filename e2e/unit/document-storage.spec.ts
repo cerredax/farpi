@@ -9,6 +9,8 @@ import {
 } from '@/lib/document-storage/oauth'
 import { cifrar, descifrar, leerClave } from '@/lib/document-storage/crypto'
 import { etiquetaDeTipo, nombreDeDescarga, safeFileName } from '@/lib/text'
+import { guardaBorrador, recuperaBorrador } from '@/lib/borrador-documento'
+import type { DocumentDraft } from '@/types'
 
 // Los documentos viven en el Google Drive de quien los sube, y estas son las
 // piezas de ese camino que se pueden probar sin red ni secretos. Son justo las
@@ -224,6 +226,85 @@ test.describe('nombre de archivo para servir el documento', () => {
 // Ese nombre ya no existe —se queda en el Drive de quien lo subió— y lo único
 // que Farpi sabe del archivo es su tipo y su tamaño. La función vivía dentro de
 // `FileTypeIcon.tsx` y por eso no la probaba nadie.
+// Ir a conectar Drive es salir de Farpi y volver con la app recargada. Lo que
+// hubiera escrito en el sheet se perdía por el camino y había que teclearlo otra
+// vez, justo cuando ya se podía subir.
+test.describe('el borrador que sobrevive al viaje a Google', () => {
+  // Un `sessionStorage` de mentira: lo que importa es qué se guarda y qué se
+  // recupera, no el navegador.
+  function almacenFalso(): Storage {
+    const datos = new Map<string, string>()
+    return {
+      getItem: (k: string) => datos.get(k) ?? null,
+      setItem: (k: string, v: string) => { datos.set(k, v) },
+      removeItem: (k: string) => { datos.delete(k) },
+      clear: () => datos.clear(),
+      key: (i: number) => [...datos.keys()][i] ?? null,
+      get length() { return datos.size },
+    } as Storage
+  }
+
+  const BORRADOR: DocumentDraft = {
+    name: 'Contrato del gas',
+    description: 'Tarifa nueva',
+    category: 'vivienda',
+    child_id: null,
+    member_id: null,
+    mime_type: 'application/pdf',
+    size_bytes: 0,
+    expires_on: '2027-03-01',
+  }
+
+  test('vuelve tal y como se dejó', () => {
+    const almacen = almacenFalso()
+    guardaBorrador(BORRADOR, almacen)
+    expect(recuperaBorrador(almacen)).toMatchObject({
+      name: 'Contrato del gas',
+      category: 'vivienda',
+      expires_on: '2027-03-01',
+    })
+  })
+
+  // Si no, un borrador de hace media hora aparecería dentro de un alta que no
+  // tiene nada que ver.
+  test('se recupera una sola vez', () => {
+    const almacen = almacenFalso()
+    guardaBorrador(BORRADOR, almacen)
+    expect(recuperaBorrador(almacen)).not.toBeNull()
+    expect(recuperaBorrador(almacen)).toBeNull()
+  })
+
+  test('sin nada guardado no hay borrador', () => {
+    expect(recuperaBorrador(almacenFalso())).toBeNull()
+  })
+
+  // En `sessionStorage` puede haber quedado cualquier cosa de una versión
+  // anterior: se comprueba la forma antes de creérselo.
+  test('lo que hay guardado y no tiene forma de borrador se descarta', () => {
+    const almacen = almacenFalso()
+    almacen.setItem('farpi_borrador_documento', '{"otra":"cosa"}')
+    expect(recuperaBorrador(almacen)).toBeNull()
+    almacen.setItem('farpi_borrador_documento', 'esto no es json')
+    expect(recuperaBorrador(almacen)).toBeNull()
+  })
+
+  // El archivo no es serializable, y cuando esto se guarda todavía no se ha
+  // podido elegir ninguno.
+  test('el archivo no viaja', () => {
+    const almacen = almacenFalso()
+    const conArchivo = { ...BORRADOR, file: new File(['x'], 'recibo.pdf') }
+    guardaBorrador(conArchivo, almacen)
+    expect(recuperaBorrador(almacen)).not.toHaveProperty('file')
+  })
+
+  // Sin almacén —render de servidor, o un navegador con el almacenamiento
+  // capado— se pierde lo escrito, que es lo que pasaba antes, pero nada revienta.
+  test('sin almacén no revienta', () => {
+    expect(() => guardaBorrador(BORRADOR, null)).not.toThrow()
+    expect(recuperaBorrador(null)).toBeNull()
+  })
+})
+
 test.describe('cómo se llama un archivo en una frase', () => {
   test('los tres tipos que se admiten tienen nombre propio', () => {
     expect(etiquetaDeTipo('application/pdf')).toBe('Documento PDF')

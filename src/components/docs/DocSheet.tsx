@@ -12,6 +12,7 @@ import { ConnectStorage } from './ConnectStorage'
 import { FileTypeIcon } from './FileTypeIcon'
 import { DOC_CATEGORIES, MAX_DOC_SIZE, VALID_MIME_TYPES } from '@/lib/constants'
 import { etiquetaDeTipo, formatFileSize } from '@/lib/text'
+import { guardaBorrador, recuperaBorrador } from '@/lib/borrador-documento'
 import { validateDocumentFile } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 
@@ -90,6 +91,11 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
       setSelectedFile(null)
       setFileError('')
       setOpenError('')
+      // Y lo que se estuviera escribiendo cuando se fue a dar permiso a Google,
+      // si es que se fue: `recuperaBorrador` devuelve `null` y se lleva lo
+      // guardado, así que un alta normal no nota nada.
+      const aMedias = mode === 'create' ? recuperaBorrador() : null
+      if (aMedias) setDraft(d => ({ ...d, ...aMedias }))
     }
   }
 
@@ -228,7 +234,11 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
       <form id="doc-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
         <Field label="Archivo" spacing="group">
           {faltaConectar && conexion ? (
-            <ConnectStorage conexion={conexion} connectUrl={connectUrl} />
+            <ConnectStorage
+              conexion={conexion}
+              connectUrl={connectUrl}
+              onIrAConectar={() => guardaBorrador(draft)}
+            />
           ) : mode === 'create' ? (
             <>
               <button
@@ -236,7 +246,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                 onClick={() => fileRef.current?.click()}
                 className="w-full flex items-center gap-3 bg-canvas border-2 border-dashed border-line-strong rounded-xl px-4 py-3 hover:border-primary-strong hover:bg-primary-tint transition-colors text-left"
               >
-                <Upload size={18} className="text-primary flex-shrink-0" />
+                <Upload size={18} className="text-primary-strong flex-shrink-0" />
                 <span className="text-sm text-muted truncate flex-1">
                   {fileName || 'Seleccionar archivo…'}
                 </span>

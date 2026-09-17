@@ -270,12 +270,16 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - **Un sheet no va dentro de un contenedor con `space-y-*`**: va fuera, como hermano suyo,
   con la pantalla envuelta en un fragmento. Un `BottomSheet` cerrado es `fixed bottom-0`
-  con `translate-y-full`, y el margen que `space-y` mete entre hermanos entra en la cuenta
-  del `bottom` de una caja fija: corre el ancla hacia arriba, el desplazamiento ya no
-  basta y el sheet asoma tapando las etiquetas de `BottomNav`. Le pasaba a Inicio (24 px)
-  y a Finanzas (20 px) hasta el 05-09-2026; el resto de las pantallas ya los dejaban
-  fuera. Lo vigila `e2e/movil.spec.ts`, que en cada ruta comprueba que ningún
-  `[role="dialog"][inert]` invade el viewport.
+  con `translate-y-full`, y `space-y` en Tailwind v4 le pone **`margin-bottom` a todos los
+  hijos menos al último** (`:not(:last-child)`): a una caja fija anclada por abajo, ese
+  margen le sube el ancla, el desplazamiento ya no basta y el sheet asoma tapando las
+  etiquetas de `BottomNav`. Le pasaba a Inicio (24 px) y a Finanzas (20 px) hasta el
+  05-09-2026.
+  **Y ser el último hijo no es protección, es suerte**: Documentos, Notas y Listas lo
+  tenían dentro y no asomaban solo por eso, hasta que el 17-09-2026 se sacaron los tres.
+  Ahí dentro, el día que alguien escribe una línea detrás del sheet, se rompe una pantalla
+  que él no ha tocado. Lo vigila `e2e/movil.spec.ts`, que en cada ruta comprueba que
+  ningún `[role="dialog"][inert]` invade el viewport.
 - Antes de escribir un componente, mira `src/components/ui/`: Button, Card, Field, EmptyState, SearchField, ColorPicker, EmojiPicker, AssigneePicker, SelectChip, DeleteButton, SectionLink, Suggestions y algunos más.
 - **El botón de alta va arriba, en `ViewHeader`**, nunca flotando sobre el contenido.
   Lo usan las seis pantallas de contenido y existe justamente porque habían

@@ -38,116 +38,124 @@ export function DocsView() {
   const categoriasVisibles = todasALaVista ? s.categorias : s.categorias.slice(0, CATEGORIAS_A_LA_VISTA)
   const ocultas = s.categorias.length - categoriasVisibles.length
 
+  // El sheet va **fuera** del contenedor con `space-y-*`, como hermano suyo: ahí
+  // dentro, `space-y` le pone `margin-bottom` a todos los hijos menos al último,
+  // y a una caja `fixed bottom-0` ese margen le sube el ancla —el
+  // `translate-y-full` deja de bastar y el sheet cerrado asoma sobre las
+  // etiquetas de la barra de abajo—. Estaba dentro, y lo salvaba solo ser el
+  // último hijo: cualquier cosa añadida detrás lo rompía sin tocarlo.
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
-      <ViewHeader
-        resumen={s.documents.length === 1
-          // Las dos formas escritas enteras: el sufijo suelto le ponía la «s» al
-          // sustantivo y dejaba «1 documento guardados».
-          ? '1 documento guardado'
-          : `${s.documents.length} documentos guardados`}
-        buscador={s.puedeBuscar ? {
-          value: s.busqueda,
-          onChange: s.setBusqueda,
-          placeholder: `Buscar en ${s.documents.length} documentos…`,
-          ariaLabel: 'Buscar documentos',
-        } : null}
-        onAdd={s.openCreate}
-        addLabel="Añadir documento"
-      />
+    <>
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
+        <ViewHeader
+          resumen={s.documents.length === 1
+            // Las dos formas escritas enteras: el sufijo suelto le ponía la «s» al
+            // sustantivo y dejaba «1 documento guardados».
+            ? '1 documento guardado'
+            : `${s.documents.length} documentos guardados`}
+          buscador={s.puedeBuscar ? {
+            value: s.busqueda,
+            onChange: s.setBusqueda,
+            placeholder: `Buscar en ${s.documents.length} documentos…`,
+            ariaLabel: 'Buscar documentos',
+          } : null}
+          onAdd={s.openCreate}
+          addLabel="Añadir documento"
+        />
 
-      {/* La vuelta de conectar Drive. Es lo único que enseña esta pantalla sobre
-          el proveedor, y solo justo después de haber ido a conectarlo: si sale
-          bien hay que decirlo —volver a una pantalla idéntica no confirma nada— y
-          si sale mal, más. */}
-      {s.avisoDrive && (
-        <div
-          role="status"
-          className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${s.avisoDrive === 'ok' ? 'border-line bg-primary-tint' : 'border-danger-line bg-danger-soft'}`}
-        >
-          <p className="min-w-0 flex-1 text-xs font-semibold leading-relaxed text-ink">
-            {s.avisoDrive === 'ok'
-              ? 'Google Drive conectado. Ya puedes guardar documentos: se quedarán en tu Drive y la familia los verá aquí.'
-              : 'No se pudo conectar Google Drive. Vuelve a intentarlo desde el botón de añadir documento.'}
-          </p>
-          <button
-            type="button"
-            onClick={s.cerrarAvisoDrive}
-            aria-label="Cerrar aviso"
-            className="-my-2 -mr-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/60 hover:text-ink"
+        {/* La vuelta de conectar Drive. Es lo único que enseña esta pantalla sobre
+            el proveedor, y solo justo después de haber ido a conectarlo: si sale
+            bien hay que decirlo —volver a una pantalla idéntica no confirma nada— y
+            si sale mal, más. */}
+        {s.avisoDrive && (
+          <div
+            role="status"
+            className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${s.avisoDrive === 'ok' ? 'border-line bg-primary-tint' : 'border-danger-line bg-danger-soft'}`}
           >
-            <X size={16} strokeWidth={2.4} />
-          </button>
-        </div>
-      )}
-
-      {/* Solo se ofrecen las categorías **que tienen algún papel dentro**, y el
-          porqué está donde se decide: `selectDocCategoryFilters`. Aquí, lo que
-          es de la pantalla: van envueltas y no arrastrables —se ven todas de un
-          golpe, desde el 02-09-2026— y cuántas se enseñan sin pedirlo lo cuenta
-          `CATEGORIAS_A_LA_VISTA` ahí arriba. */}
-      {s.puedeFiltrar && (
-        <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
-          {[{ key: null, label: 'Todos' }, ...categoriasVisibles].map(f => (
-            <CategoryChip
-              key={String(f.key)}
-              category={f.key}
-              label={f.label}
-              selected={s.activeFilter === f.key}
-              onClick={() => s.setActiveFilter(f.key)}
-            />
-          ))}
-
-          {/* Abre la tira y la vuelve a cerrar. Antes solo abría: quien la
-              desplegaba para ver si había carpeta de Viajes se quedaba con todas
-              puestas —dos filas de filtros por encima de los papeles— el resto
-              de la sesión, sin forma de volver.
-
-              Plegar no se ofrece cuando la puesta cae fuera de las cuatro
-              primeras: escondería la pastilla que explica por qué se ven tres
-              papeles de diez. */}
-          {(ocultas > 0 || (verTodasLasCategorias && !activaEstaFuera)) && (
+            <p className="min-w-0 flex-1 text-xs font-semibold leading-relaxed text-ink">
+              {s.avisoDrive === 'ok'
+                ? 'Google Drive conectado. Ya puedes guardar documentos: se quedarán en tu Drive y la familia los verá aquí.'
+                : 'No se pudo conectar Google Drive. Vuelve a intentarlo desde el botón de añadir documento.'}
+            </p>
             <button
               type="button"
-              onClick={() => setVerTodasLasCategorias(v => !v)}
-              className="flex min-h-11 flex-shrink-0 items-center rounded-xl border border-dashed border-line-strong px-3 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
+              onClick={s.cerrarAvisoDrive}
+              aria-label="Cerrar aviso"
+              className="-my-2 -mr-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/60 hover:text-ink"
             >
-              {ocultas > 0 ? `+${ocultas} más` : 'Ver menos'}
+              <X size={16} strokeWidth={2.4} />
             </button>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Lista */}
-      {s.filtered.length === 0 ? (
-        /* El mismo `EmptyState` que el resto de la app y no un vacío escrito a
-           mano aquí: era el único que se había quedado fuera, con su propio
-           tamaño de emoji y su propio hueco. Lo que hay debajo del título solo
-           se pinta cuando se ha buscado algo, que es la única de las tres ramas
-           que informa en vez de explicar. */
-        <EmptyState
-          emoji={s.busqueda.trim() ? '🔍' : '📄'}
-          title={s.busqueda.trim()
-            ? 'Sin coincidencias'
-            : s.activeFilter ? 'Sin documentos en esta categoría' : 'Sin documentos'}
-          description={s.busqueda.trim() ? `Ningún documento coincide con «${s.busqueda.trim()}»` : undefined}
-        />
-      ) : (
-        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
-          {s.filtered.map(doc => {
-            const asignado = resolveAssignee(doc, s.members, s.kids)
-            return (
-              <DocCard
-                key={doc.id}
-                doc={doc}
-                assigneeName={asignado?.name}
-                assigneeColor={asignado?.color}
-                onEdit={() => s.openEdit(doc)}
+        {/* Solo se ofrecen las categorías **que tienen algún papel dentro**, y el
+            porqué está donde se decide: `selectDocCategoryFilters`. Aquí, lo que
+            es de la pantalla: van envueltas y no arrastrables —se ven todas de un
+            golpe, desde el 02-09-2026— y cuántas se enseñan sin pedirlo lo cuenta
+            `CATEGORIAS_A_LA_VISTA` ahí arriba. */}
+        {s.puedeFiltrar && (
+          <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
+            {[{ key: null, label: 'Todos' }, ...categoriasVisibles].map(f => (
+              <CategoryChip
+                key={String(f.key)}
+                category={f.key}
+                label={f.label}
+                selected={s.activeFilter === f.key}
+                onClick={() => s.setActiveFilter(f.key)}
               />
-            )
-          })}
-        </div>
-      )}
+            ))}
+
+            {/* Abre la tira y la vuelve a cerrar. Antes solo abría: quien la
+                desplegaba para ver si había carpeta de Viajes se quedaba con todas
+                puestas —dos filas de filtros por encima de los papeles— el resto
+                de la sesión, sin forma de volver.
+
+                Plegar no se ofrece cuando la puesta cae fuera de las cuatro
+                primeras: escondería la pastilla que explica por qué se ven tres
+                papeles de diez. */}
+            {(ocultas > 0 || (verTodasLasCategorias && !activaEstaFuera)) && (
+              <button
+                type="button"
+                onClick={() => setVerTodasLasCategorias(v => !v)}
+                className="flex min-h-11 flex-shrink-0 items-center rounded-xl border border-dashed border-line-strong px-3 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
+              >
+                {ocultas > 0 ? `+${ocultas} más` : 'Ver menos'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Lista */}
+        {s.filtered.length === 0 ? (
+          /* El mismo `EmptyState` que el resto de la app y no un vacío escrito a
+             mano aquí: era el único que se había quedado fuera, con su propio
+             tamaño de emoji y su propio hueco. Lo que hay debajo del título solo
+             se pinta cuando se ha buscado algo, que es la única de las tres ramas
+             que informa en vez de explicar. */
+          <EmptyState
+            emoji={s.busqueda.trim() ? '🔍' : '📄'}
+            title={s.busqueda.trim()
+              ? 'Sin coincidencias'
+              : s.activeFilter ? 'Sin documentos en esta categoría' : 'Sin documentos'}
+            description={s.busqueda.trim() ? `Ningún documento coincide con «${s.busqueda.trim()}»` : undefined}
+          />
+        ) : (
+          <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
+            {s.filtered.map(doc => {
+              const asignado = resolveAssignee(doc, s.members, s.kids)
+              return (
+                <DocCard
+                  key={doc.id}
+                  doc={doc}
+                  assigneeName={asignado?.name}
+                  assigneeColor={asignado?.color}
+                  onEdit={() => s.openEdit(doc)}
+                />
+              )
+            })}
+          </div>
+        )}
+      </div>
 
       <DocSheet
         key={s.sheetKey}
@@ -163,6 +171,6 @@ export function DocsView() {
         conexion={s.storageConnection}
         connectUrl={s.connectStorageUrl}
       />
-    </div>
+    </>
   )
 }

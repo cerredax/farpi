@@ -81,64 +81,72 @@ export function ListsView() {
   const puedeBuscar = s.allListItems.length >= MINIMO_PARA_BUSCAR
   const buscando = puedeBuscar && s.busqueda.trim().length > 0
 
+  // El sheet va **fuera** del contenedor con `space-y-*`, como hermano suyo: ahí
+  // dentro, `space-y` le pone `margin-bottom` a todos los hijos menos al último,
+  // y a una caja `fixed bottom-0` ese margen le sube el ancla —el
+  // `translate-y-full` deja de bastar y el sheet cerrado asoma sobre las
+  // etiquetas de la barra de abajo—. Estaba dentro, y lo salvaba solo ser el
+  // último hijo: cualquier cosa añadida detrás lo rompía sin tocarlo.
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-4 lg:max-w-5xl lg:px-6">
-      <ViewHeader
-        resumen={`${s.lists.length} lista${s.lists.length !== 1 ? 's' : ''} de la familia`}
-        buscador={puedeBuscar ? {
-          value: s.busqueda,
-          onChange: s.setBusqueda,
-          placeholder: `Buscar en ${s.allListItems.length} ítems de todas las listas…`,
-          ariaLabel: 'Buscar ítems en todas las listas',
-        } : null}
-        onAdd={s.openCreateList}
-        addLabel="Nueva lista"
-      />
+    <>
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-4 lg:max-w-5xl lg:px-6">
+        <ViewHeader
+          resumen={`${s.lists.length} lista${s.lists.length !== 1 ? 's' : ''} de la familia`}
+          buscador={puedeBuscar ? {
+            value: s.busqueda,
+            onChange: s.setBusqueda,
+            placeholder: `Buscar en ${s.allListItems.length} ítems de todas las listas…`,
+            ariaLabel: 'Buscar ítems en todas las listas',
+          } : null}
+          onAdd={s.openCreateList}
+          addLabel="Nueva lista"
+        />
 
-      {buscando ? (
-        s.coincidencias.length === 0 ? (
+        {buscando ? (
+          s.coincidencias.length === 0 ? (
+            <EmptyState
+              emoji="🔍"
+              title="Sin coincidencias"
+              description={`Ningún ítem coincide con «${s.busqueda.trim()}»`}
+            />
+          ) : (
+            <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
+              <p className="field-label px-1 lg:col-span-2 xl:col-span-3">
+                {s.coincidencias.length} resultado{s.coincidencias.length !== 1 ? 's' : ''}
+              </p>
+              {s.coincidencias.map(match => (
+                <ItemMatchCard
+                  key={match.id}
+                  match={match}
+                  onToggle={() => s.toggleListItem(match.id)}
+                  onOpenList={() => s.abrirLista(match.list_id)}
+                />
+              ))}
+            </div>
+          )
+        ) : s.lists.length === 0 ? (
+          /* El emoji es el mismo 📋 con el que nace una lista sin el suyo, no el ✅
+             que había: un tic aquí dice "hecho", que es justo lo contrario de lo
+             que cuenta una lista. */
           <EmptyState
-            emoji="🔍"
-            title="Sin coincidencias"
-            description={`Ningún ítem coincide con «${s.busqueda.trim()}»`}
+            emoji="📋"
+            title="Sin listas todavía"
           />
         ) : (
           <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
-            <p className="field-label px-1 lg:col-span-2 xl:col-span-3">
-              {s.coincidencias.length} resultado{s.coincidencias.length !== 1 ? 's' : ''}
-            </p>
-            {s.coincidencias.map(match => (
-              <ItemMatchCard
-                key={match.id}
-                match={match}
-                onToggle={() => s.toggleListItem(match.id)}
-                onOpenList={() => s.abrirLista(match.list_id)}
+            {s.lists.map(list => (
+              <ListCard
+                key={list.id}
+                list={list}
+                pendientes={s.pendingByListId.get(list.id) ?? []}
+                onClick={() => s.abrirLista(list.id)}
               />
             ))}
           </div>
-        )
-      ) : s.lists.length === 0 ? (
-        /* El emoji es el mismo 📋 con el que nace una lista sin el suyo, no el ✅
-           que había: un tic aquí dice "hecho", que es justo lo contrario de lo
-           que cuenta una lista. */
-        <EmptyState
-          emoji="📋"
-          title="Sin listas todavía"
-        />
-      ) : (
-        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
-          {s.lists.map(list => (
-            <ListCard
-              key={list.id}
-              list={list}
-              pendientes={s.pendingByListId.get(list.id) ?? []}
-              onClick={() => s.abrirLista(list.id)}
-            />
-          ))}
-        </div>
-      )}
+        )}
+      </div>
 
       {listSheet}
-    </div>
+    </>
   )
 }

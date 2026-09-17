@@ -27,35 +27,43 @@ import { ViewHeader } from '@/components/ui/ViewHeader'
 export function NotesView() {
   const s = useNotesState()
 
+  // El sheet va **fuera** del contenedor con `space-y-*`, como hermano suyo: ahí
+  // dentro, `space-y` le pone `margin-bottom` a todos los hijos menos al último,
+  // y a una caja `fixed bottom-0` ese margen le sube el ancla —el
+  // `translate-y-full` deja de bastar y el sheet cerrado asoma sobre las
+  // etiquetas de la barra de abajo—. Estaba dentro, y lo salvaba solo ser el
+  // último hijo: cualquier cosa añadida detrás lo rompía sin tocarlo.
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
-      <ViewHeader
-        resumen={`${s.notes.length} nota${s.notes.length !== 1 ? 's' : ''} de la familia`}
-        buscador={s.puedeBuscar ? {
-          value: s.busqueda,
-          onChange: s.setBusqueda,
-          placeholder: `Buscar en ${s.notes.length} notas…`,
-          ariaLabel: 'Buscar notas',
-        } : null}
-        onAdd={s.openCreate}
-        addLabel="Nueva nota"
-      />
-
-      {s.filtered.length === 0 ? (
-        <EmptyState
-          emoji="📝"
-          title={s.busqueda.trim() ? 'Ninguna nota coincide' : 'Sin notas'}
-          description={s.busqueda.trim() ? `Ninguna coincide con «${s.busqueda.trim()}»` : undefined}
+    <>
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
+        <ViewHeader
+          resumen={`${s.notes.length} nota${s.notes.length !== 1 ? 's' : ''} de la familia`}
+          buscador={s.puedeBuscar ? {
+            value: s.busqueda,
+            onChange: s.setBusqueda,
+            placeholder: `Buscar en ${s.notes.length} notas…`,
+            ariaLabel: 'Buscar notas',
+          } : null}
+          onAdd={s.openCreate}
+          addLabel="Nueva nota"
         />
-      ) : (
-        /* `items-start` para que una nota corta no se estire hasta el alto de la
-           más larga de su fila: son tarjetas de contenido, no celdas. */
-        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0 xl:grid-cols-3">
-          {s.filtered.map(note => (
-            <NoteCard key={note.id} note={note} onEdit={() => s.openEdit(note)} />
-          ))}
-        </div>
-      )}
+
+        {s.filtered.length === 0 ? (
+          <EmptyState
+            emoji="📝"
+            title={s.busqueda.trim() ? 'Ninguna nota coincide' : 'Sin notas'}
+            description={s.busqueda.trim() ? `Ninguna coincide con «${s.busqueda.trim()}»` : undefined}
+          />
+        ) : (
+          /* `items-start` para que una nota corta no se estire hasta el alto de la
+             más larga de su fila: son tarjetas de contenido, no celdas. */
+          <div className="space-y-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0 xl:grid-cols-3">
+            {s.filtered.map(note => (
+              <NoteCard key={note.id} note={note} onEdit={() => s.openEdit(note)} />
+            ))}
+          </div>
+        )}
+      </div>
 
       <NoteSheet
         key={s.sheetKey}
@@ -66,6 +74,6 @@ export function NotesView() {
         onSave={s.handleSave}
         onDelete={s.deleteNote}
       />
-    </div>
+    </>
   )
 }

@@ -8,7 +8,7 @@ import {
   SCOPE_DRIVE,
 } from '@/lib/document-storage/oauth'
 import { cifrar, descifrar, leerClave } from '@/lib/document-storage/crypto'
-import { nombreDeDescarga, safeFileName } from '@/lib/text'
+import { etiquetaDeTipo, nombreDeDescarga, safeFileName } from '@/lib/text'
 
 // Los documentos viven en el Google Drive de quien los sube, y estas son las
 // piezas de ese camino que se pueden probar sin red ni secretos. Son justo las
@@ -217,5 +217,25 @@ test.describe('nombre de archivo para servir el documento', () => {
 
   test('un tipo que no conocemos no inventa extensión', () => {
     expect(nombreDeDescarga('Algo raro', 'application/octet-stream')).toBe('algo-raro')
+  })
+})
+
+// Lo que se lee al editar un documento, donde antes iba el nombre del archivo.
+// Ese nombre ya no existe —se queda en el Drive de quien lo subió— y lo único
+// que Farpi sabe del archivo es su tipo y su tamaño. La función vivía dentro de
+// `FileTypeIcon.tsx` y por eso no la probaba nadie.
+test.describe('cómo se llama un archivo en una frase', () => {
+  test('los tres tipos que se admiten tienen nombre propio', () => {
+    expect(etiquetaDeTipo('application/pdf')).toBe('Documento PDF')
+    expect(etiquetaDeTipo('image/jpeg')).toBe('Imagen JPG')
+    expect(etiquetaDeTipo('image/png')).toBe('Imagen PNG')
+  })
+
+  // Los papeles viejos pueden llevar un MIME que hoy no se deja subir: se dice
+  // lo que se sabe en vez de mentir con uno de los tres.
+  test('otra imagen sigue siendo una imagen, y lo demás un archivo', () => {
+    expect(etiquetaDeTipo('image/heic')).toBe('Imagen')
+    expect(etiquetaDeTipo('application/octet-stream')).toBe('Archivo')
+    expect(etiquetaDeTipo('')).toBe('Archivo')
   })
 })

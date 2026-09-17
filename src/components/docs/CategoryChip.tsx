@@ -44,7 +44,7 @@ export function CategoryChip({ category, label, selected, onClick }: CategoryChi
     >
       {category && (
         <span className="flex-shrink-0 text-sm leading-none" aria-hidden>
-          {DOC_CATEGORY[category]?.emoji ?? '📄'}
+          {DOC_CATEGORY[category].emoji}
         </span>
       )}
       {label}

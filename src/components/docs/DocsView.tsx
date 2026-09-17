@@ -81,18 +81,11 @@ export function DocsView() {
         </div>
       )}
 
-      {/* Filtros */}
-      {/* Solo se ofrecen las categorías **que tienen algún papel dentro** (ver
-          `selectDocCategoryFilters`). Las once del catálogo siguen estando al
-          guardar un documento; como filtro, la mitad daban a una pantalla
-          vacía, y con un icono cada una la tira se leía como un muro antes de
-          llegar al primer documento: cuatro filas a 390 px, y en escritorio
-          once en una fila con «Otros» colgando solo en la segunda.
-
-          Envueltas y no arrastrables, eso sigue igual desde el 02-09-2026: se
-          ven todas de un golpe. Lo que cambió el 03-09-2026 es cuántas hay que
-          ver. Esconder contenido en esta app ha salido mal cada vez, pero una
-          categoría vacía no es contenido, es un filtro muerto. */}
+      {/* Solo se ofrecen las categorías **que tienen algún papel dentro**, y el
+          porqué está donde se decide: `selectDocCategoryFilters`. Aquí, lo que
+          es de la pantalla: van envueltas y no arrastrables —se ven todas de un
+          golpe, desde el 02-09-2026— y cuántas se enseñan sin pedirlo lo cuenta
+          `CATEGORIAS_A_LA_VISTA` ahí arriba. */}
       {s.puedeFiltrar && (
         <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
           {[{ key: null, label: 'Todos' }, ...categoriasVisibles].map(f => (

@@ -9,9 +9,9 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import type { Child, Document, DocumentDraft, DocMimeType, FamilyMember, StorageConnection } from '@/types'
 import { CategoryChip } from './CategoryChip'
 import { ConnectStorage } from './ConnectStorage'
-import { FileTypeIcon, etiquetaDeTipo } from './FileTypeIcon'
-import { DOC_CATEGORIES } from '@/lib/constants'
-import { formatFileSize } from '@/lib/text'
+import { FileTypeIcon } from './FileTypeIcon'
+import { DOC_CATEGORIES, MAX_DOC_SIZE, VALID_MIME_TYPES } from '@/lib/constants'
+import { etiquetaDeTipo, formatFileSize } from '@/lib/text'
 import { validateDocumentFile } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 
@@ -241,10 +241,14 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                   {fileName || 'Seleccionar archivo…'}
                 </span>
               </button>
-              <input ref={fileRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFile} />
+              {/* Los tipos y el límite salen de donde ya están escritos: el
+                  `accept` del navegador y el aviso de debajo decían a mano lo
+                  mismo que `validateDocumentFile` comprueba, así que subir el
+                  tope dejaba mintiendo a los dos. */}
+              <input ref={fileRef} type="file" accept={VALID_MIME_TYPES.join(',')} className="hidden" onChange={handleFile} />
               {fileError
                 ? <p className="text-[10px] text-danger-strong font-semibold">{fileError}</p>
-                : <p className="text-[10px] text-muted">PDF, JPG o PNG. Tamaño máximo: 20 MB.</p>
+                : <p className="text-[10px] text-muted">PDF, JPG o PNG. Tamaño máximo: {MAX_DOC_SIZE / 1024 / 1024} MB.</p>
               }
             </>
           ) : (

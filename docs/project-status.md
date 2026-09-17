@@ -847,15 +847,18 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **772 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **774 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - **590 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
-    15-09-2026. No levantan servidor: `npm run test:unit`.
+  - **592 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
+    17-09-2026. No levantan servidor: `npm run test:unit`.
 
     *Los últimos en entrar*, del más reciente al más antiguo:
 
+    - Los **dos de cómo se llama un archivo en una frase** (17-09-2026): «Documento
+      PDF», «Imagen JPG», y qué se dice de un tipo que hoy ya no se deja subir. La
+      función vivía dentro de `FileTypeIcon.tsx`, así que no la probaba nadie.
     - Los **veintiuno del aviso de las nueve** (15-09-2026): qué dice la notificación de
       la mañana. Que el título es el día en el calendario de la familia y no en el del
       servidor, que la hora de un plan se traduce a la de Madrid y no a la de la función
@@ -922,8 +925,8 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 182 de navegador. La cifra sale de la pasada completa del 17-09-2026 (772 en total,
-    590 unitarios; los últimos, los **cinco de Documentos** del 17-09-2026 —que el sheet
+  - 182 de navegador. La cifra sale de la pasada completa del 17-09-2026 (774 en total,
+    592 unitarios; los últimos, los **cinco de Documentos** del 17-09-2026 —que el sheet
     dice qué falta en vez de apagar el botón de guardar, que el archivo elegido no se
     queda puesto para el siguiente documento, que llegan a 44 px los controles del sheet
     de edición y los del aviso de vuelta de Drive —los dos sitios que el bucle de rutas no

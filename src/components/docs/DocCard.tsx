@@ -5,9 +5,9 @@ import { es } from 'date-fns/locale'
 import { FileTypeIcon } from './FileTypeIcon'
 import { fondoDePersona } from '@/lib/assignees'
 import { DOC_CATEGORY, FAMILY_COLOR } from '@/lib/constants'
-import { selectExpiryState } from '@/lib/selectors'
+import { docCategoryOf, selectExpiryState } from '@/lib/selectors'
 import { formatFileSize } from '@/lib/text'
-import type { DocCategory, Document } from '@/types'
+import type { Document } from '@/types'
 
 const CADUCIDAD_ESTILO = {
   caducado: 'bg-danger-soft text-danger-strong',
@@ -25,8 +25,8 @@ interface DocCardProps {
 
 /** Tarjeta de documento en el listado, con categoría, dueño y metadatos. */
 export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardProps) {
-  const categoria: DocCategory = doc.category ?? 'otros'
-  const etiqueta = DOC_CATEGORY[categoria]?.label ?? 'Otros'
+  const categoria = docCategoryOf(doc)
+  const { label: etiqueta, emoji } = DOC_CATEGORY[categoria]
   const caducidad = selectExpiryState(doc.expires_on)
 
   return (
@@ -63,7 +63,7 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
             title={etiqueta}
             className="flex-shrink-0 text-base leading-none"
           >
-            {DOC_CATEGORY[categoria]?.emoji ?? '📄'}
+            {emoji}
           </span>
           {/* De quién es, con la etiqueta de toda la app: el color de la persona
               de fondo y el nombre en tinta. Iba en color macizo con el texto

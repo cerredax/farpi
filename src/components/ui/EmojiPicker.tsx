@@ -19,12 +19,17 @@ interface EmojiPickerProps {
  * partida o un fijo con aquello en lo que se va el dinero. Un juego común
  * serviría mal a los cuatro. Lo que se comparte es el control.
  *
- * Ocho por fila porque los juegos se escribieron para cuadrar a ocho: 24 en tres
- * filas justas, 16 los ingresos de un fijo.
+ * **Seis por fila en móvil y ocho a partir del ancho del sheet de escritorio.**
+ * Los juegos se escribieron para cuadrar a ocho —24 en tres filas justas, 16 los
+ * ingresos de un fijo— y a ocho seguirán donde caben. En móvil no caben: la
+ * celda tiene que llegar a 44 px por el criterio de la casa y ocho de 44 con sus
+ * huecos piden 408 px contra los 350 que hay dentro del sheet a 390. Con seis,
+ * los juegos de 24 siguen cuadrando —cuatro filas justas— y el de 16 deja una
+ * fila corta, que es el precio de que el dedo acierte.
  */
 export function EmojiPicker({ opciones, value, onChange }: EmojiPickerProps) {
   return (
-    <div className="grid grid-cols-8 gap-2">
+    <div className="grid grid-cols-6 gap-2 md:grid-cols-8">
       {opciones.map(emoji => {
         const selected = value === emoji
         return (
@@ -35,7 +40,7 @@ export function EmojiPicker({ opciones, value, onChange }: EmojiPickerProps) {
             // El nombre accesible del botón es el propio emoji, que un lector de
             // pantalla ya sabe leer; lo que no se oía era cuál está puesto.
             aria-pressed={selected}
-            className={`flex h-9 w-9 items-center justify-center rounded-xl text-xl transition-colors ${selected ? 'bg-primary/20 ring-2 ring-primary-strong' : 'bg-canvas hover:bg-surface'}`}
+            className={`flex h-11 w-full items-center justify-center rounded-xl text-xl transition-colors ${selected ? 'bg-primary/20 ring-2 ring-primary-strong' : 'bg-canvas hover:bg-surface'}`}
           >
             {emoji}
           </button>

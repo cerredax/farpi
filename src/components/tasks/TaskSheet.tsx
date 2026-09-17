@@ -127,7 +127,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
                 key={opt.value}
                 type="button"
                 onClick={() => patch({ priority: opt.value })}
-                className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
+                className={`flex min-h-11 items-center justify-center rounded-xl text-xs font-semibold transition-colors ${
                   draft.priority === opt.value
                     ? 'bg-primary-strong text-white'
                     : 'bg-canvas text-muted border border-line'
@@ -146,7 +146,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
                 key={opt.value}
                 type="button"
                 onClick={() => patch({ recurrence: opt.value, recurrence_end: '' })}
-                className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
+                className={`flex min-h-11 items-center justify-center rounded-xl text-xs font-semibold transition-colors ${
                   draft.recurrence === opt.value
                     ? 'bg-primary-strong text-white'
                     : 'bg-canvas text-muted border border-line'

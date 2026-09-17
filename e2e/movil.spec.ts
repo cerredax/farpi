@@ -241,6 +241,74 @@ for (const ruta of RUTAS) {
   })
 }
 
+// Y lo que hay **dentro de los sheets**, que es donde más se toca y donde el
+// bucle de arriba no llegaba nunca: un sheet cerrado es `inert` y el filtro lo
+// salta. Así se descubrió el 17-09-2026 que "la app entera llegó a 44 px" era
+// verdad de las pantallas y no de los formularios —chips de 30 a 34, rejillas de
+// emoji de 36, sugerencias de 28— y por eso esto se mide desde aquí y no a ojo.
+const SHEETS = [
+  { ruta: '/tasks', boton: 'Nueva tarea', dialogo: 'Nueva tarea' },
+  { ruta: '/lists', boton: 'Nueva lista', dialogo: 'Nueva lista' },
+  { ruta: '/notes', boton: 'Nueva nota', dialogo: 'Nueva nota' },
+  { ruta: '/finances', boton: 'Nuevo apunte', dialogo: 'Nuevo apunte' },
+  { ruta: '/docs', boton: 'Añadir documento', dialogo: 'Añadir documento' },
+  { ruta: '/calendar', boton: 'Apuntar algo', dialogo: 'Apuntar en el calendario' },
+  { ruta: '/meals', boton: 'Añadir comida', dialogo: 'Añadir comida' },
+]
+
+for (const { ruta, boton, dialogo } of SHEETS) {
+  test(`los controles del sheet de ${ruta} llegan a ${MINIMO_COMODO}px`, async ({ page }) => {
+    await page.goto(ruta)
+    await page.waitForTimeout(900)
+
+    // `.first()`: en calendario y comidas el botón de añadir se repite por día.
+    await page.getByRole('button', { name: boton }).first().click()
+    await expect(page.getByRole('dialog', { name: dialogo })).toBeVisible()
+    await page.waitForTimeout(500)
+
+    const cortos = await controlesCortos(page, '[role="dialog"]:not([inert])')
+
+    expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px en el sheet de ${ruta}`).toEqual([])
+  })
+}
+
+// La ficha de una persona no se abre desde ningún `+`, así que tampoco entra en
+// el bucle de arriba, y es donde viven los dos controles que quedaban cortos: los
+// catorce círculos de color (36) y el «Eliminar» de la cabecera (28).
+test(`los controles de la ficha de una persona llegan a ${MINIMO_COMODO}px`, async ({ page }) => {
+  await page.goto('/settings')
+  await page.waitForTimeout(900)
+  // En móvil, Ajustes abre en el índice de secciones.
+  await page.getByRole('link', { name: /Familia/ }).first().click()
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: /Cris/ }).first().click()
+  await expect(page.getByRole('dialog').filter({ hasText: 'Color' }).first()).toBeVisible()
+  await page.waitForTimeout(400)
+
+  const cortos = await controlesCortos(page, '[role="dialog"]:not([inert])')
+
+  expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px en la ficha de una persona`).toEqual([])
+})
+
+// Lo que solo aparece al pedirlo: los días de la semana del calendario salen
+// cuando la repetición es semanal, así que el bucle de arriba tampoco los ve.
+test(`los días de una repetición semanal llegan a ${MINIMO_COMODO}px`, async ({ page }) => {
+  await page.goto('/calendar')
+  await page.waitForTimeout(900)
+
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
+  await expect(sheet).toBeVisible()
+  await sheet.getByRole('button', { name: 'Cada semana' }).click()
+  await expect(sheet.getByText('Repetir los días')).toBeVisible()
+  await page.waitForTimeout(400)
+
+  const cortos = await controlesCortos(page, '[role="dialog"]:not([inert])')
+
+  expect(cortos, `Controles por debajo de ${MINIMO_COMODO}px al repetir cada semana`).toEqual([])
+})
+
 // Los dos sitios de Documentos que el bucle de arriba **no puede ver**, y que por
 // eso se habían quedado atrás: 42 px el de abrir el archivo y 28 el aspa del
 // aviso. Uno vive dentro de un sheet —inerte mientras está cerrado, así que el

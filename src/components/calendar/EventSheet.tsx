@@ -57,7 +57,7 @@ export function EventSheet({
     <button
       type="button"
       onClick={() => s.setSeriesDeleteOpen(v => !v)}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+      className={`flex min-h-11 items-center gap-1.5 px-3 rounded-full text-xs font-semibold transition-colors ${
         s.seriesDeleteOpen ? 'bg-danger-strong text-white' : 'text-danger-strong hover:bg-danger-soft'
       }`}
     >
@@ -209,8 +209,24 @@ export function EventSheet({
             </div>
             <div className="flex flex-col items-center gap-1.5 pb-0.5">
               <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
-              <button type="button" role="switch" aria-checked={s.draft.all_day} onClick={() => s.patch({ all_day: !s.draft.all_day })} className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${s.draft.all_day ? 'bg-primary-strong' : 'bg-line-strong'}`}>
-                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${s.draft.all_day ? 'left-6' : 'left-1'}`} />
+              {/* El interruptor se ve igual —44×24— pero lo que se toca es el
+                  botón entero, 44×44: es el único control de la app que no puede
+                  engordar sin dejar de parecer un interruptor, así que el pill
+                  pasa a ser un `span` decorativo dentro. Es lo que ya hacía la
+                  lista de franjas de Ajustes, donde se toca la fila entera. */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={s.draft.all_day}
+                onClick={() => s.patch({ all_day: !s.draft.all_day })}
+                className="flex h-11 w-11 items-center justify-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`relative block h-6 w-11 rounded-full transition-colors duration-200 ${s.draft.all_day ? 'bg-primary-strong' : 'bg-line-strong'}`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${s.draft.all_day ? 'left-6' : 'left-1'}`} />
+                </span>
               </button>
             </div>
           </div>

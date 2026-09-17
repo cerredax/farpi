@@ -14,9 +14,8 @@ seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisi�
 dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —el ajuste
 de un fijo en un mes suelto—: tabla, índice,
 policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. **Lo que queda no es código de producto**: pruebas que piden un aparato
-delante, una decisión sin tomar, dos funcionalidades que no existen, tres acabados
-menores de Finanzas y un listón que no llega dentro de los sheets. La lista entera, en
-"Siguiente paso recomendado".
+delante, una decisión sin tomar, dos funcionalidades que no existen y tres acabados
+menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
 
 ## Implementado
 
@@ -847,7 +846,7 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **786 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **795 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
@@ -932,8 +931,10 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 183 de navegador. La cifra sale de la pasada completa del 17-09-2026 (786 en total,
-    603 unitarios; los últimos, los **seis de Documentos** del 17-09-2026 —que el sheet
+  - 192 de navegador. La cifra sale de la pasada completa del 17-09-2026 (795 en total,
+    603 unitarios; los últimos, los **nueve de los 44 px por dentro** del 17-09-2026 —los
+    siete sheets de alta abiertos uno a uno, los días de una repetición semanal y la ficha
+    de una persona, que no se abre desde ningún `+`—, antes los **seis de Documentos** —que el sheet
     dice qué falta en vez de apagar el botón de guardar, que el archivo elegido no se
     queda puesto para el siguiente documento, que lo escrito antes de ir a conectar Drive
     sigue ahí al volver y se gasta al recuperarlo, que llegan a 44 px los controles del
@@ -983,11 +984,18 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
   de una frase —el correo de la carta de la portada—, que no se agranda sin romper el
   renglón. Queda `.area-de-toque` en globals.css para los iconos que no pueden crecer a
   lo ancho; hoy no lo usa nadie de forma crítica.
-  **Pero el bucle mide las pantallas, no los formularios**: salta lo que cuelga de un
-  `[inert]`, y un sheet cerrado lo es. Dentro de los sheets siguen quedando controles
-  cortos, medidos el 17-09-2026 y anotados en "Siguiente paso recomendado". De
-  Documentos ya no: su sheet de creación estaba limpio, y el de edición y el aviso de
-  Drive se arreglaron y se vigilan desde ese día.
+  **Y dentro de los sheets también** (17-09-2026). Hasta ese día el bucle medía las
+  pantallas y no los formularios —salta lo que cuelga de un `[inert]`, y un sheet cerrado
+  lo es—, así que ahí dentro habían quedado chips de 30 a 34, las rejillas de emoji de 36,
+  los catorce círculos de color de 36, las sugerencias de plato de 28 y el «Eliminar» de
+  la cabecera de 28. Se subieron los siete controles que lo provocaban —`SelectChip`,
+  `EmojiPicker`, `Suggestions`, `ColorPicker`, `DeleteButton` en su variante de cabecera,
+  los chips de prioridad y repetición de una tarea y los del calendario— y ahora los
+  sheets se abren uno a uno en `e2e/movil.spec.ts` y se miden por dentro. Dos con
+  historia: la rejilla de emoji pasa a **seis columnas en móvil** porque ocho de 44 no
+  caben en 350 px, y el interruptor de «todo el día» se queda igual de grande pero el
+  botón que lo envuelve mide 44×44, que es lo que ya hacía la lista de franjas de
+  Ajustes.
 - **Los sheets atrapan el foco y lo devuelven** (`BottomSheet`, 09-09-2026): el panel dice
   `aria-modal` pero el `Tab` se escapaba a la pantalla de detrás, y al cerrar el foco se
   iba al `body` en vez de al botón desde el que se entró.
@@ -1234,12 +1242,13 @@ esto; aquí solo el titular.
 ## Siguiente paso recomendado
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
-pendiente.** Lo que sigue son cinco clases de cosa distintas, y conviene no mezclarlas:
+pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
 pruebas que exigen un aparato en la mano, una decisión sin tomar, dos funcionalidades que
-no existen, tres acabados menores y un listón que se quedó a medio camino. **Esta es la lista entera y no hay otra**: lo que
+no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
-Lo que **ya no está** en esta lista, porque se cerró: las notificaciones push (28-08-2026),
+Lo que **ya no está** en esta lista, porque se cerró: los 44 px dentro de los sheets
+(17-09-2026), las notificaciones push (28-08-2026),
 la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
 (169/169 el 05-09-2026). El relato de cada una, en el cuerpo de su commit.
@@ -1284,24 +1293,6 @@ porque ninguno se arregla sin tocar algo que no es suyo:
   lleva siete. Mejor candidato, 🦷.
 - **🏛️ y 🏦 se parecen** en la tipografía de Android. Están separados en la
   rejilla para que no se comparen de un vistazo, pero el problema sigue ahí.
-
-### 5. Los 44 px no llegan dentro de los sheets
-
-El bucle de `e2e/movil.spec.ts` salta lo que cuelga de un `[inert]`, y un sheet cerrado lo
-es: «ningún control baja de 44×44» se comprobaba en las pantallas y **nunca en los
-formularios**, que es donde más se toca. Medido a 390 px con los sheets abiertos
-(17-09-2026), dentro quedan:
-
-- **Tareas**: los chips de prioridad y de recurrencia, 34 px de alto.
-- **Calendario**: los tres chips de repetición, 32; y el interruptor de todo el día, 44×24.
-- **Notas y Listas**: la rejilla de emojis, 36×36.
-- **Comidas**: las sugerencias de plato, 28 de alto.
-- **Finanzas**: los chips de tipo y de partida, 30.
-
-No es un arreglo de una línea ni es de una sección: casi todo es `SelectChip` y
-`EmojiPicker`, que comparten cinco pantallas, y subirlos cambia el alto de todos los
-formularios. Se mide con `controlesCortos()` de `e2e/movil.spec.ts`, que ya acepta un
-sheet abierto como raíz.
 
 ### Lo que no hay que hacer
 

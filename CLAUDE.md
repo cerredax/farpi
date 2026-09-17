@@ -51,7 +51,9 @@ habían hecho. Un detalle para leer los commits: **la app se llamó Nido hasta e
   a lo ancho a **390 px** (un iPhone normal, más estrecho que el Pixel 7 con el que
   corre el resto de la suite), ningún control baja de **24×24 px** (mínimo WCAG 2.5.8)
   y ninguno baja de **44×44** (Apple y Material, el criterio de la casa desde el
-  09-09-2026). La única excepción es la que recoge la propia 2.5.8: un enlace
+  09-09-2026), **también dentro de los sheets**: se abren uno a uno y se miden por
+  dentro desde el 17-09-2026, porque cerrados son `inert` y el bucle de rutas los
+  saltaba. La única excepción es la que recoge la propia 2.5.8: un enlace
   `display: inline` dentro de una frase, que no se puede agrandar sin romper el
   renglón. En Farpi es uno, el correo de la carta de la portada.
 - **El escritorio se hace en `lg:` y no toca nada por debajo.** La navegación cambia
@@ -101,7 +103,7 @@ npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
 npm run test:unit      # 603 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 786 (603 unitarios + 183 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:e2e       # suite completa: 795 (603 unitarios + 192 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)

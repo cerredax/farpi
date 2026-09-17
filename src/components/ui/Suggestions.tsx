@@ -5,7 +5,8 @@ interface SuggestionsProps {
   /**
    * Deja el bloque a una altura fija y lo hace scrollable. Para catálogos
    * largos —los platos ya cocinados— donde caben decenas de opciones y sin
-   * tope empujarían el formulario fuera de la pantalla.
+   * tope empujarían el formulario fuera de la pantalla. El tope creció con las
+   * pastillas: a 44 px, las 8 rem de antes dejaban ver fila y media.
    */
   scroll?: boolean
 }
@@ -21,15 +22,17 @@ export function Suggestions({ values, onPick, label, scroll = false }: Suggestio
   return (
     <div className="space-y-1.5">
       <p className="text-[11px] font-semibold text-muted">{label}</p>
-      <div className={`flex flex-wrap gap-1.5 ${scroll ? 'max-h-32 overflow-y-auto' : ''}`}>
+      <div className={`flex flex-wrap gap-1.5 ${scroll ? 'max-h-44 overflow-y-auto' : ''}`}>
         {values.map(value => (
           <button
             key={value}
             type="button"
             onClick={() => onPick(value)}
-            className="px-3 py-1.5 rounded-full bg-canvas text-muted text-xs font-semibold hover:bg-primary-tint hover:text-primary-strong transition-colors max-w-full truncate"
+            className="flex min-h-11 max-w-full items-center px-3 rounded-full bg-canvas text-muted text-xs font-semibold hover:bg-primary-tint hover:text-primary-strong transition-colors"
           >
-            {value}
+            {/* El recorte va en el texto y no en el botón: en un contenedor
+                `flex`, el `text-overflow` no llega a lo que hay dentro. */}
+            <span className="truncate">{value}</span>
           </button>
         ))}
       </div>

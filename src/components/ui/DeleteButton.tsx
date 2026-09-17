@@ -86,7 +86,7 @@ export function DeleteButton({ confirming = false, onClick, idleLabel, confirmLa
       <button
         type="button"
         onClick={onClick}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${danger}`}
+        className={`flex min-h-11 items-center gap-1.5 px-3 rounded-full text-xs font-semibold transition-colors ${danger}`}
       >
         <Trash2 size={13} />
         {confirming ? confirmLabel : idleLabel}

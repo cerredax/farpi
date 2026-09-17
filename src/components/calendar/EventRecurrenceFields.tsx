@@ -41,7 +41,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
             key={valor}
             type="button"
             onClick={onClick}
-            className={`rounded-xl px-2 py-2 text-xs font-bold transition-colors ${
+            className={`flex min-h-11 items-center justify-center rounded-xl px-2 text-xs font-bold transition-colors ${
               s.recurrence === valor ? 'bg-white text-ink shadow-sm' : 'text-muted'
             }`}
           >
@@ -59,7 +59,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
                   key={day}
                   type="button"
                   onClick={() => s.toggleWeekday(day)}
-                  className={`flex-1 h-9 rounded-xl text-xs font-black transition-colors ${
+                  className={`h-11 flex-1 rounded-xl text-xs font-black transition-colors ${
                     s.recurrenceWeekdays.includes(day)
                       ? 'bg-primary-strong text-white'
                       : 'bg-canvas border border-line text-muted hover:border-primary-strong'

@@ -20,6 +20,11 @@ interface CategoryChipProps {
  * (44×44), que en un sheet no vigila `e2e/movil.spec.ts` porque mientras está
  * cerrado es `inert`.
  *
+ * `aria-pressed` porque cuál está puesta se decía **solo con el color**: quien
+ * usa un lector de pantalla oía una fila de botones iguales y ninguno decía cuál
+ * estaba pulsado. Vale para los dos sitios, que en los dos la pastilla queda
+ * hundida y se puede volver a soltar.
+ *
  * **Aquí el emoji no quita la palabra.** En la tarjeta sí —la categoría ya se
  * acaba de leer en el filtro—, pero un filtro tiene que decir qué filtra: once
  * carpetas sin nombre obligan a adivinar cuál es Personal y cuál Seguros, y el
@@ -30,6 +35,7 @@ export function CategoryChip({ category, label, selected, onClick }: CategoryChi
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={`flex min-h-11 flex-shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition-colors ${
         selected
           ? 'bg-primary-strong text-white'

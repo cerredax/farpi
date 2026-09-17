@@ -93,7 +93,7 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
       </div>
 
       {/* Indicador de que es editable */}
-      <span className="text-muted text-xs mt-1 flex-shrink-0">›</span>
+      <span aria-hidden className="text-muted text-xs mt-1 flex-shrink-0">›</span>
     </button>
   )
 }

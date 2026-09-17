@@ -689,6 +689,33 @@ test('el archivo elegido no se queda puesto para el siguiente documento', async 
   await expect(dialog.getByLabel('Nombre', { exact: true })).toHaveValue('')
 })
 
+// Dos cosas de la tira de filtros que se arreglaron juntas porque son la misma:
+// la tira no contaba lo que hacía. Cuál estaba puesta se decía solo con el color
+// —quien usa un lector de pantalla oía ocho botones iguales— y «+4 más» abría
+// sin cerrar: quien lo tocaba para ver si había carpeta de Viajes se quedaba con
+// dos filas de filtros por encima de los papeles el resto de la sesión.
+test('la tira de categorías dice cuál está puesta y se vuelve a plegar', async ({ page }) => {
+  await page.goto('/docs')
+  await page.waitForTimeout(700)
+
+  const filtros = page.getByRole('group', { name: 'Filtrar por categoría' })
+  await expect(filtros.getByRole('button', { name: 'Todos', pressed: true })).toBeVisible()
+
+  await filtros.getByRole('button', { name: 'Salud' }).click()
+  await expect(filtros.getByRole('button', { name: 'Salud', pressed: true })).toBeVisible()
+  await expect(filtros.getByRole('button', { name: 'Todos', pressed: false })).toBeVisible()
+
+  // En la demo hay papeles de ocho categorías y se enseñan cuatro, así que
+  // «Seguros» —la quinta del catálogo con algo dentro— está detrás del botón.
+  await expect(filtros.getByRole('button', { name: 'Seguros' })).toHaveCount(0)
+  await filtros.getByRole('button', { name: '+4 más' }).click()
+  await expect(filtros.getByRole('button', { name: 'Seguros' })).toBeVisible()
+
+  await filtros.getByRole('button', { name: 'Ver menos' }).click()
+  await expect(filtros.getByRole('button', { name: 'Seguros' })).toHaveCount(0)
+  await expect(filtros.getByRole('button', { name: '+4 más' })).toBeVisible()
+})
+
 // Buscar en el calendario mira todo el histórico y no el tramo que se pinta:
 // "¿cuándo fue la revisión?" es una pregunta sobre el pasado.
 test('el calendario busca también en el pasado', async ({ page }) => {

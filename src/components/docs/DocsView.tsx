@@ -41,7 +41,11 @@ export function DocsView() {
   return (
     <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
       <ViewHeader
-        resumen={`${s.documents.length} documento${s.documents.length !== 1 ? 's' : ''} guardados`}
+        resumen={s.documents.length === 1
+          // Las dos formas escritas enteras: el sufijo suelto le ponía la «s» al
+          // sustantivo y dejaba «1 documento guardados».
+          ? '1 documento guardado'
+          : `${s.documents.length} documentos guardados`}
         buscador={s.puedeBuscar ? {
           value: s.busqueda,
           onChange: s.setBusqueda,
@@ -101,13 +105,21 @@ export function DocsView() {
             />
           ))}
 
-          {ocultas > 0 && (
+          {/* Abre la tira y la vuelve a cerrar. Antes solo abría: quien la
+              desplegaba para ver si había carpeta de Viajes se quedaba con todas
+              puestas —dos filas de filtros por encima de los papeles— el resto
+              de la sesión, sin forma de volver.
+
+              Plegar no se ofrece cuando la puesta cae fuera de las cuatro
+              primeras: escondería la pastilla que explica por qué se ven tres
+              papeles de diez. */}
+          {(ocultas > 0 || (verTodasLasCategorias && !activaEstaFuera)) && (
             <button
               type="button"
-              onClick={() => setVerTodasLasCategorias(true)}
+              onClick={() => setVerTodasLasCategorias(v => !v)}
               className="flex min-h-11 flex-shrink-0 items-center rounded-xl border border-dashed border-line-strong px-3 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
             >
-              +{ocultas} más
+              {ocultas > 0 ? `+${ocultas} más` : 'Ver menos'}
             </button>
           )}
         </div>

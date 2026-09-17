@@ -847,7 +847,7 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **771 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **772 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
@@ -922,12 +922,12 @@ menores de Finanzas y un listón que no llega dentro de los sheets. La lista ent
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 181 de navegador. La cifra sale de la pasada completa del 17-09-2026 (771 en total,
-    590 unitarios; los últimos, los **cuatro de Documentos** del 17-09-2026 —que el sheet
+  - 182 de navegador. La cifra sale de la pasada completa del 17-09-2026 (772 en total,
+    590 unitarios; los últimos, los **cinco de Documentos** del 17-09-2026 —que el sheet
     dice qué falta en vez de apagar el botón de guardar, que el archivo elegido no se
-    queda puesto para el siguiente documento, y que llegan a 44 px los controles del sheet
-    de edición y los del aviso de vuelta de Drive, los dos sitios que el bucle de rutas no
-    podía ver—, y antes los cinco de Finanzas del
+    queda puesto para el siguiente documento, que llegan a 44 px los controles del sheet
+    de edición y los del aviso de vuelta de Drive —los dos sitios que el bucle de rutas no
+    podía ver—, y que la tira de categorías dice cuál está puesta y se vuelve a plegar—, y antes los cinco de Finanzas del
     14-09-2026 —que el buscador cruza los meses y dice cuánto suma lo encontrado, que
     «El día a día» va por días con la cifra de cada uno, que lo apuntado dos veces se
     ofrece con su partida, que un presupuesto aceptado se apunta y lleva al mes en el

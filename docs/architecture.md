@@ -1417,7 +1417,8 @@ Coral claro con Melocotón son indistinguibles, y Cuero con Granate y con Vino, 
 fuera la única vía, esas familias perderían información; siendo el matiz, solo pierden el matiz.
 
 **Buscando se enseña todo**, incluido el catálogo de una lista, las tareas ya completadas y el
-pasado del calendario. Esconder algo que sí coincide sería contestar "no hay nada" a una búsqueda
+pasado del calendario. Con una excepción, la carpeta puesta en Documentos, que sí acota: el porqué
+está en «Documentos». Esconder algo que sí coincide sería contestar "no hay nada" a una búsqueda
 que encontró algo. Y **buscando no se ofrece plegar**, que importa tanto como lo primero: sin
 ello el pliegue vuelve a esconder lo que la búsqueda acaba de encontrar. En el calendario eso
 significa que buscar cambia lo que se lee —el detalle del día y los próximos días dejan paso a
@@ -1914,6 +1915,16 @@ filtro tiene que decir qué filtra —once carpetas sin nombre obligan a adivina
 cuál Seguros—. En la tarjeta el emoji es `role="img"` con el nombre en `aria-label` y en `title`;
 en la pastilla es `aria-hidden`, porque el nombre ya está escrito al lado. Y de quién es el
 documento pasa por `.etiqueta-persona` + `fondoDePersona`, como en toda la app.
+
+**La carpeta puesta acota, y el buscador busca dentro** (`selectVisibleDocuments`, 17-09-2026).
+Con «Personal» puesto, buscar «seguro» no saca los papeles de Seguros: dice «Sin coincidencias».
+Es la **excepción** a «buscando se enseña todo», y se decidió a propósito después de encontrarla:
+el código hacía esto y un comentario al lado prometía lo contrario. Lo que la separa del pasado del
+calendario o de los meses de Finanzas —donde la búsqueda sí atraviesa— es que aquí **el alcance
+está en pantalla**: la pastilla puesta se ve justo encima de los resultados, en verde y con
+`aria-pressed`, y soltarla es un toque. Al pasado del calendario no se llega con ningún control, así
+que esconderlo sería esconder sin decirlo. Si algún día se cambia, hay que cambiar también lo que
+se lee: como hace Finanzas, el resultado tendría que decir dónde ha mirado.
 
 **Como filtro solo salen las carpetas que tienen algo dentro** (`selectDocCategoryFilters`). Que
 haya once es bueno para guardar y era malo para mirar: doce pastillas se leían como un muro antes

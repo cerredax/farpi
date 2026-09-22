@@ -42,6 +42,7 @@ function gasto(over: Partial<Expense> = {}): Expense {
     amount_cents: 1000,
     date: '2026-08-15',
     description: null,
+    import_ref: null,
     created_by: 'u1',
     created_at: '2026-08-15T10:00:00',
     updated_at: '2026-08-15T10:00:00',

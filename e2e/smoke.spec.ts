@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { abrirBloque, elegirVista } from './vistas'
+import { cabecera, concepto, final, finFichero, movimiento } from './n43-fixture'
 
 // Smoke mínimo en modo demo: login demo → /home con datos mock.
 
@@ -453,4 +454,67 @@ test('la ruta de salud contesta y no se cachea', async ({ request }) => {
   expect(res.status()).toBe(200)
   expect(res.headers()['cache-control']).toContain('no-store')
   expect(await res.json()).toEqual({ estado: 'demo' })
+})
+
+/**
+ * El extracto del banco: de un fichero de la Norma 43 a «El día a día».
+ *
+ * Se prueba en el navegador y no solo en unitarios porque lo que hay que ver es
+ * justo lo que no se ve desde `importacion.ts`: que el fichero sube, que la fila
+ * que ya está cubierta por un fijo **llega desmarcada y con su motivo escrito**,
+ * que lo confirmado aparece luego en la lista del mes, y que volver a subir el
+ * mismo fichero no lo apunta otra vez.
+ *
+ * Ese último caso es el que paga el `import_ref` de la base: sin él, importar
+ * dos veces el mismo mes —que es lo que pasa en cuanto alguien pide un rango de
+ * fechas solapado— duplicaría todo el extracto sin que nadie lo notara hasta
+ * mirar la cuenta del mes.
+ */
+test('el extracto del banco se revisa antes de apuntarlo, y no entra dos veces', async ({ page }) => {
+  const hoy = new Date()
+  const aammdd = `${String(hoy.getFullYear()).slice(2)}${String(hoy.getMonth() + 1).padStart(2, '0')}${String(hoy.getDate()).padStart(2, '0')}`
+
+  // Dos movimientos que son los dos casos de la pantalla: una compra, que es un
+  // gasto de la casa, y un recibo de 74,00 € que es el fijo «Luz y gas» de la
+  // demo, que ya está contado en la plantilla del mes.
+  const fichero = [
+    cabecera({ desde: aammdd, hasta: aammdd, saldo: 150000 }),
+    movimiento({ fecha: aammdd, valor: aammdd, comun: '12', signo: '1', importe: 2345 }),
+    concepto('COMPRA EN SUPERMERCADO'),
+    movimiento({ fecha: aammdd, valor: aammdd, comun: '03', signo: '1', importe: 7400 }),
+    final({ apuntesDebe: 2, totalDebe: 9745, saldo: 150000 - 9745 }),
+    finFichero,
+  ].join('\n')
+
+  const subir = () => page.locator('input[type="file"]').setInputFiles({
+    // Los bancos lo mandan en ISO-8859-1, que es lo que había cuando se escribió
+    // la norma: se sube con esa codificación para probar el camino de verdad.
+    name: 'extracto.n43', mimeType: 'text/plain', buffer: Buffer.from(fichero, 'latin1'),
+  })
+
+  await page.goto('/finances/importar')
+  await subir()
+
+  // La compra entra marcada y con la partida que suena por el nombre.
+  const compra = page.getByRole('checkbox', { name: /Compra en supermercado/ })
+  await expect(compra).toBeChecked()
+  await expect(page.getByRole('combobox', { name: /Compra en supermercado/ })).toHaveValue('b1')
+
+  // El recibo no, y dice por qué. Esto es lo que evita contar la luz dos veces.
+  await expect(page.getByRole('checkbox', { name: /Recibo domiciliado/ })).not.toBeChecked()
+  await expect(page.getByText('Esto suele estar en «Luz y gas» (74,00 €)')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Apuntar 1 movimiento' }).click()
+  await expect(page.getByText('Ya están apuntados 1 movimiento')).toBeVisible()
+
+  // Y está en el mes, como un apunte más: desde aquí ya no se distingue de uno
+  // tecleado a mano, que es como tiene que ser.
+  await page.goto('/finances')
+  await expect(page.getByText('Compra en supermercado').first()).toBeVisible()
+
+  // El mismo fichero otra vez: ya no hay nada que apuntar.
+  await page.goto('/finances/importar')
+  await subir()
+  await expect(page.getByText('Ya se apuntó en una importación anterior')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'No has marcado ninguno' })).toBeDisabled()
 })

@@ -232,12 +232,41 @@ export const expensesRepo: ExpensesRepo = {
         amount_cents: centimos(draft.amount),
         date: draft.date,
         description: draft.description.trim() || null,
+        import_ref: draft.import_ref ?? null,
         created_by: userId,
       })
       .select('*')
       .single()
     assertNoError(error)
     return data
+  },
+
+  async createExpenses(familyId: string, drafts: ExpenseDraft[]): Promise<Expense[]> {
+    if (drafts.length === 0) return []
+    const supabase = createClient()
+    const userId = await currentUserId()
+    const { data, error } = await supabase
+      .from('expenses')
+      // `ignoreDuplicates` es un `on conflict do nothing` sobre
+      // `expenses_import_ref_unico`: lo que ya se apuntó en otra importación se
+      // queda fuera sin tumbar las demás filas. Los apuntes a mano no entran
+      // nunca por aquí, así que no hay ninguno con `import_ref` a null que
+      // pudiera chocar.
+      .upsert(drafts.map(draft => ({
+        family_id: familyId,
+        budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
+        child_id: draft.child_id,
+        member_id: draft.member_id,
+        kind: draft.kind,
+        amount_cents: centimos(draft.amount),
+        date: draft.date,
+        description: draft.description.trim() || null,
+        import_ref: draft.import_ref ?? null,
+        created_by: userId,
+      })), { onConflict: 'family_id,import_ref', ignoreDuplicates: true })
+      .select('*')
+    assertNoError(error)
+    return data ?? []
   },
 
   async updateExpense(id: string, draft: ExpenseDraft): Promise<void> {

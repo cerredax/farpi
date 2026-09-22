@@ -18,6 +18,7 @@ import { QuoteSheet } from './QuoteSheet'
 import { ResumenPanel } from './ResumenPanel'
 import { useFinanzasState, type PestañaFinanzas } from './useFinanzasState'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { SectionLink } from '@/components/ui/SectionLink'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { mesVecino } from '@/lib/budgets'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
@@ -489,6 +490,15 @@ export function FinancesView() {
                     onEdit={s.abrirApunte}
                   />
                 )}
+                {/* La puerta del extracto del banco, al pie y no en la cabecera:
+                    lo normal sigue siendo apuntar a mano con el `+` de arriba, y
+                    esto se hace una vez al mes, cuando ya has mirado lo que hay.
+                    En un mes que no ha llegado no se ofrece: no hay extracto de
+                    lo que aún no ha pasado. */}
+                {!s.esPorVenir && (
+                  <SectionLink href="/finances/importar">Traer el extracto del banco</SectionLink>
+                )}
+
                 {/* Aquí había una nota —«Hay 3 gastos sin partida: no cuentan para
                     ninguna»— y se fue el 04-09-2026. Contaba una consecuencia del sistema
                     en vez de algo que pase en la casa, y estaba todo el rato aunque no

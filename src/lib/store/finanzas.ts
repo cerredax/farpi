@@ -189,12 +189,34 @@ export function createExpense(familyId: string, draft: ExpenseDraft): Expense {
     amount_cents: centimos(draft.amount),
     date: draft.date,
     description: draft.description.trim() || null,
+    import_ref: draft.import_ref ?? null,
     created_by: 'u1',
     created_at: now,
     updated_at: now,
   }
   db.expenses = [...db.expenses, e]
   return e
+}
+
+/**
+ * Una tanda de apuntes, como los que salen de un extracto.
+ *
+ * Imita lo que hace la base de verdad, que es lo único que importa aquí: la
+ * restricción `expenses_import_ref_unico` deja fuera lo que ya se apuntó en otra
+ * importación en vez de fallar, y los apuntes escritos a mano —sin `import_ref`—
+ * no chocan entre ellos por mucho que se repitan.
+ */
+export function createExpenses(familyId: string, drafts: ExpenseDraft[]): Expense[] {
+  const yaEstan = new Set(
+    db.expenses.filter(e => e.family_id === familyId && e.import_ref).map(e => e.import_ref),
+  )
+
+  return drafts.reduce<Expense[]>((creados, draft) => {
+    const huella = draft.import_ref ?? null
+    if (huella && yaEstan.has(huella)) return creados
+    if (huella) yaEstan.add(huella)
+    return [...creados, createExpense(familyId, draft)]
+  }, [])
 }
 
 export function updateExpense(id: string, draft: ExpenseDraft): void {

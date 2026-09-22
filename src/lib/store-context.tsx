@@ -170,6 +170,13 @@ interface StoreValue {
   /** Borra la partida. Sus gastos se quedan, sin partida. */
   deleteBudget: (id: string) => Promise<void>
   createExpense: (draft: ExpenseDraft) => Promise<void>
+  /**
+   * Una tanda entera, la que sale de revisar un extracto. Devuelve **cuántas
+   * entraron de verdad**, que no es cuántas se mandaron: lo que ya estaba
+   * apuntado de otra importación se queda fuera por la restricción de la base, y
+   * la pantalla tiene que poder decirlo.
+   */
+  createExpenses: (drafts: ExpenseDraft[]) => Promise<number>
   updateExpense: (id: string, draft: ExpenseDraft) => Promise<void>
   deleteExpense: (id: string) => Promise<void>
   createQuote: (draft: QuoteDraft) => Promise<void>
@@ -731,6 +738,12 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       deleteBudget: (id: string) =>
         runMutation(() => repos.budgets.deleteBudget(id), ['budgets', 'expenses', 'monthPlans']),
       createExpense: (draft: ExpenseDraft) => runMutation(() => repos.expenses.createExpense(familyId, draft), ['expenses']),
+      createExpenses: (drafts: ExpenseDraft[]) => runMutationWith(
+        async () => (await repos.expenses.createExpenses(familyId, drafts)).length,
+        0,
+        'No se pudieron apuntar los movimientos',
+        ['expenses'],
+      ),
       updateExpense: (id: string, draft: ExpenseDraft) => runMutation(() => repos.expenses.updateExpense(id, draft), ['expenses']),
       deleteExpense: (id: string) => runMutation(() => repos.expenses.deleteExpense(id), ['expenses']),
       createQuote: (draft: QuoteDraft) => runMutation(() => repos.quotes.createQuote(familyId, draft), ['quotes']),

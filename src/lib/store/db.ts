@@ -156,18 +156,18 @@ export const db: DB = {
   ],
 
   expenses: [
-    { id: 'g1', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 6240, date: '2026-06-16', description: 'Compra semanal',            created_by: 'u1', created_at: '2026-06-16T19:30:00', updated_at: '2026-06-16T19:30:00' },
-    { id: 'g2', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1815, date: '2026-06-14', description: 'Fruta y verdura',           created_by: 'u2', created_at: '2026-06-14T11:00:00', updated_at: '2026-06-14T11:00:00' },
-    { id: 'g3', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 3450, date: '2026-06-15', description: 'Gasolina',       created_by: 'u1', created_at: '2026-06-15T18:00:00', updated_at: '2026-06-15T18:00:00' },
-    { id: 'g4', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: null, kind: 'gasto' as const, amount_cents: 2990, date: '2026-06-12', description: 'Taller: cambio de aceite',          created_by: 'u2', created_at: '2026-06-12T17:00:00', updated_at: '2026-06-12T17:00:00' },
-    { id: 'g5', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 8900, date: '2026-06-10', description: 'Estantería para el salón',   created_by: 'u2', created_at: '2026-06-10T12:00:00', updated_at: '2026-06-10T12:00:00' },
-    { id: 'g6', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 4520, date: '2026-06-17', description: 'Bombillas y pilas',         created_by: 'u1', created_at: '2026-06-17T09:00:00', updated_at: '2026-06-17T09:00:00' },
+    { id: 'g1', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 6240, date: '2026-06-16', description: 'Compra semanal',            import_ref: null, created_by: 'u1', created_at: '2026-06-16T19:30:00', updated_at: '2026-06-16T19:30:00' },
+    { id: 'g2', family_id: 'f1', budget_id: 'b1', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1815, date: '2026-06-14', description: 'Fruta y verdura',           import_ref: null, created_by: 'u2', created_at: '2026-06-14T11:00:00', updated_at: '2026-06-14T11:00:00' },
+    { id: 'g3', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 3450, date: '2026-06-15', description: 'Gasolina',       import_ref: null, created_by: 'u1', created_at: '2026-06-15T18:00:00', updated_at: '2026-06-15T18:00:00' },
+    { id: 'g4', family_id: 'f1', budget_id: 'b2', child_id: null, member_id: null, kind: 'gasto' as const, amount_cents: 2990, date: '2026-06-12', description: 'Taller: cambio de aceite',          import_ref: null, created_by: 'u2', created_at: '2026-06-12T17:00:00', updated_at: '2026-06-12T17:00:00' },
+    { id: 'g5', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 8900, date: '2026-06-10', description: 'Estantería para el salón',   import_ref: null, created_by: 'u2', created_at: '2026-06-10T12:00:00', updated_at: '2026-06-10T12:00:00' },
+    { id: 'g6', family_id: 'f1', budget_id: 'b3', child_id: null, member_id: 'm1', kind: 'gasto' as const, amount_cents: 4520, date: '2026-06-17', description: 'Bombillas y pilas',         import_ref: null, created_by: 'u1', created_at: '2026-06-17T09:00:00', updated_at: '2026-06-17T09:00:00' },
     // Sin partida: la farmacia no cae en ninguna y sale igual, bajo
     // "Sin partida". Es el caso que hay que poder ver en demo.
-    { id: 'g7', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1230, date: '2026-06-16', description: 'Farmacia',      created_by: 'u2', created_at: '2026-06-16T20:00:00', updated_at: '2026-06-16T20:00:00' },
+    { id: 'g7', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm2', kind: 'gasto' as const, amount_cents: 1230, date: '2026-06-16', description: 'Farmacia',      import_ref: null, created_by: 'u2', created_at: '2026-06-16T20:00:00', updated_at: '2026-06-16T20:00:00' },
     // Un ingreso apuntado, que no es la nómina: lo que entra de vez en cuando y
     // por eso no es un fijo. Nunca cuelga de una partida.
-    { id: 'g8', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm1', kind: 'ingreso' as const, amount_cents: 12000, date: '2026-06-13', description: 'Devolución de la compra online', created_by: 'u1', created_at: '2026-06-13T10:00:00', updated_at: '2026-06-13T10:00:00' },
+    { id: 'g8', family_id: 'f1', budget_id: null, child_id: null, member_id: 'm1', kind: 'ingreso' as const, amount_cents: 12000, date: '2026-06-13', description: 'Devolución de la compra online', import_ref: null, created_by: 'u1', created_at: '2026-06-13T10:00:00', updated_at: '2026-06-13T10:00:00' },
   ],
 
   // Los meses ya cerrados, con la foto que tenían entonces.

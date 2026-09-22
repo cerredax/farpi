@@ -267,6 +267,13 @@ export interface Expense {
   amount_cents: number
   date: string
   description: string | null
+  /**
+   * La huella del movimiento del banco del que salió, o `null` si lo escribió
+   * una persona, que es lo normal. La base no deja repetirla dentro de una
+   * familia: es lo que hace que importar dos rangos de fechas solapados no
+   * apunte los días de en medio dos veces.
+   */
+  import_ref: string | null
   created_by: string | null
   created_at: string
   updated_at: string
@@ -515,6 +522,8 @@ export interface ExpenseDraft {
   budget_id: string | null
   child_id: string | null
   member_id: string | null
+  /** Solo lo trae lo que sale de un extracto; a mano se queda sin poner. */
+  import_ref?: string | null
 }
 
 export interface FixedEntryDraft {

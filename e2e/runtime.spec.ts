@@ -61,6 +61,7 @@ const ROUTES = [
   '/lists',
   '/meals',
   '/finances',
+  '/finances/importar',
   '/notes',
   '/docs',
   '/birthdays',

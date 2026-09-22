@@ -1177,9 +1177,57 @@ un renglón que se pone en rojo un segundo no es sitio para contar que se van a 
 de hoy. Con el diálogo **se fue la letra pequeña** que lo contaba a 10 px todo el rato a alguien
 que casi nunca va a pulsar ese botón.
 
-**Farpi no se conecta a ningún banco** y no lo va a hacer: nada de números de cuenta, de tarjeta
-ni credenciales. Todo lo de esta sección lo escribe la familia a mano, y así lo dice
-`/privacidad`.
+**Farpi no se conecta a ningún banco** y no lo va a hacer: nada de números de cuenta, de
+tarjeta ni credenciales. Lo que sí se puede es **traer el extracto que descargas tú**, que es
+otra cosa y se cuenta justo aquí debajo.
+
+### El extracto del banco
+
+Desde el 21-09-2026 se puede soltar en Finanzas el fichero de la **Norma 43** que dan todos los
+bancos españoles, y convertir en apuntes lo que uno elija de él. Vive en `/finances/importar`,
+se entra desde el pie de «El día a día» y son dos piezas de `src/lib`: `n43.ts` lee el fichero
+e `importacion.ts` decide qué se propone apuntar.
+
+**El problema no es leer el fichero, es qué dejar entrar.** La cuenta del mes es
+`(ingresos fijos − gastos fijos) + ingresos apuntados − gastos apuntados`, y un extracto trae
+las dos mitades revueltas: la nómina y el alquiler, que **ya** están en la plantilla, y la
+compra del martes, que no. Importarlo entero cuenta dos veces lo que ya estaba y deja «queda» a
+miles de euros de la verdad. Por eso **no entra nada sin que alguien lo confirme**, y las tres
+razones para llegar sin marcar son las tres formas de contar dos veces el mismo dinero:
+
+| No entra porque… | Cómo se sabe |
+|---|---|
+| **ya está apuntado** | su huella ya está en la base, o hay un apunte de ese día por ese importe |
+| **lo cubre un fijo** | es un concepto que se domicilia (03, 04, 05, 15 de la AEB) y encaja con un fijo del mes, con un 10 % de margen o cinco euros |
+| **es un traspaso** | tiene su espejo del mismo importe en **otra cuenta del mismo fichero**, con tres días de tolerancia |
+
+Las tres **se ven igual, con el motivo escrito**: repasar que la luz de este mes fueron 34,12 €
+es la mitad de para qué se abre esa pantalla. Lo que no hacen es entrar solas. Y el margen del
+fijo no se aplica a cualquier cosa, solo a los conceptos que se domicilian: sin esa lista, una
+compra de 120 € en el súper se confundiría con la limpieza de 120 €.
+
+**El fichero se cuadra consigo mismo antes de enseñar nada.** El registro final de cada cuenta
+dice cuántos apuntes hay de cada signo, cuánto suman y el saldo final; se comprueban los cuatro
+y lo que no cuadre sale escrito arriba. En un lector de campos en posiciones fijas eso no es
+lujo: un campo leído una posición más allá no da error, da cifras creíbles y equivocadas.
+
+**Qué se guarda de todo esto: `expenses.import_ref`**, una huella por movimiento, con una
+restricción `unique (family_id, import_ref)` detrás. Es lo que hace que importar dos rangos de
+fechas solapados —«del 1 al 30» y luego «del 25 al 25»— no apunte los días de en medio dos
+veces, y se decide en la base porque lo que revisa una persona a las once de la noche no es una
+garantía. De la cuenta, la huella se queda **solo con los cuatro últimos dígitos**: lo demás
+sería guardar un número de cuenta, que es justo lo que la línea de arriba promete que no se
+hace. Y el fichero **no se sube a ningún sitio**: se lee en el propio navegador y lo único que
+viaja son los apuntes confirmados.
+
+**Por qué un fichero y no un agregador bancario** (21-09-2026). Se valoró conectar con un
+agregador PSD2 —Afterbanks, que hoy es Minsait Payments, y Enable Banking— y se descartó para
+esta vuelta: el primero es venta B2B con contrato y comercial de por medio, y el segundo, que sí
+tiene alta de autoservicio, obliga a guardar credenciales de acceso a cuentas bancarias en el
+mismo Supabase de producción y a reconectar cada 180 días. Un fichero que descarga la familia no
+cuesta nada, no caduca y no guarda ninguna llave de nadie. Si algún día el cuello de botella es
+bajar el archivo, el agregador se enchufa detrás de la misma pantalla de revisión, que es la
+parte que vale.
 
 ## Lógica en `src/lib`
 

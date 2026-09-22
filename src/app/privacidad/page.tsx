@@ -44,8 +44,11 @@ export default function PrivacidadPage() {
           las partidas de gasto, los apuntes del día a día —importe, fecha, una descripción, de qué partida
           sale y qué persona de la familia lo pagó o lo trajo— y los presupuestos que os pasan proveedores de
           fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a ningún banco</strong>: no
-          pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias, y todo lo de este apartado
-          lo escribe la familia a mano. Como en el resto de la app, lo ven los adultos de esa familia y nadie más.
+          pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias. Sí puedes traer el
+          extracto que <strong>tú</strong> descargas de tu banca online (el fichero de la Norma 43): se lee{' '}
+          <strong>en tu propio móvil</strong>, no se envía a ningún sitio, y de él solo se guardan los apuntes
+          que confirmes, sin el número de la cuenta. Como en el resto de la app, lo ven los adultos de esa
+          familia y nadie más.
         </p>
       </LegalSection>
 

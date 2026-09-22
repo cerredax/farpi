@@ -157,6 +157,17 @@ export interface BudgetsRepo {
 export interface ExpensesRepo {
   getExpenses(familyId: string): Promise<Expense[]>
   createExpense(familyId: string, draft: ExpenseDraft): Promise<Expense>
+  /**
+   * Varios de una vez, que es como llega lo que se importa de un extracto:
+   * cuarenta apuntes son cuarenta viajes si se hacen de uno en uno, y a la mitad
+   * del camino el móvil se queda sin cobertura y nadie sabe por dónde iba.
+   *
+   * **Lo que ya esté apuntado se ignora en silencio** en vez de reventar la
+   * tanda: la base no deja repetir `import_ref` dentro de una familia, y lo
+   * normal es que en la segunda importación del mes la mitad de las filas ya
+   * estén. Devuelve solo las que entraron de verdad.
+   */
+  createExpenses(familyId: string, drafts: ExpenseDraft[]): Promise<Expense[]>
   updateExpense(id: string, draft: ExpenseDraft): Promise<void>
   deleteExpense(id: string): Promise<void>
 }

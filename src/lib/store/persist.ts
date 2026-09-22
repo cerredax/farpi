@@ -23,7 +23,7 @@ function migrarClaveVieja(): void {
     localStorage.removeItem(STORAGE_KEY_NIDO)
   } catch { /* ignore */ }
 }
-const SCHEMA_VER  = 17 // v17: los ajustes de un fijo en un mes (`fixedOverrides`)
+const SCHEMA_VER  = 18 // v18: los apuntes traen `import_ref`, de dónde salieron
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return

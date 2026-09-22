@@ -407,6 +407,11 @@ create table if not exists public.expenses (
   amount_cents integer not null,
   date         date not null,
   description  text,
+  -- De dónde salió el apunte cuando no lo tecleó nadie: la huella del movimiento
+  -- en el extracto del banco. `null` es el caso normal —lo escribió una persona—
+  -- y por eso la restricción de unicidad de abajo no le estorba: en Postgres dos
+  -- nulos no chocan, así que la casa puede apuntar veinte cafés de 1,50 €.
+  import_ref   text,
   created_by   uuid references auth.users(id) on delete set null,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now(),
@@ -416,7 +421,13 @@ create table if not exists public.expenses (
   constraint expenses_importe_valido check (amount_cents between 1 and 100000000),
   constraint expenses_una_sola_asignacion check (child_id is null or member_id is null),
   constraint expenses_tipo_valido check (kind in ('gasto', 'ingreso')),
-  constraint expenses_ingreso_sin_tope check (kind = 'gasto' or budget_id is null)
+  constraint expenses_ingreso_sin_tope check (kind = 'gasto' or budget_id is null),
+  -- Un movimiento del banco se apunta **una vez**. Quien importa pide rangos de
+  -- fechas que se solapan —«del 1 al 30» y al mes siguiente «del 25 al 25»— y sin
+  -- esto los días de en medio entrarían dos veces. Se decide aquí y no solo en la
+  -- pantalla porque lo que revisa una persona a las once de la noche no es una
+  -- garantía: la base es la única que no se distrae.
+  constraint expenses_import_ref_unico unique (family_id, import_ref)
 );
 
 -- Lo que te pasa el fontanero, el dentista o la academia. Es la otra mitad de la

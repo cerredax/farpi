@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-16.
+Última revisión: 2026-09-21.
 
 ## Resumen
 
@@ -15,7 +15,9 @@ dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —
 de un fijo en un mes suelto—: tabla, índice,
 policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. **Lo que queda no es código de producto**: pruebas que piden un aparato
 delante, una decisión sin tomar, dos funcionalidades que no existen y tres acabados
-menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
+menores de Finanzas —más, desde el 21-09-2026, **un trozo de esquema por aplicar**: la
+columna `expenses.import_ref` que necesita la importación del extracto—. La lista entera,
+en "Siguiente paso recomendado".
 
 ## Implementado
 
@@ -470,6 +472,16 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   gasto de un ingreso es la columna `kind`, no el signo. No hay saldos entre adultos ni
   conexión con ningún banco, y **no sale en Inicio**: es del mes, no de hoy. Vive en "Más",
   con Notas y Documentos.
+  **Y desde el 21-09-2026 el día a día se puede traer del banco** sin teclearlo: en
+  `/finances/importar` se suelta el fichero de la **Norma 43** que dan todas las entidades
+  españolas, y cada movimiento llega marcado o sin marcar con el motivo escrito —ya
+  apuntado, lo cubre un fijo, parece un traspaso entre cuentas tuyas—. **Nada entra sin
+  confirmarlo**, porque la cuenta del mes ya suma los fijos y apuntar la nómina otra vez la
+  contaría dos veces. El fichero se cuadra contra lo que él mismo dice de sí —cuántos
+  apuntes, cuánto suman, qué saldo queda— y se lee **en el propio navegador**: no se sube a
+  ningún sitio, y de la cuenta solo se guardan los cuatro últimos dígitos. Sigue sin haber
+  conexión con ningún banco: el archivo lo descarga la familia. El porqué de no usar un
+  agregador (Afterbanks, Enable Banking) está en `docs/architecture.md`.
 - Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
   Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
   catorce días van en su bloque; el aviso de las siete felicita el mismo día.
@@ -846,14 +858,23 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **795 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **858 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - **603 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
-    17-09-2026. No levantan servidor: `npm run test:unit`.
+  - **660 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
+    21-09-2026. No levantan servidor: `npm run test:unit`.
 
     *Los últimos en entrar*, del más reciente al más antiguo:
+
+    - Los **cincuenta y siete del extracto del banco** (21-09-2026): veintisiete de
+      `n43.ts` —cada campo en su posición de la norma, el cuadre contra lo que el
+      propio fichero dice de sí mismo, y que la huella **no se lleva el número de
+      cuenta** a la base— y veintiocho de `importacion.ts`, que son las tres formas de
+      contar dos veces el mismo dinero: lo ya apuntado, lo que cubre un fijo y los
+      traspasos entre cuentas propias —entre ellos, que **un apunte tapa a uno y no a
+      los que se le parezcan**: con dos ingresos iguales el mismo día y uno ya apuntado
+      en casa, el segundo tiene que llegar marcado—.
 
     - Los **seis del borrador que sobrevive al viaje a Google** (17-09-2026): que
       vuelve tal y como se dejó, que se recupera una sola vez, que lo guardado sin
@@ -931,8 +952,12 @@ menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 192 de navegador. La cifra sale de la pasada completa del 17-09-2026 (795 en total,
-    603 unitarios; los últimos, los **nueve de los 44 px por dentro** del 17-09-2026 —los
+  - 198 de navegador. La cifra sale de la pasada completa del 21-09-2026 (858 en total,
+    660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
+    fichero sube, que lo que ya cubre un fijo llega desmarcado y con su motivo escrito,
+    que lo confirmado aparece en el mes y que **el mismo fichero dos veces no apunta
+    nada la segunda**, que es lo que paga el `import_ref` de la base—, más los cinco que
+    añade la ruta nueva por serlo; antes, los **nueve de los 44 px por dentro** del 17-09-2026 —los
     siete sheets de alta abiertos uno a uno, los días de una repetición semanal y la ficha
     de una persona, que no se abre desde ningún `+`—, antes los **seis de Documentos** —que el sheet
     dice qué falta en vez de apagar el botón de guardar, que el archivo elegido no se
@@ -1242,9 +1267,10 @@ esto; aquí solo el titular.
 ## Siguiente paso recomendado
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
-pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
-pruebas que exigen un aparato en la mano, una decisión sin tomar, dos funcionalidades que
-no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
+pendiente, pero sí un trozo de esquema por aplicar** desde el 21-09-2026, y va el primero
+porque hasta que se pegue, importar un extracto falla en producción. Después, cuatro clases
+de cosa distintas que conviene no mezclar: pruebas que exigen un aparato en la mano, una
+decisión sin tomar, tres funcionalidades que no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
 Lo que **ya no está** en esta lista, porque se cerró: los 44 px dentro de los sheets
@@ -1252,6 +1278,14 @@ Lo que **ya no está** en esta lista, porque se cerró: los 44 px dentro de los 
 la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
 (169/169 el 05-09-2026). El relato de cada una, en el cuerpo de su commit.
+
+### 0. Aplicar en Supabase el esquema del extracto (21-09-2026)
+
+**Sin esto, importar un extracto falla en producción.** El código está y la suite pasa
+—el mock imita la restricción—, pero la tabla real todavía no tiene la columna. Es el
+delta de `supabase/schema.sql`, que se saca con `git diff` y se pega en el SQL Editor:
+la columna `expenses.import_ref` y la restricción `expenses_import_ref_unico`. Al
+aplicarlo, `node scripts/validate-rls.mjs` y `docs/supabase-validation.md`.
 
 ### 1. Hay que tener un aparato delante
 
@@ -1274,6 +1308,11 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
 
 ### 3. Funcionalidad que no existe
 
+- **Reglas por comercio al importar el extracto.** Hoy la partida se propone solo si el
+  concepto del banco nombra a la partida («Farmacia»), que no acierta con «MERCADONA» para
+  «Compra». Sin reglas que se aprendan, la segunda importación cuesta lo mismo que la
+  primera, y ahí es donde se decide si la pantalla ahorra trabajo de verdad. Pide una tabla
+  nueva, así que se decide aparte.
 - **Una sección de ayuda.** Es la contrapartida de haber vaciado los estados
   vacíos de manual de estreno. No urge: lo que se quitó se leía una vez.
 - **Dar salida por la app a un mes fantasma.** Hoy un mes cerrado y vacío solo

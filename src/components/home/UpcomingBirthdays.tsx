@@ -2,7 +2,6 @@ import { memo } from 'react'
 import { PartyPopper } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
-import { fondoDePersona } from '@/lib/assignees'
 import { diaDeCumple, edadEnPalabras, type CumpleEnCasa } from '@/lib/birthdays'
 
 interface UpcomingBirthdaysProps {
@@ -42,19 +41,15 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
         : <SectionLink href="/settings">Ver la familia</SectionLink>}
     >
       <ul className="divide-y divide-hairline">
-        {cumples.map(({ id, nombre, fecha, edad, dias, color }) => (
+        {cumples.map(({ id, nombre, fecha, edad, dias }) => (
           <li key={id} className="flex items-baseline gap-2 px-4 py-3">
             <span className="text-xs font-bold text-primary-strong">{diaDeCumple(fecha, dias)}</span>
-            {/* El nombre sobre su color, como en la agenda: de quién es algo se
-                dice igual en toda la app. Quien no es de la casa no tiene color,
-                y va sobre el gris de la app: el color significa "de quién es
-                esto" y aquí no es de nadie. */}
-            <span
-              className={`etiqueta-persona min-w-0 max-w-[7rem] px-1 py-px text-[11px] ${color ? '' : 'bg-line'}`}
-              style={color ? { backgroundColor: fondoDePersona(color) } : undefined}
-            >
-              {nombre}
-            </span>
+            {/* El nombre va en texto corriente, no en la etiqueta de persona que
+                usan la agenda o las tareas. Ahí el color contesta "¿de quién es
+                esto?" entre cosas de varios; aquí la fila entera **es** la
+                persona, no hay nada que atribuir, y la etiqueta solo pintaba de
+                colores el único dato de la línea. */}
+            <span className="min-w-0 truncate text-sm font-semibold text-ink">{nombre}</span>
             {/* Sin año de nacimiento no hay edad que decir, y "cumple años" a
                 secas es ruido: la fila ya dice el día y de quién. */}
             {edad !== null && (

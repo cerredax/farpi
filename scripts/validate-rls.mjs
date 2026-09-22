@@ -238,6 +238,26 @@ async function main() {
   comprobar('Rechaza un ingreso colgado de una partida',
     (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', kind: 'ingreso', budget_id: presuA } })).estado >= 400)
 
+  // El movimiento del banco se apunta una vez (21-09-2026).
+  //
+  // `expenses_import_ref_unico` es lo que hace que importar dos rangos de fechas
+  // solapados no duplique los días de en medio, y se comprueba aquí porque la
+  // pantalla no es una garantía: la base es la única que no se distrae. Los tres
+  // casos son los tres que la app pisa de verdad, y el del medio es el que la
+  // rompería entera si la restricción se hubiera escrito con `nulls not
+  // distinct`: sin él, la segunda compra apuntada a mano dejaría de poder
+  // guardarse.
+  const huella = `5678|2026-08-11|gasto|500|#1`
+  comprobar('Un apunte traído del banco entra con su huella',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', import_ref: huella } })).estado < 400)
+  comprobar('Y el mismo movimiento NO se puede apuntar dos veces',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 500, date: '2026-08-11', import_ref: huella } })).estado >= 400)
+  comprobar('Dos apuntes escritos a mano (sin huella) sí conviven',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 150, date: '2026-08-11' } })).estado < 400 &&
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokA, datos: { family_id: famA, amount_cents: 150, date: '2026-08-11' } })).estado < 400)
+  comprobar('Y la misma huella en otra familia no estorba',
+    (await api('/rest/v1/expenses', { metodo: 'POST', token: tokB, datos: { family_id: famB, amount_cents: 500, date: '2026-08-11', import_ref: huella } })).estado < 400)
+
   // ── Los meses cerrados ─────────────────────────────────────────────────────
   //
   // Son las dos primeras tablas de contenido con policy de **solo `select`**, y

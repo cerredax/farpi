@@ -4,7 +4,32 @@ Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la últ
 relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
 día; aquí queda el recuento y lo que sigue vigilándose.
 
-## Última ejecución: 169/169 (05-09-2026, los ajustes de un fijo en un mes)
+## Última ejecución: 173/173 (22-09-2026, el extracto del banco)
+
+Con `expenses.import_ref` y su restricción `expenses_import_ref_unico` aplicados en el
+proyecto real. **173/173 comprobaciones correctas.**
+
+Son las 169 anteriores más cuatro, todas de la restricción nueva, que es lo que hace que un
+movimiento del banco se apunte **una vez** por mucho que se importen rangos de fechas
+solapados:
+
+- **Un apunte con su huella entra**, y **el mismo otra vez no**. La segunda es la que
+  justifica la columna: sin ella, pedir al banco «del 1 al 30» y luego «del 25 al 25»
+  duplicaría los cinco días de en medio, y nadie se enteraría hasta mirar la cuenta del mes.
+  Se comprueba en la base y no solo en la pantalla porque lo que revisa una persona a las
+  once de la noche no es una garantía.
+- **Dos apuntes escritos a mano —sin huella— sí conviven.** Es la comprobación del caso malo,
+  y la que de verdad había que escribir: la restricción se apoya en que en Postgres dos nulos
+  no chocan, así que declarada con `nulls not distinct` habría roto lo más común de la app
+  —apuntar dos gastos seguidos sin más—, y las tres comprobaciones de arriba habrían pasado
+  igual.
+- **La misma huella en otra familia no estorba**, que es lo que dice `unique (family_id,
+  import_ref)` y no `unique (import_ref)`.
+
+Lo que el arnés **no** cubre de este trabajo es leer el fichero y decidir qué entra: eso es
+comportamiento y no permisos, y lo prueban los 57 unitarios de `n43.ts` e `importacion.ts`.
+
+## Anterior: 169/169 (05-09-2026, los ajustes de un fijo en un mes)
 
 Con `fixed_entry_overrides` y el `coalesce` de `close_month_copy` aplicados en el proyecto
 real. **169/169 comprobaciones correctas.**
@@ -203,7 +228,8 @@ algo es que ninguna se quedó en rojo.
 
 | Fecha | Recuento | Qué entró |
 |---|---|---|
-| 05-09-2026 | **169/169** | `fixed_entry_overrides`: el ajuste de un fijo en un mes suelto |
+| 22-09-2026 | **173/173** | `expenses.import_ref`: el movimiento del banco se apunta una vez |
+| 05-09-2026 | 169/169 | `fixed_entry_overrides`: el ajuste de un fijo en un mes suelto |
 | 04-09-2026 | 165/165 | el borrado de cuenta, que el trigger del día anterior había roto |
 | 03-09-2026 | 163/163 | la revisión de seguridad a la contra, en cuatro tandas (163, 154, 152 y 149) |
 | 02-09-2026 | 139/139 | los meses cerrados de Finanzas |

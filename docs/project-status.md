@@ -13,11 +13,11 @@ una comida, las once carpetas de documentos y **los meses cerrados de Finanzas**
 seguridad de esa tarde. El 04-09-2026, el borrado de cuenta, que aquella revisión había
 dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —el ajuste
 de un fijo en un mes suelto—: tabla, índice,
-policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. **Lo que queda no es código de producto**: pruebas que piden un aparato
-delante, una decisión sin tomar, dos funcionalidades que no existen y tres acabados
-menores de Finanzas —más, desde el 21-09-2026, **un trozo de esquema por aplicar**: la
-columna `expenses.import_ref` que necesita la importación del extracto—. La lista entera,
-en "Siguiente paso recomendado".
+policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Y el
+22-09-2026, `expenses.import_ref` con su restricción de unicidad —que un movimiento del
+banco se apunte una vez—: **173/173**. **Lo que queda no es código de producto**: pruebas
+que piden un aparato delante, una decisión sin tomar, tres funcionalidades que no existen y
+tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
 
 ## Implementado
 
@@ -792,7 +792,7 @@ en "Siguiente paso recomendado".
 
 - **`supabase/schema.sql` es el esquema, y es lo único que hay que mirar.** Un archivo
   con la base como está, aplicado en el proyecto real y validado. Última pasada:
-  **169/169** (05-09-2026, con los ajustes de un fijo en un mes). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
+  **173/173** (22-09-2026, con la huella del movimiento del banco). Las 21 migraciones numeradas que lo precedieron se aplastaron el 26-08-2026
   y siguen en el historial de git, que es donde va la historia; este documento contaba
   hasta hace poco una lista de migraciones aplicadas que ya se había quedado corta dos
   veces. Cuando el esquema cambie se edita ese archivo, se aplica el trozo suelto en el
@@ -1219,12 +1219,12 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **05-09-2026**: **169/169**, con
-`fixed_entry_overrides` aplicada —lo
-que un fijo costó en un mes suelto cuando no fue lo de siempre— y cuatro comprobaciones
-nuevas. La que había que escribir sí o sí es la del trigger: la fila lleva `family_id`
-propio para que su policy sea barata, así que la RLS sola dejaría insertar un ajuste
-**de tu familia** apuntando al fijo de otra; lo para `trg_fixed_entry_override_family`.
+Sin pendientes. La última pasada es del **22-09-2026**: **173/173**, con
+`expenses.import_ref` aplicada —la huella del movimiento del banco— y cuatro comprobaciones
+nuevas. La que había que escribir sí o sí no es la del duplicado sino su contraria: que dos
+apuntes escritos a mano, **sin** huella, siguen conviviendo. La restricción se apoya en que
+en Postgres dos nulos no chocan, así que declarada con `nulls not distinct` habría roto lo
+más común de la app y las demás comprobaciones habrían pasado igual.
 
 Antes de esa, la del **04-09-2026**: **165/165**, con el arreglo del trigger
 aplicado —el `on delete set null` de
@@ -1274,25 +1274,17 @@ esto; aquí solo el titular.
 ## Siguiente paso recomendado
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
-pendiente, pero sí un trozo de esquema por aplicar** desde el 21-09-2026, y va el primero
-porque hasta que se pegue, importar un extracto falla en producción. Después, cuatro clases
-de cosa distintas que conviene no mezclar: pruebas que exigen un aparato en la mano, una
-decisión sin tomar, tres funcionalidades que no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
+pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
+pruebas que exigen un aparato en la mano, una decisión sin tomar, tres funcionalidades que
+no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
 Lo que **ya no está** en esta lista, porque se cerró: los 44 px dentro de los sheets
 (17-09-2026), las notificaciones push (28-08-2026),
 la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
-(169/169 el 05-09-2026). El relato de cada una, en el cuerpo de su commit.
-
-### 0. Aplicar en Supabase el esquema del extracto (21-09-2026)
-
-**Sin esto, importar un extracto falla en producción.** El código está y la suite pasa
-—el mock imita la restricción—, pero la tabla real todavía no tiene la columna. Es el
-delta de `supabase/schema.sql`, que se saca con `git diff` y se pega en el SQL Editor:
-la columna `expenses.import_ref` y la restricción `expenses_import_ref_unico`. Al
-aplicarlo, `node scripts/validate-rls.mjs` y `docs/supabase-validation.md`.
+(169/169 el 05-09-2026) y **el esquema del extracto del banco**, aplicado y validado el
+22-09-2026 (173/173). El relato de cada una, en el cuerpo de su commit.
 
 ### 1. Hay que tener un aparato delante
 

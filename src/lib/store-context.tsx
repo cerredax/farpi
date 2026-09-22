@@ -179,6 +179,8 @@ interface StoreValue {
   createExpenses: (drafts: ExpenseDraft[]) => Promise<number>
   updateExpense: (id: string, draft: ExpenseDraft) => Promise<void>
   deleteExpense: (id: string) => Promise<void>
+  /** Vaciar «El día a día» de un mes. No toca los fijos ni las partidas. */
+  deleteExpenses: (ids: string[]) => Promise<void>
   createQuote: (draft: QuoteDraft) => Promise<void>
   updateQuote: (id: string, draft: QuoteDraft) => Promise<void>
   deleteQuote: (id: string) => Promise<void>
@@ -746,6 +748,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       ),
       updateExpense: (id: string, draft: ExpenseDraft) => runMutation(() => repos.expenses.updateExpense(id, draft), ['expenses']),
       deleteExpense: (id: string) => runMutation(() => repos.expenses.deleteExpense(id), ['expenses']),
+      deleteExpenses: (ids: string[]) => runMutation(() => repos.expenses.deleteExpenses(ids), ['expenses']),
       createQuote: (draft: QuoteDraft) => runMutation(() => repos.quotes.createQuote(familyId, draft), ['quotes']),
       updateQuote: (id: string, draft: QuoteDraft) => runMutation(() => repos.quotes.updateQuote(id, draft), ['quotes']),
       deleteQuote: (id: string) => runMutation(() => repos.quotes.deleteQuote(id), ['quotes']),

@@ -5,6 +5,7 @@ import { es } from 'date-fns/locale'
 import { useState } from 'react'
 import { ChevronDown, Plus } from 'lucide-react'
 import { AjusteDelMesSheet } from './AjusteDelMesSheet'
+import { BorrarApuntesDelMes } from './BorrarApuntesDelMes'
 import { BudgetBar } from './BudgetBar'
 import { BudgetSheet } from './BudgetSheet'
 import { CadaMesPanel } from './CadaMesPanel'
@@ -498,6 +499,15 @@ export function FinancesView() {
                 {!s.esPorVenir && (
                   <SectionLink href="/finances/importar">Traer el extracto del banco</SectionLink>
                 )}
+
+                {/* Y debajo de la lista que borra, no arriba: en `ViewHeader`
+                    estaría pegado al `+`, que es el peor sitio posible para un
+                    botón de borrar. */}
+                <BorrarApuntesDelMes
+                  apuntes={s.delMes}
+                  nombreDelMes={nombreDelMes}
+                  onBorrar={s.deleteExpenses}
+                />
 
                 {/* Aquí había una nota —«Hay 3 gastos sin partida: no cuentan para
                     ninguna»— y se fue el 04-09-2026. Contaba una consecuencia del sistema

@@ -843,6 +843,31 @@ las líneas a mano, que es lo único que sirve cuando la plantilla es posterior 
 salida por la app es una RPC nueva —borrar la cabecera y recopiar en una sola operación— y por
 tanto `scripts/validate-rls.mjs` y `docs/supabase-validation.md` detrás.
 
+### Vaciar el día a día de un mes
+
+El otro botón que borra, y **hace lo contrario que el de arriba**: «Poner el mes a cero» quita
+el plan y no toca los apuntes; «Borrar los apuntes del mes» (22-09-2026) quita los apuntes y no
+toca el plan. Los nombres se parecen lo justo para confundirse, así que cada diálogo dice qué
+**no** se lleva.
+
+Nace de que no había salida para un mes llenado mal —una importación del banco que no era— y
+borrar cuarenta apuntes de uno en uno no es una alternativa. Va al pie de «El día a día», debajo
+de la lista que vacía y junto al enlace que la llena; en `ViewHeader` habría quedado pegado al
+`+`, que es el peor sitio para un botón de borrar.
+
+**Vale en cualquier mes, no solo en el de hoy.** Apuntar en un mes cerrado siempre se ha podido
+—un mes cerrado congela el plan, no el día a día—, así que corregirlo también. Y **el mes en
+curso no se puede «poner a cero»** por el otro camino, porque no tiene copia que borrar: es el
+espejo de la plantilla.
+
+Pide confirmación con diálogo, como el cierre, y por el mismo motivo: el doble toque de
+`useConfirmAction` vale para deshacer algo que sigue a la vista, y aquí desaparece la lista
+entera. El diálogo dice **cuántos son y cuánto suman**, que es lo único que deja darse cuenta a
+tiempo de que el mes abierto no era el que uno creía. No hay vuelta atrás y lo dice.
+
+Por debajo es `deleteExpenses(ids)`, una sola escritura con `in` y no una por fila: cuarenta
+borrados sueltos pueden quedarse a medias y dejar el mes en un estado que nadie pidió.
+
 ### Las dos tablas de la copia
 
 `month_plans` y `month_plan_lines` son las únicas tablas de contenido con policy de solo

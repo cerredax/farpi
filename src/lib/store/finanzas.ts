@@ -239,6 +239,12 @@ export function deleteExpense(id: string): void {
   db.expenses = db.expenses.filter(e => e.id !== id)
 }
 
+/** Los de una tanda, de golpe: es el mes que se vacía entero. */
+export function deleteExpenses(ids: string[]): void {
+  const fuera = new Set(ids)
+  db.expenses = db.expenses.filter(e => !fuera.has(e.id))
+}
+
 // ─── Presupuestos pedidos ─────────────────────────────────────────────────────
 
 export function getQuotes(familyId: string): Quote[] {

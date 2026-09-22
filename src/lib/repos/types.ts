@@ -170,6 +170,13 @@ export interface ExpensesRepo {
   createExpenses(familyId: string, drafts: ExpenseDraft[]): Promise<Expense[]>
   updateExpense(id: string, draft: ExpenseDraft): Promise<void>
   deleteExpense(id: string): Promise<void>
+  /**
+   * Varios de una vez: los apuntes de un mes que se vacía entero. Va aparte de
+   * `deleteExpense` por lo mismo que `createExpenses`, y aquí pesa más: cuarenta
+   * borrados de uno en uno pueden quedarse a medias y dejar el mes en un estado
+   * que nadie pidió, ni el de antes ni el de después.
+   */
+  deleteExpenses(ids: string[]): Promise<void>
 }
 
 export interface QuotesRepo {

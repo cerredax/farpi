@@ -39,7 +39,7 @@ export function useFinanzasState() {
     createFixedEntry, updateFixedEntry, deleteFixedEntry,
     setFixedOverride, clearFixedOverride,
     createBudget, updateBudget, deleteBudget,
-    createExpense, updateExpense, deleteExpense,
+    createExpense, updateExpense, deleteExpense, deleteExpenses,
     createQuote, updateQuote, deleteQuote, setQuoteStatus,
   } = useStore()
 
@@ -465,6 +465,6 @@ export function useFinanzasState() {
       else createQuote(draft)
     },
 
-    deleteFixedEntry, deleteExpense, deleteBudget, deleteQuote, setQuoteStatus,
+    deleteFixedEntry, deleteExpense, deleteExpenses, deleteBudget, deleteQuote, setQuoteStatus,
   }
 }

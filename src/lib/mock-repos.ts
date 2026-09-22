@@ -128,7 +128,8 @@ export const mockRepos: Repos = {
     createExpense:  (familyId, draft) => Promise.resolve(store.createExpense(familyId, draft)),
     createExpenses: (familyId, drafts) => Promise.resolve(store.createExpenses(familyId, drafts)),
     updateExpense: (id, draft) => Promise.resolve(store.updateExpense(id, draft)),
-    deleteExpense: (id) => Promise.resolve(store.deleteExpense(id)),
+    deleteExpense:  (id) => Promise.resolve(store.deleteExpense(id)),
+    deleteExpenses: (ids) => Promise.resolve(store.deleteExpenses(ids)),
   },
 
   quotes: {

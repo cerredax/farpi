@@ -291,6 +291,16 @@ export const expensesRepo: ExpensesRepo = {
     const { error } = await supabase.from('expenses').delete().eq('id', id)
     assertNoError(error)
   },
+
+  async deleteExpenses(ids: string[]): Promise<void> {
+    if (ids.length === 0) return
+    const supabase = createClient()
+    // Un solo viaje con `in`, no uno por fila: o se van todos o no se va
+    // ninguno. Quién puede borrar qué lo sigue decidiendo la RLS, que solo deja
+    // tocar lo de las familias donde figuras.
+    const { error } = await supabase.from('expenses').delete().in('id', ids)
+    assertNoError(error)
+  },
 }
 
 export const quotesRepo: QuotesRepo = {

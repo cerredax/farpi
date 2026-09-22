@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-21.
+Última revisión: 2026-09-22.
 
 ## Resumen
 
@@ -482,6 +482,11 @@ en "Siguiente paso recomendado".
   ningún sitio, y de la cuenta solo se guardan los cuatro últimos dígitos. Sigue sin haber
   conexión con ningún banco: el archivo lo descarga la familia. El porqué de no usar un
   agregador (Afterbanks, Enable Banking) está en `docs/architecture.md`.
+  **Y el mes se puede vaciar de una vez** (22-09-2026): «Borrar los apuntes del mes», al pie
+  de «El día a día», para deshacer un mes llenado mal sin borrar cuarenta filas a mano. Hace
+  lo contrario que «Poner el mes a cero» —ese quita el plan y deja los apuntes— y su diálogo
+  dice cuántos son y cuánto suman antes de borrar, porque no hay vuelta atrás. Vale en
+  cualquier mes: un mes cerrado congela el plan, no el día a día.
 - Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
   Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
   catorce días van en su bloque; el aviso de las siete felicita el mismo día.
@@ -858,7 +863,7 @@ en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **858 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **859 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
@@ -867,7 +872,9 @@ en "Siguiente paso recomendado".
 
     *Los últimos en entrar*, del más reciente al más antiguo:
 
-    - Los **cincuenta y siete del extracto del banco** (21-09-2026): veintisiete de
+    - Los **cincuenta y siete del extracto del banco** (21-09-2026, más el de navegador
+      del 22-09 que vigila que vaciar un mes no se lleve ni los otros meses ni los fijos):
+      veintisiete de
       `n43.ts` —cada campo en su posición de la norma, el cuadre contra lo que el
       propio fichero dice de sí mismo, y que la huella **no se lleva el número de
       cuenta** a la base— y veintiocho de `importacion.ts`, que son las tres formas de
@@ -952,7 +959,7 @@ en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 198 de navegador. La cifra sale de la pasada completa del 21-09-2026 (858 en total,
+  - 199 de navegador. La cifra sale de la pasada completa del 22-09-2026 (859 en total,
     660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
     fichero sube, que lo que ya cubre un fijo llega desmarcado y con su motivo escrito,
     que lo confirmado aparece en el mes y que **el mismo fichero dos veces no apunta

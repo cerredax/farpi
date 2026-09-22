@@ -518,3 +518,48 @@ test('el extracto del banco se revisa antes de apuntarlo, y no entra dos veces',
   await expect(page.getByText('Ya se apuntó en una importación anterior')).toBeVisible()
   await expect(page.getByRole('button', { name: 'No has marcado ninguno' })).toBeDisabled()
 })
+
+/**
+ * Vaciar «El día a día» de un mes.
+ *
+ * Lo que hay que comprobar no es que borre —eso es un `delete`— sino **lo que
+ * deja en pie**: los apuntes de los demás meses y el plan del mes. Son las dos
+ * formas que tiene de salir mal, y las dos son irreversibles, así que valen un
+ * test aunque el botón se pulse una vez al año.
+ *
+ * Lo de los otros meses se mira con el buscador, que cruza los meses: si junio
+ * sigue ahí después de vaciar septiembre, el filtro por mes hizo su trabajo.
+ */
+test('borrar los apuntes del mes no se lleva ni los otros meses ni los fijos', async ({ page }) => {
+  await page.goto('/finances')
+
+  // Un apunte en el mes en curso, que es el que se va a borrar.
+  await page.getByRole('button', { name: 'Nuevo apunte' }).click()
+  await page.locator('#expense-amount').fill('12,34')
+  await page.locator('#expense-description').fill('Apunte de prueba')
+  await page.getByRole('button', { name: 'Apuntar gasto' }).click()
+
+  // Dentro de la sección y no en la página entera: el sheet cerrado sigue
+  // montado y lleva dentro las sugerencias, donde el texto también aparece.
+  const diaADia = page.locator('section[aria-label="El día a día"]')
+  await expect(diaADia).toContainText('Apunte de prueba')
+
+  // El diálogo dice cuántos y cuánto, que es lo que deja darse cuenta de que el
+  // mes abierto no era el que uno creía.
+  await page.getByRole('button', { name: 'Borrar los apuntes del mes' }).click()
+  await expect(page.getByText('12,34 € de gastos')).toBeVisible()
+  await page.getByRole('button', { name: /Sí, borrar/ }).click()
+
+  await expect(diaADia).not.toContainText('Apunte de prueba')
+  await expect(diaADia).toContainText('Nada apuntado este mes')
+
+  // Junio sigue entero: el buscador cruza los meses y ahí está.
+  const buscador = page.getByLabel('Buscar en los apuntes')
+  await buscador.fill('Compra semanal')
+  await expect(page.getByText('Compra semanal').first()).toBeVisible()
+
+  // Y el plan tampoco se ha tocado: esto vacía el día a día, no los fijos.
+  await buscador.fill('')
+  await page.getByRole('tab', { name: 'Fijos' }).click()
+  await expect(page.locator('#panel-plantilla')).toContainText('Alquiler')
+})

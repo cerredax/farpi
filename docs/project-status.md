@@ -476,7 +476,8 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   con Notas y Documentos.
   **Y desde el 21-09-2026 el día a día se puede traer del banco** sin teclearlo: en
   `/finances/importar` se suelta el fichero de la **Norma 43** que dan todas las entidades
-  españolas, y cada movimiento llega marcado o sin marcar con el motivo escrito —ya
+  españolas —o, desde el 23-09-2026, lo que dan en su lugar la banca online del **Sabadell**
+  (un `.txt`) y la del **BBVA** (un Excel)—, y cada movimiento llega marcado o sin marcar con el motivo escrito —ya
   apuntado, lo cubre un fijo, parece un traspaso entre cuentas tuyas—. **Nada entra sin
   confirmarlo**, porque la cuenta del mes ya suma los fijos y apuntar la nómina otra vez la
   contaría dos veces. El fichero se cuadra contra lo que él mismo dice de sí —cuántos

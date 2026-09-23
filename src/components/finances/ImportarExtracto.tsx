@@ -10,7 +10,7 @@ import { useStore } from '@/lib/store-context'
 import { mesDe, plantillaDelMes } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
 import { formatCents } from '@/lib/finanzas'
-import { leerN43 } from '@/lib/n43'
+import { leerArchivoDeExtracto } from '@/lib/extractos'
 import { resumenDeRevision, revisarExtracto, type FilaDeRevision } from '@/lib/importacion'
 import { capitalize } from '@/lib/text'
 
@@ -28,8 +28,9 @@ import { capitalize } from '@/lib/text'
  * mes ya suma los fijos, así que apuntar la nómina otra vez la contaría dos
  * veces.
  *
- * El trabajo de verdad no está aquí sino en `n43.ts` y en `importacion.ts`, que
- * se prueban sin navegador. Esto es el sitio donde se tocan las casillas.
+ * El trabajo de verdad no está aquí sino en `n43.ts`, `extractos.ts` e
+ * `importacion.ts`, que se prueban sin navegador. Esto es el sitio donde se tocan
+ * las casillas.
  */
 export function ImportarExtracto() {
   const { budgets, expenses, fixedEntries, fixedOverrides, monthPlans, createExpenses, isSaving } = useStore()
@@ -55,8 +56,7 @@ export function ImportarExtracto() {
     setApuntados(null)
     setNombreDelArchivo(archivo.name)
 
-    const contenido = await leerComoTexto(archivo)
-    const lectura = leerN43(contenido)
+    const lectura = await leerArchivoDeExtracto(new Uint8Array(await archivo.arrayBuffer()))
     if (!lectura.ok) {
       setError(lectura.error)
       setAvisos([])
@@ -141,7 +141,7 @@ export function ImportarExtracto() {
                 pantalla, y no se puede adivinar: va aquí y no en la ayuda. */}
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
               En la banca online, en la descarga de movimientos: el formato «Norma 43»
-              o «Cuaderno 43». Lo dan todos los bancos españoles y no cuesta nada.
+              o «Cuaderno 43». Del Sabadell vale también su .txt, y del BBVA, su Excel.
             </p>
           </div>
 
@@ -157,7 +157,8 @@ export function ImportarExtracto() {
             type="file"
             // Los bancos lo dan con muchas extensiones distintas —.n43, .q43,
             // .txt— y algunos sin ninguna, así que no se filtra por extensión:
-            // quien lo valida es el propio lector, que sabe leer la norma.
+            // quien lo valida es el propio lector, que distingue la norma, el
+            // .txt del Sabadell y el Excel del BBVA por lo que llevan dentro.
             className="hidden"
             onChange={event => {
               const archivo = event.target.files?.[0]
@@ -261,24 +262,6 @@ export function ImportarExtracto() {
       )}
     </div>
   )
-}
-
-/**
- * El fichero, leído con la codificación que traiga.
- *
- * Los N43 salen de los bancos en ISO-8859-1, que es lo que había cuando se
- * escribió la norma, pero alguno ya los da en UTF-8. Se prueba primero UTF-8 en
- * modo estricto: si el archivo no lo es, `TextDecoder` lanza y entonces se lee
- * como latín. Al revés no funcionaría —latín acepta cualquier byte sin
- * quejarse— y una «ñ» acabaría siendo dos caracteres raros.
- */
-async function leerComoTexto(archivo: File): Promise<string> {
-  const bytes = await archivo.arrayBuffer()
-  try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
-  } catch {
-    return new TextDecoder('iso-8859-1').decode(bytes)
-  }
 }
 
 /** Las filas por días, en el orden del banco. */

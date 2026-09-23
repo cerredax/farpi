@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { abrirBloque, elegirVista } from './vistas'
 import { cabecera, concepto, final, finFichero, movimiento } from './n43-fixture'
+import { cabeceraBbva, filaBbva, xlsx } from './xlsx-fixture'
 
 // Smoke mínimo en modo demo: login demo → /home con datos mock.
 
@@ -517,6 +518,64 @@ test('el extracto del banco se revisa antes de apuntarlo, y no entra dos veces',
   await subir()
   await expect(page.getByText('Ya se apuntó en una importación anterior')).toBeVisible()
   await expect(page.getByRole('button', { name: 'No has marcado ninguno' })).toBeDisabled()
+})
+
+/**
+ * El `.txt` del Sabadell, que no da la Norma 43, por la misma pantalla.
+ *
+ * Lo que hay que ver aquí es que el recibo, que en este fichero no trae clave
+ * de la AEB y se reconoce por la referencia del acreedor, **sigue llegando
+ * desmarcado por el fijo**, y que la tarjeta no aparece en lo que se apuntaría.
+ */
+test('el .txt del Sabadell se lee igual, sin el número de la tarjeta', async ({ page }) => {
+  const hoy = new Date()
+  const dia = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth() + 1).padStart(2, '0')}/${hoy.getFullYear()}`
+
+  // Lo más reciente arriba y el saldo que deja cada línea, como lo da el banco.
+  const fichero = [
+    `${dia}|LUZ Compañía Eléctrica, S.A.|${dia}|-74.00|1402.55|A00000000000|0000001`,
+    `${dia}|COMPRA TARJ. 5402XXXXXXXX1111 PANADERIA-OVIEDO|${dia}|-23.45|1476.55||5402__1111`,
+  ].join('\n') + '\n'
+
+  await page.goto('/finances/importar')
+  await page.locator('input[type="file"]').setInputFiles({
+    name: '23092026_0000_0000000000.txt', mimeType: 'text/plain', buffer: Buffer.from(fichero, 'latin1'),
+  })
+
+  await expect(page.getByRole('checkbox', { name: /Panaderia-oviedo/ })).toBeChecked()
+  await expect(page.getByText(/5402/)).toHaveCount(0)
+
+  await expect(page.getByRole('checkbox', { name: /LUZ Compañía Eléctrica/ })).not.toBeChecked()
+  await expect(page.getByText('Esto suele estar en «Luz y gas» (74,00 €)')).toBeVisible()
+})
+
+/**
+ * El Excel del BBVA. Lo que no se ve desde los unitarios es que la pantalla
+ * pase los **bytes** y no el texto: un `.xlsx` leído como texto es basura, y el
+ * error solo aparecería en el navegador.
+ */
+test('el Excel del BBVA se lee igual, sin la tarjeta entera', async ({ page }) => {
+  const hoy = new Date()
+  const dia = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth() + 1).padStart(2, '0')}/${hoy.getFullYear()}`
+
+  const libro = xlsx([
+    ...cabeceraBbva(),
+    filaBbva(dia, 'Adeudo mensual de tarjeta', '4552000011112222', -120, 1286),
+    filaBbva(dia, 'Adeudo iberdrola clientes', 'Adeudo nº 2026240002003836', -74, 1406),
+  ])
+
+  await page.goto('/finances/importar')
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'Últimos movimientos.xlsx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    buffer: libro,
+  })
+
+  await expect(page.getByRole('checkbox', { name: /Adeudo mensual de tarjeta/ })).toBeChecked()
+  await expect(page.getByText(/4552/)).toHaveCount(0)
+
+  await expect(page.getByRole('checkbox', { name: /Adeudo iberdrola/ })).not.toBeChecked()
+  await expect(page.getByText('Esto suele estar en «Luz y gas» (74,00 €)')).toBeVisible()
 })
 
 /**

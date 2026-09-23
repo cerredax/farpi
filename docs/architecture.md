@@ -1229,6 +1229,26 @@ bancos españoles, y convertir en apuntes lo que uno elija de él. Vive en `/fin
 se entra desde el pie de «El día a día» y son dos piezas de `src/lib`: `n43.ts` lee el fichero
 e `importacion.ts` decide qué se propone apuntar.
 
+**Y los dos bancos que no la dan** (23-09-2026). La descarga de movimientos de la banca online
+del Sabadell da un `.txt` con siete campos separados por `|`, y la del BBVA un Excel. Los lee
+`extractos.ts` al **mismo** `ExtractoN43`, así que la revisión no sabe de dónde vino, y elige el
+lector por lo que hay dentro y nunca por la extensión: un zip es un Excel, una línea que empieza
+por fecha con barras es el Sabadell y lo demás es la norma. El Excel se abre con `xlsx.ts`, **sin
+librería**: un `.xlsx` es un zip con XML, el navegador ya descomprime (`DecompressionStream`) y
+de todo el formato solo hace falta sacar las celdas de la primera hoja.
+
+Ninguno de los dos trae los totales de la norma, pero **los dos traen el saldo tras cada
+movimiento**, y con él se cuadran línea a línea: si falta uno, la cadena se rompe justo ahí.
+Tampoco traen clave de la AEB, así que se deduce del texto —los adeudos y los recibos son `03`,
+que es lo que mantiene la comparación con los fijos—. Y **del concepto se quitan los números
+privados**: la tarjeta enmascarada del Sabadell y cualquier tira de doce dígitos o más, que es lo
+que el BBVA pone en «Adeudo mensual de tarjeta» (la tarjeta entera) y en el préstamo (la cuenta
+entera). Todo eso iría a «Qué fue».
+
+**El criterio: un lector por cada banco de la familia que no dé la norma**, no un importador de
+CSV genérico ni una pantalla para elegir columnas. Cada uno cuesta un archivo de ejemplo y unas
+decenas de líneas; lo genérico costaría una pantalla entera que casi nadie entendería.
+
 **El problema no es leer el fichero, es qué dejar entrar.** La cuenta del mes es
 `(ingresos fijos − gastos fijos) + ingresos apuntados − gastos apuntados`, y un extracto trae
 las dos mitades revueltas: la nómina y el alquiler, que **ya** están en la plantilla, y la

@@ -45,9 +45,9 @@ export default function PrivacidadPage() {
           sale y qué persona de la familia lo pagó o lo trajo— y los presupuestos que os pasan proveedores de
           fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a ningún banco</strong>: no
           pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias. Sí puedes traer el
-          extracto que <strong>tú</strong> descargas de tu banca online (el fichero de la Norma 43): se lee{' '}
+          extracto que <strong>tú</strong> descargas de tu banca online (el fichero de la Norma 43, el .txt del Sabadell o el Excel del BBVA): se lee{' '}
           <strong>en tu propio móvil</strong>, no se envía a ningún sitio, y de él solo se guardan los apuntes
-          que confirmes, sin el número de la cuenta. Como en el resto de la app, lo ven los adultos de esa
+          que confirmes, sin el número de la cuenta ni el de la tarjeta. Como en el resto de la app, lo ven los adultos de esa
           familia y nadie más.
         </p>
       </LegalSection>

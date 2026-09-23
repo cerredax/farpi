@@ -372,6 +372,18 @@ async function main() {
     (await api('/rest/v1/rpc/empty_month', { metodo: 'POST', token: tokA, datos: { p_family_id: famA, p_month: mesActual } })).estado >= 400)
   comprobar('B NO puede poner a cero un mes de la familia de A',
     (await api('/rest/v1/rpc/empty_month', { metodo: 'POST', token: tokB, datos: { p_family_id: famA, p_month: mesPasado } })).estado >= 400)
+  // Sin familia, las cuatro rechazan (23-09-2026). Con un nulo, `not in` da nulo y
+  // la comprobación de familia se saltaba: no llegaba a tocar nada porque detrás no
+  // hay filas con `family_id` nulo, y aquí se comprueba que ya no depende de eso.
+  for (const [rpc, datos] of [
+    ['close_previous_month', { p_family_id: null }],
+    ['close_month_now', { p_family_id: null, p_month: mesActual }],
+    ['reopen_month', { p_family_id: null, p_month: mesActual }],
+    ['empty_month', { p_family_id: null, p_month: mesPasado }],
+  ]) {
+    comprobar(`${rpc} rechaza una familia nula`,
+      (await api(`/rest/v1/rpc/${rpc}`, { metodo: 'POST', token: tokA, datos })).estado >= 400)
+  }
 
   // Lo que hace que un mes cerrado se pueda dar por bueno: ni el propio dueño lo
   // reescribe. No hay policy de insert, update ni delete para nadie.

@@ -49,6 +49,10 @@ export function AccountFooter() {
     // Al login se llega desde una invitación o un correo de recuperación, no al
     // terminar. Sin `router.replace`: recargar de verdad tira además el estado
     // que quedara en memoria.
+    // La regla de Next pide `router.push` para rutas internas, y aquí es justo lo
+    // que no se quiere: con la sesión cerrada, los datos de la familia no pueden
+    // quedarse en la memoria de la pestaña.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = '/'
   }
 

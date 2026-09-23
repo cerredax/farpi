@@ -78,10 +78,17 @@ function CallbackHandler() {
       const errorCode = hash.get('error_code') ?? hash.get('error')
       if (errorCode) {
         if (cancelado) return
+        // El texto es siempre nuestro, nunca el `error_description` de la URL
+        // (23-09-2026): lo que va en un enlace lo escribe quien lo manda, y esta
+        // pantalla lo enseñaba con la cara de Farpi — «Tu cuenta está bloqueada,
+        // llama al…». El motivo de verdad va a la consola, que es donde sirve.
+        if (errorCode !== 'otp_expired') {
+          console.warn('[callback] enlace con error:', errorCode, hash.get('error_description'))
+        }
         setError(
           errorCode === 'otp_expired'
             ? 'El enlace ha caducado o ya se había usado. Pide uno nuevo para continuar.'
-            : hash.get('error_description') ?? 'No se ha podido validar el enlace.',
+            : 'No se ha podido validar el enlace. Pide uno nuevo para continuar.',
         )
         return
       }

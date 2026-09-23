@@ -4,7 +4,20 @@ Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la últ
 relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
 día; aquí queda el recuento y lo que sigue vigilándose.
 
-## Última ejecución: 182/182 (23-09-2026, la cuenta de las invitaciones)
+## Última ejecución: 186/186 (23-09-2026, las RPCs de meses sin familia)
+
+Con las cuatro RPCs de meses que llama la app —`close_previous_month`, `close_month_now`,
+`reopen_month` y `empty_month`— rechazando un `p_family_id` nulo. **186/186 comprobaciones
+correctas.**
+
+Son las 182 anteriores más cuatro, una por RPC. Con un nulo, `p_family_id not in (select
+my_family_ids())` da nulo y no verdadero, y la comprobación de familia se saltaba sin
+avisar. No llegaba a hacer nada —detrás no hay filas con `family_id` nulo—, pero era una
+guarda que dependía de lo que tuviera detrás. Antes de aplicar el SQL dieron **184/186**:
+fallaban `reopen_month` y `empty_month`, y las otras dos ya se paraban en el `not null` de
+`month_plans`.
+
+## Anterior: 182/182 (23-09-2026, la cuenta de las invitaciones)
 
 Con la tabla `invite_sends` creada en el proyecto real. **182/182 comprobaciones correctas.**
 
@@ -26,27 +39,6 @@ tabla que no toca nadie más que el servidor:
 El otro cambio del día —que el callback de correo no abra una sesión escrita en la URL sin
 confirmarla— no es de la base y el arnés no lo ve: lo prueban los unitarios de
 `sesionDeInvitacion`.
-
-## Anterior: 175/175 (23-09-2026, un documento no cambia de familia)
-
-Con `trg_document_storage_inmutable` rechazando también un cambio de `family_id`, aplicado
-en el proyecto real. **175/175 comprobaciones correctas.**
-
-Son las 173 anteriores más dos, en §12:
-
-- **B no puede llevarse un documento de A a otra familia suya.** B está en la de A y en la
-  suya, y la policy de `update` solo mira que la familia **nueva** sea de las suyas. Sin el
-  trigger, el papel pasaba a la familia de B y el proxy de lectura lo seguía sirviendo allí
-  con el token de A, que no es de esa familia.
-- **El documento sigue en la familia de A.**
-
-Las dos salieron **en rojo** contra la base antes de aplicar el SQL (172/175: la tercera en
-caer fue «el dueño y la ruta siguen siendo los de A», porque A ya no veía la ficha). Eso es
-lo que prueba que el hueco estaba abierto en producción, y no solo en el papel. El
-renombrado por otro miembro sigue en verde: el trigger no lo rompe.
-
-La otra mitad del arreglo —que `/api/documents/[id]/file` no sirva un archivo cuya etiqueta
-`farpi_family` no sea la de la ficha— es código de ruta y el arnés no la ve.
 
 ## Cómo se valida
 
@@ -235,7 +227,8 @@ algo es que ninguna se quedó en rojo.
 
 | Fecha | Recuento | Qué entró |
 |---|---|---|
-| 23-09-2026 | **182/182** | `invite_sends`: la cuenta del tope de invitaciones, fuera del alcance de quien invita |
+| 23-09-2026 | **186/186** | las cuatro RPCs de meses rechazan una familia nula |
+| 23-09-2026 | 182/182 | `invite_sends`: la cuenta del tope de invitaciones, fuera del alcance de quien invita |
 | 23-09-2026 | 175/175 | `documents.family_id` inmutable: un papel no se lleva a otra familia |
 | 22-09-2026 | 173/173 | `expenses.import_ref`: el movimiento del banco se apunta una vez |
 | 05-09-2026 | 169/169 | `fixed_entry_overrides`: el ajuste de un fijo en un mes suelto |

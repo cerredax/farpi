@@ -17,7 +17,7 @@ policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Y
 22-09-2026, `expenses.import_ref` con su restricción de unicidad —que un movimiento del
 banco se apunte una vez—: **173/173**. Y el 23-09-2026, una revisión de seguridad a la
 contra: que la ficha de un documento no pueda cambiar de familia y la cuenta nueva del tope de
-invitaciones, `invite_sends`: **182/182**. **Lo que queda no es código de producto**: pruebas
+invitaciones, `invite_sends`, y las RPCs de meses sin familia: **186/186**. **Lo que queda no es código de producto**: pruebas
 que piden un aparato delante, una decisión sin tomar, tres funcionalidades que no existen y
 tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
 
@@ -1215,6 +1215,24 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   cambiándoles la fecha o cerrando la familia con `delete_family`. Ahora cada envío es una
   fila de `invite_sends`, con RLS y sin policies, que solo lee y escribe `/api/invite` con la
   service role. Validado: **182/182**.
+- **Next.js 16.3.6** (23-09-2026), desde 16.2.9, que tenía once avisos publicados, dos
+  críticos de ejecución remota —uno en la optimización de imágenes con AVIF, otro en
+  servidores Windows, que en Farpi es el portátil de desarrollo y no Vercel—. El de saltarse
+  el proxy no aplicaba (pide `i18n` con un solo idioma). Con `npm audit fix` de paso, `npm
+  audit` queda a cero.
+- **El callback no enseña el texto que trae un enlace con error** (23-09-2026): el
+  `error_description` de la URL lo escribe quien la manda, y salía con la cara de Farpi.
+- **Las cuatro RPCs de meses rechazan una familia nula** (23-09-2026). `not in` con un nulo
+  da nulo y la guarda se saltaba; no tenía efecto, pero dependía de lo de detrás. Validado:
+  **186/186**.
+
+  Lo que la revisión del 23-09-2026 dejó **abierto a propósito**, porque son decisiones de
+  producto o no compensan: borrar la cuenta no vuelve a pedir la contraseña; los avisos
+  push enseñan el título de los planes con el móvil bloqueado («Oncólogo 10:00»); dos
+  admins que se quitan el rol a la vez podrían dejar la familia sin ninguno (las RPCs
+  cuentan sin bloquear filas); y `/api/push` no limita cuántas suscripciones tiene una
+  persona. Sin revisar desde el código: los ajustes del panel de Supabase que no son
+  públicos (contraseña mínima, contraseñas filtradas, límites de peticiones) y los de Vercel.
 
 ## Regla del último admin — DECISIÓN TOMADA
 
@@ -1242,7 +1260,9 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **23-09-2026**: **182/182**, con `invite_sends`, la
+Sin pendientes. La última pasada es del **23-09-2026**: **186/186**, con las cuatro RPCs de
+meses rechazando una familia nula —dos de ellas la dejaban pasar—. Antes, ese mismo día,
+**182/182**, con `invite_sends`, la
 cuenta del tope de invitaciones, y siete comprobaciones de que nadie más que el servidor la
 lee ni la toca —ni para borrar sus envíos ni para cambiarles la fecha, que eran las dos
 formas de empezar de cero—.
@@ -1318,7 +1338,7 @@ la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026),
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
 (169/169 el 05-09-2026) y **el esquema del extracto del banco**, aplicado y validado el
 22-09-2026 (173/173), y **los tres huecos de la revisión de seguridad del 23-09-2026**
-(182/182). El relato de cada una, en el cuerpo de su commit.
+(186/186, con Next.js al día). El relato de cada una, en el cuerpo de su commit.
 
 ### 1. Hay que tener un aparato delante
 

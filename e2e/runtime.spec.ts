@@ -129,6 +129,15 @@ test('el callback explica un enlace caducado en vez de dejar al usuario tirado',
   await expect(page.getByRole('link', { name: 'Ir a iniciar sesión' })).toBeVisible()
 })
 
+// El texto del error lo pone Farpi, no el enlace: `error_description` lo escribe
+// quien manda la URL, y enseñarlo en esta pantalla era prestarle la cara de la app.
+test('el callback no enseña el texto que trae el enlace', async ({ page }) => {
+  await page.goto('/auth/callback#error=server_error&error_description=Tu+cuenta+est%C3%A1+bloqueada.+Llama+al+900+000+000')
+  await expect(page.getByText('No hemos podido abrir el enlace')).toBeVisible()
+  await expect(page.getByText('No se ha podido validar el enlace. Pide uno nuevo para continuar.')).toBeVisible()
+  await expect(page.getByText(/900 000 000/)).toHaveCount(0)
+})
+
 // Un fallo al guardar tiene que verse. Antes el store registraba el error y
 // nadie lo mostraba: la operación no ocurría y la app no decía nada.
 test('avisa cuando una operación no se ha podido guardar', async ({ page }) => {

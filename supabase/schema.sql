@@ -1983,7 +1983,12 @@ as $$
 declare
   v_mes text;
 begin
-  if p_family_id not in (select public.my_family_ids()) then
+  -- El `is null` no sobra, y va en las cuatro RPCs de meses (23-09-2026): con un
+  -- nulo, `not in` da nulo y no verdadero, así que la comprobación de familia se
+  -- saltaba sin avisar. Hoy no llegaba a hacer nada —lo que viene detrás no
+  -- encuentra ninguna fila con `family_id` nulo—, pero una guarda que deja pasar
+  -- lo que no sabe comprobar depende de que lo de detrás siga así.
+  if p_family_id is null or p_family_id not in (select public.my_family_ids()) then
     raise exception 'Acceso denegado: no perteneces a esa familia';
   end if;
 
@@ -2019,7 +2024,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if p_family_id not in (select public.my_family_ids()) then
+  if p_family_id is null or p_family_id not in (select public.my_family_ids()) then
     raise exception 'Acceso denegado: no perteneces a esa familia';
   end if;
   if p_month > to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
@@ -2049,7 +2054,7 @@ as $$
 declare
   v_filas integer;
 begin
-  if p_family_id not in (select public.my_family_ids()) then
+  if p_family_id is null or p_family_id not in (select public.my_family_ids()) then
     raise exception 'Acceso denegado: no perteneces a esa familia';
   end if;
   if p_month <> to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then
@@ -2110,7 +2115,7 @@ as $$
 declare
   v_filas integer;
 begin
-  if p_family_id not in (select public.my_family_ids()) then
+  if p_family_id is null or p_family_id not in (select public.my_family_ids()) then
     raise exception 'Acceso denegado: no perteneces a esa familia';
   end if;
   if p_month >= to_char(now() at time zone 'Europe/Madrid', 'YYYY-MM') then

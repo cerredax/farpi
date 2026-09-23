@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { MEAL_SLOT_META } from '@/lib/constants'
 import { mealCourses } from '@/lib/meal-slots'
+import { selectSortedMeals } from '@/lib/selectors'
 import type { MealPlan } from '@/types'
 
 interface TodayMealsRowProps {
@@ -19,7 +20,8 @@ export const TodayMealsRow = memo(function TodayMealsRow({ meals }: TodayMealsRo
   return (
     <div className="rounded-3xl bg-white/80 border border-white shadow-sm overflow-hidden">
       <ul className="divide-y divide-hairline">
-        {meals.map(meal => {
+        {/* En el orden del día y no en el que llegan de la base, igual que en Comidas. */}
+        {selectSortedMeals(meals).map(meal => {
           const { label, emoji } = MEAL_SLOT_META[meal.slot]
           const [primero, ...siguientes] = mealCourses(meal)
           return (

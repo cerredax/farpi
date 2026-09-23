@@ -624,6 +624,10 @@ arrancar. Es lo que hace que se pueda ver la diferencia sin esperar un mes.
 
 - [ ] Miembros e invitaciones aparecen separados.
 - [ ] Se puede invitar por email.
+- [ ] Al abrir el enlace de invitación sin sesión, sale «Vas a entrar en Farpi como» con el
+      correo invitado, y solo se entra al pulsar «Entrar». «No soy yo» lleva al login.
+- [ ] La undécima invitación del mismo día da el aviso de «muchas invitaciones hoy», también
+      después de cancelar o borrar las anteriores.
 - [ ] Se puede cancelar invitación.
 - [ ] Se puede editar miembro.
 - [ ] Se puede quitar miembro.

@@ -169,6 +169,17 @@ servidor, la invitación se perdía en silencio y el usuario quedaba autenticado
 la familia. La página atiende los dos flujos —fragmento y `?code=` de PKCE— y avisa cuando el
 enlace ha caducado o ya se usó.
 
+**La sesión del fragmento no se abre sola, se ofrece** (23-09-2026). Unos tokens en una URL
+los puede escribir cualquiera, así que abrirlos al llegar dejaba a quien pulsara un enlace
+preparado dentro de la cuenta de otro, sin notarlo, y lo que subiera después —el DNI
+incluido— caía en la familia de quien preparó el enlace. Ahora el fragmento solo vale en un
+enlace de invitación (`invite_id`), la pantalla enseña **con qué correo** se va a entrar y hay
+que pulsar «Entrar». El alta, la contraseña olvidada y Google no pasan por ahí: vuelven por
+PKCE, que solo canjea el navegador que lo pidió, y el cliente de `@supabase/ssr` rechaza por
+su cuenta un fragmento con tokens. La invitación no puede ir por PKCE porque la manda el
+servidor, y por eso es la única que necesita esta puerta. Las condiciones están en
+`sesionDeInvitacion` (`src/lib/peticiones.ts`), con sus unitarios.
+
 ### Cerrar una familia
 
 Una familia se puede eliminar, con dos reglas:
@@ -199,13 +210,18 @@ El arnés de `scripts/validate-rls.mjs` cubre RLS, RPCs e integridad: la base de
 más. Lo que queda por encima —las rutas API y el callback de correo— no lo ve, y se revisa a
 mano.
 
-- `/api/invite` usa la service role **solo** para mandar el email; la invitación se inserta
+- `/api/invite` usa la service role para el tope y para mandar el email; la invitación se inserta
   con el cliente del usuario (RLS) y antes comprueba que quien llama es admin de esa familia.
   Tiene **tope de diez invitaciones en 24 horas por quien invita**: el registro está abierto y
   crear una familia te hace admin de ella, así que sin tope la ruta era un amplificador de
   correo abierto a internet, y lo que se arriesga es la reputación del dominio y con ella los
-  correos que la familia sí espera. Se cuenta sobre `family_invites` —ahí queda el rastro— y
-  por persona y no por familia, porque las familias se crean gratis.
+  correos que la familia sí espera. Se cuenta por persona y no por familia, porque las
+  familias se crean gratis, y **en `invite_sends`**, una fila por correo mandado, con RLS y
+  sin ninguna policy: la lee y la escribe solo la ruta, con la service role. Se contó sobre
+  `family_invites` hasta el 23-09-2026, y ahí no se sostiene: quien invita es admin de esa
+  familia y puede borrar sus invitaciones, cambiarles la fecha o cerrar la familia y
+  llevárselas en cascada. La service role pasa a hacer tres cosas en esta ruta: contar,
+  apuntar el envío y mandar el correo.
 - `/api/account/delete` aplica la regla del último admin. **Ya no borra archivos**: desde que
   viven en el Drive de quien los subió son suyos, y usar el permiso que dio para guardar
   papeles de la familia para vaciarle el Drive no es lo que autorizó. Se va la ficha, con la

@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-22.
+Última revisión: 2026-09-23.
 
 ## Resumen
 
@@ -15,7 +15,9 @@ dejado roto sin verlo. **165/165**. Y el 05-09-2026, `fixed_entry_overrides` —
 de un fijo en un mes suelto—: tabla, índice,
 policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Y el
 22-09-2026, `expenses.import_ref` con su restricción de unicidad —que un movimiento del
-banco se apunte una vez—: **173/173**. **Lo que queda no es código de producto**: pruebas
+banco se apunte una vez—: **173/173**. Y el 23-09-2026, una revisión de seguridad a la
+contra: que la ficha de un documento no pueda cambiar de familia y la cuenta nueva del tope de
+invitaciones, `invite_sends`: **182/182**. **Lo que queda no es código de producto**: pruebas
 que piden un aparato delante, una decisión sin tomar, tres funcionalidades que no existen y
 tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
 
@@ -1193,6 +1195,27 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   registro sigue abierto a cualquiera, y `/api/invite` sigue distinguiendo con su código de
   respuesta si un correo ya tiene cuenta en Farpi (cerrarlo pide decidir antes qué pasa al
   invitar a alguien que ya está registrado, que hoy simplemente falla).
+- **La ficha de un documento no cambia de familia** (23-09-2026). La policy de `update`
+  solo pide que la familia **nueva** sea tuya, así que quien estaba en dos —la de la casa y
+  una suya, gratis— podía llevarse un papel ajeno a la segunda, y el proxy lo seguía
+  sirviendo allí con el token del dueño, también después de que lo echaran de la casa. Dos
+  piezas: `trg_document_storage_inmutable` rechaza cambiar `family_id`, y
+  `/api/documents/[id]/file` no sirve un archivo cuya etiqueta `farpi_family` no sea la de
+  la ficha. Aplicado en el proyecto real y validado: **175/175**, con las dos comprobaciones
+  nuevas en rojo antes de aplicarlo.
+- **El enlace de invitación ya no abre una sesión sin preguntar** (23-09-2026). El callback
+  abría en cuanto llegaba la sesión escrita en el fragmento de la URL, y esos tokens los puede
+  poner cualquiera: un enlace preparado dejaba a quien lo abría dentro de la cuenta de otro, y
+  lo que subiera después, en la familia de ese otro. Ahora el fragmento solo vale en un enlace
+  de invitación, la pantalla enseña con qué correo se entra y hay que pulsar «Entrar»
+  (`sesionDeInvitacion`, en `src/lib/peticiones.ts`, con sus unitarios). El alta, la
+  contraseña olvidada y Google no pasan por ahí: van por PKCE.
+- **El tope de invitaciones se cuenta donde quien invita no llega** (23-09-2026). Se contaba
+  sobre `family_invites`, y un admin podía ponerlo a cero borrando sus invitaciones,
+  cambiándoles la fecha o cerrando la familia con `delete_family`. Ahora cada envío es una
+  fila de `invite_sends`, con RLS y sin policies, que solo lee y escribe `/api/invite` con la
+  service role. Validado: **182/182**.
+
 ## Regla del último admin — DECISIÓN TOMADA
 
 Una familia debe tener siempre al menos un admin. Están prohibidas cuando quedaría cero admins:
@@ -1219,7 +1242,17 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **22-09-2026**: **173/173**, con
+Sin pendientes. La última pasada es del **23-09-2026**: **182/182**, con `invite_sends`, la
+cuenta del tope de invitaciones, y siete comprobaciones de que nadie más que el servidor la
+lee ni la toca —ni para borrar sus envíos ni para cambiarles la fecha, que eran las dos
+formas de empezar de cero—.
+
+Esa misma mañana, **175/175**, con el trigger de
+`documents` que ya no deja cambiar `family_id`. Las dos comprobaciones nuevas —B no se lleva
+un papel de A a su propia familia, y el papel sigue en la de A— salieron en rojo contra la
+base antes de aplicar el SQL, que es lo que prueba que el hueco existía.
+
+Antes de esa, la del **22-09-2026**: **173/173**, con
 `expenses.import_ref` aplicada —la huella del movimiento del banco— y cuatro comprobaciones
 nuevas. La que había que escribir sí o sí no es la del duplicado sino su contraria: que dos
 apuntes escritos a mano, **sin** huella, siguen conviviendo. La restricción se apoya en que
@@ -1284,7 +1317,8 @@ Lo que **ya no está** en esta lista, porque se cerró: los 44 px dentro de los 
 la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026), enterarse
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
 (169/169 el 05-09-2026) y **el esquema del extracto del banco**, aplicado y validado el
-22-09-2026 (173/173). El relato de cada una, en el cuerpo de su commit.
+22-09-2026 (173/173), y **los tres huecos de la revisión de seguridad del 23-09-2026**
+(182/182). El relato de cada una, en el cuerpo de su commit.
 
 ### 1. Hay que tener un aparato delante
 

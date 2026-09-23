@@ -54,3 +54,60 @@ export function deOtroSitio({ metodo, sitio, origen, host }: QuienLlama): boolea
     return true
   }
 }
+
+/** La sesión que trae un enlace de invitación en el fragmento de la URL. */
+export interface SesionDeInvitacion {
+  accessToken: string
+  refreshToken: string
+  /** Con qué cuenta se va a entrar: es lo que se enseña antes de entrar. */
+  correo: string
+}
+
+/**
+ * ¿Trae este enlace una sesión de invitación que se pueda ofrecer?
+ *
+ * Es la única puerta por la que Farpi acepta una sesión escrita en la URL, y está
+ * acotada a propósito (23-09-2026). El alta, la contraseña olvidada y Google
+ * vuelven por PKCE (`?code=`), que solo canjea el navegador que lo pidió. La
+ * invitación no puede: la manda el servidor con `inviteUserByEmail` y Supabase la
+ * devuelve con los tokens en el fragmento. Y unos tokens en una URL los puede
+ * poner cualquiera: bastaba un enlace con los de una cuenta ajena para dejar a
+ * quien lo abriera dentro de ella sin enterarse —y lo que subiera después, su DNI
+ * incluido, en la familia del que preparó el enlace—.
+ *
+ * Por eso dos condiciones. Que el enlace sea de invitación (`invite_id`), porque
+ * ningún otro flujo de la app trae tokens así. Y que se sepa **con qué correo**
+ * se va a entrar, porque eso es lo que la pantalla enseña y hay que confirmar: sin
+ * correo no hay nada que confirmar, y no se entra.
+ */
+export function sesionDeInvitacion(fragmento: string, inviteId: string | null): SesionDeInvitacion | null {
+  if (!inviteId) return null
+  const params = new URLSearchParams(fragmento.replace(/^#/, ''))
+  const accessToken = params.get('access_token')
+  const refreshToken = params.get('refresh_token')
+  if (!accessToken || !refreshToken) return null
+  const correo = correoDelToken(accessToken)
+  if (!correo) return null
+  return { accessToken, refreshToken, correo }
+}
+
+/**
+ * El correo que lleva dentro un token de acceso de Supabase.
+ *
+ * **Se lee, no se verifica**: la firma la comprueba Supabase en el `setSession`,
+ * que es el que decide si se entra. Esto solo dice qué nombre poner en la pantalla
+ * de confirmar, y un token falsificado no pasaría de ahí.
+ */
+export function correoDelToken(token: string): string | null {
+  const partes = token.split('.')
+  if (partes.length !== 3) return null
+  try {
+    const base64 = partes[1].replace(/-/g, '+').replace(/_/g, '/')
+    const binario = atob(base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '='))
+    const texto = new TextDecoder().decode(Uint8Array.from(binario, c => c.charCodeAt(0)))
+    const carga = JSON.parse(texto) as { email?: unknown }
+    return typeof carga.email === 'string' && carga.email.trim() ? carga.email.trim() : null
+  } catch {
+    return null
+  }
+}

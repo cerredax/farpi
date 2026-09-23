@@ -22,7 +22,12 @@ import { isValidEmail, normalizeEmail } from '@/lib/validators'
  * creando otra.
  *
  * No hay Redis ni memoria compartida, y no hace falta: la cuenta está en
- * `family_invites`, que es donde queda el rastro de cada envío.
+ * `invite_sends`, una fila por correo mandado. **No en `family_invites`**, que es
+ * donde estuvo hasta el 23-09-2026: quien invita es admin de esa familia y puede
+ * borrar sus invitaciones por PostgREST, cambiarles la fecha o cerrar la familia
+ * y llevárselas en cascada, y cualquiera de las tres ponía la cuenta a cero.
+ * `invite_sends` no tiene policies: la lee y la escribe solo esta ruta, con el
+ * cliente de servicio.
  */
 const MAX_INVITACIONES_DIARIAS = 10
 
@@ -61,15 +66,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Solo los administradores pueden invitar miembros' }, { status: 403 })
   }
 
-  // El tope de envíos, contado sobre las invitaciones que ya lleva hechas esta
+  if (FALTA_SERVICE_ROLE) return respuestaSinServiceRole('invite')
+  const admin = createAdminClient()
+
+  // El tope de envíos, contado sobre los correos que ya lleva mandados esta
   // persona. Va después de la comprobación de admin para no contarle nada a
   // quien no iba a poder invitar de todas formas.
   const desde = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  const { count, error: cuentaError } = await supabase
-    .from('family_invites')
+  const { count, error: cuentaError } = await admin
+    .from('invite_sends')
     .select('id', { count: 'exact', head: true })
-    .eq('invited_by', user.id)
-    .gte('created_at', desde)
+    .eq('user_id', user.id)
+    .gte('sent_at', desde)
 
   if (cuentaError) {
     console.error('[invite] recuento de invitaciones:', cuentaError.message)
@@ -128,9 +136,15 @@ export async function POST(req: NextRequest) {
   const origin = configurado ?? req.nextUrl.origin
   const redirectTo = `${origin}/auth/callback?invite_id=${invite.id}`
 
-  if (FALTA_SERVICE_ROLE) return respuestaSinServiceRole('invite')
+  // El envío se apunta **antes** de mandarlo y no se retira si falla: lo que se
+  // limita es cuántas veces se le pide a Farpi un correo, no cuántos llegan.
+  const { error: apunteError } = await admin.from('invite_sends').insert({ user_id: user.id })
+  if (apunteError) {
+    await supabase.from('family_invites').delete().eq('id', invite.id)
+    console.error('[invite] apunte del envío:', apunteError.message)
+    return NextResponse.json({ error: 'No se pudo crear la invitación' }, { status: 500 })
+  }
 
-  const admin = createAdminClient()
   const { error: magicError } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo })
 
   if (magicError) {

@@ -48,8 +48,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     })
     const proveedor = getProvider(doc.storage_provider)
 
+    // El archivo tiene que ser **de la familia de la ficha**, y eso lo dice la
+    // etiqueta que le puso la subida, no la ficha (23-09-2026). La ficha la puede
+    // escribir cualquier miembro por PostgREST; la etiqueta solo la pone Farpi al
+    // abrir la subida. Sin esto, una ficha llevada a otra familia —el trigger
+    // `trg_document_storage_inmutable` ya lo impide, pero una sola pieza no es una
+    // defensa— seguía sirviendo el papel con el token del dueño. Es la misma
+    // comprobación que hace `POST /api/documents` al dar de alta la ficha.
+    const archivo = await proveedor.describir(ctx, doc.storage_path)
+    if (archivo.familia !== doc.family_id) {
+      console.error('[documents/file] el archivo no es de la familia de la ficha:', doc.id)
+      return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 })
+    }
+
     if (req.nextUrl.searchParams.get('verificar') === '1') {
-      await proveedor.describir(ctx, doc.storage_path)
       return NextResponse.json({ ok: true })
     }
 

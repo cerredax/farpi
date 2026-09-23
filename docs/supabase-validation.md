@@ -4,54 +4,49 @@ Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la últ
 relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
 día; aquí queda el recuento y lo que sigue vigilándose.
 
-## Última ejecución: 173/173 (22-09-2026, el extracto del banco)
+## Última ejecución: 182/182 (23-09-2026, la cuenta de las invitaciones)
 
-Con `expenses.import_ref` y su restricción `expenses_import_ref_unico` aplicados en el
-proyecto real. **173/173 comprobaciones correctas.**
+Con la tabla `invite_sends` creada en el proyecto real. **182/182 comprobaciones correctas.**
 
-Son las 169 anteriores más cuatro, todas de la restricción nueva, que es lo que hace que un
-movimiento del banco se apunte **una vez** por mucho que se importen rangos de fechas
-solapados:
+Son las 175 de esa misma mañana más siete, en §11b, todas de la tabla nueva. Es la cuenta
+del tope de diez invitaciones al día, que se llevaba sobre `family_invites` y ahí no se
+sostenía: quien invita es admin de esa familia y podía ponerla a cero borrando sus
+invitaciones, cambiándoles la fecha o cerrando la familia. Por eso `invite_sends` va como
+`storage_connections`, con RLS y sin ninguna policy, y las comprobaciones son las de una
+tabla que no toca nadie más que el servidor:
 
-- **Un apunte con su huella entra**, y **el mismo otra vez no**. La segunda es la que
-  justifica la columna: sin ella, pedir al banco «del 1 al 30» y luego «del 25 al 25»
-  duplicaría los cinco días de en medio, y nadie se enteraría hasta mirar la cuenta del mes.
-  Se comprueba en la base y no solo en la pantalla porque lo que revisa una persona a las
-  once de la noche no es una garantía.
-- **Dos apuntes escritos a mano —sin huella— sí conviven.** Es la comprobación del caso malo,
-  y la que de verdad había que escribir: la restricción se apoya en que en Postgres dos nulos
-  no chocan, así que declarada con `nulls not distinct` habría roto lo más común de la app
-  —apuntar dos gastos seguidos sin más—, y las tres comprobaciones de arriba habrían pasado
-  igual.
-- **La misma huella en otra familia no estorba**, que es lo que dice `unique (family_id,
-  import_ref)` y no `unique (import_ref)`.
+- **El service role apunta un envío, y lo cuenta.** Van primero porque una tabla a la que no
+  llega nadie también pasaría todas las demás.
+- **A no puede leer sus propios envíos, ni borrarlos, ni cambiarles la fecha, ni apuntarlos a
+  nombre de otro.** Las dos de en medio son las que importan: son las dos formas de empezar de
+  cero.
+- **Tras todo eso, el envío de A sigue ahí y con su fecha.** Es la que dice que los intentos
+  de arriba no hicieron nada, en vez de fiarse de que devolvieran un error.
 
-Lo que el arnés **no** cubre de este trabajo es leer el fichero y decidir qué entra: eso es
-comportamiento y no permisos, y lo prueban los 57 unitarios de `n43.ts` e `importacion.ts`.
+El otro cambio del día —que el callback de correo no abra una sesión escrita en la URL sin
+confirmarla— no es de la base y el arnés no lo ve: lo prueban los unitarios de
+`sesionDeInvitacion`.
 
-## Anterior: 169/169 (05-09-2026, los ajustes de un fijo en un mes)
+## Anterior: 175/175 (23-09-2026, un documento no cambia de familia)
 
-Con `fixed_entry_overrides` y el `coalesce` de `close_month_copy` aplicados en el proyecto
-real. **169/169 comprobaciones correctas.**
+Con `trg_document_storage_inmutable` rechazando también un cambio de `family_id`, aplicado
+en el proyecto real. **175/175 comprobaciones correctas.**
 
-Son las 165 anteriores más cuatro, todas de `fixed_entry_overrides`, la tabla que guarda lo
-que un fijo costó en un mes suelto cuando no fue lo de siempre:
+Son las 173 anteriores más dos, en §12:
 
-- **A crea un ajuste en su familia** y **B no lo ve**: la tabla entra en el barrido que
-  recorre todas las tablas de contenido comprobando que nadie ve lo de otra casa. No es una
-  tabla menor para esto — un ajuste dice cuánto se pagó de algo y en qué mes.
-- **B no puede ajustar un fijo de la familia de A.** El equivalente al «B NO puede crear
-  fijos en la familia de A» que ya había: la escritura, no solo la lectura.
-- **Rechaza un ajuste sobre un fijo de otra familia.** Es la que había que escribir sí o sí:
-  la fila lleva `family_id` propio —para que su policy sea
-  `family_id in (select my_family_ids())` y no un `exists` contra `fixed_entries`—, y eso
-  abre la puerta a insertar un `family_id` propio apuntando al fijo de otro. La RLS sola lo
-  dejaría pasar: la fila **es** de tu familia. Lo para `trg_fixed_entry_override_family`,
-  mismo patrón que los pares de asignación.
+- **B no puede llevarse un documento de A a otra familia suya.** B está en la de A y en la
+  suya, y la policy de `update` solo mira que la familia **nueva** sea de las suyas. Sin el
+  trigger, el papel pasaba a la familia de B y el proxy de lectura lo seguía sirviendo allí
+  con el token de A, que no es de esa familia.
+- **El documento sigue en la familia de A.**
 
-El `coalesce` de `close_month_copy` —que un mes se cierre con el importe ajustado y no con
-la referencia— no lo cubre el arnés: es comportamiento, no permisos, y lo prueban los tests
-unitarios de `plantillaDelMes` y del mock.
+Las dos salieron **en rojo** contra la base antes de aplicar el SQL (172/175: la tercera en
+caer fue «el dueño y la ruta siguen siendo los de A», porque A ya no veía la ficha). Eso es
+lo que prueba que el hueco estaba abierto en producción, y no solo en el papel. El
+renombrado por otro miembro sigue en verde: el trigger no lo rompe.
+
+La otra mitad del arreglo —que `/api/documents/[id]/file` no sirva un archivo cuya etiqueta
+`farpi_family` no sea la de la ficha— es código de ruta y el arnés no la ve.
 
 ## Cómo se valida
 
@@ -160,6 +155,18 @@ un XSS en línea—.
 - [x] El `check` de `provider` rechaza un proveedor que no existe (`dropbox`), que es lo que
       habrá que ampliar el día que se añada de verdad.
 
+### La cuenta de las invitaciones
+
+`invite_sends` es la cuenta del tope de `/api/invite`. Mismo régimen que la tabla de arriba:
+RLS y ninguna policy, porque una cuenta que alguien puede borrar no cuenta nada.
+
+- [x] El service role apunta un envío y lo cuenta.
+- [x] A **no** puede leer sus propios envíos.
+- [x] A **no** puede borrarlos ni cambiarles la fecha, que son las dos formas de empezar de
+      cero, y al terminar su envío sigue ahí y con su fecha.
+- [x] A **no** puede apuntar envíos a nombre de otro, que dejaría a esa persona sin poder
+      invitar.
+
 ### Los documentos en Drive
 
 - [x] Un miembro crea un documento con `storage_owner` (201).
@@ -170,9 +177,9 @@ un XSS en línea—.
       la RLS.
 - [x] Un miembro de la casa **no** puede crear una ficha que apunte al Drive de otro.
 - [x] Ni cambiarle el dueño a una ficha que ya existe, ni ponérselo a nulo, ni reclamarla
-      para sí, ni mover la ficha a otro archivo: las cuatro fallan contra el trigger
-      `trg_document_storage_inmutable`, y al terminar el dueño y la ruta siguen siendo los de
-      quien subió el papel.
+      para sí, ni mover la ficha a otro archivo, **ni llevársela a otra familia**: las cinco
+      fallan contra el trigger `trg_document_storage_inmutable`, y al terminar el dueño, la
+      ruta y la familia siguen siendo los de quien subió el papel.
 - [x] **Pero renombrar la ficha lo sigue pudiendo cualquier miembro.** Es lo que hace la app,
       y es la comprobación que descubrió que la policy `for all` lo había roto.
 - [x] Borrar la cuenta de quien subió un papel a una familia que le sobrevive **funciona**, y
@@ -228,7 +235,9 @@ algo es que ninguna se quedó en rojo.
 
 | Fecha | Recuento | Qué entró |
 |---|---|---|
-| 22-09-2026 | **173/173** | `expenses.import_ref`: el movimiento del banco se apunta una vez |
+| 23-09-2026 | **182/182** | `invite_sends`: la cuenta del tope de invitaciones, fuera del alcance de quien invita |
+| 23-09-2026 | 175/175 | `documents.family_id` inmutable: un papel no se lleva a otra familia |
+| 22-09-2026 | 173/173 | `expenses.import_ref`: el movimiento del banco se apunta una vez |
 | 05-09-2026 | 169/169 | `fixed_entry_overrides`: el ajuste de un fijo en un mes suelto |
 | 04-09-2026 | 165/165 | el borrado de cuenta, que el trigger del día anterior había roto |
 | 03-09-2026 | 163/163 | la revisión de seguridad a la contra, en cuatro tandas (163, 154, 152 y 149) |

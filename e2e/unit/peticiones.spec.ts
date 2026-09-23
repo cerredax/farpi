@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { deOtroSitio } from '@/lib/peticiones'
+import { correoDelToken, deOtroSitio, sesionDeInvitacion } from '@/lib/peticiones'
 
 // Lo que hoy para un CSRF en Farpi es el `SameSite=Lax` de las cookies de
 // Supabase, que es una defensa prestada: el día que una cookie pase a `None`,
@@ -49,5 +49,55 @@ test.describe('deOtroSitio', () => {
   test('el método llega como llegue', () => {
     expect(deOtroSitio({ metodo: 'post', sitio: 'cross-site', origen: null, host: 'x' })).toBe(true)
     expect(deOtroSitio({ metodo: 'get', sitio: 'cross-site', origen: null, host: 'x' })).toBe(false)
+  })
+})
+
+// Un token de mentira con la forma de uno de Supabase: la firma da igual, porque
+// esto solo lee el correo para enseñarlo, y quien verifica es `setSession`.
+function tokenCon(carga: object): string {
+  const b64 = Buffer.from(JSON.stringify(carga)).toString('base64url')
+  return `eyJhbGciOiJIUzI1NiJ9.${b64}.firma`
+}
+
+// Unos tokens en la URL los puede escribir cualquiera, y abrirlos sin más dejaba a
+// quien pulsaba el enlace dentro de la cuenta de otro. Estas son las condiciones
+// para siquiera ofrecer entrar: si una se afloja, vuelve el hueco.
+test.describe('sesionDeInvitacion', () => {
+  const token = tokenCon({ email: 'marta@example.com', sub: 'x' })
+  const fragmento = `#access_token=${token}&refresh_token=r1&type=invite`
+
+  test('un enlace de invitación con tokens se ofrece, con su correo', () => {
+    expect(sesionDeInvitacion(fragmento, 'inv-1')).toEqual({
+      accessToken: token, refreshToken: 'r1', correo: 'marta@example.com',
+    })
+  })
+
+  test('sin invite_id no se ofrece: ningún otro flujo trae tokens en el fragmento', () => {
+    expect(sesionDeInvitacion(fragmento, null)).toBeNull()
+    expect(sesionDeInvitacion(fragmento, '')).toBeNull()
+  })
+
+  test('sin alguno de los dos tokens, tampoco', () => {
+    expect(sesionDeInvitacion(`#access_token=${token}`, 'inv-1')).toBeNull()
+    expect(sesionDeInvitacion('#refresh_token=r1', 'inv-1')).toBeNull()
+    expect(sesionDeInvitacion('', 'inv-1')).toBeNull()
+  })
+
+  test('si no se sabe con qué correo se entra, no se entra', () => {
+    const sinCorreo = tokenCon({ sub: 'x' })
+    expect(sesionDeInvitacion(`#access_token=${sinCorreo}&refresh_token=r1`, 'inv-1')).toBeNull()
+    expect(sesionDeInvitacion('#access_token=basura&refresh_token=r1', 'inv-1')).toBeNull()
+  })
+})
+
+test.describe('correoDelToken', () => {
+  test('lee el correo, también con acentos y en base64url', () => {
+    expect(correoDelToken(tokenCon({ email: 'íñigo@example.com' }))).toBe('íñigo@example.com')
+  })
+
+  test('lo que no es un token no da correo, y no lanza', () => {
+    for (const malo of ['', 'a.b', 'a.b.c', 'a.!!!.c', tokenCon({ email: '' }), tokenCon({ email: 42 })]) {
+      expect(correoDelToken(malo)).toBeNull()
+    }
   })
 })

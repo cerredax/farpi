@@ -708,6 +708,30 @@ async function main() {
       datos: { user_id: uidB, provider: 'dropbox', access_token: 'x', refresh_token: 'x', expires_at: '2030-01-01T00:00:00Z' },
     })).estado >= 400)
 
+  // La cuenta del tope de invitaciones (23-09-2026). Se llevaba sobre
+  // `family_invites`, y un admin podía ponerla a cero borrando sus invitaciones,
+  // cambiándoles la fecha o cerrando la familia. Esta tabla, como la de arriba, no
+  // tiene policies: si A pudiera borrar o esconder sus filas, el tope no contaría
+  // nada. La primera comprobación es la de que el service role —la ruta— sí entra,
+  // porque una tabla a la que no llega nadie también pasaría las demás.
+  console.log('\n== 11b. La cuenta de invitaciones (invite_sends)')
+  comprobar('El service role apunta un envío',
+    filas(await api('/rest/v1/invite_sends', { metodo: 'POST', datos: { user_id: uidA }, cabeceras: REPRESENTACION })) === 1)
+  comprobar('Y lo cuenta',
+    filas(await api(`/rest/v1/invite_sends?user_id=eq.${uidA}&select=id`)) === 1)
+  comprobar('A NO puede leer sus propios envíos',
+    filas(await api(`/rest/v1/invite_sends?user_id=eq.${uidA}&select=id`, { token: tokA })) === 0)
+  comprobar('A NO puede borrar sus envíos para empezar de cero',
+    filas(await api(`/rest/v1/invite_sends?user_id=eq.${uidA}`, { metodo: 'DELETE', token: tokA, cabeceras: REPRESENTACION })) <= 0)
+  comprobar('A NO puede cambiarles la fecha',
+    filas(await api(`/rest/v1/invite_sends?user_id=eq.${uidA}`, {
+      metodo: 'PATCH', token: tokA, datos: { sent_at: '2000-01-01T00:00:00Z' }, cabeceras: REPRESENTACION,
+    })) <= 0)
+  comprobar('A NO puede apuntar envíos a nombre de otro',
+    (await api('/rest/v1/invite_sends', { metodo: 'POST', token: tokA, datos: { user_id: uidB } })).estado >= 400)
+  comprobar('Tras los intentos de A, su envío sigue contado y con su fecha',
+    (await api(`/rest/v1/invite_sends?user_id=eq.${uidA}&select=sent_at`)).cuerpo?.[0]?.sent_at?.startsWith('2000') === false)
+
   // La columna que dice en el disco de quién está el archivo. Sin ella, el proxy
   // de lectura no sabría a quién pedirle el token prestado.
   console.log('\n== 12. Documentos con proveedor y dueño')
@@ -762,6 +786,17 @@ async function main() {
     (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
       metodo: 'PATCH', token: tokB, datos: { storage_path: 'id-de-drive-de-b' },
     })).estado >= 400)
+  // Ni llevarse la ficha a otra familia (23-09-2026). B está en la de A y en la
+  // suya, y la policy de `update` solo pide que la familia nueva sea de las suyas:
+  // sin el trigger, el papel de A se iba a la familia de B y el proxy lo seguía
+  // sirviendo allí con el token de A, que no es de esa familia.
+  comprobar('Ni llevarse un documento de A a otra familia suya',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123', {
+      metodo: 'PATCH', token: tokB, datos: { family_id: famB },
+    })).estado >= 400)
+  comprobar('El documento sigue en la familia de A',
+    (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=family_id', { token: tokA }))
+      .cuerpo?.[0]?.family_id === famA)
   comprobar('El dueño y la ruta siguen siendo los de A',
     (await api('/rest/v1/documents?storage_path=eq.id-de-drive-123&select=storage_owner', { token: tokA }))
       .cuerpo?.[0]?.storage_owner === uidA)
@@ -873,6 +908,7 @@ async function main() {
   // con el borrado del usuario (on delete cascade). Se borra igual por si el
   // script se corta antes de llegar ahí.
   for (const uid of [uidA, uidB, uidC, uidD]) await api(`/rest/v1/storage_connections?user_id=eq.${uid}`, { metodo: 'DELETE' })
+  for (const uid of [uidA, uidB, uidC, uidD]) await api(`/rest/v1/invite_sends?user_id=eq.${uid}`, { metodo: 'DELETE' })
   // D ya se habrá borrado en la §12 si esa comprobación pasó; repetirlo da 404 y da
   // igual. Se deja en la lista para que la limpieza siga completa cuando falle.
   for (const uid of [uidA, uidB, uidC, uidD]) await api(`/auth/v1/admin/users/${uid}`, { metodo: 'DELETE' })

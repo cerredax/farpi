@@ -630,6 +630,24 @@ create table if not exists public.storage_connections (
   primary key (user_id, provider)
 );
 
+-- Cada correo de invitación que Farpi ha mandado, y quién lo pidió (23-09-2026).
+-- Es de donde sale el tope de `/api/invite`: diez al día por persona.
+--
+-- Se contaba sobre `family_invites` y ahí no se puede: quien invita es admin de
+-- esa familia, y un admin puede borrar sus invitaciones por PostgREST, cambiarles
+-- la fecha o cerrar la familia entera con `delete_family` y llevárselas en
+-- cascada. Cualquiera de las tres ponía la cuenta a cero. Por eso esta tabla
+-- tiene RLS **sin ninguna policy**, como `storage_connections`: la escribe y la
+-- lee solo el service role desde la ruta, y no cuelga de ninguna familia.
+--
+-- Borrar la cuenta se lleva sus filas, y no es una grieta: una cuenta nueva
+-- empieza de cero de todos modos, porque el registro está abierto.
+create table if not exists public.invite_sends (
+  id         uuid primary key default uuid_generate_v4(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  sent_at    timestamptz not null default now()
+);
+
 -- Los pendientes. Lo atrasado no se marca en rojo y ya: la app lo arrastra a hoy,
 -- que es donde hay que verlo.
 create table if not exists public.tasks (
@@ -744,6 +762,9 @@ create index if not exists idx_documents_expires   on public.documents(family_id
 -- Para el aviso al quitar a un miembro: "esta persona subió N documentos que
 -- dejarán de poder abrirse".
 create index if not exists idx_documents_storage_owner on public.documents(storage_owner);
+
+-- El tope de `/api/invite` pregunta «cuántas ha mandado esta persona desde ayer».
+create index if not exists invite_sends_user_idx on public.invite_sends(user_id, sent_at desc);
 
 -- Tampoco lleva uno de `(family_id)` a secas: es el prefijo de los dos de abajo.
 create index if not exists tasks_due_date_idx  on public.tasks(family_id, due_date);
@@ -918,7 +939,8 @@ $$;
 --
 -- Se arregla aquí y no en la policy porque una policy no puede comparar con la
 -- fila anterior: `with check` solo ve la nueva. Y se cierran las dos columnas y
--- no solo el dueño, porque la pareja es la que dice dónde están los bytes.
+-- no solo el dueño, porque la pareja es la que dice dónde están los bytes. La
+-- familia se cerró después, por la misma razón: es quién puede pedir el préstamo.
 --
 -- La app nunca las toca al editar (ver `updateDocument` en
 -- `src/lib/supabase-repos/documents.ts`, que actualiza nombre, descripción,
@@ -963,6 +985,16 @@ begin
   end if;
   if new.storage_provider is distinct from old.storage_provider then
     raise exception 'documents: storage_provider no se puede cambiar';
+  end if;
+  -- Ni la familia (23-09-2026). La policy de `update` solo pide que la familia
+  -- **nueva** sea una de las tuyas, así que quien está en dos —la de la casa y
+  -- una suya, que se crea gratis— podía llevarse la ficha de un papel ajeno a la
+  -- segunda. Desde ahí el proxy de lectura lo seguía sirviendo con el token del
+  -- dueño, que ni está en esa familia, y seguía haciéndolo después de que al que
+  -- se lo llevó lo echaran de la casa. La app nunca cambia esta columna: un
+  -- papel de otra familia es otra subida.
+  if new.family_id is distinct from old.family_id then
+    raise exception 'documents: family_id no se puede cambiar';
   end if;
   return new;
 end;
@@ -1154,6 +1186,7 @@ alter table public.tasks              enable row level security;
 alter table public.family_invites     enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.storage_connections enable row level security;
+alter table public.invite_sends       enable row level security;
 
 -- --- families ---------------------------------------------------------------
 --
@@ -1406,6 +1439,10 @@ create policy "Usuario gestiona sus push"
 -- que la interfaz sepa si está conectada", que lea antes el comentario de la
 -- tabla: para eso está `/api/documents/providers`.
 drop policy if exists "Usuario gestiona sus conexiones" on public.storage_connections;
+
+-- `invite_sends` tampoco lleva ninguna, y por la misma clase de razón: es la cuenta
+-- del tope de invitaciones, y una tabla de la que alguien puede borrar sus filas
+-- no cuenta nada. Solo la toca el service role, desde `/api/invite`.
 
 -- ============================================================================
 -- 5. Storage: nada. Los archivos no los guarda Farpi

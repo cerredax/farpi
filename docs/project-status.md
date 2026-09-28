@@ -871,7 +871,7 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
 - Los sheets validan con `src/lib/validators.ts` en lugar de comprobaciones ad-hoc; `EventSheet` ya bloquea hora de fin anterior a la de inicio.
 - Métodos de repo sin uso retirados del contrato: `getTodayEvents`, `getUpcomingEvents`, `getPendingItems` (las pantallas derivan con `selectors.ts`).
 - Paleta tokenizada: de 54 colores sueltos a 18, y de 109 apariciones a 36. Los tonos casi idénticos (seis verdes claros, cinco blancos cálidos) se unificaron en tokens de `globals.css`. Lo que queda literal son datos (paleta de hijos, prioridades), marca de terceros (logo de Google) y cuatro decorativos de un solo uso.
-- PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`. El service worker **solo cachea navegaciones que salieron bien** (28-08-2026): cacheaba cualquier respuesta, y con la pantalla de avería eso dejaba el error pegado a `/home`. Desde el 03-09-2026 son **dos cachés** (`farpi-paginas-v1` y `farpi-estaticos-v1`) y **cerrar sesión vacía la de páginas**: lo que se guardó de una navegación es una página que se vio con la sesión abierta. Hoy no filtra nada —las pantallas son cascarones de cliente— pero era una invariante que nadie había escrito, y el día que una página del grupo `(app)` renderice en servidor, un móvil compartido lo enseñaría después de salir. Están separadas para poder tirar las páginas sin llevarse `/offline`, que solo se repone en el `install` del worker siguiente. Comprobado en un navegador real contra `npm run start`, que es la única forma de verlo (en `npm run dev` no se sirve lo mismo).
+- PWA: iconos any + maskable + apple-touch, `manifest.json` con purposes (script `scripts/gen-icons.cjs`) y service worker con fallback `/offline`. El service worker **solo cachea navegaciones que salieron bien** (28-08-2026): cacheaba cualquier respuesta, y con la pantalla de avería eso dejaba el error pegado a `/home`. Desde el 03-09-2026 son **dos cachés** (`farpi-paginas-v2` y `farpi-estaticos-v2`, en v2 desde el 28-09-2026) y **cerrar sesión vacía la de páginas**: lo que se guardó de una navegación es una página que se vio con la sesión abierta. Hoy no filtra nada —las pantallas son cascarones de cliente— pero era una invariante que nadie había escrito, y el día que una página del grupo `(app)` renderice en servidor, un móvil compartido lo enseñaría después de salir. Están separadas para poder tirar las páginas sin llevarse `/offline`, que solo se repone en el `install` del worker siguiente. Comprobado en un navegador real contra `npm run start`, que es la única forma de verlo (en `npm run dev` no se sirve lo mismo).
 - **Cuando Supabase no contesta, la app lo dice** (28-08-2026). `getUser()` tiene cinco
   segundos y un `catch` en `src/lib/supabase/middleware.ts`, que distingue "no hay nadie"
   —normal— de "no contesta". Con Supabase caído: las páginas públicas se sirven igual, las
@@ -1365,6 +1365,24 @@ de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidac
 22-09-2026 (173/173), y **los tres huecos de la revisión de seguridad del 23-09-2026**
 (186/186, con Next.js al día). El relato de cada una, en el cuerpo de su commit.
 
+### Para retomar (lista de trabajo, 28-09-2026)
+
+En orden. Lo de abajo explica cada punto; esto es lo que toca la próxima vez.
+
+1. **Comprobar el cron de las siete** en los logs de Vercel (`/api/cron/reminders`):
+   uno de los dos de cada mañana tiene que decir `fueraDeHora: true` y el otro traer
+   `sent`. Si solo aparece uno, Vercel no aceptó los dos crons de `vercel.json`.
+2. **Probar en el móvil que los avisos se reparan solos** (`docs/notificaciones.md`,
+   «Que no haya que volver a activarlas»): borrar la fila de `push_subscriptions` y
+   abrir la app, y tiene que volver; cerrar sesión, y tiene que irse.
+3. **Firewall**: mirar en Vercel → Firewall si la regla «Limite API» (en modo `log`)
+   salta con el uso normal. Si no, pasarla a 429 (el comando está en `docs/produccion.md`).
+4. **Google Play**, siguiendo `docs/play-store.md`: cuenta de desarrollador, Bubblewrap
+   con `farpi.app`, subir a prueba cerrada, la huella SHA-256 → `assetlinks.json`, la
+   ficha (falta el gráfico de 1024×500) y **12 testers durante 14 días**.
+5. Lo que queda de producto, sin prisa: reglas por comercio al importar (quitarían la
+   Beta), el mes fantasma por la app y una sección de ayuda (apartado 3).
+
 ### 1. Hay que tener un aparato delante
 
 Es lo único que no ve ninguna herramienta, y por eso va primero.
@@ -1381,11 +1399,11 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
 ### 2. Decisión sin tomar
 
 - **Google Play (TWA)**: el package name es **`farpi.app`** (decidido el 28-09-2026; es
-  irreversible en cuanto se publique). Falta el SHA-256 de la firma, y con él
-  `public/.well-known/assetlinks.json`, que tiene que pasar sin sesión por el proxy; `id` y
-  `scope` en `manifest.json`; una página pública de borrado de cuenta, que Play exige; la
-  ficha de seguridad de datos, y la guía `docs/play-store.md`. La PWA y la política de
-  privacidad ya están.
+  irreversible en cuanto se publique). Lo del repositorio está hecho: `manifest.json` con
+  `id`, `scope` y capturas; `/borrar-cuenta`, pública; `/.well-known/` fuera del proxy, y
+  la guía entera en `docs/play-store.md`. Falta lo que no vive aquí: la cuenta de
+  desarrollador, generar la app con Bubblewrap, la huella SHA-256 de la firma de Google
+  —y con ella `public/.well-known/assetlinks.json`—, la ficha y la prueba cerrada.
 
 ### 3. Funcionalidad que no existe
 

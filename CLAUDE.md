@@ -27,6 +27,7 @@ Sencilla, visual y útil para una familia. No es un SaaS ni aspira a serlo.
 - `docs/produccion.md` — checklist de despliegue (Vercel + Supabase) y variables de entorno.
 - `docs/supabase-validation.md` — resultado de la última validación de RLS.
 - `docs/notificaciones.md` — qué falta para activar las notificaciones push.
+- `docs/play-store.md` — cómo se publica en Google Play (TWA), paso a paso.
 
 Y `git log`, que es el séptimo documento: **todos los commits llevan cuerpo** —unas 10.000
 líneas en total— y ahí está el porqué de cada cosa, escrito el día que se hizo. Por eso ya
@@ -103,7 +104,7 @@ npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
 npm run test:unit      # 706 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 909 (706 unitarios + 203 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:e2e       # suite completa: 922 (706 unitarios + 216 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -150,9 +151,9 @@ Pantallas (src/components/**)
 
 ### Next.js 16
 
-- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, finances, notes, docs, birthdays, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo, las **cinco** que se ven sin sesión, que son exactamente las de `PUBLIC_ROUTES`: `/` (la portada, que redirige a `/home` si ya has entrado), `/privacidad` y `/terminos` (requisito para publicar en Google Play), `/offline` (fallback del service worker) y `/no-disponible` (la cara del "Supabase no contesta", que el proxy sirve por `rewrite` sin cambiar la URL).
+- App Router. Rutas de app bajo el grupo `src/app/(app)/` (home, calendar, tasks, lists, meals, finances, notes, docs, birthdays, settings); auth en `src/app/auth/`; onboarding en `src/app/onboarding/`. Fuera del grupo, las **seis** que se ven sin sesión, que son exactamente las de `PUBLIC_ROUTES`: `/` (la portada, que redirige a `/home` si ya has entrado), `/privacidad`, `/terminos` y `/borrar-cuenta` (requisitos para publicar en Google Play), `/offline` (fallback del service worker) y `/no-disponible` (la cara del "Supabase no contesta", que el proxy sirve por `rewrite` sin cambiar la URL).
 - El middleware es **`src/proxy.ts`** (renombrado en Next 16, exporta `proxy()`), que delega en `src/lib/supabase/middleware.ts` para refrescar la sesión.
-- **Las rutas públicas son una lista blanca a mano**: `PUBLIC_ROUTES` en `src/lib/supabase/middleware.ts`, y es la lista de arriba. Si añades una página que se ve sin sesión y no la metes ahí, redirige al login. `/api/cron/*` pasa también, por prefijo y no por la lista: el cron de Vercel llama sin sesión y se protege él solo con `CRON_SECRET`. Lo mismo por el otro lado: el `matcher` de `src/proxy.ts` deja fuera `sw.js` y `manifest.json` a propósito — si pasan por el control de sesión responden con redirect y el navegador se niega a registrar el service worker.
+- **Las rutas públicas son una lista blanca a mano**: `PUBLIC_ROUTES` en `src/lib/supabase/middleware.ts`, y es la lista de arriba. Si añades una página que se ve sin sesión y no la metes ahí, redirige al login. `/api/cron/*` pasa también, por prefijo y no por la lista: el cron de Vercel llama sin sesión y se protege él solo con `CRON_SECRET`. Lo mismo por el otro lado: el `matcher` de `src/proxy.ts` deja fuera `sw.js` y `manifest.json` a propósito — si pasan por el control de sesión responden con redirect y el navegador se niega a registrar el service worker—, y `/.well-known/`, donde va el `assetlinks.json` que Android descarga sin sesión para la app de Google Play.
 - Ante dudas de API o convención, consultar la documentación local en `node_modules/next/dist/docs/` antes de asumir comportamiento antiguo.
 
 ### Clientes Supabase
@@ -166,8 +167,8 @@ Pantallas (src/components/**)
 las navegaciones con fallback a `/offline`, stale-while-revalidate en los estáticos y
 **nunca** cachea `/api`, `/auth` ni Supabase.
 
-**Son dos cachés y no una** desde el 03-09-2026: `farpi-paginas-v1` guarda las
-navegaciones y `farpi-estaticos-v1` el precache y lo estático. Están separadas porque
+**Son dos cachés y no una** desde el 03-09-2026: `farpi-paginas-v2` guarda las
+navegaciones y `farpi-estaticos-v2` el precache y lo estático. Están separadas porque
 **cerrar sesión vacía la de páginas** —lo que se cacheó de una navegación se vio con la
 sesión abierta— y con una sola caché había que elegir entre dejarlas ahí o llevarse por
 delante `/offline`, que solo se repone en el `install` del worker siguiente. Lo pide la

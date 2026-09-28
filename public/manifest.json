@@ -1,8 +1,10 @@
 {
+  "id": "/home",
   "name": "Farpi",
   "short_name": "Farpi",
   "description": "Tu espacio familiar privado",
   "start_url": "/home",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#FAF7F2",
   "theme_color": "#8BA888",
@@ -35,6 +37,77 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "lang": "es",
+  "dir": "ltr",
+  "categories": [
+    "lifestyle",
+    "productivity"
+  ],
+  "screenshots": [
+    {
+      "src": "/capturas/inicio.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Inicio"
+    },
+    {
+      "src": "/capturas/calendario.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Calendario"
+    },
+    {
+      "src": "/capturas/listas.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Listas"
+    },
+    {
+      "src": "/capturas/tareas.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tareas"
+    },
+    {
+      "src": "/capturas/comidas.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Comidas"
+    },
+    {
+      "src": "/capturas/finanzas.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Finanzas"
+    },
+    {
+      "src": "/capturas/documentos.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Documentos"
+    },
+    {
+      "src": "/capturas/notas.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Notas"
+    },
+    {
+      "src": "/capturas/semana.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "La semana"
     }
   ]
 }

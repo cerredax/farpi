@@ -9,7 +9,7 @@ const CONTACT = 'cerredax@gmail.com'
 
 export default function PrivacidadPage() {
   return (
-    <LegalShell title="Política de privacidad" updated="27 de agosto de 2026">
+    <LegalShell title="Política de privacidad" updated="28 de septiembre de 2026">
       <p>
         En Farpi nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
         derechos tienes. Farpi es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.
@@ -104,7 +104,9 @@ export default function PrivacidadPage() {
           Conservamos los datos mientras tu cuenta o tu familia sigan activas en Farpi. Si eliminas tu cuenta, se
           borran los datos asociados a ella, pero parte del contenido familiar compartido puede mantenerse si
           pertenece a una familia donde siguen otros adultos. Las suscripciones push se eliminan al desactivar los
-          avisos o cuando dejan de ser válidas. También puedes solicitar la supresión escribiéndonos.
+          avisos, al cerrar sesión en ese dispositivo o cuando dejan de ser válidas. También puedes solicitar la
+          supresión escribiéndonos; cómo hacerlo, con o sin la app, está en{' '}
+          <a href="/borrar-cuenta" className="font-semibold text-primary-strong">Borrar tu cuenta</a>.
         </p>
         <p>
           Los archivos de los documentos son la excepción, porque no están en nuestro disco: al borrar un

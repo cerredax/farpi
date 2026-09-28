@@ -78,7 +78,7 @@ export async function updateSession(request: NextRequest) {
   const sesion = await leerSesion(supabase)
 
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
-  const PUBLIC_ROUTES = ['/', '/privacidad', '/terminos', '/offline', '/no-disponible']
+  const PUBLIC_ROUTES = ['/', '/privacidad', '/terminos', '/borrar-cuenta', '/offline', '/no-disponible']
   const isPublicRoute =
     PUBLIC_ROUTES.includes(request.nextUrl.pathname) ||
     // El cron de Vercel llama sin sesión: si lo redirigimos al login, la tarea

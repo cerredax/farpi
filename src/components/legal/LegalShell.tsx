@@ -37,7 +37,9 @@ export function LegalShell({
             quien llegue desde la ficha de Play Store acabará en el login, no en
             la home. El enlace dice "Volver a Farpi" y no "Volver al inicio"
             porque es verdad en los dos casos. */}
-        <Link href="/home" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink">
+        {/* `min-h-11` (28-09-2026): medía 20 px de alto, y estas páginas no estaban
+            en el recorrido de `movil.spec.ts` que lo habría cazado. */}
+        <Link href="/home" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink">
           <ArrowLeft size={16} strokeWidth={2.3} /> Volver a Farpi
         </Link>
         <h1 className="mt-4 text-2xl font-extrabold text-ink">{title}</h1>

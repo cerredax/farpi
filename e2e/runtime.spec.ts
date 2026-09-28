@@ -68,6 +68,7 @@ const ROUTES = [
   '/settings',
   '/auth/login',
   '/privacidad',
+  '/borrar-cuenta',
   '/terminos',
 ]
 

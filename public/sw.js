@@ -16,8 +16,10 @@
 // llevarse por delante `/offline` —que solo se repone en el `install`, es decir en
 // la siguiente versión del worker— y quedarse sin fallback de sin conexión hasta
 // entonces.
-const CACHE_PAGINAS = 'farpi-paginas-v1'
-const CACHE_ESTATICOS = 'farpi-estaticos-v1'
+// v2 el 28-09-2026: `manifest.json`, que va en el precache, ganó `id`, `scope` y
+// las capturas para Google Play.
+const CACHE_PAGINAS = 'farpi-paginas-v2'
+const CACHE_ESTATICOS = 'farpi-estaticos-v2'
 /** Las que valen ahora. El `activate` borra toda caché que no esté aquí. */
 const CACHES_VIGENTES = [CACHE_PAGINAS, CACHE_ESTATICOS]
 const OFFLINE_URL = '/offline'

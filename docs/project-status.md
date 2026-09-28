@@ -1380,9 +1380,12 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
 
 ### 2. Decisión sin tomar
 
-- **Google Play (TWA)**: falta el package name definitivo —es irreversible—, el SHA-256 de
-  la firma, `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`. La PWA y
-  la política de privacidad, que es lo que Google exige, ya están.
+- **Google Play (TWA)**: el package name es **`farpi.app`** (decidido el 28-09-2026; es
+  irreversible en cuanto se publique). Falta el SHA-256 de la firma, y con él
+  `public/.well-known/assetlinks.json`, que tiene que pasar sin sesión por el proxy; `id` y
+  `scope` en `manifest.json`; una página pública de borrado de cuenta, que Play exige; la
+  ficha de seguridad de datos, y la guía `docs/play-store.md`. La PWA y la política de
+  privacidad ya están.
 
 ### 3. Funcionalidad que no existe
 

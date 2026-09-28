@@ -1,5 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { IS_DEMO_MODE, SUPABASE_URL, SUPABASE_ANON_KEY } from './env'
+import { darDeBajaEsteDispositivo } from '../push'
 
 export { IS_DEMO_MODE }
 
@@ -38,6 +39,8 @@ function vaciarPaginasCacheadas(): void {
 
 export async function signOut() {
   if (IS_DEMO_MODE) return
+  // Antes de cerrar la sesión, porque la ruta que lo borra la pide.
+  await darDeBajaEsteDispositivo()
   const supabase = createClient()
   await supabase.auth.signOut()
   // Después de cerrar la sesión y no antes: si `signOut` fallara, las páginas

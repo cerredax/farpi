@@ -173,6 +173,109 @@ async function registroListo(): Promise<ServiceWorkerRegistration> {
   }
 }
 
+/**
+ * Que alguien **apagó a mano** los avisos en este navegador.
+ *
+ * Hace falta desde que la app repara sola la suscripción al abrirse
+ * (`sincronizarPush`, 28-09-2026): el permiso del navegador sigue concedido
+ * después de pulsar «Desactivar», y sin esta marca la reparación volvería a
+ * suscribir a quien acaba de decir que no. Cerrar sesión **no** la pone: eso no
+ * es apagar los avisos, es salir, y al volver a entrar tienen que volver solos.
+ *
+ * En `localStorage` porque es de este navegador y de nadie más, que es justo lo
+ * que es una suscripción. Si no se puede leer, cuenta como no apagado.
+ */
+const CLAVE_APAGADOS = 'farpi_avisos_apagados'
+
+function apagadosAMano(): boolean {
+  try {
+    return localStorage.getItem(CLAVE_APAGADOS) === '1'
+  } catch {
+    return false
+  }
+}
+
+function marcarApagados(apagados: boolean): void {
+  try {
+    if (apagados) localStorage.setItem(CLAVE_APAGADOS, '1')
+    else localStorage.removeItem(CLAVE_APAGADOS)
+  } catch {
+    // Sin almacenamiento, lo peor es que la reparación vuelva a suscribir.
+  }
+}
+
+/** Una sola reparación por pestaña: no hace falta repetirla en cada pantalla. */
+const CLAVE_SINCRONIZADO = 'farpi_avisos_sincronizados'
+
+/**
+ * Deja este dispositivo suscrito **sin preguntar nada**, si ya dio permiso.
+ *
+ * Es lo que hace que los avisos funcionen como si fueran de la cuenta y no del
+ * aparato (28-09-2026). El permiso es del navegador y hay que darlo una vez en
+ * cada uno, y eso no tiene arreglo. Pero la suscripción se perdía sin avisar: el
+ * cron borra la que el servidor de push da por muerta, el navegador la renueva
+ * cuando quiere y cerrar sesión la quita. Hasta hoy, la única forma de recuperarla
+ * era darse cuenta de que no llegaba nada y pulsar «Activar» en Ajustes. Ahora cada
+ * vez que se abre la app, si el permiso está concedido y nadie los apagó, se
+ * vuelve a guardar la suscripción de este navegador. El alta es un `upsert` por
+ * `endpoint`, así que repetirla no duplica nada.
+ *
+ * **No registra el service worker**: si no hay uno activo —en `npm run dev`, que
+ * no lo registra a propósito, o en la primera visita— no hace nada, y lo hará la
+ * próxima vez. Y **no falla nunca en voz alta**: es mantenimiento de fondo, y un
+ * `console.error` aquí tumbaría `e2e/runtime.spec.ts`.
+ */
+export async function sincronizarPush(): Promise<void> {
+  try {
+    if (!pushSupported() || !pushConfigured()) return
+    if (Notification.permission !== 'granted' || apagadosAMano()) return
+    if (sessionStorage.getItem(CLAVE_SINCRONIZADO) === '1') return
+
+    const registration = await navigator.serviceWorker.getRegistration()
+    if (!registration?.active) return
+    const subscription =
+      (await registration.pushManager.getSubscription()) ??
+      (await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
+      }))
+
+    const json = subscription.toJSON()
+    await pedirApi('/api/push', { endpoint: json.endpoint, keys: json.keys })
+    sessionStorage.setItem(CLAVE_SINCRONIZADO, '1')
+  } catch {
+    // Se reintenta la próxima vez que se abra la app.
+  }
+}
+
+/**
+ * Al cerrar sesión, este dispositivo deja de recibir los avisos de esa cuenta.
+ *
+ * Hasta el 28-09-2026 no se hacía, y en un móvil compartido quien entraba después
+ * seguía recibiendo los avisos de la cuenta anterior. Solo se borra la fila del
+ * servidor: la suscripción del navegador se queda, para que al volver a entrar
+ * `sincronizarPush` la guarde otra vez con la cuenta que entre.
+ *
+ * Tiene que ir **antes** de cerrar la sesión, porque la ruta la pide. Y con reloj:
+ * salir no puede quedarse esperando a una red lenta. Si falla, la fila se va sola
+ * el día que ese navegador deje de existir.
+ */
+export async function darDeBajaEsteDispositivo(): Promise<void> {
+  try {
+    sessionStorage.removeItem(CLAVE_SINCRONIZADO)
+    if (!pushSupported() || !pushConfigured()) return
+    const registration = await navigator.serviceWorker.getRegistration()
+    const subscription = await registration?.pushManager.getSubscription()
+    if (!subscription) return
+    await Promise.race([
+      pedirApi('/api/push', { endpoint: subscription.endpoint }, 'DELETE'),
+      new Promise(resolve => setTimeout(resolve, 3000)),
+    ])
+  } catch {
+    // Salir tiene que funcionar igual.
+  }
+}
+
 /** Pide permiso, se suscribe a push y guarda la suscripción en el backend. */
 export async function enablePush(): Promise<void> {
   if (!pushSupported()) throw new Error('Tu navegador no admite notificaciones.')
@@ -198,6 +301,7 @@ export async function enablePush(): Promise<void> {
   // el botón se quedaba en «Desactivar notificaciones» para siempre sin recibir un
   // aviso jamás. `pedirApi` lo detecta por `res.redirected`.
   await pedirApi('/api/push', { endpoint: json.endpoint, keys: json.keys })
+  marcarApagados(false)
 }
 
 /**
@@ -231,6 +335,9 @@ export async function pushActivo(): Promise<boolean> {
 export async function disablePush(): Promise<void> {
   if (!pushSupported()) return
   // Mismo motivo que al activar: desactivar también se colgaba sin decir nada.
+  // Antes que nada: aunque falle lo de abajo, la reparación de fondo no tiene que
+  // volver a suscribir a quien ha dicho que no.
+  marcarApagados(true)
   const registration = await registroListo()
   const subscription = await registration.pushManager.getSubscription()
   if (!subscription) return

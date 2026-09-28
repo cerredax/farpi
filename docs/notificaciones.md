@@ -177,6 +177,33 @@ Lo que hay que saber, y lo que se arregló:
   devuelva su 401 y `fetch` sigue el redirect, así que llega un 200 con el HTML del
   login y `res.ok` dice que todo fue bien.
 
+### Que no haya que volver a activarlas (28-09-2026)
+
+El permiso es del navegador y hay que darlo una vez en cada aparato; eso lo pone el
+sistema y no tiene arreglo. Lo que se perdía sin avisar era la **suscripción**, y desde
+el 28-09-2026 se repara sola por tres sitios:
+
+- **Al abrir la app** (`sincronizarPush`, desde `AppShell`): si el permiso está
+  concedido y nadie apagó los avisos a mano en ese navegador, se vuelve a guardar su
+  suscripción (una vez por pestaña, `upsert` por `endpoint`). Así se recupera la que el
+  cron borró por un 410 y la que se quitó al cerrar sesión. No registra el service
+  worker: sin uno activo —`npm run dev`— no hace nada.
+- **Cuando el navegador la renueva** (`pushsubscriptionchange` en `public/sw.js`): la
+  nueva se guarda en cuanto aparece, con las cookies de la sesión. La vieja la limpia el
+  cron con el primer 410.
+- **Al cerrar sesión** (`darDeBajaEsteDispositivo`, desde `signOut`): se borra la fila
+  de ese dispositivo, para que en un móvil compartido no le lleguen a nadie los avisos
+  de otra cuenta. La suscripción del navegador se queda, y al volver a entrar se guarda
+  con la cuenta que entre.
+
+**Desactivar en Ajustes** deja una marca en `localStorage` (`farpi_avisos_apagados`),
+porque el permiso sigue concedido y sin ella la reparación volvería a suscribir a quien
+acaba de decir que no. Activar la quita. Cerrar sesión no la pone.
+
+Nada de esto lo cubre la suite, que corre en modo demo sin VAPID. Se comprueba a mano
+contra `npm run start`: activar, borrar la fila de `push_subscriptions` y recargar, y
+tiene que volver; cerrar sesión, y tiene que irse.
+
 ### Cómo mirar qué hay guardado
 
 Con el service role, y **sin escribir nada**:

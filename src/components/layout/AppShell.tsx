@@ -6,6 +6,7 @@ import { StoreProvider } from '@/lib/store-context'
 import { readActiveFamilyId, writeActiveFamilyId } from '@/lib/family-config'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { supabaseRepos } from '@/lib/supabase-repos'
+import { sincronizarPush } from '@/lib/push'
 import { TopBar } from './TopBar'
 import { BottomNav } from './BottomNav'
 import { SideNav } from './SideNav'
@@ -17,6 +18,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isResolvingFamily, setIsResolvingFamily] = useState(!IS_DEMO_MODE)
   const [resolveError, setResolveError] = useState<string | null>(null)
   const router = useRouter()
+
+  // Que este dispositivo siga recibiendo los avisos sin tener que volver a
+  // activarlos (28-09-2026). No hace nada en modo demo ni sin permiso concedido;
+  // el porqué entero, en `sincronizarPush`.
+  useEffect(() => {
+    void sincronizarPush()
+  }, [])
 
   useEffect(() => {
     if (IS_DEMO_MODE) return

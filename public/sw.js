@@ -125,6 +125,36 @@ self.addEventListener('push', event => {
   event.waitUntil(self.registration.showNotification(title, options))
 })
 
+// El navegador puede renovar la suscripción cuando quiere (Chrome lo hace de vez
+// en cuando) y hasta el 28-09-2026 nadie se enteraba: el servidor seguía con la
+// dirección vieja, el cron recibía un 410, la borraba y ese móvil se quedaba sin
+// avisos sin decir nada. Aquí se guarda la nueva en cuanto aparece. La vieja no
+// hace falta borrarla: el primer envío le da 410 y el cron la limpia.
+//
+// Va con las cookies de la sesión, como cualquier petición a la propia app. Si no
+// hay sesión o falla, no pasa nada grave: la app la repara al abrirse
+// (`sincronizarPush` en `src/lib/push.ts`).
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil((async () => {
+    try {
+      const nueva = event.newSubscription ||
+        (event.oldSubscription && event.oldSubscription.options
+          ? await self.registration.pushManager.subscribe(event.oldSubscription.options)
+          : null)
+      if (!nueva) return
+      const json = nueva.toJSON()
+      await fetch('/api/push', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
+      })
+    } catch {
+      // La reparación de la app lo cubre la próxima vez que se abra.
+    }
+  })())
+})
+
 self.addEventListener('notificationclick', event => {
   event.notification.close()
   const target = (event.notification.data && event.notification.data.url) || '/home'

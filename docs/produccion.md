@@ -129,8 +129,9 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       registrado ahí y con sus nameservers— y se puso con
       `vercel dns add farpi.app @ TXT "google-site-verification=…"`. Si desaparece,
       Google des-verifica la propiedad y el Branding vuelve a dar error.
-- [ ] **Play Store**: el *package name* es irreversible. Todavía no se ha publicado, que
-      es justo por lo que este era el momento de cambiar el nombre.
+- [ ] **Play Store**: el *package name* es irreversible. Será **`farpi.app`**
+      (decidido el 28-09-2026). Todavía no se ha publicado, que es justo por lo que este
+      era el momento de cambiar el nombre.
 
 La etiqueta `appProperties.nido_family` de los archivos ya subidos **no se toca**: va
 dentro de cada archivo, en el Drive de su dueño, y reescribirla exigiría recorrer uno a
@@ -385,8 +386,14 @@ datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo que re
 - [x] Backup/export de datos de la familia (27-08-2026). Desde Ajustes, un JSON con todo
   lo de la casa; la lógica, en `src/lib/export.ts`. No se lleva los archivos de los
   documentos, que viven en el Drive de quien los sube y tienen su propia papelera.
-- [ ] Publicar en Google Play como TWA: package name, SHA-256 de la firma,
+- [ ] Publicar en Google Play como TWA: package name (`farpi.app`), SHA-256 de la firma,
   `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`.
+- [ ] Límite de peticiones en el firewall de Vercel (plan Hobby: una regla por proyecto).
+  Regla «Limite API» creada el 28-09-2026 con el CLI: `/api/*` salvo `/api/cron`, 100
+  peticiones por minuto e IP, **en modo `log`**. Se pasa a 429 con
+  `vercel firewall rules edit "Limite API" --rate-limit-action rate_limit --yes` y
+  `vercel firewall publish --yes` cuando el panel del firewall diga que no salta con el uso
+  normal.
 - [x] Medir el contraste de la paleta (09-09-2026, cerrado el 10). Medido nodo a nodo en el
   navegador: 83 fallos, y el último texto sobre `danger` se fue con el «Sí, ponerlo a cero»
   del cierre del mes. `danger` se queda para lo que no es texto.

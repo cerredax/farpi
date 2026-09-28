@@ -109,6 +109,17 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   dónde contestarse. En móvil se pasa de mes o de día **arrastrando el dedo**, y
   cuando lo que se mira no contiene hoy aparece un botón **«Hoy»** junto a las
   flechas (05-09-2026); mirando el presente no se pinta, porque no haría nada.
+- **En móvil, el mes es un mapa limpio** (28-09-2026). Por debajo de `lg`: sin trama
+  en fines de semana y festivos (el número va en `muted`); hoy es solo el aro de su
+  número —sin pastilla en la cabecera ni filete al pie— y el día elegido es un **disco
+  macizo** en el número (`primary-strong`, salmón si es hoy), no la celda; **una marca
+  por persona y clase**, hasta tres y sin «+n» —círculo los planes, cuadrado las
+  tareas—; las ausencias son una **línea fina encima de la celda**, sin carril gris ni
+  hueco reservado; los días de otro mes van en blanco; y debajo de la rejilla solo el
+  **panel del día elegido, también con hoy**, más «Ver todo lo que viene», que lleva a
+  la vista Agenda: la agenda ya no va colgada del mes en móvil. Escritorio no cambia:
+  todo lo que sigue en esta lista sobre la rejilla vale allí tal cual, y en móvil vale
+  salvo en esto.
 - **Hoy es un aro salmón y el día elegido es la celda entera** (12-09-2026, el aro
   desde el 13). Son
   dos señales de naturaleza distinta y no dos formas del mismo círculo, que es lo
@@ -492,7 +503,8 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   cualquier mes: un mes cerrado congela el plan, no el día a día.
 - Cumpleaños (27-08-2026): salen de la fecha de nacimiento que ya se guardaba en
   Ajustes, no se apuntan. El de hoy abre la tarjeta de Inicio y los de los próximos
-  catorce días van en su bloque; el aviso de las siete felicita el mismo día.
+  catorce días van en su bloque; el aviso de las siete avisa **el día antes y el mismo
+  día** (el día antes desde el 28-09-2026).
 - **Cumpleaños tiene pantalla propia** (11-09-2026), en "Más" entre Notas y Documentos.
   Su ruta es `/birthdays` desde el 12-09-2026: nació como `/cumples` y era la única del
   grupo, junto a `/finanzas`, que no estaba en inglés como las demás. Aquella se renombró
@@ -896,7 +908,8 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
     - Los **dos de cómo se llama un archivo en una frase** (17-09-2026): «Documento
       PDF», «Imagen JPG», y qué se dice de un tipo que hoy ya no se deja subir. La
       función vivía dentro de `FileTypeIcon.tsx`, así que no la probaba nadie.
-    - Los **veintiuno del aviso de las nueve** (15-09-2026): qué dice la notificación de
+    - Los **veintisiete del aviso de las siete** (15-09-2026; la hora y el cumpleaños de
+      mañana, el 28-09-2026): qué dice la notificación de
       la mañana. Que el título es el día en el calendario de la familia y no en el del
       servidor, que la hora de un plan se traduce a la de Madrid y no a la de la función
       de Vercel que la envía, que un plan de todo el día no se inventa las 00:00, que del
@@ -1087,7 +1100,8 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
 - `family_invites` update con `using` + `with check`.
 - `?next=` del callback pasa por `safeNextPath`: solo rutas de la propia app. Sin eso,
   un enlace de correo legítimo podía acabar en otra web justo después de iniciar sesión.
-- Seis cabeceras de seguridad en `next.config.ts`, **CSP incluida** desde el
+- Siete cabeceras de seguridad en `next.config.ts` (`Cross-Origin-Opener-Policy`
+  desde el 28-09-2026), **CSP incluida** desde el
   26-08-2026 (ver `architecture.md`: lleva `'unsafe-inline'` en los scripts porque Next
   los inyecta, y `connect-src` se arma con la URL real del proyecto).
 - Rutas API: el motivo de un fallo va al log del servidor y la respuesta lleva un mensaje
@@ -1361,6 +1375,11 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
   la política de privacidad, que es lo que Google exige, ya están.
 
 ### 3. Funcionalidad que no existe
+
+- **Presupuestos e Importar el extracto salen como «Beta»** (28-09-2026, `BetaBadge`):
+  funcionan y la familia los usa, pero la forma puede cambiar. Quitar la pastilla es la
+  forma de darlos por cerrados, y el candidato para hacerlo son las reglas por comercio
+  de aquí debajo.
 
 - **Reglas por comercio al importar el extracto.** Hoy la partida se propone solo si el
   concepto del banco nombra a la partida («Farmacia»), que no acierta con «MERCADONA» para

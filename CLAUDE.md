@@ -102,8 +102,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 699 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 901 (699 unitarios + 202 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 706 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 908 (706 unitarios + 202 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -212,9 +212,10 @@ Detalle completo en `docs/architecture.md`, sección "Documentos en Google Drive
 
 ### Cabeceras de seguridad
 
-`next.config.ts` pone seis en todas las rutas, porque Farpi guarda DNI, informes médicos
+`next.config.ts` pone siete en todas las rutas, porque Farpi guarda DNI, informes médicos
 y el libro de familia: `Content-Security-Policy`, `Strict-Transport-Security`,
-`X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` y `Permissions-Policy`. La de HSTS
+`X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy` y
+`Cross-Origin-Opener-Policy: same-origin`. La de HSTS
 la pone además Vercel por su cuenta; está escrita porque era el único control que vivía
 en la plataforma y no aquí.
 
@@ -238,7 +239,7 @@ entrar en las pantallas con sesión sin credenciales.
 - `/api/invite` — invitación por magic link (`inviteUserByEmail`, service role) → `/auth/callback?invite_id=…` → RPC `accept_family_invite`.
 - `/api/account/delete` — borrado de cuenta; bloquea si dejaría una familia compartida sin admin.
 - `/api/push` — alta/baja de suscripciones Web Push.
-- `/api/cron/reminders` — cron diario (`vercel.json`, 07:00 UTC): keep-alive de Supabase + envío de recordatorios.
+- `/api/cron/reminders` — cron diario (`vercel.json`, a las 05:00 y a las 06:00 UTC): keep-alive de Supabase, cierre de mes y, solo en la de las siete de Madrid, envío de recordatorios (`esLaHoraDelAviso`). `?forzar=1` salta la hora para probarlo a mano.
 - `/api/salud` — si Supabase responde, y cuánto tarda. 200 o 503, para un vigía externo. **Fuera del `matcher` de `src/proxy.ts`**: lo que vigila a Supabase no puede pasar por la pieza que puede estar colgada.
 - `/api/documents/*` — los documentos en Google Drive: abrir sesión de subida, guardar la ficha, servir el archivo por proxy, borrar y gestionar la conexión con el proveedor.
 

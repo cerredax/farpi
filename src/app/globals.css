@@ -230,6 +230,33 @@
     padding-block: 1px;
     background-color: var(--color-line);
   }
+
+  /* El mes en móvil (28-09-2026).
+     ---------------------------------------------------------------
+     Por debajo de `lg`, la rejilla del mes va **sin trama**: era del mismo gris
+     que las líneas y a 52 px de celda las dos se fundían en ruido. El fin de
+     semana y el festivo se dicen en el número, en `muted`.
+
+     Y las franjas de ausencia son una **línea fina encima de la celda**, sin
+     carril gris: el carril reservaba su hueco en todas las celdas del mes por una
+     sola ausencia. Lo que el carril hacía por los colores claros lo hace aquí el
+     mismo anillo que llevan los puntos. El resto de la app —el eje de horas
+     incluido— no cambia. */
+  @media (width < 64rem) {
+    .rejilla-mes .dia-libre {
+      background-image: none;
+    }
+
+    .rejilla-mes .franja-ausencia {
+      height: 4px;
+      padding-block: 0;
+      background-color: transparent;
+    }
+
+    .rejilla-mes .franja-ausencia > span {
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-ink) 15%, transparent);
+    }
+  }
 }
 
 *, *::before, *::after {

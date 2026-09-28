@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
-import { avisoDelDia, fraseDeLoDeHoy, fraseDeLoQueCaduca, horaDelPlan, tituloDelAviso } from '@/lib/reminders'
+import { avisoDelDia, esLaHoraDelAviso, fraseDeLoDeHoy, fraseDeLoQueCaduca, horaDelPlan, tituloDelAviso } from '@/lib/reminders'
 import type { PlanDelAviso } from '@/lib/reminders'
 
-// El aviso de las nueve de la mañana es lo único de Farpi que se lee sin abrir
+// El aviso de las siete de la mañana es lo único de Farpi que se lee sin abrir
 // Farpi, y lo escribe una función de Vercel que va en UTC. Las dos cosas que
 // pueden salir mal —la hora de otro huso y el plural de una frase— se prueban
 // aquí, que es donde se pueden probar sin levantar nada.
@@ -140,11 +140,62 @@ test.describe('avisoDelDia', () => {
     )
   })
 
+  // Un cumpleaños avisado a las siete del mismo día llega tarde para el regalo.
+  test('el cumpleaños de mañana va justo detrás del de hoy', () => {
+    const aviso = avisoDelDia(
+      {
+        felicitacion: 'Hoy Sofía cumple 8 años.',
+        cumplesDeManana: 'Mañana es el cumpleaños de la abuela Carmen.',
+        planes: [plan('Dentista', '16:30')],
+        tareas: 0,
+        documentosVencidos: 0,
+        documentosPorVencer: 0,
+      },
+      AHORA, MADRID,
+    )
+    expect(aviso.body).toBe('Hoy Sofía cumple 8 años. Mañana es el cumpleaños de la abuela Carmen. Dentista, a las 16:30.')
+  })
+
+  test('un día sin nada más que el cumpleaños de mañana avisa igual', () => {
+    const aviso = avisoDelDia(
+      { felicitacion: '', cumplesDeManana: 'Mañana Leo cumple 5 años.', planes: [], tareas: 0, documentosVencidos: 0, documentosPorVencer: 0 },
+      AHORA, MADRID,
+    )
+    expect(aviso.body).toBe('Mañana Leo cumple 5 años.')
+  })
+
   test('un día en que solo caduca un papel no habla de planes', () => {
     const aviso = avisoDelDia(
       { felicitacion: '', planes: [], tareas: 0, documentosVencidos: 1, documentosPorVencer: 0 },
       AHORA, MADRID,
     )
     expect(aviso.body).toBe('1 documento está caducado.')
+  })
+})
+
+// Vercel programa en UTC y Madrid cambia de hora: el cron salta a las 05:00 y a
+// las 06:00 UTC, y solo avisa la que en Madrid cae a las siete.
+test.describe('esLaHoraDelAviso', () => {
+  test('en verano avisa la de las 05:00 UTC y no la de las 06:00', () => {
+    expect(esLaHoraDelAviso(new Date('2026-09-28T05:00:00Z'), MADRID)).toBe(true)
+    expect(esLaHoraDelAviso(new Date('2026-09-28T06:00:00Z'), MADRID)).toBe(false)
+  })
+
+  test('en invierno avisa la de las 06:00 UTC y no la de las 05:00', () => {
+    expect(esLaHoraDelAviso(new Date('2026-12-15T05:00:00Z'), MADRID)).toBe(false)
+    expect(esLaHoraDelAviso(new Date('2026-12-15T06:00:00Z'), MADRID)).toBe(true)
+  })
+
+  // En Hobby el cron salta en cualquier minuto de su hora: las 05:59 UTC de
+  // verano siguen siendo las siete y las 05:59 de invierno todavía no.
+  test('vale cualquier minuto de la hora, y ninguno de la de al lado', () => {
+    expect(esLaHoraDelAviso(new Date('2026-09-28T05:59:00Z'), MADRID)).toBe(true)
+    expect(esLaHoraDelAviso(new Date('2026-12-15T05:59:00Z'), MADRID)).toBe(false)
+  })
+
+  test('el día del cambio de hora solo avisa una de las dos', () => {
+    // 25-10-2026: a las 01:00 UTC Madrid pasa de UTC+2 a UTC+1.
+    const avisos = ['2026-10-25T05:30:00Z', '2026-10-25T06:30:00Z'].filter(h => esLaHoraDelAviso(new Date(h), MADRID))
+    expect(avisos).toEqual(['2026-10-25T06:30:00Z'])
   })
 })

@@ -107,6 +107,15 @@ test.describe('cómo se dice', () => {
     expect(fraseDeCumplesDeLaCasa([])).toBe('')
   })
 
+  // El aviso de las siete avisa también del de mañana, con la misma frase.
+  test('el de mañana se dice igual, con otro adverbio', () => {
+    expect(fraseDeCumplesDeLaCasa(cumplesDeLaCasa([persona('Ana', '2018-08-27')], [], HOY, 0), 'Mañana'))
+      .toBe('Mañana Ana cumple 8 años.')
+    const varias = cumplesDeLaCasa([persona('Ana', '2018-08-27'), persona('Leo', '2015-08-27')], [], HOY, 0)
+    expect(fraseDeCumplesDeLaCasa(varias, 'Mañana')).toBe('Mañana cumplen años Ana y Leo.')
+    expect(fraseDeCumplesDeLaCasa([], 'Mañana')).toBe('')
+  })
+
   // Cerca se dice en días y lejos con la fecha. Lo usan el bloque de Inicio y la
   // lista de Cumpleaños, que llega a doce meses vista: ahí "dentro de 214 días"
   // no le dice nada a nadie.

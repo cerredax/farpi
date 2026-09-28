@@ -14,7 +14,16 @@ import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
  */
 
 /**
- * Cuántas marcas se pintan; de ahí en adelante, el resto se cuenta detrás.
+ * Cuántas marcas se pintan, como mucho.
+ *
+ * **Tres, sin "+n" detrás, desde el 28-09-2026**, cuando las marcas pasaron a ser
+ * una por persona y no una por cosa: en una casa de cuatro, tres puntos ya dicen
+ * casi siempre quién tiene algo, y el "+2" a 9 px —el texto más pequeño de la
+ * pantalla— hacía que cada fila de puntos midiera distinto. Cuántas cosas hay lo
+ * dice la etiqueta del botón del día, y el panel de debajo al tocarlo.
+ *
+ * Lo que sigue es la historia de antes, cuando las ausencias en móvil tenían su
+ * propia fila y no una línea encima:
  *
  * **Dos** (24-08-2026, antes tres). Debajo del número caben dos filas de señales
  * —esta y la de ausencias— y con tres puntos de 6 px más sus huecos la fila
@@ -23,11 +32,23 @@ import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
  * contesta igual y "¿cuántas cosas?" lo dice el "+n" de detrás, que es más
  * exacto que contar puntos.
  */
-const MAX_MARCAS = 2
+const MAX_MARCAS = 3
+
+/** Una marca del día: de quién es y si es un plan o una tarea. */
+export interface Marca {
+  color: string
+  tarea: boolean
+}
 
 /**
- * Los colores de lo que ocupa un día: primero los eventos y después las tareas
- * que vencen ese día.
+ * Quién tiene algo un día: primero los planes y después las tareas que vencen
+ * ese día, **una marca por persona y clase** (28-09-2026).
+ *
+ * Era una por cosa, y dos planes de María eran dos puntos iguales que no decían
+ * nada que uno no dijera. Ahora el punto contesta "¿quién tiene algo?" y la
+ * forma, "¿algo que pasa o algo que hacer?": los planes son un círculo y las
+ * tareas un cuadrado, porque en una celda de 52 px el color solo no basta para
+ * separar dos clases.
  *
  * Las **ausencias** —vacaciones y descansos— se quedan fuera a propósito. No son
  * planes: son quién no está, y eso lo dice el tinte del día y, con nombres, el
@@ -39,17 +60,24 @@ export function marcasDelDia(
   tasks: Task[],
   members: FamilyMember[],
   kids: Child[],
-): string[] {
-  return [
+): Marca[] {
+  const todas: Marca[] = [
     // Los festivos tampoco cuentan como punto. No son un plan del día y no son de
     // nadie, así que un punto de color mentiría dos veces; de que el día es
     // festivo ya avisa la trama de la celda. Es la misma regla que las ausencias.
-    ...events.filter(isPlan).map(e => eventColor(e, members, kids)),
+    ...events.filter(isPlan).map(e => ({ color: eventColor(e, members, kids), tarea: false })),
     // Una tarea no tiene color propio en la base, así que se pinta con el de
     // quien la lleva y, si no es de nadie, con el de la familia. Es la misma
     // cadena que `eventColor` aplica a los eventos.
-    ...tasks.map(t => resolveAssignee(t, members, kids)?.color ?? FAMILY_COLOR),
+    ...tasks.map(t => ({ color: resolveAssignee(t, members, kids)?.color ?? FAMILY_COLOR, tarea: true })),
   ]
+  const vistas = new Set<string>()
+  return todas.filter(m => {
+    const clave = `${m.tarea ? 't' : 'p'}${m.color}`
+    if (vistas.has(clave)) return false
+    vistas.add(clave)
+    return true
+  })
 }
 
 /**
@@ -99,42 +127,25 @@ export function resumenDelDia({ planes, tareas, vacaciones, descansos, familia }
   return partes.length > 0 ? partes.join(', ') : 'sin planes'
 }
 
-export function DayActivity({ marcas }: { marcas: string[] }) {
+export function DayActivity({ marcas }: { marcas: Marca[] }) {
   // El hueco se reserva aunque no haya nada: si no, los días con algo quedan
   // más altos que los demás y la tira se descuadra fila a fila.
   if (marcas.length === 0) return <span className="block h-3" aria-hidden />
 
   /**
-   * De tres en adelante: **los dos primeros puntos y "+n" detrás** (13-09-2026).
-   *
-   * Era el número pelado, y tenía dos problemas. Uno, que debajo de un número de
-   * día se lee como otra fecha: el 17 ponía "17" y, justo debajo, "4". Dos, que
-   * el día con más cosas era el único que perdía el color, o sea el único que no
-   * decía de quién es nada de lo que hay — al revés de lo que hace falta.
-   *
-   * Caben: dos puntos de 6 px y "+2" a 9 px son unos 30 px de los 51 que mide la
-   * celda a 390 px.
+   * Tres marcas de 7 px y ninguna cuenta detrás: son 27 px de los ~52 de la
+   * celda a 390 px. El anillo se queda, y no por adorno: los colores de persona
+   * están en L* 71-88 y sin él un punto champán sobre blanco no se ve.
    */
-  const dos = marcas.slice(0, MAX_MARCAS)
-
   return (
     <span className="flex h-3 items-center justify-center gap-[3px]" aria-hidden>
-      {dos.map((color, i) => (
+      {marcas.slice(0, MAX_MARCAS).map((marca, i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 flex-shrink-0 rounded-full ring-1 ring-ink/15"
-          style={{ backgroundColor: color }}
+          className={`h-[7px] w-[7px] flex-shrink-0 ring-1 ring-ink/15 ${marca.tarea ? 'rounded-[1px]' : 'rounded-full'}`}
+          style={{ backgroundColor: marca.color }}
         />
       ))}
-      {/* `primary-deep` y no `primary-strong` (05-09-2026): a 9 px este número es
-          el texto más pequeño de la rejilla, y `primary-strong` sobre el crema da
-          4,48:1 mientras que `primary-deep` llega a 5,56:1. No cuesta nada y es el
-          único sitio de la celda donde el tamaño no deja margen. */}
-      {marcas.length > MAX_MARCAS && (
-        <span className="text-[9px] font-black leading-none text-primary-deep">
-          +{marcas.length - MAX_MARCAS}
-        </span>
-      )}
     </span>
   )
 }

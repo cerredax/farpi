@@ -4,6 +4,7 @@ import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { BetaBadge } from '@/components/ui/BetaBadge'
 import { ArrowLeft, FileText, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useStore } from '@/lib/store-context'
@@ -122,6 +123,7 @@ export function ImportarExtracto() {
           <ArrowLeft size={20} />
         </Link>
         <h2 className="text-base font-bold text-ink">Traer el extracto del banco</h2>
+        <BetaBadge />
       </div>
 
       {filas.length === 0 && (

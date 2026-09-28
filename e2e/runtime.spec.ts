@@ -408,6 +408,8 @@ test('una tarea que se repite, marcada sin querer, se puede deshacer', async ({ 
 
   await page.goto('/calendar')
   await page.waitForTimeout(800)
+  // En móvil la agenda ya no va debajo del mes (28-09-2026): vive en su vista.
+  await elegirVista(page, 'Agenda')
 
   // Marcarla no la completa: le empuja la fecha a mañana. Se comprueba por
   // bloques y no en toda la página, porque desde el rediseño la agenda enseña
@@ -762,6 +764,8 @@ test('la tira de categorías dice cuál está puesta y se vuelve a plegar', asyn
 test('el calendario busca también en el pasado', async ({ page }) => {
   await page.goto('/calendar')
   await page.waitForTimeout(800)
+  // El buscador vive en la agenda, que en móvil es su propia vista.
+  await elegirVista(page, 'Agenda')
 
   await page.getByLabel('Buscar en el calendario').fill('itv')
 
@@ -777,6 +781,10 @@ test('el calendario busca también en el pasado', async ({ page }) => {
 // lo de junio. Dos meses en la misma pantalla y nada que lo avisara. Se prueba
 // con el rótulo "Hoy" porque es el único que dice a qué día está anclada la
 // lista sin depender de en qué día de la semana corra el test.
+//
+// En escritorio: desde el 28-09-2026, en móvil la lista no va debajo del mes.
+test.describe('en escritorio', () => {
+  test.use({ viewport: { width: 1280, height: 900 }, isMobile: false, hasTouch: false })
 test('la lista de debajo del mes habla del mes que se está mirando', async ({ page }) => {
   const hoy = new Date()
   const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
@@ -792,7 +800,7 @@ test('la lista de debajo del mes habla del mes que se está mirando', async ({ p
   await page.getByRole('button', { name: 'Apuntar', exact: true }).click()
   await page.waitForTimeout(700)
 
-  await verEnMes(page)
+  // En escritorio el mes es la vista de partida y no hay selector desplegable.
   await expect(seccionDeHoy(page)).toBeVisible()
 
   // Dos meses adelante: la lista se va con la rejilla.
@@ -807,6 +815,7 @@ test('la lista de debajo del mes habla del mes que se está mirando', async ({ p
   await page.waitForTimeout(500)
   await expect(seccionDeHoy(page)).toBeVisible()
 })
+})
 
 // Las cabeceras se configuran en next.config.ts y no se ven al usar la app: si
 // alguien las quita sin querer, nadie se entera hasta que pasa algo.
@@ -818,6 +827,8 @@ test('las respuestas llevan las cabeceras de seguridad', async ({ page }) => {
   expect(cabeceras['x-content-type-options']).toBe('nosniff')
   expect(cabeceras['referrer-policy']).toBe('strict-origin-when-cross-origin')
   expect(cabeceras['permissions-policy']).toContain('camera=()')
+  expect(cabeceras['permissions-policy']).toContain('payment=()')
+  expect(cabeceras['cross-origin-opener-policy']).toBe('same-origin')
 })
 
 // Una abuela que recoge a los niños los martes no tiene cuenta ni correo, y

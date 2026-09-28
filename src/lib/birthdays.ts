@@ -208,8 +208,12 @@ export function cumplesDeLaCasa<P extends PersonaConCumple & { id: string; color
 }
 
 /**
- * El cumpleaños de hoy dicho en una frase, para el aviso de las siete. Vacía si
- * hoy no cumple nadie.
+ * El cumpleaños de hoy —o el de mañana— dicho en una frase, para el aviso de las
+ * siete. Vacía si ese día no cumple nadie.
+ *
+ * El de mañana existe desde el 28-09-2026, cuando un cumpleaños avisado solo a
+ * las siete del mismo día llegó tarde: para llamar vale, para el regalo no. Es
+ * la misma frase con otro adverbio, así que es la misma función.
  *
  * Con una sola persona se dice la edad, que es lo que se felicita; con varias
  * no, porque la frase se hace ilegible y lo que hay que saber es que hoy toca
@@ -217,16 +221,16 @@ export function cumplesDeLaCasa<P extends PersonaConCumple & { id: string; color
  * casa casi nunca hay año de nacimiento, y "hoy es el cumpleaños de la abuela
  * Carmen" felicita igual de bien.
  */
-export function fraseDeCumplesDeLaCasa(cumples: CumpleEnCasa[]): string {
+export function fraseDeCumplesDeLaCasa(cumples: CumpleEnCasa[], cuando: 'Hoy' | 'Mañana' = 'Hoy'): string {
   if (cumples.length === 0) return ''
   if (cumples.length === 1) {
     const [cumple] = cumples
     return cumple.edad === null
-      ? `Hoy es el cumpleaños de ${cumple.nombre}.`
-      : `Hoy ${cumple.nombre} cumple ${edadEnPalabras(cumple.edad)}.`
+      ? `${cuando} es el cumpleaños de ${cumple.nombre}.`
+      : `${cuando} ${cumple.nombre} cumple ${edadEnPalabras(cumple.edad)}.`
   }
   const nombres = cumples.map(c => c.nombre)
-  return `Hoy cumplen años ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}.`
+  return `${cuando} cumplen años ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}.`
 }
 
 /** Un mes de la lista de Cumpleaños, con los suyos dentro. */

@@ -34,6 +34,7 @@ function CallbackHandler() {
   const [error, setError] = useState<string | null>(null)
   const [pendiente, setPendiente] = useState<SesionDeInvitacion | null>(null)
   const [entrando, setEntrando] = useState(false)
+  const [invitacionFallida, setInvitacionFallida] = useState<string | null>(null)
 
   /** Lo que se hace ya con la sesión abierta: entrar en la familia y seguir. */
   async function terminar() {
@@ -43,7 +44,21 @@ function CallbackHandler() {
     const inviteId = params.get('invite_id')
     if (inviteId) {
       const { error: rpcError } = await supabase.rpc('accept_family_invite', { p_invite_id: inviteId })
-      if (rpcError) console.error('[callback] No se pudo aceptar la invitación:', rpcError.message)
+      // Ya aceptada es volver a abrir el mismo enlace: se está dentro y se sigue.
+      if (rpcError && !rpcError.message.includes('ya fue aceptada')) {
+        console.warn('[callback] No se pudo aceptar la invitación:', rpcError.message)
+        // Se decía solo en la consola y se seguía a Inicio (hasta el 28-09-2026):
+        // quien venía a entrar en una familia aparecía en una app vacía sin saber
+        // por qué. El texto es nuestro, como el de los enlaces rotos.
+        setInvitacionFallida(
+          rpcError.message.includes('caducado')
+            ? 'La invitación ha caducado. Pide que te la manden otra vez.'
+            : rpcError.message.includes('cancelada')
+              ? 'La invitación se canceló. Pide que te manden otra.'
+              : 'No se ha podido aceptar la invitación. Pide a quien te invitó que te la mande otra vez.',
+        )
+        return
+      }
     }
     // `next` viene en la URL del correo: solo se acepta si es una ruta de la
     // propia app. Ver `safeNextPath`.
@@ -124,7 +139,23 @@ function CallbackHandler() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-canvas px-6 text-center">
       <div className="max-w-sm">
-        {error ? (
+        {invitacionFallida ? (
+          <>
+            <p className="text-lg font-extrabold text-ink">No has entrado en la familia</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{invitacionFallida}</p>
+            <Button
+              size="lg"
+              fullWidth
+              className="mt-5"
+              onClick={() => {
+                router.replace(safeNextPath(params.get('next')))
+                router.refresh()
+              }}
+            >
+              Seguir a Farpi
+            </Button>
+          </>
+        ) : error ? (
           <>
             <p className="text-lg font-extrabold text-ink">No hemos podido abrir el enlace</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">{error}</p>

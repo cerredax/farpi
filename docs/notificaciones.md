@@ -92,8 +92,11 @@ Con las tres variables (más `CRON_SECRET`) en `.env.local`:
 2. Dispara el cron a mano (PowerShell):
 
 ```powershell
-Invoke-RestMethod http://localhost:3000/api/cron/reminders -Headers @{ Authorization = "Bearer TU_CRON_SECRET" }
+Invoke-RestMethod "http://localhost:3000/api/cron/reminders?forzar=1" -Headers @{ Authorization = "Bearer TU_CRON_SECRET" }
 ```
+
+`?forzar=1` es lo que deja probarlo a cualquier hora: sin él, fuera de las siete de
+Madrid la ruta hace el mantenimiento y contesta `{ fueraDeHora: true }` sin enviar nada.
 
 Cómo leer la respuesta:
 
@@ -107,7 +110,7 @@ Cómo leer la respuesta:
   después de tocar `.env.local`.
 
 ### 4. El emisor de recordatorios (hecho)
-Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `vercel.json` (**cron diario a las 07:00 UTC**). Cada ejecución:
+Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `vercel.json` (**dos crons diarios, a las 05:00 y a las 06:00 UTC**, para que el aviso salga a las **siete de Madrid** en verano y en invierno; ver la nota de abajo). Cada ejecución:
 1. Hace un **keep-alive** a Supabase (evita la pausa por inactividad del plan free).
 2. Lee `push_subscriptions`, agrupa por usuario y busca sus eventos de hoy, sus tareas pendientes que vencen (o vencidas), los documentos que caducan dentro de `DIAS_AVISO_CADUCIDAD` (30 días, en `src/lib/constants.ts`) y los **cumpleaños de hoy**, deducidos de la fecha de nacimiento de las personas de la casa con `proximosCumples` (`src/lib/birthdays.ts`).
 3. Envía el push con `web-push` (payload `{ title, body, url }`).
@@ -116,7 +119,7 @@ Ya está implementado en `src/app/api/cron/reminders/route.ts` y programado en `
 Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
 - `CRON_SECRET` — Vercel añade `Authorization: Bearer <CRON_SECRET>` a las llamadas del cron; el endpoint lo verifica.
 
-> Nota: el plan **Hobby de Vercel** permite crons **una vez al día**, justo lo que usamos. El cron corre a las 07:00 UTC y el endpoint calcula "hoy" con `FARPI_TIME_ZONE` (`Europe/Madrid` por defecto), incluyendo correctamente eventos de todo el día.
+> Nota: el plan **Hobby de Vercel** admite cien crons por proyecto, cada uno **una vez al día** y con precisión de hora: `0 5 * * *` salta en cualquier minuto entre las 05:00 y las 05:59. Vercel programa en UTC y Madrid cambia de hora, así que ninguna hora UTC son las siete todo el año: en verano lo son las 05:00 y en invierno las 06:00. Por eso hay dos, y la ruta pregunta cada vez `esLaHoraDelAviso` (`src/lib/reminders.ts`): la que cae a las siete de Madrid avisa y la otra hace solo el keep-alive y el cierre de mes, y contesta `fueraDeHora: true`. El aviso llega, pues, **entre las 07:00 y las 07:59**. Hasta el 28-09-2026 era un solo cron a las 07:00 UTC, que son las 09:00 en verano: tarde para acordarse de un cumpleaños. "Hoy" se calcula con `FARPI_TIME_ZONE` (`Europe/Madrid` por defecto).
 
 ## El botón que se quedaba en "Guardando…"
 
@@ -198,6 +201,8 @@ levantar nada, con sus 21 unitarios en `e2e/unit/reminders.spec.ts`—:
 - Lo de **todo el día** va primero y no se inventa una hora: "Excursión (todo el día)".
 - Las **tareas se cuentan**, no se nombran, y cierran la lista.
 - El **cumpleaños abre** el cuerpo y lo que **caduca** va en frase aparte.
+- El **cumpleaños de mañana** va justo detrás del de hoy: "Mañana Leo cumple 5 años."
+  Basta él solo para que salga el aviso.
 
 La hora se calcula en `Europe/Madrid` y no con `extractTime` de `date-utils`: esa lee
 la hora **del que mira**, y quien mira aquí es una función de Vercel que va en UTC.
@@ -221,6 +226,9 @@ de todos los móviles por un icono que solo hace falta con red.
 - El aviso diario no cuenta las vacaciones como evento del día, igual que
   `selectTodayEvents`: son del calendario, no un plan de hoy.
 - El cumpleaños abre el cuerpo del aviso, delante de las tareas y de lo que caduca: es lo
-  único de los tres que caduca el mismo día. Y solo se felicita **el día**, sin
-  antelación: avisar con once días de margen a las siete de la mañana no es algo que haya
-  que saber hoy en casa.
+  único de los tres que caduca el mismo día. Se avisa **el día antes y el mismo día**, y
+  nada más: el mismo día llega tarde para el regalo (así se olvidó uno el 28-09-2026), y
+  avisar con once días de margen a las siete de la mañana no es algo que haya que saber
+  hoy en casa. Cuenta lo que el cron sabe: la fecha de nacimiento de quien es de la casa
+  y los eventos «cumple» apuntados. Un cumpleaños que no está en ninguno de los dos no
+  avisa.

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { format, isWeekend, parseISO } from 'date-fns'
 import { eventColor, fondoDePersona } from '@/lib/assignees'
 import { franjasDeAusencia, holidayName, isHoliday, isPlan, isRestDay, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
@@ -69,10 +70,31 @@ export const ALTO_FRANJA = 7
  */
 const AIRE_CARRIL = 2
 
-/** El hueco que reserva el carril de ausencias, con su aire. Lo comparten la celda y los días de fuera de mes, que tienen que casar al píxel. */
-export function estiloDeCarril(carril: number) {
-  return { height: carril * ALTO_FRANJA, marginTop: carril > 0 ? AIRE_CARRIL : 0 }
+/**
+ * El hueco que reserva el carril de ausencias, con su aire. Lo comparten la celda
+ * y los días de fuera de mes, que tienen que casar al píxel.
+ *
+ * **Solo en escritorio desde el 28-09-2026.** Va en variables y no en `height`
+ * para que lo recoja `CARRIL`, que solo lo aplica en `lg:`. En móvil el carril se
+ * sale del flujo y va encima del número como una línea fina (ver `CARRIL`): una
+ * sola ausencia en el mes reservaba 9 px de aire vacío en las treinta y cinco
+ * celdas.
+ */
+export function estiloDeCarril(carril: number): CSSProperties {
+  return {
+    '--alto-carril': `${carril * ALTO_FRANJA}px`,
+    '--aire-carril': `${carril > 0 ? AIRE_CARRIL : 0}px`,
+  } as CSSProperties
 }
+
+/**
+ * El contenedor de las franjas. En escritorio, en el flujo y con el alto
+ * reservado por el mes entero. En móvil, **encima** de la celda, a 3 px del borde
+ * —pegado a él se leía como de la fila de arriba— y sin empujar nada: el número
+ * baja un poco en todas (`pt-3`) para dejarle sitio, y así las filas siguen a la
+ * misma altura haya o no ausencias.
+ */
+export const CARRIL = 'absolute inset-x-0 top-[3px] flex flex-col gap-px lg:static lg:block lg:h-[var(--alto-carril)] lg:mt-[var(--aire-carril)] lg:flex-shrink-0'
 
 
 interface DayCellProps {
@@ -287,8 +309,21 @@ export function DayCell({
      * distinta** —uno es el número, el otro es la celda entera—, que es lo que
      * los hace distinguibles sin fiarlo al color.
      */
+    /**
+     * **En móvil, el día elegido es un disco macizo en el número** (28-09-2026),
+     * y no la celda entera. A 52 px de celda, el fondo verde, el anillo de la
+     * celda, el aro de hoy y el filete de debajo eran cuatro señales para dos
+     * cosas. Ahora son dos y de forma distinta: hoy es un aro, el elegido un
+     * disco lleno. Si coinciden, el disco es salmón. Blanco sobre
+     * `primary-strong` da 4,8:1 y sobre `accent-strong` 6,29:1.
+     *
+     * En escritorio no cambia nada: el elegido sigue siendo la celda.
+     */
+    if (isToday && isSelected) return 'bg-accent-strong text-white lg:bg-accent-tint lg:text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
     if (isToday) return 'bg-accent-tint text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
-    return 'text-ink'
+    if (isSelected) return 'bg-primary-strong text-white lg:bg-transparent lg:text-ink'
+    // Sin la trama en móvil, el fin de semana y el festivo se dicen en el número.
+    return esDiaLibre ? 'text-muted lg:text-ink' : 'text-ink'
   })()
 
   /**
@@ -312,12 +347,14 @@ export function DayCell({
    * Tailwind lee el código como texto y no generaría una clase que solo existe en
    * tiempo de ejecución.
    */
+  // Solo en escritorio desde el 28-09-2026: en móvil hoy es el aro y el elegido
+  // el disco del número, y la celda no lleva ni anillo ni filete.
   const sombraDeCelda = isSelected && isToday
-    ? 'shadow-[inset_0_0_0_2px_var(--color-primary-line),inset_0_-3px_0_0_var(--color-accent-strong)]'
+    ? 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line),inset_0_-3px_0_0_var(--color-accent-strong)]'
     : isSelected
-      ? 'shadow-[inset_0_0_0_2px_var(--color-primary-line)]'
+      ? 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line)]'
       : isToday
-        ? 'shadow-[inset_0_-3px_0_0_var(--color-accent-strong)]'
+        ? 'lg:shadow-[inset_0_-3px_0_0_var(--color-accent-strong)]'
         : ''
 
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -352,7 +389,7 @@ export function DayCell({
       // no habría hecho nada. `touch-manipulation` apaga el zoom por doble toque
       // del navegador, que si no se come el gesto en el móvil.
       onDoubleClick={() => onCreate?.(day)}
-      className={`flex w-full touch-manipulation flex-col min-h-[52px] border-b border-r border-line lg:min-h-[max(104px,calc((100vh-26rem)/6))] ${
+      className={`relative flex w-full touch-manipulation flex-col min-h-[52px] border-b border-r border-line lg:min-h-[max(104px,calc((100vh-26rem)/6))] ${
         /**
          * **Los días en los que no se trabaja llevan trama diagonal**: sábado,
          * domingo y festivo, los tres igual (26-08-2026). Es un solo concepto y
@@ -376,7 +413,7 @@ export function DayCell({
         // clase de día es. El borde interior es lo que lo cierra como una caja y
         // no como una mancha, que a 52 px de celda se leía como un resaltado
         // suelto.
-        isSelected ? 'bg-primary-tint' : ''
+        isSelected ? 'lg:bg-primary-tint' : ''
       } ${sombraDeCelda}`}
     >
       {/**
@@ -420,7 +457,7 @@ export function DayCell({
         * fila dejaba de leerse como una fila. El porqué y por qué por el mes, en
         * `carrilDeAusencias`.
         */}
-      <span className="block w-full flex-shrink-0" style={estiloDeCarril(carril)} aria-hidden>
+      <span className={CARRIL} style={estiloDeCarril(carril)} aria-hidden>
         {ausenciaFamiliar && (() => {
           const redondeo = `${ausenciaFamiliar.primero ? 'rounded-l-full' : ''} ${ausenciaFamiliar.ultimo ? 'rounded-r-full' : ''}`
           return (
@@ -463,7 +500,7 @@ export function DayCell({
       // reaccionaba. Es la mitad táctil de "esto se puede tocar"; la otra mitad
       // es la línea de ayuda que sale debajo de la rejilla mientras no hay
       // ningún día elegido.
-      className={`flex w-full flex-col items-center gap-0.5 rounded-xl py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong active:bg-surface ${
+      className={`flex w-full flex-col items-center gap-0.5 rounded-xl pb-1 pt-3 lg:pt-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong active:bg-surface ${
         isSelected ? '' : 'hover:bg-canvas'
       }`}
     >

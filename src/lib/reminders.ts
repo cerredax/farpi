@@ -1,7 +1,7 @@
 import { capitalize } from './text'
 
 /**
- * El texto del aviso de las siete de la mañana.
+ * El texto del aviso de las siete de la mañana, hora de Madrid.
  *
  * Vive aquí y no dentro de `api/cron/reminders` por lo de siempre: es lógica
  * pura que hay que poder probar sin levantar nada, y era la única parte del
@@ -27,6 +27,26 @@ export interface PlanDelAviso {
  * notificación, así que el cuarto y siguientes van como "y 2 más".
  */
 const MAX_PLANES_NOMBRADOS = 3
+
+/**
+ * La hora, en la de la familia, a la que sale el aviso: las siete.
+ *
+ * Vercel programa los crons en UTC y Madrid cambia de hora dos veces al año, así
+ * que ninguna hora UTC son las siete todo el año: son las 05:00 en verano y las
+ * 06:00 en invierno. `vercel.json` lanza el cron en las dos, y cada vez la ruta
+ * pregunta esto: la que cae a las siete avisa y la otra solo hace el
+ * mantenimiento. En el plan Hobby el cron salta en cualquier minuto de su hora,
+ * así que "a las siete" quiere decir entre las 07:00 y las 07:59.
+ */
+export const HORA_DEL_AVISO = 7
+
+/** Si `ahora`, en el reloj de la familia, cae dentro de la hora del aviso. */
+export function esLaHoraDelAviso(ahora: Date, timeZone: string, hora = HORA_DEL_AVISO): boolean {
+  const enLaCasa = new Intl.DateTimeFormat('en-US', { timeZone, hour: '2-digit', hourCycle: 'h23' })
+    .formatToParts(ahora)
+    .find(p => p.type === 'hour')?.value
+  return Number(enLaCasa) === hora
+}
 
 /** "Martes 15". El día en el calendario de la familia, no en el del servidor. */
 export function tituloDelAviso(ahora: Date, timeZone: string): string {
@@ -146,6 +166,8 @@ export function fraseDeLoQueCaduca(vencidos: number, porVencer: number): string 
 export interface DatosDelAviso {
   /** La felicitación de cumpleaños ya escrita, o cadena vacía si hoy no hay. */
   felicitacion: string
+  /** El cumpleaños de mañana ya escrito, o cadena vacía si mañana no cumple nadie. */
+  cumplesDeManana?: string
   planes: PlanDelAviso[]
   tareas: number
   documentosVencidos: number
@@ -158,10 +180,13 @@ export interface DatosDelAviso {
  * El cumpleaños abre el cuerpo. Es lo único de los tres que **caduca el mismo
  * día** —una tarea se hace por la tarde, un papel caduca dentro de un mes—, y
  * leído detrás de "Dentista (16:30)" se queda en la línea que ya nadie mira.
+ * El de mañana va justo detrás, por la misma razón: es el que da tiempo a
+ * comprar el regalo, y detrás de tres planes Android ya no lo enseña.
  */
 export function avisoDelDia(datos: DatosDelAviso, ahora: Date, timeZone: string): { title: string; body: string } {
   const body = [
     datos.felicitacion,
+    datos.cumplesDeManana ?? '',
     fraseDeLoDeHoy(datos.planes, datos.tareas, timeZone),
     fraseDeLoQueCaduca(datos.documentosVencidos, datos.documentosPorVencer),
   ].filter(Boolean).join(' ')

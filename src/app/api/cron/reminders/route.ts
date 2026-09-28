@@ -5,7 +5,7 @@ import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
 import { fraseDeCumplesDeLaCasa, proximosCumples, type CumpleEnCasa } from '@/lib/birthdays'
 import { RANGE_KINDS } from '@/lib/events'
-import { avisoDelDia, type PlanDelAviso } from '@/lib/reminders'
+import { avisoDelDia, esLaHoraDelAviso, type PlanDelAviso } from '@/lib/reminders'
 
 export const runtime = 'nodejs'
 
@@ -187,6 +187,15 @@ export async function GET(req: NextRequest) {
     else if (cerrado === true) mesesCerrados++
   }
 
+  // El cron salta dos veces cada mañana (05:00 y 06:00 UTC, ver `vercel.json`)
+  // y solo una de las dos son las siete en Madrid. La otra se queda aquí, con el
+  // keep-alive y el cierre de mes hechos, que no dependen de la hora. `?forzar=1`
+  // es para probarlo a mano a cualquier hora: sigue pidiendo el secreto.
+  const forzar = req.nextUrl.searchParams.get('forzar') === '1'
+  if (!forzar && !esLaHoraDelAviso(new Date(), REMINDER_TIME_ZONE)) {
+    return NextResponse.json({ ok: true, sent: 0, keptAlive, mesesCerrados, fueraDeHora: true })
+  }
+
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   const privateKey = process.env.VAPID_PRIVATE_KEY
   const subject = process.env.VAPID_SUBJECT
@@ -220,14 +229,16 @@ export async function GET(req: NextRequest) {
   const todayParts = getZonedDateParts(new Date(), REMINDER_TIME_ZONE)
   const tomorrowParts = addDays(todayParts, 1)
   const today = formatDate(todayParts)
+  const tomorrow = formatDate(tomorrowParts)
   const startOfDay = zonedMidnightToUtc(todayParts, REMINDER_TIME_ZONE).toISOString()
   const endOfDay = zonedMidnightToUtc(tomorrowParts, REMINDER_TIME_ZONE).toISOString()
+  const endOfTomorrow = zonedMidnightToUtc(addDays(todayParts, 2), REMINDER_TIME_ZONE).toISOString()
 
   // Lo que caduca se avisa con un mes: es lo que tarda en darse cita y renovar
   // un DNI. Un papel caducado no avisa por su cuenta.
   const limiteCaducidad = formatDate(addDays(todayParts, DIAS_AVISO_CADUCIDAD))
 
-  const [eventsRes, tasksRes, docsRes, kidsRes] = await Promise.all([
+  const [eventsRes, tasksRes, docsRes, kidsRes, cumplesMananaRes] = await Promise.all([
     // Solo planes, igual que `selectTodayEvents`: ni vacaciones, ni descansos, ni
     // festivos. Avisar de que "tenéis 1 evento" el día que empiezan contradice lo
     // que enseña la pantalla de inicio esa misma mañana, y un festivo no es un
@@ -250,16 +261,20 @@ export async function GET(req: NextRequest) {
     // Se traen las que tienen fecha —nunca son muchas— y el día se resuelve
     // abajo, con la misma función que usa Inicio.
     supabase.from('children').select('family_id, id, name, birth_date').not('birth_date', 'is', null).in('family_id', familyIds),
+    // Los cumpleaños apuntados de mañana, para avisar con un día de margen. Solo
+    // estos: los planes de mañana ya los contará el aviso de mañana.
+    supabase.from('events').select('family_id, id, title, birth_year').eq('kind', 'cumple').gte('start_at', endOfDay).lt('start_at', endOfTomorrow).in('family_id', familyIds),
   ])
 
   // Con una sola de las tres rota, los recuentos salen incompletos: mejor no
   // mandar nada que avisar de una tarea cuando había tres eventos más.
-  const errorDelDia = eventsRes.error ?? tasksRes.error ?? docsRes.error ?? kidsRes.error
+  const errorDelDia = eventsRes.error ?? tasksRes.error ?? docsRes.error ?? kidsRes.error ?? cumplesMananaRes.error
   if (errorDelDia) return fallo('consulta de eventos, tareas, documentos o personas', errorDelDia.message)
   const { data: events } = eventsRes
   const { data: tasks } = tasksRes
   const { data: docs } = docsRes
   const { data: kids } = kidsRes
+  const { data: cumplesApuntadosManana } = cumplesMananaRes
 
   let sent = 0
   let fallidos = 0
@@ -295,7 +310,27 @@ export async function GET(req: NextRequest) {
           apuntado: true,
         })),
     ]
-    if (planes.length === 0 && taskCount === 0 && docsUsuario.length === 0 && cumplesHoy.length === 0) continue
+    // Mañana, igual que hoy pero con un día de margen: el aviso de las siete del
+    // mismo día llega tarde para el regalo. Se pide la ventana de hoy contada
+    // desde mañana, así que salen los que cumplen justo ese día y ninguno más.
+    const cumplesManana: CumpleEnCasa[] = [
+      ...proximosCumples((kids ?? []).filter(k => fams.includes(k.family_id)), tomorrow, 0)
+        .map(c => ({ id: c.persona.id, nombre: c.persona.name, fecha: c.fecha, dias: 1, edad: c.edad, color: null, apuntado: false })),
+      ...(cumplesApuntadosManana ?? []).filter(e => fams.includes(e.family_id))
+        .map(e => ({
+          id: e.id,
+          nombre: e.title,
+          fecha: tomorrow,
+          dias: 1,
+          edad: e.birth_year ? Number(tomorrow.slice(0, 4)) - e.birth_year : null,
+          color: null,
+          apuntado: true,
+        })),
+    ]
+    if (
+      planes.length === 0 && taskCount === 0 && docsUsuario.length === 0 &&
+      cumplesHoy.length === 0 && cumplesManana.length === 0
+    ) continue
 
     // El texto entero lo escribe `reminders.ts`, con sus tests detrás. Aquí solo
     // se le pasa lo que se ha averiguado: qué hay hoy, cuántas tareas quedan, qué
@@ -303,6 +338,7 @@ export async function GET(req: NextRequest) {
     const { title, body } = avisoDelDia(
       {
         felicitacion: fraseDeCumplesDeLaCasa(cumplesHoy),
+        cumplesDeManana: fraseDeCumplesDeLaCasa(cumplesManana, 'Mañana'),
         planes,
         tareas: taskCount,
         documentosVencidos: vencidos,

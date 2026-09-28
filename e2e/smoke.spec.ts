@@ -368,11 +368,16 @@ test('elegir un día del mes enseña qué hay ese día', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Apuntar en el calendario' })).toBeVisible()
   await page.keyboard.press('Escape')
 
-  // Con hoy elegido no sale: la agenda de debajo ya empieza justo ahí.
+  // Y en móvil sale también con hoy elegido (28-09-2026): la agenda ya no va
+  // debajo del mes, así que el panel es la única respuesta y va siempre en el
+  // mismo sitio. Lo que viene está a un toque, en la vista Agenda.
   await page.getByRole('button', { name: /hoy|,/ }).first().waitFor({ state: 'attached' })
   const hoy = new Date()
   await page.locator(`button[aria-label*="${hoy.getDate()} de"]`).first().click()
-  await expect(panel).toBeHidden()
+  await expect(panel).toBeVisible()
+  await expect(page.getByText('Elige un día para ver qué tiene.')).toBeHidden()
+  await page.getByRole('button', { name: 'Ver todo lo que viene' }).click()
+  await expect(page.locator('main button[aria-haspopup="menu"]')).toHaveText(/Agenda/)
 })
 
 /**

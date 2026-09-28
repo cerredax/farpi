@@ -16,6 +16,7 @@ import {
   startOfWeek,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { ChevronRight } from 'lucide-react'
 import { capitalize } from '@/lib/text'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
@@ -469,9 +470,22 @@ export function CalendarView() {
                       `lg:hidden` y allí elegir un día tampoco contestaba nada).
                       Va **antes** de los bloques de debajo porque habla del día
                       que acabas de tocar y ellos del mes entero: lo más cercano
-                      a lo que se ha hecho, primero. Con hoy elegido no sale, que
-                      es lo que ya cuenta la agenda. */}
-                  {!isSameDay(selectedDay, today) ? (
+                      a lo que se ha hecho, primero. En escritorio, con hoy
+                      elegido no sale: es lo que ya cuenta la agenda. */}
+                  {/**
+                    * **En móvil, el panel del día sale siempre, también con hoy
+                    * elegido** (28-09-2026). Debajo de la rejilla había tres
+                    * bloques —este panel, las ausencias y cumpleaños, y la agenda
+                    * de 45 días— y el mismo plan salía en dos; con hoy elegido,
+                    * además, la respuesta cambiaba de sitio y el panel dejaba su
+                    * hueco a una línea de ayuda. Ahora la pregunta "¿qué hay este
+                    * día?" se contesta siempre en el mismo sitio, y lo que viene
+                    * se mira en la vista Agenda, a un toque (ver abajo).
+                    *
+                    * En escritorio no cambia: la agenda sigue al lado o debajo, y
+                    * con hoy elegido vuelve la línea de ayuda.
+                    */}
+                  <div className={isSameDay(selectedDay, today) ? 'lg:hidden' : ''}>
                     <DayPanel
                       day={selectedDay}
                       events={eventos}
@@ -483,28 +497,45 @@ export function CalendarView() {
                       onAdd={openCreate}
                       onToggleTask={toggleTask}
                     />
-                  ) : (
-                    /**
-                     * Que la rejilla se toca (12-09-2026).
-                     *
-                     * La celda promete desde hace tiempo que "tocar el día enseña
-                     * su detalle debajo", y no había forma de enterarse antes de
-                     * probarlo: con el dedo no hay hover, y con hoy elegido —que es
-                     * como abre la pantalla— debajo del mes no aparece nada.
-                     *
-                     * "Elige" y no "toca": la misma línea la lee un dedo y un
-                     * ratón, y esta pantalla es la misma en los dos sitios.
-                     *
-                     * Va justo en el hueco que deja el panel y **desaparece en
-                     * cuanto se toca un día**, así que no es un cartel permanente:
-                     * es la misma línea, ocupada por la respuesta en vez de por la
-                     * invitación. Vuelve al pulsar "Hoy", que es cuando la
-                     * invitación vuelve a hacer falta.
-                     */
-                    <p className="border-t border-hairline px-4 py-2.5 text-xs text-muted">
-                      Elige un día para ver qué tiene.
-                    </p>
+                  </div>
+                  {isSameDay(selectedDay, today) && (
+                    <div className="hidden lg:block">
+                      {/**
+                       * Que la rejilla se toca (12-09-2026).
+                       *
+                       * La celda promete desde hace tiempo que "tocar el día enseña
+                       * su detalle debajo", y no había forma de enterarse antes de
+                       * probarlo: con el dedo no hay hover, y con hoy elegido —que es
+                       * como abre la pantalla— debajo del mes no aparece nada.
+                       *
+                       * "Elige" y no "toca": la misma línea la lee un dedo y un
+                       * ratón, y esta pantalla es la misma en los dos sitios.
+                       *
+                       * Va justo en el hueco que deja el panel y **desaparece en
+                       * cuanto se toca un día**, así que no es un cartel permanente:
+                       * es la misma línea, ocupada por la respuesta en vez de por la
+                       * invitación. Vuelve al pulsar "Hoy", que es cuando la
+                       * invitación vuelve a hacer falta. En escritorio, solo.
+                       */}
+                      <p className="border-t border-hairline px-4 py-2.5 text-xs text-muted">
+                        Elige un día para ver qué tiene.
+                      </p>
+                    </div>
                   )}
+
+                  {/* Lo que viene, a un toque: es la vista Agenda, la misma que
+                      el selector de arriba. En móvil la lista ya no va colgada del
+                      mes (ver abajo). */}
+                  <div className="border-t border-hairline px-3 lg:hidden">
+                    <button
+                      type="button"
+                      onClick={() => setVista('agenda')}
+                      className="flex min-h-11 w-full items-center gap-0.5 px-1 text-xs font-semibold text-primary-strong"
+                    >
+                      Ver todo lo que viene
+                      <ChevronRight size={14} strokeWidth={2.6} aria-hidden />
+                    </button>
+                  </div>
 
                 </Card>
 
@@ -558,7 +589,10 @@ export function CalendarView() {
                 scroll propio y `sticky`, el mes se queda donde está y lo único
                 que se mueve es la lista; y como nunca pasa del alto de la
                 ventana, no hay nada que quede fuera de alcance. */}
-            <div className="lg:mt-6 min-[1400px]:sticky min-[1400px]:top-4 min-[1400px]:mt-0 min-[1400px]:max-h-[calc(100vh-2rem)] min-[1400px]:overflow-y-auto">
+            {/* En móvil, con el mes delante, la agenda no se pinta debajo
+                (28-09-2026): contaba otra vez lo del panel del día. Vive en su
+                vista, a la que lleva "Ver todo lo que viene". */}
+            <div className={`${vista === 'mes' ? 'max-lg:hidden' : ''} lg:mt-6 min-[1400px]:sticky min-[1400px]:top-4 min-[1400px]:mt-0 min-[1400px]:max-h-[calc(100vh-2rem)] min-[1400px]:overflow-y-auto`}>
               <AgendaList
                 desde={desdeAgenda}
                 /* El salto de la lista hasta el día elegido solo tiene sentido

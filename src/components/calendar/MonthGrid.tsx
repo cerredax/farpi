@@ -1,5 +1,5 @@
 import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, getDay, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
-import { DayCell, estiloDeCarril } from './DayCell'
+import { CARRIL, DayCell, estiloDeCarril } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
 import { eventColor } from '@/lib/assignees'
@@ -118,7 +118,10 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
      * `Card`, o la última columna y la última fila quedan flotando a dos píxeles
      * del marco y se ve el remiendo.
      */
-    <div>
+    /* `rejilla-mes` es lo que le quita la trama y engruesa las franjas en móvil
+       (28-09-2026, en `globals.css`): la trama iba en el mismo gris que las
+       líneas, y a 52 px de celda las dos se fundían en ruido. */
+    <div className="rejilla-mes">
       <div className="grid grid-cols-7 border-b border-line">
         {DAY_LABELS.map((label, i) => (
           <div
@@ -129,7 +132,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
             // últimas de `DAY_LABELS`.
             className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest ${
               i >= 5 ? 'dia-libre' : ''
-            } ${columnaDeHoy === i ? 'text-accent-strong' : 'text-muted'}`}
+            } ${columnaDeHoy === i ? 'text-muted lg:text-accent-strong' : 'text-muted'}`}
           >
             {/**
               * **La letra de hoy va sobre una pastilla salmón** (14-09-2026).
@@ -145,7 +148,9 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               * y no el ancho entero, que sobre la trama del sábado se leería
               * como que ese día está apagado.
               */}
-            <span className={columnaDeHoy === i ? 'rounded-full bg-accent-tint px-2 py-0.5' : ''}>
+            {/* Solo en escritorio (28-09-2026): en móvil hoy se marca una vez,
+                en su número, y la rejilla es lo bastante pequeña para verlo. */}
+            <span className={columnaDeHoy === i ? 'lg:rounded-full lg:bg-accent-tint lg:px-2 lg:py-0.5' : ''}>
               {label}
             </span>
           </div>
@@ -192,13 +197,13 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                 // el mes vecino **a la misma altura**. Con `py-1` en el
                 // contenedor, las franjas del hueco caían cuatro píxeles más
                 // abajo que las de al lado y el tramo se veía escalonado.
-                className={`${HUECO} flex w-full flex-col min-h-[52px] lg:min-h-[max(104px,calc((100vh-26rem)/6))] ${
+                className={`${HUECO} relative flex w-full flex-col min-h-[52px] lg:min-h-[max(104px,calc((100vh-26rem)/6))] ${
                   isWeekend(day) ? 'dia-libre' : ''
                 }`}
               >
                 {/* Con el mismo carril reservado que las celdas: es lo que hace
                     que un tramo entre en el mes vecino a la misma altura. */}
-                <span className="block w-full flex-shrink-0" style={estiloDeCarril(carriles[i])}>
+                <span className={CARRIL} style={estiloDeCarril(carriles[i])}>
                   {familia && bordes && (() => {
                     const redondeo = `${bordes.primero ? 'rounded-l-full' : ''} ${bordes.ultimo ? 'rounded-r-full' : ''}`
                     return (
@@ -220,8 +225,11 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
                     )
                   })}
                 </span>
-                <span className="flex w-full flex-col items-center py-1">
-                  <span className="flex h-8 w-8 items-center justify-center text-sm font-bold text-faint">
+                {/* El número, solo en escritorio (28-09-2026). En móvil el hueco
+                    va en blanco: con la rejilla dibujada la semana sigue
+                    leyéndose entera, y un número gris más en 390 px era ruido. */}
+                <span className="flex w-full flex-col items-center pb-1 pt-3 lg:pt-1">
+                  <span className="invisible flex h-8 w-8 items-center justify-center text-sm font-bold text-faint lg:visible">
                     {getDate(day)}
                   </span>
                 </span>

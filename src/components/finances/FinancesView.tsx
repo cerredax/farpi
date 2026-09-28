@@ -20,6 +20,7 @@ import { ResumenPanel } from './ResumenPanel'
 import { useFinanzasState, type PestañaFinanzas } from './useFinanzasState'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SectionLink } from '@/components/ui/SectionLink'
+import { BetaBadge } from '@/components/ui/BetaBadge'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { mesVecino } from '@/lib/budgets'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
@@ -497,7 +498,10 @@ export function FinancesView() {
                     En un mes que no ha llegado no se ofrece: no hay extracto de
                     lo que aún no ha pasado. */}
                 {!s.esPorVenir && (
-                  <SectionLink href="/finances/importar">Traer el extracto del banco</SectionLink>
+                  <div className="flex items-center gap-2">
+                    <SectionLink href="/finances/importar">Traer el extracto del banco</SectionLink>
+                    <BetaBadge />
+                  </div>
                 )}
 
                 {/* Y debajo de la lista que borra, no arriba: en `ViewHeader`
@@ -584,6 +588,7 @@ export function FinancesView() {
           className="space-y-3"
         >
           <p className="px-1 text-xs text-muted">
+            <BetaBadge />{' '}
             Lo que cuesta algo que aún no has hecho: el fontanero, el dentista, la
             reforma. Apunta varios para lo mismo y se comparan solos.
           </p>

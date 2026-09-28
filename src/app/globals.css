@@ -103,7 +103,13 @@
      que es lo que son —el desglose de lo que sale—, y la identidad de cada partida
      la llevan su emoji y su nombre, que es la regla del proyecto: el color dice de
      quién es algo, y una partida no es de nadie. */
-  --color-chart-entra:    #5C7A59;
+  /* **`entra` es azul desde el 28-09-2026**, y no el verde de marca. Verde contra
+     naranja no se separa con protanopía por mucho que se ajuste, y el azul sí:
+     medido con la simulación de Machado y CIEDE2000, el verde quedaba a ΔE 7,8
+     del naranja en protanopía y el azul queda a 40,7 (45,9 en deuteranopía, 40,8
+     con visión normal). Da 5,29:1 sobre blanco. Es un color de dato, no de marca:
+     el verde de la interfaz no cambia. */
+  --color-chart-entra:    #3B6FA0;
   --color-chart-sale:     #B26A3C;
 
   --color-line:           #EDE9E3; /* borde principal */

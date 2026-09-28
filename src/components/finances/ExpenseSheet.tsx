@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { Field } from '@/components/ui/Field'
@@ -9,7 +10,9 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import { Suggestions } from '@/components/ui/Suggestions'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { useStore } from '@/lib/store-context'
+import { resolveAssignee } from '@/lib/assignees'
 import { descripcionesFrecuentes, partidasPorUso } from '@/lib/budgets'
+import { getLocalDateString } from '@/lib/date-utils'
 import { centsToInput } from '@/lib/finanzas'
 import { validateExpenseDraft } from '@/lib/validators'
 import type { Budget, Expense, ExpenseDraft } from '@/types'
@@ -111,6 +114,19 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
 
   const esIngreso = draft.kind === 'ingreso'
 
+  /**
+   * **Cuándo y quién, plegados en una línea** (28-09-2026). Casi todos los apuntes
+   * son de hoy y de la cuenta común, que es lo que viene puesto, y aun así eran
+   * dos bloques —una fecha y cuatro círculos— que había que pasar por encima para
+   * llegar al botón. Plegados dicen lo que valen («Hoy · Familia») y se abren al
+   * tocarlos. Se abren solos cuando lo puesto no es lo de siempre: al editar, o si
+   * el apunte nace en otro día porque se está mirando otro mes.
+   */
+  const hoy = getLocalDateString()
+  const [detallesAbiertos, setDetallesAbiertos] = useState(false)
+  const verDetalles = detallesAbiertos || !!initial || draft.date !== hoy
+  const quien = resolveAssignee(draft, members, kids)?.name ?? 'Familia'
+
   // Las de su tipo: lo que se repite al apuntar gastos no tiene nada que ver con
   // lo que se repite al apuntar ingresos.
   const sugerencias = useMemo(
@@ -175,17 +191,6 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
           />
         </Field>
 
-        <Field label="Cuándo" htmlFor="expense-date">
-          <input
-            id="expense-date"
-            type="date"
-            value={draft.date}
-            onChange={e => patch({ date: e.target.value })}
-            required
-            className="field-input"
-          />
-        </Field>
-
         <Field label="Qué fue" htmlFor="expense-description" hint="(opcional)">
           <input
             id="expense-description"
@@ -236,6 +241,39 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
           </Field>
         )}
 
+        {!verDetalles && (
+          <button
+            type="button"
+            onClick={() => setDetallesAbiertos(true)}
+            aria-expanded={false}
+            className="flex min-h-11 w-full items-center gap-1.5 text-left text-sm text-muted"
+          >
+            <span className="min-w-0 flex-1 truncate">
+              <span className="font-semibold text-ink">Hoy</span>
+              {' · '}
+              <span className="font-semibold text-ink">{quien}</span>
+            </span>
+            <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-primary-strong">
+              Cambiar fecha o persona
+              <ChevronDown size={14} strokeWidth={2.4} aria-hidden />
+            </span>
+          </button>
+        )}
+
+        {verDetalles && (
+        <Field label="Cuándo" htmlFor="expense-date">
+          <input
+            id="expense-date"
+            type="date"
+            value={draft.date}
+            onChange={e => patch({ date: e.target.value })}
+            required
+            className="field-input"
+          />
+        </Field>
+        )}
+
+        {verDetalles && (
         <div className="space-y-2">
           <AssigneePicker
             value={draft}
@@ -249,6 +287,7 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
               : 'Quién puso el dinero. Con «Familia» queda como gasto de la cuenta común. Farpi no lleva cuentas de quién debe qué a quién: solo enseña el reparto.'}
           </p>
         </div>
+        )}
       </form>
     </BottomSheet>
   )

@@ -109,13 +109,17 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   dónde contestarse. En móvil se pasa de mes o de día **arrastrando el dedo**, y
   cuando lo que se mira no contiene hoy aparece un botón **«Hoy»** junto a las
   flechas (05-09-2026); mirando el presente no se pinta, porque no haría nada.
+- **Los días de los meses vecinos se ven y se tocan** (28-09-2026), en los dos
+  tamaños: número en `muted-soft`, y tocarlo lleva a su mes con el día elegido; el doble
+  clic apunta ahí mismo. Hasta entonces se veían y no respondían.
 - **En móvil, el mes es un mapa limpio** (28-09-2026). Por debajo de `lg`: sin trama
-  en fines de semana y festivos (el número va en `muted`); hoy es solo el aro de su
-  número —sin pastilla en la cabecera ni filete al pie— y el día elegido es un **disco
-  macizo** en el número (`primary-strong`, salmón si es hoy), no la celda; **una marca
+  en fines de semana y festivos (el número va en `muted`); hoy es un **disco salmón
+  lleno** con el número en blanco —sin pastilla en la cabecera ni filete al pie— y el
+  día elegido un **aro verde** en el número (`primary-strong`), no la celda; si
+  coinciden, el disco de hoy lleva el aro por fuera; **una marca
   por persona y clase**, hasta tres y sin «+n» —círculo los planes, cuadrado las
   tareas—; las ausencias son una **línea fina encima de la celda**, sin carril gris ni
-  hueco reservado; los días de otro mes van en blanco; y debajo de la rejilla solo el
+  hueco reservado; y debajo de la rejilla solo el
   **panel del día elegido, también con hoy**, más «Ver todo lo que viene», que lleva a
   la vista Agenda: la agenda ya no va colgada del mes en móvil. Escritorio no cambia:
   todo lo que sigue en esta lista sobre la rejilla vale allí tal cual, y en móvil vale
@@ -421,7 +425,13 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   apuntado. Se pliegan en vez de subir el día a día por encima porque el orden dice algo
   —la cuenta, cómo se reparte y luego el detalle— y subiendo el día a día las partidas se
   quedarían al fondo detrás de setenta filas. Abierto se queda al cambiar de mes, que es
-  cuando se comparan; al salir de la pantalla vuelven a plegarse.
+  cuando se comparan; al salir de la pantalla vuelven a plegarse. **Plegadas dicen
+  cuánto queda** (28-09-2026): una línea por partida —«🛒 Compra: quedan 355 €», en rojo
+  «de más» si se ha pasado— sin barra ni apuntes, que es la pregunta por la que se abrían.
+  **Al apuntar, la fecha y la persona van plegadas** (28-09-2026) en una línea «Hoy ·
+  Familia», porque casi siempre se dejan como vienen; se abren solas al editar o si el
+  apunte nace en otro día. **«Entra» es azul en los gráficos** desde el mismo día
+  (`--color-chart-entra`), porque verde contra naranja no se separa con protanopía.
   **El día a día va por días** (14-09-2026), cada uno con su rótulo y la cifra de lo que
   se fue ese día —«Martes 16 · 74,70 €»—, y hoy y ayer se llaman por su nombre. Era una
   lista plana en la que setenta apuntes eran setenta renglones iguales y saber qué se fue
@@ -1394,13 +1404,9 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
 
 ### 4. Acabados de Finanzas
 
-Los tres salieron medidos el día que se hicieron y se dejaron escritos en vez de arreglados,
+Los dos salieron medidos el día que se hicieron y se dejaron escritos en vez de arreglados,
 porque ninguno se arregla sin tocar algo que no es suyo:
 
-- **Las barras de «entra» y «sale» no se separan**: ΔE 3,8 en protanopía y 13,6
-  con visión normal, por debajo del suelo de 15. El único candidato que pasa es un **azul**
-  (ΔE 12,8), y verde contra cualquier naranja o rojo no pasa nunca. Cambiar el verde es
-  tocar el color de marca, así que se decide aparte.
 - **La rejilla de iconos de un fijo va con un hueco**: son 23 y la última fila
   lleva siete. Mejor candidato, 🦷.
 - **🏛️ y 🏦 se parecen** en la tipografía de Android. Están separados en la

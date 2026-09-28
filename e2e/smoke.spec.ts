@@ -381,6 +381,31 @@ test('elegir un día del mes enseña qué hay ese día', async ({ page }) => {
 })
 
 /**
+ * Los días de los meses vecinos se ven en gris **y se pueden tocar**
+ * (28-09-2026): llevan a su mes con el día elegido, desde donde se apunta. Se
+ * busca un mes que acabe antes del domingo, que es cuando la última fila presta
+ * días del siguiente; en el peor caso hay que avanzar uno o dos.
+ */
+test('un día del mes siguiente se toca y lleva a su mes', async ({ page }) => {
+  await page.goto('/calendar')
+  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+  let mes = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  for (let i = 0; i < 3; i++) {
+    const siguiente = new Date(mes.getFullYear(), mes.getMonth() + 1, 1)
+    const celda = page.locator(`button[aria-label*=", 1 de ${meses[siguiente.getMonth()]}"]`)
+    if (await celda.count() > 0) {
+      await celda.first().click()
+      await expect(celda.first()).toHaveAttribute('aria-pressed', 'true')
+      await expect(page.getByRole('region', { name: `Qué hay el 1 de ${meses[siguiente.getMonth()]}` })).toBeVisible()
+      return
+    }
+    await page.getByRole('button', { name: 'Mes siguiente' }).click()
+    mes = siguiente
+  }
+  throw new Error('En tres meses no salió ningún día del mes siguiente')
+})
+
+/**
  * El selector de vista en móvil es **un botón que despliega las cuatro**, no una
  * banda de pastillas: se comía 48 px de pantalla todo el rato. Lo que se prueba
  * es que abre, que cambia de vista y que se cierra sin elegir nada.

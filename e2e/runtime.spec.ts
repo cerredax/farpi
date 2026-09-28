@@ -1940,6 +1940,9 @@ test('lo que ya se apuntó otra vez se ofrece, con su partida', async ({ page })
   for (const dia of ['01', '08']) {
     await page.getByRole('button', { name: 'Nuevo apunte' }).click()
     await page.locator('#expense-amount').fill('62,40')
+    // La fecha va plegada cuando el apunte nace hoy (28-09-2026): se despliega.
+    const cambiar = page.getByRole('button', { name: /Cambiar fecha o persona/ })
+    if (await cambiar.count() > 0) await cambiar.click()
     await page.locator('#expense-date').fill(`2026-09-${dia}`)
     await page.locator('#expense-description').fill('Compra semanal')
     await page.getByRole('button', { name: 'Compra', exact: true }).click()

@@ -310,9 +310,9 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
               ven de un vistazo y leyendo cuatro cifras no—.
 
               Va en tinta y no en un tercer color de gráfico, y es a propósito.
-              `chart-entra` y `chart-sale` son verde y naranja, que en protanopía
-              están a ΔE 3,8: meter un tercer tono de la paleta entre esos dos sería
-              añadir otra confusión. La tinta separa de las dos con ΔE 28 largos, y
+              `chart-entra` y `chart-sale` ya ocupan los dos tonos del gráfico
+              (azul y naranja desde el 28-09-2026): meter un tercero entre esos dos
+              sería añadir otra confusión. La tinta separa de las dos con ΔE 28 largos, y
               además **no es del mismo tipo de marca**: una línea con puntos entre
               barras rellenas se distingue sin mirar el color.
 

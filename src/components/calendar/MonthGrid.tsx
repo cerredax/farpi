@@ -1,9 +1,7 @@
-import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, getDay, isSameDay, isSameMonth, isToday, isWeekend, startOfMonth, startOfWeek } from 'date-fns'
-import { CARRIL, DayCell, estiloDeCarril } from './DayCell'
+import { eachDayOfInterval, endOfMonth, endOfWeek, getDate, getDay, isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek } from 'date-fns'
+import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
-import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
-import { eventColor } from '@/lib/assignees'
-import { FAMILY_COLOR } from '@/lib/constants'
+import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, topeDeFranjas } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 
 /**
@@ -11,27 +9,17 @@ import { getLocalDateString } from '@/lib/date-utils'
  * leer lo que hay. Lo que hay se lee en la agenda, debajo en móvil y en la
  * columna de la derecha en escritorio.
  *
- * **Un mes y solo un mes** (24-08-2026). La rejilla se sigue dibujando por
- * semanas completas —si no, las columnas dejarían de ser días de la semana— pero
- * los huecos de las puntas van en blanco en vez de prestar días de julio y de
- * septiembre. Antes pintaba once días de otros meses en gris: con la misma forma
- * que los de agosto, se leían como días sueltos que no decían de qué mes eran, y
- * era el mayor foco de ruido de la pantalla. Lo que se pierde es poder tocar el
- * 1 de septiembre desde agosto; se llega con la flecha, que es un toque igual.
- *
- * Toda fila tiene al menos un día del mes —`startOfWeek(startOfMonth)` a
- * `endOfWeek(endOfMonth)` no puede dar una semana entera fuera—, así que ninguna
- * queda a cero de alto por mucho que sus huecos estén vacíos.
- *
+ * **Las semanas se dibujan completas y los días de los meses vecinos se pueden
+ * tocar**, con el número apagado (28-09-2026). Del 24-08-2026 hasta ese día no se
+ * podía: el 1 de octubre se veía y no respondía. Lo que los separa de los del mes
+ * es el gris del número, no que estén muertos.
+
  * Es siempre el mes entero. La variante de "siete días" que tenía antes se
  * mudó a `WeekStrip`, que es quien la necesita, y con ella se fueron las dos
  * densidades: la ancha con títulos dentro de las celdas no la usaba nadie.
  */
 
 const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-
-/** Las líneas de la rejilla. Las comparten las celdas y los huecos. */
-const HUECO = 'border-b border-r border-line'
 
 interface MonthGridProps {
   currentMonth: Date
@@ -76,9 +64,8 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
    *
    * Se calculaba dentro del `map` y ahora no puede: el carril de las franjas se
    * reserva por el mes entero, así que para saber cuánto reserva el lunes hay que
-   * haber mirado ya todos los demás días. Se hace una sola vez y lo aprovechan las dos
-   * ramas —la celda del mes y el hueco de fuera de mes—, que hasta ahora
-   * repetían las mismas cuatro llamadas cada una.
+   * haber mirado ya todos los demás días. Se hace una sola vez, para todas las
+   * celdas, las del mes y las de los meses vecinos.
    */
   const info = days.map(day => {
     const delDia = events.filter(e => eventCoversDay(e, day))
@@ -159,84 +146,20 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
       {/* Sin hueco entre columnas: la raya de los días de ausencia tiene que
           tocarse para leerse como un tramo. */}
       <div className="grid grid-cols-7">
-        {info.map(({ day, delDia, familia, bordes, sueltas }, i) => {
-          if (!isSameMonth(day, currentMonth)) {
-            /**
-             * **Los días de las puntas se pintan, sobre el mismo fondo que el
-             * resto** (26-08-2026). Cuando un mes empieza en martes, el lunes de
-             * esa fila es el 31 del mes anterior, y dejarlo en blanco corta la
-             * semana por la mitad: la fila deja de leerse como una semana.
-             *
-             * Estuvieron en blanco desde el 24-08-2026, y rellenos de
-             * `--color-surface` desde el 26-08-2026 para que no se confundieran
-             * con los días del mes. El relleno se quitó el 31-08-2026: con las
-             * líneas de la rejilla ya dibujadas, el bloque gris se veía como un
-             * parche pegado a la esquina del calendario. El número en gris
-             * (`text-faint`) basta para decir que ese día no es de este mes.
-             *
-             * Siguen sin ser botones y sin enseñar nada de lo que pasa ese día:
-             * están para cerrar la semana, no para consultarlos. Al 1 de
-             * septiembre se llega con la flecha, que es un toque igual.
-             *
-             * La franja de ausencia es la excepción: unas vacaciones o un
-             * descanso duran lo que duran, y cortarlos en la frontera del mes
-             * rompería el tramo justo donde sigue. Se pinta igual que en
-             * `DayCell`, solo que aquí no hay botón debajo que abrirla.
-             */
-            // El hueco sale del mismo `info` que la celda, así que colapsa igual
-            // y reparte igual: si el 31 de agosto no hay nadie y el 1 de
-            // septiembre tampoco, el tramo amarillo cruza la frontera del mes
-            // entero en vez de partirse en dos idiomas a mitad de fila.
-            return (
-              <span
-                key={day.toISOString()}
-                aria-hidden
-                // Sin relleno arriba, y el número con el suyo debajo: es la forma
-                // exacta de `DayCell` —contenedor, franjas pegadas al borde y
-                // luego el día— y es lo que hace que la raya de un tramo entre en
-                // el mes vecino **a la misma altura**. Con `py-1` en el
-                // contenedor, las franjas del hueco caían cuatro píxeles más
-                // abajo que las de al lado y el tramo se veía escalonado.
-                className={`${HUECO} relative flex w-full flex-col min-h-[52px] lg:min-h-[max(104px,calc((100vh-26rem)/6))] ${
-                  isWeekend(day) ? 'dia-libre' : ''
-                }`}
-              >
-                {/* Con el mismo carril reservado que las celdas: es lo que hace
-                    que un tramo entre en el mes vecino a la misma altura. */}
-                <span className={CARRIL} style={estiloDeCarril(carriles[i])}>
-                  {familia && bordes && (() => {
-                    const redondeo = `${bordes.primero ? 'rounded-l-full' : ''} ${bordes.ultimo ? 'rounded-r-full' : ''}`
-                    return (
-                      <span className={`franja-ausencia ${redondeo}`}>
-                        <span className={`block h-full w-full ${redondeo}`} style={{ backgroundColor: FAMILY_COLOR }} />
-                      </span>
-                    )
-                  })()}
-                  {sueltas.map(event => {
-                    const { primero, ultimo } = isVacation(event) ? vacationEdges(event, day) : { primero: true, ultimo: true }
-                    const redondeo = `${primero ? 'rounded-l-full' : ''} ${ultimo ? 'rounded-r-full' : ''}`
-                    return (
-                      <span key={event.id} className={`franja-ausencia ${redondeo}`}>
-                        <span
-                          className={`block h-full w-full ${redondeo}`}
-                          style={{ backgroundColor: eventColor(event, members, kids) }}
-                        />
-                      </span>
-                    )
-                  })}
-                </span>
-                {/* El número, solo en escritorio (28-09-2026). En móvil el hueco
-                    va en blanco: con la rejilla dibujada la semana sigue
-                    leyéndose entera, y un número gris más en 390 px era ruido. */}
-                <span className="flex w-full flex-col items-center pb-1 pt-3 lg:pt-1">
-                  <span className="invisible flex h-8 w-8 items-center justify-center text-sm font-bold text-faint lg:visible">
-                    {getDate(day)}
-                  </span>
-                </span>
-              </span>
-            )
-          }
-
+        {info.map(({ day, delDia, familia, bordes }, i) => {
+          /**
+           * **Los días de las puntas son días como los demás, en gris**
+           * (28-09-2026). Fueron un hueco que solo cerraba la semana: se veía el 1
+           * de octubre y no se podía tocar, y lo que se ve y no responde parece
+           * roto. Ahora son una celda del mes vecino con el número apagado, y
+           * tocarla lleva a ese mes con el día elegido (`selectDay`), que es lo
+           * que hace cualquier calendario. El doble clic apunta ahí mismo.
+           *
+           * Del 24-08 al 28-09-2026 fueron, por turnos, un hueco en blanco, un
+           * relleno gris y un número suelto sin botón. Lo que no cambia: la
+           * franja de una ausencia cruza la frontera del mes a la misma altura,
+           * porque sale del mismo `info` y del mismo carril.
+           */
           const diaStr = getLocalDateString(day)
           return (
             <DayCell
@@ -244,6 +167,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               day={day}
               dayNumber={getDate(day)}
               isToday={isToday(day)}
+              fueraDeMes={!isSameMonth(day, currentMonth)}
               isSelected={isSameDay(day, selectedDay)}
               events={delDia}
               tasks={tasks.filter(t => t.due_date && (t.due_date < hoyStr ? diaStr === hoyStr : t.due_date === diaStr))}

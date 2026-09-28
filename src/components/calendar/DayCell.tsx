@@ -71,8 +71,7 @@ export const ALTO_FRANJA = 7
 const AIRE_CARRIL = 2
 
 /**
- * El hueco que reserva el carril de ausencias, con su aire. Lo comparten la celda
- * y los días de fuera de mes, que tienen que casar al píxel.
+ * El hueco que reserva el carril de ausencias, con su aire.
  *
  * **Solo en escritorio desde el 28-09-2026.** Va en variables y no en `height`
  * para que lo recoja `CARRIL`, que solo lo aplica en `lg:`. En móvil el carril se
@@ -102,6 +101,8 @@ interface DayCellProps {
   dayNumber: number
   isToday: boolean
   isSelected: boolean
+  /** Si el día es del mes de al lado: se pinta con el número apagado (ver `MonthGrid`). */
+  fueraDeMes?: boolean
   events: Event[]
   /** Tareas que vencen este día, ya arrastradas a hoy si venían atrasadas. */
   tasks: Task[]
@@ -184,6 +185,7 @@ export function DayCell({
   dayNumber,
   isToday,
   isSelected,
+  fueraDeMes = false,
   events,
   tasks,
   kids,
@@ -310,18 +312,25 @@ export function DayCell({
      * los hace distinguibles sin fiarlo al color.
      */
     /**
-     * **En móvil, el día elegido es un disco macizo en el número** (28-09-2026),
-     * y no la celda entera. A 52 px de celda, el fondo verde, el anillo de la
-     * celda, el aro de hoy y el filete de debajo eran cuatro señales para dos
-     * cosas. Ahora son dos y de forma distinta: hoy es un aro, el elegido un
-     * disco lleno. Si coinciden, el disco es salmón. Blanco sobre
-     * `primary-strong` da 4,8:1 y sobre `accent-strong` 6,29:1.
+     * **En móvil, hoy es un disco salmón lleno y el día elegido un aro verde**
+     * (28-09-2026). Es la convención de Google Calendar y de iOS, y a 52 px de
+     * celda es lo que se encuentra sin buscar. El aro fino de salmón, que sigue en
+     * escritorio, en el móvil se perdía entre treinta números. Hoy y el elegido
+     * siguen siendo formas distintas, disco y aro, así que no dependen del color.
+     * Si coinciden, el disco de hoy lleva el aro verde por fuera.
      *
-     * En escritorio no cambia nada: el elegido sigue siendo la celda.
+     * Blanco sobre `accent-strong` da 6,29:1 y el aro va en `primary-strong`
+     * (4,8:1). En escritorio no cambia nada: el elegido sigue siendo la celda.
+     *
+     * Ese mismo día, unas horas antes, fue al revés —hoy un aro y el elegido un
+     * disco verde— y no convencía: la marca fuerte se la llevaba el día que se
+     * toca, no el día en que se está.
      */
-    if (isToday && isSelected) return 'bg-accent-strong text-white lg:bg-accent-tint lg:text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
-    if (isToday) return 'bg-accent-tint text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
-    if (isSelected) return 'bg-primary-strong text-white lg:bg-transparent lg:text-ink'
+    if (isToday && isSelected) return 'bg-accent-strong text-white ring-2 ring-primary-strong ring-offset-2 lg:ring-0 lg:ring-offset-0 lg:bg-accent-tint lg:text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
+    if (isToday) return 'bg-accent-strong text-white lg:bg-accent-tint lg:text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
+    if (isSelected) return `shadow-[inset_0_0_0_2px_var(--color-primary-strong)] lg:shadow-none ${esDiaLibre ? 'text-muted lg:text-ink' : 'text-ink'}`
+    // Del mes de al lado, apagado a propósito: se toca igual, pero no es de este mes.
+    if (fueraDeMes) return 'text-muted-soft'
     // Sin la trama en móvil, el fin de semana y el festivo se dicen en el número.
     return esDiaLibre ? 'text-muted lg:text-ink' : 'text-ink'
   })()
@@ -347,8 +356,8 @@ export function DayCell({
    * Tailwind lee el código como texto y no generaría una clase que solo existe en
    * tiempo de ejecución.
    */
-  // Solo en escritorio desde el 28-09-2026: en móvil hoy es el aro y el elegido
-  // el disco del número, y la celda no lleva ni anillo ni filete.
+  // Solo en escritorio desde el 28-09-2026: en móvil hoy es el disco y el elegido
+  // el aro del número, y la celda no lleva ni anillo ni filete.
   const sombraDeCelda = isSelected && isToday
     ? 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line),inset_0_-3px_0_0_var(--color-accent-strong)]'
     : isSelected

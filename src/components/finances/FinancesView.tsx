@@ -424,6 +424,30 @@ export function FinancesView() {
                     )}
                   </div>
 
+                  {/* **Plegadas, pero diciendo cuánto queda** (28-09-2026). Plegadas
+                      se pidieron y se quedan; lo que no respondía era la pregunta por
+                      la que se abren, «¿cuánto queda de la compra?», que obligaba a
+                      desplegar cinco barras para leer una cifra. Una línea por
+                      partida, sin barra y sin apuntes, cabe en el hueco que dejaba el
+                      título solo. Tocar el título sigue abriendo el detalle. */}
+                  {!partidasAbiertas && s.resumen.length > 0 && (
+                    <ul aria-label="Cuánto queda en cada partida" className="flex flex-wrap gap-x-3 gap-y-1 px-1">
+                      {s.resumen.map(r => (
+                        <li key={r.partida.key} className="text-[13px] text-muted">
+                          {r.partida.emoji && <span aria-hidden>{r.partida.emoji} </span>}
+                          {r.partida.name}:{' '}
+                          {r.pasado ? (
+                            <span className="font-semibold tabular-nums text-danger-strong">
+                              {formatCents(Math.abs(r.restante))} de más
+                            </span>
+                          ) : (
+                            <>quedan <span className="font-semibold tabular-nums text-ink">{formatCents(r.restante)}</span></>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
                   {partidasAbiertas && (
                     <div id="partidas-del-mes" className="space-y-2">
                       {s.resumen.length === 0 ? (

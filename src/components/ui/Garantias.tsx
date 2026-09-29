@@ -4,11 +4,13 @@ import { ShieldCheck } from 'lucide-react'
  * Las tres cosas que pregunta quien llega de fuera antes que ninguna otra:
  * quién ve mis datos, cuánto cuesta y si me van a poner anuncios.
  *
- * Sale **dos veces en la portada**, bajo el titular y bajo el formulario, y una
- * en la pantalla de login. No es un descuido: son los dos sitios donde alguien
- * está a punto de escribir su correo, y la respuesta tiene que estar donde se
- * duda, no en un apartado más abajo. Antes vivía dentro de `AuthCard` como una
- * frase de letra pequeña que no leía nadie.
+ * Sale donde alguien está a punto de escribir su correo, porque la respuesta
+ * tiene que estar donde se duda y no en un apartado más abajo: bajo el
+ * formulario de `AuthCard` en el login, y en la portada bajo el titular, que va
+ * al lado del formulario. Ahí `AuthCard` no la repite (`conGarantias={false}`)
+ * desde el 28-09-2026: las dos a la misma altura se leían como un descuido.
+ * Antes vivía dentro de `AuthCard` como una frase de letra pequeña que no leía
+ * nadie.
  *
  * Los puntos son elementos aparte y marcados como decorativos: así quien usa un
  * lector de pantalla oye tres cosas y no una frase con puntos en medio.

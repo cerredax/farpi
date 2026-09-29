@@ -13,7 +13,7 @@ import { getDayPeriodEnMadrid } from '@/lib/date-utils'
  * Desde el 02-09-2026 dice **lo mismo que la portada**, y no una versión propia.
  * Tenía su titular ("Todo lo importante de tu familia, en un solo lugar"), su
  * insignia de corazón y su línea de escudo al pie, mientras la portada llevaba
- * la casa, "Qué tenemos que saber hoy en casa." y `Garantias`. Eran dos caras
+ * la casa, "Qué tenemos que saber hoy en casa" y `Garantias`. Eran dos caras
  * para la misma app a un clic de distancia, y el formulario que hay al lado ya
  * es el mismo (`AuthCard`) desde el 01-09-2026. Aquí se llega desde una
  * invitación por correo o un enlace de recuperación: reconocer lo que se vio en
@@ -56,7 +56,7 @@ export function LoginHero() {
           bloque entero, que es donde hay sitio para que sea grande. */}
       <div className="grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 lg:gap-x-6">
         <h1 className="text-[1.9rem] font-black leading-[1.08] tracking-tight sm:text-4xl xl:text-5xl">
-          Qué tenemos que saber hoy en casa.
+          Qué tenemos que saber hoy en casa
         </h1>
 
         <DayIllustration

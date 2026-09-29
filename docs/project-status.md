@@ -657,14 +657,14 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   pantalla, así que el único sitio pulsable de cada tarjeta era el que peor se leía. Es un
   solo `SectionLink` y arregla los seis pies de una vez.
 - Páginas legales públicas `/privacidad` y `/terminos`.
-- **Página de inicio pública** (`/`, `LandingPage.tsx`), en una sola página con la
-  barra de arriba pegada y **"Entrar" y "Crear cuenta" siempre a la vista** —el segundo
-  lleva a `/auth/login?modo=registro`, que abre ya en el formulario de registro—. Por
-  orden: presentación, "Así se ve" con las capturas, "Cómo funciona" en tres pasos,
-  "En qué ayuda", "Preguntas" (`details` nativos, plegados) y "Por qué existe Farpi",
-  que cierra la página. Hubo una sección de contacto detrás de la carta y se quitó el
-  01-09-2026: la carta ya pide las sugerencias y da el correo, y pedir lo mismo dos
-  veces seguidas resta. Las secciones se enlazan desde la barra **solo en `lg:`**.
+- **Página de inicio pública** (`/`, `LandingPage.tsx`), rehecha el 28-09-2026 para que
+  deje de parecer una plantilla. Cuatro piezas, en el mismo orden en todos los tamaños: el
+  titular con el formulario de acceso al lado, el texto de Omar contado como reportaje, «Lo
+  que ves al abrirla» con tres capturas y «Antes de apuntaros» con seis preguntas abiertas.
+  Se fueron «Cómo funciona» en tres pasos, las funciones con iconos, la rayita verde encima
+  de cada título, los bloques de color y las secciones de la barra. Los titulares y el texto
+  de Omar van en **Fraunces**, cargada solo en la portada (la app sigue en Nunito), y **los
+  títulos no llevan punto final**. Los textos, en `src/components/landing/textos.ts`.
 - **Se entra desde la propia portada** (01-09-2026): no hay botones que lleven al
   login, está **el formulario de verdad**. `AuthCard` (`src/components/auth/`) tiene las
   dos pestañas, Google si el proveedor está activo, los campos y recuperar contraseña,
@@ -677,46 +677,21 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   desde una invitación por correo o un enlace de recuperación. El tramo del día lo
   calculan las dos con `getDayPeriodEnMadrid`: se pinta en el servidor, que va en
   UTC, y ese apaño estaba escrito solo en la portada.
-- **Va pegado al titular en móvil y anclado en una columna a la derecha en escritorio**
-  (`sticky top-20`, solo en `lg:`), y **se pinta una sola vez**: repetirlo arriba y
-  abajo duplicaría los `id` de los campos, que es lo que ata cada etiqueta con el suyo.
-  Por eso las tres piezas de la página (titular, acceso, resto) están colocadas a mano
-  en la rejilla: el acceso se escribe en medio —tiene que ser el segundo en móvil— pero
-  pertenece a la columna de al lado. Debajo, un **"Próximamente en Google Play"** sin
-  insignia oficial ni enlace, porque todavía no hay ficha a la que ir.
-- **La barra de arriba no tiene ningún enlace de cuenta**: solo la marca y las
-  secciones (`lg:`). Ni botón al login ni ancla al formulario; el cierre de la página
-  con los dos botones también se fue. Aquí ya no se navega a ninguna parte para entrar,
-  se entra: el formulario es lo segundo que hay en móvil y va anclado en escritorio.
-  `e2e/escritorio.spec.ts` vigila las dos mitades: que a 1440 px la tarjeta siga a la
-  vista tras bajar 2500 px y mida menos de una columna, y que a 1023 px ocupe el ancho
-  del texto y siga por encima de "Así se ve".
-- **La portada tiene la cara de la app, no una plantilla** (01-09-2026). Estaba plana:
-  un solo fondo crema de arriba abajo, seis `border-t` idénticos, todos los títulos del
-  mismo tamaño y el único color un verde repetido. Cuatro cambios, todos tirando de lo
-  que la app ya tenía:
-  - **La casa de Inicio va al lado del titular** (`DayIllustration`), con su cielo
-    cambiando según el tramo del día. Al lado y no encima: sola en su línea se quedaba
-    en mitad de la nada. Es una sola, colocada en una rejilla de dos columnas: en móvil
-    acompaña al titular y el párrafo pasa por debajo; en escritorio baja las dos filas y
-    se pone junto al bloque entero, que es donde hay sitio para que sea grande. Se pinta en el servidor, y por eso `getDayPeriodFromHour`:
-    en Vercel el servidor va en UTC, así que la hora se pide en la de Madrid.
-  - **El ritmo lo marca el fondo**: van en bloque de color las **tres** que enseñan algo
-    —las capturas, las secciones de la app y la carta— y el resto respira. Hubo un
-    momento en que estaban todas en bloque y el problema volvió por el otro lado: cuando
-    todo es un cuadro, ningún cuadro significa nada.
-  - **Cada título lleva una rayita de color encima** (`TituloSeccion`). Hace el trabajo
-    que hacía la caja —decir "aquí empieza algo"— sin encerrar la sección, y es el único
-    color de marca de la página fuera de los botones.
-  - **Bajo el titular, tres palabras**: privado para tu familia, gratis, sin anuncios.
-    Quien llega de fuera pregunta eso antes que nada y estaba contestado en las
-    Preguntas, a tres mil píxeles.
-  - **"Por qué existe Farpi" se lee como una carta**: fondo cálido, cuerpo más grande y
-    la frase del nombre de la hija sacada aparte en un `blockquote`. Era lo más personal
-    de la página y estaba maquetado igual que las preguntas frecuentes.
-  - **Las capturas, escalonadas y torcidas un pelín**, y se enderezan y levantan al pasar
-    el ratón. Solo desde `lg:`, y anuladas con `motion-reduce`. Dos columnas en `lg` y
-    tres en `xl`: a tres en un portátil de 1024 px los móviles no se leían.
+- **Va a la derecha del titular en escritorio y debajo de él en móvil, y ya no se ancla al
+  bajar** (28-09-2026). Estuvo `sticky` desde el 01-09-2026 y obligaba a meter todo lo demás
+  en una columna de 760 px; ahora lo demás ocupa el ancho entero, y para entrar desde abajo
+  se sube, como en móvil. **Se pinta una sola vez**: repetirlo duplicaría los `id` de los
+  campos, que es lo que ata cada etiqueta con el suyo. Las garantías van bajo el titular y
+  `AuthCard` no las repite al lado (`conGarantias={false}`). Debajo, un **"Próximamente en
+  Google Play"** sin insignia oficial ni enlace, porque todavía no hay ficha a la que ir.
+  `e2e/escritorio.spec.ts` vigila las dos mitades: a 1440 px la tarjeta está a la derecha
+  del titular, el texto de Omar pasa de 1000 px y la tarjeta **no** sigue a la vista tras
+  bajar 2500 px; a 1023 px ocupa el ancho del texto y va por encima de las capturas.
+- **La barra de arriba solo lleva la marca**: ningún enlace de cuenta (aquí no se navega a
+  ninguna parte para entrar, se entra) y, desde el 28-09-2026, tampoco las secciones.
+- **La casa de Inicio acompaña al texto de Omar** (`DayIllustration`), con el cielo del
+  tramo del día. Se pinta en el servidor, que va en UTC, así que el tramo se pide con la
+  hora de Madrid (`getDayPeriodEnMadrid`).
 - **Los datos de demo son los de una casa, no los de un bebé** (01-09-2026). Los adultos
   son **Carlos y María** y la hija se llama **Cris**; sigue estando (su pediatra, su vitamina, su cartilla, su cumplemes),
   pero alrededor hay lo que tiene cualquier casa: la ITV, el dentista, una cena con
@@ -736,25 +711,21 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   incisos y son de las cosas que delatan un texto escrito por una máquina. Van con
   comas, con paréntesis o partiendo la frase. En los comentarios del código se quedan:
   ahí no lee nadie de fuera.
-- **La carta la escribió Omar**, no se redactó a partir de lo que contó. Se intentó dos
-  veces y las dos sonaron a folleto: la primera demasiado redonda, la segunda demasiado
-  cortada. La buena salió cuando la dictó él y la edición se limitó a ortografía, dos
-  concordancias y partir una frase. Queda avisado en el propio componente: ahí no se
-  "mejora la redacción". Lo único que se le ha quitado, y lo pidió él (03-09-2026), es
-  **Nido**: contaba el cambio de nombre dos veces y esa vuelta solo interesa a quien
-  estuvo delante. De dónde sale "Farpi" se queda.
-- **Los textos de la portada dicen qué se gana, no qué trae** (03-09-2026). El párrafo del
-  titular era un inventario de siete secciones y ahora es una frase; los pies de las
-  capturas, una frase corta cada uno en vez de dos líneas explicando la pantalla que se
-  está viendo al lado. Dos preguntan, Comidas («¿Qué comemos esta semana?») y Finanzas
-  («¿En qué se nos va el dinero?»): es la pregunta con la que se entra en esas dos
-  pantallas. La de Finanzas dijo «Cuánto queda del mes» un día y se leía como cuántos
-  **días** quedan. En "En qué ayuda", Comidas nombra el **comedor** (media sección se
-  quedaba fuera) y Finanzas habla de controlar el dinero de la casa y no de "quién ha
-  puesto qué", que puesto en la portada suena a llevarle la cuenta a la pareja. Las
-  **Preguntas** son cinco y contestan como una persona; se fue la de la cobertura, que
-  explicaba una limitación con cariño en un sitio donde nadie la había preguntado. El
-  párrafo del titular se cambia **en los dos sitios**: portada y `LoginHero`.
+- **El texto de Omar lo escribió él**, no se redactó a partir de lo que contó. Se intentó
+  dos veces y las dos sonaron a folleto. La buena salió cuando la dictó él y la edición se
+  limitó a ortografía, dos concordancias y partir una frase. Queda avisado junto al texto,
+  en `textos.ts`: ahí no se "mejora la redacción", y una traducción la tiene que dar por
+  buena él. **Desde el 28-09-2026 va como un reportaje y no como carta**: su primera frase
+  en grande (sin punto, porque ahí es título), su nombre y la fecha en una línea, y el resto
+  en columna, sin caja, sin título, sin frase destacada y sin firma. Como carta, a unos
+  amigos les pareció hecha con IA, y no eran las palabras: era el disfraz de «carta del
+  fundador». Omar no quiere foto ni firma a mano.
+- **Lo que se cuenta de la app es lo que se ve en ella** (28-09-2026). Las notas junto a las
+  capturas nombran el pediatra de las 10:30 o la vitamina de Cris, no "gestiona tus citas".
+  El párrafo del titular es una frase y va igual en `LoginHero`: si se cambia uno, el otro.
+  Las **Preguntas** son seis, abiertas y a dos columnas en escritorio, y contestan como una
+  persona; la sexta, «¿Y si un día queremos irnos?», cuenta la copia de seguridad y el
+  borrado.
 - **El botón de "Continuar con Google" usa la paleta de Google** al pasar el ratón y al
   pulsarlo (03-09-2026): `#E8F0FE` con borde `#4285F4` para el hover, `#D2E3FC` con borde
   `#1A73E8` mientras está pulsado, más el hundido al 97 % de `Button`. Es **el único azul de
@@ -773,28 +744,22 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   (1200×630) que compone el mismo `gen-capturas.mjs` con la captura de Inicio y la
   Nunito. Farpi se comparte por WhatsApp entre familias, no por un buscador, y hasta
   ahora el enlace viajaba pelado.
-- **Capturas de la app de verdad** en "Así se ve", que genera
-  `node scripts/gen-capturas.mjs` contra la app en modo demo con el reloj congelado en
-  el 17-06-2026, la fecha de los datos de ejemplo. No son maquetas y no envejecen a
-  escondidas: si la interfaz cambia, se relanza el script. Cada pantalla puede llevar un
-  paso `preparar` (la de la semana cambia de vista antes de la foto). El script saca
-  **nueve**; la portada enseña **seis** (inicio, el mes, listas, comidas, finanzas,
-  documentos) a dos columnas y 314 px cada una. Las nueve en 3×3 eran un muro: a 200 px
-  una pantalla de móvil no se distingue de otra y el pie de foto hacía todo el trabajo.
-  Lo que las hacía ilegibles era el **ancho**, no el número: a dos columnas da igual que
-  haya cuatro o seis, solo alarga la sección. Están elegidas por forma distinta para que
-  la rejilla no parezca una cosa repetida. Las otras tres se siguen generando para la
-  ficha de Google Play. En móvil se arrastran de lado encajando de una en una.
-- **Y se ven nítidas, que costó tres arreglos** (01-09-2026). Una captura de móvil se
-  enseña a la mitad de tamaño, así que el texto de la app cae a unos 7 px y cualquier
-  pérdida se nota:
-  - El `sizes` decía 250 px fijos, pero en `lg` el hueco mide 291: el navegador bajaba
-    una imagen de 256 px y la **estiraba**. Ahora va por tramos y pide el doble del
-    hueco, para que el navegador reduzca en vez de ampliar.
-  - `quality={90}`, porque a 75 el texto pequeño se empasta.
-  - **`images.qualities: [75, 90]` en `next.config.ts`**: Next 16 cambió el valor por
-    defecto a `[75]` y a secas —un `quality` no permitido no falla ni avisa, se redondea
-    al más cercano—. Sin esa línea el `quality={90}` no hacía nada.
+- **Capturas de la app de verdad**, que genera `node scripts/gen-capturas.mjs` contra la app
+  en modo demo con el reloj congelado en el 17-06-2026, la fecha de los datos de ejemplo.
+  Saca **nueve** y la portada enseña **tres**: Inicio en grande, con una nota a la altura de
+  cada cosa que enseña, y Listas y el mes al lado de lo que cuentan. Las otras seis se siguen
+  generando para la ficha de Google Play. Dos cosas que hay que saber:
+  - **Se importan y no se piden por su ruta.** Importadas, su dirección lleva una huella del
+    contenido. Por la ruta, la caché de imágenes de Next no se entera del cambio (su
+    documentación: «there is no mechanism to invalidate the cache»), y el 28-09-2026 la
+    portada siguió enseñando el mes antiguo con el archivo ya regenerado.
+  - **Si se regeneran, se revisan las notas de `textos.ts`**, que citan lo que se ve. El
+    script estuvo roto desde el 28-09-2026 (esperaba un nombre que el mes en móvil ya no
+    escribe en las casillas) y las capturas se quedaron en la interfaz del 02-09.
+- **Y se ven nítidas** (01-09-2026): `sizes` pide el doble del hueco para que el navegador
+  reduzca en vez de estirar, `quality={90}` porque a 75 el texto pequeño se empasta, y
+  **`images.qualities: [75, 90]` en `next.config.ts`**: Next 16 cambió el valor por defecto a
+  `[75]`, y un `quality` no permitido no falla ni avisa, se redondea al más cercano.
 - Modo demo con persistencia en `localStorage`.
 
 ### Conexión Supabase (completada)
@@ -1009,7 +974,7 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
     meses y que el buscador filtra por nombre, y que la lista de debajo del mes del
     calendario se va con el mes que se mira, más los que cada recorrido de rutas añade
     solo por tener una ruta más):
-    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes, tamaño mínimo de los controles y que ningún sheet cerrado asome por abajo) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, la columna de acceso anclada de la portada y la de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
+    `smoke.spec.ts` (login demo → /home), `runtime.spec.ts` (apertura de sheets y flujos CRUD), `movil.spec.ts` (390×844: desbordes, tamaño mínimo de los controles y que ningún sheet cerrado asome por abajo) y `escritorio.spec.ts` (1440 px: barra lateral, rejilla de comidas, el acceso de la portada a la derecha del titular y sin anclarse, y la columna de secciones de Ajustes, que se queda pegada al bajar; 1023 px: que por debajo del corte no cambie nada, Ajustes incluido). `npm run test:e2e` los corre todos levantando el dev server en :3100.
 - **El contraste está medido y cumple AA, con dos excepciones escritas** (09-09-2026).
   Medido en el navegador, nodo de texto a nodo de texto contra su fondo real, en las diez
   rutas a 390 px: quedan **6** avisos y los 6 son deliberados —los días fuera de mes de la
@@ -1039,7 +1004,7 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   desplegables de la cuenta del mes, los campos de formulario, el enlace del pie de cada
   sección de Inicio, las seis pastillas de la barra de abajo y la papelera de una tarea.
   Una sola excepción, la que recoge la propia 2.5.8: un enlace `display: inline` dentro
-  de una frase —el correo de la carta de la portada—, que no se agranda sin romper el
+  de una frase —el correo del texto de Omar en la portada—, que no se agranda sin romper el
   renglón. Queda `.area-de-toque` en globals.css para los iconos que no pueden crecer a
   lo ancho; hoy no lo usa nadie de forma crítica.
   **Y dentro de los sheets también** (17-09-2026). Hasta ese día el bucle medía las
@@ -1353,7 +1318,7 @@ esto; aquí solo el titular.
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
 pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
-pruebas que exigen un aparato en la mano, una decisión sin tomar, tres funcionalidades que
+pruebas que exigen un aparato en la mano, dos decisiones sin tomar, tres funcionalidades que
 no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
@@ -1404,6 +1369,14 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
   la guía entera en `docs/play-store.md`. Falta lo que no vive aquí: la cuenta de
   desarrollador, generar la app con Bubblewrap, la huella SHA-256 de la firma de Google
   —y con ella `public/.well-known/assetlinks.json`—, la ficha y la prueba cerrada.
+- **La portada en inglés**: preparada el 28-09-2026 y sin traducir. Sus textos están en
+  `src/components/landing/textos.ts` con un tipo que obliga a traducirlos todos, y la
+  maqueta ya no tiene ninguno dentro. Lo que queda por decidir va antes que la
+  traducción: **si detrás va la app en inglés o no**. Quien se da de alta desde `/en`
+  aterriza hoy en una app entera en castellano; si eso no cambia, la portada en inglés
+  tiene que decirlo. Los pasos y lo que no cubre el diccionario (el formulario, las
+  garantías, `lang`, las metaetiquetas, los papeles), en `docs/architecture.md`, «La
+  portada en otro idioma». Y el texto de Omar lo tiene que dar por bueno él.
 
 ### 3. Funcionalidad que no existe
 

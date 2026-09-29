@@ -1448,8 +1448,8 @@ cambio de escritorio necesita tocar un valor que ya se usa en móvil, se mueve a
 mismo valor base y se le añade la variante `lg:`. Tres límites que `e2e/movil.spec.ts` comprueba:
 nada desborda a lo ancho a **390 px**, ningún control baja de **24×24 px** (mínimo WCAG 2.5.8) y
 ninguno baja de **44×44** (Apple y Material). La única excepción es la que recoge la propia
-2.5.8: un enlace `display: inline` dentro de una frase, que en Farpi es uno, el correo de la
-carta de la portada. `e2e/escritorio.spec.ts` vigila desde los dos lados: a 1440 px y a **1023
+2.5.8: un enlace `display: inline` dentro de una frase, que en Farpi es uno, el correo del
+texto de Omar en la portada. `e2e/escritorio.spec.ts` vigila desde los dos lados: a 1440 px y a **1023
 px**, un píxel por debajo del corte, donde todo tiene que seguir igual.
 
 ### La navegación
@@ -2154,11 +2154,32 @@ contraseña— pero ya solo aporta su maqueta.
 tenía botones, salía dos veces —una para móvil, otra para escritorio— y con un formulario dentro
 eso duplica los `id` de los campos, que es lo que ata cada `label` con el suyo. Dos «Correo
 electrónico» con el mismo `id` y quien navega con lector de pantalla acaba escribiendo en el que no
-ve. Por eso las tres piezas de la portada —titular, acceso y resto— van colocadas a mano en la
-rejilla (`col-start` / `row-start`) en vez de por orden natural: el acceso se escribe en medio,
-porque tiene que ser el segundo en móvil, pero pertenece a la columna de al lado.
+ve. Se escribe justo después del titular, así que es lo segundo en móvil y la columna de la
+derecha en escritorio sin colocar nada a mano.
 
-En la barra de arriba **no queda ningún enlace de cuenta**. Se probó dejar un «Entrar» que fuera un
+**Y no se ancla al bajar** (28-09-2026). Estuvo `sticky` en escritorio desde el 01-09-2026, para
+poder entrar desde cualquier punto, y el precio era meter todo lo demás en una columna de 760 px.
+Omar eligió lo contrario: que el texto, las capturas y las preguntas ocupen el ancho entero, y que
+quien quiera entrar desde abajo suba, como ya pasaba en móvil.
+
+**Lo que la saca de plantilla**, que se decidió el 28-09-2026 después de que a unos amigos de Omar
+les pareciera hecha con IA:
+
+- **Menos secciones, y ninguna de las de siempre.** Fuera «Cómo funciona» en tres pasos, las
+  funciones con iconos y las preguntas plegadas: es la página que sale al pedirle a cualquiera una
+  landing. Quedan cuatro piezas: el titular con el formulario, el texto de Omar, lo que se ve al
+  abrir la app y las preguntas, abiertas.
+- **El texto de Omar va arriba y como reportaje, no como carta.** El disfraz de «carta del
+  fundador» (título, frase destacada, fondo cálido, firma) era lo que olía a plantilla, no sus
+  palabras. Ahora su primera frase va en grande y el resto en columna. Sin foto ni firma a mano,
+  porque no las quiere.
+- **La app se enseña con lo que se ve de verdad**: tres capturas, y las notas nombran lo que hay en
+  ellas (el pediatra de las 10:30), no lo que la app "permite hacer".
+- **Una segunda letra** (Fraunces) para titulares y para el texto de Omar, solo en la portada. Con
+  una sola letra redonda y todo en gris pequeño, nada parecía decidido por nadie.
+- **Los títulos no llevan punto final**, y lo vigila `e2e/unit/portada-textos.spec.ts`.
+
+En la barra de arriba **no queda ningún enlace de cuenta**, ni tampoco las secciones. Se probó dejar un «Entrar» que fuera un
 ancla a `#entrar`, para poder volver al formulario desde el final de la página en móvil, y se
 quitó: seguía leyéndose como el botón de login de siempre, que es justo lo que la portada ya no
 quiere ser. El precio es que en móvil, muy abajo, hay que subir para volver al formulario; el `id`
@@ -2166,7 +2187,49 @@ sigue ahí por si algún día se enlaza de otra forma.
 
 Efecto lateral que conviene saber: la portada dejó de ser una página inerte y carga el cliente de
 Supabase. Y en **modo demo** enseña el aviso de «Modo local activo» en vez del formulario, que es
-lo mismo que hace `/auth/login` y lo que ve la suite e2e.
+lo mismo que hace `/auth/login` y lo que ve la suite e2e. **Por eso la suite no mide el
+formulario**: sus 44 px y su validación se comprueban a mano, con credenciales
+(`docs/testing-checklist.md`).
+
+### La portada en otro idioma
+
+Preparada el 28-09-2026, sin traducir. **Los textos de la portada no están en la maqueta**:
+viven en `src/components/landing/textos.ts` y `LandingPage` recibe uno de esos objetos
+(`PORTADA_ES` por defecto). `TextosPortada` es el contrato, así que una traducción a la que le
+falte una frase no compila, y `e2e/unit/portada-textos.spec.ts` le pasa las reglas de la casa
+(ni un guion largo, nada vacío). No se usa ninguna librería de i18n a propósito: es una página,
+y un objeto tipado hace lo mismo sin dependencia.
+
+Lo que **no** es solo traducir, y va primero: **la app sigue en castellano**. Quien se da de alta
+desde una portada en inglés entra en Inicio, Ajustes y los sheets en castellano, y le llegan en
+castellano los correos de confirmación. O se traduce también la app, que es otro trabajo y
+mucho más grande (todos los rótulos están escritos en los componentes), o la portada en inglés
+lo dice claro. Venderla en un idioma y servirla en otro es la clase de sorpresa que la portada
+evita en todo lo demás.
+
+Para abrir `/en`, en este orden:
+
+1. **`PORTADA_EN`** en `textos.ts`, con `idioma: 'en'`, y añadida a `IDIOMAS` en el test. La
+   **texto de Omar** no se traduce solo: lo escribió él y la versión inglesa la tiene que dar por
+   buena él (el porqué, junto a ella en `textos.ts`).
+2. **`src/app/en/page.tsx`**, copia de `src/app/page.tsx` que pasa `textos={PORTADA_EN}`, y
+   **`/en` en `PUBLIC_ROUTES`** (`src/lib/supabase/middleware.ts`) y en las `RUTAS` de
+   `e2e/movil.spec.ts`. Sin lo primero, `/en` redirige al login.
+3. **El idioma de la página.** `<html lang="es">` está en el layout raíz, que es de toda la app;
+   la portada lo corrige en su envoltorio (`lang={t.idioma}`), que es lo que usan los lectores de
+   pantalla. Si algún día hace falta el `<html>` en inglés, la salida de Next son dos layouts
+   raíz con grupos de rutas, y eso mueve todas las carpetas de `src/app`: no merece la pena solo
+   por esto.
+4. **Metaetiquetas**: título, descripción y `openGraph` propios en `en/page.tsx` (con
+   `locale: 'en_GB'` o el que toque) y, en las dos páginas, `alternates.languages`
+   (`{ es: '/', en: '/en' }`), que es lo que le dice a Google que son la misma. `og.png` lleva
+   la captura de Inicio, que está en castellano.
+5. **Lo que el diccionario no cubre**, porque lo comparte con `/auth/login`: `AuthCard` (las
+   pestañas, los campos y los mensajes de error) y `Garantias`. Necesitan recibir sus textos
+   igual que la portada. Y un enlace para cambiar de idioma en la barra.
+6. **Fuera de la página**: los papeles (`/privacidad`, `/terminos`, `/borrar-cuenta`), las
+   plantillas de correo de Supabase (`scripts/gen-email-templates.py`; son una por proyecto, no
+   por idioma) y las capturas de "Así se ve", que enseñan la app en castellano.
 
 ## Tono de la interfaz
 

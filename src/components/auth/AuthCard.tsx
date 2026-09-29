@@ -25,8 +25,12 @@ export type AuthMode = 'signin' | 'signup'
  * recuperación) y `LandingPage`.
  *
  * No trae ancho ni márgenes propios a propósito: lo pone quien lo coloca. En el
- * login es una columna de 420 px; en la portada, la tarjeta anclada de la
- * derecha o el hueco bajo el titular en móvil.
+ * login es una columna de 420 px; en la portada, la columna de la derecha del
+ * titular en escritorio o el hueco bajo él en móvil.
+ *
+ * `conGarantias={false}` quita las tres palabras de debajo. Las pide la
+ * portada, que desde el 28-09-2026 las enseña justo al lado, bajo el titular:
+ * repetidas a la misma altura se leían como un descuido.
  */
 
 const PASSWORD_MIN_LENGTH = 8
@@ -40,7 +44,13 @@ function authErrorMessage(message: string) {
   return message
 }
 
-export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
+export function AuthCard({
+  modoInicial,
+  conGarantias = true,
+}: {
+  modoInicial: AuthMode
+  conGarantias?: boolean
+}) {
   const router = useRouter()
 
   const [authMode, setAuthMode] = useState<AuthMode>(modoInicial)
@@ -64,7 +74,24 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
   const isSignup = authMode === 'signup'
   const passwordIsValid = password.length >= PASSWORD_MIN_LENGTH
   const passwordsMatch = !isSignup || password === confirmPassword
-  const formIsValid = email.trim() && passwordIsValid && passwordsMatch && (!isSignup || fullName.trim())
+
+  /**
+   * Qué falta, dicho, o `null` si no falta nada.
+   *
+   * El botón de enviar no se apaga porque falte un campo (28-09-2026): estuvo
+   * `disabled` hasta que el formulario era válido, y apagado sin explicación no
+   * dice qué falta. Ahora se pulsa siempre, y hablan primero `required` y
+   * `minLength` del navegador. Esto es para lo que ellos no ven: un nombre de
+   * solo espacios, dos contraseñas distintas, o un valor que ha puesto un gestor
+   * de contraseñas por código, que el navegador no mide.
+   */
+  function motivoInvalido(): string | null {
+    if (!email.trim()) return 'Escribe tu correo.'
+    if (!passwordIsValid) return 'La contraseña debe tener al menos 8 caracteres.'
+    if (isSignup && !fullName.trim()) return 'Escribe tu nombre.'
+    if (!passwordsMatch) return 'Las contraseñas no coinciden.'
+    return null
+  }
 
   function switchMode(mode: AuthMode) {
     setAuthMode(mode)
@@ -74,7 +101,8 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!formIsValid) return
+    const motivo = motivoInvalido()
+    if (motivo) { setError(motivo); setNotice(null); return }
 
     const supabase = createClient()
     const cleanEmail = email.trim().toLowerCase()
@@ -173,7 +201,10 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                 key={mode}
                 type="button"
                 onClick={() => switchMode(mode)}
-                className={`rounded-xl py-2.5 text-sm font-bold transition-all ${
+                aria-pressed={authMode === mode}
+                /* `min-h-11`: medían 40 px de alto, y la suite no lo veía porque
+                   en modo demo este formulario no se pinta. */
+                className={`min-h-11 rounded-xl py-2.5 text-sm font-bold transition-all ${
                   authMode === mode
                     ? 'bg-white text-ink shadow-sm'
                     : 'text-muted hover:text-ink'
@@ -266,7 +297,10 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted transition-colors hover:text-ink"
+                    /* 44×44 y el icono en medio. Era el icono a pelo, 15×15, por
+                       debajo incluso de los 24 de la WCAG. Cabe entero: el campo
+                       mide 49 de alto y deja 44 a la derecha (`pr-11`). */
+                    className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted transition-colors hover:text-ink"
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -278,6 +312,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete={isSignup ? 'new-password' : 'current-password'}
+                  minLength={PASSWORD_MIN_LENGTH}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
@@ -312,7 +347,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
             {error && <Alert tone="error">{error}</Alert>}
             {notice && <Alert tone="success">{notice}</Alert>}
 
-            <Button type="submit" fullWidth size="lg" disabled={loading || !formIsValid}>
+            <Button type="submit" fullWidth size="lg" disabled={loading}>
               {loading ? (
                 <span className="inline-flex items-center gap-2">
                   <Loader2 size={15} className="animate-spin" />
@@ -330,7 +365,8 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
                 type="button"
                 onClick={handlePasswordReset}
                 disabled={loading}
-                className="w-full pt-1 text-center text-xs font-semibold text-primary-strong hover:underline disabled:opacity-40"
+                /* `min-h-11`: medía 20 px de alto, un renglón de letra pequeña. */
+                className="flex min-h-11 w-full items-center justify-center text-xs font-semibold text-primary-strong hover:underline disabled:opacity-40"
               >
                 Recuperar contraseña
               </button>
@@ -341,7 +377,7 @@ export function AuthCard({ modoInicial }: { modoInicial: AuthMode }) {
 
       {/* Debajo del formulario, que es donde se duda: quien está a punto de
           escribir su correo quiere saber quién lo va a ver y si esto cuesta. */}
-      <Garantias className="mt-5 justify-center" />
+      {conGarantias && <Garantias className="mt-5 justify-center" />}
 
       <style jsx>{`
         .form-input {

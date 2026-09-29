@@ -80,8 +80,8 @@ for (const ruta of RUTAS) {
           if (el.closest('[inert]')) return false
           // La excepción "inline" que la propia 2.5.8 recoge: un enlace metido
           // en una frase mide lo que mide el renglón, y agrandarlo rompería el
-          // texto que lo rodea. En Farpi es uno: el correo de la carta de la
-          // portada. No es una rendija abierta a los controles de la app, que
+          // texto que lo rodea. En Farpi es uno: el correo del texto de Omar en
+          // la portada. No es una rendija abierta a los controles de la app, que
           // ninguno es `display: inline`.
           if (getComputedStyle(el).display === 'inline') return false
           return r.width < minimo || r.height < minimo
@@ -213,8 +213,8 @@ async function controlesCortos(page: Page, raiz = 'body'): Promise<string[]> {
         if (el.closest('[inert]')) return false
         // La excepción que la propia WCAG 2.5.8 llama "inline": un enlace
         // dentro de una frase no se puede agrandar sin romper el renglón del
-        // texto que lo rodea. Son los de la portada —el correo dentro de la
-        // carta, Privacidad y Términos al pie—, no controles de la app.
+        // texto que lo rodea. En Farpi es uno: el correo del texto de Omar en
+        // la portada. Los enlaces del pie no entran aquí: miden 44 px.
         if (getComputedStyle(el).display === 'inline') return false
         // `area-de-toque` amplía el alto 8 px por arriba y por abajo con un
         // pseudoelemento, que `getBoundingClientRect` no ve.

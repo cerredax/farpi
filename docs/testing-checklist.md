@@ -683,24 +683,35 @@ cada uno hace a su manera:
 ## 12b. Portada pública (`/`)
 
 > Automatizado: `e2e/smoke.spec.ts` comprueba que los botones están y que las capturas
-> cargan de verdad (una imagen rota no da error en el navegador), y
-> `e2e/escritorio.spec.ts` que la columna de acceso sigue a la vista a 1440 px tras bajar
-> y que a 1023 px no existe. Lo de aquí es lo que hay que mirar con ojos.
+> cargan de verdad (una imagen rota no da error en el navegador);
+> `e2e/escritorio.spec.ts`, que a 1440 px el acceso va a la derecha del titular y no se
+> ancla al bajar, y que a 1023 px ocupa el ancho del texto; y
+> `e2e/unit/portada-textos.spec.ts`, que ningún texto lleva guion largo ni «hogar» y que
+> los títulos van sin punto. Lo de aquí es lo que hay que mirar con ojos.
 
 - [ ] **Entrar funciona desde la portada**, sin pasar por `/auth/login`: con correo y
       contraseña, y con Google. Es el mismo `AuthCard`, pero conviene probarlo aquí.
 - [ ] La pestaña "Crear cuenta" crece a cuatro campos sin romper la columna.
+- [ ] **El formulario, con credenciales reales**, porque la suite no lo ve: en modo demo
+      `AuthCard` pinta "Modo local activo" y `e2e/movil.spec.ts` mide ese cartel. Las dos
+      pestañas, el ojo de la contraseña y "Recuperar contraseña" miden 44 px o más (el ojo
+      era un icono de 15×15 hasta el 28-09-2026), y el botón de Entrar **se pulsa con el
+      formulario vacío** y dice qué falta: el navegador lo del campo vacío y la
+      contraseña corta, la tarjeta el nombre en blanco y las contraseñas distintas. Se
+      mide sin enviar nada: ninguno de esos casos llega a Supabase.
 - [ ] En móvil el formulario se ve sin bajar nada, justo debajo del titular, y el
       teclado no tapa el botón de Entrar.
-- [ ] La barra de arriba **no tiene ningún botón de cuenta**: solo la marca y, en
-      escritorio, las secciones.
-- [ ] En escritorio, la tarjeta de la derecha acompaña todo el scroll y no se pisa con
-      la cabecera pegajosa.
-- [ ] Las capturas de "Así se ve" se leen: en móvil se arrastran de lado y encajan de
-      una en una; en escritorio son tres columnas.
+- [ ] La barra de arriba **no tiene ningún botón de cuenta**: solo la marca.
+- [ ] Los titulares y el texto de Omar salen en **Fraunces** (una serifa), y el resto en
+      Nunito. Si salen en Georgia o en la letra del sistema, la fuente no ha cargado.
+- [ ] Las **notas de la captura de Inicio** caen a la altura de lo que cuentan (las citas,
+      las tareas, las comidas) en escritorio, y debajo de la captura en móvil.
+- [ ] El pie lleva **Privacidad, Términos y Borrar la cuenta**, y el tercero abre
+      `/borrar-cuenta` sin sesión.
 - [ ] **Las capturas son de la interfaz de ahora.** Si se ha tocado alguna pantalla,
       `node scripts/gen-capturas.mjs` y volver a mirar. Es el único punto de la portada
-      que se queda desactualizado solo.
+      que se queda desactualizado solo. Y después, **las notas de `textos.ts`**, que
+      citan lo que se ve (el pediatra de las 10:30): si la captura cambia, mienten.
 - [ ] "Próximamente en Google Play" sigue siendo verdad. El día que haya ficha, se
       cambia por la insignia oficial y su enlace (bloque al pie de `#entrar`).
 - [ ] **Cómo se ve el enlace al compartirlo.** Mandarse `https://www.farpi.app` por

@@ -56,11 +56,17 @@ const ENTORNO_DEMO = {
  */
 const PANTALLAS = [
   { ruta: '/home',     nombre: 'inicio',     espera: 'Buenos días' },
-  { ruta: '/calendar', nombre: 'calendario', espera: 'Cena con Marta y Javi' },
+  // El pediatra y no la cena: desde el 28-09-2026 el mes en móvil no escribe los
+  // nombres dentro de las casillas, así que la cena del sábado 20 ya no se ve en
+  // la rejilla y el script se quedaba esperándola. El pediatra cae el mismo día
+  // 17, que es el que el mes enseña debajo.
+  { ruta: '/calendar', nombre: 'calendario', espera: 'Pediatra de Cris' },
   {
     ruta: '/calendar',
     nombre: 'semana',
-    espera: 'Cena con Marta y Javi',
+    // Se espera antes de `preparar`, con el calendario todavía en el mes: por eso
+    // es la misma señal que la de arriba y no algo que solo salga en la semana.
+    espera: 'Pediatra de Cris',
     // La misma ruta con otra vista: el calendario abre en el mes y la semana
     // hay que pedirla. En móvil las cuatro vistas están detrás de un botón que
     // despliega, igual que en `e2e/vistas.ts`.
@@ -160,7 +166,7 @@ async function componerOg(navegador) {
         <img src="data:image/png;base64,${icono.toString('base64')}" alt="">
         <span>Farpi</span>
       </div>
-      <h1>Qué tenemos que saber hoy en casa.</h1>
+      <h1>Qué tenemos que saber hoy en casa</h1>
       <p>El espacio privado de tu familia: agenda,<br>tareas, comidas y papeles importantes.</p>
       <div class="pie">www.farpi.app</div>
     </div>

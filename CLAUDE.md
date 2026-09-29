@@ -56,7 +56,7 @@ habían hecho. Un detalle para leer los commits: **la app se llamó Nido hasta e
   dentro desde el 17-09-2026, porque cerrados son `inert` y el bucle de rutas los
   saltaba. La única excepción es la que recoge la propia 2.5.8: un enlace
   `display: inline` dentro de una frase, que no se puede agrandar sin romper el
-  renglón. En Farpi es uno, el correo de la carta de la portada.
+  renglón. En Farpi es uno, el correo del texto de Omar en la portada.
 - **El escritorio se hace en `lg:` y no toca nada por debajo.** La navegación cambia
   ahí: `BottomNav` se va con `lg:hidden` y entra `SideNav` con `hidden lg:flex`. Si un
   cambio de escritorio necesita tocar un valor que ya se usa en móvil, no se toca: se
@@ -103,8 +103,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 706 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 922 (706 unitarios + 216 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 712 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 928 (712 unitarios + 216 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)

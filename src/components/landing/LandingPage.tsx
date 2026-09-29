@@ -1,214 +1,148 @@
-import Image from 'next/image'
+import Image, { type StaticImageData } from 'next/image'
 import Link from 'next/link'
-import {
-  CalendarDays,
-  FileText,
-  ListChecks,
-  NotebookText,
-  Smartphone,
-  UtensilsCrossed,
-  Euro,
-} from 'lucide-react'
+import { Fraunces } from 'next/font/google'
+import { Smartphone } from 'lucide-react'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Garantias } from '@/components/ui/Garantias'
 import { DayIllustration } from '@/components/home/DayIllustration'
 import { getDayPeriodEnMadrid } from '@/lib/date-utils'
+import { PORTADA_ES, type TextosPortada } from './textos'
+import capturaInicio from '../../../public/capturas/inicio.png'
+import capturaListas from '../../../public/capturas/listas.png'
+import capturaCalendario from '../../../public/capturas/calendario.png'
 
 const CONTACT = 'cerredax@gmail.com'
 
 /**
- * Las secciones no se separan con una rayita: se separan con el fondo, y **solo
- * algunas lo llevan**.
+ * La letra de los titulares y del texto de Omar. **Solo en la portada**: la app
+ * sigue en Nunito, y por eso se carga aquí y no en el layout raíz, que la
+ * precargaría en todas las pantallas.
  *
- * Primero fueron seis `border-t` idénticos sobre el mismo crema y la página
- * pesaba lo mismo de arriba abajo. Al meterlas todas en bloque el problema
- * volvió por el otro lado: cuando todo es un cuadro, ningún cuadro significa
- * nada. Van en bloque las tres que enseñan algo —las capturas, las secciones de
- * la app y la carta— y el resto respira. El aire es la mitad del ritmo.
+ * Es la otra mitad de lo que la saca de plantilla (28-09-2026). Con una sola
+ * letra redonda y todo en gris pequeño, nada de la página parecía decidido por
+ * nadie. Una serifa con carácter para lo que se lee despacio y Nunito para lo
+ * que se usa. `opsz` deja que el navegador afine el trazo según el tamaño: fino
+ * y apretado en el titular, abierto en el cuerpo del texto.
  */
-const BLOQUE = 'rounded-[2rem] px-6 py-9 sm:px-8 sm:py-10'
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  axes: ['opsz'],
+  variable: '--font-fraunces',
+})
 
-/** El titular de una sección. Antes medía lo mismo que un texto en negrita. */
-const TITULO = 'text-xl font-black tracking-tight sm:text-2xl'
+const SERIF = 'font-[family-name:var(--font-fraunces)]'
 
-/**
- * Las capturas, escalonadas y torcidas un pelín, como fotos dejadas encima de
- * la mesa. Solo en escritorio: en la tira de móvil, que se arrastra y encaja de
- * una en una, torcerlas se lee como un fallo de maquetación.
- *
- * Los nombres de clase van enteros y no armados con plantillas porque Tailwind
- * los busca leyendo el archivo: un `lg:${variable}` no existiría en el CSS.
- */
-const ESCALON = ['lg:mt-0', 'lg:mt-10', 'lg:mt-6', 'lg:mt-0']
-const INCLINACION = ['lg:-rotate-[1.1deg]', 'lg:rotate-[0.9deg]', 'lg:rotate-[0.6deg]', 'lg:-rotate-[0.8deg]']
-
-/**
- * El título de una sección con su rayita de color encima.
- *
- * La rayita hace el trabajo que antes hacía meterlo todo en una caja: dice
- * "aquí empieza algo" sin encerrarlo, y de paso mete el único color de marca que
- * hay en la página fuera de los botones. Va en las siete por igual —dentro y
- * fuera de bloque—, que es lo que las hace parecer hermanas.
- */
-function TituloSeccion({ id, children }: { id?: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-5">
-      <span aria-hidden className="mb-3 block h-1 w-9 rounded-full bg-primary" />
-      <h2 id={id} className={TITULO}>{children}</h2>
-    </div>
-  )
-}
+/** Los títulos de sección, la misma medida para los dos. */
+const TITULO = `${SERIF} text-[2.375rem] font-medium leading-[1.05] tracking-[-0.02em] lg:text-[3.5rem]`
 
 /**
  * El nombre de la app, dentro de un párrafo. Los textos van en gris (`muted`),
- * así que basta el peso y la tinta fuerte para que se reconozca: cambiarle la
- * tipografía desajustaría la línea base y se leería como un fallo de
- * maquetación, no como una marca. Es un `span` y no un `strong` a propósito —
- * no es una palabra importante de la frase, es un nombre propio.
+ * así que basta el peso y la tinta fuerte para que se reconozca. Es un `span` y
+ * no un `strong` a propósito: no es una palabra importante de la frase, es un
+ * nombre propio.
  */
 function Marca() {
   return <span className="font-bold text-ink">Farpi</span>
 }
 
-/** Lo mismo, para los textos que viven en una constante y no en el JSX. */
+/** Cualquier «Farpi» de los textos de `textos.ts` sale marcado. */
 function conMarca(texto: string) {
   return texto.split(/(Farpi)/).map((trozo, i) =>
     trozo === 'Farpi' ? <Marca key={i} /> : trozo
   )
 }
 
-const SECCIONES = [
-  { id: 'asi-se-ve', titulo: 'Así se ve' },
-  { id: 'como-funciona', titulo: 'Cómo funciona' },
-  { id: 'en-que-ayuda', titulo: 'En qué ayuda' },
-  { id: 'preguntas', titulo: 'Preguntas' },
-]
+/**
+ * Una captura de la app, con los bordes redondos de un móvil pero sin dibujar
+ * el móvil: un marco de mentira con su barra de estado es lo primero que hace
+ * que una captura parezca un render.
+ *
+ * Las genera `node scripts/gen-capturas.mjs` contra la app de verdad en modo
+ * demo, con el reloj congelado en el 17-06-2026. Si la interfaz cambia, se
+ * vuelve a lanzar y **se revisan las notas de `textos.ts`**, que citan lo que se
+ * ve en ellas.
+ *
+ * **Se importan y no se piden por su ruta** (`/capturas/inicio.png`). Importadas,
+ * su dirección lleva una huella del contenido: cuando el script las regenera,
+ * cambia la dirección y nadie sirve la vieja. Por la ruta, la caché de imágenes
+ * de Next no tiene forma de enterarse (lo dice su documentación: «there is no
+ * mechanism to invalidate the cache»), y el 28-09-2026 la portada siguió
+ * enseñando el mes antiguo con el archivo ya cambiado.
+ *
+ * `sizes` pide **el doble del hueco** a propósito: el texto de la app cae a unos
+ * 9 px, con una imagen del tamaño justo se emborrona y con el doble de puntos el
+ * navegador la reduce y se lee. El número tiene que seguir al ancho: si el hueco
+ * crece y esto no, el navegador estira una imagen pequeña.
+ */
+function Captura({
+  imagen,
+  alt,
+  sizes,
+  className,
+}: {
+  imagen: StaticImageData
+  alt: string
+  sizes: string
+  className: string
+}) {
+  return (
+    <div
+      className={`flex-shrink-0 overflow-hidden rounded-[2rem] border border-line bg-white shadow-[0_40px_90px_-45px_rgba(37,37,37,0.4)] ${className}`}
+    >
+      <Image
+        src={imagen}
+        sizes={sizes}
+        quality={90}
+        alt={alt}
+        className="block h-auto w-full"
+      />
+    </div>
+  )
+}
 
 /**
- * Las capturas las genera `node scripts/gen-capturas.mjs` contra la app de
- * verdad en modo demo, con el reloj congelado en el 17-06-2026 para que los
- * datos de ejemplo salgan como el día que valían. No son maquetas: si la
- * interfaz cambia, se vuelve a lanzar el script y esto se entera.
+ * Dónde cae cada nota de Inicio en escritorio, para que quede a la altura de lo
+ * que cuenta: las citas, las tareas y las comidas de la captura de 360 px. Se
+ * miden sobre esa captura; si se regenera y las tarjetas cambian de alto, se
+ * vuelven a medir. En móvil van debajo de la captura y no se alinean con nada.
  *
- * **Seis de las nueve que hay, y a dos columnas.** Llegaron a estar las nueve en
- * una rejilla de 3×3 y era un muro: a 200 px de ancho una pantalla de móvil no se
- * distingue de otra, todas son una superficie clara con rayas, y el pie de foto
- * acababa haciendo todo el trabajo. Lo que las hacía ilegibles era el **ancho**,
- * no el número: a dos columnas cada una mide 314 px y da igual que haya cuatro o
- * seis, porque añadir más no las encoge, solo alarga la sección.
- *
- * Las seis están elegidas por forma distinta, que es lo que impide que la rejilla
- * parezca una cosa repetida: tarjetas con dibujo, una rejilla de mes, una lista,
- * la parrilla de la semana, barras con números y fichas. Se quedan fuera Tareas
- * (se parece demasiado a Listas), Semana (rejilla medio vacía) y Notas.
- *
- * El script sigue sacando las nueve a propósito: las otras tres hacen falta para
- * la ficha de Google Play cuando toque.
+ * Enteros y no armados con plantillas porque Tailwind los busca leyendo el
+ * archivo: un `lg:mt-[${n}px]` no existiría en el CSS.
  */
-const CAPTURAS = [
-  { archivo: 'inicio',     titulo: 'Inicio',      texto: 'Lo de hoy, sin buscarlo.' },
-  { archivo: 'calendario', titulo: 'El mes',      texto: 'Todo el mes de un vistazo.' },
-  { archivo: 'listas',     titulo: 'Listas',      texto: 'La compra, en el móvil de todos.' },
-  { archivo: 'comidas',    titulo: 'Comidas',     texto: '¿Qué comemos esta semana?' },
-  { archivo: 'finanzas',   titulo: 'Finanzas',    texto: '¿En qué se nos va el dinero?' },
-  { archivo: 'documentos', titulo: 'Documentos',  texto: 'Los papeles, cuando hacen falta.' },
-]
+const ALTURA_NOTA = ['lg:mt-[110px]', 'lg:mt-[120px]', 'lg:mt-[110px]']
 
-const PASOS = [
-  {
-    titulo: 'Creas tu familia',
-    texto: 'Te haces una cuenta y le pones nombre a la casa. Es lo único que hay que configurar.',
-  },
-  {
-    titulo: 'Invitas a los tuyos',
-    texto: 'Un correo a cada uno. Quien entra ve lo mismo que el resto, sin tener que preparar nada.',
-  },
-  {
-    titulo: 'Lo de casa, en un sitio',
-    texto: 'Lo que apunta cualquiera aparece en el móvil de los demás. Sin grupos de mensajes ni papeles en la nevera.',
-  },
-]
-
-const FUNCIONES = [
-  {
-    icon: CalendarDays,
-    titulo: 'Calendario',
-    texto: 'Lo que hay apuntado, quién no está y qué se acerca, sin tener que preguntarlo.',
-  },
-  {
-    icon: ListChecks,
-    titulo: 'Tareas y listas',
-    texto: 'Lo que falta por hacer y lo que hay que comprar, a la vista de toda la familia.',
-  },
-  {
-    icon: UtensilsCrossed,
-    titulo: 'Comidas',
-    texto: 'Qué se cena esta semana y qué le han puesto hoy en el comedor.',
-  },
-  {
-    icon: Euro,
-    titulo: 'Finanzas',
-    texto: 'El dinero de la casa bajo control: lo fijo del mes y cuánto queda.',
-  },
-  {
-    icon: NotebookText,
-    titulo: 'Notas',
-    texto: 'Lo que hay que tener a mano en casa: el wifi, un teléfono, una dirección.',
-  },
-  {
-    icon: FileText,
-    titulo: 'Documentos',
-    texto: 'Cartillas, informes, papeles importantes, en el mismo sitio y fáciles de encontrar.',
-  },
-]
-
-const PREGUNTAS = [
-  {
-    pregunta: '¿Quién ve lo que apuntamos?',
-    respuesta:
-      'Vosotros y nadie más. Todo lo que se guarda queda atado a vuestra familia, y el servidor no lo deja salir de ahí. Farpi no es un sitio donde publicar nada.',
-  },
-  {
-    pregunta: '¿Cuántos podemos ser?',
-    respuesta:
-      'Los que seáis. Los dos, o los dos y los abuelos. Le mandas un correo a cada uno y quien entra ve y apunta lo mismo que el resto, desde el primer día.',
-  },
-  {
-    pregunta: '¿Hay que instalar algo?',
-    respuesta:
-      'No. Farpi se abre en el navegador y va igual en el móvil, en la tablet y en el ordenador, con la misma cuenta y lo mismo apuntado en los tres. Si te apetece, en el móvil la añades a la pantalla de inicio y se comporta como una app más, con su icono y sin la barra del navegador. La de Google Play llegará más adelante y no cambiará nada de lo que ya tengáis.',
-  },
-  {
-    pregunta: '¿Me avisa de las cosas?',
-    respuesta:
-      'Solo si tú quieres. Lo enciendes en Ajustes y te llega un aviso al móvil con lo que toca ese día. Si no lo enciendes, Farpi no te dice nada.',
-  },
-  {
-    pregunta: '¿Dónde acaban mis documentos?',
-    respuesta:
-      'En tu propio Google Drive, no en un cajón nuestro. Farpi guarda solo la ficha (qué es, de quién es, cuándo caduca) y se la enseña a tu familia. El archivo no sale de tu cuenta, y los demás no tienen que conectar nada para verlo.',
-  },
-]
-
-export function LandingPage() {
+/**
+ * La portada, en cuatro piezas y en este orden en todos los tamaños: el titular
+ * con el formulario, el texto de Omar, lo que se ve al abrir la app y las
+ * preguntas.
+ *
+ * Así desde el 28-09-2026. Antes eran siete secciones —capturas, «Cómo
+ * funciona» en tres pasos, las funciones con iconos, preguntas plegadas y una
+ * carta al final—, cada título con su rayita verde, y el conjunto era la página
+ * que sale al pedirle a cualquiera una landing. Se quedó lo que no tiene nadie
+ * más: el texto de Omar, arriba, y la app enseñada con lo que se ve de verdad.
+ *
+ * Los textos llegan de fuera (`textos.ts`) y por defecto son los de castellano:
+ * `/` no pasa nada, y la versión en inglés, cuando exista, será una ruta que
+ * pase `PORTADA_EN`.
+ */
+export function LandingPage({ textos: t = PORTADA_ES }: { textos?: TextosPortada }) {
   /**
-   * La casa del titular enseña el cielo que toca —sol, atardecer o luna—, así
-   * que la portada no se ve igual a las nueve de la mañana que a las once de la
-   * noche. Es la misma ilustración que preside Inicio, y esa es la gracia: quien
-   * entra ya ha visto la app.
-   *
-   * Se resuelve aquí y no en el navegador para que no haya un parpadeo entre lo
-   * que llega pintado y lo que decide el reloj de quien mira. El apaño de la
-   * zona horaria —el servidor va en UTC— vive en `getDayPeriodEnMadrid`, que
-   * comparte con la pantalla de login desde que las dos enseñan esta casa.
+   * La casa del texto de Omar enseña el cielo que toca —sol, atardecer o luna—,
+   * y es la misma ilustración que preside Inicio. Se resuelve en el servidor
+   * para que no haya un parpadeo, y el apaño de la zona horaria —el servidor va
+   * en UTC— vive en `getDayPeriodEnMadrid`, que comparte con el login.
    */
   const tramo = getDayPeriodEnMadrid()
 
   return (
-    <div className="min-h-dvh bg-canvas text-ink">
-      <header className="sticky top-0 z-30 border-b border-line bg-canvas/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-3 sm:px-8">
-          <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label="Farpi, inicio">
+    <div lang={t.idioma} className={`${fraunces.variable} min-h-dvh bg-canvas text-ink`}>
+      {/* En la barra **no hay ningún enlace de cuenta**: aquí no se navega a
+          ninguna parte para entrar, se entra. Y desde el 28-09-2026 tampoco las
+          secciones: son cuatro y se leen bajando. */}
+      <header className="border-b border-line">
+        <div className="mx-auto flex max-w-6xl items-center px-5 py-3 sm:px-8">
+          <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label={t.irAlInicio}>
             <Image
               src="/app-icon.svg"
               width={32}
@@ -220,287 +154,173 @@ export function LandingPage() {
             />
             <span className="text-base font-black tracking-tight">Farpi</span>
           </Link>
-
-          {/* En la barra **no hay ningún enlace de cuenta**, ni un botón que
-              lleve al login ni un ancla que baje al formulario. Se pidió así, y
-              lo que queda es coherente: aquí ya no se navega a ninguna parte
-              para entrar, se entra. El formulario es lo segundo de la página en
-              móvil y va anclado a la derecha en escritorio.
-
-              Las secciones, solo en escritorio: en un móvil de 390 px caben,
-              pero apretarían la fila para llevar a sitios que están a un
-              desplazamiento de distancia. */}
-          <nav className="ml-4 hidden gap-5 lg:flex">
-            {SECCIONES.map(({ id, titulo }) => (
-              <a
-                key={id}
-                href={`#${id}`}
-                className="py-2 text-sm font-semibold text-muted transition-colors hover:text-ink"
-              >
-                {titulo}
-              </a>
-            ))}
-          </nav>
         </div>
       </header>
 
-      {/* Tres piezas en una rejilla: el titular, el acceso y el resto de la
-          página. En escritorio el acceso se va a una segunda columna que ocupa
-          las dos filas, y así puede quedarse anclado mientras se lee todo lo
-          demás. Por debajo de `lg` no hay columnas y caen en el orden en que
-          están escritas, que es justo el que hace falta: de qué va esto, cómo
-          entrar, y lo demás para quien quiera seguir leyendo.
+      <main>
+        {/* El formulario se escribe **después** del titular: es lo segundo en
+            móvil y la columna de la derecha en escritorio, sin colocar nada a
+            mano. Y se pinta una sola vez, porque repetirlo duplicaría los `id`
+            de los campos, que es lo que ata cada etiqueta con el suyo.
 
-          Van colocadas a mano (`col-start` / `row-start`) y no por orden
-          natural porque el acceso se escribe en medio —tiene que ser el segundo
-          en móvil— pero pertenece a la columna de al lado.
-
-          Y se pinta **una sola vez**. Repetirlo arriba y abajo, como hacía la
-          tarjeta de botones que hubo aquí, duplicaría los `id` de los campos del
-          formulario, que es lo que ata cada etiqueta con el suyo: dos «Correo
-          electrónico» con el mismo `id` y quien navega con lector de pantalla
-          acaba escribiendo en el que no ve. */}
-      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-x-10 px-5 pb-16 sm:px-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className="pt-8 pb-8 sm:pt-12 lg:col-start-1 lg:row-start-1">
-          {/* La casa va **al lado del titular**, no encima: suelta en su propia
-              línea se quedaba sola en mitad de la nada. Y es una sola, colocada
-              en una rejilla de dos columnas en vez de repetida, porque lo que
-              cambia entre móvil y escritorio no es cuál se ve sino hasta dónde
-              llega: en móvil acompaña al titular y el párrafo pasa por debajo de
-              ella (`col-span-2`); en escritorio baja las dos filas y se pone al
-              lado del bloque entero, que es donde hay sitio para que sea grande. */}
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 lg:gap-x-6">
-            <h1 className="text-[1.9rem] font-black leading-[1.08] tracking-tight sm:text-4xl">
-              Qué tenemos que saber hoy en casa.
+            **Ya no se ancla al bajar** (28-09-2026). Estuvo `sticky` en
+            escritorio desde el 01-09-2026 para poder entrar desde cualquier
+            punto, y obligaba a meter todo lo demás en una columna de 760 px.
+            Omar prefirió que el resto ocupe el ancho entero: quien quiere
+            entrar desde abajo sube, igual que en móvil. */}
+        <section className="mx-auto flex max-w-6xl flex-col gap-10 px-5 pt-10 pb-16 sm:px-8 sm:pt-14 lg:flex-row lg:items-start lg:gap-24 lg:pt-24 lg:pb-28">
+          <div className="lg:flex-1 lg:pt-3">
+            <h1 className={`${SERIF} max-w-2xl text-[2.875rem] font-medium leading-[1.02] tracking-[-0.025em] sm:text-6xl lg:text-[5.25rem] lg:leading-none`}>
+              {t.titular}
             </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted lg:mt-9 lg:text-[1.3125rem]">
+              {conMarca(t.entradilla)}
+            </p>
+            <Garantias className="mt-6 lg:mt-9" />
+          </div>
 
-            <DayIllustration
-              period={tramo}
-              className="col-start-2 row-start-1 h-20 w-20 flex-shrink-0 self-center sm:h-28 sm:w-28 lg:row-span-2 lg:h-44 lg:w-44"
-            />
+          <div id="entrar" className="w-full max-w-xl scroll-mt-6 lg:w-[24rem] lg:max-w-none lg:flex-shrink-0">
+            <div>
+              <AuthCard modoInicial="signin" conGarantias={false} />
 
-            <div className="col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-                <Marca /> es el espacio privado de tu familia: todos veis lo mismo sin tener que
-                preguntar, y lo que hay que recordar deja de estar en la cabeza de uno solo.
-              </p>
-
-              <Garantias className="mt-5" />
+              {/* Sin la insignia oficial de Google Play: enseñarla llevaría a
+                  pulsarla, y todavía no hay ficha a la que ir. Cuando la haya,
+                  este bloque se cambia por la insignia y su enlace. */}
+              <div className="mt-5 flex items-center justify-center gap-2.5">
+                <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted" />
+                <p className="text-xs font-semibold text-muted">{t.proximamentePlay}</p>
+              </div>
             </div>
           </div>
         </section>
 
-        <div
-          id="entrar"
-          className="scroll-mt-20 pb-10 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:pt-14"
-        >
-          {/* `top-20` deja por debajo la cabecera pegajosa, que mide 4 rem. */}
-          <div className="lg:sticky lg:top-20">
-            <AuthCard modoInicial="signin" />
-
-            {/* Sin la insignia oficial de Google Play: enseñarla llevaría a
-                pulsarla, y todavía no hay ficha a la que ir. Cuando la haya,
-                este bloque se cambia por la insignia y su enlace. */}
-            <div className="mt-5 flex items-center justify-center gap-2.5 border-t border-hairline pt-5">
-              <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted" />
-              <p className="text-xs font-semibold text-muted">Próximamente en Google Play</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-2">
-          <section id="asi-se-ve" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
-            <TituloSeccion>Así se ve</TituloSeccion>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
-              No son maquetas: son seis pantallas de <Marca /> tal cual se ven, con la familia de
-              ejemplo que trae la app.
-            </p>
-
-            {/* En móvil se arrastran de lado con el dedo, encajando de una en una;
-                en escritorio se abren en rejilla y no hay nada que arrastrar. Dos
-                columnas a partir de `lg` y tres desde `xl`: a tres en un portátil
-                de 1024 px los móviles se quedaban en 170 px y no se leía nada de
-                lo que enseñan, que es justo para lo que están.
-
-                El `-mx-5` deja que la tira toque los bordes de la pantalla, para
-                que se vea que hay más a la derecha. */}
-            <ul className="-mx-6 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-6 lg:gap-y-8 lg:overflow-visible lg:px-0">
-              {CAPTURAS.map(({ archivo, titulo, texto }, i) => (
-                <li
-                  key={archivo}
-                  className={`group w-[230px] flex-shrink-0 snap-start lg:w-auto ${ESCALON[i % 3]}`}
-                >
-                  {/* Al pasar por encima se endereza y se levanta. Quien tenga
-                      pedido menos movimiento en su sistema no ve ni lo uno ni
-                      lo otro: se queda la foto quieta y derecha. */}
-                  <div
-                    className={`overflow-hidden rounded-2xl border border-line bg-canvas shadow-sm
-                      transition-transform duration-300 ease-out
-                      lg:group-hover:-translate-y-2 lg:group-hover:rotate-0 lg:group-hover:shadow-lg
-                      motion-reduce:transform-none motion-reduce:transition-none ${INCLINACION[i % 3]}`}
-                  >
-                    <Image
-                      src={`/capturas/${archivo}.png`}
-                      width={390}
-                      height={844}
-                      /* Se pide **el doble del hueco** a propósito. Una captura de
-                         móvil se enseña reducida, así que el texto de la app cae a
-                         unos 9 px: con una imagen del tamaño justo se emborrona, y
-                         con el doble de puntos el navegador la reduce y se lee. Y
-                         ojo, el número tiene que seguir al hueco: cuando la rejilla
-                         pasó a dos columnas y esto se quedó como estaba, el
-                         navegador estuvo **estirando** una imagen pequeña. */
-                      sizes="(min-width: 1024px) 620px, 520px"
-                      quality={90}
-                      priority={i === 0}
-                      alt={`Pantalla de ${titulo} en Farpi`}
-                      className="h-auto w-full"
-                    />
-                  </div>
-                  <p className="mt-2.5 text-sm font-bold">{titulo}</p>
-                  <p className="mt-0.5 text-sm leading-relaxed text-muted">{texto}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section id="como-funciona" className="scroll-mt-20 px-1 py-4">
-            <TituloSeccion>Cómo funciona</TituloSeccion>
-            <ol className="flex flex-col gap-6">
-              {PASOS.map(({ titulo, texto }, i) => (
-                <li key={titulo} className="flex items-start gap-4">
-                  <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint text-lg font-black text-primary-strong">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="font-bold">{titulo}</p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-muted">{texto}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
-
-          <section id="en-que-ayuda" className={`scroll-mt-20 bg-surface ${BLOQUE}`}>
-            <TituloSeccion>En qué ayuda</TituloSeccion>
-            <div className="flex flex-col gap-6">
-              {FUNCIONES.map(({ icon: Icon, titulo, texto }) => (
-                <div key={titulo} className="flex items-start gap-4">
-                  <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-tint text-primary-strong">
-                    <Icon size={17} strokeWidth={2.2} />
-                  </span>
-                  <div>
-                    <p className="font-bold">{titulo}</p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-muted">{texto}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section id="preguntas" className="scroll-mt-20 px-1 py-4">
-            <TituloSeccion>Preguntas</TituloSeccion>
-            {/* `details` nativo: se pliega sin JavaScript, y el teclado y los
-                lectores de pantalla ya saben qué es. */}
-            <div className="divide-y divide-hairline border-y border-hairline">
-              {PREGUNTAS.map(({ pregunta, respuesta }) => (
-                <details key={pregunta} className="group">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-sm font-bold marker:content-none">
-                    {pregunta}
-                    <span
-                      aria-hidden
-                      className="flex-shrink-0 text-lg font-normal leading-none text-muted transition-transform group-open:rotate-45"
-                    >
-                      +
-                    </span>
-                  </summary>
-                  <p className="max-w-xl pb-4 text-sm leading-relaxed text-muted">
-                    {conMarca(respuesta)}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </section>
-
-          {/* La carta, y el único sitio de la página donde no habla la app: habla
-              Omar de su casa.
-
-              **Este texto lo escribió él.** Las dos versiones anteriores las
-              redacté yo a partir de lo que me contó y las dos sonaban a folleto,
-              cada una a su manera: la primera demasiado redonda —todos los
-              párrafos con la misma forma y cada uno acabando en su golpecito—, la
-              segunda demasiado cortada, a frases de tres palabras que piden
-              aplauso. La buena salió cuando la dictó él y yo me limité a la
-              ortografía, dos concordancias y partir una frase que se trababa.
-
-              Así que aquí no se "mejora la redacción". Si algún día hay que
-              cambiar algo, se le pregunta a él y se vuelve a tocar lo mínimo: lo
-              que hace que esto no parezca escrito por una máquina es justo lo que
-              un corrector querría arreglar.
-
-              El 03-09-2026 lo pidió él: **fuera Nido**. La app se llamó así hasta
-              el 31-08-2026 y la carta contaba el cambio de nombre ("lo que
-              pretendía con Nido, que así iba a llamarse... al final no se llama
-              Nido sino Farpi"), que es una vuelta que solo interesa a quien estuvo
-              delante. De dónde sale "Farpi" se queda, que eso sí cuenta algo de la
-              casa; el nombre viejo no. Se tocaron las dos frases que lo nombraban
-              y nada más. */}
-          <section className={`border border-line bg-warm ${BLOQUE}`}>
-            <TituloSeccion>Por qué existe Farpi</TituloSeccion>
-
-            <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
-              <p>
-                Desde que nació mi hija creo que perdí memoria. Eso, unido a la cantidad de cosas
-                pequeñas que hay que tener presentes cada día y al cambio que supone un hijo en tu
-                vida, me hizo sentir que necesitaba un poco de organización: que ya no valía lo de
-                antes.
-              </p>
-              <p>
-                Lo que pretendía era tener un sitio de familia donde los dos viéramos lo mismo sin
-                tener que preguntárnoslo. Así surgió este proyecto personal, que se llama <Marca />{' '}
-                en honor a un juego de palabras con los apellidos de mi hija.
-              </p>
+        {/* El texto de Omar, contado como un reportaje: su primera frase en
+            grande y el resto en columna, sin caja, sin título y sin firma. Va
+            justo después del titular porque es lo único de la página que no
+            tiene ninguna otra app. El porqué de cada decisión sobre este texto,
+            junto a él en `textos.ts`. */}
+        <section id="por-que" className="mx-auto max-w-6xl scroll-mt-6 px-5 sm:px-8">
+          <div className="border-t border-line pt-10 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-6 lg:pt-20">
+            <div className="lg:col-span-5">
+              <DayIllustration period={tramo} className="h-16 w-16 lg:h-[5.5rem] lg:w-[5.5rem]" />
+              <h2 className={`${SERIF} mt-5 text-[2.125rem] font-normal leading-[1.12] tracking-[-0.02em] lg:mt-7 lg:text-[3.375rem] lg:leading-[1.08]`}>
+                {t.historia.frase}
+              </h2>
+              <p className="mt-4 text-sm font-bold text-muted lg:mt-7 lg:text-[0.9375rem]">{t.historia.autor}</p>
             </div>
 
-            <blockquote className="my-7 max-w-xl border-l-[3px] border-primary pl-5 text-lg font-bold leading-snug tracking-tight text-ink sm:text-xl">
-              Esta aplicación está hecha para que no se nos pase nada, y también para evitar
-              discusiones tontas por los despistes.
-            </blockquote>
-
-            <div className="max-w-xl space-y-4 text-[0.9375rem] leading-[1.75] text-muted">
+            {/* `pt-[7.25rem]`: el alto de la casa más su margen, para que el
+                primer párrafo arranque a la altura de la frase grande. */}
+            <div className={`${SERIF} mt-7 flex flex-col gap-[1.125rem] text-lg leading-[1.7] lg:col-span-6 lg:col-start-7 lg:mt-0 lg:gap-[1.375rem] lg:pt-[7.25rem] lg:text-xl`}>
+              {t.historia.parrafos.map(parrafo => (
+                <p key={parrafo}>{conMarca(parrafo)}</p>
+              ))}
+              {/* El correo va `inline` dentro de la frase: es la excepción que la
+                  propia WCAG 2.5.8 reconoce para el mínimo de 24 px, y la única
+                  de Farpi. Agrandarlo rompería el renglón. */}
               <p>
-                La publico porque considero que, si a mí me es útil, puede serlo para los demás. Si
-                es de vuestro agrado, bienvenidos sois a uniros. Se trata de hacer el día un poco
-                más fácil, no tiene más.
-              </p>
-              <p>
-                Cualquier sugerencia es bienvenida:{' '}
+                {t.historia.sugerencias}{' '}
                 <a
                   href={`mailto:${CONTACT}`}
-                  className="font-semibold text-primary-strong hover:underline"
+                  className="font-semibold text-primary-strong underline underline-offset-[3px] hover:text-primary-deep"
                 >
                   {CONTACT}
                 </a>
                 .
               </p>
             </div>
+          </div>
+        </section>
 
-            <div className="mt-8 border-t border-line pt-6">
-              <p className="text-lg font-black tracking-tight text-ink">Omar García Carballo</p>
-              <p className="mt-0.5 text-sm text-muted">Septiembre de 2026</p>
-            </div>
-          </section>
+        {/* Tres capturas y no seis. En rejilla, a 200 o 300 px, una pantalla de
+            móvil no se distingue de otra y el pie de foto hacía todo el trabajo;
+            aquí Inicio va grande, con una nota a la altura de cada cosa que
+            enseña, y las otras dos al lado de lo que cuentan. Las demás que saca
+            el script se quedan para la ficha de Google Play. */}
+        <section id="asi-se-ve" className="mx-auto max-w-6xl scroll-mt-6 px-5 pt-22 sm:px-8 lg:pt-36">
+          <h2 className={TITULO}>{t.capturas.titulo}</h2>
+          <p className="mt-3.5 max-w-xl text-[1.0625rem] leading-relaxed text-muted lg:mt-5 lg:text-[1.1875rem]">
+            {t.capturas.entradilla}
+          </p>
 
-          <footer className="flex flex-wrap gap-x-5 border-t border-line px-1 pt-6 text-xs font-medium text-muted">
-            {/* `min-h-11`: son los dos únicos enlaces del pie y se pulsan con el
-                dedo como cualquier otra cosa. El correo de la carta se queda
-                como está —`inline` dentro de una frase—, que es la excepción que
-                la propia WCAG 2.5.8 reconoce: agrandarlo rompería el renglón. */}
-            <Link href="/privacidad" className="inline-flex min-h-11 items-center hover:text-ink">Privacidad</Link>
-            <Link href="/terminos" className="inline-flex min-h-11 items-center hover:text-ink">Términos</Link>
-          </footer>
-        </div>
+          <div className="mt-9 lg:mt-18 lg:flex lg:items-start lg:gap-18">
+            <Captura
+              imagen={capturaInicio}
+              alt={t.capturas.inicio.alt}
+              sizes="(min-width: 1024px) 720px, 560px"
+              className="w-[280px] lg:w-[360px]"
+            />
+            <ul className="mt-7 flex flex-col gap-5.5 lg:mt-0 lg:flex-1 lg:gap-0">
+              {t.capturas.inicio.notas.map(({ titulo, texto }, i) => (
+                <li key={titulo} className={`flex items-start gap-3.5 lg:gap-5 ${ALTURA_NOTA[i]}`}>
+                  <span aria-hidden className="mt-3 h-px w-7 flex-shrink-0 bg-accent-strong lg:w-14" />
+                  <div className="max-w-md">
+                    <h3 className="text-lg font-extrabold lg:text-xl">{titulo}</h3>
+                    <p className="mt-1 text-base leading-relaxed text-muted lg:mt-1.5 lg:text-[1.0625rem]">{texto}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-16 flex flex-col gap-14 lg:mt-32 lg:grid lg:grid-cols-2 lg:gap-20">
+            {([['listas', capturaListas], ['calendario', capturaCalendario]] as const).map(([clave, imagen]) => {
+              const { titulo, texto, alt } = t.capturas[clave]
+              return (
+                <div key={clave} className="lg:flex lg:items-end lg:gap-8">
+                  <Captura
+                    imagen={imagen}
+                    alt={alt}
+                    sizes="(min-width: 1024px) 520px, 480px"
+                    className="w-[240px] lg:w-[260px]"
+                  />
+                  <div className="mt-5 lg:mt-0 lg:pb-6">
+                    <h3 className="text-lg font-extrabold lg:text-xl">{titulo}</h3>
+                    <p className="mt-1 text-base leading-relaxed text-muted lg:mt-1.5 lg:text-[1.0625rem]">{texto}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <p className="mt-14 border-t border-line pt-6 text-[1.0625rem] leading-relaxed text-muted lg:mt-24 lg:max-w-4xl lg:pt-8 lg:text-[1.1875rem]">
+            {t.capturas.ademas}
+          </p>
+        </section>
+
+        {/* Abiertas y no plegadas: son seis, y se leen en lo que se tarda en
+            decidir si abrir cada una. */}
+        <section id="preguntas" className="mx-auto max-w-6xl scroll-mt-6 px-5 pt-22 pb-22 sm:px-8 lg:pt-36 lg:pb-30">
+          <h2 className={TITULO}>{t.preguntas.titulo}</h2>
+          <div className="mt-8 flex flex-col gap-7 lg:mt-14 lg:grid lg:grid-cols-2 lg:gap-x-20 lg:gap-y-12">
+            {t.preguntas.lista.map(({ pregunta, respuesta }) => (
+              <div key={pregunta} className="border-t border-line pt-5 lg:pt-6">
+                <h3 className="text-lg font-extrabold lg:text-[1.1875rem]">{pregunta}</h3>
+                <p className="mt-2 text-base leading-relaxed text-muted lg:mt-2.5 lg:text-[1.0625rem]">
+                  {conMarca(respuesta)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
+
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-10 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:py-14">
+          <div className="flex items-center gap-2.5">
+            <Image src="/app-icon.svg" width={24} height={24} alt="" aria-hidden className="h-6 w-6 rounded-lg" />
+            <p className="text-sm font-semibold text-muted">{t.pie.autor}</p>
+          </div>
+          {/* `min-h-11`: se pulsan con el dedo como cualquier otra cosa.
+              «Borrar la cuenta» lo pide Google Play, y es lo que busca quien ya
+              no puede entrar, que es justo quien no va a ver Ajustes. */}
+          <nav aria-label="Legal" className="flex flex-wrap gap-x-6 text-sm font-bold text-muted">
+            <Link href="/privacidad" className="inline-flex min-h-11 items-center hover:text-ink">{t.pie.privacidad}</Link>
+            <Link href="/terminos" className="inline-flex min-h-11 items-center hover:text-ink">{t.pie.terminos}</Link>
+            <Link href="/borrar-cuenta" className="inline-flex min-h-11 items-center hover:text-ink">{t.pie.borrarCuenta}</Link>
+          </nav>
+        </div>
+      </footer>
     </div>
   )
 }

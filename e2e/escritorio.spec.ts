@@ -86,26 +86,34 @@ test.describe('escritorio a 1440 px', () => {
   test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
 
   // La portada no lleva SideNav ni BottomNav, pero es la pantalla que más se
-  // juega: quien llega tiene que poder entrar sin buscar. En escritorio eso se
-  // resuelve con una columna anclada a la derecha, y "anclada" solo se puede
-  // comprobar bajando la página y mirando si sigue ahí.
-  test('la portada mantiene el acceso a la vista mientras se baja', async ({ page }) => {
+  // juega: quien llega tiene que poder entrar sin buscar. En escritorio el
+  // formulario va a la derecha del titular, en la primera pantalla.
+  //
+  // Y **ya no se ancla al bajar** (28-09-2026): estuvo `sticky` desde el
+  // 01-09-2026 y obligaba a meter todo lo demás en una columna estrecha. Ahora
+  // el texto de Omar, las capturas y las preguntas ocupan el ancho entero, y una
+  // tarjeta pegada se montaría encima de ellos. Las dos mitades se comprueban.
+  test('la portada pone el acceso al lado del titular, y el resto a todo el ancho', async ({ page }) => {
     await page.goto('/')
     await page.waitForTimeout(800)
 
-    // La tarjeta es el hijo del ancla `#entrar`, que es quien lleva el `sticky`.
-    // Se busca así y no por su contenido porque ese contenido cambia con el
-    // modo: el formulario con credenciales, el aviso de modo local sin ellas.
+    // La tarjeta es el hijo del ancla `#entrar`. Se busca así y no por su
+    // contenido porque ese contenido cambia con el modo: el formulario con
+    // credenciales, el aviso de modo local sin ellas.
     const tarjeta = page.locator('#entrar > div').first()
     await expect(tarjeta).toBeInViewport()
 
+    const caja = (await tarjeta.boundingBox())!
+    const titular = (await page.getByRole('heading', { level: 1 }).boundingBox())!
+    expect(caja.width, 'el acceso ocupa más que una columna').toBeLessThan(420)
+    expect(caja.x, 'el acceso ya no va a la derecha del titular').toBeGreaterThanOrEqual(titular.x + titular.width)
+
+    const historia = (await page.locator('#por-que').boundingBox())!
+    expect(historia.width, 'el texto de Omar vuelve a ir en una columna estrecha').toBeGreaterThan(1000)
+
     await page.evaluate(() => window.scrollBy(0, 2500))
     await page.waitForTimeout(600)
-    await expect(tarjeta, 'el acceso se ha ido con el scroll: se ha perdido el anclaje').toBeInViewport()
-
-    // Ancha de columna, no de página: es la segunda columna de la rejilla.
-    const ancho = (await tarjeta.boundingBox())!.width
-    expect(ancho).toBeLessThan(420)
+    await expect(tarjeta, 'el acceso vuelve a ir anclado y pisaría el contenido').not.toBeInViewport()
   })
 
   // Ajustes fue la última pantalla atada a `max-w-lg`: 512 px de contenido en

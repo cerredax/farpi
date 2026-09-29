@@ -12,12 +12,14 @@ import { BottomNav } from './BottomNav'
 import { SideNav } from './SideNav'
 import { SaveStatus } from './SaveStatus'
 import { CargandoFarpi, ErrorDeArranque } from './CargandoFarpi'
+import { useT } from '@/lib/i18n/contexto'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [familyId, setFamilyId] = useState<string>(() => readActiveFamilyId())
   const [isResolvingFamily, setIsResolvingFamily] = useState(!IS_DEMO_MODE)
   const [resolveError, setResolveError] = useState<string | null>(null)
   const router = useRouter()
+  const t = useT()
 
   // Que este dispositivo siga recibiendo los avisos sin tener que volver a
   // activarlos (28-09-2026). No hace nada en modo demo ni sin permiso concedido;
@@ -53,7 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         setIsResolvingFamily(false)
       } catch (err) {
         if (cancelled) return
-        setResolveError(err instanceof Error ? err.message : 'No se pudo resolver la familia activa')
+        setResolveError(err instanceof Error ? err.message : t.arranque.noSePudoResolverFamilia)
         setIsResolvingFamily(false)
       }
     }
@@ -63,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [router])
+  }, [router, t])
 
   function switchFamily(newId: string) {
     writeActiveFamilyId(newId)
@@ -78,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (resolveError) {
-    return <ErrorDeArranque title="No se pudo cargar Farpi" description={resolveError} />
+    return <ErrorDeArranque title={t.arranque.noSePudoCargar} description={resolveError} />
   }
 
   return (

@@ -1,9 +1,14 @@
 import { Home, Calendar, ClipboardList, CheckSquare, UtensilsCrossed, FolderOpen, StickyNote, Euro, Cake } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
+import type { Diccionario } from '@/lib/i18n'
 
 interface Seccion {
   href: string
-  label: string
+  /**
+   * Su nombre en el diccionario (`t.secciones[clave]`), y no el texto: la
+   * etiqueta depende del idioma y esta lista no (28-09-2026).
+   */
+  clave: keyof Diccionario['secciones']
   icon: typeof Home
   /**
    * En móvil no cabe en la barra de abajo y vive dentro de "Más".
@@ -39,15 +44,15 @@ interface Seccion {
  * es el sitio de lo que menos se usa, no el de lo último que se añadió.
  */
 export const SECCIONES: Seccion[] = [
-  { href: ROUTES.home,      label: 'Inicio',     icon: Home },
-  { href: ROUTES.calendar,  label: 'Calendario', icon: Calendar },
-  { href: ROUTES.lists,     label: 'Listas',     icon: CheckSquare },
-  { href: ROUTES.tasks,     label: 'Tareas',     icon: ClipboardList },
-  { href: ROUTES.meals,     label: 'Comidas',    icon: UtensilsCrossed },
-  { href: ROUTES.finances,  label: 'Finanzas',   icon: Euro, enMas: true },
-  { href: ROUTES.notes,     label: 'Notas',      icon: StickyNote, enMas: true },
-  { href: ROUTES.birthdays, label: 'Cumpleaños', icon: Cake, enMas: true },
-  { href: ROUTES.docs,      label: 'Documentos', icon: FolderOpen, enMas: true },
+  { href: ROUTES.home,      clave: 'inicio',     icon: Home },
+  { href: ROUTES.calendar,  clave: 'calendario', icon: Calendar },
+  { href: ROUTES.lists,     clave: 'listas',     icon: CheckSquare },
+  { href: ROUTES.tasks,     clave: 'tareas',     icon: ClipboardList },
+  { href: ROUTES.meals,     clave: 'comidas',    icon: UtensilsCrossed },
+  { href: ROUTES.finances,  clave: 'finanzas',   icon: Euro, enMas: true },
+  { href: ROUTES.notes,     clave: 'notas',      icon: StickyNote, enMas: true },
+  { href: ROUTES.birthdays, clave: 'cumpleanos', icon: Cake, enMas: true },
+  { href: ROUTES.docs,      clave: 'documentos', icon: FolderOpen, enMas: true },
 ]
 
 /**

@@ -8,6 +8,7 @@ import { IS_DEMO_MODE } from './supabase/client'
 import { debeCerrarseElMesPasado } from './budgets'
 import { mensajeDeError } from './errores'
 import { CargandoFarpi, ErrorDeArranque } from '@/components/layout/CargandoFarpi'
+import { useT } from './i18n/contexto'
 import { getLocalDateString } from './date-utils'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
@@ -304,6 +305,7 @@ async function cerrarMesPasadoSiFalta(
 
 export function StoreProvider({ children, familyId, switchFamily }: StoreProviderProps) {
   const repos: Repos = IS_DEMO_MODE ? mockRepos : supabaseRepos
+  const t = useT()
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -827,8 +829,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   if (!value) {
     return (
       <ErrorDeArranque
-        title="No se pudo cargar la familia"
-        description={error ?? 'Revisa la sesión o la configuración de Supabase.'}
+        title={t.arranque.noSePudoCargarLaFamilia}
+        description={error ?? t.arranque.revisaLaSesion}
       />
     )
   }

@@ -1,11 +1,22 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
 import { isRangeKind } from './events'
 import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './finanzas'
+import { textosDelNavegador, type Diccionario } from './i18n'
 import type {
   BudgetDraft, ChildDraft, EventDraft, ExpenseDraft, FixedEntryDraft,
   FixedOverrideDraft, TaskDraft,
   MealDraft, ListDraft, ListItemDraft, NoteDraft, QuoteDraft,
 } from '@/types'
+
+/**
+ * Los mensajes salen del diccionario del idioma de este dispositivo
+ * (28-09-2026). Cada validador los recibe como último parámetro, con ese idioma
+ * por defecto: los sheets no tienen que pasar nada, y los tests pueden probar
+ * cualquier idioma. El convenio no cambia: `null` es válido, y un texto es el
+ * mensaje que se enseña.
+ */
+type TextosDeValidacion = Diccionario['validacion']
+const textos = (): TextosDeValidacion => textosDelNavegador().validacion
 
 // ─── Email ────────────────────────────────────────────────────────────────────
 
@@ -19,12 +30,12 @@ export function isValidEmail(email: string): boolean {
 
 // ─── Documentos ───────────────────────────────────────────────────────────────
 
-export function validateDocumentFile(file: File): { ok: true } | { ok: false; message: string } {
+export function validateDocumentFile(file: File, t: TextosDeValidacion = textos()): { ok: true } | { ok: false; message: string } {
   if (!VALID_MIME_TYPES.includes(file.type as typeof VALID_MIME_TYPES[number])) {
-    return { ok: false, message: 'Solo se admiten PDF, JPG o PNG.' }
+    return { ok: false, message: t.documentoTipo }
   }
   if (file.size > MAX_DOC_SIZE) {
-    return { ok: false, message: 'El archivo supera el límite de 20 MB.' }
+    return { ok: false, message: t.documentoTamano }
   }
   return { ok: true }
 }
@@ -32,80 +43,78 @@ export function validateDocumentFile(file: File): { ok: true } | { ok: false; me
 // ─── Familia ──────────────────────────────────────────────────────────────────
 
 /** Devuelve el mensaje de error o null si el nombre es válido. */
-export function validateFamilyName(name: string): string | null {
-  if (!name.trim()) return 'El nombre de la familia no puede estar vacío.'
+export function validateFamilyName(name: string, t: TextosDeValidacion = textos()): string | null {
+  if (!name.trim()) return t.familiaSinNombre
   return null
 }
 
 // ─── Hijos ────────────────────────────────────────────────────────────────────
 
 /** Devuelve el mensaje de error o null si el draft es válido. */
-export function validateChildDraft(draft: ChildDraft): string | null {
+export function validateChildDraft(draft: ChildDraft, t: TextosDeValidacion = textos()): string | null {
   if (!draft.name.trim())
-    return draft.kind === 'adulto'
-      ? 'El nombre del adulto no puede estar vacío.'
-      : 'El nombre del hijo no puede estar vacío.'
+    return draft.kind === 'adulto' ? t.adultoSinNombre : t.hijoSinNombre
   return null
 }
 
 // ─── Comidas ──────────────────────────────────────────────────────────────────
 
 /** Devuelve el mensaje de error o null si el draft es válido. */
-export function validateMealDraft(draft: MealDraft): string | null {
-  if (!draft.date) return 'La fecha es obligatoria.'
-  if (!draft.name.trim()) return 'El nombre del plato no puede estar vacío.'
+export function validateMealDraft(draft: MealDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.date) return t.fechaObligatoria
+  if (!draft.name.trim()) return t.platoSinNombre
   return null
 }
 
 // ─── Eventos ──────────────────────────────────────────────────────────────────
 
-export function validateEventDraft(draft: EventDraft): string | null {
+export function validateEventDraft(draft: EventDraft, t: TextosDeValidacion = textos()): string | null {
   // Solo un plan necesita nombre. Unas vacaciones o un descanso ya dicen lo que
   // son por el tipo, y `eventTitleOr` les pone el nombre al guardar.
-  if (draft.kind === 'evento' && !draft.title.trim()) return 'El título es obligatorio.'
+  if (draft.kind === 'evento' && !draft.title.trim()) return t.tituloObligatorio
   // Un cumpleaños es el nombre de alguien: sin él no queda nada que felicitar,
   // y "Cumpleaños" a secas en la tarjeta de hoy no dice de quién.
-  if (draft.kind === 'cumple' && !draft.title.trim()) return 'Pon de quién es el cumpleaños.'
-  if (!draft.date) return 'La fecha es obligatoria.'
+  if (draft.kind === 'cumple' && !draft.title.trim()) return t.cumpleSinNombre
+  if (!draft.date) return t.fechaObligatoria
   if (draft.kind === 'cumple' && draft.birth_year.trim()) {
     const ano = Number(draft.birth_year)
     // El año solo sirve para decir la edad, así que un año imposible o
     // posterior al día que se celebra daría una edad negativa o absurda.
     if (!Number.isInteger(ano) || ano < 1900 || ano > Number(draft.date.slice(0, 4)))
-      return 'El año de nacimiento no parece correcto.'
+      return t.añoDeNacimiento
   }
   if (isRangeKind(draft.kind) && (!draft.end_date || draft.end_date < draft.date))
-    return 'La fecha final debe ser posterior o igual a la inicial.'
+    return t.fechaFinal
   // Sin esto la comparación de abajo no salta —cualquier hora es mayor que la
   // cadena vacía— y el evento se guardaba empezando a las 00:00, que es lo que
   // pone `eventInsert` cuando no hay hora de inicio.
   if (!draft.all_day && draft.end_time && !draft.start_time)
-    return 'Indica primero la hora de inicio.'
+    return t.horaDeInicioPrimero
   if (!draft.all_day && draft.end_time && draft.end_time <= draft.start_time)
-    return 'La hora de fin debe ser posterior a la de inicio.'
+    return t.horaDeFin
   return null
 }
 
 // ─── Tareas ───────────────────────────────────────────────────────────────────
 
-export function validateTaskDraft(draft: TaskDraft): string | null {
-  if (!draft.title.trim()) return 'El título es obligatorio.'
+export function validateTaskDraft(draft: TaskDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.title.trim()) return t.tituloObligatorio
   if (draft.recurrence !== 'none' && draft.recurrence_end && draft.due_date && draft.recurrence_end < draft.due_date)
-    return 'La fecha de fin de recurrencia debe ser posterior a la fecha de inicio.'
+    return t.finDeRecurrencia
   return null
 }
 
 // ─── Listas ───────────────────────────────────────────────────────────────────
 
-export function validateListDraft(draft: ListDraft): string | null {
-  if (!draft.name.trim()) return 'El nombre de la lista no puede estar vacío.'
+export function validateListDraft(draft: ListDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.name.trim()) return t.listaSinNombre
   return null
 }
 
 // ─── Ítems de lista ───────────────────────────────────────────────────────────
 
-export function validateListItemDraft(draft: ListItemDraft): string | null {
-  if (!draft.text.trim()) return 'El texto es obligatorio.'
+export function validateListItemDraft(draft: ListItemDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.text.trim()) return t.textoObligatorio
   return null
 }
 
@@ -116,8 +125,8 @@ export function validateListItemDraft(draft: ListItemDraft): string | null {
  * busca. Una nota sin cuerpo es legítima —"Wifi: casa-garcia / 1234" cabe entera
  * en el título—, pero una sin título sería una tarjeta en blanco.
  */
-export function validateNoteDraft(draft: NoteDraft): string | null {
-  if (!draft.title.trim()) return 'El título de la nota no puede estar vacío.'
+export function validateNoteDraft(draft: NoteDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.title.trim()) return t.notaSinTitulo
   return null
 }
 
@@ -129,14 +138,14 @@ export function validateNoteDraft(draft: NoteDraft): string | null {
  * igual: uno es no entender lo escrito, y el otro es entenderlo perfectamente y
  * que sea absurdo.
  */
-function validateImporte(texto: string, queEs: string): string | null {
-  if (!texto.trim()) return `Pon ${queEs}.`
+function validateImporte(texto: string, falta: keyof TextosDeValidacion['faltaImporte'], t: TextosDeValidacion): string | null {
+  if (!texto.trim()) return t.faltaImporte[falta]
   // Sin tope aquí: pasarse es un error distinto de no entenderse, y decir "no
   // parece correcto" ante un número perfectamente escrito de dos millones no
   // ayuda a nadie a arreglarlo.
   const centimos = parseAmountToCentsBruto(texto)
-  if (centimos === null) return 'El importe no parece correcto. Prueba con algo como 24,90.'
-  if (centimos > MAX_CENTIMOS) return `Como mucho ${formatCentsCorto(MAX_CENTIMOS)}.`
+  if (centimos === null) return t.importeIncorrecto
+  if (centimos > MAX_CENTIMOS) return t.importeMaximo(formatCentsCorto(MAX_CENTIMOS))
   return null
 }
 
@@ -145,11 +154,11 @@ function validateImporte(texto: string, queEs: string): string | null {
  * día concreto —vale todos los meses— y el recibo domiciliado de la casa no es
  * de nadie, que es el caso normal.
  */
-export function validateFixedEntryDraft(draft: FixedEntryDraft): string | null {
+export function validateFixedEntryDraft(draft: FixedEntryDraft, t: TextosDeValidacion = textos()): string | null {
   if (!draft.name.trim()) {
-    return draft.kind === 'ingreso' ? 'Di de qué es el ingreso.' : 'Di de qué es el gasto.'
+    return draft.kind === 'ingreso' ? t.ingresoSinNombre : t.gastoSinNombre
   }
-  return validateImporte(draft.amount, 'cuánto es al mes')
+  return validateImporte(draft.amount, 'fijo', t)
 }
 
 /**
@@ -157,13 +166,13 @@ export function validateFixedEntryDraft(draft: FixedEntryDraft): string | null {
  * siendo los de la referencia, porque lo que cambia un mes es **cuánto** y no qué
  * es.
  */
-export function validateFixedOverrideDraft(draft: FixedOverrideDraft): string | null {
-  return validateImporte(draft.amount, 'cuánto ha sido este mes')
+export function validateFixedOverrideDraft(draft: FixedOverrideDraft, t: TextosDeValidacion = textos()): string | null {
+  return validateImporte(draft.amount, 'ajusteDelMes', t)
 }
 
-export function validateBudgetDraft(draft: BudgetDraft): string | null {
-  if (!draft.name.trim()) return 'La partida necesita un nombre.'
-  return validateImporte(draft.monthly_limit, 'cuánto se puede gastar al mes')
+export function validateBudgetDraft(draft: BudgetDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.name.trim()) return t.partidaSinNombre
+  return validateImporte(draft.monthly_limit, 'partida', t)
 }
 
 /**
@@ -172,17 +181,17 @@ export function validateBudgetDraft(draft: BudgetDraft): string | null {
  * escribirlo cada vez es la clase de fricción que hace que se deje de apuntar,
  * que es el único modo en que esta pantalla falla de verdad.
  */
-export function validateExpenseDraft(draft: ExpenseDraft): string | null {
-  const importe = validateImporte(draft.amount, 'cuánto ha sido')
+export function validateExpenseDraft(draft: ExpenseDraft, t: TextosDeValidacion = textos()): string | null {
+  const importe = validateImporte(draft.amount, 'gasto', t)
   if (importe) return importe
-  if (!draft.date) return 'La fecha es obligatoria.'
+  if (!draft.date) return t.fechaObligatoria
   return null
 }
 
-export function validateQuoteDraft(draft: QuoteDraft): string | null {
-  if (!draft.title.trim()) return 'Di para qué es el presupuesto.'
-  if (!draft.provider.trim()) return 'Di quién te lo ha pasado.'
-  return validateImporte(draft.amount, 'cuánto cuesta')
+export function validateQuoteDraft(draft: QuoteDraft, t: TextosDeValidacion = textos()): string | null {
+  if (!draft.title.trim()) return t.presupuestoSinTitulo
+  if (!draft.provider.trim()) return t.presupuestoSinProveedor
+  return validateImporte(draft.amount, 'presupuesto', t)
 }
 
 // ─── Vuelta al sitio después de entrar ────────────────────────────────────────

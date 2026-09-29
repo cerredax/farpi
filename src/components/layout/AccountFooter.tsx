@@ -7,6 +7,7 @@ import { useStore } from '@/lib/store-context'
 import { memberColor, textColorOn } from '@/lib/assignees'
 import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { ROUTES } from '@/lib/constants'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * El pie de `SideNav` en escritorio: quién eres, Ajustes y cerrar sesión.
@@ -36,8 +37,9 @@ import { ROUTES } from '@/lib/constants'
 export function AccountFooter() {
   const { currentMember, members, kids } = useStore()
   const pathname = usePathname()
+  const t = useT()
 
-  const nombre = currentMember?.display_name ?? 'Mi cuenta'
+  const nombre = currentMember?.display_name ?? t.navegacion.miCuenta
   const color = currentMember ? memberColor(members, currentMember.id, kids) : null
   const inicial = nombre.trim().charAt(0).toUpperCase() || '?'
 
@@ -81,7 +83,7 @@ export function AccountFooter() {
         }`}
       >
         <Settings size={19} strokeWidth={enAjustes ? 2.4 : 1.8} className="flex-shrink-0" />
-        Ajustes
+        {t.secciones.ajustes}
       </Link>
 
       {/* En demo no hay sesión que cerrar: la app entera funciona sin cuenta,
@@ -93,7 +95,7 @@ export function AccountFooter() {
           className="flex w-full min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-muted transition-colors hover:bg-canvas hover:text-ink"
         >
           <LogOut size={19} strokeWidth={1.8} className="flex-shrink-0" />
-          Cerrar sesión
+          {t.navegacion.cerrarSesion}
         </button>
       )}
     </div>

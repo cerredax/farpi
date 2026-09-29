@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MoreHorizontal } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 import { SECCIONES_MOVIL } from './secciones'
 import { MoreMenu } from './MoreMenu'
 
@@ -28,13 +29,14 @@ const CLASE_ETIQUETA = 'text-[10px] font-semibold leading-tight whitespace-nowra
 
 export function BottomNav() {
   const pathname = usePathname()
+  const t = useT()
 
   // `lg:hidden`: desde ahí manda `SideNav`, la columna de la izquierda. Por
   // debajo de `lg` esto es exactamente lo que era.
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-line safe-area-pb lg:hidden">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
-        {SECCIONES_MOVIL.map(({ href, label, icon: Icon }) => {
+        {SECCIONES_MOVIL.map(({ href, clave, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link key={href} href={href} className={claseItem(active)}>
@@ -43,7 +45,7 @@ export function BottomNav() {
                 strokeWidth={active ? 2.5 : 1.8}
                 className={active ? 'drop-shadow-sm' : ''}
               />
-              <span className={`${CLASE_ETIQUETA} ${active ? 'text-primary-strong' : ''}`}>{label}</span>
+              <span className={`${CLASE_ETIQUETA} ${active ? 'text-primary-strong' : ''}`}>{t.secciones[clave]}</span>
             </Link>
           )
         })}
@@ -54,7 +56,7 @@ export function BottomNav() {
             tiene una sección llamada "Más". */}
         <MoreMenu className={claseItem(false)}>
           <MoreHorizontal size={22} strokeWidth={1.8} />
-          <span className={CLASE_ETIQUETA}>Más</span>
+          <span className={CLASE_ETIQUETA}>{t.navegacion.mas}</span>
         </MoreMenu>
       </div>
     </nav>

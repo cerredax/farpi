@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Check, Loader2, X } from 'lucide-react'
 import { useStore } from '@/lib/store-context'
+import { useT } from '@/lib/i18n/contexto'
 
 /** Lo que dura el aviso de deshacer. Suficiente para caer en la cuenta. */
 const SEGUNDOS_PARA_DESHACER = 6
@@ -24,6 +25,7 @@ const MS_GUARDADO = 1500
  */
 export function SaveStatus() {
   const { isSaving, error, clearError, undoLabel, undo, clearUndo } = useStore()
+  const t = useT()
 
   /**
    * "Guardado", cuando una escritura termina bien.
@@ -95,13 +97,13 @@ export function SaveStatus() {
           <>
             <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-danger-strong" strokeWidth={2.3} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-ink">No se ha guardado el cambio</p>
+              <p className="text-sm font-bold text-ink">{t.guardado.noSeHaGuardado}</p>
               <p className="mt-0.5 text-xs leading-relaxed text-muted break-words">{error}</p>
             </div>
             <button
               type="button"
               onClick={clearError}
-              aria-label="Cerrar aviso"
+              aria-label={t.guardado.cerrarAviso}
               className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/60 hover:text-ink"
             >
               <X size={16} strokeWidth={2.4} />
@@ -120,7 +122,7 @@ export function SaveStatus() {
         {!error && isSaving && (
           <span className="flex items-center gap-2 px-4 py-2">
             <Loader2 size={13} className="animate-spin" strokeWidth={2.5} />
-            Guardando…
+            {t.guardado.guardando}
           </span>
         )}
 
@@ -139,7 +141,7 @@ export function SaveStatus() {
               onClick={() => { void undo() }}
               className="my-1 mr-1.5 flex min-h-9 items-center rounded-full bg-white/20 px-3 font-bold text-white transition-colors hover:bg-white/30"
             >
-              Deshacer
+              {t.guardado.deshacer}
             </button>
           </>
         )}
@@ -147,7 +149,7 @@ export function SaveStatus() {
         {!error && !isSaving && !undoLabel && guardado && (
           <span className="flex items-center gap-2 px-4 py-2">
             <Check size={13} strokeWidth={3} />
-            Guardado
+            {t.guardado.guardado}
           </span>
         )}
       </div>

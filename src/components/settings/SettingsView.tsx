@@ -10,6 +10,8 @@ import { resetDemoData } from '@/lib/family-config'
 import { selectFamilySummary } from '@/lib/selectors'
 import { IS_DEMO_MODE } from '@/lib/supabase/client'
 import { ROUTES } from '@/lib/constants'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { idiomasParaElegir } from '@/lib/i18n'
 import { PESTAÑAS_VISIBLES, esSeccionConocida, pestañaDesdeUrl, type PestañaKey } from './pestanas'
 import { FamilyCard } from './FamilyCard'
 import { MealSlotsCard } from './MealSlotsCard'
@@ -19,6 +21,7 @@ import { BackupCard } from './BackupCard'
 import { AccountActions } from './AccountActions'
 import { DeleteAccountCard } from './DeleteAccountCard'
 import { InstallPWA } from './InstallPWA'
+import { LanguageCard } from './LanguageCard'
 import { MembersList } from './MembersList'
 import { ChildrenList } from './ChildrenList'
 import { FamilySheet } from './FamilySheet'
@@ -129,6 +132,8 @@ function SoloAdmin({ children }: { children: React.ReactNode }) {
 export function SettingsView() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useT()
+  const idiomas = idiomasParaElegir(useIdioma())
   const {
     family, families, activeFamilyId, switchFamily, createFamily, deleteFamily,
     members, currentMember, invites, kids, mealSlots, documents, allEvents, tasks, lists, meals,
@@ -167,9 +172,9 @@ export function SettingsView() {
   // lo único que este resumen dice y la tarjeta de la familia no.
   const numAdultos = members.length + otrosAdultos.length
   const resumenPersonas = [
-    numAdultos === 1 ? '1 adulto' : `${numAdultos} adultos`,
-    hijos.length === 1 ? '1 hijo' : `${hijos.length} hijos`,
-    ...(invites.length > 0 ? [invites.length === 1 ? '1 invitación' : `${invites.length} invitaciones`] : []),
+    t.ajustes.adultos(numAdultos),
+    t.ajustes.hijos(hijos.length),
+    ...(invites.length > 0 ? [t.ajustes.invitaciones(invites.length)] : []),
   ].join(' · ')
 
   // Lo que hay dentro de la familia, para el aviso de borrarla. Las personas van
@@ -243,7 +248,7 @@ export function SettingsView() {
         <div className="mb-6 lg:hidden">
           {enElIndice ? (
             <nav
-              aria-label="Secciones de ajustes"
+              aria-label={t.ajustes.seccionesDeAjustes}
               className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm"
             >
               {PESTAÑAS_VISIBLES.map((p, i) => (
@@ -256,7 +261,7 @@ export function SettingsView() {
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <p.icon size={18} strokeWidth={2} className="flex-shrink-0 text-muted" aria-hidden />
-                    <span className="min-w-0 truncate">{p.label}</span>
+                    <span className="min-w-0 truncate">{t.ajustes.pestanas[p.key]}</span>
                   </span>
                   <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" aria-hidden />
                 </Link>
@@ -268,7 +273,7 @@ export function SettingsView() {
               className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-xl pl-2 pr-3 text-sm font-bold text-primary-strong transition-colors hover:bg-surface"
             >
               <ChevronLeft size={18} strokeWidth={2.4} aria-hidden />
-              Ajustes
+              {t.secciones.ajustes}
             </Link>
           )}
         </div>
@@ -288,7 +293,7 @@ export function SettingsView() {
             entrada, desalineada con el contenido antes incluso de mover nada. */}
         <div
           role="tablist"
-          aria-label="Secciones de ajustes"
+          aria-label={t.ajustes.seccionesDeAjustes}
           className="hidden lg:sticky lg:top-6 lg:flex lg:flex-col lg:gap-1"
         >
           {PESTAÑAS_VISIBLES.map(p => (
@@ -312,7 +317,7 @@ export function SettingsView() {
                 aria-hidden
                 className="flex-shrink-0"
               />
-              {p.label}
+              {t.ajustes.pestanas[p.key]}
             </button>
           ))}
         </div>
@@ -328,10 +333,10 @@ export function SettingsView() {
         <div className="min-w-0">
           <div className={enElIndice ? 'hidden lg:block' : undefined}>
             <div id="panel-familia" role="tabpanel" aria-labelledby="tab-familia" hidden={pestañaActiva !== 'familia'} className="space-y-7">
-              <Bloque titulo="Tu familia">
+              <Bloque titulo={t.ajustes.tuFamilia}>
                 <FamilyCard family={family} onEdit={esAdmin ? () => setFamilySheetOpen(true) : undefined} />
                 {!esAdmin && (
-                  <SoloAdmin>El nombre de la casa lo cambia un administrador.</SoloAdmin>
+                  <SoloAdmin>{t.ajustes.soloAdminNombre}</SoloAdmin>
                 )}
 
                 <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
@@ -346,7 +351,7 @@ export function SettingsView() {
                     >
                       <span className="text-sm font-semibold text-ink">{f.name}</span>
                       {f.id === activeFamilyId && (
-                        <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">activa</span>
+                        <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">{t.ajustes.activa}</span>
                       )}
                     </button>
                   ))}
@@ -356,31 +361,31 @@ export function SettingsView() {
                         autoFocus
                         value={newFamilyName}
                         onChange={e => setNewFamilyName(e.target.value)}
-                        placeholder="Nombre de la familia"
+                        placeholder={t.ajustes.nombreDeLaFamilia}
                         className="min-w-0 flex-1 px-3 py-2 rounded-xl border border-line bg-canvas text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary-strong"
                       />
-                      <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary-strong text-white text-sm font-semibold">Crear</button>
-                      <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label="Cancelar" className="flex flex-shrink-0 items-center justify-center px-3 py-2 rounded-xl border border-line text-muted transition-colors hover:bg-surface hover:text-ink"><X size={16} strokeWidth={2.4} /></button>
+                      <button type="submit" className="flex-shrink-0 px-4 py-2 rounded-xl bg-primary-strong text-white text-sm font-semibold">{t.ajustes.crear}</button>
+                      <button type="button" onClick={() => { setCreatingFamily(false); setNewFamilyName('') }} aria-label={t.ajustes.cancelar} className="flex flex-shrink-0 items-center justify-center px-3 py-2 rounded-xl border border-line text-muted transition-colors hover:bg-surface hover:text-ink"><X size={16} strokeWidth={2.4} /></button>
                     </form>
                   ) : (
                     <button
                       onClick={() => setCreatingFamily(true)}
                       className="w-full px-4 py-3 text-sm text-primary-strong font-semibold text-left hover:bg-canvas transition-colors"
                     >
-                      + Nueva familia
+                      {t.ajustes.nuevaFamilia}
                     </button>
                   )}
                 </div>
               </Bloque>
 
-              <Bloque titulo="Personas">
+              <Bloque titulo={t.ajustes.personas}>
                 <p className="-mt-1 px-1 text-xs text-muted">{resumenPersonas}</p>
 
                 {/* "Con cuenta" y "sin cuenta" es la frontera de verdad de la app, no
                     adulto/niño: para estar en `family_members` hace falta correo,
                     cuenta y sesión. Antes decían "Adultos" y "Otros adultos", que
                     dejaba a la abuela como un adulto de segunda y no explicaba nada. */}
-                <Grupo titulo="Adultos con cuenta">
+                <Grupo titulo={t.ajustes.adultosConCuenta}>
                   <MembersList
                     members={members}
                     invites={invites}
@@ -392,45 +397,52 @@ export function SettingsView() {
                     onCancelInvite={cancelInvite}
                   />
                   {!esAdmin && (
-                    <SoloAdmin>
-                      Invitar a alguien y cambiar quién es administrador son cosa de un administrador.
-                      Tu nombre y tu color sí los cambias tú.
-                    </SoloAdmin>
+                    <SoloAdmin>{t.ajustes.soloAdminPersonas}</SoloAdmin>
                   )}
                 </Grupo>
 
-                <Grupo titulo="Adultos sin cuenta">
+                <Grupo titulo={t.ajustes.adultosSinCuenta}>
                   <ChildrenList kids={otrosAdultos} kind="adulto" onEdit={openEditChild} onAdd={() => openAddChild('adulto')} />
                 </Grupo>
 
-                <Grupo titulo="Hijos">
+                <Grupo titulo={t.ajustes.grupoHijos}>
                   <ChildrenList kids={hijos} kind="hijo" onEdit={openEditChild} onAdd={() => openAddChild('hijo')} />
                 </Grupo>
               </Bloque>
             </div>
 
             <div id="panel-casa" role="tabpanel" aria-labelledby="tab-casa" hidden={pestañaActiva !== 'casa'} className="space-y-7">
-              <Bloque titulo="Preferencias de la casa">
+              <Bloque titulo={t.ajustes.preferenciasDeLaCasa}>
                 {/* Solo aparece cuando el navegador ofrece instalar. */}
                 <InstallPWA />
 
-                <Grupo titulo="Franjas de comida">
+                <Grupo titulo={t.ajustes.franjasDeComida}>
                   {/* Viven en `families.meal_slots`, así que cambiarlas es
                       actualizar la familia: la policy solo deja hacerlo a un
                       administrador. */}
                   <MealSlotsCard slots={mealSlots} onChange={updateMealSlots} puedeCambiar={esAdmin} />
                   {!esAdmin && (
-                    <SoloAdmin>Las franjas las decide un administrador, porque son las de toda la casa.</SoloAdmin>
+                    <SoloAdmin>{t.ajustes.soloAdminFranjas}</SoloAdmin>
                   )}
                 </Grupo>
               </Bloque>
             </div>
 
             <div id="panel-cuenta" role="tabpanel" aria-labelledby="tab-cuenta" hidden={pestañaActiva !== 'cuenta'} className="space-y-7">
-              <Bloque titulo="Cuenta">
+              <Bloque titulo={t.ajustes.pestanas.cuenta}>
                 {!IS_DEMO_MODE && (
-                  <Grupo titulo="Notificaciones">
+                  <Grupo titulo={t.ajustes.notificaciones}>
                     <NotificationsCard />
+                  </Grupo>
+                )}
+
+                {/* El idioma es de este dispositivo y no de la familia, por eso
+                    va en Cuenta y no en Casa. Solo sale cuando hay entre qué
+                    elegir (`idiomasParaElegir`): con un idioma sería un control
+                    que no hace nada. */}
+                {idiomas.length > 1 && (
+                  <Grupo titulo={t.ajustes.idioma.titulo}>
+                    <LanguageCard idiomas={idiomas} />
                   </Grupo>
                 )}
 
@@ -455,20 +467,20 @@ export function SettingsView() {
 
             {!IS_DEMO_MODE && (
               <div id="panel-sincronizacion" role="tabpanel" aria-labelledby="tab-sincronizacion" hidden={pestañaActiva !== 'sincronizacion'} className="space-y-7">
-                <Bloque titulo="Sincronización">
+                <Bloque titulo={t.ajustes.pestanas.sincronizacion}>
                   <StorageCard />
                 </Bloque>
               </div>
             )}
 
             <div id="panel-legal" role="tabpanel" aria-labelledby="tab-legal" hidden={pestañaActiva !== 'legal'} className="space-y-7">
-              <Bloque titulo="Legal">
+              <Bloque titulo={t.ajustes.pestanas.legal}>
                 <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
                   <Link href="/privacidad" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors border-b border-surface">
-                    Política de privacidad <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" />
+                    {t.ajustes.privacidad} <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" />
                   </Link>
                   <Link href="/terminos" className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-ink hover:bg-canvas transition-colors">
-                    Términos de servicio <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" />
+                    {t.ajustes.terminos} <ChevronRight size={16} strokeWidth={2.4} className="flex-shrink-0 text-muted" />
                   </Link>
                 </div>
               </Bloque>
@@ -480,15 +492,15 @@ export function SettingsView() {
               siempre a la vista debajo, pase lo que pase con la pestaña activa. */}
           {IS_DEMO_MODE && (
             <div className="mt-7">
-              <Bloque titulo="Modo demo">
+              <Bloque titulo={t.ajustes.modoDemo}>
                 <div className="rounded-2xl border border-surface bg-white px-4 py-4 shadow-sm space-y-3">
-                  <p className="text-xs text-muted">Los datos son de prueba y viven en este navegador.</p>
+                  <p className="text-xs text-muted">{t.ajustes.datosDePrueba}</p>
                   <button
                     onClick={handleReset}
                     onBlur={() => setConfirmReset(false)}
                     className={`w-full min-h-11 rounded-xl text-sm font-semibold transition-colors ${confirmReset ? 'bg-danger-strong text-white' : 'border border-line text-muted hover:bg-surface'}`}
                   >
-                    {confirmReset ? 'Confirmar reinicio' : 'Reiniciar datos de demo'}
+                    {confirmReset ? t.ajustes.confirmarReinicio : t.ajustes.reiniciarDemo}
                   </button>
                 </div>
               </Bloque>

@@ -17,11 +17,23 @@
  * castellano y pensadas para leerse ("No se puede eliminar al único
  * administrador de la familia", "La invitación ha caducado"). Esas pasan tal
  * cual: reescribirlas aquí sería decir lo mismo desde dos archivos, que es
- * justo lo que este repositorio evita.
+ * justo lo que este repositorio evita. El precio, desde que hay otros idiomas
+ * (28-09-2026): con la app en inglés, esas siguen llegando en castellano. Para
+ * traducirlas, la RPC tendría que lanzar un código y no una frase.
  */
 
-/** Lo que se dice cuando no sabemos qué ha pasado, o cuando lo que ha pasado no es asunto de quien mira. */
-export const ERROR_GENERICO = 'No se ha podido guardar. Inténtalo otra vez en un momento.'
+import { es } from './i18n/es'
+import { textosDelNavegador, type Diccionario } from './i18n'
+
+type TextosDeError = Diccionario['errores']
+
+/**
+ * Lo que se dice cuando no sabemos qué ha pasado, o cuando lo que ha pasado no es asunto de quien mira.
+ *
+ * En castellano: es el valor con el que comparan los tests. La app no lo usa
+ * directamente, usa `t.generico` del idioma de cada uno.
+ */
+export const ERROR_GENERICO = es.errores.generico
 
 /**
  * Los fallos que sí sabemos nombrar, por orden: gana el primero que case.
@@ -29,41 +41,41 @@ export const ERROR_GENERICO = 'No se ha podido guardar. Inténtalo otra vez en u
  * Los códigos van junto al texto porque PostgREST manda las dos cosas y no
  * siempre las mismas: el `code` es estable y el `message` cambia con la versión.
  */
-const TRADUCCIONES: { patron: RegExp; mensaje: string }[] = [
+const TRADUCCIONES: { patron: RegExp; mensaje: keyof TextosDeError }[] = [
   {
     // 42501 y la policy de RLS. Es, con diferencia, el que más se va a ver: es
     // lo que contesta la base cuando alguien que no es administrador intenta
     // invitar, renombrar la familia o cambiar un rol.
     patron: /row-level security|permission denied|insufficient privilege|\b42501\b/i,
-    mensaje: 'No tienes permiso para hacer ese cambio. En la familia, invitar y cambiar los ajustes es cosa de un administrador.',
+    mensaje: 'permiso',
   },
   {
     patron: /jwt|token|not authenticated|no autenticado|unauthorized|\b401\b/i,
-    mensaje: 'La sesión ha caducado. Vuelve a entrar en Farpi e inténtalo otra vez.',
+    mensaje: 'sesion',
   },
   {
     patron: /failed to fetch|networkerror|network request|load failed|fetch failed|timeout|timed out/i,
-    mensaje: 'No hay conexión con Farpi. Comprueba internet e inténtalo otra vez.',
+    mensaje: 'conexion',
   },
   {
     patron: /duplicate key|already exists|\b23505\b/i,
-    mensaje: 'Eso ya estaba guardado.',
+    mensaje: 'duplicado',
   },
   {
     patron: /foreign key|\b23503\b/i,
-    mensaje: 'No se ha podido guardar: algo con lo que va enlazado ya no está.',
+    mensaje: 'enlazado',
   },
   {
     patron: /not-null|\b23502\b/i,
-    mensaje: 'Falta algún dato obligatorio.',
+    mensaje: 'obligatorio',
   },
   {
     patron: /check constraint|\b23514\b/i,
-    mensaje: 'Alguno de los datos no vale. Revísalo e inténtalo otra vez.',
+    mensaje: 'noVale',
   },
   {
     patron: /value too long|\b22001\b/i,
-    mensaje: 'Alguno de los textos es demasiado largo.',
+    mensaje: 'demasiadoLargo',
   },
 ]
 
@@ -89,27 +101,36 @@ const PARECE_INGLES = /\b(the|for|not|is|to|of|does|cannot|could|failed|invalid|
  * `codigo` va aparte y no pegado al mensaje: se mira para elegir la traducción,
  * pero no puede acabar en pantalla. Un mensaje que pasa tal cual —los de las
  * RPC— saldría con un `(P0001)` colgando al final.
+ *
+ * `t` son los textos del idioma de este dispositivo, que se leen en el momento
+ * (28-09-2026). Quien llama aquí no es un componente —es la frontera de los
+ * repositorios y el `catch` del store—, así que no hay `useT()` que valga; el
+ * parámetro está para poder probar los otros idiomas.
  */
-export function mensajeDeError(bruto: string, codigo?: string | null): string {
+export function mensajeDeError(bruto: string, codigo?: string | null, t: TextosDeError = textosDelNavegador().errores): string {
   const texto = bruto.trim()
-  if (!texto) return ERROR_GENERICO
+  if (!texto) return t.generico
+
+  // Un mensaje que ya es nuestro pasa tal cual. El mismo fallo cruza esta
+  // función dos veces —en la frontera de los repositorios y otra en el `catch`
+  // del store—, y en inglés la segunda vuelta confundía nuestra propia frase con
+  // una de Postgres (`PARECE_INGLES`) y la cambiaba por la genérica.
+  if ((Object.values(t) as string[]).includes(texto)) return texto
 
   const paraBuscar = codigo ? `${texto} ${codigo}` : texto
   for (const { patron, mensaje } of TRADUCCIONES) {
-    if (patron.test(paraBuscar)) return mensaje
+    if (patron.test(paraBuscar)) return t[mensaje]
   }
 
-  if (GUARDA_INTERNA.test(texto)) return ERROR_GENERICO
+  if (GUARDA_INTERNA.test(texto)) return t.generico
 
   // `Acceso denegado: …` lo lanzan las RPC y es correcto, pero dice "el usuario"
   // y "esta familia" hablando de ti y de tu casa. Se cuenta como lo cuenta la
   // app y no como lo cuenta la función.
-  if (/^acceso denegado/i.test(texto)) {
-    return 'No tienes permiso para hacer eso. En la familia, invitar y cambiar los ajustes es cosa de un administrador.'
-  }
+  if (/^acceso denegado/i.test(texto)) return t.accesoDenegado
 
   const conAcentos = /[áéíóúüñ¿¡]/i.test(texto)
-  if (!conAcentos && PARECE_INGLES.test(texto)) return ERROR_GENERICO
+  if (!conAcentos && PARECE_INGLES.test(texto)) return t.generico
 
   return texto
 }

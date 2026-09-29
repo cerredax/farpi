@@ -2200,12 +2200,12 @@ falte una frase no compila, y `e2e/unit/portada-textos.spec.ts` le pasa las regl
 (ni un guion largo, nada vacío). No se usa ninguna librería de i18n a propósito: es una página,
 y un objeto tipado hace lo mismo sin dependencia.
 
-Lo que **no** es solo traducir, y va primero: **la app sigue en castellano**. Quien se da de alta
-desde una portada en inglés entra en Inicio, Ajustes y los sheets en castellano, y le llegan en
-castellano los correos de confirmación. O se traduce también la app, que es otro trabajo y
-mucho más grande (todos los rótulos están escritos en los componentes), o la portada en inglés
-lo dice claro. Venderla en un idioma y servirla en otro es la clase de sorpresa que la portada
-evita en todo lo demás.
+Lo que **no** es solo traducir, y va primero: **la app todavía no está entera en inglés**. Se
+decidió traducirla también (28-09-2026, sección siguiente), pero hoy solo lo está el primer
+tramo: quien se diera de alta desde una portada en inglés entraría en unos sheets en castellano,
+y le llegarían en castellano los correos de confirmación. Por eso `/en` no se abre antes de que
+la app esté completa: venderla en un idioma y servirla en otro es la clase de sorpresa que la
+portada evita en todo lo demás.
 
 Para abrir `/en`, en este orden:
 
@@ -2215,11 +2215,11 @@ Para abrir `/en`, en este orden:
 2. **`src/app/en/page.tsx`**, copia de `src/app/page.tsx` que pasa `textos={PORTADA_EN}`, y
    **`/en` en `PUBLIC_ROUTES`** (`src/lib/supabase/middleware.ts`) y en las `RUTAS` de
    `e2e/movil.spec.ts`. Sin lo primero, `/en` redirige al login.
-3. **El idioma de la página.** `<html lang="es">` está en el layout raíz, que es de toda la app;
-   la portada lo corrige en su envoltorio (`lang={t.idioma}`), que es lo que usan los lectores de
-   pantalla. Si algún día hace falta el `<html>` en inglés, la salida de Next son dos layouts
-   raíz con grupos de rutas, y eso mueve todas las carpetas de `src/app`: no merece la pena solo
-   por esto.
+3. **El idioma de la página.** El `<html lang>` lo pone el layout raíz con el idioma de la
+   cookie del dispositivo (sección siguiente), no con el de la URL; la portada lo corrige en su
+   envoltorio (`lang={t.idioma}`), que es lo que usan los lectores de pantalla. Una portada en
+   `/en` puede además escribir la cookie al pulsar «Crear cuenta», para que la app abra ya en
+   inglés.
 4. **Metaetiquetas**: título, descripción y `openGraph` propios en `en/page.tsx` (con
    `locale: 'en_GB'` o el que toque) y, en las dos páginas, `alternates.languages`
    (`{ es: '/', en: '/en' }`), que es lo que le dice a Google que son la misma. `og.png` lleva
@@ -2230,6 +2230,73 @@ Para abrir `/en`, en este orden:
 6. **Fuera de la página**: los papeles (`/privacidad`, `/terminos`, `/borrar-cuenta`), las
    plantillas de correo de Supabase (`scripts/gen-email-templates.py`; son una por proyecto, no
    por idioma) y las capturas de "Así se ve", que enseñan la app en castellano.
+
+### La app en otro idioma
+
+Preparada el 28-09-2026, con el castellano por defecto y el inglés como segundo idioma. **Sin
+librería de i18n**, por lo mismo que la portada: un objeto tipado hace el trabajo, y una
+librería traería rutas por idioma (`/en/home`) que una app privada no necesita.
+
+**Las piezas**, todas en `src/lib/i18n/`:
+
+- **`es.ts` es el diccionario de referencia**, y su forma es el tipo `Diccionario`: `en.ts` no
+  compila si le falta o le sobra una frase. Se agrupa por dónde se lee (`secciones`,
+  `ajustes`, `validacion`, `errores`…), y lo que lleva número es una función que devuelve la
+  frase entera (`adultos: n => …`), nunca un trozo que se pega a otro.
+- **El idioma es del dispositivo, no de la cuenta**: la cookie `farpi_idioma` (`idiomas.ts`). Se
+  decidió así para no tocar la base de producción. El layout raíz la lee en el servidor
+  (`servidor.ts`), la pone en `<html lang>` y la baja a los componentes con `IdiomaProvider`
+  (`contexto.tsx`). Leer una cookie en el layout raíz hace dinámicas todas las páginas; no se
+  nota, porque el proxy ya pasa por cada una a refrescar la sesión con Supabase.
+- **En un componente, `const t = useT()`**. En lo que no es un componente (la frontera de los
+  repositorios, el `catch` del store, los validadores) no hay contexto que leer, así que
+  `textosDelNavegador()` lee la misma cookie en el momento. Las dos vías dicen siempre lo mismo,
+  porque la cookie solo cambia desde el selector, y el selector recarga la página.
+- **Los validadores y `mensajeDeError`** reciben los textos como último parámetro, con el
+  idioma del dispositivo por defecto: los sheets no pasan nada y los tests prueban cualquier
+  idioma.
+- **Las fechas**: `localeDeFechas(idioma)` (`fechas.ts`) da el locale de `date-fns`, `enGB`
+  para el inglés porque la semana empieza en lunes.
+- **El selector** (`LanguageCard`) vive en Ajustes → Cuenta, porque es de este dispositivo y no
+  de la casa. **Solo sale si hay entre qué elegir** (`idiomasParaElegir`): los idiomas de
+  `IDIOMAS_OFRECIDOS` y, siempre, el que ya está puesto, para que nadie se quede atrapado en uno.
+
+**Qué está traducido**: la navegación (las dos barras, la cabecera, «Más» y el pie de la
+cuenta), el aviso de guardado, el arranque, el marco de Ajustes (pestañas, títulos, avisos de
+administrador, Legal y modo demo), todos los validadores, los errores de Supabase y las
+etiquetas de la página (`metadatos`: la descripción y la vista previa del enlace). **El resto
+de pantallas no**: sus textos siguen escritos en el componente.
+
+**Por eso el inglés no se ofrece** (`IDIOMAS_OFRECIDOS = ['es']`). Se prueba escribiendo la
+cookie `farpi_idioma=en` a mano, y es lo que hace `e2e/idioma.spec.ts`. Cuando esté todo, se
+añade `'en'` a esa lista y el selector aparece solo.
+
+**Cómo se trae una pantalla**, que es lo que queda por hacer:
+
+1. Sus textos a un bloque nuevo de `es.ts`, **copiados letra a letra**: la suite los busca por
+   su texto, y un castellano que cambia de paso es una regresión que pasa por traducción.
+2. El mismo bloque en `en.ts` (el tipo avisa de lo que falta), y `useT()` en el componente.
+3. Si formatea fechas, `localeDeFechas(useIdioma())` en vez del `es` importado, y el patrón
+   (`"d 'de' MMMM"`) al diccionario: el orden de una fecha también es del idioma.
+4. `npm run test:unit`: `e2e/unit/i18n.spec.ts` comprueba que las dos traducciones tienen la
+   misma forma, que ninguna frase está vacía y que el inglés no es una copia del castellano.
+
+**Lo que no se arregla traduciendo**, y habrá que decidir antes de ofrecer el inglés:
+
+- **El aviso de las siete** (`reminders.ts`) y **los correos de Supabase** se mandan desde el
+  servidor sin nadie delante, y el servidor no sabe qué idioma tiene cada móvil. Para eso el
+  idioma tendría que vivir en la cuenta (una columna en `family_members`), no en una cookie.
+- **Los textos que vienen de la base**: las excepciones de las RPC, que están en castellano y
+  pasan tal cual por `mensajeDeError`, y los nombres que se crean por defecto (partidas,
+  catálogo). Para traducir los primeros, la RPC tendría que lanzar un código y no una frase.
+- **El dinero se escribe a mano** en `finanzas.ts` (`1.234,56 €`), una decisión medida que se
+  tomó sin pensar en otros formatos. En inglés sale igual.
+- **La vista previa de un enlace en inglés.** Las etiquetas del layout raíz (descripción,
+  `openGraph`, `twitter`) salen del diccionario con `generateMetadata` desde el 29-09-2026,
+  pero WhatsApp y Google entran sin cookie y ven siempre el castellano. Para que un enlace se
+  vea en inglés hace falta una dirección propia, `/en`, y una `og.png` en inglés, que la de
+  hoy es una captura en castellano. La portada y los papeles legales ponen su propio título,
+  en castellano como su contenido.
 
 ## Tono de la interfaz
 

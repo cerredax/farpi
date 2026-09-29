@@ -19,13 +19,17 @@ export type PestañaKey = 'familia' | 'casa' | 'cuenta' | 'sincronizacion' | 'le
  * una sección nueva se describe entera en un sitio. Casa no lleva casita a
  * propósito —esa es la de Inicio en `SECCIONES`— sino los mandos de las
  * preferencias, que es lo que hay dentro.
+ *
+ * La etiqueta ya no está aquí (28-09-2026): es `t.ajustes.pestanas[key]`, y la
+ * `key` es la misma en los dos sitios, así que el diccionario no deja escribir
+ * una sección sin nombre.
  */
-export const PESTAÑAS: { key: PestañaKey; label: string; icon: typeof Users }[] = [
-  { key: 'familia', label: 'Familia', icon: Users },
-  { key: 'casa', label: 'Casa', icon: SlidersHorizontal },
-  { key: 'cuenta', label: 'Cuenta', icon: CircleUser },
-  { key: 'sincronizacion', label: 'Sincronización', icon: RefreshCw },
-  { key: 'legal', label: 'Legal', icon: Scale },
+export const PESTAÑAS: { key: PestañaKey; icon: typeof Users }[] = [
+  { key: 'familia', icon: Users },
+  { key: 'casa', icon: SlidersHorizontal },
+  { key: 'cuenta', icon: CircleUser },
+  { key: 'sincronizacion', icon: RefreshCw },
+  { key: 'legal', icon: Scale },
 ]
 
 /**

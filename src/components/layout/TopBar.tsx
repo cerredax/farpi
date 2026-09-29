@@ -1,24 +1,28 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useT } from '@/lib/i18n/contexto'
+import type { Diccionario } from '@/lib/i18n'
 
-const titles: Record<string, string> = {
-  '/home':      'Inicio',
-  '/calendar':  'Calendario',
-  '/tasks':     'Tareas',
-  '/lists':     'Listas',
-  '/meals':     'Comidas',
-  '/finances':  'Finanzas',
-  '/notes':     'Notas',
-  '/docs':      'Documentos',
-  '/birthdays': 'Cumpleaños',
-  '/settings':  'Ajustes',
+const titles: Record<string, keyof Diccionario['secciones']> = {
+  '/home':      'inicio',
+  '/calendar':  'calendario',
+  '/tasks':     'tareas',
+  '/lists':     'listas',
+  '/meals':     'comidas',
+  '/finances':  'finanzas',
+  '/notes':     'notas',
+  '/docs':      'documentos',
+  '/birthdays': 'cumpleanos',
+  '/settings':  'ajustes',
 }
 
 export function TopBar() {
   const pathname = usePathname()
+  const t = useT()
   const base = '/' + pathname.split('/')[1]
-  const title = titles[base]
+  const clave = titles[base]
+  const title = clave ? t.secciones[clave] : undefined
 
   // El nombre de la pantalla va en verde de marca, no en tinta: la cabecera es
   // lo primero que se ve y es donde la app dice quién es. Se usa

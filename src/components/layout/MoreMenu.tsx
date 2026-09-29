@@ -9,6 +9,7 @@ import { useIsClient } from '@/hooks/useIsClient'
 import { IS_DEMO_MODE, signOut } from '@/lib/supabase/client'
 import { ROUTES } from '@/lib/constants'
 import { SECCIONES_EN_MAS } from './secciones'
+import { useT } from '@/lib/i18n/contexto'
 
 /** Una fila del menú: icono, etiqueta y el chevrón que dice que lleva a otro sitio. */
 function Fila({ href, label, icon: Icon, separada, onIr }: {
@@ -76,6 +77,7 @@ function Fila({ href, label, icon: Icon, separada, onIr }: {
 export function MoreMenu({ className, children }: { className?: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const enElNavegador = useIsClient()
+  const t = useT()
 
   async function cerrarSesion() {
     await signOut()
@@ -91,7 +93,7 @@ export function MoreMenu({ className, children }: { className?: string; children
   }
 
   const sheet = (
-    <BottomSheet open={open} title="Más" onClose={() => setOpen(false)}>
+    <BottomSheet open={open} title={t.navegacion.mas} onClose={() => setOpen(false)}>
       <div className="space-y-4 px-5 pt-1 pb-8">
         <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
           {/* Enlaces de verdad y no botones: llevan a otra pantalla, así que se
@@ -99,13 +101,13 @@ export function MoreMenu({ className, children }: { className?: string; children
               de `SECCIONES_EN_MAS` y no de una lista propia: eran los dos sitios
               donde apuntar lo mismo, y con Documentos solo ya habían divergido
               una vez. */}
-          {SECCIONES_EN_MAS.map(({ href, label, icon: Icon }, i) => (
-            <Fila key={href} href={href} label={label} icon={Icon} separada={i > 0} onIr={() => setOpen(false)} />
+          {SECCIONES_EN_MAS.map(({ href, clave, icon: Icon }, i) => (
+            <Fila key={href} href={href} label={t.secciones[clave]} icon={Icon} separada={i > 0} onIr={() => setOpen(false)} />
           ))}
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm">
-          <Fila href={ROUTES.settings} label="Ajustes" icon={Settings} onIr={() => setOpen(false)} />
+          <Fila href={ROUTES.settings} label={t.secciones.ajustes} icon={Settings} onIr={() => setOpen(false)} />
         </div>
 
         {/* En demo no hay sesión que cerrar: la app entera funciona sin cuenta,
@@ -118,7 +120,7 @@ export function MoreMenu({ className, children }: { className?: string; children
               className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-canvas"
             >
               <LogOut size={16} strokeWidth={2} className="flex-shrink-0 text-muted" />
-              Cerrar sesión
+              {t.navegacion.cerrarSesion}
             </button>
           </div>
         )}

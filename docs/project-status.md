@@ -1318,7 +1318,7 @@ esto; aquí solo el titular.
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
 pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
-pruebas que exigen un aparato en la mano, dos decisiones sin tomar, tres funcionalidades que
+pruebas que exigen un aparato en la mano, tres decisiones sin tomar, tres funcionalidades que
 no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
@@ -1371,12 +1371,20 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
   —y con ella `public/.well-known/assetlinks.json`—, la ficha y la prueba cerrada.
 - **La portada en inglés**: preparada el 28-09-2026 y sin traducir. Sus textos están en
   `src/components/landing/textos.ts` con un tipo que obliga a traducirlos todos, y la
-  maqueta ya no tiene ninguno dentro. Lo que queda por decidir va antes que la
-  traducción: **si detrás va la app en inglés o no**. Quien se da de alta desde `/en`
-  aterriza hoy en una app entera en castellano; si eso no cambia, la portada en inglés
-  tiene que decirlo. Los pasos y lo que no cubre el diccionario (el formulario, las
-  garantías, `lang`, las metaetiquetas, los papeles), en `docs/architecture.md`, «La
-  portada en otro idioma». Y el texto de Omar lo tiene que dar por bueno él.
+  maqueta ya no tiene ninguno dentro. **Va después de la app en inglés** (el punto
+  siguiente): abrir `/en` antes sería venderla en un idioma y servirla en otro. Los pasos
+  y lo que no cubre el diccionario (el formulario, las garantías, las metaetiquetas, los
+  papeles), en `docs/architecture.md`, «La portada en otro idioma». Y el texto de Omar lo
+  tiene que dar por bueno él.
+- **La app en inglés**: preparada el 28-09-2026, con el primer tramo traducido. El
+  diccionario está en `src/lib/i18n/` (`es.ts` es el contrato), el idioma es **del
+  dispositivo** (cookie `farpi_idioma`) y el `<html lang>` lo pone el servidor. Traducido:
+  la navegación, el aviso de guardado, el arranque, el marco de Ajustes, los validadores y
+  los errores de Supabase. **Falta el resto de pantallas**, una a una, y hasta entonces el
+  inglés no se ofrece en Ajustes (`IDIOMAS_OFRECIDOS`); se prueba con la cookie a mano. Y
+  antes de ofrecerlo hay que decidir lo que no es traducir: el aviso de las siete y los
+  correos no saben el idioma de cada móvil, las RPC lanzan frases en castellano y el dinero
+  se escribe a la española. El detalle, en `docs/architecture.md`, «La app en otro idioma».
 
 ### 3. Funcionalidad que no existe
 

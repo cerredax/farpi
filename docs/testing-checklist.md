@@ -38,6 +38,11 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 - [ ] La cabecera de móvil no lleva ningún icono a la derecha: ni rueda de Ajustes
       (26-08-2026) ni círculo de cuenta (28-08-2026). Solo el título.
 - [ ] La barra de abajo no tapa contenido.
+- [ ] **En inglés** (28-09-2026): con la cookie `farpi_idioma=en` escrita a mano en las
+      herramientas del navegador, las cinco etiquetas de la barra y «More» caben a 390 px
+      sin partirse, y en Ajustes → Account sale el selector para volver a Castellano.
+      Que el `lang`, los nombres y la vuelta funcionan ya lo mira `e2e/idioma.spec.ts`; el
+      ancho de las etiquetas en un móvil de verdad, no.
 
 ## 3. Inicio
 

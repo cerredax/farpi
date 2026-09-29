@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SECCIONES } from './secciones'
 import { AccountFooter } from './AccountFooter'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * La navegación en escritorio: una columna a la izquierda en lugar de la barra
@@ -19,11 +20,12 @@ import { AccountFooter } from './AccountFooter'
  */
 export function SideNav() {
   const pathname = usePathname()
+  const t = useT()
   const esActiva = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   return (
     <nav
-      aria-label="Secciones"
+      aria-label={t.navegacion.secciones}
       className="hidden lg:z-50 lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:w-56 lg:flex-col lg:border-r lg:border-line lg:bg-white"
     >
       <div className="flex h-14 flex-shrink-0 items-center px-5">
@@ -31,7 +33,7 @@ export function SideNav() {
       </div>
 
       <ul className="flex-1 space-y-1 px-3 py-2">
-        {SECCIONES.map(({ href, label, icon: Icon }) => {
+        {SECCIONES.map(({ href, clave, icon: Icon }) => {
           const activa = esActiva(href)
           return (
             <li key={href}>
@@ -43,7 +45,7 @@ export function SideNav() {
                 }`}
               >
                 <Icon size={19} strokeWidth={activa ? 2.4 : 1.8} className="flex-shrink-0" />
-                {label}
+                {t.secciones[clave]}
               </Link>
             </li>
           )

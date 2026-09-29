@@ -1,3 +1,7 @@
+'use client'
+
+import { useT } from '@/lib/i18n/contexto'
+
 /**
  * Lo que se ve mientras Farpi arranca.
  *
@@ -22,12 +26,14 @@ function Caja({ className }: { className: string }) {
 }
 
 export function CargandoFarpi() {
+  const t = useT()
+
   return (
     // `aria-busy` y un texto para quien no ve las cajas: un esqueleto no dice
     // nada por sí solo, y sin esto un lector de pantalla anunciaría una página
     // vacía.
     <div className="flex min-h-dvh flex-col bg-canvas" role="status" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Cargando Farpi</span>
+      <span className="sr-only">{t.arranque.cargando}</span>
 
       {/* La barra de arriba, con el hueco del nombre de la pantalla. */}
       <div className="flex h-14 flex-shrink-0 items-center border-b border-line px-4 lg:px-8">

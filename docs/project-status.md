@@ -18,8 +18,9 @@ policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Y
 banco se apunte una vez—: **173/173**. Y el 23-09-2026, una revisión de seguridad a la
 contra: que la ficha de un documento no pueda cambiar de familia y la cuenta nueva del tope de
 invitaciones, `invite_sends`, y las RPCs de meses sin familia: **186/186**. **Lo que queda no es código de producto**: pruebas
-que piden un aparato delante, una decisión sin tomar, tres funcionalidades que no existen y
-tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomendado".
+que piden un aparato delante, tres decisiones sin tomar, tres funcionalidades que no existen,
+los candidatos que dejó la revisión del 30-09-2026 y dos acabados menores de Finanzas. La lista
+entera, en "Siguiente paso recomendado".
 
 ## Implementado
 
@@ -1318,9 +1319,9 @@ esto; aquí solo el titular.
 ## Siguiente paso recomendado
 
 La app está en producción y en uso diario por la familia. **No queda código de producto
-pendiente.** Lo que sigue son cuatro clases de cosa distintas, y conviene no mezclarlas:
+pendiente.** Lo que sigue son cinco clases de cosa distintas, y conviene no mezclarlas:
 pruebas que exigen un aparato en la mano, tres decisiones sin tomar, tres funcionalidades que
-no existen y tres acabados menores. **Esta es la lista entera y no hay otra**: lo que
+no existen, los candidatos de la revisión del 30-09-2026 y dos acabados menores. **Esta es la lista entera y no hay otra**: lo que
 falta vive aquí, y el porqué de cada decisión, en `docs/architecture.md`.
 
 Lo que **ya no está** en esta lista, porque se cerró: los 44 px dentro de los sheets
@@ -1329,7 +1330,12 @@ la copia de seguridad (27-08-2026), el contraste de la paleta (09 y 10-09-2026),
 de que Supabase se cae (28-08-2026, y el vigía externo el 15-09) y la revalidación de RLS
 (169/169 el 05-09-2026) y **el esquema del extracto del banco**, aplicado y validado el
 22-09-2026 (173/173), y **los tres huecos de la revisión de seguridad del 23-09-2026**
-(186/186, con Next.js al día). El relato de cada una, en el cuerpo de su commit.
+(186/186, con Next.js al día), y **lo que salió de la revisión del 30-09-2026**: el marcador de
+hoy en el mes del móvil, corregir un cumpleaños en toda su serie, que una tarea que no se guarda
+no se pierda, copiar una nota, ver lo que apunta otra persona sin recargar, deshacer al marcar
+un ítem y al eliminar una tarea, una nota o un ítem, filtrar tareas por persona, repetir cada
+dos semanas y sin fecha de fin, y pasar de semana en Comidas desde el móvil. El relato de cada
+una, en el cuerpo de su commit.
 
 ### Para retomar (lista de trabajo, 28-09-2026)
 
@@ -1377,12 +1383,15 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
   y lo que no cubre el diccionario (el formulario, las garantías, las metaetiquetas, los
   papeles), en `docs/architecture.md`, «La portada en otro idioma». Y el texto de Omar lo
   tiene que dar por bueno él.
-- **La app en inglés**: preparada el 28-09-2026, con el primer tramo traducido. El
-  diccionario está en `src/lib/i18n/` (`es.ts` es el contrato), el idioma es **del
-  dispositivo** (cookie `farpi_idioma`) y el `<html lang>` lo pone el servidor. Traducido:
-  la navegación, el aviso de guardado, el arranque, el marco de Ajustes, los validadores y
-  los errores de Supabase. **Falta el resto de pantallas**, una a una, y hasta entonces el
-  inglés no se ofrece en Ajustes (`IDIOMAS_OFRECIDOS`); se prueba con la cookie a mano. Y
+- **La app en inglés**: preparada el 28-09-2026. El diccionario está en `src/lib/i18n/` (`es.ts`
+  y `en.ts` son el contrato, y cada pantalla tiene su archivo en `es/` y `en/`), el idioma es
+  **del dispositivo** (cookie `farpi_idioma`) y el `<html lang>` lo pone el servidor. Traducido:
+  la navegación, el aviso de guardado, el arranque, el marco de Ajustes, los validadores, los
+  errores de Supabase, **Listas, Comidas, el acceso y las dos pantallas de fallo**. **Faltan
+  Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el interior de Ajustes e Inicio**
+  (que arrastra los sheets de Calendario y Tareas): `e2e/idioma-recorrido.spec.ts` las lista en
+  `SIN_MIGRAR` y se van sacando una a una. Hasta entonces el inglés no se ofrece en Ajustes
+  (`IDIOMAS_OFRECIDOS`); se prueba con la cookie a mano. Y
   antes de ofrecerlo hay que decidir lo que no es traducir: el aviso de las siete y los
   correos no saben el idioma de cada móvil, las RPC lanzan frases en castellano y el dinero
   se escribe a la española. El detalle, en `docs/architecture.md`, «La app en otro idioma».
@@ -1405,7 +1414,38 @@ Es lo único que no ve ninguna herramienta, y por eso va primero.
   se recupera por el SQL Editor. Sería una RPC nueva —borrar la cabecera y recopiar en una
   sola operación— y, detrás, `scripts/validate-rls.mjs` y `docs/supabase-validation.md`.
 
-### 4. Acabados de Finanzas
+### 4. Candidatos de la revisión del 30-09-2026
+
+Salieron de revisar la app entera como usuario y **ninguno está decidido**: son lo que un padre
+o una madre echaría en falta, verificado en el código. En este orden de lo que más se nota:
+
+- **Escribir sin conexión.** No hay cola de cambios: con la red caída no se guarda nada, y el
+  service worker solo cachea páginas y estáticos. Es lo más caro (arquitectura, y se prueba
+  contra `npm run start`) y lo que menos urge en una casa con cobertura.
+- **Modo oscuro.** No hay ni `dark:` ni `prefers-color-scheme`. Cambia el diseño visual de
+  forma amplia (pide confirmación) y obligaría a repetir la medida de contraste del 09-09-2026.
+- **Avisos.** Hay un solo resumen a las 7:00. No se elige qué avisar, ni hay aviso por evento
+  («30 minutos antes») ni de lo que añade otro miembro. Un aviso por evento pide una tabla de
+  lo ya avisado.
+- **Refrescar solas Finanzas, Documentos y Ajustes.** Solo se refresca lo del día a día
+  (`PORCIONES_DEL_DIA`); esas se tocan de tarde en tarde.
+- **Deshacer un evento eliminado**, y que el resto de sheets (eventos, notas, listas) no se cierren
+  antes de saber si guardó, como ya hace el de tareas.
+- **Repetición mensual de eventos**, una serie de verdad sin fin, y avisar al editar de que el
+  evento es de una serie.
+- **Comidas**: pasar los ingredientes a la lista de la compra, y copiar una semana entera.
+- **Búsqueda global.** Cada pantalla tiene la suya (y solo con tres o más elementos).
+- **Invitar con un enlace o por WhatsApp** (hoy solo por email) y **restaurar** la copia de
+  seguridad (hoy solo se exporta).
+- **Finanzas**: la foto del ticket en un gasto, el día de cargo de un fijo y exportar a CSV.
+- **Notas y documentos**: casillas y fotos en una nota; varios archivos por documento (las dos
+  caras del DNI) y un almacén que no sea Drive.
+- **Quién hizo una tarea que se repite.** Al completarla solo se mueve la fecha y no queda a
+  nombre de nadie.
+- Sin verificar en un aparato: el botón atrás de Android parece salir de Listas y cerrar los
+  formularios perdiendo lo escrito (no hay URL ni `popstate` en toda la app).
+
+### 5. Acabados de Finanzas
 
 Los dos salieron medidos el día que se hicieron y se dejaron escritos en vez de arreglados,
 porque ninguno se arregla sin tocar algo que no es suyo:

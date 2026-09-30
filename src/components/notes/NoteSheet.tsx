@@ -1,7 +1,9 @@
 'use client'
 
-import { Pin } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Copy, Pin } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { Button } from '@/components/ui/Button'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
@@ -62,6 +64,25 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
     onClose()
   })
 
+  // `null` es «sin haber pulsado»; `true`, copiado; `false`, el navegador no dejó.
+  const [copiado, setCopiado] = useState<boolean | null>(null)
+
+  /**
+   * Copia lo que hay escrito en el campo, no lo guardado: si se acaba de
+   * corregir la clave, es la corregida la que se quiere pegar. Sale de aquí y
+   * no de la tarjeta porque la tarjeta es un botón entero y no admite otro
+   * dentro (ver `NoteCard`).
+   */
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(draft.body)
+      setCopiado(true)
+    } catch {
+      setCopiado(false)
+    }
+    setTimeout(() => setCopiado(null), 2500)
+  }
+
   return (
     <BottomSheet
       open={open}
@@ -107,6 +128,16 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
             placeholder={'Red: FARPI_2G\nClave: …'}
             className="field-input resize-none"
           />
+          {/* Lo que se apunta en una nota es, casi siempre, algo para pegar en otro
+              sitio: la clave del wifi, un teléfono, el código de la alarma. Solo al
+              editar y solo si hay contenido: en una nota nueva no hay nada que
+              copiar todavía. */}
+          {mode === 'edit' && draft.body.trim() && (
+            <Button type="button" variant="secondary" size="sm" onClick={copiar} className="gap-1.5">
+              {copiado ? <Check size={14} strokeWidth={2.4} aria-hidden /> : <Copy size={14} strokeWidth={2.4} aria-hidden />}
+              {copiado === null ? 'Copiar contenido' : copiado ? 'Copiado' : 'No se pudo copiar'}
+            </Button>
+          )}
         </Field>
 
         {/* Fijar se marca aquí y no en la tarjeta: es un gesto que se hace una

@@ -110,6 +110,29 @@ test('si una tarea no se guarda, el sheet sigue abierto con lo escrito', async (
   await expect(page.getByText('Comprar cortinas')).toBeVisible()
 })
 
+// Lo que se apunta en una nota se pega en otro sitio: la clave del wifi, un
+// teléfono. Al editarla hay un botón que copia lo escrito en el campo, y en una
+// nota nueva, donde no hay nada que copiar, no está.
+test('una nota se puede copiar entera al editarla', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/notes')
+
+  await page.getByRole('button', { name: 'Nueva nota' }).click()
+  const alta = page.getByRole('dialog', { name: 'Nueva nota' })
+  await expect(alta.getByRole('button', { name: 'Copiar contenido' })).toHaveCount(0)
+  await alta.getByRole('textbox', { name: 'Título' }).fill('Alarma del garaje')
+  await alta.getByRole('textbox', { name: /Contenido/ }).fill('Red: ALARMA_G\nClave: tortuga-azul-42')
+  await alta.getByRole('button', { name: 'Crear nota' }).click()
+
+  await page.getByRole('button', { name: /Alarma del garaje/ }).click()
+  const edicion = page.getByRole('dialog', { name: 'Editar nota' })
+  await edicion.getByRole('button', { name: 'Copiar contenido' }).click()
+  await expect(edicion.getByRole('button', { name: 'Copiado' })).toBeVisible()
+  // El portapapeles de Windows guarda los saltos como \r\n: se compara sin esa diferencia del sistema.
+  const copiado = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n')
+  expect(copiado).toBe('Red: ALARMA_G\nClave: tortuga-azul-42')
+})
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

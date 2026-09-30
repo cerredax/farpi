@@ -325,12 +325,12 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
           const hoy = isToday(day)
           return (
             <div key={day.toISOString()} className="flex flex-col items-center gap-0.5 py-2" style={{ gridColumn: i + 2, gridRow: 1 }}>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${hoy ? 'text-accent-strong' : 'text-muted'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${hoy ? 'text-hoy-strong' : 'text-muted'}`}>
                 {capitalize(format(day, days.length === 1 ? 'EEEE' : 'EEE', { locale: es }))}
               </span>
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
-                  hoy ? 'bg-accent-strong text-white' : 'text-ink'
+                  hoy ? 'bg-hoy text-hoy-strong' : 'text-ink'
                 }`}
               >
                 {format(day, 'd')}
@@ -454,9 +454,11 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
               key={day.toISOString()}
               data-hoy={isToday(day) ? '1' : undefined}
               // La misma trama que en la rejilla: sábado, domingo y festivo.
+              // La columna de hoy lleva el mismo azul que la celda de hoy en el mes, más
+              // suave (40 %) porque aquí ocupa media pantalla y los bloques van encima.
               className={`relative ${i > 0 ? 'border-l border-hairline' : ''} ${
                 isWeekend(day) || festivos.length > 0 ? 'dia-libre' : ''
-              }`}
+              } ${isToday(day) ? 'bg-hoy/40' : ''}`}
               style={{ height: alto, gridColumn: i + 2, gridRow: 1 }}
             >
               {horas.map((hora, i) => (

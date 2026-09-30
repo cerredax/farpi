@@ -334,6 +334,28 @@ test('hoy se marca con la celda entera en azul claro', async ({ page }) => {
   await expect(hoy.locator('span').first()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
 })
 
+// Hoy es el mismo azul en todo el calendario, no solo en el mes: la agenda dice «17» en
+// azul, y en las vistas Día y Semana la columna de hoy va tintada. Se mira el color
+// calculado (un token que Tailwind no genera dejaría el elemento sin color).
+test('hoy es azul también en la agenda y en la vista Semana', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-06-17T14:00:00') })
+  await page.goto('/calendar')
+  // Agenda: la fecha de hoy en azul fuerte (`hoy-strong`).
+  await page.locator('main button[aria-haspopup="menu"]').click()
+  await page.getByRole('menuitemradio').first().click()
+  const hoy = page.getByText('Hoy', { exact: true }).first()
+  await expect(hoy).toBeVisible()
+  await expect(page.locator('li', { hasText: 'Pediatra de Cris' }).locator('span[aria-hidden]').first())
+    .toHaveCSS('color', 'rgb(47, 90, 133)')
+
+  // Semana: la columna de hoy lleva fondo y el resto no.
+  await page.locator('main button[aria-haspopup="menu"]').click()
+  await page.getByRole('menuitemradio').nth(2).click()
+  const columna = page.locator('[data-hoy="1"]').first()
+  await expect(columna).toBeVisible()
+  await expect(columna).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+})
+
 // Lo que ya ha pasado se ve más apagado, con el mismo color. Con el reloj a las 14:00 del
 // 17 de junio, el pediatra de las 10:30 ha pasado y la reunión de las 18:30 no; y un evento
 // de un día anterior ha pasado sea la hora que sea. Se comprueba el atributo `data-pasado`

@@ -207,7 +207,7 @@ function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onAdd, onT
           navegador, que si no se come el gesto en el móvil. */}
       <span
         onDoubleClick={() => onAdd?.(day)}
-        className={`flex w-11 flex-shrink-0 touch-manipulation flex-col items-center py-1 ${hoy ? 'text-accent-strong' : 'text-ink'}`}
+        className={`flex w-11 flex-shrink-0 touch-manipulation flex-col items-center py-1 ${hoy ? 'text-hoy-strong' : 'text-ink'}`}
       >
         {/* La fecha entera, solo para quien escucha. El chip
             dice "13 JUE", que con la vista basta y a oídas no:
@@ -217,7 +217,7 @@ function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onAdd, onT
         <span className="text-sm font-black leading-none" aria-hidden>{format(day, 'd')}</span>
         <span
           aria-hidden
-          className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-accent-strong' : 'text-muted'}`}
+          className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-hoy-strong' : 'text-muted'}`}
         >
           {format(day, 'EEE', { locale: es })}
         </span>

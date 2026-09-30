@@ -1845,8 +1845,10 @@ atrasado, y el salmón anterior era de la misma familia que dos colores de perso
 como una alerta. **Claro y no pleno** (`hoy`, `#DCE8F4`; número en `hoy-strong`, 5,8:1)
 porque encima van los puntos de cada persona —sobre `#3B6FA0` un punto Cuero daba 1,2:1 y
 desaparecía— y, en escritorio, los títulos. Hoy no lleva la trama de fin de semana (se dibuja
-encima del fondo y lo ensucia). La agenda, el eje de horas y el panel del día siguen marcando
-hoy en salmón (`accent-strong`).
+encima del fondo y lo ensucia). **Es el mismo azul en todo el calendario**: la fecha de hoy en la
+agenda y el panel del día en `hoy-strong`, y en las vistas Día y Semana el número de la cabecera
+sobre `hoy` y la columna de hoy tintada al 40 %. La raya roja de la hora actual no cambia: dice
+«ahora», no «hoy», y el rojo es su convención.
 
 **Lo que ya ha pasado se pinta más apagado, con el mismo color** (30-09-2026).
 `eventoYaPasado` (`lib/events.ts`) decide qué: un plan con hora cuyo fin ya pasó (sin hora de

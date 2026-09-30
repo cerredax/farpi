@@ -128,9 +128,10 @@ entera, en "Siguiente paso recomendado".
 - **Hoy es la celda entera en azul claro** (30-09-2026), en móvil y en escritorio, con el número
   en `hoy-strong` (5,8:1) y la letra de su columna en la cabecera del mismo azul. El día
   elegido es un aro verde (en el número en móvil, en el borde de la celda en escritorio), así que
-  se distinguen por la forma. Hoy no lleva la trama de fin de semana. La agenda, el eje de horas
-  y el panel del día siguen marcándolo en salmón. El porqué del color, en
-  `docs/architecture.md`.
+  se distinguen por la forma. Hoy no lleva la trama de fin de semana. **Es el mismo azul en toda la
+  vista**: la fecha de hoy en la agenda y en el panel del día, y en Día y Semana el número de la
+  cabecera y la columna tintada; la raya roja de la hora actual no cambia. El porqué del color,
+  en `docs/architecture.md`.
 - **Lo que ya ha pasado se ve más apagado** (30-09-2026): agenda, panel del día, eje de horas,
   chips del mes en escritorio y puntos del móvil, con el mismo color de la persona más suave y el
   título en gris (nunca se baja la opacidad del texto). Un plan con hora ha pasado cuando
@@ -837,7 +838,7 @@ entera, en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **1043 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **1044 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
@@ -934,7 +935,7 @@ entera, en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 257 de navegador, contados con `--list` el 30-09-2026 (1043 en total, 786 unitarios;
+  - 258 de navegador, contados con `--list` el 30-09-2026 (1044 en total, 786 unitarios;
     13 de ellos, los del recorrido de idioma, van en `fixme` hasta que se migren sus
     pantallas). La lista que sigue es del 22-09-2026 (859 en total, 660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
     fichero sube, que lo que ya cubre un fijo llega desmarcado y con su motivo escrito,

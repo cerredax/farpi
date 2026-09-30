@@ -105,9 +105,37 @@ export function MealsView() {
 
         {s.viewMode === 'week' && (
           <div className="space-y-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-muted">{t.vistaSemanal}</p>
-              <p className="text-sm text-muted mt-0.5">{s.mobileWeek.label}</p>
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted">{t.vistaSemanal}</p>
+                <p aria-live="polite" className="text-sm text-muted mt-0.5">{s.mobileWeek.label}</p>
+              </div>
+              {/* Pasar de semana. «Volver a hoy» solo sale cuando se está en otra:
+                  en la de hoy no hay adónde volver y sería un botón que no hace nada. */}
+              <div className="flex flex-shrink-0 items-center gap-1">
+                {!s.mobileWeek.isCurrent && (
+                  <button
+                    onClick={() => s.setMobileWeekOffset(0)}
+                    className="min-h-11 rounded-xl px-3 text-xs font-bold text-primary-strong hover:bg-primary-tint"
+                  >
+                    {t.volverAHoy}
+                  </button>
+                )}
+                <button
+                  onClick={() => s.setMobileWeekOffset(o => o - 1)}
+                  aria-label={t.semanaAnterior}
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-muted hover:bg-surface hover:text-ink"
+                >
+                  <ChevronLeft size={18} strokeWidth={2} />
+                </button>
+                <button
+                  onClick={() => s.setMobileWeekOffset(o => o + 1)}
+                  aria-label={t.semanaSiguiente}
+                  className="flex h-11 w-11 items-center justify-center rounded-xl text-muted hover:bg-surface hover:text-ink"
+                >
+                  <ChevronRight size={18} strokeWidth={2} />
+                </button>
+              </div>
             </div>
             <WeekList
               weekDays={s.mobileWeek.days}

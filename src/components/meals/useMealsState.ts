@@ -24,6 +24,8 @@ export function useMealsState() {
 
   const [viewMode, setViewMode] = useState<ViewMode>('today')
   const [desktopWeekOffset, setDesktopWeekOffset] = useState(0)
+  // Semanas que se ha avanzado (o retrocedido) desde hoy en el móvil. Cada paso son siete días.
+  const [mobileWeekOffset, setMobileWeekOffset] = useState(0)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingMeal, setEditingMeal] = useState<MealPlan | null>(null)
   const [sheetMode, setSheetMode] = useState<'create' | 'edit'>('create')
@@ -80,10 +82,17 @@ export function useMealsState() {
   // Semana móvil: los próximos siete días desde hoy, no la semana natural.
   // Empezando en lunes, un domingo se mostraban seis días ya pasados, que no
   // sirven para planificar. Es el mismo criterio que la agenda del calendario.
-  const mobileWeekStart = startOfDay(new Date())
+  //
+  // **Y se puede pasar de semana** (30-09-2026): hasta entonces eran esos siete
+  // días y no había más, así que planificar la semana que viene era imposible
+  // desde el móvil. Cada paso mueve siete días a partir de hoy, no a la semana
+  // natural, para que «la semana que viene» siga siendo lo que se puede
+  // planificar y no un lunes-domingo con días pasados.
+  const mobileWeekStart = addDays(startOfDay(new Date()), 7 * mobileWeekOffset)
   const mobileWeekEnd = addDays(mobileWeekStart, 6)
   const mobileWeek = {
     days: weekFrom(mobileWeekStart),
+    isCurrent: mobileWeekOffset === 0,
     label: t.vista.rangoMovil(
       format(mobileWeekStart, t.formatos.diaYMes, { locale }),
       format(mobileWeekEnd, t.formatos.diaYMes, { locale }),
@@ -116,7 +125,7 @@ export function useMealsState() {
     slots, mealSlots,
     hasMealsForDate: (date: string) => mealDates.has(date),
     viewMode, setViewMode,
-    setDesktopWeekOffset,
+    setDesktopWeekOffset, setMobileWeekOffset,
     mobileWeek, desktopWeek,
     sheetOpen, setSheetOpen, sheetMode, sheetKey, sheetDate, sheetSlot, editingMeal,
     copySheetOpen, setCopySheetOpen, copySheetKey, copySourceDate, copySourceMeals,

@@ -228,6 +228,36 @@ test('un evento se repite cada dos semanas y sin fecha de fin', async ({ page })
   expect(fechas.every(f => new Date(f + 'T12:00:00').getDay() === 1)).toBe(true)
 })
 
+// La semana de Comidas en el móvil eran los siete días desde hoy y no había más:
+// planificar la semana que viene era imposible desde el móvil. Ahora se pasa de
+// semana en las dos direcciones, y «Volver a hoy» solo sale estando en otra.
+test('en el móvil se puede pasar de semana en Comidas y volver a hoy', async ({ page }) => {
+  await page.goto('/meals')
+  await page.getByRole('button', { name: 'Esta semana', exact: true }).click()
+  const rango = page.locator('p[aria-live="polite"]')
+  const hoy = await rango.innerText()
+  await expect(page.getByRole('button', { name: 'Volver a hoy' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Semana siguiente' }).click()
+  await expect(rango).not.toHaveText(hoy)
+  const siguiente = await rango.innerText()
+  await expect(page.getByRole('button', { name: 'Volver a hoy' })).toBeVisible()
+
+  // La fila con los tres controles es la más apretada: a 390 px no desborda.
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+
+  // Y hacia atrás: dos semanas menos son la anterior a hoy, distinta de las dos.
+  await page.getByRole('button', { name: 'Semana anterior' }).click()
+  await page.getByRole('button', { name: 'Semana anterior' }).click()
+  await expect(rango).not.toHaveText(hoy)
+  await expect(rango).not.toHaveText(siguiente)
+
+  await page.getByRole('button', { name: 'Volver a hoy' }).click()
+  await expect(rango).toHaveText(hoy)
+  await expect(page.getByRole('button', { name: 'Volver a hoy' })).toHaveCount(0)
+})
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

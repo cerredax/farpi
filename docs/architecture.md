@@ -1632,6 +1632,13 @@ completa, le empuja la fecha, y no queda a nombre de nadie.
 
 ### Comidas
 
+**En el móvil se puede pasar de semana** (30-09-2026). La vista semanal eran los siete días desde
+hoy y ninguno más, así que planificar la semana que viene no se podía hacer desde el móvil. Ahora
+hay flechas en las dos direcciones y, estando en otra semana, «Volver a hoy». **Cada paso son
+siete días desde hoy y no la semana natural**: es el mismo criterio de siempre —empezar en lunes
+enseñaba seis días ya pasados un domingo—, así que «la semana que viene» sigue siendo lo que se
+puede planificar. En escritorio, que sí usa la semana natural, no cambia nada.
+
 **Las franjas se eligen, y son de la familia.** Las de casa —desayuno, comida, merienda y cena,
 más el comedor— están fijas en el código, pero en una casa que no merienda esa fila es un hueco
 que la app pide llenar siete veces por semana. En Ajustes se apagan las que no se usan, con tres

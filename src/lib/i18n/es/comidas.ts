@@ -23,6 +23,7 @@ export const comidas = {
     vistaSemanal: 'Vista semanal',
     semanaAnterior: 'Semana anterior',
     semanaSiguiente: 'Semana siguiente',
+    volverAHoy: 'Volver a hoy',
     /** Las fechas llegan ya escritas con `formatos`. */
     rangoMovil: (desde: string, hasta: string) => `${desde} - ${hasta}`,
     rangoEscritorio: (desde: string, hasta: string) => `${desde} – ${hasta}`,

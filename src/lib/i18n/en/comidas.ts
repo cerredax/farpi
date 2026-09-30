@@ -21,6 +21,7 @@ export const comidas: typeof es = {
     vistaSemanal: 'Week view',
     semanaAnterior: 'Previous week',
     semanaSiguiente: 'Next week',
+    volverAHoy: 'Back to today',
     rangoMovil: (desde: string, hasta: string) => `${desde} - ${hasta}`,
     rangoEscritorio: (desde: string, hasta: string) => `${desde} – ${hasta}`,
   },

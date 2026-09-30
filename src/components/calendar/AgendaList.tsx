@@ -16,9 +16,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
 import { agruparPorPersona, tramoDeAgenda } from '@/lib/agenda'
-import { buildAssignees, eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
+import { buildAssignees, eventColor, fondoDePersona, fondoDePersonaApagado, resolveAssignee } from '@/lib/assignees'
 import { getLocalDateString } from '@/lib/date-utils'
-import { eventCoversDay, isHoliday, isPlan } from '@/lib/events'
+import { eventCoversDay, eventoYaPasado, isHoliday, isPlan } from '@/lib/events'
 import { capitalize } from '@/lib/text'
 import { DayTasks } from './DayTasks'
 
@@ -119,15 +119,20 @@ export function EventRow({ event, kids, members, onEdit, mostrarPersona = true }
   const color = festivo ? 'var(--color-line)' : eventColor(event, members, kids)
   const hora = event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')
   const quien = festivo ? 'Festivo' : asignado?.name ?? 'Familia'
+  // Lo que ya ha pasado se apaga: el color de la persona, más suave, y el título
+  // en gris. **No** se baja la opacidad de la fila entera: eso se comía también el
+  // contraste del texto, y «¿a qué hora fue?» se sigue leyendo (`muted` da 4,8:1).
+  const pasado = eventoYaPasado(event, new Date())
 
   return (
     <button
       onClick={() => onEdit(event)}
       title={`${event.title} · ${quien}`}
+      data-pasado={pasado ? 'true' : undefined}
       className="flex w-full items-baseline gap-2 rounded-lg px-1.5 py-1.5 text-left transition-colors hover:bg-canvas"
     >
       <span className="text-[11px] font-bold text-muted flex-shrink-0 tabular-nums">{hora}</span>
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{event.title}</span>
+      <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${pasado ? 'text-muted' : 'text-ink'}`}>{event.title}</span>
       {/**
         * **El color va al fondo del nombre, y el punto se va** (26-08-2026).
         * Eran dos cosas que mirar para decir una: de quién es. Es el mismo
@@ -142,7 +147,7 @@ export function EventRow({ event, kids, members, onEdit, mostrarPersona = true }
       {mostrarPersona && (
         <span
           className="etiqueta-persona max-w-[4.5rem] flex-shrink-0 px-1 py-px text-[11px]"
-          style={{ backgroundColor: fondoDePersona(color) }}
+          style={{ backgroundColor: pasado ? fondoDePersonaApagado(color) : fondoDePersona(color) }}
         >
           {quien}
         </span>

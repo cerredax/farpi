@@ -3,8 +3,8 @@
 import { format, isToday } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Cake } from 'lucide-react'
-import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
-import { eventCoversDay, holidayName, isAbsence, isBirthday, isHoliday, isPlan, isVacation } from '@/lib/events'
+import { eventColor, fondoDePersona, fondoDePersonaApagado, resolveAssignee } from '@/lib/assignees'
+import { eventCoversDay, eventoYaPasado, holidayName, isAbsence, isBirthday, isHoliday, isPlan, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
 import { Button } from '@/components/ui/Button'
@@ -111,7 +111,8 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
             <span
               key={event.id}
               className={`${etiqueta} inline-flex items-center gap-1`}
-              style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
+              data-pasado={eventoYaPasado(event, new Date()) ? 'true' : undefined}
+              style={{ backgroundColor: (eventoYaPasado(event, new Date()) ? fondoDePersonaApagado : fondoDePersona)(eventColor(event, members, kids)) }}
             >
               <Cake size={11} strokeWidth={2.2} className="flex-shrink-0" aria-hidden />
               {event.title}

@@ -1834,17 +1834,30 @@ que una textura no hace—, y se probó **una línea vertical** donde acaba la s
 tamaño real era una raya más entre las de la rejilla. La trama va **muy separada** —1 px cada 7—
 porque la celda de escritorio escribe títulos a 10 px encima.
 
-**Hoy y el día elegido se distinguen por la forma, no por el tono.** Fueron un disco relleno y un
-anillo, los dos en `primary-strong`: dos discos macizos que solo cambiaban de tono, y los tonos
-eran el verde y el salmón de marca, a **ΔE 2,3 en protanopía**. Para quien no distingue rojos de
-verdes eran el mismo círculo. El texto blanco encima tampoco salía: 2,61:1 sobre `primary` y
-2,18:1 sobre `accent`. Hoy es el número y el día elegido la celda entera; hoy va en salmón
-(`accent-strong`) como un **aro sobre un tinte claro** y no un disco macizo —el disco era la
-mancha más oscura de la rejilla y, siendo un marrón rojizo, se confundía con los colores de
-persona—, con la letra de su columna marcada en la cabecera y un filete salmón al pie de la celda,
-porque un aro de 32 px entre treinta y tantos números costaba de encontrar. Se descartó teñir la
-celda de hoy en salmón claro, que era la opción con más presencia, justamente por esto: habría
-dejado hoy y el día elegido distinguidos solo por el tono.
+**Hoy es la celda entera en azul claro, y el día elegido un aro verde** (30-09-2026). Se
+distinguen por la forma —relleno y aro— y no por el tono, así que sobreviven a cualquier
+dicromacia (el verde y el salmón de marca están a **ΔE 2,3 en protanopía**: como dos círculos
+de distinto tono eran el mismo). **Hoy es un rectángulo y no un número** porque, por más formas
+que se le dieron al número —aro, disco macizo, aro sobre tinte, filete, pastilla—, seguía
+siendo un círculo de 32 px que buscar entre treinta. **Azul porque no significa nada más**: el
+verde es marca y día elegido, el amarillo es «toda la casa», el lila un cumpleaños, el rojo lo
+atrasado, y el salmón anterior era de la misma familia que dos colores de persona y se leía
+como una alerta. **Claro y no pleno** (`hoy`, `#DCE8F4`; número en `hoy-strong`, 5,8:1)
+porque encima van los puntos de cada persona —sobre `#3B6FA0` un punto Cuero daba 1,2:1 y
+desaparecía— y, en escritorio, los títulos. Hoy no lleva la trama de fin de semana (se dibuja
+encima del fondo y lo ensucia). La agenda, el eje de horas y el panel del día siguen marcando
+hoy en salmón (`accent-strong`).
+
+**Lo que ya ha pasado se pinta más apagado, con el mismo color** (30-09-2026).
+`eventoYaPasado` (`lib/events.ts`) decide qué: un plan con hora cuyo fin ya pasó (sin hora de
+fin, los 45 minutos que dibuja el eje: apagarlo a las 10:01 sería apagar el dentista con la
+persona dentro), y cualquier evento de un día anterior. **Hoy no**, y **las ausencias no se apagan
+nunca** —vacaciones, descansos y festivos son tramos, no citas—. Se apaga el **fondo**
+(`fondoDePersonaApagado`: 25 % y no 50 %), los puntos de la rejilla y, en la lista, el título pasa
+de `ink` a `muted`; **no se baja la opacidad de la fila entera**, porque eso se comía también el
+contraste del texto y «¿a qué hora fue?» tiene que seguir leyéndose. Un punto solo se apaga si
+**todo lo que junta** ha pasado. Se recalcula al pintar, no al segundo: un plan pasa a apagado
+cuando la pantalla se vuelve a dibujar.
 
 **Las flechas no se mueven de sitio.** El grupo del título ocupa el ancho libre —topado a
 `lg:max-w-sm` en escritorio— y el título se estira dentro, así que anterior y siguiente caen

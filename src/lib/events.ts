@@ -1,6 +1,6 @@
 import { endOfWeek } from 'date-fns'
 import { extractDate } from './date-utils'
-import { ANTELACIONES_DE_AVISO } from './constants'
+import { ANTELACIONES_DE_AVISO, DURACION_SIN_HORA_FIN } from './constants'
 import type { Event, EventKind, FamilyMember } from '@/types'
 
 /**
@@ -414,6 +414,29 @@ export function planYaPasado(event: Event, ahora: Date): boolean {
   if (event.all_day) return false
   const fin = new Date(event.end_at ?? event.start_at)
   return fin.getTime() < ahora.getTime()
+}
+
+/**
+ * Si un evento **ya ha terminado**, para pintarlo más apagado en el calendario.
+ *
+ * Es otra pregunta que `planYaPasado`, y por eso otra función. Aquella dice qué
+ * plan de hoy es «el siguiente» y cuenta un evento sin hora de fin como pasado en
+ * cuanto empieza; aquí eso apagaría el dentista a las 10:01, con la persona
+ * todavía en la consulta. Sin hora de fin se supone lo mismo que dibuja el eje de
+ * horas (`DURACION_SIN_HORA_FIN`), así que lo que se ve apagado y lo que se ve
+ * como un bloque que ya acabó coinciden.
+ *
+ * Un evento de todo el día ha pasado cuando su día es anterior a hoy; **hoy no**:
+ * dura hasta que acaba. Y **las ausencias no se apagan nunca** —vacaciones,
+ * descansos y festivos son tramos, no citas que se cumplen—, se pintan como
+ * siempre.
+ */
+export function eventoYaPasado(event: Event, ahora: Date): boolean {
+  if (isRangeKind(event.kind)) return false
+  if (event.all_day) return extractDate(event.start_at) < localDay(ahora)
+  const inicio = new Date(event.start_at).getTime()
+  const fin = event.end_at ? new Date(event.end_at).getTime() : inicio + DURACION_SIN_HORA_FIN * 60_000
+  return fin < ahora.getTime()
 }
 
 /**

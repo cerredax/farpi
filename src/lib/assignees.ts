@@ -199,6 +199,17 @@ export function fondoDePersona(color: string): string {
 }
 
 /**
+ * El mismo color de persona, **más apagado**: para un evento que ya ha pasado. Es
+ * la misma mezcla de `fondoDePersona` con menos peso (25 % y no 50 %), así que se
+ * reconoce de quién era y no compite con lo que aún está por venir. Solo aclara
+ * el fondo, y la tinta encima sale ganando contraste: no hace falta volver a
+ * medir nada de lo que se midió para el 50 %.
+ */
+export function fondoDePersonaApagado(color: string): string {
+  return `${color}40`
+}
+
+/**
  * Las personas —y «Familia»— que tienen alguna tarea, en el orden en que se
  * ofrecen al asignar. Es lo que se puede filtrar: ofrecer a alguien sin ninguna
  * tarea sería un botón que siempre contesta «nada».

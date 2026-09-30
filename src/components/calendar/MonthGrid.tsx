@@ -119,7 +119,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
             // últimas de `DAY_LABELS`.
             className={`flex h-7 items-center justify-center text-[10px] font-bold uppercase tracking-widest ${
               i >= 5 ? 'dia-libre' : ''
-            } ${columnaDeHoy === i ? 'text-muted lg:text-accent-strong' : 'text-muted'}`}
+            } ${columnaDeHoy === i ? 'text-muted lg:text-hoy-strong' : 'text-muted'}`}
           >
             {/**
               * **La letra de hoy va sobre una pastilla salmón** (14-09-2026).
@@ -128,8 +128,8 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               * Desde la cabecera la columna se encuentra de un vistazo y el aro
               * remata la búsqueda en la fila que toque.
               *
-              * El color es el mismo de siempre —`accent-strong` sobre
-              * `accent-tint`, 6,0:1— y no es lo único que la distingue: es la
+              * El color es el de la celda de hoy —`hoy-strong` sobre `hoy`,
+              * 5,8:1— y no es lo único que la distingue: es la
               * única letra de la fila con fondo. Va dentro de un `span` y no en
               * el `div` de la columna para que la pastilla mida lo que la letra
               * y no el ancho entero, que sobre la trama del sábado se leería
@@ -137,7 +137,7 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
               */}
             {/* Solo en escritorio (28-09-2026): en móvil hoy se marca una vez,
                 en su número, y la rejilla es lo bastante pequeña para verlo. */}
-            <span className={columnaDeHoy === i ? 'lg:rounded-full lg:bg-accent-tint lg:px-2 lg:py-0.5' : ''}>
+            <span className={columnaDeHoy === i ? 'lg:rounded-full lg:bg-hoy lg:px-2 lg:py-0.5' : ''}>
               {label}
             </span>
           </div>

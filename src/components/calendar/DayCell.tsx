@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { format, isWeekend, parseISO } from 'date-fns'
-import { eventColor, fondoDePersona } from '@/lib/assignees'
-import { franjasDeAusencia, holidayName, isHoliday, isPlan, isRestDay, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
+import { eventColor, fondoDePersona, fondoDePersonaApagado } from '@/lib/assignees'
+import { eventoYaPasado, franjasDeAusencia, holidayName, isHoliday, isPlan, isRestDay, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
 import { FAMILY_COLOR } from '@/lib/constants'
 import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
@@ -240,97 +240,33 @@ export function DayCell({
     if (a.all_day !== b.all_day) return a.all_day ? -1 : 1
     return a.start_at.localeCompare(b.start_at)
   })
-  const marcas = marcasDelDia(events, tasks, members, kids)
+  const ahora = new Date()
+  const marcas = marcasDelDia(events, tasks, members, kids, ahora)
 
   /**
-   * El número dice **dónde estás** y nada más: el día elegido y hoy.
+   * **Hoy es la celda entera en azul claro, y el número, sin disco** (30-09-2026).
    *
-   * Entre el 24 y el 26-08-2026 también dijo quién descansa, con el círculo en su
-   * color al 50 %. Se quita al llegar las etiquetas con nombre: eran dos señales
-   * para lo mismo, y de las dos el número decía menos —"aquí pasa algo", y para
-   * saber quién había que saberse la paleta— y además no era fiable, porque hoy
-   * y el día elegido le ganaban y un descanso hoy no se veía.
+   * Antes era un círculo salmón en un rincón de la celda, y por más vueltas que se
+   * le dieron —aro, disco macizo, tinte, filete, pastilla— seguía siendo *el
+   * número* el que decía hoy, y a 52 px entre treinta números no se encontraba. Un
+   * rectángulo entero sí, y no hay que buscarlo.
    *
-   * Su razón de ser tampoco sigue en pie: nació porque con vacaciones de otro el
-   * mismo día la raya no se pintaba y el descanso se quedaba sin señal. Ahora
-   * caben dos etiquetas por celda.
-   */
-  /**
-   * **Hoy es un disco salmón; el día elegido, la celda entera** (12-09-2026).
+   * **Azul y no otro color porque el azul no significa nada en la interfaz**: el
+   * verde es marca y día elegido, el amarillo es «toda la casa», el lila es un
+   * cumpleaños, el rojo es lo atrasado y el salmón/marrón anterior era de la misma
+   * familia que dos colores de persona —se leía como una alerta—. Y **claro y no
+   * pleno** porque los puntos de cada persona van encima: sobre `#3B6FA0` un punto
+   * Cuero daba 1,2:1 y desaparecía; sobre este da 5,3:1. En escritorio, además,
+   * los títulos de los eventos van encima.
    *
-   * Las dos señales estuvieron hasta hoy en el número y en el mismo verde, y se
-   * distinguían solo por la forma: disco relleno el elegido, anillo hoy. Dos
-   * problemas, y los dos se veían en la pantalla real.
-   *
-   * Uno: **el mes hablaba un idioma distinto al resto del calendario**. En la
-   * agenda, en el eje de horas y en el panel del día, hoy es `accent-strong` —el
-   * salmón—, y aquí era verde. En la única vista donde hay treinta números
-   * compitiendo, hoy además llevaba la más débil de las dos formas, un anillo de
-   * 2 px, y en una pantalla de 1440 px no se encontraba.
-   *
-   * Dos: elegir un día marcaba **un círculo de 32 px** en una celda de 104, justo
-   * cuando de ese día cuelga un panel entero debajo de la rejilla. La respuesta a
-   * "¿qué estoy mirando?" tiene que ser del tamaño de lo que se mira.
-   *
-   * Así que ahora son **dos señales de naturaleza distinta y no dos formas del
-   * mismo círculo**: hoy es el número, el elegido es la celda. No compiten y no
-   * hace falta desempatarlas cuando coinciden, que era el otro remiendo.
-   *
-   * Lo que se conserva del 05-09-2026, porque sigue siendo verdad:
-   *
-   * - **El color no es la única diferencia.** El verde y el salmón de marca están
-   *   a ΔE 2,3 en protanopía, así que si las dos señales fueran dos discos de
-   *   distinto tono serían el mismo disco para quien no distingue rojos de
-   *   verdes. Aquí una es un disco y la otra es un fondo de celda: sobrevive a
-   *   cualquier dicromacia y a una impresión en gris.
-   * - **El blanco solo sobre un tono que lo admita.** `accent-strong` (#9B5A45)
-   *   con blanco da 6,29:1 y pasa de sobra; el `accent` a secas daba 2,18:1 y por
-   *   eso no se usa. La misma regla que `fondoDePersona` ya tenía escrita.
-   * - El fondo del día elegido va en `primary-tint`, que es un verde muy claro:
-   *   lleva tinta encima, no blanco, y no le quita contraste ni al número ni a
-   *   los títulos que la celda escribe dentro.
+   * Número en `hoy-strong` sobre `hoy`: 5,8:1. El día elegido sigue siendo un aro
+   * verde en el número (en escritorio, el borde de la celda), así que hoy y el
+   * elegido son dos cosas distintas por la forma —relleno y aro— y no dependen del
+   * color, y cuando coinciden se ven las dos.
    */
   const numberClass = (() => {
-    /**
-     * **Hoy es un aro salmón sobre un tinte muy claro, no un disco macizo**
-     * (13-09-2026).
-     *
-     * Fue un disco relleno de `accent-strong` con el número en blanco, y en una
-     * rejilla clara y aireada quedaba como una mancha: el elemento más oscuro y
-     * saturado de la pantalla, de 32 px en una celda de 51, para decir algo que
-     * ya se sabe. Y peor: `accent-strong` es un marrón rojizo, o sea de la misma
-     * familia que dos de los colores de persona, así que un disco macizo se leía
-     * como "algo de María" antes que como "hoy".
-     *
-     * El aro pesa lo justo —se encuentra de un vistazo y no tapa nada— y el
-     * tinte le da cuerpo para que no desaparezca en una pantalla grande, que es
-     * lo que le pasó al anillo de 2 px que hubo del 05 al 12-09-2026.
-     *
-     * Lo que no cambia: el número va en `accent-strong` sobre `accent-tint`
-     * (6,0:1, de sobra), y **hoy y el día elegido siguen siendo de naturaleza
-     * distinta** —uno es el número, el otro es la celda entera—, que es lo que
-     * los hace distinguibles sin fiarlo al color.
-     */
-    /**
-     * **En móvil, hoy es un disco salmón suave y el día elegido un aro verde**
-     * (30-09-2026). El disco lleno de `accent-strong` (28-09-2026) se encontraba
-     * bien, pero pesaba demasiado: era lo más oscuro de la pantalla, y su marrón
-     * rojizo se leía como una alerta, del mismo rojo que el «tareas atrasadas» que
-     * hay justo debajo. Ahora es el mismo `accent-tint` que ya usa escritorio, con
-     * el número en `accent-strong` (6,0:1) y sin borde: se sigue viendo entre los
-     * demás números y no grita.
-     *
-     * Hoy y el elegido siguen siendo formas distintas, disco y aro, así que no
-     * dependen del color. Si coinciden, el disco de hoy lleva el aro verde por
-     * fuera (`primary-strong`, 4,8:1). En escritorio no cambia nada: hoy es el aro
-     * sobre tinte y el elegido, la celda.
-     *
-     * Del 28-09 al 30-09-2026 fue el disco macizo; el 28-09, unas horas antes, un
-     * aro con el elegido en disco verde, que no convencía porque la marca fuerte
-     * se la llevaba el día que se toca y no el día en que se está.
-     */
-    if (isToday && isSelected) return 'bg-accent-tint text-accent-strong ring-2 ring-primary-strong ring-offset-2 lg:ring-0 lg:ring-offset-0 lg:shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
-    if (isToday) return 'bg-accent-tint text-accent-strong lg:shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
+    if (isToday && isSelected) return 'text-hoy-strong shadow-[inset_0_0_0_2px_var(--color-primary-strong)] lg:shadow-none'
+    if (isToday) return 'text-hoy-strong'
     if (isSelected) return `shadow-[inset_0_0_0_2px_var(--color-primary-strong)] lg:shadow-none ${esDiaLibre ? 'text-muted lg:text-ink' : 'text-ink'}`
     // Del mes de al lado, apagado a propósito: se toca igual, pero no es de este mes.
     if (fueraDeMes) return 'text-muted-soft'
@@ -339,35 +275,15 @@ export function DayCell({
   })()
 
   /**
-   * El fondo de la celda: el anillo verde del día elegido y el filete salmón de
-   * hoy, en una sola sombra.
-   *
-   * **Hoy también marca su celda desde el 14-09-2026**, no solo su número. El aro
-   * del número se encontraba mal en una rejilla de treinta y tantos —era la queja
-   * que lo trajo aquí—, así que ahora se dice dos veces y en dos tallas: la letra
-   * de su columna en la cabecera, para llegar, y un filete de 3 px al pie de la
-   * celda, para rematar.
-   *
-   * Al pie y no arriba porque arriba vive el carril de las ausencias, que se
-   * pinta en gris de lado a lado: un filete ahí quedaría tapado justo los meses
-   * en los que hay alguien fuera.
-   *
-   * **Sigue sin competir con el día elegido**, que es el anillo verde de la celda
-   * entera: uno rodea y el otro subraya, así que cuando coinciden se ven los dos
-   * y no hay que desempatar nada. Van juntos en la misma sombra porque dos clases
-   * `shadow-[…]` se pisan, y escritas enteras y no montadas con plantillas porque
-   * Tailwind lee el código como texto y no generaría una clase que solo existe en
-   * tiempo de ejecución.
+   * El borde de la celda **en escritorio**, cuando es la elegida: un aro verde. En
+   * móvil la celda no lleva nada y el aro va en el número. Si además es hoy, el
+   * aro es del verde fuerte: el claro no se ve sobre el azul.
    */
-  // Solo en escritorio desde el 28-09-2026: en móvil hoy es el disco y el elegido
-  // el aro del número, y la celda no lleva ni anillo ni filete.
-  const sombraDeCelda = isSelected && isToday
-    ? 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line),inset_0_-3px_0_0_var(--color-accent-strong)]'
-    : isSelected
-      ? 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line)]'
-      : isToday
-        ? 'lg:shadow-[inset_0_-3px_0_0_var(--color-accent-strong)]'
-        : ''
+  const sombraDeCelda = isSelected
+    ? isToday
+      ? 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-strong)]'
+      : 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line)]'
+    : ''
 
   const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
   const resumen = resumenDelDia({
@@ -417,7 +333,9 @@ export function DayCell({
          * La trama va muy separada —1 px cada 7— porque la celda escribe títulos
          * a 10 px encima y una trama apretada se los come.
          */
-        esDiaLibre ? 'dia-libre' : ''
+        // Hoy no lleva la trama: se dibuja encima del fondo y ensuciaría el azul, y
+        // que es fin de semana ya lo dice su columna.
+        esDiaLibre && !isToday ? 'dia-libre' : ''
       } ${
         // El día elegido, en la celda entera. Va **después** de `dia-libre` para
         // que en un sábado elegido el verde claro gane a la trama: las dos son
@@ -425,7 +343,9 @@ export function DayCell({
         // clase de día es. El borde interior es lo que lo cierra como una caja y
         // no como una mancha, que a 52 px de celda se leía como un resaltado
         // suelto.
-        isSelected ? 'lg:bg-primary-tint' : ''
+        // Hoy manda sobre el elegido: su relleno se ve en las dos tallas, y el elegido
+        // se dice con el aro. En móvil el elegido no lleva relleno.
+        isToday ? 'bg-hoy' : isSelected ? 'lg:bg-primary-tint' : ''
       } ${sombraDeCelda}`}
     >
       {/**
@@ -513,7 +433,7 @@ export function DayCell({
       // es la línea de ayuda que sale debajo de la rejilla mientras no hay
       // ningún día elegido.
       className={`flex w-full flex-col items-center gap-0.5 rounded-xl pb-1 pt-3 lg:pt-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong active:bg-surface ${
-        isSelected ? '' : 'hover:bg-canvas'
+        isSelected ? '' : isToday ? 'hover:bg-white/40' : 'hover:bg-canvas'
       }`}
     >
       <span
@@ -542,6 +462,7 @@ export function DayCell({
           <button
             key={event.id}
             type="button"
+            data-pasado={eventoYaPasado(event, ahora) ? 'true' : undefined}
             onClick={() => onOpenEvent?.(event)}
             // El doble clic de la celda apunta algo nuevo, y sobre un título eso
             // no es lo que se pide: dos clics aquí son abrir ese evento, así que
@@ -570,7 +491,7 @@ export function DayCell({
              * acertar con el ratón es peor que una fila ancha.
              */
             className="etiqueta-persona flex min-h-5 w-full min-w-0 items-baseline gap-0.5 px-1 text-left text-[10px] leading-tight transition-shadow hover:shadow-sm"
-            style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
+            style={{ backgroundColor: (eventoYaPasado(event, ahora) ? fondoDePersonaApagado : fondoDePersona)(eventColor(event, members, kids)) }}
           >
             {/**
               * **La hora, delante del título** (12-09-2026). La celda escribía

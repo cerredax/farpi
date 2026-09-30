@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { format, isToday, isWeekend } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Cake } from 'lucide-react'
-import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
-import { eventCoversDay, holidayName, isAbsence, isBirthday, isHoliday, isVacation } from '@/lib/events'
+import { eventColor, fondoDePersona, fondoDePersonaApagado, resolveAssignee } from '@/lib/assignees'
+import { eventCoversDay, eventoYaPasado, holidayName, isAbsence, isBirthday, isHoliday, isVacation } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
@@ -94,23 +94,26 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
   // el punto de color solo habla si te sabes la paleta.
   const quien = asignado?.name ?? 'Familia'
   const ancho = 100 / columnas
+  // Un bloque que ya ha acabado: el mismo color, más suave, y el título en gris.
+  const pasado = eventoYaPasado(event, new Date())
 
   return (
     <button
       type="button"
       onClick={() => onEdit(event)}
       aria-label={`${hora} ${event.title}, ${quien}`}
+      data-pasado={pasado ? 'true' : undefined}
       className="absolute z-10 overflow-hidden rounded-lg px-1.5 py-0.5 text-left transition-shadow hover:shadow-md"
       style={{
         top,
         height: alto,
         left: `calc(${columna * ancho}% + 2px)`,
         width: `calc(${ancho}% - 4px)`,
-        backgroundColor: `${color}26`,
-        borderLeft: `3px solid ${color}`,
+        backgroundColor: pasado ? `${color}12` : `${color}26`,
+        borderLeft: `3px solid ${pasado ? `${color}66` : color}`,
       }}
     >
-      <span className="block truncate text-[12px] font-bold leading-tight text-ink">{event.title}</span>
+      <span className={`block truncate text-[12px] font-bold leading-tight ${pasado ? 'text-muted' : 'text-ink'}`}>{event.title}</span>
       {/* La hora y de quién es, **siempre**. Estuvo condicionada al alto del
           bloque y luego a su duración, y las dos veces dejaba fuera justo el caso
           más común: un evento **sin hora de fin**, que se dibuja con 45 minutos
@@ -389,7 +392,8 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
                 <span
                   key={event.id}
                   className="etiqueta-persona flex items-center gap-1 px-1 py-0.5 text-[10px]"
-                  style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
+                  data-pasado={eventoYaPasado(event, new Date()) ? 'true' : undefined}
+                  style={{ backgroundColor: (eventoYaPasado(event, new Date()) ? fondoDePersonaApagado : fondoDePersona)(eventColor(event, members, kids)) }}
                 >
                   <Cake size={10} strokeWidth={2.2} className="flex-shrink-0" aria-hidden />
                   <span className="truncate">{event.title}</span>
@@ -400,8 +404,9 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
                   key={event.id}
                   type="button"
                   onClick={() => onEdit(event)}
-                  className="truncate rounded px-1 py-0.5 text-left text-[10px] font-bold text-ink transition-shadow hover:shadow-sm"
-                  style={{ backgroundColor: `${eventColor(event, members, kids)}33` }}
+                  data-pasado={eventoYaPasado(event, new Date()) ? 'true' : undefined}
+                  className={`truncate rounded px-1 py-0.5 text-left text-[10px] font-bold transition-shadow hover:shadow-sm ${eventoYaPasado(event, new Date()) ? 'text-muted' : 'text-ink'}`}
+                  style={{ backgroundColor: `${eventColor(event, members, kids)}${eventoYaPasado(event, new Date()) ? '1A' : '33'}` }}
                 >
                   {event.title}
                 </button>

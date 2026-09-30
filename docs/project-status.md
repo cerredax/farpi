@@ -115,10 +115,9 @@ entera, en "Siguiente paso recomendado".
   tamaños: número en `muted-soft`, y tocarlo lleva a su mes con el día elegido; el doble
   clic apunta ahí mismo. Hasta entonces se veían y no respondían.
 - **En móvil, el mes es un mapa limpio** (28-09-2026). Por debajo de `lg`: sin trama
-  en fines de semana y festivos (el número va en `muted`); hoy es un **disco salmón
-  lleno** con el número en blanco —sin pastilla en la cabecera ni filete al pie— y el
-  día elegido un **aro verde** en el número (`primary-strong`), no la celda; si
-  coinciden, el disco de hoy lleva el aro por fuera; **una marca
+  en fines de semana y festivos (el número va en `muted`); hoy es la **celda entera en azul
+  claro** —sin disco: el número va en azul fuerte— y el día elegido un **aro verde**
+  en el número (`primary-strong`), no la celda; si coinciden, el aro va sobre el azul; **una marca
   por persona y clase**, hasta tres y sin «+n» —círculo los planes, cuadrado las
   tareas—; las ausencias son una **línea fina encima de la celda**, sin carril gris ni
   hueco reservado; y debajo de la rejilla solo el
@@ -126,34 +125,17 @@ entera, en "Siguiente paso recomendado".
   la vista Agenda: la agenda ya no va colgada del mes en móvil. Escritorio no cambia:
   todo lo que sigue en esta lista sobre la rejilla vale allí tal cual, y en móvil vale
   salvo en esto.
-- **Hoy es un aro salmón y el día elegido es la celda entera** (12-09-2026, el aro
-  desde el 13). Son
-  dos señales de naturaleza distinta y no dos formas del mismo círculo, que es lo
-  que fueron del 05 al 12-09-2026 —disco relleno el elegido, anillo hoy, los dos en
-  `primary-strong`—. Dos cosas fallaban ahí: el mes era la única vista del
-  calendario donde hoy no iba en `accent-strong`, el salmón que ya usan la agenda,
-  el eje de horas y el panel del día; y hoy llevaba además la más débil de las dos
-  formas, un anillo de 2 px, en la vista donde compite con treinta números. El día
-  elegido pasa a la celda (fondo `primary-tint` y borde interior) porque de él
-  cuelga un panel entero debajo de la rejilla, y la respuesta a "¿qué estoy
-  mirando?" tiene que ser del tamaño de lo que se mira. Se conserva lo que sigue
-  siendo verdad del 05-09-2026: el color no es la única diferencia —una es una marca
-  en el número y la otra un fondo de celda, así que sobrevive a cualquier
-  dicromacia—. **El disco macizo duró un día** (13-09-2026): en una rejilla clara
-  era el elemento más oscuro y saturado de la pantalla, una mancha de 32 px en una
-  celda de 51 para decir algo que ya se sabe, y encima `accent-strong` es un marrón
-  rojizo de la familia de dos colores de persona, así que se leía como "algo de
-  María" antes que como "hoy". Ahora es un **aro** de `accent-strong` sobre
-  `accent-tint`, con el número en `accent-strong` (6,0:1): pesa lo justo para
-  encontrarse y no tapa nada. El aro de 2 px pelado, sin tinte, es lo que no
-  funcionaba en una pantalla grande del 05 al 12-09. **Y hoy se dice dos veces y en dos
-  tallas** (14-09-2026): la letra de su columna va sobre una pastilla `accent-tint` en
-  la cabecera —para llegar— y la celda lleva un filete salmón de 3 px al pie —para
-  rematar—. El aro solo no se encontraba en una rejilla de treinta y tantos números, que
-  era la queja. El filete va al pie y no arriba porque arriba vive el carril gris de las
-  ausencias, que lo taparía justo los meses en los que hay alguien fuera; y sigue sin
-  competir con el día elegido, que rodea la celda entera en verde: uno rodea y el otro
-  subraya, así que cuando coinciden se ven los dos.
+- **Hoy es la celda entera en azul claro** (30-09-2026), en móvil y en escritorio, con el número
+  en `hoy-strong` (5,8:1) y la letra de su columna en la cabecera del mismo azul. El día
+  elegido es un aro verde (en el número en móvil, en el borde de la celda en escritorio), así que
+  se distinguen por la forma. Hoy no lleva la trama de fin de semana. La agenda, el eje de horas
+  y el panel del día siguen marcándolo en salmón. El porqué del color, en
+  `docs/architecture.md`.
+- **Lo que ya ha pasado se ve más apagado** (30-09-2026): agenda, panel del día, eje de horas,
+  chips del mes en escritorio y puntos del móvil, con el mismo color de la persona más suave y el
+  título en gris (nunca se baja la opacidad del texto). Un plan con hora ha pasado cuando
+  termina (45 minutos si no tiene fin); uno de todo el día, cuando su día es anterior a hoy;
+  vacaciones, descansos y festivos no se apagan. `eventoYaPasado`, en `lib/events.ts`.
 - **La celda del mes dice a qué hora es cada cosa** (12-09-2026), en escritorio:
   "9:00 Dentista" y no "Dentista". Sin el cero de delante, porque la celda mide ~81
   px cuando la agenda va al lado, y en `tabular-nums` para que las horas queden en
@@ -855,11 +837,11 @@ entera, en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **1028 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **1043 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - **773 unitarios de lógica pura** en `e2e/unit/`, contados con `--list` el
+  - **786 unitarios de lógica pura** en `e2e/unit/`, contados con `--list` el
     30-09-2026. No levantan servidor: `npm run test:unit`.
 
     *Los últimos en entrar*, del más reciente al más antiguo:
@@ -952,7 +934,7 @@ entera, en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 255 de navegador, contados con `--list` el 30-09-2026 (1028 en total, 773 unitarios;
+  - 257 de navegador, contados con `--list` el 30-09-2026 (1043 en total, 786 unitarios;
     13 de ellos, los del recorrido de idioma, van en `fixme` hasta que se migren sus
     pantallas). La lista que sigue es del 22-09-2026 (859 en total, 660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
     fichero sube, que lo que ya cubre un fijo llega desmarcado y con su motivo escrito,

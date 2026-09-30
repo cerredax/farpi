@@ -319,6 +319,42 @@ test('un aviso pedido y luego pasado a «todo el día» se guarda sin aviso', as
   expect(guardado.remind_before_minutes).toBeNull()
 })
 
+// «Hoy» en el mes es la celda entera en azul claro, no solo el número. Se mira el
+// color calculado y no la clase: es lo que ve quien mira, y una clase que Tailwind no
+// genera (un token mal escrito) pasaría un test de clases y dejaría la celda en blanco.
+test('hoy se marca con la celda entera en azul claro', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-06-17T14:00:00') })
+  await page.goto('/calendar')
+  const hoy = page.locator('button[aria-label*="17 de junio"]').first()
+  await expect(hoy.locator('xpath=..')).toHaveCSS('background-color', 'rgb(220, 232, 244)')
+  // Y solo esa: el resto de celdas del mes siguen sin relleno.
+  await expect(page.locator('button[aria-label*="16 de junio"]').first().locator('xpath=..'))
+    .not.toHaveCSS('background-color', 'rgb(220, 232, 244)')
+  // El número ya no lleva disco propio: el relleno es de la celda.
+  await expect(hoy.locator('span').first()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+})
+
+// Lo que ya ha pasado se ve más apagado, con el mismo color. Con el reloj a las 14:00 del
+// 17 de junio, el pediatra de las 10:30 ha pasado y la reunión de las 18:30 no; y un evento
+// de un día anterior ha pasado sea la hora que sea. Se comprueba el atributo `data-pasado`
+// y no la opacidad, para que el test no dependa de un valor de color que se ajusta a ojo.
+test('los eventos que ya han pasado se marcan como pasados, y los que faltan no', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-06-17T14:00:00') })
+  await page.goto('/calendar')
+  const pediatra = page.getByRole('button', { name: /Pediatra de Cris/ }).first()
+  const reunion = page.getByRole('button', { name: /Reunión de vecinos/ }).first()
+  await expect(pediatra).toHaveAttribute('data-pasado', 'true')
+  await expect(reunion).not.toHaveAttribute('data-pasado', 'true')
+
+  // Un día anterior: todo lo suyo ha pasado.
+  await page.getByRole('button', { name: /8 de junio/ }).first().click()
+  await expect(page.getByRole('button', { name: /ITV del coche/ }).first()).toHaveAttribute('data-pasado', 'true')
+
+  // Y el título pasa al gris, no a un tono que se pierda: sigue siendo legible.
+  await expect(page.getByRole('button', { name: /ITV del coche/ }).first().locator('span').nth(1))
+    .toHaveCSS('color', 'rgb(110, 104, 97)')
+})
+
 // Los dos crons se llaman sin sesión —Vercel el de las siete, Supabase el de cada
 // evento—, así que el proxy los tiene que dejar pasar por el prefijo `/api/cron/` y
 // el `CRON_SECRET` es su única defensa. Aquí se comprueba lo que se puede sin base

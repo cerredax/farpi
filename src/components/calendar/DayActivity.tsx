@@ -1,6 +1,6 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
-import { isPlan } from '@/lib/events'
+import { eventoYaPasado, isPlan } from '@/lib/events'
 import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
 
 /**
@@ -38,6 +38,12 @@ const MAX_MARCAS = 3
 export interface Marca {
   color: string
   tarea: boolean
+  /**
+   * Que **todo** lo que esta marca representa ya ha pasado. Una marca es por persona
+   * y clase, así que si María tiene un plan que acabó y otro que falta, sigue
+   * contando lo que falta y no se apaga. Una tarea nunca: no «pasa», se hace.
+   */
+  pasado: boolean
 }
 
 /**
@@ -60,24 +66,27 @@ export function marcasDelDia(
   tasks: Task[],
   members: FamilyMember[],
   kids: Child[],
+  ahora: Date = new Date(),
 ): Marca[] {
   const todas: Marca[] = [
     // Los festivos tampoco cuentan como punto. No son un plan del día y no son de
     // nadie, así que un punto de color mentiría dos veces; de que el día es
     // festivo ya avisa la trama de la celda. Es la misma regla que las ausencias.
-    ...events.filter(isPlan).map(e => ({ color: eventColor(e, members, kids), tarea: false })),
+    ...events.filter(isPlan).map(e => ({ color: eventColor(e, members, kids), tarea: false, pasado: eventoYaPasado(e, ahora) })),
     // Una tarea no tiene color propio en la base, así que se pinta con el de
     // quien la lleva y, si no es de nadie, con el de la familia. Es la misma
     // cadena que `eventColor` aplica a los eventos.
-    ...tasks.map(t => ({ color: resolveAssignee(t, members, kids)?.color ?? FAMILY_COLOR, tarea: true })),
+    ...tasks.map(t => ({ color: resolveAssignee(t, members, kids)?.color ?? FAMILY_COLOR, tarea: true, pasado: false })),
   ]
-  const vistas = new Set<string>()
-  return todas.filter(m => {
+  // Una marca por persona y clase; y solo está «pasada» si todo lo que junta lo
+  // está: un plan que aún falta la mantiene viva aunque otro ya haya acabado.
+  const porClave = new Map<string, Marca>()
+  for (const m of todas) {
     const clave = `${m.tarea ? 't' : 'p'}${m.color}`
-    if (vistas.has(clave)) return false
-    vistas.add(clave)
-    return true
-  })
+    const previa = porClave.get(clave)
+    porClave.set(clave, previa ? { ...previa, pasado: previa.pasado && m.pasado } : m)
+  }
+  return [...porClave.values()]
 }
 
 /**
@@ -142,7 +151,7 @@ export function DayActivity({ marcas }: { marcas: Marca[] }) {
       {marcas.slice(0, MAX_MARCAS).map((marca, i) => (
         <span
           key={i}
-          className={`h-[7px] w-[7px] flex-shrink-0 ring-1 ring-ink/15 ${marca.tarea ? 'rounded-[1px]' : 'rounded-full'}`}
+          className={`h-[7px] w-[7px] flex-shrink-0 ring-1 ring-ink/15 ${marca.tarea ? 'rounded-[1px]' : 'rounded-full'} ${marca.pasado ? 'opacity-40' : ''}`}
           style={{ backgroundColor: marca.color }}
         />
       ))}

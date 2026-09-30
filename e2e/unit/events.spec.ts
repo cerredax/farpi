@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { agruparPlanesPorDia, antelacionDelAviso, daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, topeDeFranjas, vacationEdges, vacationLength } from '@/lib/events'
+import { agruparPlanesPorDia, antelacionDelAviso, daysBetween, eventoYaPasado, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, topeDeFranjas, vacationEdges, vacationLength } from '@/lib/events'
+import { marcasDelDia } from '@/components/calendar/DayActivity'
 import type { FamilyMember } from '@/types'
 import { event } from './fixtures'
 
@@ -557,5 +558,99 @@ test.describe('antelacionDelAviso', () => {
   test('ni un cumpleaños ni unas vacaciones, aunque traigan una', () => {
     expect(antelacionDelAviso({ kind: 'cumple', all_day: false, remind_before_minutes: 30 })).toBeNull()
     expect(antelacionDelAviso({ kind: 'vacaciones', all_day: false, remind_before_minutes: 30 })).toBeNull()
+  })
+})
+
+test.describe('eventoYaPasado', () => {
+  // Horas de pared, sin zona: se interpretan en la del que ejecuta, igual que `ahora`.
+  const a = (hora: string) => new Date(`2026-09-30T${hora}:00`)
+
+  test('un plan con hora ha pasado cuando termina, no antes', () => {
+    const comida = event({ start_at: '2026-09-30T14:00:00', end_at: '2026-09-30T16:00:00' })
+    expect(eventoYaPasado(comida, a('13:00'))).toBe(false)
+    // Por la mitad: es justo lo que está ocurriendo y no se apaga.
+    expect(eventoYaPasado(comida, a('15:00'))).toBe(false)
+    expect(eventoYaPasado(comida, a('16:01'))).toBe(true)
+  })
+
+  test('sin hora de fin dura lo que dibuja el eje de horas: 45 minutos', () => {
+    const dentista = event({ start_at: '2026-09-30T10:00:00', end_at: null })
+    expect(eventoYaPasado(dentista, a('10:01'))).toBe(false) // a las 10:01 sigue en la consulta
+    expect(eventoYaPasado(dentista, a('10:44'))).toBe(false)
+    expect(eventoYaPasado(dentista, a('10:46'))).toBe(true)
+  })
+
+  test('uno que aún no ha empezado no ha pasado', () => {
+    expect(eventoYaPasado(event({ start_at: '2026-09-30T20:00:00' }), a('09:00'))).toBe(false)
+  })
+
+  test('un evento de todo el día ha pasado a partir del día siguiente, y hoy no', () => {
+    const ayer = event({ all_day: true, start_at: '2026-09-29T00:00:00' })
+    const hoy = event({ all_day: true, start_at: '2026-09-30T00:00:00' })
+    const manana = event({ all_day: true, start_at: '2026-10-01T00:00:00' })
+    expect(eventoYaPasado(ayer, a('00:05'))).toBe(true)
+    expect(eventoYaPasado(hoy, a('23:59'))).toBe(false)
+    expect(eventoYaPasado(manana, a('12:00'))).toBe(false)
+  })
+
+  test('un cumpleaños de ayer ha pasado, uno de hoy no', () => {
+    expect(eventoYaPasado(event({ kind: 'cumple', all_day: true, start_at: '2026-09-29T00:00:00' }), a('12:00'))).toBe(true)
+    expect(eventoYaPasado(event({ kind: 'cumple', all_day: true, start_at: '2026-09-30T00:00:00' }), a('12:00'))).toBe(false)
+  })
+
+  test('las ausencias no se apagan nunca, ni estando ya acabadas', () => {
+    for (const kind of ['vacaciones', 'descanso', 'festivo'] as const) {
+      const pasada = event({ kind, all_day: true, start_at: '2026-09-01T00:00:00', end_at: '2026-09-03T23:59:00' })
+      expect(eventoYaPasado(pasada, a('12:00'))).toBe(false)
+    }
+  })
+
+  test('cualquier evento de un día anterior a hoy ha pasado', () => {
+    expect(eventoYaPasado(event({ start_at: '2026-09-15T23:30:00' }), a('00:10'))).toBe(true)
+  })
+})
+
+test.describe('marcasDelDia y lo que ya ha pasado', () => {
+  const miembros: FamilyMember[] = [
+    { id: 'm1', family_id: 'f1', user_id: 'u1', display_name: 'Omar', avatar_url: null, color: '#A8503A', role: 'admin', created_at: '' },
+  ]
+  const ahora = new Date('2026-09-30T14:00:00')
+
+  test('un punto de un plan que ya acabó sale apagado', () => {
+    const marcas = marcasDelDia([event({ member_id: 'm1', start_at: '2026-09-30T09:00:00' })], [], miembros, [], ahora)
+    expect(marcas).toHaveLength(1)
+    expect(marcas[0].pasado).toBe(true)
+  })
+
+  test('uno que aún falta no se apaga', () => {
+    const marcas = marcasDelDia([event({ member_id: 'm1', start_at: '2026-09-30T18:00:00' })], [], miembros, [], ahora)
+    expect(marcas[0].pasado).toBe(false)
+  })
+
+  test('una marca por persona: si uno de sus planes falta, sigue viva aunque el otro haya acabado', () => {
+    const marcas = marcasDelDia([
+      event({ member_id: 'm1', start_at: '2026-09-30T09:00:00' }),
+      event({ member_id: 'm1', start_at: '2026-09-30T19:00:00' }),
+    ], [], miembros, [], ahora)
+    expect(marcas).toHaveLength(1)
+    expect(marcas[0].pasado).toBe(false)
+  })
+
+  test('si los dos han acabado, la marca sale apagada', () => {
+    const marcas = marcasDelDia([
+      event({ member_id: 'm1', start_at: '2026-09-30T08:00:00' }),
+      event({ member_id: 'm1', start_at: '2026-09-30T10:00:00' }),
+    ], [], miembros, [], ahora)
+    expect(marcas[0].pasado).toBe(true)
+  })
+
+  test('un día anterior entero sale apagado', () => {
+    const marcas = marcasDelDia([event({ member_id: 'm1', start_at: '2026-09-15T20:00:00' })], [], miembros, [], ahora)
+    expect(marcas[0].pasado).toBe(true)
+  })
+
+  test('las vacaciones no cuentan como marca, pasadas o no', () => {
+    const marcas = marcasDelDia([event({ kind: 'vacaciones', all_day: true, start_at: '2026-09-01T00:00:00', end_at: '2026-09-03T23:59:00' })], [], miembros, [], ahora)
+    expect(marcas).toEqual([])
   })
 })

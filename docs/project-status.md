@@ -17,7 +17,8 @@ policy, trigger de familia y el `coalesce` de `close_month_copy`. **169/169**. Y
 22-09-2026, `expenses.import_ref` con su restricción de unicidad —que un movimiento del
 banco se apunte una vez—: **173/173**. Y el 23-09-2026, una revisión de seguridad a la
 contra: que la ficha de un documento no pueda cambiar de familia y la cuenta nueva del tope de
-invitaciones, `invite_sends`, y las RPCs de meses sin familia: **186/186**. **Lo que queda no es código de producto**: pruebas
+invitaciones, `invite_sends`, y las RPCs de meses sin familia: **186/186**. Y el 30-09-2026, el
+aviso de cada evento —`events.remind_before_minutes` y `event_reminders_sent`—: **206/206**. **Lo que queda no es código de producto**: pruebas
 que piden un aparato delante, tres decisiones sin tomar, tres funcionalidades que no existen,
 los candidatos que dejó la revisión del 30-09-2026 y dos acabados menores de Finanzas. La lista
 entera, en "Siguiente paso recomendado".
@@ -1252,7 +1253,8 @@ Una familia debe tener siempre al menos un admin. Están prohibidas cuando queda
 
 ## Validación Supabase
 
-Sin pendientes. La última pasada es del **23-09-2026**: **186/186**, con las cuatro RPCs de
+Sin pendientes. La última pasada es del **30-09-2026**: **206/206**, con el aviso de cada evento;
+antes, la del **23-09-2026**: **186/186**, con las cuatro RPCs de
 meses rechazando una familia nula —dos de ellas la dejaban pasar—. Antes, ese mismo día,
 **182/182**, con `invite_sends`, la
 cuenta del tope de invitaciones, y siete comprobaciones de que nadie más que el servidor la
@@ -1341,10 +1343,10 @@ una, en el cuerpo de su commit.
 
 En orden. Lo de abajo explica cada punto; esto es lo que toca la próxima vez.
 
-0. **Poner en marcha el aviso de cada evento** (30-09-2026): aplicar el delta de
-   `supabase/schema.sql` en el SQL Editor, correr `node scripts/validate-rls.mjs` (tiene una
-   sección nueva, 11c) y programar el `pg_cron` de `docs/notificaciones.md`. Hasta entonces el
-   formulario deja pedir un aviso y **no llega ninguno**. Después, probarlo con un plan que
+0. **Poner en marcha el aviso de cada evento** (30-09-2026): el delta del esquema ya está
+   aplicado y validado (**206/206**); **falta programar el `pg_cron`** de
+   `docs/notificaciones.md`. Hasta entonces el formulario deja pedir un aviso y **no llega
+   ninguno**. Después, probarlo con un plan que
    empiece dentro de 20 minutos.
 1. **Comprobar el cron de las siete** en los logs de Vercel (`/api/cron/reminders`):
    uno de los dos de cada mañana tiene que decir `fueraDeHora: true` y el otro traer

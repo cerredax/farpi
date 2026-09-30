@@ -4,7 +4,21 @@ Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la últ
 relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
 día; aquí queda el recuento y lo que sigue vigilándose.
 
-## Última ejecución: 186/186 (23-09-2026, las RPCs de meses sin familia)
+## Última ejecución: 206/206 (30-09-2026, el aviso de cada evento)
+
+Con `events.remind_before_minutes` y la tabla `event_reminders_sent`. **206/206 comprobaciones
+correctas**, las 186 anteriores más las 20 de la sección nueva (11c). Se aplicó el SQL antes de
+correrlo, así que no hubo un «antes» en rojo que contar.
+
+Lo que se comprueba: que el `check` deja pasar las cuatro antelaciones (15, 30, 60 y 1440) y
+el nulo, y rechaza una quinta, un aviso en un evento de todo el día, en un cumpleaños y en
+unas vacaciones. Y lo importante, la tabla de lo ya avisado: que el service role —el cron—
+**sí** entra (una tabla a la que no llega nadie también pasaría el resto); que reclamar dos
+veces el mismo aviso **falla**, que es lo que impide un aviso doble; que otro momento del
+mismo evento sí es otro aviso; que ni el admin ni otro miembro pueden leer, apuntar ni borrar
+sus filas (borrarlas haría que se mandara otra vez); y que se van con el evento por cascada.
+
+## Anterior: 186/186 (23-09-2026, las RPCs de meses sin familia)
 
 Con las cuatro RPCs de meses que llama la app —`close_previous_month`, `close_month_now`,
 `reopen_month` y `empty_month`— rechazando un `p_family_id` nulo. **186/186 comprobaciones
@@ -227,7 +241,8 @@ algo es que ninguna se quedó en rojo.
 
 | Fecha | Recuento | Qué entró |
 |---|---|---|
-| 23-09-2026 | **186/186** | las cuatro RPCs de meses rechazan una familia nula |
+| 30-09-2026 | **206/206** | el aviso de cada evento: el `check` de la antelación y `event_reminders_sent`, sin policies y con reclamo único |
+| 23-09-2026 | 186/186 | las cuatro RPCs de meses rechazan una familia nula |
 | 23-09-2026 | 182/182 | `invite_sends`: la cuenta del tope de invitaciones, fuera del alcance de quien invita |
 | 23-09-2026 | 175/175 | `documents.family_id` inmutable: un papel no se lleva a otra familia |
 | 22-09-2026 | 173/173 | `expenses.import_ref`: el movimiento del banco se apunta una vez |

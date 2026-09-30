@@ -77,7 +77,7 @@ documentos se borró el 27-08-2026 y los archivos viven en el Google Drive de qu
 
 Estado: proyecto creado y esquema aplicado; UI conectada por `src/lib/supabase-repos/` (un
 módulo por dominio, igual que el mock); auth, invitaciones por magic link y roles operativos.
-La última pasada de `node scripts/validate-rls.mjs` dio **186/186** (23-09-2026), con
+La última pasada de `node scripts/validate-rls.mjs` dio **206/206** (30-09-2026), con
 `fixed_entry_overrides` dentro. El historial de cada validación está en
 `docs/supabase-validation.md`, que es donde vive.
 

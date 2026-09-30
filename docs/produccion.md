@@ -151,7 +151,7 @@ La app está **funcionalmente completa** y verificada (build, lint y la suite en
 - PWA instalable (iconos + manifest), accesibilidad revisada.
 - Código refactorizado: sin código muerto, sheets y detección de demo unificados, paleta tokenizada.
 
-El backend está **validado** (§4): **186/186** comprobaciones de RLS, RPCs e integridad
+El backend está **validado** (§4): **206/206** comprobaciones de RLS, RPCs e integridad
 (05-09-2026). La app está desplegada y operativa en **https://www.farpi.app** desde el
 15-09-2026 (§0). La URL de Vercel sigue sirviendo, pero el host de la casa es ese.
 
@@ -299,7 +299,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 186/186 comprobaciones correctas, con el esquema entero validado (última pasada, 23-09-2026). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 206/206 comprobaciones correctas, con el esquema entero validado (última pasada, 30-09-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Cuatro usuarios y tres familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.
@@ -390,8 +390,8 @@ datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo que re
   `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`.
 - [ ] **El aviso de cada evento** (30-09-2026), tres pasos y por este orden: (1) aplicar en el
   SQL Editor el delta de `supabase/schema.sql` —la columna `events.remind_before_minutes`, su
-  `check` y la tabla `event_reminders_sent`—; (2) `node scripts/validate-rls.mjs` y anotar el
-  resultado en `docs/supabase-validation.md`; (3) programar el job de `pg_cron` que llama a
+  `check` y la tabla `event_reminders_sent`—, **hecho el 30-09-2026**; (2) `node
+  scripts/validate-rls.mjs`, **hecho: 206/206** (anotado en `docs/supabase-validation.md`); (3) programar el job de `pg_cron` que llama a
   `/api/cron/event-reminders` cada cinco minutos, con el SQL de `docs/notificaciones.md`. El
   despliegue de Vercel puede ir antes: hasta que exista el job, un aviso pedido no sale.
 - [ ] Límite de peticiones en el firewall de Vercel (plan Hobby: una regla por proyecto).

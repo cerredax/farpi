@@ -133,6 +133,30 @@ test('una nota se puede copiar entera al editarla', async ({ page, context }) =>
   expect(copiado).toBe('Red: ALARMA_G\nClave: tortuga-azul-42')
 })
 
+// Lo que apunta otra persona se ve sin recargar. La otra persona es aquí otra
+// pestaña del mismo navegador: en modo demo comparten `localStorage`, y la app
+// vuelve a leerlo antes de refrescar. El minuto se adelanta con el reloj del
+// test en vez de esperarlo.
+test('lo que apunta otra persona aparece sin recargar la pantalla', async ({ page, context }) => {
+  await page.clock.install()
+  await page.goto('/tasks')
+  await expect(page.getByText('Sacar la basura')).toBeVisible()
+
+  const otra = await context.newPage()
+  await otra.goto('/tasks')
+  await otra.getByRole('button', { name: 'Nueva tarea' }).click()
+  const alta = otra.getByRole('dialog', { name: 'Nueva tarea' })
+  await alta.getByRole('textbox', { name: 'Tarea', exact: true }).fill('Llamar al fontanero')
+  await alta.getByRole('button', { name: 'Crear tarea' }).click()
+  await expect(otra.getByText('Llamar al fontanero')).toBeVisible()
+
+  // Todavía no ha pasado el minuto: esta pantalla sigue como estaba.
+  await expect(page.getByText('Llamar al fontanero')).toHaveCount(0)
+
+  await page.clock.fastForward(65_000)
+  await expect(page.getByText('Llamar al fontanero')).toBeVisible()
+})
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

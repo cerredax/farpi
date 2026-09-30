@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import * as store from './store'
 import { mockRepos } from './mock-repos'
 import { supabaseRepos } from './supabase-repos'
@@ -257,6 +257,20 @@ export type Porcion =
   | 'lists' | 'listItems' | 'meals' | 'notes' | 'fixedEntries' | 'fixedOverrides'
   | 'budgets' | 'expenses' | 'quotes' | 'monthPlans' | 'documents' | 'currentUserId'
 
+/**
+ * Lo que se vuelve a pedir solo, sin que nadie escriba nada: lo que se coordina
+ * entre dos personas en el día a día. La compra que añade la pareja mientras se
+ * está en el súper, la tarea que se marca, la comida que se cambia. Finanzas,
+ * Documentos y Ajustes se quedan fuera: se tocan de tarde en tarde y traerlas
+ * cada minuto sería gastar consultas para nada.
+ */
+const PORCIONES_DEL_DIA: Porcion[] = ['events', 'tasks', 'lists', 'listItems', 'meals', 'notes']
+
+/** Cada cuánto se refresca lo anterior mientras la app está a la vista. */
+const CADA_CUANTO_SE_REFRESCA = 60_000
+/** Lo mínimo que tiene que pasar entre dos refrescos, para que volver a la app no dispare uno cada vez. */
+const ESPERA_ENTRE_REFRESCOS = 15_000
+
 const EMPTY_SLICES = {
   families: [] as Family[],
   members: [] as FamilyMember[],
@@ -446,6 +460,48 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     }, 0)
     return () => window.clearTimeout(timer)
   }, [reload])
+
+  /**
+   * **Ver lo que cambian los demás.** Los datos se traían una vez al abrir la app y
+   * solo se volvían a pedir al escribir uno mismo: lo que la otra persona añadía
+   * a la lista de la compra no se veía hasta recargar. No hay tiempo real
+   * (Supabase Realtime sería otra pieza que mantener y otra RLS que validar);
+   * basta con volver a pedir lo del día a día al volver a la app, al recuperar la
+   * conexión y cada minuto mientras está a la vista.
+   *
+   * Reglas para que no estorbe: no corre con la app en segundo plano, **no corre
+   * mientras se guarda** (una lectura que salió antes de una escritura no puede
+   * pisar lo que esa escritura acaba de recargar), no toca `isLoading` (no hay
+   * pantalla de carga que enseñar) y **no dice nada si falla**, ni en pantalla
+   * ni en consola: no poder refrescar no es un error de nadie, y el siguiente
+   * intento lo arregla.
+   *
+   * En modo demo no hay otra persona, pero sí puede haber otra pestaña: lo que
+   * ella escribe queda en `localStorage`, y se vuelve a leer de ahí antes de
+   * pedir. Es también lo que permite probarlo sin servidor.
+   */
+  const isSavingRef = useRef(false)
+  useEffect(() => { isSavingRef.current = isSaving }, [isSaving])
+
+  useEffect(() => {
+    if (isLoading) return
+    let ultimo = Date.now()
+    const refrescar = () => {
+      if (document.visibilityState !== 'visible' || isSavingRef.current) return
+      if (Date.now() - ultimo < ESPERA_ENTRE_REFRESCOS) return
+      ultimo = Date.now()
+      if (IS_DEMO_MODE) store.loadFromStorage()
+      recargarPorciones(PORCIONES_DEL_DIA).catch(() => {})
+    }
+    const intervalo = window.setInterval(refrescar, CADA_CUANTO_SE_REFRESCA)
+    document.addEventListener('visibilitychange', refrescar)
+    window.addEventListener('online', refrescar)
+    return () => {
+      window.clearInterval(intervalo)
+      document.removeEventListener('visibilitychange', refrescar)
+      window.removeEventListener('online', refrescar)
+    }
+  }, [isLoading, recargarPorciones])
 
   /**
    * Preguntar por la conexión de almacenamiento. Si falla no se cuenta como

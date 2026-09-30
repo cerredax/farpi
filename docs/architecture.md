@@ -1553,6 +1553,17 @@ se subió al título. Una excepción, de forma: el vacío de la agenda de 45 dí
 («Apuntar algo») como `action` y no como descripción, porque esa tarjeta entera es un botón y sin
 nada escrito dentro se lee como un agujero.
 
+**Lo que cambia otra persona se ve sin recargar, pero sin tiempo real** (30-09-2026). Los datos
+se traían al abrir la app y al escribir uno mismo, así que lo que la pareja añadía a la compra
+no se veía hasta recargar. El `StoreProvider` vuelve a pedir en silencio **solo lo del día a día**
+—eventos, tareas, listas, ítems, comidas y notas— al volver a la app, al recuperar la conexión y
+cada minuto mientras está a la vista (`PORCIONES_DEL_DIA`). No corre en segundo plano ni mientras
+se guarda, y **no avisa si falla**: no poder refrescar no es un error de nadie. Se descartó
+Supabase Realtime: otra pieza que mantener y otra policy que validar para una casa de dos o tres
+personas que no necesita el segundo exacto. Finanzas, Documentos y Ajustes no se refrescan solos.
+En modo demo relee `localStorage` antes de pedir, así que dos pestañas se ven entre sí, que es
+también como se prueba.
+
 **Lo que hay que leer no se apaga con color** (ver «UI compartida»).
 
 ### Listas

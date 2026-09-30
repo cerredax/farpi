@@ -83,6 +83,33 @@ test('el sheet de tareas abre como diálogo con campos etiquetados', async ({ pa
   await expect(dialog).toHaveAttribute('inert', '')
 })
 
+// El sheet de tareas se cierra cuando la tarea **ya se ha guardado**. Se cerraba al
+// pulsar, y con la red caída lo escrito se perdía: el aviso salía con el sheet
+// cerrado y había que volver a teclearla. El fallo se fuerza haciendo que el mock
+// no pueda crear el id, que es lo primero que hace al guardar.
+test('si una tarea no se guarda, el sheet sigue abierto con lo escrito', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Nueva tarea' })
+  await dialog.getByRole('textbox', { name: 'Tarea', exact: true }).fill('Comprar cortinas')
+
+  await page.evaluate(() => { crypto.randomUUID = () => { throw new Error('sin conexión') } })
+  await dialog.getByRole('button', { name: 'Crear tarea' }).click()
+
+  // Sigue abierto, con el texto, y el botón vuelve a estar pulsable.
+  await expect(page.getByText('No se ha guardado')).toBeVisible()
+  await expect(dialog).not.toHaveAttribute('inert', '')
+  await expect(dialog.getByRole('textbox', { name: 'Tarea', exact: true })).toHaveValue('Comprar cortinas')
+  await expect(dialog.getByRole('button', { name: 'Crear tarea' })).toBeEnabled()
+  await expect(page.getByText('Comprar cortinas')).toHaveCount(0) // no está en la lista: el campo no cuenta como texto
+
+  // Con la red de vuelta, el mismo botón guarda y ahora sí cierra.
+  await page.evaluate(() => { delete (crypto as { randomUUID?: unknown }).randomUUID })
+  await dialog.getByRole('button', { name: 'Crear tarea' }).click()
+  await expect(dialog).toHaveAttribute('inert', '')
+  await expect(page.getByText('Comprar cortinas')).toBeVisible()
+})
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

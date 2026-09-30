@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
@@ -18,8 +19,9 @@ interface TaskSheetProps {
   kids: Child[]
   members: FamilyMember[]
   onClose: () => void
-  onCreate: (draft: TaskDraft) => void
-  onUpdate: (id: string, draft: TaskDraft) => void
+  /** `false` si no se pudo guardar: el sheet se queda abierto con lo escrito. */
+  onCreate: (draft: TaskDraft) => void | Promise<boolean | void>
+  onUpdate: (id: string, draft: TaskDraft) => void | Promise<boolean | void>
   onDelete: (id: string) => void
 }
 
@@ -52,10 +54,28 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  const handleSubmit = submitHandler(valid => {
-    if (mode === 'create') onCreate(valid)
-    else if (initial) onUpdate(initial.id, valid)
-    onClose()
+  const [guardando, setGuardando] = useState(false)
+
+  /**
+   * Se cierra **cuando ya se ha guardado**, no antes. Se cerraba al pulsar, y con
+   * la red caída lo escrito se perdía: el aviso salía en `SaveStatus` con el
+   * sheet ya cerrado y la tarea había que volver a teclearla. Si falla, se queda
+   * abierto con el texto. Mismo patrón que `DocSheet`.
+   */
+  const handleSubmit = submitHandler(async valid => {
+    // Un Enter en un campo envía el formulario aunque el botón esté apagado:
+    // sin esta guarda, una tarea lenta de guardar se crearía dos veces.
+    if (guardando) return
+    setGuardando(true)
+    try {
+      const guardada = mode === 'create'
+        ? await onCreate(valid)
+        : initial ? await onUpdate(initial.id, valid) : undefined
+      if (guardada === false) return
+      onClose()
+    } finally {
+      setGuardando(false)
+    }
   })
 
   const hasRecurrence = draft.recurrence !== 'none'
@@ -68,7 +88,8 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
       footer={
         <SheetFooter
           form="task-form"
-          submitLabel={mode === 'create' ? 'Crear tarea' : 'Guardar cambios'}
+          submitLabel={guardando ? 'Guardando…' : mode === 'create' ? 'Crear tarea' : 'Guardar cambios'}
+          disabled={guardando}
           error={formError}
           onDelete={mode === 'edit'
             ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar tarea', confirmLabel: 'Confirmar eliminación' }

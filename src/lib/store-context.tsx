@@ -138,8 +138,9 @@ interface StoreValue {
   updateEvent: (id: string, draft: EventDraft) => Promise<void>
   deleteEvent: (id: string) => Promise<void>
   deleteEventSeries: (groupId: string) => Promise<void>
-  createTask: (draft: TaskDraft) => Promise<void>
-  updateTask: (id: string, draft: TaskDraft) => Promise<void>
+  /** `true` si se guardó. El sheet de tareas se cierra solo entonces (ver `TaskSheet`). */
+  createTask: (draft: TaskDraft) => Promise<boolean>
+  updateTask: (id: string, draft: TaskDraft) => Promise<boolean>
   deleteTask: (id: string) => Promise<void>
   toggleTask: (id: string) => Promise<void>
   createList: (draft: ListDraft) => Promise<void>
@@ -692,8 +693,20 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       },
       deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id), ['events']),
       deleteEventSeries: (groupId: string) => runMutation(() => repos.events.deleteEventSeries(groupId), ['events']),
-      createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft), ['tasks']),
-      updateTask: (id: string, draft: TaskDraft) => runMutation(() => repos.tasks.updateTask(id, draft), ['tasks']),
+      createTask: (draft: TaskDraft) =>
+        runMutationWith<boolean>(
+          async () => { await repos.tasks.createTask(familyId, draft); return true },
+          false,
+          mensajes().noSeGuardo,
+          ['tasks'],
+        ),
+      updateTask: (id: string, draft: TaskDraft) =>
+        runMutationWith<boolean>(
+          async () => { await repos.tasks.updateTask(id, draft); return true },
+          false,
+          mensajes().noSeGuardo,
+          ['tasks'],
+        ),
       deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id), ['tasks']),
       // Marcar una tarea es lo más fácil de hacer sin querer: es un círculo que
       // se toca al pasar el dedo por la lista. Se guarda cómo estaba antes para

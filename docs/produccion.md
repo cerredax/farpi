@@ -236,7 +236,8 @@ En **Vercel → proyecto `farpi` → Settings → Environment Variables** (marca
       invitación no lleve más de 30 días esperando y que la cuenta no se haya creado
       después de escribirse. Las otras tres son de base de datos y están anotadas en §2.2.
       Validado después con `node scripts/validate-rls.mjs`: **163/163**.
-- [x] **Email**: proveedor SMTP configurado (Auth → Emails, en `.../auth/smtp`). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
+- [x] **Email**: proveedor SMTP configurado (Auth → Emails, en `.../auth/smtp`); es **Gmail**, y
+      `/privacidad` lo nombra así (si cambia de proveedor, se cambia también allí). Sin esto, las invitaciones por magic link y la confirmación de cuenta no se envían.
 - [x] **Confirm email** (Auth → Sign In / Providers → Email): debe estar **activado** en producción. Si lo desactivas para probar en local, acuérdate de volver a activarlo.
       Desde el 03-09-2026 **la seguridad de las invitaciones ya no depende de este ajuste**:
       `accept_family_invite` exige además que la cuenta la haya creado el propio correo de
@@ -409,7 +410,7 @@ datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo que re
 
 ## 7. Notas y limitaciones conocidas
 
-- **Páginas legales**: `/privacidad` y `/terminos` son públicas (rutas abiertas en `src/lib/supabase/middleware.ts`) y su correo de contacto es `cerredax@gmail.com`. La URL de `/privacidad` es la que pide Google Play.
+- **Páginas legales**: `/privacidad`, `/terminos` y `/borrar-cuenta` son públicas (rutas abiertas en `src/lib/supabase/middleware.ts`) y su correo de contacto es `cerredax@gmail.com`. La URL de `/privacidad` es la que pide Google Play. Las tres se revisaron contra el código el 30-09-2026; **lo que dicen tiene que seguir siendo lo que hace la app** (p. ej. `/borrar-cuenta` y `/api/account/delete`), así que si cambia uno, se revisa el otro.
 - **Modo demo**: si faltan credenciales, la app funciona con datos en `localStorage`. La sección "Reiniciar datos de demo" en Ajustes solo aparece en ese modo.
 - **Regla del último admin**: se valida en el servidor (RPCs `security definer` y borrado de cuenta) y la UI la refuerza; el mock no la valida (asume un único admin).
 - **Comandos útiles**: `npm run dev` (arranca), `npm run build`, `npm run lint`, `npm run test:e2e`.

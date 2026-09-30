@@ -81,6 +81,9 @@ export const comun: typeof es = {
     noSeApuntaronMovimientos: 'The transactions could not be added',
     noSeGuardoDocumento: 'The document could not be saved',
     hecho: 'Done',
+    tareaEliminada: 'Task deleted',
+    notaEliminada: 'Note deleted',
+    itemEliminado: 'Deleted',
   },
 
   datos: {

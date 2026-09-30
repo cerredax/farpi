@@ -93,6 +93,10 @@ export const comun = {
     noSeGuardoDocumento: 'No se pudo guardar el documento',
     /** El «Hecho · Deshacer» de marcar una tarea. */
     hecho: 'Hecho',
+    /** Los «Eliminada · Deshacer»: lo que se puede devolver a como estaba. */
+    tareaEliminada: 'Tarea eliminada',
+    notaEliminada: 'Nota eliminada',
+    itemEliminado: 'Eliminado',
   },
 
   /** Los de los repositorios, antes de llegar al store. */

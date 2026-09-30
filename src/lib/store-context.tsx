@@ -608,6 +608,56 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     })
   }, [repos, familyId, runMutation])
 
+  /**
+   * Devolver lo que se acaba de eliminar. No se puede volver a insertar la misma
+   * fila (el contrato de los repos solo sabe crear), así que se **crea otra igual**
+   * con los datos que tenía: mismo texto, misma fecha, misma persona. Cambia el
+   * id y, en un ítem, el sitio en la lista (vuelve al final); nadie apunta a
+   * ninguno de los dos.
+   */
+  const restaurarTareaEliminada = useCallback(async (previa: Task): Promise<void> => {
+    await runMutation(async () => {
+      const nueva = await repos.tasks.createTask(familyId, {
+        title: previa.title,
+        notes: previa.notes ?? '',
+        priority: previa.priority,
+        due_date: previa.due_date ?? '',
+        recurrence: previa.recurrence,
+        recurrence_end: previa.recurrence_end ?? '',
+        child_id: previa.child_id,
+        member_id: previa.member_id,
+      })
+      if (previa.completed) await repos.tasks.toggleTask(nueva.id)
+    }, ['tasks'])
+  }, [repos, familyId, runMutation])
+
+  const restaurarNotaEliminada = useCallback(async (previa: Note): Promise<void> => {
+    await runMutation(async () => {
+      await repos.notes.createNote(familyId, {
+        title: previa.title,
+        body: previa.body ?? '',
+        emoji: previa.emoji ?? '📝',
+        pinned: previa.pinned,
+      })
+    }, ['notes'])
+  }, [repos, familyId, runMutation])
+
+  const restaurarItemEliminado = useCallback(async (previo: ListItem): Promise<void> => {
+    await runMutation(async () => {
+      const nuevo = await repos.listItems.createListItem(previo.list_id, familyId, { text: previo.text })
+      if (previo.quantity !== nuevo.quantity) await repos.listItems.setListItemQuantity(nuevo.id, previo.quantity)
+      if (previo.completed) await repos.listItems.toggleListItem(nuevo.id)
+    }, ['listItems'])
+  }, [repos, familyId, runMutation])
+
+  /** Como `restaurarTarea`: se mira cómo está ahora y se toca solo si hace falta, por si otra persona lo ha cambiado. */
+  const restaurarMarcaDeItem = useCallback(async (previo: ListItem): Promise<void> => {
+    await runMutation(async () => {
+      const actual = (await repos.listItems.getListItems(familyId)).find(i => i.id === previo.id)
+      if (actual && actual.completed !== previo.completed) await repos.listItems.toggleListItem(previo.id)
+    }, ['listItems'])
+  }, [repos, familyId, runMutation])
+
   const value = useMemo<StoreValue | null>(() => {
     if (!family) return null
 
@@ -763,7 +813,13 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           mensajes().noSeGuardo,
           ['tasks'],
         ),
-      deleteTask: (id: string) => runMutation(() => repos.tasks.deleteTask(id), ['tasks']),
+      deleteTask: async (id: string) => {
+        const previa = tasks.find(t => t.id === id)
+        const hecho = await runMutationWith<boolean>(
+          async () => { await repos.tasks.deleteTask(id); return true }, false, mensajes().noSeGuardo, ['tasks'],
+        )
+        if (hecho && previa) setUndoAction({ label: mensajes().tareaEliminada, run: () => restaurarTareaEliminada(previa) })
+      },
       // Marcar una tarea es lo más fácil de hacer sin querer: es un círculo que
       // se toca al pasar el dedo por la lista. Se guarda cómo estaba antes para
       // poder devolverla, que hasta ahora no había manera si se repetía.
@@ -782,10 +838,24 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         runMutation(() => repos.listItems.createListItem(listId, familyId, draft), ['listItems']),
       updateListItem: (id: string, draft: ListItemDraft) =>
         runMutation(() => repos.listItems.updateListItem(id, draft), ['listItems']),
-      deleteListItem: (id: string) => runMutation(() => repos.listItems.deleteListItem(id), ['listItems']),
+      deleteListItem: async (id: string) => {
+        const previo = allListItems.find(i => i.id === id)
+        const hecho = await runMutationWith<boolean>(
+          async () => { await repos.listItems.deleteListItem(id); return true }, false, mensajes().noSeGuardo, ['listItems'],
+        )
+        if (hecho && previo) setUndoAction({ label: mensajes().itemEliminado, run: () => restaurarItemEliminado(previo) })
+      },
       // El gesto más repetido de la app entera: un círculo que se toca en el súper,
       // con el móvil en una mano y el carro en la otra. Es el que más gana con esto.
-      toggleListItem: (id: string) => runMutation(() => repos.listItems.toggleListItem(id), ['listItems']),
+      // Con «Hecho · Deshacer», como una tarea: es lo que se toca sin querer al pasar
+      // el pulgar por la lista, y marcar por error no tenía marcha atrás.
+      toggleListItem: async (id: string) => {
+        const previo = allListItems.find(i => i.id === id)
+        const hecho = await runMutationWith<boolean>(
+          async () => { await repos.listItems.toggleListItem(id); return true }, false, mensajes().noSeGuardo, ['listItems'],
+        )
+        if (hecho && previo) setUndoAction({ label: mensajes().hecho, run: () => restaurarMarcaDeItem(previo) })
+      },
       setListItemQuantity: (id: string, quantity: number) =>
         runMutation(() => repos.listItems.setListItemQuantity(id, quantity), ['listItems']),
       createMeal: (draft: MealDraft) => runMutation(() => repos.meals.createMeal(familyId, draft), ['meals']),
@@ -795,7 +865,13 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       deleteMeal: (id: string) => runMutation(() => repos.meals.deleteMeal(id), ['meals']),
       createNote: (draft: NoteDraft) => runMutation(() => repos.notes.createNote(familyId, draft), ['notes']),
       updateNote: (id: string, draft: NoteDraft) => runMutation(() => repos.notes.updateNote(id, draft), ['notes']),
-      deleteNote: (id: string) => runMutation(() => repos.notes.deleteNote(id), ['notes']),
+      deleteNote: async (id: string) => {
+        const previa = notes.find(n => n.id === id)
+        const hecho = await runMutationWith<boolean>(
+          async () => { await repos.notes.deleteNote(id); return true }, false, mensajes().noSeGuardo, ['notes'],
+        )
+        if (hecho && previa) setUndoAction({ label: mensajes().notaEliminada, run: () => restaurarNotaEliminada(previa) })
+      },
       // Los fijos y las partidas no tocan lo apuntado, y por eso no recargan ni
       // `expenses` ni `monthPlans`: la plantilla de un mes en curso se calcula en
       // memoria (`plantillaDelMes`) y la de un mes cerrado está congelada.
@@ -906,6 +982,10 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     runMutationWith,
     undoAction,
     restaurarTarea,
+    restaurarTareaEliminada,
+    restaurarNotaEliminada,
+    restaurarItemEliminado,
+    restaurarMarcaDeItem,
     storageConnection,
     reloadStorageConnection,
   ])

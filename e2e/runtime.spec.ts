@@ -542,6 +542,93 @@ test('una nota nueva aparece en el índice, se edita y se borra', async ({ page 
   await expect(page.getByText('Alarma de casa y garaje')).toHaveCount(0)
 })
 
+// Deshacer no era solo marcar una tarea. Lo que se toca sin querer al pasar el
+// pulgar es marcar un ítem de la compra, y eliminar una tarea, una nota o un ítem
+// —aunque pidan confirmación— también se lamenta un segundo después. Cada uno
+// deja su «Deshacer» durante unos segundos y lo devuelve a como estaba.
+test('un ítem marcado sin querer se puede deshacer', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Nueva lista' }).click()
+  await page.locator('#list-name').fill('Compra de prueba')
+  await page.getByRole('button', { name: 'Crear lista' }).click()
+  await page.waitForTimeout(300)
+  await page.getByText('Compra de prueba').first().click()
+  const apuntar = page.getByLabel('Apuntar algo en Compra de prueba')
+  await apuntar.fill('Pan de molde')
+  await apuntar.press('Enter')
+
+  const falta = page.getByRole('button', { name: 'Ya tenéis Pan de molde, quitar de lo que falta' })
+  await falta.click()
+  // Marcado: ya no falta, y el aviso dice cómo volver atrás.
+  await expect(falta).toHaveCount(0)
+  await expect(page.getByRole('status')).toContainText('Hecho')
+  await page.getByRole('button', { name: 'Deshacer' }).click()
+
+  // Vuelve a faltar, y el aviso se retira.
+  await expect(falta).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Deshacer' })).toHaveCount(0)
+})
+
+test('un ítem eliminado se puede recuperar con su cantidad', async ({ page }) => {
+  await page.goto('/lists')
+  await page.waitForTimeout(700)
+  await page.getByRole('button', { name: 'Nueva lista' }).click()
+  await page.locator('#list-name').fill('Compra de prueba')
+  await page.getByRole('button', { name: 'Crear lista' }).click()
+  await page.waitForTimeout(300)
+  await page.getByText('Compra de prueba').first().click()
+  const apuntar = page.getByLabel('Apuntar algo en Compra de prueba')
+  await apuntar.fill('Yogures')
+  await apuntar.press('Enter')
+  await page.getByRole('button', { name: 'Añadir una unidad de Yogures' }).click()
+  await expect(page.getByText('2', { exact: true }).first()).toBeVisible()
+
+  await page.getByText('Yogures').first().click()
+  await page.getByRole('button', { name: 'Eliminar ítem' }).click()
+  await page.getByRole('button', { name: 'Confirmar', exact: true }).click()
+  await expect(page.getByText('Yogures')).toHaveCount(0)
+  await expect(page.getByRole('status')).toContainText('Eliminado')
+
+  await page.getByRole('button', { name: 'Deshacer' }).click()
+  await expect(page.getByText('Yogures').first()).toBeVisible()
+  await expect(page.getByText('2', { exact: true }).first()).toBeVisible()
+})
+
+test('una tarea eliminada se puede recuperar', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: 'Eliminar la tarea Sacar la basura' }).click()
+  await page.getByRole('button', { name: 'Confirmar que se elimina la tarea Sacar la basura' }).click()
+  await expect(page.getByText('Sacar la basura')).toHaveCount(0)
+  await expect(page.getByRole('status')).toContainText('Tarea eliminada')
+
+  await page.getByRole('button', { name: 'Deshacer' }).click()
+  // Vuelve con lo que tenía: no solo el título, también que se repite cada semana.
+  await expect(page.getByText('Sacar la basura')).toBeVisible()
+  await page.getByText('Sacar la basura').click()
+  const edicion = page.getByRole('dialog', { name: 'Editar tarea' })
+  await expect(edicion.getByRole('button', { name: 'Semanal', exact: true })).toHaveClass(/bg-primary-strong/)
+})
+
+test('una nota eliminada se puede recuperar con su contenido', async ({ page }) => {
+  await page.goto('/notes')
+  await page.waitForTimeout(700)
+
+  await page.getByRole('button', { name: /Contador de la luz/ }).click()
+  const edicion = page.getByRole('dialog', { name: 'Editar nota' })
+  const contenido = await edicion.getByLabel(/Contenido/).inputValue()
+  expect(contenido.length).toBeGreaterThan(0)
+  await edicion.getByRole('button', { name: 'Eliminar nota' }).click()
+  await edicion.getByRole('button', { name: 'Confirmar eliminación' }).click()
+  await expect(page.getByText('Contador de la luz')).toHaveCount(0)
+  await expect(page.getByRole('status')).toContainText('Nota eliminada')
+
+  await page.getByRole('button', { name: 'Deshacer' }).click()
+  await expect(page.getByRole('button', { name: /Contador de la luz/ })).toContainText(contenido.split(String.fromCharCode(10))[0])
+})
+
 // Lo que justifica que exista `pinned`: la clave del wifi se consulta todo el año
 // y no se toca nunca, así que sin fijar quedaría la última. En los datos demo va
 // fijada y "Contador de la luz" no.

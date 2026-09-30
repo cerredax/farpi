@@ -40,6 +40,13 @@ demo persiste en `localStorage` y sirve de fallback y de entorno de la suite e2e
   marcada no es solo desmarcarla: si se repite, marcarla no la completa sino que le empuja
   `due_date` a la siguiente vez. `restaurarTarea` compara con el estado anterior y revierte
   solo lo que cambió, para no repetir en la UI la bifurcación que ya vive en el repo.
+  Desde el 30-09-2026 cubre también **marcar un ítem de una lista** y **eliminar una tarea, una
+  nota o un ítem** (`restaurarMarcaDeItem`, `restaurarTareaEliminada`, `restaurarNotaEliminada`,
+  `restaurarItemEliminado`). Lo eliminado no se reinserta —el contrato de los repos solo sabe
+  crear— sino que **se crea otro igual** con los mismos datos: cambia el id y un ítem vuelve al
+  final de su lista. Solo se ofrece si la operación salió bien: un «Deshacer» colgando de un
+  borrado que falló duplicaría el elemento. **Un evento eliminado no se puede deshacer**: su
+  borrador se arma desde fechas y horas, y una fila de una serie perdería su serie.
 - El hook experimental `src/hooks/useFamily.ts` y los stubs sueltos de `src/lib/repos/*`
   (salvo `types.ts`) se eliminaron por obsoletos.
 

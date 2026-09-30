@@ -11,8 +11,9 @@ export const listas = {
 
   vista: {
     resumen: (n: number) => (n === 1 ? '1 lista de la familia' : `${n} listas de la familia`),
-    buscarEnTodas: (n: number) =>
-      n === 1 ? 'Buscar en 1 ítem de todas las listas…' : `Buscar en ${n} ítems de todas las listas…`,
+    // Corto a propósito: en un móvil de 390 px, junto al `+`, «…de todas las listas»
+    // se cortaba a media palabra. Que busca en todas lo dice el `aria-label`.
+    buscarEnTodas: (n: number) => (n === 1 ? 'Buscar en 1 ítem…' : `Buscar en ${n} ítems…`),
     buscarEnTodasAria: 'Buscar ítems en todas las listas',
     nuevaLista: 'Nueva lista',
     sinCoincidencias: 'Sin coincidencias',

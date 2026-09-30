@@ -11,8 +11,7 @@ export const listas: typeof es = {
 
   vista: {
     resumen: (n: number) => (n === 1 ? '1 family list' : `${n} family lists`),
-    buscarEnTodas: (n: number) =>
-      n === 1 ? 'Search 1 item across all lists…' : `Search ${n} items across all lists…`,
+    buscarEnTodas: (n: number) => (n === 1 ? 'Search 1 item…' : `Search ${n} items…`),
     buscarEnTodasAria: 'Search items in all lists',
     nuevaLista: 'New list',
     sinCoincidencias: 'No matches',

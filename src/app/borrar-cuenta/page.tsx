@@ -21,7 +21,7 @@ const CONTACT = 'cerredax@gmail.com'
  */
 export default function BorrarCuentaPage() {
   return (
-    <LegalShell title="Borrar tu cuenta" updated="28 de septiembre de 2026">
+    <LegalShell title="Borrar tu cuenta" updated="30 de septiembre de 2026">
       <p>
         Puedes borrar tu cuenta de Farpi y sus datos cuando quieras. Se hace desde la propia app, y si ya no
         puedes entrar, escribiéndonos.
@@ -59,6 +59,11 @@ export default function BorrarCuentaPage() {
         <p>
           En una familia <strong>compartida</strong>, lo que apuntaste para todos —un plan del calendario, un
           gasto, una lista— se queda para las demás personas, porque también es suyo.
+        </p>
+        <p>
+          Lo mismo pasa con las <strong>fichas de los documentos</strong> que subiste: se quedan en la familia, pero
+          sin el archivo, porque este vive en tu Drive y la conexión se corta. Tu familia ya no podrá abrirlos desde
+          Farpi y cualquiera de sus adultos puede borrar esas fichas.
         </p>
       </LegalSection>
 

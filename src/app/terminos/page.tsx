@@ -9,7 +9,7 @@ const CONTACT = 'cerredax@gmail.com'
 
 export default function TerminosPage() {
   return (
-    <LegalShell title="Términos de servicio" updated="27 de agosto de 2026">
+    <LegalShell title="Términos de servicio" updated="30 de septiembre de 2026">
       <p>
         Estos términos regulan el uso de Farpi. Al crear una cuenta o usar la aplicación, aceptas lo siguiente.
       </p>
@@ -17,7 +17,9 @@ export default function TerminosPage() {
       <LegalSection heading="Qué es Farpi">
         <p>
           Farpi es una aplicación privada para organizar el día a día de una familia (calendario, tareas, listas,
-          comidas y documentos). Está pensada para uso personal y familiar.
+          comidas, notas, cumpleaños, el dinero de la casa y documentos). Está pensada para uso personal y
+          familiar. Farpi no es un gestor de contraseñas ni un servicio bancario o de asesoramiento financiero:
+          las cuentas del mes son una ayuda para la casa, no una contabilidad.
         </p>
       </LegalSection>
 

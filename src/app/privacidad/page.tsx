@@ -9,7 +9,7 @@ const CONTACT = 'cerredax@gmail.com'
 
 export default function PrivacidadPage() {
   return (
-    <LegalShell title="Política de privacidad" updated="28 de septiembre de 2026">
+    <LegalShell title="Política de privacidad" updated="30 de septiembre de 2026">
       <p>
         En Farpi nos tomamos en serio tu privacidad. Esta política explica qué datos tratamos, para qué y qué
         derechos tienes. Farpi es un espacio familiar privado: no vendemos tus datos ni mostramos anuncios.
@@ -33,6 +33,10 @@ export default function PrivacidadPage() {
           familia puede verlo, y siempre a través de la app.
         </p>
         <p>
+          Si <strong>invitas</strong> a alguien a tu familia, guardamos su correo electrónico mientras la invitación
+          sigue pendiente, para poder enviársela y reconocerla cuando la acepte.
+        </p>
+        <p>
           Las <strong>notas</strong> son texto libre que escribe la familia y se guardan tal cual en nuestra base
           de datos, accesibles solo para tu familia. Están pensadas para lo que hay que tener a mano en casa
           —teléfonos, la clave del wifi, dónde está cada cosa—. <strong>Farpi no es un gestor de contraseñas</strong>:
@@ -44,11 +48,12 @@ export default function PrivacidadPage() {
           las partidas de gasto, los apuntes del día a día —importe, fecha, una descripción, de qué partida
           sale y qué persona de la familia lo pagó o lo trajo— y los presupuestos que os pasan proveedores de
           fuera, con el nombre del proveedor y su precio. <strong>Farpi no se conecta a ningún banco</strong>: no
-          pedimos ni guardamos números de cuenta, de tarjeta ni credenciales bancarias. Sí puedes traer el
+          pedimos ni guardamos números completos de cuenta o de tarjeta ni credenciales bancarias. Sí puedes traer el
           extracto que <strong>tú</strong> descargas de tu banca online (el fichero de la Norma 43, el .txt del Sabadell o el Excel del BBVA): se lee{' '}
           <strong>en tu propio móvil</strong>, no se envía a ningún sitio, y de él solo se guardan los apuntes
-          que confirmes, sin el número de la cuenta ni el de la tarjeta. Como en el resto de la app, lo ven los adultos de esa
-          familia y nadie más.
+          que confirmes. De la cuenta solo se conservan sus <strong>cuatro últimos dígitos</strong>, dentro de una
+          huella que sirve para no apuntar dos veces el mismo movimiento; ni el número entero de la cuenta ni el de la
+          tarjeta se guardan. Como en el resto de la app, lo ven los adultos de esa familia y nadie más.
         </p>
       </LegalSection>
 
@@ -84,16 +89,16 @@ export default function PrivacidadPage() {
           Los datos se alojan en la infraestructura de <strong>Supabase</strong> (base de datos) y la aplicación
           se sirve desde <strong>Vercel</strong>. Los archivos de los documentos se guardan en el{' '}
           <strong>Google Drive</strong> de quien los sube, en su propia cuenta de Google. Los correos
-          (confirmación de cuenta e invitaciones) se envían a través de un proveedor de email. Estos proveedores
-          actúan como encargados del tratamiento.
+          (confirmación de cuenta e invitaciones) se envían a través de <strong>Gmail</strong> (Google). Estos
+          proveedores actúan como encargados del tratamiento.
         </p>
       </LegalSection>
 
       <LegalSection heading="Proveedores y transferencias internacionales">
         <p>
           Usamos proveedores técnicos para prestar el servicio: Supabase para la base de datos, Google Drive para
-          los archivos de los documentos, Vercel para alojar y ejecutar la aplicación y un proveedor de correo
-          para emails de cuenta e invitaciones. Esos
+          los archivos de los documentos, Vercel para alojar y ejecutar la aplicación y Gmail (Google) para los
+          emails de cuenta e invitaciones. Esos
           proveedores pueden tratar datos fuera del Espacio Económico Europeo. En ese caso, se aplican las
           garantías contractuales y medidas exigidas por la normativa de protección de datos.
         </p>
@@ -114,6 +119,11 @@ export default function PrivacidadPage() {
           desconectó su cuenta de Google, por ejemplo— la ficha desaparece de Farpi y el archivo se queda en su
           Drive. Lo mismo al eliminar la cuenta: se borra la conexión con Google, no los archivos que subiste.
           Siguen siendo tuyos y puedes borrarlos desde tu Drive cuando quieras.
+        </p>
+        <p>
+          Si eliminas tu cuenta y tu familia continúa, las <strong>fichas</strong> de los documentos que subiste se
+          quedan en ella, pero sin archivo que abrir: al desaparecer la conexión con tu Drive, tu familia ya no
+          puede verlos desde Farpi. Cualquier adulto de la familia puede borrar esas fichas.
         </p>
       </LegalSection>
 
@@ -170,8 +180,9 @@ export default function PrivacidadPage() {
       <LegalSection heading="Notificaciones">
         <p>
           Las notificaciones push son opcionales. Si las activas, guardamos la suscripción técnica de tu
-          dispositivo (endpoint y claves públicas de la suscripción) para poder enviarte recordatorios de eventos,
-          tareas y documentos próximos a caducar. Puedes desactivarlas en cualquier momento desde Ajustes.
+          dispositivo (endpoint y claves públicas de la suscripción) para poder enviarte el resumen diario (planes,
+          tareas pendientes, cumpleaños y documentos próximos a caducar) y el aviso antes de un evento, si lo
+          pides al apuntarlo. Puedes desactivarlas en cualquier momento desde Ajustes.
         </p>
       </LegalSection>
 

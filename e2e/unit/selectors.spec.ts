@@ -16,6 +16,7 @@ import {
   selectSuggestions,
   selectTaskGroups,
   selectTaskMatches,
+  selectTasksOf,
   selectEventMatches,
   selectFamilySummary,
   selectExpiryState,
@@ -583,6 +584,28 @@ test.describe('selectExpiringDocs', () => {
     const { caducados, pronto } = selectExpiringDocs([document({ expires_on: hoy })], hoy)
     expect(caducados).toHaveLength(0)
     expect(pronto).toHaveLength(1)
+  })
+})
+
+test.describe('tareas por persona', () => {
+  const tareas = [
+    task({ title: 'A', member_id: 'm1' }),
+    task({ title: 'B', member_id: 'm2' }),
+    task({ title: 'C', child_id: 'c1' }),
+    task({ title: 'D' }),
+  ]
+
+  test('sin persona pedida salen todas', () => {
+    expect(selectTasksOf(tareas, null)).toHaveLength(4)
+  })
+
+  test('una persona, solo lo suyo: ni lo de la casa ni lo de otros', () => {
+    expect(selectTasksOf(tareas, 'm:m1').map(t => t.title)).toEqual(['A'])
+    expect(selectTasksOf(tareas, 'c:c1').map(t => t.title)).toEqual(['C'])
+  })
+
+  test('la familia es lo que no tiene dueño', () => {
+    expect(selectTasksOf(tareas, 'familia').map(t => t.title)).toEqual(['D'])
   })
 })
 

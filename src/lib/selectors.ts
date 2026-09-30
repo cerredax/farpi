@@ -1,6 +1,7 @@
 import { extractDate, getLocalDateString, isSameLocalDay, parseLocalDate } from './date-utils'
 import { eventCoversDay, isAbsence, isBirthday, isDigestPlan } from './events'
 import { DIAS_AVISO_CADUCIDAD, DIAS_VALIDEZ_INVITACION, DOC_CATEGORIES, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
+import { assigneeKeyOf } from './assignees'
 import { normalizaParaBuscar } from './text'
 import type { DocCategory, Document, Event, MealPlan, MealSlot, Note, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
@@ -430,6 +431,11 @@ export function invitacionCaducada(
 
   const dias = Math.round((parseLocalDate(today).getTime() - desde.getTime()) / 86_400_000)
   return dias > DIAS_VALIDEZ_INVITACION
+}
+
+/** Las tareas de una persona (su clave de `assigneeKeyOf`), o todas si no se pide ninguna. */
+export function selectTasksOf(tasks: Task[], key: string | null): Task[] {
+  return key ? tasks.filter(t => assigneeKeyOf(t) === key) : tasks
 }
 
 /**

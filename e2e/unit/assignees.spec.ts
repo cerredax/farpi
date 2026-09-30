@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { assigneeKeyOf, buildAssignees, eventColor, memberColor, resolveAssignee, splitPeople, textColorOn } from '@/lib/assignees'
+import { assigneeKeyOf, assigneesConTareas, buildAssignees, eventColor, memberColor, resolveAssignee, splitPeople, textColorOn } from '@/lib/assignees'
 import { CUMPLE_COLOR, FAMILY_COLOR, PERSON_COLORS } from '@/lib/constants'
 import type { Child, FamilyMember } from '@/types'
 
@@ -211,4 +211,15 @@ test('la clave del draft casa con la de su opción', () => {
   expect(assigneeKeyOf({ child_id: null, member_id: null })).toBe(opciones[0].key)
   expect(assigneeKeyOf({ child_id: null, member_id: 'm2' })).toBe(opciones[2].key)
   expect(assigneeKeyOf({ child_id: 'c1', member_id: null })).toBe(opciones[3].key)
+})
+
+test('solo se ofrece filtrar por quien tiene alguna tarea', () => {
+  const tareas = [
+    { child_id: null, member_id: 'm2' },
+    { child_id: null, member_id: 'm2' },
+    { child_id: null, member_id: null },
+  ]
+  // Sofía y la familia; Omar y Ana no tienen ninguna y no salen.
+  expect(assigneesConTareas(tareas, miembros, hijos).map(a => a.name)).toEqual(['Familia', 'Sofía'])
+  expect(assigneesConTareas([], miembros, hijos)).toEqual([])
 })

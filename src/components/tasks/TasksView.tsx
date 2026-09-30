@@ -4,28 +4,39 @@ import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { isToday, parseISO } from 'date-fns'
 import { useStore } from '@/lib/store-context'
-import { selectTaskGroups, selectTaskMatches } from '@/lib/selectors'
+import { selectTaskGroups, selectTaskMatches, selectTasksOf } from '@/lib/selectors'
+import { assigneesConTareas } from '@/lib/assignees'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { OffDayConfirmDialog } from './OffDayConfirmDialog'
 import { TaskItem } from './TaskItem'
 import { TaskSheet } from './TaskSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { SelectChip } from '@/components/ui/SelectChip'
 import type { Task, TaskDraft } from '@/types'
 
 export function TasksView() {
-  const { tasks, kids, members, createTask, updateTask, deleteTask, toggleTask } = useStore()
+  const { tasks, kids, members, currentMember, createTask, updateTask, deleteTask, toggleTask } = useStore()
 
   const [sheetOpen, setSheetOpen]             = useState(false)
   const [editingTask, setEditingTask]         = useState<Task | null>(null)
   const [showCompleted, setShowCompleted]     = useState(false)
   const [confirmTask, setConfirmTask]         = useState<Task | null>(null)
   const [busqueda, setBusqueda]               = useState('')
+  // La clave de la persona por la que se filtra (`assigneeKeyOf`), o `null` para todas.
+  const [persona, setPersona]                 = useState<string | null>(null)
 
   // Con cuatro tareas no hay nada que buscar: se ven de un vistazo.
   const puedeBuscar = tasks.length >= MINIMO_PARA_BUSCAR
   const buscando = busqueda.trim().length > 0
-  const { pending, completed } = selectTaskGroups(selectTaskMatches(tasks, busqueda))
+  // Solo se ofrece filtrar si hay a quién: con las tareas todas de la misma
+  // persona (o todas de la casa) el filtro no separaría nada. Y si la persona
+  // elegida se queda sin tareas —se reasignó la última—, se vuelve a «Todas» en
+  // vez de dejar una lista vacía sin botón que la explique.
+  const personas = assigneesConTareas(tasks, members, kids)
+  const hayQueFiltrar = personas.length > 1
+  const personaActiva = hayQueFiltrar && personas.some(p => p.key === persona) ? persona : null
+  const { pending, completed } = selectTaskGroups(selectTaskMatches(selectTasksOf(tasks, personaActiva), busqueda))
 
   // Buscando se enseña todo, lo mismo que hace el catálogo de una lista: si lo
   // único que coincide es una tarea ya hecha, dejarla debajo del pliegue sería
@@ -83,6 +94,26 @@ export function TasksView() {
             onAdd={openCreate}
             addLabel="Nueva tarea"
           />
+          {/* «¿Qué me toca a mí?» es lo primero que se pregunta en una casa con más
+              de una persona. Los chips van en su propia fila con scroll lateral: en
+              una familia de cinco no caben en 390 px, y partirlos en dos filas
+              empujaría la lista media pantalla. Todos en el verde de siempre y no
+              en el color de cada persona: el nombre sobre su color no llega al
+              contraste con texto blanco (ver `fondoDePersona`). */}
+          {hayQueFiltrar && (
+            <div role="group" aria-label="Filtrar por persona" className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              <div className="flex-shrink-0">
+                <SelectChip selected={personaActiva === null} onClick={() => setPersona(null)}>Todas</SelectChip>
+              </div>
+              {personas.map(p => (
+                <div key={p.key} className="flex-shrink-0">
+                  <SelectChip selected={personaActiva === p.key} onClick={() => setPersona(p.key)}>
+                    {currentMember && p.member_id === currentMember.id ? 'Mías' : p.name}
+                  </SelectChip>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <section className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">

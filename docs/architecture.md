@@ -1620,6 +1620,16 @@ mismos que "Repetición". En la lista sí queda señal de color —la banda de 4
 tarjeta, en `PRIORITY_BORDER`—, y ahí no choca: una banda pegada al canto no se confunde con un
 punto que además lleva el nombre al lado.
 
+**«¿Qué me toca a mí?» se filtra por persona** (30-09-2026). Sobre la lista hay una fila de
+chips —«Todas», «Mías» para quien está dentro, y cada persona o «Familia» que **tenga alguna
+tarea**— (`assigneesConTareas`, `selectTasksOf`). Solo sale si hay más de una opción: con las
+tareas todas de la misma persona no separaría nada. No se guarda entre visitas, y si la persona
+elegida se queda sin tareas se vuelve a «Todas». Los chips van en el verde de siempre y no en el
+color de cada persona, por la misma razón que el nombre va en tinta y no pintado.
+**Una tarea completada dice quién la hizo** («Hecha por María», desde `completed_by`, que es el
+`user_id` del miembro). Solo las que se completan del todo: una tarea que se repite no se
+completa, le empuja la fecha, y no queda a nombre de nadie.
+
 ### Comidas
 
 **Las franjas se eligen, y son de la familia.** Las de casa —desayuno, comida, merienda y cena,

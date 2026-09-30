@@ -157,6 +157,46 @@ test('lo que apunta otra persona aparece sin recargar la pantalla', async ({ pag
   await expect(page.getByText('Llamar al fontanero')).toBeVisible()
 })
 
+// «¿Qué me toca a mí?»: con tareas de más de una persona, una fila de chips filtra
+// por quién las tiene. En los datos de demo hay de Carlos (que es quien está
+// dentro), de María, de Cris y de toda la casa.
+test('las tareas se pueden filtrar por persona, y «Mías» es la de quien está dentro', async ({ page }) => {
+  await page.goto('/tasks')
+  const filtro = page.getByRole('group', { name: 'Filtrar por persona' })
+  await expect(filtro).toBeVisible()
+  await expect(page.getByText('Poner una lavadora')).toBeVisible() // de María
+
+  await filtro.getByRole('button', { name: 'Mías' }).click()
+  await expect(page.getByText('Llamar al seguro del coche')).toBeVisible() // de Carlos
+  await expect(page.getByText('Poner una lavadora')).toHaveCount(0)
+  await expect(page.getByText('Sacar la basura')).toHaveCount(0) // de nadie: es de la casa
+
+  await filtro.getByRole('button', { name: 'Familia' }).click()
+  await expect(page.getByText('Sacar la basura')).toBeVisible()
+  await expect(page.getByText('Llamar al seguro del coche')).toHaveCount(0)
+
+  await filtro.getByRole('button', { name: 'Todas' }).click()
+  await expect(page.getByText('Poner una lavadora')).toBeVisible()
+  await expect(page.getByText('Llamar al seguro del coche')).toBeVisible()
+})
+
+// Quién marcó una tarea como hecha, escrito en ella. Antes se guardaba y no se
+// enseñaba en ninguna parte.
+test('una tarea completada dice quién la hizo', async ({ page }) => {
+  await page.goto('/tasks')
+  await page.getByRole('button', { name: 'Nueva tarea' }).click()
+  const alta = page.getByRole('dialog', { name: 'Nueva tarea' })
+  await alta.getByRole('textbox', { name: 'Tarea', exact: true }).fill('Regar el jardín')
+  await alta.getByRole('button', { name: 'Crear tarea' }).click()
+  await expect(alta).toHaveAttribute('inert', '')
+
+  // El botón de marcar se llama igual en todas las filas: se coge el de la de esta tarea.
+  const fila = page.getByText('Regar el jardín').locator('xpath=ancestor::div[contains(@class, "rounded-2xl")][1]')
+  await fila.getByRole('button', { name: 'Marcar como completada' }).click()
+  await page.getByRole('button', { name: /^Completadas/ }).click()
+  await expect(page.getByText('Hecha por Carlos').first()).toBeVisible()
+})
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

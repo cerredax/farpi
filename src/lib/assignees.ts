@@ -198,6 +198,20 @@ export function fondoDePersona(color: string): string {
   return `${color}80`
 }
 
+/**
+ * Las personas —y «Familia»— que tienen alguna tarea, en el orden en que se
+ * ofrecen al asignar. Es lo que se puede filtrar: ofrecer a alguien sin ninguna
+ * tarea sería un botón que siempre contesta «nada».
+ */
+export function assigneesConTareas(
+  tareas: { child_id: string | null; member_id: string | null }[],
+  members: FamilyMember[],
+  kids: Child[],
+): Assignee[] {
+  const claves = new Set(tareas.map(assigneeKeyOf))
+  return buildAssignees(members, kids).filter(a => claves.has(a.key))
+}
+
 /** La opción que corresponde al estado actual de un draft. */
 export function assigneeKeyOf(entidad: { child_id: string | null; member_id: string | null }): string {
   if (entidad.member_id) return `m:${entidad.member_id}`

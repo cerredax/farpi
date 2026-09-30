@@ -43,6 +43,11 @@ function formatDue(dateStr: string): { label: string; overdue: boolean } {
 export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: TaskItemProps) {
   const due = task.due_date ? formatDue(task.due_date) : null
   const asignado = resolveAssignee(task, members, kids)
+  // Quién la marcó. Solo una tarea que se completa del todo lo guarda: una que se
+  // repite no se completa, le empuja la fecha, y ahí no queda a nombre de nadie.
+  const hechaPor = task.completed && task.completed_by
+    ? members.find(m => m.user_id === task.completed_by)?.display_name ?? null
+    : null
   const { confirming, requestConfirm } = useConfirmAction(MS_CONFIRMAR_BORRADO)
 
   return (
@@ -68,7 +73,7 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
           {task.title}
         </p>
 
-        {(task.notes || due || asignado || task.recurrence !== 'none') && (
+        {(task.notes || due || asignado || hechaPor || task.recurrence !== 'none') && (
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {/* De quién es, en su color y con nombre. Sin nombre no se sabría de
                 quién es el color hasta habérselo aprendido, y "es de todos" no
@@ -90,6 +95,9 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
             )}
             {task.notes && (
               <p className="text-xs text-muted truncate max-w-[160px]">{task.notes}</p>
+            )}
+            {hechaPor && (
+              <span className="text-[10px] font-bold text-muted">Hecha por {hechaPor}</span>
             )}
             {due && (
               <span

@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-23.
+Última revisión: 2026-09-30.
 
 ## Resumen
 
@@ -853,12 +853,12 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **859 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **975 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - **660 unitarios de lógica pura** en `e2e/unit/`, contados en la pasada del
-    21-09-2026. No levantan servidor: `npm run test:unit`.
+  - **737 unitarios de lógica pura** en `e2e/unit/`, contados con `--list` el
+    30-09-2026. No levantan servidor: `npm run test:unit`.
 
     *Los últimos en entrar*, del más reciente al más antiguo:
 
@@ -950,8 +950,9 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 199 de navegador. La cifra sale de la pasada completa del 22-09-2026 (859 en total,
-    660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
+  - 238 de navegador, contados con `--list` el 30-09-2026 (975 en total, 737 unitarios;
+    13 de ellos, los del recorrido de idioma, van en `fixme` hasta que se migren sus
+    pantallas). La lista que sigue es del 22-09-2026 (859 en total, 660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
     fichero sube, que lo que ya cubre un fijo llega desmarcado y con su motivo escrito,
     que lo confirmado aparece en el mes y que **el mismo fichero dos veces no apunta
     nada la segunda**, que es lo que paga el `import_ref` de la base—, más los cinco que

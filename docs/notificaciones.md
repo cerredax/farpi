@@ -219,7 +219,7 @@ diga lo que diga su pantalla de Ajustes.
 
 Desde el 15-09-2026 el aviso **nombra** lo que hay en vez de contarlo. El texto lo
 escribe `src/lib/reminders.ts` —fuera de la ruta del cron, para poder probarlo sin
-levantar nada, con sus 21 unitarios en `e2e/unit/reminders.spec.ts`—:
+levantar nada, con sus 27 unitarios en `e2e/unit/reminders.spec.ts`—:
 
 - El **título es el día**: "Martes 15".
 - Un solo plan se dice entero: "Fisio, a las 11:00."

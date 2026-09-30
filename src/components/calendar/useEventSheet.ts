@@ -22,7 +22,7 @@ interface Params {
   defaultTime?: string
   onClose: () => void
   onCreate: (draft: EventDraft) => void
-  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string) => void
+  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => void
   onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
   onUpdate: (id: string, draft: EventDraft) => void
   onDelete: (id: string) => void
@@ -112,6 +112,8 @@ export function useEventSheet({
   const [recurrence, setRecurrence] = useState<EventRecurrence>('none')
   const [recurrenceWeekdays, setRecurrenceWeekdays] = useState<number[]>([])
   const [recurrenceEnd, setRecurrenceEnd] = useState('')
+  // Cada cuántas semanas: 1 = todas, 2 = una sí y una no.
+  const [recurrenceEvery, setRecurrenceEvery] = useState(1)
   const [recurrenceEndYear, setRecurrenceEndYear] = useState<number>(() => new Date().getFullYear() + 5)
   // Si nadie ha tocado los días a mano, cambiar la fecha los mueve con ella.
   const weekdaysTouchedRef = useRef(false)
@@ -145,14 +147,18 @@ export function useEventSheet({
   }
 
   // ── Serie semanal ───────────────────────────────────────────────────────────
+  // **La fecha de fin es opcional.** Cada ocurrencia es una fila, así que «sin
+  // fin» no puede ser infinito: son las 52 semanas del tope, que es lo que se
+  // apunta si se deja en blanco y lo que el formulario dice que va a pasar.
+  const finEfectivo = recurrenceEnd || maxWeeklyEndDate(draft.date)
+  const sinFin = !recurrenceEnd
   const seriesCount = recurrence === 'weekly'
-    ? buildWeeklyDates(draft.date, recurrenceEnd, recurrenceWeekdays).length
+    ? buildWeeklyDates(draft.date, finEfectivo, recurrenceWeekdays, recurrenceEvery).length
     : 0
 
   const seriesError: string | null = recurrence === 'weekly' ? (() => {
     if (recurrenceWeekdays.length === 0) return 'Selecciona al menos un día'
-    if (!recurrenceEnd) return 'Indica la fecha de fin'
-    if (recurrenceEnd < draft.date) return 'La fecha de fin debe ser posterior a la fecha de inicio'
+    if (recurrenceEnd && recurrenceEnd < draft.date) return 'La fecha de fin debe ser posterior a la fecha de inicio'
     if (recurrenceEnd > maxWeeklyEndDate(draft.date)) return 'El período máximo es 52 semanas'
     if (seriesCount === 0) return 'No se crearán eventos con esta configuración'
     return null
@@ -184,7 +190,7 @@ export function useEventSheet({
       onCreateYearlySeries?.(conTitulo, startYear + ANOS_DE_CUMPLE)
     } else if (recurrence === 'weekly') {
       if (seriesError) return
-      onCreateSeries?.(conTitulo, recurrenceWeekdays, recurrenceEnd)
+      onCreateSeries?.(conTitulo, recurrenceWeekdays, finEfectivo, recurrenceEvery)
     } else if (recurrence === 'yearly') {
       if (yearlyError) return
       onCreateYearlySeries?.(conTitulo, recurrenceEndYear)
@@ -222,7 +228,7 @@ export function useEventSheet({
           ? `Apuntar ${yearlyCount} día${yearlyCount !== 1 ? 's' : ''}`
           : 'Apuntar'
 
-  const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && !!recurrenceEnd && seriesCount > 0
+  const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && seriesCount > 0
 
   return {
     draft, patch, formError, firstFieldRef, handleSubmit,
@@ -232,13 +238,14 @@ export function useEventSheet({
     recurrence, setNone, setWeekly, setYearly,
     recurrenceWeekdays, toggleWeekday,
     recurrenceEnd, setRecurrenceEnd,
+    recurrenceEvery, setRecurrenceEvery, sinFin,
     recurrenceEndYear, setRecurrenceEndYear,
     handleDateChange,
     seriesCount, seriesError, startYear, yearlyCount, yearlyError, vacacionesError,
     canSubmit, submitLabel,
     previewReady,
     previewDaysText: joinWeekdayNames(recurrenceWeekdays),
-    previewEndText: recurrenceEnd ? format(parseLocalDate(recurrenceEnd), "d 'de' MMMM", { locale: es }) : '',
+    previewEndText: format(parseLocalDate(finEfectivo), "d 'de' MMMM", { locale: es }),
     maxEnd: maxWeeklyEndDate(draft.date),
   }
 }

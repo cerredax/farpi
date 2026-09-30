@@ -22,7 +22,7 @@ interface EventSheetProps {
   members: FamilyMember[]
   onClose: () => void
   onCreate: (draft: EventDraft) => void
-  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string) => void
+  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => void
   onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
   onUpdate: (id: string, draft: EventDraft) => void
   onDelete: (id: string) => void

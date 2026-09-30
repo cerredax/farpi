@@ -1669,6 +1669,14 @@ tres con puntos.
 
 ### Calendario
 
+**Una serie semanal admite «una semana sí y otra no» y no obliga a poner fin** (30-09-2026). Cada
+ocurrencia es una fila, así que «sin fin» no puede ser infinito: son las 52 semanas del tope
+(`maxWeeklyEndDate`), y el formulario lo dice antes de guardar («durante las próximas 52
+semanas»). Las semanas se cuentan de lunes a domingo desde la del inicio (`buildWeeklyDates`,
+`everyWeeks`). Lo que sigue **sin existir**: una repetición mensual de eventos y una serie de
+verdad infinita —haría falta generar las filas al vuelo—. Editar una serie semanal edita una
+ocurrencia; una anual, la serie entera (ver «Cumpleaños»).
+
 **Es una lista continua, y el mes un mapa que se despliega.** En móvil la pantalla es la vista
 Programación de Google Calendar: cabecera y **una sola lista** que arranca en hoy. Hubo pestañas
 `Agenda` / `Mes` y se fueron al abrir la app: la pestaña por defecto era la lista, así que **el

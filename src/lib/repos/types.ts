@@ -55,7 +55,8 @@ export interface ChildrenRepo {
 export interface EventsRepo {
   getEvents(familyId: string): Promise<Event[]>
   createEvent(familyId: string, draft: EventDraft): Promise<Event>
-  createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string): Promise<Event[]>
+  /** `everyWeeks`: cada cuántas semanas (1 por defecto, 2 = una sí y una no). */
+  createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number): Promise<Event[]>
   createYearlySeries(familyId: string, draft: EventDraft, endYear: number): Promise<Event[]>
   updateEvent(id: string, draft: EventDraft): Promise<void>
   /**

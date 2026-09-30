@@ -1,6 +1,7 @@
 'use client'
 
 import { Field } from '@/components/ui/Field'
+import { SelectChip } from '@/components/ui/SelectChip'
 import type { useEventSheet } from './useEventSheet'
 
 // L M X J V S D → getDay(): lunes=1 … domingo=0
@@ -71,7 +72,16 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
             </div>
           </Field>
 
-          <Field label="Termina el" htmlFor="event-rec-end">
+          {/* Cada semana o una sí y una no: el turno de trabajo de quien libra
+              alternos, o la recogida del cole de cada quince días. */}
+          <Field label="Cada" spacing="group">
+            <div className="flex gap-2">
+              <SelectChip selected={s.recurrenceEvery === 1} onClick={() => s.setRecurrenceEvery(1)}>Semana</SelectChip>
+              <SelectChip selected={s.recurrenceEvery === 2} onClick={() => s.setRecurrenceEvery(2)}>2 semanas</SelectChip>
+            </div>
+          </Field>
+
+          <Field label="Termina el" htmlFor="event-rec-end" hint="(opcional)">
             <input
               id="event-rec-end"
               type="date"
@@ -86,7 +96,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
           {s.previewReady && (
             <SeriesPreview
               titulo={s.draft.title}
-              frase={`se añadirá los ${s.previewDaysText} hasta el ${s.previewEndText}.`}
+              frase={`se añadirá los ${s.previewDaysText}${s.recurrenceEvery === 2 ? ', una semana sí y otra no,' : ''} ${s.sinFin ? 'durante las próximas 52 semanas, hasta' : 'hasta'} el ${s.previewEndText}.`}
               total={`Se crearán ${s.seriesCount} eventos.`}
             />
           )}

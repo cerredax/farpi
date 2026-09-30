@@ -53,6 +53,43 @@ test.describe('buildWeeklyDates', () => {
   })
 })
 
+test.describe('buildWeeklyDates cada dos semanas', () => {
+  test('salta una semana de cada dos, contando desde la del inicio', () => {
+    // 2026-08-03 es lunes: lunes 3, [semana 10 fuera], lunes 17, [24 fuera], lunes 31
+    expect(buildWeeklyDates('2026-08-03', '2026-08-31', [1], 2)).toEqual([
+      '2026-08-03', '2026-08-17', '2026-08-31',
+    ])
+  })
+
+  test('con varios días, los de las semanas que tocan y ninguno de las que no', () => {
+    expect(buildWeeklyDates('2026-08-03', '2026-08-23', [1, 3], 2)).toEqual([
+      '2026-08-03', '2026-08-05', '2026-08-17', '2026-08-19',
+    ])
+  })
+
+  test('empezando a mitad de semana, esa semana cuenta como la primera', () => {
+    // 2026-08-05 es miércoles: el lunes 3 queda antes del inicio y no entra,
+    // pero la semana del 3 al 9 es la que toca; la del 10 no; la del 17 sí.
+    expect(buildWeeklyDates('2026-08-05', '2026-08-23', [1, 3], 2)).toEqual([
+      '2026-08-05', '2026-08-17', '2026-08-19',
+    ])
+  })
+
+  test('cada 1 semana es lo de siempre, y un valor absurdo no rompe nada', () => {
+    const cadaSemana = buildWeeklyDates('2026-08-03', '2026-08-17', [1])
+    expect(buildWeeklyDates('2026-08-03', '2026-08-17', [1], 1)).toEqual(cadaSemana)
+    expect(buildWeeklyDates('2026-08-03', '2026-08-17', [1], 0)).toEqual(cadaSemana)
+    expect(buildWeeklyDates('2026-08-03', '2026-08-17', [1], -3)).toEqual(cadaSemana)
+  })
+
+  test('cruza el cambio de hora sin perder ni repetir un día', () => {
+    // El 25-10-2026 se atrasa el reloj en España: una suma de milisegundos se
+    // habría comido o duplicado una fecha.
+    const fechas = buildWeeklyDates('2026-10-05', '2026-11-16', [1], 2)
+    expect(fechas).toEqual(['2026-10-05', '2026-10-19', '2026-11-02', '2026-11-16'])
+  })
+})
+
 test.describe('sameDayInYear', () => {
   test('lleva el mes y el día a otro año', () => {
     expect(sameDayInYear('2027-03-05', 2029)).toBe('2029-03-05')

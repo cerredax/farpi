@@ -219,8 +219,8 @@ export function CalendarView() {
     enfocarDia(parseISO(event.start_at))
   }
 
-  async function handleCreateSeries(draft: EventDraft, weekdays: number[], endDate: string) {
-    const created = await createEventSeries(draft, weekdays, endDate)
+  async function handleCreateSeries(draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) {
+    const created = await createEventSeries(draft, weekdays, endDate, everyWeeks)
     if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
   }
 

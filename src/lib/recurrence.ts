@@ -40,14 +40,27 @@ export function isYearlySeries(startAts: string[]): boolean {
   return new Set(startAts.map(s => getLocalDateString(new Date(s)).slice(5))).size === 1
 }
 
-/** Todas las fechas yyyy-MM-dd de una serie semanal entre dos fechas, en los días indicados (0=domingo). */
-export function buildWeeklyDates(startDate: string, endDate: string, weekdays: number[]): string[] {
+/**
+ * Todas las fechas yyyy-MM-dd de una serie semanal entre dos fechas, en los días
+ * indicados (0=domingo).
+ *
+ * `everyWeeks` es cada cuántas semanas: con 2, se salta una semana de cada dos.
+ * Las semanas se cuentan de lunes a domingo **desde la de la fecha de inicio**, no
+ * desde el día en que cae: empezar un miércoles «lunes y miércoles cada 2
+ * semanas» pone el miércoles de esa semana, no el lunes anterior, y la siguiente
+ * semana con eventos es la de dentro de dos.
+ */
+export function buildWeeklyDates(startDate: string, endDate: string, weekdays: number[], everyWeeks = 1): string[] {
   const dates: string[] = []
   if (!startDate || !endDate || weekdays.length === 0) return dates
+  const cadaCuanto = Math.max(1, Math.floor(everyWeeks))
   const cur = parseLocalDate(startDate)
   const end = parseLocalDate(endDate)
-  while (cur <= end) {
-    if (weekdays.includes(cur.getDay())) {
+  // Cuántos días hay del lunes de la semana de inicio al día de inicio.
+  const desdeElLunes = (cur.getDay() + 6) % 7
+  for (let dia = 0; cur <= end; dia++) {
+    const semana = Math.floor((dia + desdeElLunes) / 7)
+    if (semana % cadaCuanto === 0 && weekdays.includes(cur.getDay())) {
       dates.push(getLocalDateString(cur))
     }
     cur.setDate(cur.getDate() + 1)

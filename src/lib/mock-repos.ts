@@ -52,8 +52,8 @@ export const mockRepos: Repos = {
   events: {
     getEvents:          (familyId) => Promise.resolve(store.getEvents(familyId)),
     createEvent:        (familyId, draft) => Promise.resolve(store.createEvent(familyId, draft)),
-    createEventSeries:  (familyId, draft, weekdays, endDate) =>
-      Promise.resolve(store.createEventSeries(familyId, draft, weekdays, endDate)),
+    createEventSeries:  (familyId, draft, weekdays, endDate, everyWeeks) =>
+      Promise.resolve(store.createEventSeries(familyId, draft, weekdays, endDate, everyWeeks)),
     createYearlySeries: (familyId, draft, endYear) =>
       Promise.resolve(store.createYearlySeries(familyId, draft, endYear)),
     updateEvent: (id, draft) => Promise.resolve(store.updateEvent(id, draft)),

@@ -75,11 +75,11 @@ export const eventsRepo: EventsRepo = {
 
   // Las series se materializan: una fila por ocurrencia, atadas por
   // `recurrence_group_id` para poder borrarlas de golpe.
-  async createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string): Promise<Event[]> {
+  async createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string, everyWeeks = 1): Promise<Event[]> {
     const supabase = createClient()
     const userId = await currentUserId()
     const groupId = crypto.randomUUID()
-    const rows = buildWeeklyDates(draft.date, endDate, weekdays)
+    const rows = buildWeeklyDates(draft.date, endDate, weekdays, everyWeeks)
       .map(date => eventInsert(familyId, userId, { ...draft, date }, groupId))
 
     if (rows.length === 0) return []

@@ -197,6 +197,37 @@ test('una tarea completada dice quién la hizo', async ({ page }) => {
   await expect(page.getByText('Hecha por Carlos').first()).toBeVisible()
 })
 
+// Una serie semanal ya no obliga a poner fecha de fin y admite «una semana sí y
+// otra no». Sin fin no es infinito: cada ocurrencia es una fila, así que se
+// apuntan las 52 semanas del tope, y el formulario lo dice antes de guardar.
+test('un evento se repite cada dos semanas y sin fecha de fin', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
+  await sheet.locator('#event-title').fill('Recoger a los abuelos')
+  await sheet.locator('#event-date').fill('2027-03-01') // lunes
+  await sheet.getByRole('button', { name: 'Cada semana' }).click()
+  await sheet.getByRole('button', { name: '2 semanas' }).click()
+
+  // Sin fecha de fin: lo dice, y cuenta bien. 52 semanas desde el lunes 1 son 27 lunes alternos.
+  await expect(sheet.getByText('una semana sí y otra no')).toBeVisible()
+  await expect(sheet.getByText('durante las próximas 52 semanas')).toBeVisible()
+  await expect(sheet.getByText('Se crearán 27 eventos.')).toBeVisible()
+  await sheet.locator(GUARDAR_EVENTO).click()
+
+  const fechas: string[] = await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem('farpi_store_v1') ?? '{}').events ?? [])
+      .filter((e: { title: string }) => e.title === 'Recoger a los abuelos')
+      .map((e: { start_at: string }) => e.start_at.slice(0, 10))
+      .sort())
+  expect(fechas).toHaveLength(27)
+  expect(fechas[0]).toBe('2027-03-01')
+  // Todas a catorce días de la anterior, y todas lunes.
+  const dias = fechas.map(f => Date.UTC(+f.slice(0, 4), +f.slice(5, 7) - 1, +f.slice(8, 10)) / 86_400_000)
+  expect(dias.slice(1).map((d, i) => d - dias[i]).every(paso => paso === 14)).toBe(true)
+  expect(fechas.every(f => new Date(f + 'T12:00:00').getDay() === 1)).toBe(true)
+})
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

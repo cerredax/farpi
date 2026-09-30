@@ -113,11 +113,12 @@ export function createEventSeries(
   draft: EventDraft,
   weekdays: number[],
   endDate: string,
+  everyWeeks = 1,
 ): Event[] {
   const groupId = crypto.randomUUID()
   const created: Event[] = []
 
-  for (const date of buildWeeklyDates(draft.date, endDate, weekdays)) {
+  for (const date of buildWeeklyDates(draft.date, endDate, weekdays, everyWeeks)) {
     const e = buildEventFromDraft(familyId, { ...draft, date }, groupId)
     db.events = [...db.events, e]
     created.push(e)

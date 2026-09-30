@@ -133,7 +133,7 @@ interface StoreValue {
   updateKid: (id: string, draft: ChildDraft) => Promise<void>
   deleteKid: (id: string) => Promise<void>
   createEvent: (draft: EventDraft) => Promise<Event | null>
-  createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) => Promise<Event[]>
+  createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => Promise<Event[]>
   createYearlySeries: (draft: EventDraft, endYear: number) => Promise<Event[]>
   updateEvent: (id: string, draft: EventDraft) => Promise<void>
   deleteEvent: (id: string) => Promise<void>
@@ -772,9 +772,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           mensajes().noSeCreoEvento,
           ['events'],
         ),
-      createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) =>
+      createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) =>
         runMutationWith<Event[]>(
-          () => repos.events.createEventSeries(familyId, draft, weekdays, endDate),
+          () => repos.events.createEventSeries(familyId, draft, weekdays, endDate, everyWeeks),
           [],
           mensajes().noSeCreoSerie,
           ['events'],

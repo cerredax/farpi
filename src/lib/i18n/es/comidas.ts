@@ -77,7 +77,7 @@ export const comidas = {
     copiarAlDia: 'Copiar al día',
     seSustituira: 'Si ese día ya tenía menú, se sustituirá por este.',
     repetirCadaDia: 'Repetir este menú cada día',
-    ideal: 'Ideal para repetir una semana tipo hasta la fecha que elijas.',
+    ideal: 'Pone este mismo menú en todos los días hasta la fecha que elijas, y sustituye lo que hubiera.',
     fechaFin: 'Fecha fin',
     fechaFinAnterior: 'La fecha fin no puede ser anterior al día destino.',
   },

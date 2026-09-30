@@ -74,7 +74,7 @@ export const comidas: typeof es = {
     copiarAlDia: 'Copy to day',
     seSustituira: 'If that day already had a menu, it will be replaced by this one.',
     repetirCadaDia: 'Repeat this menu every day',
-    ideal: 'Handy for repeating a typical week up to the date you choose.',
+    ideal: 'Puts this same menu on every day up to the date you choose, replacing whatever was there.',
     fechaFin: 'End date',
     fechaFinAnterior: 'The end date cannot be before the target day.',
   },

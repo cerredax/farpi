@@ -312,22 +312,25 @@ export function DayCell({
      * los hace distinguibles sin fiarlo al color.
      */
     /**
-     * **En móvil, hoy es un disco salmón lleno y el día elegido un aro verde**
-     * (28-09-2026). Es la convención de Google Calendar y de iOS, y a 52 px de
-     * celda es lo que se encuentra sin buscar. El aro fino de salmón, que sigue en
-     * escritorio, en el móvil se perdía entre treinta números. Hoy y el elegido
-     * siguen siendo formas distintas, disco y aro, así que no dependen del color.
-     * Si coinciden, el disco de hoy lleva el aro verde por fuera.
+     * **En móvil, hoy es un disco salmón suave y el día elegido un aro verde**
+     * (30-09-2026). El disco lleno de `accent-strong` (28-09-2026) se encontraba
+     * bien, pero pesaba demasiado: era lo más oscuro de la pantalla, y su marrón
+     * rojizo se leía como una alerta, del mismo rojo que el «tareas atrasadas» que
+     * hay justo debajo. Ahora es el mismo `accent-tint` que ya usa escritorio, con
+     * el número en `accent-strong` (6,0:1) y sin borde: se sigue viendo entre los
+     * demás números y no grita.
      *
-     * Blanco sobre `accent-strong` da 6,29:1 y el aro va en `primary-strong`
-     * (4,8:1). En escritorio no cambia nada: el elegido sigue siendo la celda.
+     * Hoy y el elegido siguen siendo formas distintas, disco y aro, así que no
+     * dependen del color. Si coinciden, el disco de hoy lleva el aro verde por
+     * fuera (`primary-strong`, 4,8:1). En escritorio no cambia nada: hoy es el aro
+     * sobre tinte y el elegido, la celda.
      *
-     * Ese mismo día, unas horas antes, fue al revés —hoy un aro y el elegido un
-     * disco verde— y no convencía: la marca fuerte se la llevaba el día que se
-     * toca, no el día en que se está.
+     * Del 28-09 al 30-09-2026 fue el disco macizo; el 28-09, unas horas antes, un
+     * aro con el elegido en disco verde, que no convencía porque la marca fuerte
+     * se la llevaba el día que se toca y no el día en que se está.
      */
-    if (isToday && isSelected) return 'bg-accent-strong text-white ring-2 ring-primary-strong ring-offset-2 lg:ring-0 lg:ring-offset-0 lg:bg-accent-tint lg:text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
-    if (isToday) return 'bg-accent-strong text-white lg:bg-accent-tint lg:text-accent-strong shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
+    if (isToday && isSelected) return 'bg-accent-tint text-accent-strong ring-2 ring-primary-strong ring-offset-2 lg:ring-0 lg:ring-offset-0 lg:shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
+    if (isToday) return 'bg-accent-tint text-accent-strong lg:shadow-[inset_0_0_0_2px_var(--color-accent-strong)]'
     if (isSelected) return `shadow-[inset_0_0_0_2px_var(--color-primary-strong)] lg:shadow-none ${esDiaLibre ? 'text-muted lg:text-ink' : 'text-ink'}`
     // Del mes de al lado, apagado a propósito: se toca igual, pero no es de este mes.
     if (fueraDeMes) return 'text-muted-soft'

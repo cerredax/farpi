@@ -3,8 +3,10 @@ import {
   buildWeeklyDates,
   buildYearlyDates,
   getNextOccurrence,
+  isYearlySeries,
   joinWeekdayNames,
   maxWeeklyEndDate,
+  sameDayInYear,
   weekdayOf,
 } from '@/lib/recurrence'
 
@@ -48,6 +50,38 @@ test.describe('buildWeeklyDates', () => {
     expect(buildWeeklyDates('2026-12-28', '2027-01-11', [1])).toEqual([
       '2026-12-28', '2027-01-04', '2027-01-11',
     ])
+  })
+})
+
+test.describe('sameDayInYear', () => {
+  test('lleva el mes y el día a otro año', () => {
+    expect(sameDayInYear('2027-03-05', 2029)).toBe('2029-03-05')
+  })
+
+  test('es lo que hace buildYearlyDates con cada año: las dos dicen lo mismo', () => {
+    const fechas = buildYearlyDates('11-30', 2026, 2030)
+    expect(fechas.map(f => sameDayInYear('2026-11-30', Number(f.slice(0, 4))))).toEqual(fechas)
+  })
+})
+
+test.describe('isYearlySeries', () => {
+  test('las filas de un cumpleaños caen el mismo día de años distintos', () => {
+    expect(isYearlySeries(['2026-03-15T00:00:00', '2027-03-15T00:00:00', '2028-03-15T00:00:00'])).toBe(true)
+  })
+
+  test('una serie semanal no lo es: sus filas van de siete en siete días', () => {
+    expect(isYearlySeries(['2026-08-03T09:00:00', '2026-08-10T09:00:00', '2026-08-17T09:00:00'])).toBe(false)
+  })
+
+  test('con una sola fila no hay serie que decir', () => {
+    expect(isYearlySeries(['2026-03-15T00:00:00'])).toBe(false)
+    expect(isYearlySeries([])).toBe(false)
+  })
+
+  test('un cumpleaños el 1 de enero sigue siéndolo con la hora de Madrid en UTC', () => {
+    // La medianoche local del 1 de enero es el 31 de diciembre en UTC: se mira el día local.
+    const local = (y: number) => new Date(y, 0, 1).toISOString()
+    expect(isYearlySeries([local(2026), local(2027), local(2028)])).toBe(true)
   })
 })
 

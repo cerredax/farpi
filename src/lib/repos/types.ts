@@ -58,6 +58,12 @@ export interface EventsRepo {
   createEventSeries(familyId: string, draft: EventDraft, weekdays: number[], endDate: string): Promise<Event[]>
   createYearlySeries(familyId: string, draft: EventDraft, endYear: number): Promise<Event[]>
   updateEvent(id: string, draft: EventDraft): Promise<void>
+  /**
+   * Cambia **toda** una serie anual con lo que dice el borrador: título, persona,
+   * año de nacimiento y día del año. Cada fila conserva su año: la fecha del
+   * borrador solo aporta el mes y el día.
+   */
+  updateYearlySeries(groupId: string, draft: EventDraft): Promise<void>
   deleteEvent(id: string): Promise<void>
   deleteEventSeries(groupId: string): Promise<void>
 }

@@ -23,6 +23,23 @@ export function buildYearlyDates(mmdd: string, startYear: number, endYear: numbe
   return dates
 }
 
+/** La misma fecha en otro año: `2027-03-05` en 2029 es `2029-03-05`. Así se construye cada fila de una serie anual. */
+export function sameDayInYear(date: string, year: number): string {
+  return `${year}-${date.slice(5)}`
+}
+
+/**
+ * Si las ocurrencias de una serie caen todas el mismo día del año (un cumpleaños,
+ * un «cada año»). Una semanal nunca: sus filas van de siete en siete días.
+ *
+ * Con una sola fila no hay serie que decir —las demás se borraron una a una— y
+ * editar esa es editar un evento suelto.
+ */
+export function isYearlySeries(startAts: string[]): boolean {
+  if (startAts.length < 2) return false
+  return new Set(startAts.map(s => getLocalDateString(new Date(s)).slice(5))).size === 1
+}
+
 /** Todas las fechas yyyy-MM-dd de una serie semanal entre dos fechas, en los días indicados (0=domingo). */
 export function buildWeeklyDates(startDate: string, endDate: string, weekdays: number[]): string[] {
   const dates: string[] = []

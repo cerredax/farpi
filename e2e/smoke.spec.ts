@@ -288,6 +288,56 @@ test('los cumpleaños se ven todos juntos y se apuntan desde su pantalla', async
 })
 
 /**
+ * Corregir un cumpleaños apuntado corrige **toda la serie**.
+ *
+ * Un cumpleaños apuntado son unas veinte filas, una por año. Editar solo la que
+ * se abría dejaba el nombre o el día viejos en las demás, y el error salía al año
+ * siguiente. Se mira lo guardado y no solo la pantalla: la pantalla enseña la
+ * próxima fila, y las otras diecinueve no se ven.
+ */
+test('corregir un cumpleaños apuntado corrige toda la serie, no una copia', async ({ page }) => {
+  const hoy = new Date()
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0')
+  const dia = (d: number) => String(d).padStart(2, '0')
+  const diaOriginal = hoy.getDate() === 15 ? 14 : 15
+  const diaNuevo = diaOriginal + 2
+
+  await page.goto('/birthdays')
+  await page.getByRole('button', { name: 'Apuntar un cumpleaños' }).click()
+  await page.locator('#event-title').fill('Tía Rosa')
+  await page.locator('#event-date').fill(`${hoy.getFullYear()}-${mes}-${dia(diaOriginal)}`)
+  await page.locator(GUARDAR_EVENTO).click()
+
+  const guardadas = () => page.evaluate<{ titulo: string, fecha: string, grupo: string | null }[]>(() =>
+    (JSON.parse(localStorage.getItem('farpi_store_v1') ?? '{}').events ?? [])
+      .filter((e: { title: string }) => e.title.startsWith('Tía Rosa'))
+      .map((e: { title: string, start_at: string, recurrence_group_id: string | null }) => ({
+        titulo: e.title,
+        fecha: e.start_at.slice(0, 10),
+        grupo: e.recurrence_group_id,
+      })))
+
+  const antes = await guardadas()
+  expect(antes.length).toBeGreaterThan(5)
+
+  await page.getByRole('button', { name: 'Editar el cumpleaños de Tía Rosa' }).click()
+  await page.locator('#event-title').fill('Tía Rosa Pérez')
+  await page.locator('#event-date').fill(`${hoy.getFullYear()}-${mes}-${dia(diaNuevo)}`)
+  await page.locator(GUARDAR_EVENTO).click()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Tía Rosa Pérez' })).toBeVisible()
+
+  const despues = await guardadas()
+  // Ninguna fila se pierde, ninguna se queda con el nombre viejo, y todas caen el día nuevo…
+  expect(despues.length).toBe(antes.length)
+  expect(despues.every(e => e.titulo === 'Tía Rosa Pérez')).toBe(true)
+  expect(new Set(despues.map(e => e.fecha.slice(5))).size).toBe(1)
+  expect(despues[0].fecha.slice(5)).toBe(`${mes}-${dia(diaNuevo)}`)
+  // …cada una en su año, y siguen siendo una sola serie.
+  expect(new Set(despues.map(e => e.fecha.slice(0, 4))).size).toBe(despues.length)
+  expect(new Set(despues.map(e => e.grupo)).size).toBe(1)
+})
+
+/**
  * Pasar de mes con el dedo.
  *
  * Se prueba en el navegador porque lo que puede romperse es justo lo que no se

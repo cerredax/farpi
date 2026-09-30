@@ -1,7 +1,7 @@
 import type { Event, EventDraft } from '@/types'
 import { buildLocalDateTime } from '../date-utils'
 import { isRangeKind } from '../events'
-import { buildWeeklyDates, buildYearlyDates } from '../recurrence'
+import { buildWeeklyDates, buildYearlyDates, sameDayInYear } from '../recurrence'
 import { db } from './db'
 
 /**
@@ -74,6 +74,12 @@ export function createEvent(familyId: string, draft: EventDraft): Event {
 
 export function updateEvent(id: string, draft: EventDraft): void {
   db.events = db.events.map(e => e.id !== id ? e : applyEventDraft(e, draft))
+}
+
+export function updateYearlySeries(groupId: string, draft: EventDraft): void {
+  db.events = db.events.map(e => e.recurrence_group_id !== groupId
+    ? e
+    : applyEventDraft(e, { ...draft, date: sameDayInYear(draft.date, new Date(e.start_at).getFullYear()) }))
 }
 
 export function deleteEvent(id: string): void {

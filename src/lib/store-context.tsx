@@ -11,6 +11,7 @@ import { CargandoFarpi, ErrorDeArranque } from '@/components/layout/CargandoFarp
 import { useT } from './i18n/contexto'
 import { textosDelNavegador } from './i18n'
 import { getLocalDateString } from './date-utils'
+import { isYearlySeries } from './recurrence'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
 import type { Repos } from './repos/types'
@@ -678,7 +679,17 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           mensajes().noSeCreoSerie,
           ['events'],
         ),
-      updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft), ['events']),
+      // Un cumpleaños o un «cada año» son una fila por año: editar una sola dejaba
+      // el nombre o el día viejo en las otras veinte. Si el evento es de una serie
+      // anual, se edita la serie entera; una semanal sigue siendo una ocurrencia.
+      updateEvent: (id: string, draft: EventDraft) => {
+        const grupo = allEvents.find(e => e.id === id)?.recurrence_group_id
+        const serieAnual = !!grupo && isYearlySeries(allEvents.filter(e => e.recurrence_group_id === grupo).map(e => e.start_at))
+        return runMutation(
+          () => serieAnual ? repos.events.updateYearlySeries(grupo, draft) : repos.events.updateEvent(id, draft),
+          ['events'],
+        )
+      },
       deleteEvent: (id: string) => runMutation(() => repos.events.deleteEvent(id), ['events']),
       deleteEventSeries: (groupId: string) => runMutation(() => repos.events.deleteEventSeries(groupId), ['events']),
       createTask: (draft: TaskDraft) => runMutation(() => repos.tasks.createTask(familyId, draft), ['tasks']),

@@ -595,9 +595,13 @@ nombre y un día—, pero cada fila lleva a su origen: la del apuntado abre ahí
 calendario en edición y la del de casa lleva a su ficha en Ajustes (`?seccion=familia`). Se
 dejó sin tocar cuando nació la pantalla, con el argumento de que corregir era cosa del
 calendario; no aguantó, porque ir al calendario obliga a acertar el mes en el que cae el
-cumpleaños, que es justo el problema por el que existe la lista. Lo que se edita de una serie
-anual es **el cumpleaños de este año**, igual que en el calendario; borrar sí pregunta por la
-serie entera.
+cumpleaños, que es justo el problema por el que existe la lista. **Editar una serie anual
+edita la serie entera** (30-09-2026): nombre, persona, año de nacimiento y día, cada fila en
+su año (`updateYearlySeries`). Hasta entonces se editaba solo «el de este año», que dejaba el
+nombre o el día viejos en los otros veinte y el error salía el año siguiente; corregir un
+cumpleaños nunca es «solo este año». Vale también para un «cada año» cualquiera, y se decide en
+`updateEvent` del store (`isYearlySeries`: las filas caen el mismo día del año). Una serie
+semanal sigue editándose de una en una. Borrar sí pregunta por la serie entera.
 
 Un cumpleaños **no cuenta como plan del día** (`isDigestPlan`): sin esa distinción salía dos
 veces en la misma pantalla de Inicio, arriba como celebración y debajo como una cita más.

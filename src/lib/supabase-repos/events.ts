@@ -1,6 +1,6 @@
 import { buildLocalDateTime } from '../date-utils'
 import { isRangeKind } from '../events'
-import { buildWeeklyDates, buildYearlyDates } from '../recurrence'
+import { buildWeeklyDates, buildYearlyDates, sameDayInYear } from '../recurrence'
 import { createClient } from '../supabase/client'
 import { assertNoError, currentUserId } from './shared'
 import type { Event, EventDraft } from '@/types'
@@ -104,6 +104,22 @@ export const eventsRepo: EventsRepo = {
     const supabase = createClient()
     const { error } = await supabase.from('events').update(eventUpdate(draft)).eq('id', id)
     assertNoError(error)
+  },
+
+  // Una fila por año, así que cambiar la serie es cambiar cada fila con su año.
+  // Son unas veinte y se piden juntas: una RPC para esto sería esquema nuevo por
+  // una edición que se hace de tarde en tarde.
+  async updateYearlySeries(groupId: string, draft: EventDraft): Promise<void> {
+    const supabase = createClient()
+    const { data, error } = await supabase.from('events').select('id, start_at').eq('recurrence_group_id', groupId)
+    assertNoError(error)
+    const resultados = await Promise.all((data ?? []).map(fila =>
+      supabase
+        .from('events')
+        .update(eventUpdate({ ...draft, date: sameDayInYear(draft.date, new Date(fila.start_at).getFullYear()) }))
+        .eq('id', fila.id),
+    ))
+    for (const { error: fallo } of resultados) assertNoError(fallo)
   },
 
   async deleteEvent(id: string): Promise<void> {

@@ -533,8 +533,8 @@ tres acabados menores de Finanzas. La lista entera, en "Siguiente paso recomenda
   calendario en edición —nombre, día y año de nacimiento, y "Eliminar" preguntando por la
   serie entera— y el de quien es de la casa lleva a su ficha en Ajustes
   (`?seccion=familia`), que es donde vive la fecha de nacimiento de la que se deduce.
-  De una serie anual se edita **el cumpleaños de este año**, igual que en el calendario:
-  cada año es su propia fila.
+  Editar una serie anual **edita la serie entera** (30-09-2026), cada fila en su año: hasta
+  entonces se editaba solo el de este año y el nombre o el día viejos seguían en los demás.
   **Repartida por meses y con buscador** (13-09-2026). Doce meses seguidos eran treinta y
   tantas filas iguales, y para saber si en marzo había algo había que ir bajando y leyendo
   la columna de la izquierda renglón a renglón; ahora cada mes lleva su rótulo encima y eso

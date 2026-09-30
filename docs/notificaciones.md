@@ -172,10 +172,10 @@ select cron.schedule(
 );
 ```
 
-> **Esto no se ha ejecutado nunca** (lo escribió quien programó la función, sin acceso a tu
-> panel): la primera vez, compruébalo con lo de abajo antes de fiarte. Si `vault` o `pg_net`
-> no aceptan estas llamadas en tu plan, la alternativa es el mismo job con el secreto escrito
-> a mano en `headers`, sabiendo que queda visible en `cron.job`.
+> **Ejecutado el 30-09-2026** en la base real tal cual está escrito, y funcionó: `vault` y
+> `pg_net` aceptan estas llamadas y la primera vuelta contestó 200. Si alguna vez no las
+> aceptaran, la alternativa es el mismo job con el secreto escrito a mano en `headers`,
+> sabiendo que queda visible en `cron.job`.
 
 **Cómo comprobar que funciona:**
 

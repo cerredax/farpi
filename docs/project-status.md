@@ -1327,10 +1327,10 @@ una, en el cuerpo de su commit.
 En orden. Lo de abajo explica cada punto; esto es lo que toca la próxima vez.
 
 0. **Poner en marcha el aviso de cada evento** (30-09-2026): el delta del esquema ya está
-   aplicado y validado (**206/206**); **falta programar el `pg_cron`** de
-   `docs/notificaciones.md`. Hasta entonces el formulario deja pedir un aviso y **no llega
-   ninguno**. Después, probarlo con un plan que
-   empiece dentro de 20 minutos.
+   aplicado y validado (**206/206**) y **el `pg_cron` está programado** (30-09-2026, cada
+   cinco minutos; la primera ejecución contestó 200). **Falta la prueba de punta a punta**: con
+   los avisos activados en un móvil, un plan que empiece dentro de 20 minutos con «15 minutos
+   antes».
 1. **Comprobar el cron de las siete** en los logs de Vercel (`/api/cron/reminders`):
    uno de los dos de cada mañana tiene que decir `fueraDeHora: true` y el otro traer
    `sent`. Si solo aparece uno, Vercel no aceptó los dos crons de `vercel.json`.

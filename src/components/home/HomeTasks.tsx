@@ -5,6 +5,7 @@ import { ListChecks } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { CircleCheck } from '@/components/ui/CircleCheck'
+import { useT } from '@/lib/i18n/contexto'
 import type { Task } from '@/types'
 
 interface HomeTasksProps {
@@ -14,6 +15,7 @@ interface HomeTasksProps {
 }
 
 export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: HomeTasksProps) {
+  const t = useT()
   const visible = useMemo(() => pendingTasks.slice(0, 5), [pendingTasks])
 
   // Sin nada pendiente, la sección entera desaparece en vez de enseñar "La casa
@@ -26,11 +28,11 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
 
   return (
     <HomeSection
-      label="Lo demás por hacer"
+      label={t.inicio.tareas.titulo}
       icon={ListChecks}
       accentColor="#8BA888"
       footer={
-        <SectionLink href="/tasks">Ver todas las tareas</SectionLink>
+        <SectionLink href="/tasks">{t.inicio.tareas.verTodas}</SectionLink>
       }
     >
       <ul className="divide-y divide-hairline">
@@ -39,7 +41,7 @@ export const HomeTasks = memo(function HomeTasks({ pendingTasks, onToggle }: Hom
             <CircleCheck
               checked={false}
               onClick={() => onToggle(task.id)}
-              ariaLabel="Marcar como completada"
+              ariaLabel={t.inicio.tareas.marcarCompletada}
               size="sm"
               className="w-10"
             />

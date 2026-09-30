@@ -7,6 +7,7 @@ import { SectionLink } from '@/components/ui/SectionLink'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { selectPendingItemsByList } from '@/lib/selectors'
+import { useT } from '@/lib/i18n/contexto'
 import type { PendingItem } from '@/types'
 
 interface PendingItemsProps {
@@ -39,29 +40,30 @@ interface PendingItemsProps {
  * mientras está plegado, y encima de su grupo cuando se abre (04-09-2026).
  */
 export const PendingItems = memo(function PendingItems({ items, onToggle, onAdd, cestaLabel }: PendingItemsProps) {
+  const t = useT()
   const [abierto, setAbierto] = useState(false)
 
   const cestas = useMemo(() => selectPendingItemsByList(items), [items])
 
   return (
     <HomeSection
-      label="Listas de casa"
+      label={t.inicio.cesta.titulo}
       icon={ShoppingBasket}
       accentColor="#D8A48F"
       isEmpty={items.length === 0}
-      emptyState={<EmptyState compact emoji="🧺" title="La cesta está vacía, de momento" />}
+      emptyState={<EmptyState compact emoji="🧺" title={t.inicio.cesta.vacia} />}
       accion={onAdd && (
         <button
           type="button"
           onClick={onAdd}
-          aria-label={cestaLabel ? `Apuntar algo en ${cestaLabel}` : 'Apuntar algo en la lista'}
+          aria-label={cestaLabel ? t.inicio.cesta.apuntarEn(cestaLabel) : t.inicio.cesta.apuntarEnLaLista}
           className="-my-2 -mr-2 flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
         >
           <Plus size={17} strokeWidth={2.6} />
         </button>
       )}
       footer={
-        <SectionLink href="/lists">Ver todas las listas</SectionLink>
+        <SectionLink href="/lists">{t.inicio.cesta.verTodas}</SectionLink>
       }
     >
       {/* **Abierto, el botón se queda solo con la flecha** (04-09-2026). Los
@@ -77,7 +79,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle, onAdd,
         type="button"
         onClick={() => setAbierto(a => !a)}
         aria-expanded={abierto}
-        aria-label={abierto ? 'Plegar las listas' : undefined}
+        aria-label={abierto ? t.inicio.cesta.plegar : undefined}
         className={`flex w-full items-center gap-3 px-4 text-left transition-colors hover:bg-surface ${abierto ? 'py-2' : 'py-3'}`}
       >
         {/* Una cesta por línea. Iban en un `flex-wrap` y dos o tres compartían
@@ -125,7 +127,7 @@ export const PendingItems = memo(function PendingItems({ items, onToggle, onAdd,
                     <CircleCheck
                       checked={false}
                       onClick={() => onToggle(item.id)}
-                      ariaLabel={`Ya tenéis "${item.text}", quitar de lo que falta`}
+                      ariaLabel={t.inicio.cesta.yaTeneis(item.text)}
                       className="w-10"
                     />
                     {/* Las unidades pegadas al nombre y no como columna aparte: es

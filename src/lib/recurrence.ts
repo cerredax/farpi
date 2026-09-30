@@ -1,4 +1,6 @@
 import { getLocalDateString, parseLocalDate } from './date-utils'
+import { calendario } from './i18n/es/calendario'
+import type { Diccionario } from './i18n'
 import type { TaskRecurrence } from '@/types'
 
 // Fuente única de la lógica de recurrencia. La comparten los repos de Supabase,
@@ -53,16 +55,20 @@ export function maxWeeklyEndDate(startDate: string): string {
 }
 
 // De lunes a domingo, que es como se lee una semana aquí.
-const WEEKDAY_NAMES: Record<number, string> = {
-  0: 'domingos', 1: 'lunes', 2: 'martes', 3: 'miércoles',
-  4: 'jueves', 5: 'viernes', 6: 'sábados',
-}
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
-/** "lunes, miércoles y viernes" — para contar una serie en una frase. */
-export function joinWeekdayNames(days: number[]): string {
-  const names = WEEKDAY_ORDER.filter(d => days.includes(d)).map(d => WEEKDAY_NAMES[d])
+/**
+ * "lunes, miércoles y viernes" — para contar una serie en una frase.
+ *
+ * `t` son los nombres del idioma de la pantalla (por `getDay()`) y la palabra que
+ * une los dos últimos; sin él, castellano.
+ */
+export function joinWeekdayNames(
+  days: number[],
+  t: Diccionario['calendario']['semana'] = calendario.semana,
+): string {
+  const names = WEEKDAY_ORDER.filter(d => days.includes(d)).map(d => t.plurales[d])
   if (names.length === 0) return ''
   if (names.length === 1) return names[0]
-  return names.slice(0, -1).join(', ') + ' y ' + names[names.length - 1]
+  return names.slice(0, -1).join(', ') + ` ${t.y} ` + names[names.length - 1]
 }

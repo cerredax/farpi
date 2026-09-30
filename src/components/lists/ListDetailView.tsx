@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef, useState } from 'react'
 import { Plus, ArrowLeft, ChevronDown, Pencil, Share2 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -7,6 +9,7 @@ import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { selectListItemGroups, selectSuggestions } from '@/lib/selectors'
 import { listaParaCompartir, normalizaParaBuscar } from '@/lib/text'
 import { useIsClient } from '@/hooks/useIsClient'
+import { useT } from '@/lib/i18n/contexto'
 import type { List, ListItem } from '@/types'
 import { ListItemRow } from './ListItemRow'
 
@@ -51,6 +54,7 @@ function GrupoTitulo({ titulo, cuenta, accion }: { titulo: string; cuenta?: numb
 export function ListDetailView({
   list, items, historial, onBack, onToggle, onQuantity, onOpenEdit, onQuickAdd, onOpenEditItem,
 }: ListDetailViewProps) {
+  const t = useT().listas.detalle
   const [busqueda, setBusqueda] = useState('')
   /** Lo que se está apuntando en la barra de abajo. */
   const [nuevo, setNuevo] = useState('')
@@ -126,7 +130,7 @@ export function ListDetailView({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        <button onClick={onBack} aria-label="Volver a las listas" className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors flex-shrink-0">
+        <button onClick={onBack} aria-label={t.volver} className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors flex-shrink-0">
           <ArrowLeft size={18} />
         </button>
         <span className="text-xl">{list.emoji ?? '📋'}</span>
@@ -136,7 +140,7 @@ export function ListDetailView({
         {sePuedeCompartir && pending.length > 0 && (
           <button
             onClick={compartir}
-            aria-label={`Compartir lo que falta de ${list.name}`}
+            aria-label={t.compartir(list.name)}
             className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0"
           >
             <Share2 size={16} />
@@ -144,7 +148,7 @@ export function ListDetailView({
         )}
         {/* Con nombre: es un lápiz a secas, y sin él un lector de pantalla
             anuncia un botón sin decir de qué. */}
-        <button onClick={onOpenEdit} aria-label={`Editar la lista ${list.name}`} className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0">
+        <button onClick={onOpenEdit} aria-label={t.editarLista(list.name)} className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0">
           <Pencil size={15} />
         </button>
       </div>
@@ -154,8 +158,8 @@ export function ListDetailView({
           <SearchField
             value={busqueda}
             onChange={setBusqueda}
-            placeholder={`Buscar en ${items.length} ítems…`}
-            ariaLabel="Buscar ítems en la lista"
+            placeholder={t.buscarEn(items.length)}
+            ariaLabel={t.buscarAria}
           />
         </div>
       )}
@@ -165,21 +169,21 @@ export function ListDetailView({
         {items.length === 0 ? (
           <EmptyState
             emoji="📝"
-            title="Esta lista está vacía"
+            title={t.vacia}
           />
         ) : visibles.length === 0 ? (
           <EmptyState
             emoji="🔍"
-            title="Sin coincidencias"
-            description={`Ningún ítem coincide con «${busqueda.trim()}»`}
+            title={t.sinCoincidencias}
+            description={t.ningunItem(busqueda.trim())}
           />
         ) : (
           <>
             {verPendientes && (
               <section className="space-y-2">
-                <GrupoTitulo titulo="Hace falta ahora" cuenta={pending.length} />
+                <GrupoTitulo titulo={t.haceFaltaAhora} cuenta={pending.length} />
                 {pending.length === 0 ? (
-                  <p className="px-1 py-2 text-sm text-muted">No falta nada de esta lista</p>
+                  <p className="px-1 py-2 text-sm text-muted">{t.noFaltaNada}</p>
                 ) : (
                   pending.map(item => (
                     <ListItemRow
@@ -197,7 +201,7 @@ export function ListDetailView({
             {verCatalogo && (
               <section className="space-y-2">
                 <GrupoTitulo
-                  titulo="Lo de siempre"
+                  titulo={t.loDeSiempre}
                   /* Buscando no se ofrece plegar: lo que coincide se enseña. */
                   accion={!buscando && (
                     <button
@@ -206,7 +210,7 @@ export function ListDetailView({
                       aria-expanded={verHechos}
                       className="flex min-h-8 flex-shrink-0 items-center gap-1 rounded-xl px-2 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
                     >
-                      {verHechos ? 'Ocultar lo de siempre' : 'Ver lo de siempre'}
+                      {verHechos ? t.ocultarLoDeSiempre : t.verLoDeSiempre}
                       <ChevronDown
                         size={14}
                         strokeWidth={2.6}
@@ -265,15 +269,15 @@ export function ListDetailView({
         }}
         className="space-y-2 border-t border-hairline px-4 pb-6 pt-2"
       >
-        <Suggestions values={sugerencias} onPick={setNuevo} label="Coincidencias" />
+        <Suggestions values={sugerencias} onPick={setNuevo} label={t.coincidencias} />
         <div className="flex items-center gap-2">
           <input
             ref={campoNuevo}
             type="text"
             value={nuevo}
             onChange={e => setNuevo(e.target.value)}
-            placeholder="Apuntar algo…"
-            aria-label={`Apuntar algo en ${list.name}`}
+            placeholder={t.apuntarAlgo}
+            aria-label={t.apuntarAlgoEn(list.name)}
             // `required` y no un botón apagado: pulsar con el campo vacío tiene
             // que decir qué falta, y un botón gris no dice nada.
             required
@@ -281,7 +285,7 @@ export function ListDetailView({
           />
           <button
             type="submit"
-            aria-label={`Apuntar en ${list.name}`}
+            aria-label={t.apuntarEn(list.name)}
             className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary-strong text-white transition-colors hover:bg-primary-strong/90"
           >
             <Plus size={18} strokeWidth={2.6} aria-hidden />

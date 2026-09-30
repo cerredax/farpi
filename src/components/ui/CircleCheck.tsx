@@ -1,4 +1,7 @@
+'use client'
+
 import { Check } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 interface CircleCheckProps {
   checked: boolean
@@ -11,7 +14,8 @@ interface CircleCheckProps {
 }
 
 export function CircleCheck({ checked, onClick, ariaLabel, size = 'md', className = '' }: CircleCheckProps) {
-  const defaultLabel = checked ? 'Marcar como pendiente' : 'Marcar como completado'
+  const t = useT()
+  const defaultLabel = checked ? t.comun.marcarComoPendiente : t.comun.marcarComoCompletado
   const iconSize = size === 'sm' ? 10 : 13
 
   return (

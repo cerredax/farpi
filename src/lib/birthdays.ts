@@ -1,9 +1,11 @@
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { format, type Locale } from 'date-fns'
 import { DIAS_AVISO_CUMPLE } from './constants'
 import { extractDate, getLocalDateString, parseLocalDate } from './date-utils'
 import { isBirthday } from './events'
 import { capitalize } from './text'
+import { cumpleanos } from './i18n/es/cumpleanos'
+import { localeDeFechas } from './i18n/fechas'
+import type { Diccionario } from './i18n'
 import type { Event } from '@/types'
 
 /**
@@ -111,9 +113,12 @@ export function proximosCumples<P extends PersonaConCumple>(
     .sort((a, b) => (a.dias !== b.dias ? a.dias - b.dias : a.persona.name.localeCompare(b.persona.name, 'es')))
 }
 
-/** "8 años", "1 año". */
-export function edadEnPalabras(edad: number): string {
-  return edad === 1 ? '1 año' : `${edad} años`
+/**
+ * "8 años", "1 año". Los textos van al final y en castellano por defecto: así
+ * la llama el aviso de las siete, que se queda en castellano.
+ */
+export function edadEnPalabras(edad: number, t: Diccionario['cumpleanos'] = cumpleanos): string {
+  return t.edad(edad)
 }
 
 /**
@@ -124,10 +129,15 @@ export function edadEnPalabras(edad: number): string {
  * las dos. Es la misma escala que usan la agenda y las ausencias: cerca se
  * habla en días y lejos en fechas.
  */
-export function diaDeCumple(fecha: string, dias: number): string {
-  if (dias === 0) return 'Hoy'
-  if (dias === 1) return 'Mañana'
-  return capitalize(format(parseLocalDate(fecha), 'EEE d MMM', { locale: es }))
+export function diaDeCumple(
+  fecha: string,
+  dias: number,
+  t: Diccionario['cumpleanos'] = cumpleanos,
+  locale: Locale = localeDeFechas('es'),
+): string {
+  if (dias === 0) return t.hoy
+  if (dias === 1) return t.manana
+  return capitalize(format(parseLocalDate(fecha), t.formatoDia, { locale }))
 }
 
 /**
@@ -264,6 +274,7 @@ export interface MesDeCumples {
 export function agrupaCumplesPorMes(
   cumples: CumpleEnCasa[],
   hoy = getLocalDateString(),
+  locale: Locale = localeDeFechas('es'),
 ): MesDeCumples[] {
   const anoDeHoy = hoy.slice(0, 4)
   const meses: MesDeCumples[] = []
@@ -276,7 +287,7 @@ export function agrupaCumplesPorMes(
       continue
     }
     const ano = cumple.fecha.slice(0, 4)
-    const nombre = capitalize(format(parseLocalDate(cumple.fecha), 'LLLL', { locale: es }))
+    const nombre = capitalize(format(parseLocalDate(cumple.fecha), 'LLLL', { locale }))
     meses.push({ clave, titulo: ano === anoDeHoy ? nombre : `${nombre} ${ano}`, cumples: [cumple] })
   }
 

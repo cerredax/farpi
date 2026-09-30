@@ -1,8 +1,11 @@
+'use client'
+
 import { memo } from 'react'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { MEAL_SLOT_META } from '@/lib/constants'
 import { mealCourses } from '@/lib/meal-slots'
 import { selectSortedMeals } from '@/lib/selectors'
+import { useT } from '@/lib/i18n/contexto'
 import type { MealPlan } from '@/types'
 
 interface TodayMealsRowProps {
@@ -15,6 +18,7 @@ interface TodayMealsRowProps {
  * una tarjeta aparte al final de la pantalla.
  */
 export const TodayMealsRow = memo(function TodayMealsRow({ meals }: TodayMealsRowProps) {
+  const t = useT()
   if (meals.length === 0) return null
 
   return (
@@ -22,13 +26,13 @@ export const TodayMealsRow = memo(function TodayMealsRow({ meals }: TodayMealsRo
       <ul className="divide-y divide-hairline">
         {/* En el orden del día y no en el que llegan de la base, igual que en Comidas. */}
         {selectSortedMeals(meals).map(meal => {
-          const { label, emoji } = MEAL_SLOT_META[meal.slot]
+          const { emoji } = MEAL_SLOT_META[meal.slot]
           const [primero, ...siguientes] = mealCourses(meal)
           return (
             <li key={meal.id} className="flex items-center gap-3 px-4 py-3">
               <span className="text-xl w-8 text-center flex-shrink-0">{emoji}</span>
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold text-muted uppercase tracking-wide">{label}</span>
+                <span className="text-xs font-bold text-muted uppercase tracking-wide">{t.comun.franjas[meal.slot]}</span>
                 <p className="font-semibold text-ink text-sm leading-snug">{primero}</p>
                 {siguientes.length > 0 && (
                   <p className="text-xs text-muted leading-snug">{siguientes.join(' · ')}</p>
@@ -39,7 +43,7 @@ export const TodayMealsRow = memo(function TodayMealsRow({ meals }: TodayMealsRo
         })}
       </ul>
       <div className="border-t border-hairline px-4 py-2.5">
-        <SectionLink href="/meals">Ver menú semanal</SectionLink>
+        <SectionLink href="/meals">{t.inicio.menu.verMenuSemanal}</SectionLink>
       </div>
     </div>
   )

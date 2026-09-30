@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { safeNextPath } from '@/lib/validators'
 import { sesionDeInvitacion, type SesionDeInvitacion } from '@/lib/peticiones'
 import { Button } from '@/components/ui/Button'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * Punto de aterrizaje de todos los enlaces de correo de Supabase.
@@ -31,6 +32,7 @@ import { Button } from '@/components/ui/Button'
 function CallbackHandler() {
   const router = useRouter()
   const params = useSearchParams()
+  const t = useT().acceso.callback
   const [error, setError] = useState<string | null>(null)
   const [pendiente, setPendiente] = useState<SesionDeInvitacion | null>(null)
   const [entrando, setEntrando] = useState(false)
@@ -52,10 +54,10 @@ function CallbackHandler() {
         // por qué. El texto es nuestro, como el de los enlaces rotos.
         setInvitacionFallida(
           rpcError.message.includes('caducado')
-            ? 'La invitación ha caducado. Pide que te la manden otra vez.'
+            ? t.invitacionCaducada
             : rpcError.message.includes('cancelada')
-              ? 'La invitación se canceló. Pide que te manden otra.'
-              : 'No se ha podido aceptar la invitación. Pide a quien te invitó que te la mande otra vez.',
+              ? t.invitacionCancelada
+              : t.invitacionFallida,
         )
         return
       }
@@ -75,7 +77,7 @@ function CallbackHandler() {
     })
     if (!data.session) {
       setPendiente(null)
-      setError('No se ha podido iniciar la sesión desde el enlace.')
+      setError(t.sesionFallida)
       return
     }
     await terminar()
@@ -102,8 +104,8 @@ function CallbackHandler() {
         }
         setError(
           errorCode === 'otp_expired'
-            ? 'El enlace ha caducado o ya se había usado. Pide uno nuevo para continuar.'
-            : 'No se ha podido validar el enlace. Pide uno nuevo para continuar.',
+            ? t.enlaceCaducado
+            : t.enlaceInvalido,
         )
         return
       }
@@ -126,7 +128,7 @@ function CallbackHandler() {
         return
       }
 
-      setError('No se ha podido iniciar la sesión desde el enlace.')
+      setError(t.sesionFallida)
     }
 
     void procesar()
@@ -141,7 +143,7 @@ function CallbackHandler() {
       <div className="max-w-sm">
         {invitacionFallida ? (
           <>
-            <p className="text-lg font-extrabold text-ink">No has entrado en la familia</p>
+            <p className="text-lg font-extrabold text-ink">{t.noHasEntrado}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">{invitacionFallida}</p>
             <Button
               size="lg"
@@ -152,41 +154,41 @@ function CallbackHandler() {
                 router.refresh()
               }}
             >
-              Seguir a Farpi
+              {t.seguirAFarpi}
             </Button>
           </>
         ) : error ? (
           <>
-            <p className="text-lg font-extrabold text-ink">No hemos podido abrir el enlace</p>
+            <p className="text-lg font-extrabold text-ink">{t.noHemosPodidoAbrir}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">{error}</p>
             <a
               href="/auth/login"
               className="mt-5 inline-block rounded-2xl bg-primary-strong px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-deep"
             >
-              Ir a iniciar sesión
+              {t.irAIniciarSesion}
             </a>
           </>
         ) : pendiente ? (
           <>
-            <p className="text-lg font-extrabold text-ink">Vas a entrar en Farpi como</p>
+            <p className="text-lg font-extrabold text-ink">{t.vasAEntrarComo}</p>
             <p className="mt-2 break-all text-base font-bold text-ink">{pendiente.correo}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Si no es tu correo, no sigas: este enlace es de otra persona.
+              {t.siNoEsTuCorreo}
             </p>
             <Button size="lg" fullWidth className="mt-5" onClick={() => void entrar()} disabled={entrando}>
-              {entrando ? 'Entrando…' : 'Entrar'}
+              {entrando ? t.entrando : t.entrar}
             </Button>
             <a
               href="/auth/login"
               className="mt-2 inline-flex min-h-11 items-center justify-center px-4 text-sm font-bold text-primary-strong"
             >
-              No soy yo
+              {t.noSoyYo}
             </a>
           </>
         ) : (
           <>
-            <p className="text-lg font-extrabold text-ink">Entrando en Farpi</p>
-            <p className="mt-2 text-sm leading-relaxed text-muted">Validando el enlace…</p>
+            <p className="text-lg font-extrabold text-ink">{t.entrandoEnFarpi}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{t.validandoEnlace}</p>
           </>
         )}
       </div>

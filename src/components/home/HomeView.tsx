@@ -1,9 +1,10 @@
 'use client'
 
 import { format, isToday, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { useMemo, useState } from 'react'
 import { useStore } from '@/lib/store-context'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { useIsClient } from '@/hooks/useIsClient'
 import { getDayPeriod, getGreeting } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
@@ -25,6 +26,8 @@ import { ItemSheet } from '@/components/lists/ItemSheet'
 import type { Event, Task } from '@/types'
 
 export function HomeView() {
+  const t = useT()
+  const locale = localeDeFechas(useIdioma())
   const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, documents, lists, allListItems, toggleTask, toggleListItem, createListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [confirmTask, setConfirmTask] = useState<Task | null>(null)
   /** Si está abierto el sheet de apuntar algo en la cesta. */
@@ -117,8 +120,8 @@ export function HomeView() {
   const calmMessage = !diaVacio
     ? null
     : pendingTasks.length === 0 && pendingItems.length === 0
-      ? 'Hoy pinta tranquilo. La casa respira un poco.'
-      : 'Un día sin agenda'
+      ? t.inicio.calmaTotal
+      : t.inicio.sinAgenda
 
   // Saludo y fecha abren la tarjeta del día en lugar del rótulo en mayúsculas
   // que había ("Lo que hay que hacer hoy"): dicen lo mismo y son cercanos.
@@ -166,9 +169,9 @@ export function HomeView() {
             <div className="min-h-[3.25rem]">
               {ahora && (
                 <>
-                  <p className="text-2xl font-bold text-ink leading-tight">{getGreeting(ahora)}</p>
+                  <p className="text-2xl font-bold text-ink leading-tight">{getGreeting(ahora, t.inicio.saludo)}</p>
                   <p className="text-sm font-semibold text-muted">
-                    {capitalize(format(ahora, "EEEE, d 'de' MMMM", { locale: es }))}
+                    {capitalize(format(ahora, t.inicio.formatoFecha, { locale }))}
                   </p>
                 </>
               )}
@@ -227,7 +230,7 @@ export function HomeView() {
       <ItemSheet
         open={apuntandoEnCesta}
         mode="create"
-        titulo={cestaDestino ? `Añadir a ${cestaDestino.name}` : undefined}
+        titulo={cestaDestino ? t.inicio.anadirA(cestaDestino.name) : undefined}
         historial={historialItems}
         onClose={() => setApuntandoEnCesta(false)}
         onCreate={draft => { if (cestaDestino) createListItem(cestaDestino.id, draft) }}

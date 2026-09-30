@@ -3,10 +3,12 @@
 import { Pencil } from 'lucide-react'
 import { MEAL_SLOT_META } from '@/lib/constants'
 import { mealCourses } from '@/lib/meal-slots'
+import { useT } from '@/lib/i18n/contexto'
 import type { MealPlan } from '@/types'
 
 /** Fila de una comida en la lista de "Hoy". */
 export function MealRow({ meal, onEdit }: { meal: MealPlan; onEdit: (meal: MealPlan) => void }) {
+  const t = useT()
   const meta = MEAL_SLOT_META[meal.slot]
   // El primero va aparte y en negrita; el segundo y el postre, debajo. Un menú
   // de comedor son tres líneas, no una frase con puntos.
@@ -15,7 +17,7 @@ export function MealRow({ meal, onEdit }: { meal: MealPlan; onEdit: (meal: MealP
     <div className="flex items-center gap-3 px-4 py-3">
       <span className="text-xl w-8 text-center flex-shrink-0">{meta.emoji}</span>
       <div className="flex-1 min-w-0">
-        <span className="text-[10px] font-bold text-muted uppercase tracking-wide">{meta.label}</span>
+        <span className="text-[10px] font-bold text-muted uppercase tracking-wide">{t.comun.franjas[meal.slot]}</span>
         <p className="font-semibold text-ink text-sm leading-snug">{primero}</p>
         {siguientes.map(plato => (
           <p key={plato} className="text-xs text-ink/70 leading-snug">{plato}</p>
@@ -24,7 +26,7 @@ export function MealRow({ meal, onEdit }: { meal: MealPlan; onEdit: (meal: MealP
       </div>
       <button
         onClick={() => onEdit(meal)}
-        aria-label={`Editar ${meal.name}`}
+        aria-label={t.comidas.fila.editar(meal.name)}
         className="area-de-toque w-7 h-7 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0"
       >
         <Pencil size={13} strokeWidth={1.8} />

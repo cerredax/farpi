@@ -10,6 +10,7 @@ import { editableMealSlots, mealSlotHasCourses } from '@/lib/meal-slots'
 import { selectSuggestions } from '@/lib/selectors'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { validateMealDraft } from '@/lib/validators'
+import { useT } from '@/lib/i18n/contexto'
 import type { MealPlan, MealDraft, MealSlot } from '@/types'
 
 interface MealSheetProps {
@@ -103,6 +104,8 @@ export function MealSheet({
     validate: validateMealDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
+  const diccionario = useT()
+  const t = diccionario.comidas.mealSheet
 
   // El campo "Plato" hace de buscador del recetario: lo que se teclea filtra los
   // platos ya cocinados. Con tope de 5 no se veía como tal —salían siempre los
@@ -132,21 +135,21 @@ export function MealSheet({
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Añadir comida' : 'Editar comida'}
+      title={mode === 'create' ? t.anadirComida : t.editarComida}
       onClose={onClose}
       footer={
         <SheetFooter
           form="meal-form"
-          submitLabel={mode === 'create' ? 'Guardar comida' : 'Guardar cambios'}
+          submitLabel={mode === 'create' ? t.guardarComida : t.guardarCambios}
           error={formError}
           onDelete={mode === 'edit'
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar comida', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: t.eliminarComida, confirmLabel: t.confirmarEliminacion }
             : undefined}
         />
       }
     >
       <form id="meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Fecha" htmlFor="meal-date">
+        <Field label={t.fecha} htmlFor="meal-date">
           <input
             id="meal-date"
             type="date"
@@ -157,7 +160,7 @@ export function MealSheet({
           />
         </Field>
 
-        <Field label="Franja" spacing="group">
+        <Field label={t.franja} spacing="group">
           <div className={`grid gap-2 ${COLUMNAS_FRANJA[franjas.length] ?? 'grid-cols-4'}`}>
             {franjas.map(slot => {
               const occupied = mode === 'create' && occupiedSlots.includes(slot.key)
@@ -170,7 +173,7 @@ export function MealSheet({
                   className={`py-2.5 rounded-xl text-center transition-colors flex flex-col items-center gap-1 relative ${selected ? 'bg-primary-strong text-white' : 'bg-canvas text-muted hover:bg-surface'}`}
                 >
                   <span className="text-base">{slot.emoji}</span>
-                  <span className="text-[10px] font-bold">{slot.label}</span>
+                  <span className="text-[10px] font-bold">{diccionario.comun.franjas[slot.key]}</span>
                   {occupied && (
                     <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${selected ? 'bg-white/70' : 'bg-accent-strong'}`} />
                   )}
@@ -180,19 +183,19 @@ export function MealSheet({
           </div>
           {mode === 'create' && occupiedSlots.includes(draft.slot) && (
             <p className="text-[11px] text-accent-strong font-semibold flex items-center gap-1">
-              <span>↻</span> Este horario ya tiene plato — se reemplazará
+              <span>↻</span> {t.yaTienePlato}
             </p>
           )}
         </Field>
 
-        <Field label={porPlatos ? 'Primer plato' : 'Plato'} htmlFor="meal-name">
+        <Field label={porPlatos ? t.primerPlato : t.plato} htmlFor="meal-name">
           <input
             id="meal-name"
             ref={firstFieldRef}
             type="text"
             value={draft.name}
             onChange={e => patch({ name: e.target.value })}
-            placeholder="Busca un plato o escribe uno nuevo"
+            placeholder={t.buscaUnPlato}
             required
             className="field-input"
           />
@@ -201,47 +204,47 @@ export function MealSheet({
             onPick={name => patch({ name })}
             scroll
             label={buscando
-              ? `Ya lo habéis hecho (${sugerencias.length})`
-              : 'Los que más repetís'}
+              ? t.yaLoHabeisHecho(sugerencias.length)
+              : t.losQueMasRepetis}
           />
           {buscando && sugerencias.length === 0 && historial.length > 0 && (
-            <p className="text-[11px] text-muted">Plato nuevo: no lo habíais apuntado nunca.</p>
+            <p className="text-[11px] text-muted">{t.platoNuevo}</p>
           )}
         </Field>
 
         {porPlatos && (
           <>
-            <Field label="Segundo plato" htmlFor="meal-second" hint="(opcional)">
+            <Field label={t.segundoPlato} htmlFor="meal-second" hint={t.opcional}>
               <input
                 id="meal-second"
                 type="text"
                 value={draft.second_course}
                 onChange={e => patch({ second_course: e.target.value })}
-                placeholder="Ej: Filete de pollo con ensalada"
+                placeholder={t.ejemploSegundo}
                 className="field-input"
               />
             </Field>
 
-            <Field label="Postre" htmlFor="meal-dessert" hint="(opcional)">
+            <Field label={t.postre} htmlFor="meal-dessert" hint={t.opcional}>
               <input
                 id="meal-dessert"
                 type="text"
                 value={draft.dessert}
                 onChange={e => patch({ dessert: e.target.value })}
-                placeholder="Ej: Fruta del tiempo"
+                placeholder={t.ejemploPostre}
                 className="field-input"
               />
             </Field>
           </>
         )}
 
-        <Field label="Notas" htmlFor="meal-notes" hint="(opcional)">
+        <Field label={t.notas} htmlFor="meal-notes" hint={t.opcional}>
           <input
             id="meal-notes"
             type="text"
             value={draft.notes}
             onChange={e => patch({ notes: e.target.value })}
-            placeholder="Ej: Sin cebolla"
+            placeholder={t.ejemploNotas}
             className="field-input"
           />
         </Field>

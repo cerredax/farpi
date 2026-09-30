@@ -1,8 +1,12 @@
+'use client'
+
 import { memo } from 'react'
 import { PartyPopper } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
-import { diaDeCumple, edadEnPalabras, type CumpleEnCasa } from '@/lib/birthdays'
+import { diaDeCumple, type CumpleEnCasa } from '@/lib/birthdays'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 
 interface UpcomingBirthdaysProps {
   cumples: CumpleEnCasa[]
@@ -24,6 +28,8 @@ interface UpcomingBirthdaysProps {
  * solo apunta cumpleaños de fuera.
  */
 export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: UpcomingBirthdaysProps) {
+  const t = useT()
+  const locale = localeDeFechas(useIdioma())
   if (cumples.length === 0) return null
 
   // El pie lleva a donde se cambia lo que se está viendo. Si todos vienen del
@@ -33,17 +39,17 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
 
   return (
     <HomeSection
-      label="Cumpleaños"
+      label={t.inicio.cumples.titulo}
       icon={PartyPopper}
       accentColor="#D96C6C"
       footer={soloApuntados
-        ? <SectionLink href="/calendar">Ver calendario</SectionLink>
-        : <SectionLink href="/settings">Ver la familia</SectionLink>}
+        ? <SectionLink href="/calendar">{t.inicio.verCalendario}</SectionLink>
+        : <SectionLink href="/settings">{t.inicio.cumples.verLaFamilia}</SectionLink>}
     >
       <ul className="divide-y divide-hairline">
         {cumples.map(({ id, nombre, fecha, edad, dias }) => (
           <li key={id} className="flex items-baseline gap-2 px-4 py-3">
-            <span className="text-xs font-bold text-primary-strong">{diaDeCumple(fecha, dias)}</span>
+            <span className="text-xs font-bold text-primary-strong">{diaDeCumple(fecha, dias, t.cumpleanos, locale)}</span>
             {/* El nombre va en texto corriente, no en la etiqueta de persona que
                 usan la agenda o las tareas. Ahí el color contesta "¿de quién es
                 esto?" entre cosas de varios; aquí la fila entera **es** la
@@ -54,7 +60,7 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
                 secas es ruido: la fila ya dice el día y de quién. */}
             {edad !== null && (
               <span className="ml-auto flex-shrink-0 text-xs font-semibold text-muted">
-                cumple {edadEnPalabras(edad)}
+                {t.cumpleanos.cumpleEdad(edad)}
               </span>
             )}
           </li>

@@ -9,6 +9,7 @@ import { debeCerrarseElMesPasado } from './budgets'
 import { mensajeDeError } from './errores'
 import { CargandoFarpi, ErrorDeArranque } from '@/components/layout/CargandoFarpi'
 import { useT } from './i18n/contexto'
+import { textosDelNavegador } from './i18n'
 import { getLocalDateString } from './date-utils'
 import { selectPendingItems, selectPendingTasks, selectTodayMeals } from './selectors'
 import { filterMealsBySlots, normalizeMealSlots } from './meal-slots'
@@ -303,6 +304,13 @@ async function cerrarMesPasadoSiFalta(
   }
 }
 
+/**
+ * Los mensajes del store, en el idioma del dispositivo. Se piden al fallar y no
+ * al pintar, así que no hace falta `useT()` ni meter `t` en las dependencias de
+ * cada `useCallback`: la cookie es la misma que lee el servidor.
+ */
+const mensajes = () => textosDelNavegador().comun.store
+
 export function StoreProvider({ children, familyId, switchFamily }: StoreProviderProps) {
   const repos: Repos = IS_DEMO_MODE ? mockRepos : supabaseRepos
   const t = useT()
@@ -349,7 +357,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   const cargadores: Record<Porcion, () => Promise<unknown>> = useMemo(() => ({
     family: async () => {
       const f = await repos.family.getFamily(familyId)
-      if (!f) throw new Error('No se ha encontrado la familia activa')
+      if (!f) throw new Error(mensajes().familiaNoEncontrada)
       setFamily(f)
       return f
     },
@@ -424,7 +432,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       // arriba, y lo hace también `recargarPorciones`.
       if (IS_DEMO_MODE) store.persistAll()
     } catch (err) {
-      setError(err instanceof Error ? mensajeDeError(err.message) : 'Error cargando los datos')
+      setError(err instanceof Error ? mensajeDeError(err.message) : mensajes().errorCargando)
     } finally {
       setIsLoading(false)
     }
@@ -510,7 +518,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   /** El caso corriente: se escribe y no hay nada que devolver. */
   const runMutation = useCallback(
     (action: () => Promise<unknown>, porciones?: Porcion[]): Promise<void> =>
-      runMutationWith<void>(async () => { await action() }, undefined, 'No se pudo guardar el cambio', porciones),
+      runMutationWith<void>(async () => { await action() }, undefined, mensajes().noSeGuardo, porciones),
     [runMutationWith],
   )
 
@@ -594,7 +602,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           const created = await repos.family.createFamily(name)
           switchFamily(created.id)
         } catch (err) {
-          setError(err instanceof Error ? mensajeDeError(err.message) : 'No se pudo crear la familia')
+          setError(err instanceof Error ? mensajeDeError(err.message) : mensajes().noSeCreoFamilia)
         } finally {
           setIsSaving(false)
         }
@@ -609,11 +617,11 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           const otra = families.find(f => f.id !== familyId)
           // La interfaz ya esconde el botón, y en Supabase manda la RPC. Esto es
           // el tercer cerrojo, el que sostiene el modo demo.
-          if (!otra) throw new Error('No puedes eliminar tu única familia.')
+          if (!otra) throw new Error(mensajes().unicaFamilia)
           await repos.family.deleteFamily(familyId)
           switchFamily(otra.id)
         } catch (err) {
-          setError(err instanceof Error ? mensajeDeError(err.message) : 'No se pudo eliminar la familia')
+          setError(err instanceof Error ? mensajeDeError(err.message) : mensajes().noSeEliminoFamilia)
         } finally {
           setIsSaving(false)
         }
@@ -653,21 +661,21 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         runMutationWith<Event | null>(
           () => repos.events.createEvent(familyId, draft),
           null,
-          'No se pudo crear el evento',
+          mensajes().noSeCreoEvento,
           ['events'],
         ),
       createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string) =>
         runMutationWith<Event[]>(
           () => repos.events.createEventSeries(familyId, draft, weekdays, endDate),
           [],
-          'No se pudo crear la serie de eventos',
+          mensajes().noSeCreoSerie,
           ['events'],
         ),
       createYearlySeries: (draft: EventDraft, endYear: number) =>
         runMutationWith<Event[]>(
           () => repos.events.createYearlySeries(familyId, draft, endYear),
           [],
-          'No se pudo crear la serie de eventos',
+          mensajes().noSeCreoSerie,
           ['events'],
         ),
       updateEvent: (id: string, draft: EventDraft) => runMutation(() => repos.events.updateEvent(id, draft), ['events']),
@@ -682,7 +690,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       toggleTask: async (id: string) => {
         const previo = tasks.find(t => t.id === id)
         await runMutation(() => repos.tasks.toggleTask(id), ['tasks'])
-        if (previo) setUndoAction({ label: 'Hecho', run: () => restaurarTarea(previo) })
+        if (previo) setUndoAction({ label: mensajes().hecho, run: () => restaurarTarea(previo) })
       },
       createList: (draft: ListDraft) => runMutation(() => repos.lists.createList(familyId, draft), ['lists']),
       updateList: (id: string, draft: ListDraft) => runMutation(() => repos.lists.updateList(id, draft), ['lists']),
@@ -745,7 +753,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       createExpenses: (drafts: ExpenseDraft[]) => runMutationWith(
         async () => (await repos.expenses.createExpenses(familyId, drafts)).length,
         0,
-        'No se pudieron apuntar los movimientos',
+        mensajes().noSeApuntaronMovimientos,
         ['expenses'],
       ),
       updateExpense: (id: string, draft: ExpenseDraft) => runMutation(() => repos.expenses.updateExpense(id, draft), ['expenses']),
@@ -763,14 +771,14 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
         runMutationWith(
           async () => { await repos.documents.createDocument(familyId, draft); return true },
           false,
-          'No se pudo guardar el documento',
+          mensajes().noSeGuardoDocumento,
           ['documents'],
         ),
       updateDocument: (id: string, draft: DocumentDraft) =>
         runMutationWith(
           async () => { await repos.documents.updateDocument(id, draft); return true },
           false,
-          'No se pudo guardar el documento',
+          mensajes().noSeGuardoDocumento,
           ['documents'],
         ),
       deleteDocument: (id: string) => runMutation(() => repos.documents.deleteDocument(id), ['documents']),

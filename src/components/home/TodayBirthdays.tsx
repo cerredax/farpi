@@ -1,7 +1,10 @@
+'use client'
+
 import { Cake } from 'lucide-react'
 import { memo } from 'react'
 import { textColorOn } from '@/lib/assignees'
-import { edadEnPalabras, type CumpleEnCasa } from '@/lib/birthdays'
+import { useT } from '@/lib/i18n/contexto'
+import type { CumpleEnCasa } from '@/lib/birthdays'
 
 interface TodayBirthdaysProps {
   cumples: CumpleEnCasa[]
@@ -21,6 +24,7 @@ interface TodayBirthdaysProps {
  * de la abuela Carmen" ya es todo lo que hay que saber hoy.
  */
 export const TodayBirthdays = memo(function TodayBirthdays({ cumples }: TodayBirthdaysProps) {
+  const t = useT()
   if (cumples.length === 0) return null
 
   return (
@@ -38,8 +42,8 @@ export const TodayBirthdays = memo(function TodayBirthdays({ cumples }: TodayBir
           </span>
           <p className="min-w-0 text-sm font-bold leading-snug text-ink">
             {edad === null
-              ? `Hoy es el cumple de ${nombre}`
-              : `Hoy ${nombre} cumple ${edadEnPalabras(edad)}`}
+              ? t.inicio.cumpleHoy.deNombre(nombre)
+              : t.inicio.cumpleHoy.conEdad(nombre, edad)}
           </p>
         </div>
       ))}

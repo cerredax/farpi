@@ -1,4 +1,7 @@
+'use client'
+
 import { Search, X } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 interface SearchFieldProps {
   value: string
@@ -15,6 +18,8 @@ interface SearchFieldProps {
 
 /** Campo de búsqueda con lupa y botón de limpiar. Lo comparten los dos buscadores de listas. */
 export function SearchField({ value, onChange, placeholder, ariaLabel, className }: SearchFieldProps) {
+  const t = useT()
+
   return (
     <div className={`relative${className ? ` ${className}` : ''}`}>
       <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -30,7 +35,7 @@ export function SearchField({ value, onChange, placeholder, ariaLabel, className
         <button
           type="button"
           onClick={() => onChange('')}
-          aria-label="Limpiar búsqueda"
+          aria-label={t.comun.limpiarBusqueda}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted transition-colors hover:bg-surface hover:text-ink"
         >
           <X size={14} strokeWidth={2.4} />

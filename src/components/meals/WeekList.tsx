@@ -2,11 +2,12 @@
 
 import { Copy, Pencil, Plus } from 'lucide-react'
 import { format, isSameDay } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Card } from '@/components/ui/Card'
 import type { MEAL_SLOTS } from '@/lib/constants'
 import { mealCourses } from '@/lib/meal-slots'
 import { capitalize } from '@/lib/text'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { MealPlan, MealSlot } from '@/types'
 
 interface WeekListProps {
@@ -31,6 +32,11 @@ interface WeekListProps {
  */
 export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCopyDay, hasMealsForDate }: WeekListProps) {
   const today = new Date()
+  const diccionario = useT()
+  const t = diccionario.comidas.semana
+  const { formatos } = diccionario.comidas
+  const franjas = diccionario.comun.franjas
+  const locale = localeDeFechas(useIdioma())
 
   return (
     <div className="space-y-3">
@@ -43,20 +49,20 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
           <Card key={dayKey} padded={false} className={esHoy ? 'ring-1 ring-primary/30' : undefined}>
             <div className={`flex items-center justify-between px-4 py-2.5 border-b border-hairline ${esHoy ? 'bg-primary-tint' : ''}`}>
               <p className={`text-sm font-extrabold ${esHoy ? 'text-primary-strong' : 'text-ink'}`}>
-                {capitalize(format(day, "EEEE d", { locale: es }))}
-                {esHoy && <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-primary-strong">Hoy</span>}
+                {capitalize(format(day, formatos.diaDeLista, { locale }))}
+                {esHoy && <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-primary-strong">{t.hoy}</span>}
               </p>
               <button
                 type="button"
                 onClick={() => onCopyDay(dayKey)}
                 disabled={!tieneComidas}
-                aria-label={`Copiar menú del ${format(day, 'd MMM', { locale: es })}`}
+                aria-label={t.copiarMenuDel(format(day, formatos.diaCorto, { locale }))}
                 className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
                   tieneComidas ? 'text-primary-strong hover:bg-primary-tint' : 'text-faint cursor-not-allowed'
                 }`}
               >
                 <Copy size={11} strokeWidth={2.4} />
-                Copiar
+                {t.copiar}
               </button>
             </div>
 
@@ -74,12 +80,12 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
                       <button
                         type="button"
                         onClick={() => onEdit(meal)}
-                        aria-label={`Editar ${slot.label.toLowerCase()} del ${format(day, 'd MMM', { locale: es })}`}
+                        aria-label={t.editarDel(franjas[slot.key], format(day, formatos.diaCorto, { locale }))}
                         className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-canvas"
                       >
                         <span className="w-6 flex-shrink-0 text-center text-base">{slot.emoji}</span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">{slot.label}</span>
+                          <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">{franjas[slot.key]}</span>
                           <span className="block truncate text-sm font-semibold text-ink">{primero}</span>
                           {siguientes.length > 0 && (
                             <span className="block truncate text-xs text-muted">{siguientes.join(' · ')}</span>
@@ -91,12 +97,12 @@ export function WeekList({ weekDays, slots, mealsByCell, onCreate, onEdit, onCop
                       <button
                         type="button"
                         onClick={() => onCreate(dayKey, slot.key)}
-                        aria-label={`Añadir ${slot.label.toLowerCase()} para ${format(day, 'd MMM', { locale: es })}`}
+                        aria-label={t.anadirPara(franjas[slot.key], format(day, formatos.diaCorto, { locale }))}
                         className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-primary-tint"
                       >
                         <span className="w-6 flex-shrink-0 text-center text-base opacity-40">{slot.emoji}</span>
                         <span className="min-w-0 flex-1 text-sm text-muted transition-colors group-hover:text-primary-strong">
-                          {slot.label}
+                          {franjas[slot.key]}
                         </span>
                         <Plus size={14} className="flex-shrink-0 text-muted transition-colors group-hover:text-primary-strong" strokeWidth={2.4} />
                       </button>

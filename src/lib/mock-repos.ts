@@ -10,6 +10,7 @@
 import * as store from './store/index'
 import { db } from './store/db'
 import type { Repos } from './repos/types'
+import { textosDelNavegador } from './i18n'
 
 export const mockRepos: Repos = {
   family: {
@@ -153,7 +154,7 @@ export const mockRepos: Repos = {
     createDocument:  (familyId, draft) => Promise.resolve(store.createDocument(familyId, draft)),
     updateDocument:  (id, draft) => Promise.resolve(store.updateDocument(id, draft)),
     deleteDocument:  (id) => Promise.resolve(store.deleteDocument(id)),
-    getDownloadUrl:  () => Promise.reject(new Error('En modo demo no se guardan archivos reales, así que no hay nada que abrir.')),
+    getDownloadUrl:  () => Promise.reject(new Error(textosDelNavegador().comun.datos.demoSinArchivos)),
   },
 
   // En modo demo no hay proveedor al que conectarse: los archivos nunca salen de

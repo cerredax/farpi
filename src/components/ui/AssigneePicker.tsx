@@ -1,4 +1,7 @@
+'use client'
+
 import { assigneeKeyOf, buildAssignees } from '@/lib/assignees'
+import { useT } from '@/lib/i18n/contexto'
 import type { Child, FamilyMember } from '@/types'
 import { DotOption } from './DotOption'
 import { Field } from './Field'
@@ -29,11 +32,13 @@ interface AssigneePickerProps {
  * El rótulo se pasa por `label`, que es lo único que cambiaba de verdad: "de
  * quién es" el DNI, no a quién se le asigna.
  */
-export function AssigneePicker({ value, onChange, members, kids, label = 'Asignar a', hint }: AssigneePickerProps) {
+export function AssigneePicker({ value, onChange, members, kids, label, hint }: AssigneePickerProps) {
+  const t = useT()
+
   return (
-    <Field label={label} hint={hint} spacing="group">
+    <Field label={label ?? t.comun.asignarA} hint={hint} spacing="group">
       <div className="flex gap-3">
-        {buildAssignees(members, kids).map(a => (
+        {buildAssignees(members, kids, t.comun.familia).map(a => (
           <DotOption
             key={a.key}
             selected={assigneeKeyOf(value) === a.key}

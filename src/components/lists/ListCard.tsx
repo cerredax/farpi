@@ -1,4 +1,7 @@
+'use client'
+
 import { ChevronRight } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 import type { List } from '@/types'
 
 interface ListCardProps {
@@ -24,11 +27,12 @@ const ADELANTO = 3
  * parte de él ("Casa 2").
  */
 export function ListCard({ list, pendientes, onClick }: ListCardProps) {
+  const t = useT().listas.tarjeta
   const alDia = pendientes.length === 0
   const adelanto = pendientes.slice(0, ADELANTO).join(', ')
   const resumen = alDia
-    ? 'Al día'
-    : `Hace falta: ${pendientes.length > ADELANTO ? `${adelanto}…` : adelanto}`
+    ? t.alDia
+    : t.haceFalta(pendientes.length > ADELANTO ? `${adelanto}…` : adelanto)
 
   return (
     <button

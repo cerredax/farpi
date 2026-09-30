@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react'
 import { addDays, addWeeks, format, startOfDay, startOfWeek } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { useStore } from '@/lib/store-context'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectMealsByCell, selectOccupiedMealSlots, selectSortedMeals } from '@/lib/selectors'
 import { filterMealsBySlots, visibleMealSlots } from '@/lib/meal-slots'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { MealPlan, MealSlot } from '@/types'
 
 type ViewMode = 'today' | 'week'
@@ -18,6 +19,8 @@ function weekFrom(start: Date) {
 /** Estado de la pantalla de comidas: pestañas, semana visible y sheets. */
 export function useMealsState() {
   const { todayMeals, meals, mealSlots, createMeal, copyMealDay, updateMeal, deleteMeal } = useStore()
+  const { comidas: t } = useT()
+  const locale = localeDeFechas(useIdioma())
 
   const [viewMode, setViewMode] = useState<ViewMode>('today')
   const [desktopWeekOffset, setDesktopWeekOffset] = useState(0)
@@ -81,7 +84,10 @@ export function useMealsState() {
   const mobileWeekEnd = addDays(mobileWeekStart, 6)
   const mobileWeek = {
     days: weekFrom(mobileWeekStart),
-    label: `${format(mobileWeekStart, "d 'de' MMMM", { locale: es })} - ${format(mobileWeekEnd, "d 'de' MMMM", { locale: es })}`,
+    label: t.vista.rangoMovil(
+      format(mobileWeekStart, t.formatos.diaYMes, { locale }),
+      format(mobileWeekEnd, t.formatos.diaYMes, { locale }),
+    ),
   }
 
   // Semana desktop (navega con offset)
@@ -90,7 +96,10 @@ export function useMealsState() {
   const desktopWeek = {
     start: desktopWeekStart,
     days: weekFrom(desktopWeekStart),
-    label: `${format(desktopWeekStart, "d 'de' MMMM", { locale: es })} – ${format(desktopWeekEnd, "d 'de' MMMM yyyy", { locale: es })}`,
+    label: t.vista.rangoEscritorio(
+      format(desktopWeekStart, t.formatos.diaYMes, { locale }),
+      format(desktopWeekEnd, t.formatos.diaMesYAno, { locale }),
+    ),
     isCurrent: desktopWeekOffset === 0,
   }
 

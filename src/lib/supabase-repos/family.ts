@@ -3,6 +3,7 @@ import { normalizeMealSlots } from '../meal-slots'
 import { assertNoError, currentUserId, fail } from './shared'
 import type { Family, FamilyInvite, FamilyMember, MealSlot } from '@/types'
 import type { FamilyRepo, InvitesRepo, MembersRepo } from '../repos/types'
+import { textosDelNavegador } from '../i18n'
 
 type Role = 'admin' | 'member'
 
@@ -142,7 +143,7 @@ export const invitesRepo: InvitesRepo = {
       body: JSON.stringify({ familyId, email }),
     })
     const body = await res.json().catch(() => ({})) as { error?: string; inviteId?: string }
-    if (!res.ok) fail(body.error ?? 'Error al enviar la invitación')
+    if (!res.ok) fail(body.error ?? textosDelNavegador().comun.datos.errorAlInvitar)
     const supabase = createClient()
     const { data, error } = await supabase.from('family_invites').select('*').eq('id', body.inviteId).single()
     assertNoError(error)

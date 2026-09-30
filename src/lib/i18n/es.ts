@@ -6,11 +6,14 @@
  * le falte una frase. Un texto nuevo se añade aquí primero, y después a las
  * demás traducciones.
  *
- * Todavía **no está toda la app**, está el primer tramo: la navegación, el aviso
- * de guardado, el arranque, el marco de Ajustes, los validadores y los errores de
- * Supabase. El resto de pantallas siguen con el texto escrito dentro del
- * componente, y se van trayendo aquí por pantallas. Cómo, en
- * `docs/architecture.md`, «La app en otro idioma».
+ * Lo que es de toda la app vive aquí mismo (la navegación, el guardado, los
+ * validadores, los errores). **Cada pantalla tiene su bloque en un archivo**
+ * (`es/calendario.ts`, `es/finanzas.ts`…) con su pareja en `en/`, que se tipa
+ * con el castellano del mismo bloque: así una pantalla se traduce abriendo dos
+ * archivos y no uno de tres mil líneas. `es/comun.ts` es lo que comparten
+ * varias: los rótulos de `constants.ts`, los componentes de `ui/` y los mensajes
+ * de la capa de datos. Cómo se trae un texto, en `docs/architecture.md`, «La app
+ * en otro idioma».
  *
  * Reglas para escribir aquí:
  *
@@ -23,6 +26,19 @@
  * - La portada tiene su propio diccionario (`components/landing/textos.ts`):
  *   es una página pública con su propio ritmo y sus propias reglas.
  */
+import { ajustes } from './es/ajustes'
+import { comun } from './es/comun'
+import { inicio } from './es/inicio'
+import { cumpleanos } from './es/cumpleanos'
+import { notas } from './es/notas'
+import { calendario } from './es/calendario'
+import { finanzas } from './es/finanzas'
+import { listas } from './es/listas'
+import { comidas } from './es/comidas'
+import { tareas } from './es/tareas'
+import { documentos } from './es/documentos'
+import { acceso } from './es/acceso'
+
 export const es = {
   /** Los nombres de cada pantalla: la barra de abajo, la columna de escritorio, la cabecera y "Más". */
   secciones: {
@@ -63,55 +79,18 @@ export const es = {
     revisaLaSesion: 'Revisa la sesión o la configuración de Supabase.',
   },
 
-  ajustes: {
-    pestanas: {
-      familia: 'Familia',
-      casa: 'Casa',
-      cuenta: 'Cuenta',
-      sincronizacion: 'Sincronización',
-      legal: 'Legal',
-    },
-    seccionesDeAjustes: 'Secciones de ajustes',
-
-    tuFamilia: 'Tu familia',
-    soloAdminNombre: 'El nombre de la casa lo cambia un administrador.',
-    /** La marca de la familia que se está mirando, en la lista de familias. */
-    activa: 'activa',
-    nombreDeLaFamilia: 'Nombre de la familia',
-    crear: 'Crear',
-    cancelar: 'Cancelar',
-    nuevaFamilia: '+ Nueva familia',
-
-    personas: 'Personas',
-    adultos: (n: number) => (n === 1 ? '1 adulto' : `${n} adultos`),
-    hijos: (n: number) => (n === 1 ? '1 hijo' : `${n} hijos`),
-    invitaciones: (n: number) => (n === 1 ? '1 invitación' : `${n} invitaciones`),
-    adultosConCuenta: 'Adultos con cuenta',
-    soloAdminPersonas:
-      'Invitar a alguien y cambiar quién es administrador son cosa de un administrador. Tu nombre y tu color sí los cambias tú.',
-    adultosSinCuenta: 'Adultos sin cuenta',
-    grupoHijos: 'Hijos',
-
-    preferenciasDeLaCasa: 'Preferencias de la casa',
-    franjasDeComida: 'Franjas de comida',
-    soloAdminFranjas: 'Las franjas las decide un administrador, porque son las de toda la casa.',
-
-    notificaciones: 'Notificaciones',
-
-    idioma: {
-      titulo: 'Idioma',
-      /** Por qué cada uno elige el suyo: la cookie es de este móvil, no de la familia. */
-      explicacion: 'Solo cambia en este dispositivo: cada persona de la casa elige el suyo.',
-    },
-
-    privacidad: 'Política de privacidad',
-    terminos: 'Términos de servicio',
-
-    modoDemo: 'Modo demo',
-    datosDePrueba: 'Los datos son de prueba y viven en este navegador.',
-    confirmarReinicio: 'Confirmar reinicio',
-    reiniciarDemo: 'Reiniciar datos de demo',
-  },
+  ajustes,
+  comun,
+  inicio,
+  cumpleanos,
+  notas,
+  calendario,
+  finanzas,
+  listas,
+  comidas,
+  tareas,
+  documentos,
+  acceso,
 
   /**
    * Las etiquetas de la página (`generateMetadata` del layout raíz): la

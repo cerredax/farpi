@@ -70,7 +70,7 @@ documentos se borró el 27-08-2026 y los archivos viven en el Google Drive de qu
 
 Estado: proyecto creado y esquema aplicado; UI conectada por `src/lib/supabase-repos/` (un
 módulo por dominio, igual que el mock); auth, invitaciones por magic link y roles operativos.
-La última pasada de `node scripts/validate-rls.mjs` dio **169/169**, con
+La última pasada de `node scripts/validate-rls.mjs` dio **186/186** (23-09-2026), con
 `fixed_entry_overrides` dentro. El historial de cada validación está en
 `docs/supabase-validation.md`, que es donde vive.
 
@@ -2261,11 +2261,17 @@ librería traería rutas por idioma (`/en/home`) que una app privada no necesita
   de la casa. **Solo sale si hay entre qué elegir** (`idiomasParaElegir`): los idiomas de
   `IDIOMAS_OFRECIDOS` y, siempre, el que ya está puesto, para que nadie se quede atrapado en uno.
 
-**Qué está traducido**: la navegación (las dos barras, la cabecera, «Más» y el pie de la
-cuenta), el aviso de guardado, el arranque, el marco de Ajustes (pestañas, títulos, avisos de
-administrador, Legal y modo demo), todos los validadores, los errores de Supabase y las
-etiquetas de la página (`metadatos`: la descripción y la vista previa del enlace). **El resto
-de pantallas no**: sus textos siguen escritos en el componente.
+**Qué está traducido** (30-09-2026): la navegación (las dos barras, la cabecera, «Más» y el pie
+de la cuenta), el aviso de guardado, el arranque, el marco de Ajustes (pestañas, títulos,
+avisos de administrador, Legal y modo demo), todos los validadores, los errores de Supabase y
+las etiquetas de la página (`metadatos`), y las pantallas de **Listas**, **Comidas**, el acceso
+(`/auth/login`, callback, `/onboarding`) y las dos de fallo (`/offline`, `/no-disponible`).
+Los diccionarios se reparten en un archivo por pantalla, en `src/lib/i18n/es/` y `en/`.
+**El resto no**: Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el interior de
+Ajustes (`MemberSheet` y hermanos) e Inicio, que arrastra los sheets de Calendario y de
+Tareas. `e2e/idioma-recorrido.spec.ts` recorre las pantallas con la cookie en inglés y exige
+que no quede castellano; las pendientes están en su lista `SIN_MIGRAR`, y **una pantalla
+migrada se saca de esa lista** para que el test se lo exija.
 
 **Por eso el inglés no se ofrece** (`IDIOMAS_OFRECIDOS = ['es']`). Se prueba escribiendo la
 cookie `farpi_idioma=en` a mano, y es lo que hace `e2e/idioma.spec.ts`. Cuando esté todo, se

@@ -1,3 +1,5 @@
+import { textosDelNavegador } from '../i18n'
+
 /**
  * Hablar con las rutas API de la propia app desde el navegador.
  *
@@ -36,12 +38,12 @@ export async function pedirApi<T>(
    * lugar de decir lo único que hace falta saber.
    */
   if (res.redirected && new URL(res.url).pathname.startsWith('/auth/')) {
-    throw new Error('La sesión ha caducado. Vuelve a entrar en Farpi e inténtalo otra vez.')
+    throw new Error(textosDelNavegador().errores.sesion)
   }
 
   const datos = await res.json().catch(() => null)
   if (!res.ok) {
-    throw new Error(datos?.error ?? 'No se pudo completar la operación')
+    throw new Error(datos?.error ?? textosDelNavegador().comun.datos.operacionFallida)
   }
   return datos as T
 }

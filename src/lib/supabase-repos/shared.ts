@@ -1,5 +1,6 @@
 import { createClient } from '../supabase/client'
 import { mensajeDeError } from '../errores'
+import { textosDelNavegador } from '../i18n'
 
 /**
  * Lo que comparten todos los repos de Supabase: cómo se falla y quién eres.
@@ -45,5 +46,5 @@ export async function currentUserId(): Promise<string> {
   const supabase = createClient()
   const { data, error } = await supabase.auth.getSession()
   assertNoError(error)
-  return data.session?.user.id ?? fail('Usuario no autenticado')
+  return data.session?.user.id ?? fail(textosDelNavegador().comun.datos.noAutenticado)
 }

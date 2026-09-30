@@ -1,3 +1,5 @@
+'use client'
+
 import { SectionLink } from '@/components/ui/SectionLink'
 import { Heart } from 'lucide-react'
 import { memo } from 'react'
@@ -5,6 +7,7 @@ import type { Event, Child, FamilyMember } from '@/types'
 import { eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { planYaPasado, siguientePlan } from '@/lib/events'
 import { format } from 'date-fns'
+import { useT } from '@/lib/i18n/contexto'
 
 interface TodayEventsProps {
   events: Event[]
@@ -35,6 +38,7 @@ function formatTime(dateStr: string) {
  * decían casi lo mismo: el saludo ya adelantaba el próximo evento.
  */
 export const TodayEvents = memo(function TodayEvents({ events, kids, members, calmMessage, onOpen, ahora }: TodayEventsProps) {
+  const t = useT()
   if (events.length === 0) {
     if (!calmMessage) return null
     return (
@@ -87,7 +91,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
                     aria-hidden
                   />
                   <span className={`text-xs font-bold ${esProximo ? 'text-primary-strong' : 'text-muted'}`}>
-                    {event.all_day ? 'Todo el día' : formatTime(event.start_at)}
+                    {event.all_day ? t.inicio.todoElDia : formatTime(event.start_at)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -111,7 +115,7 @@ export const TodayEvents = memo(function TodayEvents({ events, kids, members, ca
         })}
       </ul>
       <div className="border-t border-hairline px-4 py-2.5">
-        <SectionLink href="/calendar">Ver calendario</SectionLink>
+        <SectionLink href="/calendar">{t.inicio.verCalendario}</SectionLink>
       </div>
     </div>
   )

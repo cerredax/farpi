@@ -1,7 +1,9 @@
-import { addDays, addWeeks, endOfWeek, format, isSameDay } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { addDays, addWeeks, endOfWeek, format, isSameDay, type Locale } from 'date-fns'
 import { assigneeKeyOf } from './assignees'
 import { capitalize } from './text'
+import { calendario as es } from './i18n/es/calendario'
+import { localeDeFechas } from './i18n/fechas'
+import type { Diccionario } from './i18n'
 
 /**
  * Cómo se agrupa lo que viene después del día que se está mirando.
@@ -23,25 +25,33 @@ import { capitalize } from './text'
  *
  * `hoy` es un parámetro y no un `new Date()` de dentro para que se pueda probar
  * sin depender del día en que se corran los tests.
+ *
+ * `t` y `locale` son el idioma de la pantalla; sin ellos, castellano.
  */
-export function tramoDeAgenda(day: Date, desde: Date, hoy: Date = new Date()): string {
+export function tramoDeAgenda(
+  day: Date,
+  desde: Date,
+  hoy: Date = new Date(),
+  t: Diccionario['calendario'] = es,
+  locale: Locale = localeDeFechas('es'),
+): string {
   // El primer día de la lista es su propio tramo. Desde que la agenda es una
   // lista continua (25-08-2026) el día elegido no tiene tarjeta aparte, así que
   // es su rótulo quien lo separa de lo que viene detrás: "Hoy" cuando lo es, y
   // su fecha cuando se está mirando otro día.
   if (isSameDay(day, desde)) {
     return isSameDay(desde, hoy)
-      ? 'Hoy'
-      : capitalize(format(desde, "EEEE d 'de' MMMM", { locale: es }))
+      ? t.tramos.hoy
+      : capitalize(format(desde, t.formatos.dia, { locale }))
   }
-  if (isSameDay(desde, hoy) && isSameDay(day, addDays(hoy, 1))) return 'Mañana'
-  if (day <= endOfWeek(desde, { weekStartsOn: 1 })) return 'Esta semana'
-  if (day <= endOfWeek(addWeeks(desde, 1), { weekStartsOn: 1 })) return 'La semana que viene'
+  if (isSameDay(desde, hoy) && isSameDay(day, addDays(hoy, 1))) return t.tramos.manana
+  if (day <= endOfWeek(desde, { weekStartsOn: 1 })) return t.tramos.estaSemana
+  if (day <= endOfWeek(addWeeks(desde, 1), { weekStartsOn: 1 })) return t.tramos.laSemanaQueViene
   // El año solo cuando no es el del día elegido. En 45 días eso solo pasa al
   // cruzar de diciembre a enero, y ahí "Enero" a secas se leería como el enero
   // que ya pasó.
   const mismoAno = day.getFullYear() === desde.getFullYear()
-  return capitalize(format(day, mismoAno ? 'MMMM' : 'MMMM yyyy', { locale: es }))
+  return capitalize(format(day, mismoAno ? t.tramos.mes : t.tramos.mesYAno, { locale }))
 }
 
 /**

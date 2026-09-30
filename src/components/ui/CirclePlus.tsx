@@ -1,4 +1,7 @@
+'use client'
+
 import { Plus } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 interface CirclePlusProps {
   onClick: () => void
@@ -18,13 +21,14 @@ interface CirclePlusProps {
  * área de toque con `CircleCheck` para que las filas no se descuadren.
  */
 export function CirclePlus({ onClick, ariaLabel, size = 'md', className = '' }: CirclePlusProps) {
+  const t = useT()
   const iconSize = size === 'sm' ? 10 : 13
 
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={ariaLabel ?? 'Apuntar que hace falta'}
+      aria-label={ariaLabel ?? t.comun.apuntarQueHaceFalta}
       className={`flex-shrink-0 flex items-center justify-center w-12 min-h-[44px] active:bg-primary-tint transition-colors group ${className}`}
     >
       <span

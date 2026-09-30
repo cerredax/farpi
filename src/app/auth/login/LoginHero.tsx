@@ -2,6 +2,8 @@ import Image from 'next/image'
 import { Garantias } from '@/components/ui/Garantias'
 import { DayIllustration } from '@/components/home/DayIllustration'
 import { getDayPeriodEnMadrid } from '@/lib/date-utils'
+import { diccionario } from '@/lib/i18n'
+import { idiomaDeLaPeticion } from '@/lib/i18n/servidor'
 
 /**
  * Columna de presentación del login: marca y bienvenida.
@@ -21,10 +23,12 @@ import { getDayPeriodEnMadrid } from '@/lib/date-utils'
  *
  * El titular y el párrafo se repiten en `LandingPage`. No se han sacado a una
  * constante a propósito: son dos, se leen enteros donde se pintan, y cada
- * pantalla los maqueta a su tamaño. Si cambian, cambian en los dos sitios.
+ * pantalla los maqueta a su tamaño. Si cambian, cambian en los dos sitios
+ * (aquí, en el bloque `acceso.hero` del diccionario; allí, en `landing/textos.ts`).
  */
-export function LoginHero() {
+export async function LoginHero() {
   const tramo = getDayPeriodEnMadrid()
+  const t = diccionario(await idiomaDeLaPeticion()).acceso.hero
 
   return (
   <section className="flex min-h-[52dvh] flex-col px-6 py-7 sm:px-10 lg:min-h-dvh lg:px-14 lg:py-12 xl:px-20">
@@ -42,7 +46,7 @@ export function LoginHero() {
       />
       <div>
         <p className="text-lg font-black leading-none tracking-tight">Farpi</p>
-        <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Familia en calma</p>
+        <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.18em] text-muted">{t.lemaDeMarca}</p>
       </div>
     </header>
 
@@ -56,7 +60,7 @@ export function LoginHero() {
           bloque entero, que es donde hay sitio para que sea grande. */}
       <div className="grid max-w-2xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 lg:gap-x-6">
         <h1 className="text-[1.9rem] font-black leading-[1.08] tracking-tight sm:text-4xl xl:text-5xl">
-          Qué tenemos que saber hoy en casa
+          {t.titular}
         </h1>
 
         <DayIllustration
@@ -66,9 +70,7 @@ export function LoginHero() {
 
         <div className="col-span-2 lg:col-span-1 lg:col-start-1 lg:row-start-2">
           <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-            <span className="font-bold text-ink">Farpi</span> es el espacio privado de tu familia:
-            todos veis lo mismo sin tener que preguntar, y lo que hay que recordar deja de estar en
-            la cabeza de uno solo.
+            <span className="font-bold text-ink">Farpi</span> {t.parrafo}
           </p>
 
           <Garantias className="mt-5" />

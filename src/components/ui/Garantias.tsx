@@ -1,4 +1,7 @@
+'use client'
+
 import { ShieldCheck } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * Las tres cosas que pregunta quien llega de fuera antes que ninguna otra:
@@ -16,16 +19,18 @@ import { ShieldCheck } from 'lucide-react'
  * lector de pantalla oye tres cosas y no una frase con puntos en medio.
  */
 export function Garantias({ className = '' }: { className?: string }) {
+  const t = useT().acceso.garantias
+
   return (
     <ul className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-ink ${className}`}>
       <li className="inline-flex items-center gap-1.5">
         <ShieldCheck size={15} strokeWidth={2.4} className="flex-shrink-0 text-primary-strong" />
-        Privado para tu familia
+        {t.privado}
       </li>
       <li aria-hidden className="text-muted-soft">·</li>
-      <li>Gratis</li>
+      <li>{t.gratis}</li>
       <li aria-hidden className="text-muted-soft">·</li>
-      <li>Sin anuncios</li>
+      <li>{t.sinAnuncios}</li>
     </ul>
   )
 }

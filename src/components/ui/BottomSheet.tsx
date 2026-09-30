@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef } from 'react'
 import { X } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 interface BottomSheetProps {
   open: boolean
@@ -15,6 +16,7 @@ interface BottomSheetProps {
 }
 
 export function BottomSheet({ open, title, onClose, children, footer, headerActions }: BottomSheetProps) {
+  const t = useT()
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
 
@@ -135,7 +137,7 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
             <button
               type="button"
               onClick={onClose}
-              aria-label="Cerrar"
+              aria-label={t.comun.cerrar}
               className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-muted hover:bg-surface transition-colors"
             >
               <X size={18} />

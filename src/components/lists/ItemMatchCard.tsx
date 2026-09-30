@@ -1,6 +1,9 @@
+'use client'
+
 import { ChevronRight } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { CirclePlus } from '@/components/ui/CirclePlus'
+import { useT } from '@/lib/i18n/contexto'
 import type { ItemMatch } from '@/types'
 
 interface ItemMatchCardProps {
@@ -16,20 +19,21 @@ interface ItemMatchCardProps {
  * para navegar. Entrar en la lista sigue a un toque, en el resto de la tarjeta.
  */
 export function ItemMatchCard({ match, onToggle, onOpenList }: ItemMatchCardProps) {
+  const t = useT().listas.fila
   return (
     <div className="w-full bg-white rounded-2xl border border-surface shadow-sm flex items-center gap-2 pl-2 pr-3 py-2.5">
       {match.completed ? (
-        <CirclePlus onClick={onToggle} ariaLabel={`Apuntar que hace falta ${match.text}`} />
+        <CirclePlus onClick={onToggle} ariaLabel={t.apuntarQueHaceFalta(match.text)} />
       ) : (
         <CircleCheck
           checked={false}
           onClick={onToggle}
-          ariaLabel={`Ya tenéis ${match.text}, quitar de lo que falta`}
+          ariaLabel={t.yaTeneis(match.text)}
         />
       )}
       <button
         onClick={onOpenList}
-        aria-label={`Abrir ${match.list_name}`}
+        aria-label={t.abrirLista(match.list_name)}
         className="flex flex-1 items-center gap-2 min-w-0 text-left"
       >
         <span className="flex-1 min-w-0">

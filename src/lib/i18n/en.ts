@@ -1,4 +1,16 @@
 import type { Diccionario } from './es'
+import { ajustes } from './en/ajustes'
+import { comun } from './en/comun'
+import { inicio } from './en/inicio'
+import { cumpleanos } from './en/cumpleanos'
+import { notas } from './en/notas'
+import { calendario } from './en/calendario'
+import { finanzas } from './en/finanzas'
+import { listas } from './en/listas'
+import { comidas } from './en/comidas'
+import { tareas } from './en/tareas'
+import { documentos } from './en/documentos'
+import { acceso } from './en/acceso'
 
 /**
  * Los textos de la app en inglés (28-09-2026).
@@ -47,54 +59,18 @@ export const en: Diccionario = {
     revisaLaSesion: 'Check your session or the Supabase configuration.',
   },
 
-  ajustes: {
-    pestanas: {
-      familia: 'Family',
-      // No «Home»: así se llama ya Inicio, y serían dos sitios con el mismo nombre.
-      casa: 'Household',
-      cuenta: 'Account',
-      sincronizacion: 'Sync',
-      legal: 'Legal',
-    },
-    seccionesDeAjustes: 'Settings sections',
-
-    tuFamilia: 'Your family',
-    soloAdminNombre: 'Only an admin can change the family name.',
-    activa: 'active',
-    nombreDeLaFamilia: 'Family name',
-    crear: 'Create',
-    cancelar: 'Cancel',
-    nuevaFamilia: '+ New family',
-
-    personas: 'People',
-    adultos: (n: number) => (n === 1 ? '1 adult' : `${n} adults`),
-    hijos: (n: number) => (n === 1 ? '1 child' : `${n} children`),
-    invitaciones: (n: number) => (n === 1 ? '1 invitation' : `${n} invitations`),
-    adultosConCuenta: 'Adults with an account',
-    soloAdminPersonas:
-      'Inviting someone and choosing who is an admin is up to an admin. Your own name and colour are yours to change.',
-    adultosSinCuenta: 'Adults without an account',
-    grupoHijos: 'Children',
-
-    preferenciasDeLaCasa: 'Household preferences',
-    franjasDeComida: 'Meal times',
-    soloAdminFranjas: 'Meal times are set by an admin, because they are the same for the whole household.',
-
-    notificaciones: 'Notifications',
-
-    idioma: {
-      titulo: 'Language',
-      explicacion: 'This only changes on this device: everyone at home chooses their own.',
-    },
-
-    privacidad: 'Privacy policy',
-    terminos: 'Terms of service',
-
-    modoDemo: 'Demo mode',
-    datosDePrueba: 'This is sample data and it lives in this browser.',
-    confirmarReinicio: 'Confirm reset',
-    reiniciarDemo: 'Reset demo data',
-  },
+  ajustes,
+  comun,
+  inicio,
+  cumpleanos,
+  notas,
+  calendario,
+  finanzas,
+  listas,
+  comidas,
+  tareas,
+  documentos,
+  acceso,
 
   metadatos: {
     lema: 'what we need to know at home today',

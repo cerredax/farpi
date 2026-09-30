@@ -1,3 +1,7 @@
+'use client'
+
+import { useT } from '@/lib/i18n/contexto'
+
 /**
  * «Beta»: esto funciona, pero todavía puede cambiar.
  *
@@ -9,9 +13,11 @@
  * Salmón sobre su tinte, 6,0:1: es texto, así que va en `-strong`.
  */
 export function BetaBadge() {
+  const t = useT()
+
   return (
     <span className="inline-flex flex-shrink-0 items-center rounded-full bg-accent-tint px-1.5 py-px text-[10px] font-bold uppercase tracking-wide text-accent-strong">
-      Beta
+      {t.comun.beta}
     </span>
   )
 }

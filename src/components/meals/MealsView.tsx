@@ -2,7 +2,6 @@
 
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { MealSheet } from './MealSheet'
 import { CopyMealSheet } from './CopyMealSheet'
 import { MealRow } from './MealRow'
@@ -13,9 +12,14 @@ import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { capitalize } from '@/lib/text'
 import { ViewHeader } from '@/components/ui/ViewHeader'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 
 export function MealsView() {
   const s = useMealsState()
+  const diccionario = useT()
+  const t = diccionario.comidas.vista
+  const locale = localeDeFechas(useIdioma())
 
   const sharedSheet = (
     <>
@@ -52,7 +56,7 @@ export function MealsView() {
         {/* Sin buscador: el menú es de esta semana y cabe entero en la
             pantalla, así que no hay nada que buscar. La fila es la misma que la
             de Listas, Tareas y Documentos. */}
-        <ViewHeader resumen="Menú de la familia" onAdd={() => s.openCreate()} addLabel="Añadir comida" />
+        <ViewHeader resumen={t.resumen} onAdd={() => s.openCreate()} addLabel={t.anadirComida} />
 
         <div className="flex gap-2 bg-surface p-1 rounded-2xl">
           {(['today', 'week'] as const).map(tab => (
@@ -61,7 +65,7 @@ export function MealsView() {
               onClick={() => s.setViewMode(tab)}
               className={`flex-1 min-h-11 rounded-xl text-sm font-bold transition-colors ${s.viewMode === tab ? 'bg-white text-ink shadow-sm' : 'text-muted'}`}
             >
-              {tab === 'today' ? 'Hoy' : 'Esta semana'}
+              {tab === 'today' ? t.hoy : t.estaSemana}
             </button>
           ))}
         </div>
@@ -76,13 +80,13 @@ export function MealsView() {
                     botón, que sí hace algo. */}
                 <EmptyState
                   emoji="🍽️"
-                  title="Sin menú para hoy"
+                  title={t.sinMenuHoy}
                   action={
                     <button
                       onClick={() => s.openCreate()}
                       className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-primary-strong hover:bg-primary-tint"
                     >
-                      Añadir comida de hoy
+                      {t.anadirComidaDeHoy}
                     </button>
                   }
                 />
@@ -102,7 +106,7 @@ export function MealsView() {
         {s.viewMode === 'week' && (
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-muted">Vista semanal</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted">{t.vistaSemanal}</p>
               <p className="text-sm text-muted mt-0.5">{s.mobileWeek.label}</p>
             </div>
             <WeekList
@@ -131,7 +135,7 @@ export function MealsView() {
             <div className="flex items-center gap-1 bg-surface rounded-2xl p-1">
               <button
                 onClick={() => s.setDesktopWeekOffset(o => o - 1)}
-                aria-label="Semana anterior"
+                aria-label={t.semanaAnterior}
                 className="w-8 h-8 flex items-center justify-center rounded-xl text-muted hover:bg-white hover:text-ink transition-colors"
               >
                 <ChevronLeft size={16} strokeWidth={2} />
@@ -140,11 +144,11 @@ export function MealsView() {
                 onClick={() => s.setDesktopWeekOffset(0)}
                 className={`px-3 h-8 rounded-xl text-xs font-bold transition-colors ${s.desktopWeek.isCurrent ? 'bg-white text-ink shadow-sm' : 'text-muted hover:bg-white/60'}`}
               >
-                {s.desktopWeek.isCurrent ? 'Esta semana' : capitalize(format(s.desktopWeek.start, 'MMMM', { locale: es }))}
+                {s.desktopWeek.isCurrent ? t.estaSemana : capitalize(format(s.desktopWeek.start, diccionario.comidas.formatos.mes, { locale }))}
               </button>
               <button
                 onClick={() => s.setDesktopWeekOffset(o => o + 1)}
-                aria-label="Semana siguiente"
+                aria-label={t.semanaSiguiente}
                 className="w-8 h-8 flex items-center justify-center rounded-xl text-muted hover:bg-white hover:text-ink transition-colors"
               >
                 <ChevronRight size={16} strokeWidth={2} />
@@ -160,7 +164,7 @@ export function MealsView() {
                 es el mismo. */}
             <button
               onClick={() => s.openCreate()}
-              aria-label="Añadir comida"
+              aria-label={t.anadirComida}
               className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-colors hover:bg-primary-deep"
             >
               <Plus size={20} />

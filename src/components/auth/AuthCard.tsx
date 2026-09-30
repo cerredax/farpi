@@ -8,6 +8,8 @@ import { isAuthProviderEnabled } from '@/lib/supabase/auth-providers'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Garantias } from '@/components/ui/Garantias'
+import { useT } from '@/lib/i18n/contexto'
+import type { Diccionario } from '@/lib/i18n'
 
 export type AuthMode = 'signin' | 'signup'
 
@@ -35,12 +37,12 @@ export type AuthMode = 'signin' | 'signup'
 
 const PASSWORD_MIN_LENGTH = 8
 
-function authErrorMessage(message: string) {
+function authErrorMessage(message: string, t: Diccionario['acceso']['tarjeta']['errores']) {
   const normalized = message.toLowerCase()
-  if (normalized.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
-  if (normalized.includes('email not confirmed')) return 'Confirma tu correo desde el enlace que te hemos enviado.'
-  if (normalized.includes('password')) return 'La contraseña debe tener al menos 8 caracteres.'
-  if (normalized.includes('already registered') || normalized.includes('already exists')) return 'Ese correo ya tiene cuenta. Prueba a entrar directamente.'
+  if (normalized.includes('invalid login credentials')) return t.credenciales
+  if (normalized.includes('email not confirmed')) return t.sinConfirmar
+  if (normalized.includes('password')) return t.contrasenaCorta
+  if (normalized.includes('already registered') || normalized.includes('already exists')) return t.yaRegistrado
   return message
 }
 
@@ -52,6 +54,7 @@ export function AuthCard({
   conGarantias?: boolean
 }) {
   const router = useRouter()
+  const t = useT().acceso.tarjeta
 
   const [authMode, setAuthMode] = useState<AuthMode>(modoInicial)
   const [email, setEmail] = useState('')
@@ -86,10 +89,10 @@ export function AuthCard({
    * de contraseñas por código, que el navegador no mide.
    */
   function motivoInvalido(): string | null {
-    if (!email.trim()) return 'Escribe tu correo.'
-    if (!passwordIsValid) return 'La contraseña debe tener al menos 8 caracteres.'
-    if (isSignup && !fullName.trim()) return 'Escribe tu nombre.'
-    if (!passwordsMatch) return 'Las contraseñas no coinciden.'
+    if (!email.trim()) return t.escribeTuCorreo
+    if (!passwordIsValid) return t.errores.contrasenaCorta
+    if (isSignup && !fullName.trim()) return t.escribeTuNombre
+    if (!passwordsMatch) return t.contrasenasNoCoinciden
     return null
   }
 
@@ -123,24 +126,24 @@ export function AuthCard({
 
       setLoading(false)
 
-      if (signUpError) { setError(authErrorMessage(signUpError.message)); return }
+      if (signUpError) { setError(authErrorMessage(signUpError.message, t.errores)); return }
       if (data.session) { router.replace('/home'); router.refresh(); return }
 
-      setNotice('Revisa tu correo. Te hemos enviado un enlace para confirmar la cuenta.')
+      setNotice(t.revisaTuCorreo)
       return
     }
 
     const { error: signInError } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
     setLoading(false)
 
-    if (signInError) { setError(authErrorMessage(signInError.message)); return }
+    if (signInError) { setError(authErrorMessage(signInError.message, t.errores)); return }
     router.replace('/home')
     router.refresh()
   }
 
   async function handlePasswordReset() {
     const cleanEmail = email.trim().toLowerCase()
-    if (!cleanEmail) { setError('Escribe tu correo primero.'); return }
+    if (!cleanEmail) { setError(t.escribeTuCorreoPrimero); return }
 
     const supabase = createClient()
     setLoading(true)
@@ -151,8 +154,8 @@ export function AuthCard({
     })
 
     setLoading(false)
-    if (resetError) { setError(authErrorMessage(resetError.message)); return }
-    setNotice('Te hemos enviado un enlace para recuperar la contraseña.')
+    if (resetError) { setError(authErrorMessage(resetError.message, t.errores)); return }
+    setNotice(t.enlaceDeRecuperacion)
   }
 
   async function handleGoogle() {
@@ -163,19 +166,17 @@ export function AuthCard({
       provider: 'google',
       options: { redirectTo: `${location.origin}/auth/callback?next=/home` },
     })
-    if (oauthError) setError(authErrorMessage(oauthError.message))
+    if (oauthError) setError(authErrorMessage(oauthError.message, t.errores))
   }
 
   return (
     <div>
       <div className="mb-6">
         <p className="text-2xl font-black tracking-tight text-ink">
-          {isSignup ? 'Crea tu cuenta' : 'Entra a Farpi'}
+          {isSignup ? t.tituloRegistro : t.tituloEntrar}
         </p>
         <p className="mt-1.5 text-sm leading-relaxed text-muted">
-          {isSignup
-            ? 'Privado y pensado para el día a día de una familia.'
-            : 'Accede a tu espacio familiar privado.'}
+          {isSignup ? t.subtituloRegistro : t.subtituloEntrar}
         </p>
       </div>
 
@@ -186,9 +187,9 @@ export function AuthCard({
               <CheckCircle2 size={18} strokeWidth={2.4} />
             </span>
             <div>
-              <p className="text-sm font-black text-ink">Modo local activo</p>
+              <p className="text-sm font-black text-ink">{t.modoLocal}</p>
               <p className="mt-1 text-sm leading-relaxed text-muted">
-                Configura Supabase para activar cuentas reales, invitaciones y sincronización.
+                {t.modoLocalExplicacion}
               </p>
             </div>
           </div>
@@ -210,7 +211,7 @@ export function AuthCard({
                     : 'text-muted hover:text-ink'
                 }`}
               >
-                {mode === 'signin' ? 'Entrar' : 'Crear cuenta'}
+                {mode === 'signin' ? t.pestanaEntrar : t.pestanaRegistro}
               </button>
             ))}
           </div>
@@ -246,12 +247,12 @@ export function AuthCard({
                   <path fill="#FBBC05" d="M5.85 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.67-2.84Z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.67 2.84C6.71 7.3 9.14 5.38 12 5.38Z" />
                 </svg>
-                Continuar con Google
+                {t.continuarConGoogle}
               </button>
 
               <div className="mb-4 flex items-center gap-3">
                 <div className="h-px flex-1 bg-line" />
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted">o</span>
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted">{t.o}</span>
                 <div className="h-px flex-1 bg-line" />
               </div>
             </>
@@ -259,7 +260,7 @@ export function AuthCard({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignup && (
-              <Field label="Tu nombre" htmlFor="full-name">
+              <Field label={t.tuNombre} htmlFor="full-name">
                 <InputIcon icon={<User size={15} />}>
                   <input
                     id="full-name"
@@ -268,14 +269,14 @@ export function AuthCard({
                     autoComplete="name"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
-                    placeholder="Nombre y apellido"
+                    placeholder={t.tuNombrePlaceholder}
                     className="form-input"
                   />
                 </InputIcon>
               </Field>
             )}
 
-            <Field label="Correo electrónico" htmlFor="email">
+            <Field label={t.correo} htmlFor="email">
               <InputIcon icon={<Mail size={15} />}>
                 <input
                   id="email"
@@ -284,13 +285,13 @@ export function AuthCard({
                   autoComplete="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
+                  placeholder={t.correoPlaceholder}
                   className="form-input"
                 />
               </InputIcon>
             </Field>
 
-            <Field label="Contraseña" htmlFor="password">
+            <Field label={t.contrasena} htmlFor="password">
               <InputIcon
                 icon={<Lock size={15} />}
                 after={
@@ -301,7 +302,7 @@ export function AuthCard({
                        debajo incluso de los 24 de la WCAG. Cabe entero: el campo
                        mide 49 de alto y deja 44 a la derecha (`pr-11`). */
                     className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted transition-colors hover:text-ink"
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    aria-label={showPassword ? t.ocultarContrasena : t.mostrarContrasena}
                   >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -315,17 +316,17 @@ export function AuthCard({
                   minLength={PASSWORD_MIN_LENGTH}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder={t.contrasenaPlaceholder}
                   className="form-input pr-11"
                 />
               </InputIcon>
               {password && !passwordIsValid && (
-                <p className="mt-1 text-[11px] font-semibold text-danger-strong">Mínimo 8 caracteres.</p>
+                <p className="mt-1 text-[11px] font-semibold text-danger-strong">{t.minimoOchoCaracteres}</p>
               )}
             </Field>
 
             {isSignup && (
-              <Field label="Repite la contraseña" htmlFor="confirm-password">
+              <Field label={t.repiteContrasena} htmlFor="confirm-password">
                 <InputIcon icon={<Lock size={15} />}>
                   <input
                     id="confirm-password"
@@ -334,12 +335,12 @@ export function AuthCard({
                     autoComplete="new-password"
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    placeholder="Misma contraseña"
+                    placeholder={t.repiteContrasenaPlaceholder}
                     className="form-input"
                   />
                 </InputIcon>
                 {confirmPassword && !passwordsMatch && (
-                  <p className="mt-1 text-[11px] font-semibold text-danger-strong">Las contraseñas no coinciden.</p>
+                  <p className="mt-1 text-[11px] font-semibold text-danger-strong">{t.contrasenasNoCoinciden}</p>
                 )}
               </Field>
             )}
@@ -351,12 +352,12 @@ export function AuthCard({
               {loading ? (
                 <span className="inline-flex items-center gap-2">
                   <Loader2 size={15} className="animate-spin" />
-                  Un momento
+                  {t.unMomento}
                 </span>
               ) : isSignup ? (
-                'Crear cuenta'
+                t.crearCuenta
               ) : (
-                'Entrar'
+                t.entrar
               )}
             </Button>
 
@@ -368,7 +369,7 @@ export function AuthCard({
                 /* `min-h-11`: medía 20 px de alto, un renglón de letra pequeña. */
                 className="flex min-h-11 w-full items-center justify-center text-xs font-semibold text-primary-strong hover:underline disabled:opacity-40"
               >
-                Recuperar contraseña
+                {t.recuperarContrasena}
               </button>
             )}
           </form>

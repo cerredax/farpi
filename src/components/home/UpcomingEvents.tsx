@@ -1,14 +1,17 @@
+'use client'
+
 import { memo } from 'react'
 import { CalendarClock, CalendarDays, CalendarRange } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
 import type { Event, Child, FamilyMember } from '@/types'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { format, type Locale } from 'date-fns'
 import { assigneeKeyOf, eventColor, fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { parseLocalDate } from '@/lib/date-utils'
 import { agruparPlanesPorDia, partirPlanesProximos } from '@/lib/events'
 import { capitalize } from '@/lib/text'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 
 interface UpcomingEventsProps {
   events: Event[]
@@ -24,8 +27,8 @@ interface UpcomingEventsProps {
  * la primera fila y competía con ella por el ancho. El mes sigue sobrando: nada
  * de lo que sale aquí está a más de siete días.
  */
-function diaDePlanesLabel(dia: string): string {
-  return capitalize(format(parseLocalDate(dia), 'EEEE d', { locale: es }))
+function diaDePlanesLabel(dia: string, formato: string, locale: Locale): string {
+  return capitalize(format(parseLocalDate(dia), formato, { locale }))
 }
 
 /**
@@ -44,6 +47,7 @@ function diaDePlanesLabel(dia: string): string {
  * calendario (`agruparPorPersona`).
  */
 function FilasDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
+  const t = useT()
   return (
     <ul className="divide-y divide-hairline">
       {events.map((event, i) => {
@@ -69,7 +73,7 @@ function FilasDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
                   aria-hidden
                 />
                 <span className="text-xs font-semibold text-muted">
-                  {event.all_day ? 'Todo el día' : format(new Date(event.start_at), 'HH:mm')}
+                  {event.all_day ? t.inicio.todoElDia : format(new Date(event.start_at), 'HH:mm')}
                 </span>
                 {/* De quién es, en su color y en la misma línea que la hora.
                     Como píldora debajo se comía una línea entera por evento
@@ -117,6 +121,8 @@ function FilasDePlanes({ events, kids, members, onOpen }: UpcomingEventsProps) {
  * único bloque no separa nada de nada.
  */
 function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: UpcomingEventsProps & { conDia?: boolean }) {
+  const t = useT()
+  const locale = localeDeFechas(useIdioma())
   if (!conDia) return <FilasDePlanes events={events} kids={kids} members={members} onOpen={onOpen} />
 
   return (
@@ -124,7 +130,7 @@ function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: Upcomin
       {agruparPlanesPorDia(events).map(({ dia, events: delDia }) => (
         <div key={dia}>
           <h3 className="bg-surface px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
-            {diaDePlanesLabel(dia)}
+            {diaDePlanesLabel(dia, t.inicio.proximos.formatoDia, locale)}
           </h3>
           <FilasDePlanes events={delDia} kids={kids} members={members} onOpen={onOpen} />
         </div>
@@ -165,6 +171,7 @@ function ListaDePlanes({ events, kids, members, onOpen, conDia = true }: Upcomin
 export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, members, onOpen }: UpcomingEventsProps) {
   // Sin nada que enseñar no se pinta el bloque: una tarjeta vacía diciendo
   // "semana tranquila" ocupa lo mismo que una con contenido.
+  const t = useT()
   if (events.length === 0) return null
 
   const { manana, proximos, proximaSemana } = partirPlanesProximos(events)
@@ -173,10 +180,10 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
     <div className="space-y-6 lg:space-y-5">
       {manana.length > 0 && (
         <HomeSection
-          label="Mañana"
+          label={t.inicio.proximos.manana}
           icon={CalendarClock}
           accentColor="#E9C46A"
-          footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
+          footer={<SectionLink href="/calendar">{t.inicio.verCalendario}</SectionLink>}
         >
           <ListaDePlanes events={manana} kids={kids} members={members} onOpen={onOpen} conDia={false} />
         </HomeSection>
@@ -184,10 +191,10 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
 
       {proximos.length > 0 && (
         <HomeSection
-          label="Próximos días"
+          label={t.inicio.proximos.proximosDias}
           icon={CalendarDays}
           accentColor="#D8A48F"
-          footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
+          footer={<SectionLink href="/calendar">{t.inicio.verCalendario}</SectionLink>}
         >
           <ListaDePlanes events={proximos} kids={kids} members={members} onOpen={onOpen} />
         </HomeSection>
@@ -195,10 +202,10 @@ export const UpcomingEvents = memo(function UpcomingEvents({ events, kids, membe
 
       {proximaSemana.length > 0 && (
         <HomeSection
-          label="Próxima semana"
+          label={t.inicio.proximos.proximaSemana}
           icon={CalendarRange}
           accentColor="#A39B93"
-          footer={<SectionLink href="/calendar">Ver calendario</SectionLink>}
+          footer={<SectionLink href="/calendar">{t.inicio.verCalendario}</SectionLink>}
         >
           <ListaDePlanes events={proximaSemana} kids={kids} members={members} onOpen={onOpen} />
         </HomeSection>

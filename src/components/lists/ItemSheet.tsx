@@ -8,6 +8,7 @@ import { Suggestions } from '@/components/ui/Suggestions'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { selectSuggestions } from '@/lib/selectors'
 import { validateListItemDraft } from '@/lib/validators'
+import { useT } from '@/lib/i18n/contexto'
 import type { ListItem, ListItemDraft } from '@/types'
 
 interface ItemSheetProps {
@@ -53,6 +54,7 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove,
     validate: validateListItemDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
+  const t = useT().listas.itemSheet
 
   const sugerencias = selectSuggestions(historial, draft.text)
 
@@ -65,35 +67,35 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove,
   return (
     <BottomSheet
       open={open}
-      title={titulo ?? (mode === 'create' ? 'Añadir ítem' : 'Editar ítem')}
+      title={titulo ?? (mode === 'create' ? t.anadirItem : t.editarItem)}
       onClose={onClose}
       footer={
         <SheetFooter
           form="item-form"
-          submitLabel={mode === 'create' ? 'Añadir' : 'Guardar'}
+          submitLabel={mode === 'create' ? t.anadir : t.guardar}
           error={formError}
           onDelete={mode === 'edit'
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar ítem', confirmLabel: 'Confirmar' }
+            ? { confirming, onClick: handleDelete, idleLabel: t.eliminarItem, confirmLabel: t.confirmar }
             : undefined}
         />
       }
     >
       <form id="item-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
-        <Field label="Ítem" htmlFor="item-text">
+        <Field label={t.item} htmlFor="item-text">
           <input
             id="item-text"
             ref={firstFieldRef}
             type="text"
             value={draft.text}
             onChange={e => patch({ text: e.target.value })}
-            placeholder="Ej: Leche entera"
+            placeholder={t.ejemplo}
             required
             className="field-input"
           />
           <Suggestions
             values={sugerencias}
             onPick={text => patch({ text })}
-            label={draft.text.trim() ? 'Coincidencias' : 'Los que más apuntáis'}
+            label={draft.text.trim() ? t.coincidencias : t.losQueMasApuntais}
           />
         </Field>
 
@@ -106,7 +108,7 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove,
             className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-canvas text-sm font-semibold text-ink transition-colors hover:bg-surface"
           >
             <FolderInput size={15} strokeWidth={2.2} aria-hidden />
-            Mover a otra lista
+            {t.moverAOtraLista}
           </button>
         )}
       </form>

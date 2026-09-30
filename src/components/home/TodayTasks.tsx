@@ -1,9 +1,12 @@
+'use client'
+
 import { memo } from 'react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { SectionLink } from '@/components/ui/SectionLink'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { Task } from '@/types'
 
 /**
@@ -33,8 +36,11 @@ interface TodayTasksProps {
  * lo de dentro de tres semanas.
  */
 export const TodayTasks = memo(function TodayTasks({ tasks, onToggle }: TodayTasksProps) {
+  const t = useT()
+  const locale = localeDeFechas(useIdioma())
   if (tasks.length === 0) return null
 
+  const textos = t.inicio.tareasDeHoy
   const hoy = getLocalDateString()
   // `selectTodayTasks` respeta el orden de `selectTasks`: primero lo atrasado,
   // después por fecha y por prioridad. Así que cortar por arriba deja fuera lo
@@ -52,7 +58,7 @@ export const TodayTasks = memo(function TodayTasks({ tasks, onToggle }: TodayTas
               <CircleCheck
                 checked={false}
                 onClick={() => onToggle(task.id)}
-                ariaLabel={`Marcar "${task.title}" como completada`}
+                ariaLabel={textos.marcarCompletada(task.title)}
                 size="sm"
                 className="w-10"
               />
@@ -65,7 +71,7 @@ export const TodayTasks = memo(function TodayTasks({ tasks, onToggle }: TodayTas
               <p className="min-w-0 flex-1 text-sm font-semibold text-ink leading-snug lg:flex-initial">{task.title}</p>
               {vencida && task.due_date && (
                 <span className="flex-shrink-0 rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-bold text-danger-strong">
-                  Atrasada · {format(parseLocalDate(task.due_date), 'd MMM', { locale: es })}
+                  {textos.atrasada(format(parseLocalDate(task.due_date), textos.formatoAtrasada, { locale }))}
                 </span>
               )}
             </li>
@@ -74,7 +80,7 @@ export const TodayTasks = memo(function TodayTasks({ tasks, onToggle }: TodayTas
         {restantes > 0 && (
           <li className="px-4 py-2">
             <SectionLink href="/tasks">
-              {restantes === 1 ? 'Y una más' : `Y ${restantes} más`}
+              {textos.yMas(restantes)}
             </SectionLink>
           </li>
         )}

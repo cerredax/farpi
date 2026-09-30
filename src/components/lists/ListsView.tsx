@@ -3,6 +3,7 @@
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
+import { useT } from '@/lib/i18n/contexto'
 import { ItemMatchCard } from './ItemMatchCard'
 import { ListCard } from './ListCard'
 import { ListDetailView } from './ListDetailView'
@@ -13,6 +14,7 @@ import { useListsState } from './useListsState'
 
 export function ListsView() {
   const s = useListsState()
+  const t = useT().listas.vista
 
   const listSheet = (
     <ListSheet
@@ -91,28 +93,28 @@ export function ListsView() {
     <>
       <div className="max-w-lg mx-auto px-4 py-6 space-y-4 lg:max-w-5xl lg:px-6">
         <ViewHeader
-          resumen={`${s.lists.length} lista${s.lists.length !== 1 ? 's' : ''} de la familia`}
+          resumen={t.resumen(s.lists.length)}
           buscador={puedeBuscar ? {
             value: s.busqueda,
             onChange: s.setBusqueda,
-            placeholder: `Buscar en ${s.allListItems.length} ítems de todas las listas…`,
-            ariaLabel: 'Buscar ítems en todas las listas',
+            placeholder: t.buscarEnTodas(s.allListItems.length),
+            ariaLabel: t.buscarEnTodasAria,
           } : null}
           onAdd={s.openCreateList}
-          addLabel="Nueva lista"
+          addLabel={t.nuevaLista}
         />
 
         {buscando ? (
           s.coincidencias.length === 0 ? (
             <EmptyState
               emoji="🔍"
-              title="Sin coincidencias"
-              description={`Ningún ítem coincide con «${s.busqueda.trim()}»`}
+              title={t.sinCoincidencias}
+              description={t.ningunItem(s.busqueda.trim())}
             />
           ) : (
             <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">
               <p className="field-label px-1 lg:col-span-2 xl:col-span-3">
-                {s.coincidencias.length} resultado{s.coincidencias.length !== 1 ? 's' : ''}
+                {t.resultados(s.coincidencias.length)}
               </p>
               {s.coincidencias.map(match => (
                 <ItemMatchCard
@@ -130,7 +132,7 @@ export function ListsView() {
              que cuenta una lista. */
           <EmptyState
             emoji="📋"
-            title="Sin listas todavía"
+            title={t.sinListas}
           />
         ) : (
           <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">

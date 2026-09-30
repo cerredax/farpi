@@ -19,7 +19,13 @@ import type { BudgetDraft, TaskDraft } from '@/types'
 function hojas(valor: unknown, ruta = ''): [string, string, 'texto' | 'funcion'][] {
   if (typeof valor === 'string') return [[ruta, valor, 'texto']]
   if (typeof valor === 'function') {
-    return [1, 3].map(n => [`${ruta}(${n})`, (valor as (n: number) => string)(n), 'funcion'] as [string, string, 'funcion'])
+    // Con un número, que es lo que reciben los plurales; y si la función espera
+    // texto (`franja.toLowerCase()`), con la cifra escrita.
+    const llamar = (n: number) => {
+      const f = valor as (...args: unknown[]) => string
+      try { return f(n, n) } catch { return f(String(n), String(n)) }
+    }
+    return [1, 3].map(n => [`${ruta}(${n})`, llamar(n), 'funcion'] as [string, string, 'funcion'])
   }
   if (valor && typeof valor === 'object') {
     return Object.entries(valor).flatMap(([k, v]) => hojas(v, ruta ? `${ruta}.${k}` : k))
@@ -44,7 +50,9 @@ test.describe('los diccionarios', () => {
 
     test(`${idioma}: ninguna frase vacía ni con espacios de sobra`, () => {
       const malas = hojas(diccionario(idioma))
-        .filter(([, frase]) => !frase || frase !== frase.trim() || frase.includes('  '))
+        // Un espacio en el extremo vale: hay frases que son un trozo antes o después
+        // de un `<strong>` (`'Se borra '`). Lo que no vale es más de uno seguido.
+        .filter(([, frase]) => !frase.trim() || frase.includes('  ') || /^\s{2,}|\s{2,}$/.test(frase))
         .map(([ruta]) => ruta)
       expect(malas).toEqual([])
     })
@@ -59,11 +67,15 @@ test.describe('los diccionarios', () => {
 
   test('el inglés está traducido, no copiado', () => {
     // Una traducción a medias se nota en las frases que siguen igual que en
-    // castellano. Se permiten las que se escriben igual en los dos idiomas.
-    const igualesEnLosDos = new Set(['ajustes.pestanas.legal'])
+    // castellano. Se permiten las que se escriben igual en los dos idiomas, por
+    // su valor: si una palabra vale igual en inglés, vale en cualquier sitio.
+    const igualesEnLosDos = new Set(['Legal', 'Beta', 'Personal', 'Email', 'Agenda', 'Google Drive', '1 plan'])
+    // Los patrones de fecha (`d MMM yyyy`), las iniciales y las cifras se escriben
+    // igual en los dos idiomas: no hay nada que traducir.
+    const esPatron = (frase: string) => /^[dDEMyS0-9 ,.\-–]+$/.test(frase)
     const castellano = new Map(hojas(es).map(([ruta, frase]) => [ruta, frase]))
     const sinTraducir = hojas(en)
-      .filter(([ruta, frase]) => castellano.get(ruta) === frase && !igualesEnLosDos.has(ruta))
+      .filter(([ruta, frase]) => castellano.get(ruta) === frase && !igualesEnLosDos.has(frase) && !esPatron(frase))
       .map(([ruta]) => ruta)
     expect(sinTraducir).toEqual([])
   })

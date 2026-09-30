@@ -1,6 +1,7 @@
 'use client'
 
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { useT } from '@/lib/i18n/contexto'
 import type { List, ListItem } from '@/types'
 
 interface MoveItemSheetProps {
@@ -22,11 +23,12 @@ interface MoveItemSheetProps {
 export function MoveItemSheet({ open, item, lists, onClose, onMove }: MoveItemSheetProps) {
   // La lista actual no se ofrece: mover algo a donde ya está no es una opción.
   const destinos = lists.filter(list => list.id !== item?.list_id)
+  const t = useT().listas.moverItem
 
   return (
     <BottomSheet
       open={open}
-      title={item ? `Mover «${item.text}»` : 'Mover ítem'}
+      title={item ? t.mover(item.text) : t.moverItem}
       onClose={onClose}
       footer={
         <div className="px-5 py-4">
@@ -34,7 +36,7 @@ export function MoveItemSheet({ open, item, lists, onClose, onMove }: MoveItemSh
             onClick={onClose}
             className="w-full py-3 rounded-2xl text-sm font-semibold text-muted transition-colors hover:bg-surface"
           >
-            Cancelar
+            {t.cancelar}
           </button>
         </div>
       }
@@ -42,7 +44,7 @@ export function MoveItemSheet({ open, item, lists, onClose, onMove }: MoveItemSh
       <div className="px-5 pb-2">
         {destinos.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted">
-            No hay otra lista a la que moverlo. Crea una desde la pantalla de listas.
+            {t.sinDestino}
           </p>
         ) : (
           <ul className="divide-y divide-hairline">

@@ -1,7 +1,10 @@
+'use client'
+
 import { Minus, Plus } from 'lucide-react'
 import { MAX_UNIDADES } from '@/lib/constants'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { CirclePlus } from '@/components/ui/CirclePlus'
+import { useT } from '@/lib/i18n/contexto'
 import type { ListItem } from '@/types'
 
 interface ListItemRowProps {
@@ -40,6 +43,7 @@ interface ListItemRowProps {
  * y las dos cosas estaban en la misma fila.
  */
 export function ListItemRow({ item, onToggle, onQuantity, onEdit }: ListItemRowProps) {
+  const t = useT().listas.fila
   const enCatalogo = item.completed
 
   return (
@@ -47,12 +51,12 @@ export function ListItemRow({ item, onToggle, onQuantity, onEdit }: ListItemRowP
       enCatalogo ? 'border-hairline bg-canvas' : 'border-surface bg-white shadow-sm'
     }`}>
       {enCatalogo ? (
-        <CirclePlus onClick={onToggle} ariaLabel={`Apuntar que hace falta ${item.text}`} />
+        <CirclePlus onClick={onToggle} ariaLabel={t.apuntarQueHaceFalta(item.text)} />
       ) : (
         <CircleCheck
           checked={false}
           onClick={onToggle}
-          ariaLabel={`Ya tenéis ${item.text}, quitar de lo que falta`}
+          ariaLabel={t.yaTeneis(item.text)}
         />
       )}
       <button
@@ -82,7 +86,7 @@ export function ListItemRow({ item, onToggle, onQuantity, onEdit }: ListItemRowP
             <>
               <button
                 onClick={() => onQuantity(item.quantity - 1)}
-                aria-label={`Quitar una unidad de ${item.text}`}
+                aria-label={t.quitarUnidad(item.text)}
                 className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
               >
                 <Minus size={14} strokeWidth={2.6} />
@@ -95,7 +99,7 @@ export function ListItemRow({ item, onToggle, onQuantity, onEdit }: ListItemRowP
           <button
             onClick={() => onQuantity(item.quantity + 1)}
             disabled={item.quantity >= MAX_UNIDADES}
-            aria-label={`Añadir una unidad de ${item.text}`}
+            aria-label={t.anadirUnidad(item.text)}
             className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary-tint hover:text-primary-strong disabled:opacity-40"
           >
             <Plus size={14} strokeWidth={2.6} />

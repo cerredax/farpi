@@ -1,3 +1,6 @@
+import type { Diccionario } from './i18n'
+import { inicio } from './i18n/es/inicio'
+
 /**
  * Devuelve la fecha local en formato yyyy-MM-dd.
  * Evita el desfase de toISOString() que convierte a UTC antes de formatear.
@@ -46,12 +49,12 @@ export function getDayPeriod(date: Date): DayPeriod {
   return getDayPeriodFromHour(date.getHours())
 }
 
-/** Saludo según la hora. Lo pinta la tarjeta del día en Inicio. */
-export function getGreeting(date: Date): string {
+/** Saludo según la hora. Lo pinta la tarjeta del día en Inicio, que le pasa los textos de su idioma. */
+export function getGreeting(date: Date, saludo: Diccionario['inicio']['saludo'] = inicio.saludo): string {
   const period = getDayPeriod(date)
-  if (period === 'mañana') return 'Buenos días'
-  if (period === 'tarde') return 'Buenas tardes'
-  return 'Buenas noches'
+  if (period === 'mañana') return saludo.manana
+  if (period === 'tarde') return saludo.tarde
+  return saludo.noche
 }
 
 export function getLocalDateString(date: Date = new Date()): string {

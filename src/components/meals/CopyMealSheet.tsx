@@ -3,13 +3,15 @@
 import { useMemo, useState } from 'react'
 import { Copy, Repeat } from 'lucide-react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import type { Locale } from 'date-fns'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { MEAL_SLOT_META } from '@/lib/constants'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
 import { mealCourses } from '@/lib/meal-slots'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { MealPlan } from '@/types'
 
 interface CopyMealSheetProps {
@@ -26,12 +28,15 @@ function getNextDate(date: string): string {
   return getLocalDateString(d)
 }
 
-function formatDateLabel(date: string | null): string {
+function formatDateLabel(date: string | null, patron: string, locale: Locale): string {
   if (!date) return ''
-  return format(parseLocalDate(date), "EEEE d 'de' MMMM", { locale: es })
+  return format(parseLocalDate(date), patron, { locale })
 }
 
 export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }: CopyMealSheetProps) {
+  const diccionario = useT()
+  const t = diccionario.comidas.copiarSheet
+  const locale = localeDeFechas(useIdioma())
   const defaultTargetDate = sourceDate ? getNextDate(sourceDate) : getLocalDateString()
   const [targetDate, setTargetDate] = useState(defaultTargetDate)
   const [repeatEveryDay, setRepeatEveryDay] = useState(false)
@@ -56,13 +61,13 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   const footer = (
     <SheetFooter
       form="copy-meal-form"
-      submitLabel={repeatEveryDay ? 'Copiar y repetir menú' : 'Copiar menú'}
+      submitLabel={repeatEveryDay ? t.copiarYRepetir : t.copiarMenu}
       disabled={disabled}
     />
   )
 
   return (
-    <BottomSheet open={open} title="Copiar menú" onClose={onClose} footer={footer}>
+    <BottomSheet open={open} title={t.titulo} onClose={onClose} footer={footer}>
       <form id="copy-meal-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
         <div className="rounded-3xl border border-surface bg-warm p-4">
           <div className="flex items-start gap-3">
@@ -70,11 +75,11 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               <Copy size={17} strokeWidth={2.4} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black uppercase tracking-widest text-muted">Menú origen</p>
-              <p className="text-sm font-bold text-ink capitalize">{formatDateLabel(sourceDate)}</p>
+              <p className="text-xs font-black uppercase tracking-widest text-muted">{t.menuOrigen}</p>
+              <p className="text-sm font-bold text-ink capitalize">{formatDateLabel(sourceDate, diccionario.comidas.formatos.diaDeLaSemana, locale)}</p>
               {!hasMeals && (
                 <p className="mt-1 text-xs font-semibold text-accent-strong">
-                  Este día no tiene comidas para copiar.
+                  {t.sinComidas}
                 </p>
               )}
             </div>
@@ -88,7 +93,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
                   <div key={meal.id} className="flex items-center gap-2 rounded-2xl bg-white/80 px-3 py-2">
                     <span className="text-base">{meta.emoji}</span>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{meta.label}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted">{diccionario.comun.franjas[meal.slot]}</p>
                       <p className="truncate text-sm font-semibold text-ink">{mealCourses(meal).join(' · ')}</p>
                     </div>
                   </div>
@@ -98,7 +103,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
           )}
         </div>
 
-        <Field label="Copiar al día" htmlFor="copy-target">
+        <Field label={t.copiarAlDia} htmlFor="copy-target">
           <input
             id="copy-target"
             type="date"
@@ -111,7 +116,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
             className="field-input"
           />
           <p className="text-[11px] text-muted">
-            Si ese día ya tenía menú, se sustituirá por este.
+            {t.seSustituira}
           </p>
         </Field>
 
@@ -125,16 +130,16 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
           <span className="flex-1">
             <span className="flex items-center gap-1.5 text-sm font-bold text-ink">
               <Repeat size={14} />
-              Repetir este menú cada día
+              {t.repetirCadaDia}
             </span>
             <span className="mt-0.5 block text-xs text-muted">
-              Ideal para repetir una semana tipo hasta la fecha que elijas.
+              {t.ideal}
             </span>
           </span>
         </label>
 
         {repeatEveryDay && (
-          <Field label="Fecha fin" htmlFor="copy-until">
+          <Field label={t.fechaFin} htmlFor="copy-until">
             <input
               id="copy-until"
               type="date"
@@ -146,7 +151,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
             />
             {invalidRepeatRange && (
               <p className="text-[11px] font-semibold text-danger-strong">
-                La fecha fin no puede ser anterior al día destino.
+                {t.fechaFinAnterior}
               </p>
             )}
           </Field>

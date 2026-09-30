@@ -2,11 +2,12 @@
 
 import { Plus, Pencil, Copy } from 'lucide-react'
 import { format, isSameDay } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Card } from '@/components/ui/Card'
 import type { MEAL_SLOTS } from '@/lib/constants'
 import { mealCourses } from '@/lib/meal-slots'
 import { capitalize } from '@/lib/text'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { MealPlan, MealSlot } from '@/types'
 
 interface WeekGridProps {
@@ -45,6 +46,11 @@ export function WeekGrid({
   cellMinHeight = 118,
 }: WeekGridProps) {
   const today = new Date()
+  const diccionario = useT()
+  const t = diccionario.comidas.semana
+  const { formatos } = diccionario.comidas
+  const franjas = diccionario.comun.franjas
+  const locale = localeDeFechas(useIdioma())
 
   return (
     <Card padded={false} className="overflow-hidden">
@@ -52,7 +58,7 @@ export function WeekGrid({
         <div className="min-w-0">
           <div className={`grid border-b border-surface bg-canvas ${COLUMNAS}`}>
             <div className="sticky left-0 z-20 bg-canvas border-r border-surface px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">Franja</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted">{t.franja}</p>
             </div>
             {weekDays.map(day => {
               const dayKey = format(day, 'yyyy-MM-dd')
@@ -66,7 +72,7 @@ export function WeekGrid({
                   }`}
                 >
                   <p className={`text-[10px] font-bold uppercase tracking-widest ${todayColumn ? 'text-primary-strong' : 'text-muted'}`}>
-                    {capitalize(format(day, 'EEE', { locale: es }))}
+                    {capitalize(format(day, formatos.semanaCorta, { locale }))}
                   </p>
                   <p className="text-sm font-extrabold mt-0.5 text-ink">
                     {format(day, 'd')}
@@ -80,10 +86,10 @@ export function WeekGrid({
                         ? 'bg-white text-primary-strong shadow-sm hover:bg-primary-tint'
                         : 'bg-white/50 text-faint cursor-not-allowed'
                     }`}
-                    aria-label={`Copiar menú del ${format(day, 'd MMM', { locale: es })}`}
+                    aria-label={t.copiarMenuDel(format(day, formatos.diaCorto, { locale }))}
                   >
                     <Copy size={10} strokeWidth={2.4} />
-                    Copiar
+                    {t.copiar}
                   </button>
                   {todayColumn && (
                     <span className="inline-block w-1 h-1 rounded-full bg-primary-strong mt-1" />
@@ -100,7 +106,7 @@ export function WeekGrid({
             >
               <div className="sticky left-0 z-10 bg-white border-r border-surface px-4 py-4 flex items-center gap-2">
                 <span className="text-lg flex-shrink-0">{slot.emoji}</span>
-                <p className="text-sm font-bold text-ink leading-tight">{slot.label}</p>
+                <p className="text-sm font-bold text-ink leading-tight">{franjas[slot.key]}</p>
               </div>
 
               {weekDays.map(day => {
@@ -126,7 +132,7 @@ export function WeekGrid({
                         <div className="h-full rounded-2xl border border-line bg-white/90 px-3 py-2 shadow-sm transition-colors group-hover:border-primary-strong group-hover:bg-white">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-primary-strong">
-                              {slot.emoji} {slot.label}
+                              {slot.emoji} {franjas[slot.key]}
                             </p>
                             <Pencil size={11} className="text-muted group-hover:text-primary-strong transition-colors flex-shrink-0" />
                           </div>
@@ -150,7 +156,7 @@ export function WeekGrid({
                         type="button"
                         onClick={() => onCreate(dateKey, slot.key)}
                         className="group flex h-full w-full items-center justify-center p-2"
-                        aria-label={`Añadir ${slot.label.toLowerCase()} para ${format(day, 'd MMM', { locale: es })}`}
+                        aria-label={t.anadirPara(franjas[slot.key], format(day, formatos.diaCorto, { locale }))}
                       >
                         {/* **Solo el día de hoy enseña el «Añadir»**; los otros
                             seis dejan la celda en blanco hasta que el ratón pasa
@@ -172,7 +178,7 @@ export function WeekGrid({
                         >
                           <div className={`flex flex-col items-center gap-1 transition-opacity ${todayColumn ? '' : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100'}`}>
                             <Plus size={14} strokeWidth={2.5} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Añadir</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{t.anadir}</span>
                           </div>
                         </div>
                       </button>

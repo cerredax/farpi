@@ -9,6 +9,7 @@ import { DocSheet } from './DocSheet'
 import { useDocsState } from './useDocsState'
 import { resolveAssignee } from '@/lib/assignees'
 import { ViewHeader } from '@/components/ui/ViewHeader'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * Cuántas categorías se enseñan sin pedirlo.
@@ -26,6 +27,8 @@ const CATEGORIAS_A_LA_VISTA = 4
 
 export function DocsView() {
   const s = useDocsState()
+  const t = useT()
+  const tv = t.documentos.vista
   const [verTodasLasCategorias, setVerTodasLasCategorias] = useState(false)
 
   // La que está puesta se enseña siempre, aunque caiga fuera de las cuatro: si
@@ -48,19 +51,17 @@ export function DocsView() {
     <>
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
         <ViewHeader
-          resumen={s.documents.length === 1
-            // Las dos formas escritas enteras: el sufijo suelto le ponía la «s» al
-            // sustantivo y dejaba «1 documento guardados».
-            ? '1 documento guardado'
-            : `${s.documents.length} documentos guardados`}
+          // Las dos formas escritas enteras: el sufijo suelto le ponía la «s» al
+          // sustantivo y dejaba «1 documento guardados».
+          resumen={tv.resumen(s.documents.length)}
           buscador={s.puedeBuscar ? {
             value: s.busqueda,
             onChange: s.setBusqueda,
-            placeholder: `Buscar en ${s.documents.length} documentos…`,
-            ariaLabel: 'Buscar documentos',
+            placeholder: tv.buscarEn(s.documents.length),
+            ariaLabel: tv.buscarDocumentos,
           } : null}
           onAdd={s.openCreate}
-          addLabel="Añadir documento"
+          addLabel={tv.anadir}
         />
 
         {/* La vuelta de conectar Drive. Es lo único que enseña esta pantalla sobre
@@ -74,13 +75,13 @@ export function DocsView() {
           >
             <p className="min-w-0 flex-1 text-xs font-semibold leading-relaxed text-ink">
               {s.avisoDrive === 'ok'
-                ? 'Google Drive conectado. Ya puedes guardar documentos: se quedarán en tu Drive y la familia los verá aquí.'
-                : 'No se pudo conectar Google Drive. Vuelve a intentarlo desde el botón de añadir documento.'}
+                ? tv.driveConectado
+                : tv.driveError}
             </p>
             <button
               type="button"
               onClick={s.cerrarAvisoDrive}
-              aria-label="Cerrar aviso"
+              aria-label={t.guardado.cerrarAviso}
               className="-my-2 -mr-2 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/60 hover:text-ink"
             >
               <X size={16} strokeWidth={2.4} />
@@ -94,14 +95,14 @@ export function DocsView() {
             golpe, desde el 02-09-2026— y cuántas se enseñan sin pedirlo lo cuenta
             `CATEGORIAS_A_LA_VISTA` ahí arriba. */}
         {s.puedeFiltrar && (
-          <div role="group" aria-label="Filtrar por categoría" className="flex flex-wrap gap-2 pb-1">
-            {[{ key: null, label: 'Todos' }, ...categoriasVisibles].map(f => (
+          <div role="group" aria-label={tv.filtrarPorCategoria} className="flex flex-wrap gap-2 pb-1">
+            {[null, ...categoriasVisibles.map(c => c.key)].map(key => (
               <CategoryChip
-                key={String(f.key)}
-                category={f.key}
-                label={f.label}
-                selected={s.activeFilter === f.key}
-                onClick={() => s.setActiveFilter(f.key)}
+                key={String(key)}
+                category={key}
+                label={key ? t.comun.categoriasDeDocumento[key] : tv.todos}
+                selected={s.activeFilter === key}
+                onClick={() => s.setActiveFilter(key)}
               />
             ))}
 
@@ -119,7 +120,7 @@ export function DocsView() {
                 onClick={() => setVerTodasLasCategorias(v => !v)}
                 className="flex min-h-11 flex-shrink-0 items-center rounded-xl border border-dashed border-line-strong px-3 text-xs font-bold text-muted transition-colors hover:bg-surface hover:text-ink"
               >
-                {ocultas > 0 ? `+${ocultas} más` : 'Ver menos'}
+                {ocultas > 0 ? tv.mas(ocultas) : tv.verMenos}
               </button>
             )}
           </div>
@@ -135,9 +136,9 @@ export function DocsView() {
           <EmptyState
             emoji={s.busqueda.trim() ? '🔍' : '📄'}
             title={s.busqueda.trim()
-              ? 'Sin coincidencias'
-              : s.activeFilter ? 'Sin documentos en esta categoría' : 'Sin documentos'}
-            description={s.busqueda.trim() ? `Ningún documento coincide con «${s.busqueda.trim()}»` : undefined}
+              ? tv.sinCoincidencias
+              : s.activeFilter ? tv.sinDocumentosEnCategoria : tv.sinDocumentos}
+            description={s.busqueda.trim() ? tv.ningunoCoincide(s.busqueda.trim()) : undefined}
           />
         ) : (
           <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start xl:grid-cols-3">

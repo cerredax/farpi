@@ -2,18 +2,22 @@
 
 import { memo } from 'react'
 import Link from 'next/link'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { format, type Locale } from 'date-fns'
 import { FileClock } from 'lucide-react'
 import { parseLocalDate } from '@/lib/date-utils'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
+import type { Diccionario } from '@/lib/i18n'
 import type { DocsQueCaducan } from '@/lib/selectors'
 
 interface ExpiringDocsProps {
   docs: DocsQueCaducan
 }
 
-function fecha(expiresOn: string | null): string {
-  return expiresOn ? format(parseLocalDate(expiresOn), "d 'de' MMMM", { locale: es }) : ''
+type Textos = Diccionario['inicio']['papeles']
+
+function fecha(expiresOn: string | null, t: Textos, locale: Locale): string {
+  return expiresOn ? format(parseLocalDate(expiresOn), t.formatoFecha, { locale }) : ''
 }
 
 /**
@@ -23,22 +27,14 @@ function fecha(expiresOn: string | null): string {
  * aviso que se puede atender desde la cama y uno que obliga a entrar a mirar de
  * qué habla. Con varios ya no cabe, así que se cuentan.
  */
-function mensaje({ caducados, pronto }: DocsQueCaducan): string {
+function mensaje({ caducados, pronto }: DocsQueCaducan, t: Textos, locale: Locale): string {
   if (caducados.length === 1 && pronto.length === 0) {
-    return `«${caducados[0].name}» caducó el ${fecha(caducados[0].expires_on)}`
+    return t.caducoEl(caducados[0].name, fecha(caducados[0].expires_on, t, locale))
   }
   if (caducados.length === 0 && pronto.length === 1) {
-    return `«${pronto[0].name}» caduca el ${fecha(pronto[0].expires_on)}`
+    return t.caducaEl(pronto[0].name, fecha(pronto[0].expires_on, t, locale))
   }
-
-  const partes: string[] = []
-  if (caducados.length === 1) partes.push('un papel ha caducado')
-  else if (caducados.length > 1) partes.push(`${caducados.length} papeles han caducado`)
-  if (pronto.length === 1) partes.push('uno caduca pronto')
-  else if (pronto.length > 1) partes.push(`${pronto.length} caducan pronto`)
-
-  const frase = partes.join(' y ')
-  return frase.charAt(0).toUpperCase() + frase.slice(1)
+  return t.varios(caducados.length, pronto.length)
 }
 
 /**
@@ -59,6 +55,8 @@ function mensaje({ caducados, pronto }: DocsQueCaducan): string {
  * vencer es el amarillo de los avisos, que dice "hay tiempo, pero ponte".
  */
 export const ExpiringDocs = memo(function ExpiringDocs({ docs }: ExpiringDocsProps) {
+  const t = useT()
+  const locale = localeDeFechas(useIdioma())
   const { caducados, pronto } = docs
   if (caducados.length === 0 && pronto.length === 0) return null
 
@@ -81,7 +79,7 @@ export const ExpiringDocs = memo(function ExpiringDocs({ docs }: ExpiringDocsPro
       >
         <FileClock size={18} strokeWidth={2.2} />
       </span>
-      <p className="min-w-0 flex-1 text-sm font-bold leading-snug text-ink">{mensaje(docs)}</p>
+      <p className="min-w-0 flex-1 text-sm font-bold leading-snug text-ink">{mensaje(docs, t.inicio.papeles, locale)}</p>
       <span className="flex-shrink-0 text-xs text-muted" aria-hidden>›</span>
     </Link>
   )

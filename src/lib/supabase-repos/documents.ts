@@ -3,6 +3,7 @@ import { assertNoError, fail } from './shared'
 import { pedirApi } from './api-farpi'
 import type { Document, DocumentDraft } from '@/types'
 import type { DocumentsRepo } from '../repos/types'
+import { textosDelNavegador } from '../i18n'
 
 /**
  * Los documentos, con los archivos en el Google Drive de quien los sube.
@@ -40,7 +41,7 @@ export const documentsRepo: DocumentsRepo = {
   },
 
   async createDocument(familyId: string, draft: DocumentDraft): Promise<Document> {
-    const file = draft.file ?? fail('Selecciona un archivo para subirlo')
+    const file = draft.file ?? fail(textosDelNavegador().comun.datos.seleccionaUnArchivo)
 
     // 1. Hueco en el Drive de quien sube. Si no lo tiene conectado, esto falla
     //    con 409 y el sheet enseña el botón de conectar.
@@ -58,9 +59,9 @@ export const documentsRepo: DocumentsRepo = {
       headers: { 'Content-Type': file.type },
       body: file,
     })
-    if (!subida.ok) fail('No se pudo subir el archivo a Google Drive. Inténtalo de nuevo.')
+    if (!subida.ok) fail(textosDelNavegador().comun.datos.noSeSubioADrive)
     const ref = (await subida.json().catch(() => null))?.id
-    if (!ref) fail('Google Drive no confirmó la subida del archivo.')
+    if (!ref) fail(textosDelNavegador().comun.datos.driveNoConfirmo)
 
     // 3. La ficha, ya con el tamaño real que diga el proveedor.
     return pedirApi<Document>('/api/documents', { familyId, ref, draft: draftSinArchivo(draft) })

@@ -82,10 +82,10 @@ function kidAssignee(c: Child): Assignee {
  * adultos sin cuenta van con los otros adultos y no al final con los hijos: a
  * la hora de asignar algo da igual quién entra en la app.
  */
-export function buildAssignees(members: FamilyMember[], kids: Child[]): Assignee[] {
+export function buildAssignees(members: FamilyMember[], kids: Child[], familia: string = FAMILY_ASSIGNEE.name): Assignee[] {
   const { adultos, hijos } = splitPeople(kids)
   return [
-    FAMILY_ASSIGNEE,
+    { ...FAMILY_ASSIGNEE, name: familia },
     ...members.map(m => ({
       key: `m:${m.id}`,
       name: m.display_name,

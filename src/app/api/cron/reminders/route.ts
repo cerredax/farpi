@@ -1,22 +1,13 @@
-import { timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
+import { enviarNotificacion, secretoCorrecto, ZONA_DE_LA_FAMILIA as REMINDER_TIME_ZONE } from '@/lib/cron'
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
 import { fraseDeCumplesDeLaCasa, proximosCumples, type CumpleEnCasa } from '@/lib/birthdays'
 import { RANGE_KINDS } from '@/lib/events'
 import { avisoDelDia, esLaHoraDelAviso, type PlanDelAviso } from '@/lib/reminders'
 
 export const runtime = 'nodejs'
-
-// Nunca se ha definido en ninguna parte —ni en `.env.local` ni en Vercel—, así que el
-// cron siempre ha calculado "hoy" con el valor de aquí. Está para poder cambiarla sin
-// tocar código el día que haga falta, no porque haga falta hoy.
-//
-// Se llamó `NIDO_TIME_ZONE` hasta el 31-08-2026. No se lee la vieja: comprobado que no
-// existe en ningún entorno, y un respaldo que no respalda nada es una línea que el
-// próximo que pase tiene que entender para nada.
-const REMINDER_TIME_ZONE = process.env.FARPI_TIME_ZONE ?? 'Europe/Madrid'
 
 interface ZonedDateParts {
   year: number
@@ -114,26 +105,6 @@ function mesAnteriorEn(timeZone: string): string {
   const { year, month } = getZonedDateParts(new Date(), timeZone)
   const anterior = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 }
   return `${anterior.year}-${String(anterior.month).padStart(2, '0')}`
-}
-
-/**
- * El secreto del cron, comparado en tiempo constante.
- *
- * Con `!==` el tiempo que tarda en decir no depende de cuántos caracteres ha
- * acertado quien prueba, y eso deja adivinarlo carácter a carácter midiendo. Por
- * red y con una función serverless de por medio el ruido se come esa señal, así que
- * esto no arregla un agujero abierto: es que comparar secretos así no cuesta nada y
- * la alternativa hay que justificarla.
- *
- * `timingSafeEqual` exige el mismo tamaño o lanza, así que la longitud se comprueba
- * antes — y esa sí se filtra, que es la parte que no tiene arreglo y no importa.
- */
-function secretoCorrecto(cabecera: string | null, secret: string): boolean {
-  if (!cabecera) return false
-  const esperado = Buffer.from(`Bearer ${secret}`)
-  const recibido = Buffer.from(cabecera)
-  if (esperado.length !== recibido.length) return false
-  return timingSafeEqual(esperado, recibido)
 }
 
 export async function GET(req: NextRequest) {
@@ -351,26 +322,12 @@ export async function GET(req: NextRequest) {
     const payload = JSON.stringify({ title, body, url: '/home' })
 
     for (const sub of subs.filter(s => s.user_id === userId)) {
-      try {
-        await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          payload,
-        )
-        sent++
-      } catch (err) {
-        const statusCode = (err as { statusCode?: number }).statusCode
-        if (statusCode === 404 || statusCode === 410) {
-          // El navegador ya no conoce esa suscripción: se limpia y no es un fallo.
-          await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
-          caducadas++
-        } else {
-          // Lo demás sí importa y antes se perdía en silencio. Sin esto, una
-          // clave VAPID mal pegada devuelve 200 con `sent: 0`, exactamente igual
-          // que un día tranquilo en el que no había nada que contar.
-          fallidos++
-          console.error('[cron] Envío push fallido:', statusCode ?? 'sin estado', (err as Error).message)
-        }
-      }
+      // Enviar, y limpiar la suscripción que el navegador ya no conoce, es lo que
+      // comparte con el aviso de cada evento (`lib/cron.ts`).
+      const resultado = await enviarNotificacion(supabase, sub, payload)
+      if (resultado === 'enviada') sent++
+      else if (resultado === 'caducada') caducadas++
+      else fallidos++
     }
   }
 

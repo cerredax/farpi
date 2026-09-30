@@ -388,6 +388,12 @@ datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo que re
   documentos, que viven en el Drive de quien los sube y tienen su propia papelera.
 - [ ] Publicar en Google Play como TWA: package name (`farpi.app`), SHA-256 de la firma,
   `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`.
+- [ ] **El aviso de cada evento** (30-09-2026), tres pasos y por este orden: (1) aplicar en el
+  SQL Editor el delta de `supabase/schema.sql` —la columna `events.remind_before_minutes`, su
+  `check` y la tabla `event_reminders_sent`—; (2) `node scripts/validate-rls.mjs` y anotar el
+  resultado en `docs/supabase-validation.md`; (3) programar el job de `pg_cron` que llama a
+  `/api/cron/event-reminders` cada cinco minutos, con el SQL de `docs/notificaciones.md`. El
+  despliegue de Vercel puede ir antes: hasta que exista el job, un aviso pedido no sale.
 - [ ] Límite de peticiones en el firewall de Vercel (plan Hobby: una regla por proyecto).
   Regla «Limite API» creada el 28-09-2026 con el CLI: `/api/*` salvo `/api/cron`, 100
   peticiones por minuto e IP, **en modo `log`**. Se pasa a 429 con

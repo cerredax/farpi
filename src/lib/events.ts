@@ -1,5 +1,6 @@
 import { endOfWeek } from 'date-fns'
 import { extractDate } from './date-utils'
+import { ANTELACIONES_DE_AVISO } from './constants'
 import type { Event, EventKind, FamilyMember } from '@/types'
 
 /**
@@ -61,6 +62,24 @@ export const RANGE_KINDS: EventKind[] = ['vacaciones', 'descanso', 'festivo']
 
 export function isRangeKind(kind: EventKind): boolean {
   return RANGE_KINDS.includes(kind)
+}
+
+/**
+ * La antelación del aviso que se guarda de un borrador, o `null`.
+ *
+ * Solo un plan con hora admite aviso: un cumpleaños o unas vacaciones ocupan días
+ * enteros y «30 minutos antes de las 00:00» sería una alarma a medianoche. Lo
+ * decide una sola función, y no cada repo por su cuenta, para que el mock y
+ * Supabase no puedan separarse; y **descarta en vez de rechazar**, porque cambiar
+ * un plan a «todo el día» después de pedirle aviso no es un error de nadie, es que
+ * el aviso ya no tiene sentido. La base lo repite en un `check`.
+ */
+export function antelacionDelAviso(
+  draft: { kind: EventKind; all_day: boolean; remind_before_minutes: number | null },
+): number | null {
+  if (draft.kind !== 'evento' || draft.all_day) return null
+  const minutos = draft.remind_before_minutes
+  return ANTELACIONES_DE_AVISO.some(a => a.minutos === minutos) ? minutos : null
 }
 
 export function isVacation(event: Event): boolean {

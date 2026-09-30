@@ -193,3 +193,74 @@ export function avisoDelDia(datos: DatosDelAviso, ahora: Date, timeZone: string)
 
   return { title: tituloDelAviso(ahora, timeZone), body }
 }
+
+// ─── El aviso de un evento ────────────────────────────────────────────────────
+
+/**
+ * Cuánto tiempo después de su hora sigue valiendo un aviso que no salió.
+ *
+ * El cron corre cada cinco minutos, pero **ningún disparador es exacto**: uno
+ * puede retrasarse o saltarse una vuelta. Con un margen de quince minutos, un
+ * aviso que llegó tarde sale igual; con más, «en 30 minutos» acabaría diciéndose
+ * cuando faltan dos, que es peor que no decirlo. Y nunca sale un aviso de algo que
+ * ya ha empezado.
+ */
+export const MARGEN_DEL_AVISO_MS = 15 * 60 * 1000
+
+/** Un evento con aviso, con lo justo que hace falta para decidir si toca avisar. */
+export interface EventoConAviso {
+  id: string
+  title: string
+  start_at: string
+  remind_before_minutes: number
+}
+
+/** El instante en que hay que avisar de un evento: su hora menos la antelación. */
+export function momentoDelAvisoDeEvento(startAt: string, antelacionMinutos: number): Date {
+  return new Date(new Date(startAt).getTime() - antelacionMinutos * 60_000)
+}
+
+/**
+ * Los avisos que toca mandar **ahora**: los que ya han llegado a su momento, no
+ * llevan más de `MARGEN_DEL_AVISO_MS` de retraso y son de algo que aún no ha
+ * empezado. Devuelve también el momento (`fireAt`), que es lo que identifica el
+ * aviso en la tabla de los ya mandados.
+ */
+export function avisosDeEventoPendientes<E extends EventoConAviso>(
+  eventos: E[],
+  ahora: Date,
+  margenMs = MARGEN_DEL_AVISO_MS,
+): { evento: E; fireAt: string }[] {
+  const t = ahora.getTime()
+  return eventos.flatMap(evento => {
+    const empieza = new Date(evento.start_at).getTime()
+    if (Number.isNaN(empieza) || empieza <= t) return []
+    const fire = momentoDelAvisoDeEvento(evento.start_at, evento.remind_before_minutes).getTime()
+    return fire <= t && t - fire < margenMs ? [{ evento, fireAt: new Date(fire).toISOString() }] : []
+  })
+}
+
+/** «En 30 minutos», «En una hora», «Mañana»: cuánto falta, dicho como se diría. */
+function cuantoFalta(antelacionMinutos: number): string {
+  if (antelacionMinutos >= 1440) return 'Mañana'
+  if (antelacionMinutos === 60) return 'En una hora'
+  return `En ${antelacionMinutos} minutos`
+}
+
+/**
+ * El texto del aviso de un evento: el título es lo que es, el cuerpo dice cuándo.
+ * «Dentista» / «En 30 minutos, a las 10:30.». Como el resumen de las siete, nombra
+ * el plan y por tanto se lee en la pantalla de bloqueo: es lo que se aceptó al
+ * hacer el resumen, y aquí no hay otra manera de avisar de *qué*.
+ */
+export function avisoDeEvento(
+  evento: EventoConAviso,
+  timeZone: string,
+): { title: string; body: string } {
+  const hora = horaDelPlan(evento.start_at, timeZone)
+  const cuando = cuantoFalta(evento.remind_before_minutes)
+  return {
+    title: evento.title.trim() || 'Un plan',
+    body: hora ? `${cuando}, a las ${hora}.` : `${cuando}.`,
+  }
+}

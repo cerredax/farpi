@@ -1,6 +1,6 @@
 import type { Event, EventDraft } from '@/types'
 import { buildLocalDateTime } from '../date-utils'
-import { isRangeKind } from '../events'
+import { antelacionDelAviso, isRangeKind } from '../events'
 import { buildWeeklyDates, buildYearlyDates, sameDayInYear } from '../recurrence'
 import { db } from './db'
 
@@ -37,6 +37,7 @@ function buildEventFromDraft(familyId: string, draft: EventDraft, groupId: strin
     all_day: draft.all_day,
     kind: draft.kind,
     birth_year: birthYearFromDraft(draft),
+    remind_before_minutes: antelacionDelAviso(draft),
     color: null,
     recurrence_group_id: groupId,
     created_by: 'u1',
@@ -56,6 +57,7 @@ function applyEventDraft(event: Event, draft: EventDraft): Event {
     all_day: draft.all_day,
     kind: draft.kind,
     birth_year: birthYearFromDraft(draft),
+    remind_before_minutes: antelacionDelAviso(draft),
     child_id: draft.child_id,
     member_id: draft.member_id,
     updated_at: new Date().toISOString(),

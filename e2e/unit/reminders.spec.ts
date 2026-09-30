@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { avisoDelDia, esLaHoraDelAviso, fraseDeLoDeHoy, fraseDeLoQueCaduca, horaDelPlan, tituloDelAviso } from '@/lib/reminders'
-import type { PlanDelAviso } from '@/lib/reminders'
+import {
+  avisoDeEvento, avisoDelDia, avisosDeEventoPendientes, esLaHoraDelAviso, fraseDeLoDeHoy, fraseDeLoQueCaduca,
+  horaDelPlan, MARGEN_DEL_AVISO_MS, momentoDelAvisoDeEvento, tituloDelAviso,
+} from '@/lib/reminders'
+import type { EventoConAviso, PlanDelAviso } from '@/lib/reminders'
 
 // El aviso de las siete de la mañana es lo único de Farpi que se lee sin abrir
 // Farpi, y lo escribe una función de Vercel que va en UTC. Las dos cosas que
@@ -197,5 +200,93 @@ test.describe('esLaHoraDelAviso', () => {
     // 25-10-2026: a las 01:00 UTC Madrid pasa de UTC+2 a UTC+1.
     const avisos = ['2026-10-25T05:30:00Z', '2026-10-25T06:30:00Z'].filter(h => esLaHoraDelAviso(new Date(h), MADRID))
     expect(avisos).toEqual(['2026-10-25T06:30:00Z'])
+  })
+})
+
+// ─── El aviso de un evento ────────────────────────────────────────────────────
+//
+// Lo manda un cron cada cinco minutos que nadie mira. Las dos maneras de fallar
+// sin que se note son avisar dos veces (o de algo que ya empezó) y no avisar
+// nunca: `avisosDeEventoPendientes` decide cuál de las dos, y se prueba aquí.
+
+/** Un evento a las 10:30 de Madrid (08:30 UTC en septiembre) con la antelación dicha. */
+function eventoA(antelacion: number, over: Partial<EventoConAviso> = {}): EventoConAviso {
+  return { id: 'e1', title: 'Dentista', start_at: '2026-09-15T08:30:00Z', remind_before_minutes: antelacion, ...over }
+}
+
+test.describe('momentoDelAvisoDeEvento', () => {
+  test('es la hora del evento menos la antelación', () => {
+    expect(momentoDelAvisoDeEvento('2026-09-15T08:30:00Z', 30).toISOString()).toBe('2026-09-15T08:00:00.000Z')
+    expect(momentoDelAvisoDeEvento('2026-09-15T08:30:00Z', 1440).toISOString()).toBe('2026-09-14T08:30:00.000Z')
+  })
+})
+
+test.describe('avisosDeEventoPendientes', () => {
+  test('todavía no es la hora: no avisa', () => {
+    expect(avisosDeEventoPendientes([eventoA(30)], new Date('2026-09-15T07:59:00Z'))).toEqual([])
+  })
+
+  test('llega la hora: avisa, y dice cuál es el momento', () => {
+    const hay = avisosDeEventoPendientes([eventoA(30)], new Date('2026-09-15T08:02:00Z'))
+    expect(hay.map(a => a.evento.id)).toEqual(['e1'])
+    expect(hay[0].fireAt).toBe('2026-09-15T08:00:00.000Z')
+  })
+
+  test('un aviso que llega tarde pero dentro del margen sale igual', () => {
+    const tarde = new Date(new Date('2026-09-15T08:00:00Z').getTime() + MARGEN_DEL_AVISO_MS - 1000)
+    expect(avisosDeEventoPendientes([eventoA(30)], tarde)).toHaveLength(1)
+  })
+
+  test('pasado el margen ya no: «en 30 minutos» no se dice cuando faltan dos', () => {
+    const muyTarde = new Date(new Date('2026-09-15T08:00:00Z').getTime() + MARGEN_DEL_AVISO_MS)
+    expect(avisosDeEventoPendientes([eventoA(30)], muyTarde)).toEqual([])
+  })
+
+  test('nunca avisa de algo que ya ha empezado', () => {
+    // Con un margen enorme el momento del aviso «cuenta», pero el evento ya pasó.
+    const yaEmpezado = new Date('2026-09-15T08:31:00Z')
+    expect(avisosDeEventoPendientes([eventoA(30)], yaEmpezado, 24 * 3600 * 1000)).toEqual([])
+  })
+
+  test('un aviso de un día antes sale el día antes, a la misma hora', () => {
+    expect(avisosDeEventoPendientes([eventoA(1440)], new Date('2026-09-14T08:31:00Z'))).toHaveLength(1)
+    expect(avisosDeEventoPendientes([eventoA(1440)], new Date('2026-09-15T08:00:00Z'))).toEqual([])
+  })
+
+  test('varios eventos: solo los que les toca, y cada uno con su antelación', () => {
+    const ahora = new Date('2026-09-15T08:16:00Z')
+    const hay = avisosDeEventoPendientes([
+      eventoA(15, { id: 'a' }),                                           // 08:15 → toca
+      eventoA(30, { id: 'b' }),                                           // 08:00 → 16 min de retraso, se pasó el margen
+      eventoA(60, { id: 'c', start_at: '2026-09-15T09:15:00Z' }),          // 08:15 → toca
+      eventoA(15, { id: 'd', start_at: '2026-09-15T10:00:00Z' }),          // 09:45 → aún no
+    ], ahora)
+    expect(hay.map(a => a.evento.id).sort()).toEqual(['a', 'c'])
+  })
+
+  test('una fecha rota no tumba a las demás', () => {
+    const hay = avisosDeEventoPendientes([eventoA(30, { id: 'x', start_at: 'no es una fecha' }), eventoA(30)], new Date('2026-09-15T08:02:00Z'))
+    expect(hay.map(a => a.evento.id)).toEqual(['e1'])
+  })
+})
+
+test.describe('avisoDeEvento', () => {
+  test('el título es el del evento y el cuerpo dice cuándo, en la hora de la familia', () => {
+    expect(avisoDeEvento(eventoA(30), MADRID)).toEqual({ title: 'Dentista', body: 'En 30 minutos, a las 10:30.' })
+  })
+
+  test('cada antelación se dice como se diría en voz alta', () => {
+    expect(avisoDeEvento(eventoA(15), MADRID).body).toBe('En 15 minutos, a las 10:30.')
+    expect(avisoDeEvento(eventoA(60), MADRID).body).toBe('En una hora, a las 10:30.')
+    expect(avisoDeEvento(eventoA(1440), MADRID).body).toBe('Mañana, a las 10:30.')
+  })
+
+  test('un evento sin título sigue teniendo un aviso que se entiende', () => {
+    expect(avisoDeEvento(eventoA(30, { title: '   ' }), MADRID).title).toBe('Un plan')
+  })
+
+  test('la hora es la de Madrid aunque el servidor vaya en UTC', () => {
+    // 08:30 UTC son las 10:30 de Madrid en verano y las 09:30 en invierno.
+    expect(avisoDeEvento(eventoA(30, { start_at: '2026-12-15T08:30:00Z' }), MADRID).body).toBe('En 30 minutos, a las 09:30.')
   })
 })

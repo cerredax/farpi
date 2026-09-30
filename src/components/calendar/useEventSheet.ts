@@ -66,6 +66,7 @@ export function initDraft(
       kind: initial.kind,
       end_date: isRangeKind(initial.kind) && initial.end_at ? extractDate(initial.end_at) : '',
       birth_year: initial.birth_year ? String(initial.birth_year) : '',
+      remind_before_minutes: initial.remind_before_minutes ?? null,
     }
   }
   /**
@@ -85,6 +86,7 @@ export function initDraft(
     all_day: isRangeKind(kind) || kind === 'cumple',
     start_time: defaultTime ?? '', end_time: '', child_id: null, member_id: null,
     kind, end_date: isRangeKind(kind) ? date : '', birth_year: '',
+    remind_before_minutes: null,
   }
 }
 

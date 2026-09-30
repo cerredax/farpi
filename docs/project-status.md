@@ -854,11 +854,11 @@ entera, en "Siguiente paso recomendado".
   el ápice.
 - Vistas grandes despiezadas: cada pantalla con estado propio tiene su hook (`useListsState`, `useMealsState`, `useDocsState`, `useEventSheet`) y los bloques de UI viven en su fichero (`WeekGrid`, `MealRow`, `DocCard`, `FileTypeIcon`, `OffDayConfirmDialog`, `LoginHero`, `EventRecurrenceFields`, `EventSeriesDelete`, `ListItemRow`). `EventSheet` fue el último: de 483 líneas a cuatro piezas.
 - Andamiaje de sheets unificado: `useSheetForm`/`useSheetDelete` (`src/hooks/useSheetForm.ts`) y los componentes `Field`, `SheetFooter`, `SelectChip`, `DotOption` y `EmojiPicker` en `src/components/ui/`.
-- **1002 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
+- **1028 tests con el runner de Playwright**, sin dependencias nuevas. Este es el
   **único** sitio con el recuento exacto: el resto de documentos habla de "los
   unitarios" y "los de navegador", o los aproxima, para que no haya seis cifras que
   actualizar a la vez.
-  - **752 unitarios de lógica pura** en `e2e/unit/`, contados con `--list` el
+  - **773 unitarios de lógica pura** en `e2e/unit/`, contados con `--list` el
     30-09-2026. No levantan servidor: `npm run test:unit`.
 
     *Los últimos en entrar*, del más reciente al más antiguo:
@@ -951,7 +951,7 @@ entera, en "Siguiente paso recomendado".
     Los 19 de `timeline.spec.ts` se fueron con el eje de horas del móvil el 24-08-2026 y
     **volvieron el 26-08-2026** con las vistas Día y Semana de escritorio, sin tocar una
     línea.
-  - 250 de navegador, contados con `--list` el 30-09-2026 (1002 en total, 752 unitarios;
+  - 255 de navegador, contados con `--list` el 30-09-2026 (1028 en total, 773 unitarios;
     13 de ellos, los del recorrido de idioma, van en `fixme` hasta que se migren sus
     pantallas). La lista que sigue es del 22-09-2026 (859 en total, 660 unitarios; los últimos, el **del extracto del banco** del 21-09-2026 —que el
     fichero sube, que lo que ya cubre un fijo llega desmarcado y con su motivo escrito,
@@ -1341,6 +1341,11 @@ una, en el cuerpo de su commit.
 
 En orden. Lo de abajo explica cada punto; esto es lo que toca la próxima vez.
 
+0. **Poner en marcha el aviso de cada evento** (30-09-2026): aplicar el delta de
+   `supabase/schema.sql` en el SQL Editor, correr `node scripts/validate-rls.mjs` (tiene una
+   sección nueva, 11c) y programar el `pg_cron` de `docs/notificaciones.md`. Hasta entonces el
+   formulario deja pedir un aviso y **no llega ninguno**. Después, probarlo con un plan que
+   empiece dentro de 20 minutos.
 1. **Comprobar el cron de las siete** en los logs de Vercel (`/api/cron/reminders`):
    uno de los dos de cada mañana tiene que decir `fueraDeHora: true` y el otro traer
    `sent`. Si solo aparece uno, Vercel no aceptó los dos crons de `vercel.json`.
@@ -1424,9 +1429,8 @@ o una madre echaría en falta, verificado en el código. En este orden de lo que
   contra `npm run start`) y lo que menos urge en una casa con cobertura.
 - **Modo oscuro.** No hay ni `dark:` ni `prefers-color-scheme`. Cambia el diseño visual de
   forma amplia (pide confirmación) y obligaría a repetir la medida de contraste del 09-09-2026.
-- **Avisos.** Hay un solo resumen a las 7:00. No se elige qué avisar, ni hay aviso por evento
-  («30 minutos antes») ni de lo que añade otro miembro. Un aviso por evento pide una tabla de
-  lo ya avisado.
+- **Avisos.** Hay el resumen de las 7:00 y el aviso de cada evento (ver arriba). No se elige qué
+  tipos de aviso recibir, ni se avisa de lo que añade otro miembro, ni hay aviso por tarea.
 - **Refrescar solas Finanzas, Documentos y Ajustes.** Solo se refresca lo del día a día
   (`PORCIONES_DEL_DIA`); esas se tocan de tarde en tarde.
 - **Deshacer un evento eliminado**, y que el resto de sheets (eventos, notas, listas) no se cierren

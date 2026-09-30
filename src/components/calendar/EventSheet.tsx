@@ -4,7 +4,9 @@ import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DeleteButton } from '@/components/ui/DeleteButton'
 import { Field } from '@/components/ui/Field'
+import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
+import { ANTELACIONES_DE_AVISO } from '@/lib/constants'
 import { isRangeKind } from '@/lib/events'
 import type { Event, Child, EventDraft, FamilyMember } from '@/types'
 import { EventRecurrenceFields } from './EventRecurrenceFields'
@@ -123,6 +125,8 @@ export function EventSheet({
                   // Un plan no lleva año de nacimiento: si se cambia de idea
                   // después de escribirlo, se va con el tipo.
                   birth_year: valor === 'cumple' ? s.draft.birth_year : '',
+                  // Y tampoco un aviso: solo lo admite un plan con hora.
+                  remind_before_minutes: valor === 'evento' ? s.draft.remind_before_minutes : null,
                 })
               }}
               className="field-input"
@@ -245,6 +249,34 @@ export function EventSheet({
               </Field>
             </div>
           </div>
+        )}
+
+        {/* El aviso, solo en un plan con hora. Un cumpleaños o unas vacaciones
+            ocupan días enteros, y «30 minutos antes de las 00:00» no es un aviso
+            sino una alarma a medianoche; el resumen de las siete ya los cuenta.
+            Llega a **toda la casa** que tenga los avisos activados, como el
+            resumen del día. Sin aviso es lo normal y lo que viene puesto: nada
+            cambia para quien no lo toca. */}
+        {s.draft.kind === 'evento' && !s.draft.all_day && (
+          <Field label="Avisar" spacing="group">
+            <div className="flex flex-wrap gap-2">
+              <SelectChip selected={s.draft.remind_before_minutes === null} onClick={() => s.patch({ remind_before_minutes: null })}>
+                Sin aviso
+              </SelectChip>
+              {ANTELACIONES_DE_AVISO.map(a => (
+                <SelectChip
+                  key={a.minutos}
+                  selected={s.draft.remind_before_minutes === a.minutos}
+                  onClick={() => s.patch({ remind_before_minutes: a.minutos })}
+                >
+                  {a.etiqueta}
+                </SelectChip>
+              ))}
+            </div>
+            {s.draft.remind_before_minutes !== null && (
+              <p className="text-xs text-muted">Le llega a quien tenga los avisos activados en Ajustes.</p>
+            )}
+          </Field>
         )}
 
         {/* De quién es no aplica a un cumpleaños de fuera: no es de nadie de la

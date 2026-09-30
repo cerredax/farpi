@@ -23,7 +23,8 @@ function migrarClaveVieja(): void {
     localStorage.removeItem(STORAGE_KEY_NIDO)
   } catch { /* ignore */ }
 }
-const SCHEMA_VER  = 18 // v18: los apuntes traen `import_ref`, de dónde salieron
+const SCHEMA_VER  = 19 // v19: los eventos traen `remind_before_minutes`, la antelación del aviso
+// v18: los apuntes traen `import_ref`, de dónde salieron
 
 export function loadFromStorage(): void {
   if (typeof window === 'undefined') return

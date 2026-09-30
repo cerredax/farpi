@@ -103,8 +103,8 @@ npm run dev            # dev server (Next 16, puerto 3000)
 npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
-npm run test:unit      # 752 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 1002 (752 unitarios + 250 de navegador; levanta dev en :3100 en modo demo forzado)
+npm run test:unit      # 773 tests de lógica pura (~2 s, sin servidor)
+npm run test:e2e       # suite completa: 1028 (773 unitarios + 255 de navegador; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -241,6 +241,7 @@ entrar en las pantallas con sesión sin credenciales.
 - `/api/account/delete` — borrado de cuenta; bloquea si dejaría una familia compartida sin admin.
 - `/api/push` — alta/baja de suscripciones Web Push.
 - `/api/cron/reminders` — cron diario (`vercel.json`, a las 05:00 y a las 06:00 UTC): keep-alive de Supabase, cierre de mes y, solo en la de las siete de Madrid, envío de recordatorios (`esLaHoraDelAviso`). `?forzar=1` salta la hora para probarlo a mano.
+- `/api/cron/event-reminders` — el aviso de cada evento («30 minutos antes»). **La llama Supabase (`pg_cron`) cada cinco minutos y no Vercel**, porque Hobby solo admite un cron al día: por eso no está en `vercel.json`. Reclama cada aviso en `event_reminders_sent` antes de enviarlo. El montaje y cómo comprobarlo, en `docs/notificaciones.md`.
 - `/api/salud` — si Supabase responde, y cuánto tarda. 200 o 503, para un vigía externo. **Fuera del `matcher` de `src/proxy.ts`**: lo que vigila a Supabase no puede pasar por la pieza que puede estar colgada.
 - `/api/documents/*` — los documentos en Google Drive: abrir sesión de subida, guardar la ficha, servir el archivo por proxy, borrar y gestionar la conexión con el proveedor.
 

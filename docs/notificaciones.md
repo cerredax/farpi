@@ -121,6 +121,80 @@ Para que envíe (además de las claves VAPID) conviene proteger el endpoint con:
 
 > Nota: el plan **Hobby de Vercel** admite cien crons por proyecto, cada uno **una vez al día** y con precisión de hora: `0 5 * * *` salta en cualquier minuto entre las 05:00 y las 05:59. Vercel programa en UTC y Madrid cambia de hora, así que ninguna hora UTC son las siete todo el año: en verano lo son las 05:00 y en invierno las 06:00. Por eso hay dos, y la ruta pregunta cada vez `esLaHoraDelAviso` (`src/lib/reminders.ts`): la que cae a las siete de Madrid avisa y la otra hace solo el keep-alive y el cierre de mes, y contesta `fueraDeHora: true`. El aviso llega, pues, **entre las 07:00 y las 07:59**. Hasta el 28-09-2026 era un solo cron a las 07:00 UTC, que son las 09:00 en verano: tarde para acordarse de un cumpleaños. "Hoy" se calcula con `FARPI_TIME_ZONE` (`Europe/Madrid` por defecto).
 
+## El aviso de cada evento («30 minutos antes»)
+
+Además del resumen de las siete, un plan con hora puede pedir que se avise antes: 15
+minutos, 30, una hora o un día. Al apuntarlo, el formulario tiene «Avisar» (solo en un plan
+con hora: un cumpleaños o unas vacaciones ocupan días enteros y ya los cuenta el resumen).
+Llega a **toda la casa que tenga los avisos activados**, como el resumen.
+
+**Cómo funciona.** `events.remind_before_minutes` guarda la antelación. Cada cinco minutos
+alguien llama a `/api/cron/event-reminders` (`src/app/api/cron/event-reminders/route.ts`), que
+busca los eventos cuyo momento de avisar ya ha llegado (`avisosDeEventoPendientes`, en
+`lib/reminders.ts`, con sus tests) y manda el push. Tres reglas que no son evidentes:
+
+- **Se reclama antes de enviar.** La tabla `event_reminders_sent` tiene una fila por
+  `(event_id, fire_at)`: la ruta inserta la fila y **solo manda si la fila es nueva**. La clave
+  primaria decide quién gana si dos ejecuciones se solapan, así que ningún aviso sale dos veces.
+  Mover el evento o cambiar la antelación cambia `fire_at`, y por tanto vuelve a avisar.
+- **Tiene margen, pero no infinito.** Un aviso que se retrasó hasta 15 minutos sale igual;
+  pasado eso no, porque «en 30 minutos» dicho cuando faltan dos es peor que callar. Y nunca se
+  avisa de algo que ya ha empezado.
+- **Si falla el envío a todos, se suelta la fila** y la siguiente vuelta lo reintenta (dentro
+  del margen). Si nadie tiene los avisos activados, la fila se queda: no hay nada que reintentar.
+
+**Quién llama: Supabase, no Vercel.** El plan Hobby de Vercel solo admite un cron al día, así
+que la ruta **no está en `vercel.json`**. La llama `pg_cron` con `pg_net`, desde la propia base.
+Se monta **una vez**, en el SQL Editor (sustituye `TU_CRON_SECRET` por el mismo valor que tiene
+`CRON_SECRET` en Vercel, y **no lo pegues en ningún archivo del repositorio**):
+
+```sql
+-- 1. Las dos extensiones (también se activan en Database → Extensions).
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+-- 2. El secreto, guardado cifrado en Vault en vez de escrito en el job.
+select vault.create_secret('TU_CRON_SECRET', 'farpi_cron_secret');
+
+-- 3. El job: cada cinco minutos llama a la ruta con el secreto en la cabecera.
+select cron.schedule(
+  'farpi-avisos-de-eventos',
+  '*/5 * * * *',
+  $job$
+  select net.http_get(
+    url := 'https://www.farpi.app/api/cron/event-reminders',
+    headers := jsonb_build_object(
+      'Authorization',
+      'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'farpi_cron_secret')
+    )
+  );
+  $job$
+);
+```
+
+> **Esto no se ha ejecutado nunca** (lo escribió quien programó la función, sin acceso a tu
+> panel): la primera vez, compruébalo con lo de abajo antes de fiarte. Si `vault` o `pg_net`
+> no aceptan estas llamadas en tu plan, la alternativa es el mismo job con el secreto escrito
+> a mano en `headers`, sabiendo que queda visible en `cron.job`.
+
+**Cómo comprobar que funciona:**
+
+```sql
+-- ¿Se ha lanzado el job y con qué resultado?
+select start_time, status, return_message from cron.job_run_details order by start_time desc limit 5;
+-- ¿Qué contestó la ruta? 200 con {"ok":true,...}; 401 si el secreto no coincide; 503 si falta.
+select created, status_code, left(content::text, 200) from net._http_response order by created desc limit 5;
+```
+
+Para probarlo de punta a punta: apunta un plan que empiece dentro de 20 minutos con «15
+minutos antes» y con los avisos activados en un móvil; en 5 minutos tiene que llegar. La
+ruta también se puede llamar a mano (`Authorization: Bearer <CRON_SECRET>`), pero solo
+avisa de lo que toque en ese momento. **Para apagarlo**: `select cron.unschedule('farpi-avisos-de-eventos');`.
+
+**Lo que no cubre la suite**: que Supabase llame de verdad a Vercel. Los tests prueban cuándo
+toca avisar, que el formulario guarda la antelación y que la ruta rechaza sin secreto; el
+disparador y el envío push real solo se ven con el paso anterior.
+
 ## El botón que se quedaba en "Guardando…"
 
 Lo que tuvo paradas las notificaciones no fue ninguna clave ni ningún despliegue:

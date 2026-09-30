@@ -1560,6 +1560,27 @@ se subió al título. Una excepción, de forma: el vacío de la agenda de 45 dí
 («Apuntar algo») como `action` y no como descripción, porque esa tarjeta entera es un botón y sin
 nada escrito dentro se lee como un agujero.
 
+**El aviso de un evento sale del servidor cada cinco minutos, y lo dispara Supabase** (30-09-2026).
+Un plan con hora puede pedir que se avise 15 minutos, 30, una hora o un día antes
+(`events.remind_before_minutes`, con un `check` que lo repite en la base: cuatro valores, solo
+en un plan y solo con hora). Cuatro decisiones, cada una con su porqué:
+- **El disparador es `pg_cron` de Supabase y no Vercel**: Hobby solo admite un cron al día, y
+  «30 minutos antes» pide uno cada pocos minutos. Se descartaron UptimeRobot (el plan gratis no
+  admite cabeceras, así que el secreto iría en la URL), GitHub Actions (retrasa los cron 5 a 15
+  minutos, que es justo la precisión que se busca) y subir a Pro (dinero por algo que ya se
+  puede hacer gratis). Por eso la ruta no está en `vercel.json`.
+- **Se reclama antes de enviar**, con una fila en `event_reminders_sent` por `(event_id, fire_at)`
+  y la clave primaria como árbitro: ninguna ejecución solapada avisa dos veces. La tabla va con
+  RLS **sin policies**, como `invite_sends`: si un miembro pudiera borrar sus filas, un aviso se
+  mandaría otra vez.
+- **Avisa a toda la casa con los avisos activados**, como el resumen de las siete. Avisar solo a
+  la persona asignada dejaba sin aviso a los eventos de un hijo (los hijos no tienen cuenta).
+- **No hay aviso en un evento de todo el día ni en un cumpleaños**: «30 minutos antes de las
+  00:00» es una alarma a medianoche, y el resumen de las siete ya los cuenta. Pasar un plan a
+  «todo el día» **descarta** el aviso en vez de rechazar el guardado (`antelacionDelAviso`).
+Qué toca avisar ahora lo decide `avisosDeEventoPendientes` (`lib/reminders.ts`), con margen de 15
+minutos y sin avisar nunca de lo que ya empezó. Como todo lo de `lib/`, se prueba sin servidor.
+
 **Lo que cambia otra persona se ve sin recargar, pero sin tiempo real** (30-09-2026). Los datos
 se traían al abrir la app y al escribir uno mismo, así que lo que la pareja añadía a la compra
 no se veía hasta recargar. El `StoreProvider` vuelve a pedir en silencio **solo lo del día a día**

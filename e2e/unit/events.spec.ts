@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { initDraft } from '@/components/calendar/useEventSheet'
-import { agruparPlanesPorDia, daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, topeDeFranjas, vacationEdges, vacationLength } from '@/lib/events'
+import { agruparPlanesPorDia, antelacionDelAviso, daysBetween, eventCoversDay, eventTitleOr, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, isAbsence, isHoliday, isPersonAvailableOnDay, isPersonOffOnDay, isPlan, isRangeKind, isRestDay, isVacation, partirPlanesProximos, planYaPasado, siguientePlan, topeDeFranjas, vacationEdges, vacationLength } from '@/lib/events'
 import type { FamilyMember } from '@/types'
 import { event } from './fixtures'
 
@@ -529,5 +529,33 @@ test.describe('agruparPlanesPorDia', () => {
 
   test('sin planes no hay bloques', () => {
     expect(agruparPlanesPorDia([])).toEqual([])
+  })
+})
+
+test.describe('antelacionDelAviso', () => {
+  const plan = { kind: 'evento' as const, all_day: false }
+
+  test('un plan con hora conserva la antelación pedida', () => {
+    for (const minutos of [15, 30, 60, 1440]) {
+      expect(antelacionDelAviso({ ...plan, remind_before_minutes: minutos })).toBe(minutos)
+    }
+  })
+
+  test('sin aviso es sin aviso', () => {
+    expect(antelacionDelAviso({ ...plan, remind_before_minutes: null })).toBeNull()
+  })
+
+  test('una antelación que no es de las cuatro se descarta', () => {
+    expect(antelacionDelAviso({ ...plan, remind_before_minutes: 7 })).toBeNull()
+    expect(antelacionDelAviso({ ...plan, remind_before_minutes: 0 })).toBeNull()
+  })
+
+  test('un evento de todo el día no avisa: no hay hora de la que restar', () => {
+    expect(antelacionDelAviso({ kind: 'evento', all_day: true, remind_before_minutes: 30 })).toBeNull()
+  })
+
+  test('ni un cumpleaños ni unas vacaciones, aunque traigan una', () => {
+    expect(antelacionDelAviso({ kind: 'cumple', all_day: false, remind_before_minutes: 30 })).toBeNull()
+    expect(antelacionDelAviso({ kind: 'vacaciones', all_day: false, remind_before_minutes: 30 })).toBeNull()
   })
 })

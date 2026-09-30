@@ -93,6 +93,7 @@ export const en: Diccionario = {
     añoDeNacimiento: 'The year of birth does not look right.',
     fechaFinal: 'The end date must be the same as or after the start date.',
     horaDeInicioPrimero: 'Set the start time first.',
+    avisoSinHora: 'Set a start time so the reminder knows when to arrive.',
     horaDeFin: 'The end time must be after the start time.',
     finDeRecurrencia: 'The repeat end date must be after the start date.',
     listaSinNombre: 'The list name cannot be empty.',

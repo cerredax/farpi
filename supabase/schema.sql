@@ -168,6 +168,12 @@ create table if not exists public.events (
   -- arranca en el año en curso, así que la fecha dice el día que se celebra y
   -- no el día que nació.
   birth_year          int,
+  -- Cuántos minutos antes de empezar se avisa a la casa (30-09-2026): 15, 30, 60 o
+  -- 1440 (un día). Nulo, que es lo normal, es sin aviso. Solo tiene sentido en un
+  -- plan con hora: un cumpleaños o unas vacaciones ocupan días enteros, y «30
+  -- minutos antes de las 00:00» no es un aviso, es una alarma a las doce de la
+  -- noche. Quien lo manda es `/api/cron/event-reminders`, cada cinco minutos.
+  remind_before_minutes smallint,
   -- Las repeticiones se materializan como filas sueltas que comparten grupo, en
   -- vez de guardar una regla y calcularla al vuelo: así se puede mover o borrar
   -- una sola ocurrencia sin inventar excepciones.
@@ -184,6 +190,10 @@ create table if not exists public.events (
   constraint events_cumple_de_un_dia     check (kind <> 'cumple'     or (all_day = true and end_at is null)),
   -- El año solo tiene sentido en un cumpleaños, y solo si es un año posible.
   constraint events_birth_year_valido    check (birth_year is null or (kind = 'cumple' and birth_year between 1900 and 2200)),
+  constraint events_aviso_valido         check (
+    remind_before_minutes is null
+    or (remind_before_minutes in (15, 30, 60, 1440) and kind = 'evento' and all_day = false)
+  ),
   constraint events_una_sola_asignacion  check (child_id is null or member_id is null)
 );
 
@@ -646,6 +656,26 @@ create table if not exists public.invite_sends (
   id         uuid primary key default uuid_generate_v4(),
   user_id    uuid not null references auth.users(id) on delete cascade,
   sent_at    timestamptz not null default now()
+);
+
+-- Los avisos de evento que ya se han mandado (30-09-2026). Sin esto, el cron de cada
+-- cinco minutos avisaría del mismo dentista doce veces, y con dos ejecuciones
+-- solapadas —pasa— dos veces a la vez.
+--
+-- El cron **reclama** el aviso antes de enviarlo: inserta `(event_id, fire_at)` y
+-- solo manda si la fila es nueva. Es la propia clave primaria la que decide quién
+-- gana, no un `select` seguido de un `insert`. `fire_at` va en la clave y no solo
+-- `event_id` para que mover el evento —o cambiar la antelación— vuelva a avisar:
+-- es otro momento, y por tanto otra fila.
+--
+-- RLS **sin ninguna policy**, como `invite_sends`: la escribe y la lee solo el service
+-- role desde la ruta. Una tabla de la que un miembro pudiera borrar filas haría que
+-- un aviso ya mandado se mandara otra vez. Se va con el evento (`on delete cascade`).
+create table if not exists public.event_reminders_sent (
+  event_id uuid not null references public.events(id) on delete cascade,
+  fire_at  timestamptz not null,
+  sent_at  timestamptz not null default now(),
+  primary key (event_id, fire_at)
 );
 
 -- Los pendientes. Lo atrasado no se marca en rojo y ya: la app lo arrastra a hoy,
@@ -1187,6 +1217,7 @@ alter table public.family_invites     enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.storage_connections enable row level security;
 alter table public.invite_sends       enable row level security;
+alter table public.event_reminders_sent enable row level security;
 
 -- --- families ---------------------------------------------------------------
 --
@@ -1443,6 +1474,10 @@ drop policy if exists "Usuario gestiona sus conexiones" on public.storage_connec
 -- `invite_sends` tampoco lleva ninguna, y por la misma clase de razón: es la cuenta
 -- del tope de invitaciones, y una tabla de la que alguien puede borrar sus filas
 -- no cuenta nada. Solo la toca el service role, desde `/api/invite`.
+--
+-- `event_reminders_sent` tampoco, por lo mismo: es la memoria de lo ya avisado, y si
+-- alguien pudiera borrarla se avisaría dos veces. Solo la toca el service role, desde
+-- `/api/cron/event-reminders`.
 
 -- ============================================================================
 -- 5. Storage: nada. Los archivos no los guarda Farpi

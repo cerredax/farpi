@@ -90,6 +90,11 @@ export interface Event {
    * que se celebra, no el día que nació.
    */
   birth_year: number | null
+  /**
+   * Cuántos minutos antes de empezar se avisa a la casa (15, 30, 60 o 1440), o
+   * `null` si no se avisa. Solo en un plan con hora: ver `antelacionDelAviso`.
+   */
+  remind_before_minutes: number | null
   color: string | null
   recurrence_group_id: string | null
   created_by: string | null
@@ -465,6 +470,8 @@ export interface EventDraft {
   end_date: string
   /** Año de nacimiento, solo en cumpleaños y opcional. Cadena vacía = no se sabe. */
   birth_year: string
+  /** Minutos de antelación del aviso, o `null` sin aviso. Solo cuenta en un plan con hora. */
+  remind_before_minutes: number | null
 }
 
 export interface TaskDraft {

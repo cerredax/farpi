@@ -89,6 +89,7 @@ export function event(over: Partial<Event> = {}): Event {
     all_day: false,
     kind: 'evento',
     birth_year: null,
+    remind_before_minutes: null,
     color: null,
     recurrence_group_id: null,
     created_by: 'u1',

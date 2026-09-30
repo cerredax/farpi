@@ -121,6 +121,7 @@ export const es = {
     añoDeNacimiento: 'El año de nacimiento no parece correcto.',
     fechaFinal: 'La fecha final debe ser posterior o igual a la inicial.',
     horaDeInicioPrimero: 'Indica primero la hora de inicio.',
+    avisoSinHora: 'Pon la hora de inicio para que el aviso sepa cuándo llegar.',
     horaDeFin: 'La hora de fin debe ser posterior a la de inicio.',
     finDeRecurrencia: 'La fecha de fin de recurrencia debe ser posterior a la fecha de inicio.',
     listaSinNombre: 'El nombre de la lista no puede estar vacío.',

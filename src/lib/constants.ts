@@ -330,6 +330,19 @@ export const DIAS_LISTA_CUMPLES = 364
  */
 export const ANOS_DE_CUMPLE = 20
 
+/**
+ * Con cuánta antelación se puede pedir el aviso de un evento, en minutos. Cuatro
+ * y no un campo libre: un dentista se quiere con una hora, la recogida del cole
+ * con quince minutos y un viaje el día antes, y con más opciones cada una es un
+ * caso raro que validar. El servidor las repite en un `check` de la base.
+ */
+export const ANTELACIONES_DE_AVISO = [
+  { minutos: 15, etiqueta: '15 minutos antes' },
+  { minutos: 30, etiqueta: '30 minutos antes' },
+  { minutos: 60, etiqueta: '1 hora antes' },
+  { minutos: 1440, etiqueta: '1 día antes' },
+] as const
+
 // ─── Finanzas ────────────────────────────────────────────────────────────────
 
 /**

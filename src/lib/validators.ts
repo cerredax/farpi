@@ -1,5 +1,5 @@
 import { VALID_MIME_TYPES, MAX_DOC_SIZE } from './constants'
-import { isRangeKind } from './events'
+import { antelacionDelAviso, isRangeKind } from './events'
 import { MAX_CENTIMOS, formatCentsCorto, parseAmountToCentsBruto } from './finanzas'
 import { textosDelNavegador, type Diccionario } from './i18n'
 import type {
@@ -92,6 +92,10 @@ export function validateEventDraft(draft: EventDraft, t: TextosDeValidacion = te
     return t.horaDeInicioPrimero
   if (!draft.all_day && draft.end_time && draft.end_time <= draft.start_time)
     return t.horaDeFin
+  // Un aviso «30 minutos antes» de un plan sin hora sería antes de las 00:00 (el
+  // evento se guarda a esa hora cuando no hay otra): no hay cuándo avisar.
+  if (antelacionDelAviso(draft) !== null && !draft.start_time)
+    return t.avisoSinHora
   return null
 }
 

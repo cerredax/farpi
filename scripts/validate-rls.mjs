@@ -744,6 +744,89 @@ async function main() {
   comprobar('Tras los intentos de A, su envío sigue contado y con su fecha',
     (await api(`/rest/v1/invite_sends?user_id=eq.${uidA}&select=sent_at`)).cuerpo?.[0]?.sent_at?.startsWith('2000') === false)
 
+  // El aviso de cada evento (30-09-2026). Dos piezas nuevas: la columna
+  // `events.remind_before_minutes`, con un `check` que la limita a las cuatro
+  // antelaciones y a un plan con hora, y la tabla `event_reminders_sent`, la
+  // memoria de lo ya avisado. Esa es la que importa: si un miembro pudiera borrar
+  // o inventar sus filas, un aviso se mandaría dos veces o no se mandaría nunca. Va
+  // sin policies, como `invite_sends`, y la primera comprobación es que el service
+  // role —el cron— sí entra: una tabla a la que no llega nadie también pasaría las
+  // demás. Y la clave primaria es lo que decide quién gana cuando dos ejecuciones se
+  // solapan, así que se prueba que un segundo reclamo del mismo aviso **falla**.
+  console.log('\n== 11c. Aviso de evento (events.remind_before_minutes y event_reminders_sent)')
+  const eventoConAviso = await api('/rest/v1/events', {
+    metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+    datos: { family_id: famA, title: 'Pediatra', start_at: '2027-01-10T10:00:00Z', kind: 'evento', all_day: false, remind_before_minutes: 30 },
+  })
+  comprobar('A crea un plan con hora y aviso de 30 minutos', eventoConAviso.estado < 400, `estado ${eventoConAviso.estado}`)
+  const idEventoAviso = eventoConAviso.cuerpo?.[0]?.id
+  comprobar('El aviso queda guardado', eventoConAviso.cuerpo?.[0]?.remind_before_minutes === 30)
+  comprobar('Un evento sin aviso lo lleva a nulo por defecto',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+      datos: { family_id: famA, title: 'Sin aviso', start_at: '2027-01-11T10:00:00Z', kind: 'evento', all_day: false },
+    })).cuerpo?.[0]?.remind_before_minutes === null)
+  for (const minutos of [15, 60, 1440]) {
+    comprobar(`El check acepta ${minutos} minutos`,
+      (await api(`/rest/v1/events?id=eq.${idEventoAviso}`, {
+        metodo: 'PATCH', token: tokA, datos: { remind_before_minutes: minutos },
+      })).estado < 400)
+  }
+  comprobar('El check rechaza una antelación que no es de las cuatro',
+    (await api(`/rest/v1/events?id=eq.${idEventoAviso}`, {
+      metodo: 'PATCH', token: tokA, datos: { remind_before_minutes: 7 },
+    })).estado >= 400)
+  comprobar('El check rechaza un aviso en un evento de todo el día',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'Todo el día', start_at: '2027-01-12T00:00:00Z', kind: 'evento', all_day: true, remind_before_minutes: 30 },
+    })).estado >= 400)
+  comprobar('El check rechaza un aviso en un cumpleaños',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'Abuela', start_at: '2027-01-13T00:00:00Z', kind: 'cumple', all_day: true, remind_before_minutes: 30 },
+    })).estado >= 400)
+  comprobar('Y en unas vacaciones',
+    (await api('/rest/v1/events', {
+      metodo: 'POST', token: tokA,
+      datos: { family_id: famA, title: 'Playa', start_at: '2027-01-14T00:00:00Z', end_at: '2027-01-16T23:59:00Z', kind: 'vacaciones', all_day: true, remind_before_minutes: 30 },
+    })).estado >= 400)
+  comprobar('Quitar el aviso (nulo) sí se puede',
+    (await api(`/rest/v1/events?id=eq.${idEventoAviso}`, {
+      metodo: 'PATCH', token: tokA, datos: { remind_before_minutes: null },
+    })).estado < 400)
+
+  const MOMENTO = '2027-01-10T09:30:00Z'
+  comprobar('El service role reclama un aviso',
+    filas(await api('/rest/v1/event_reminders_sent', {
+      metodo: 'POST', datos: { event_id: idEventoAviso, fire_at: MOMENTO }, cabeceras: REPRESENTACION,
+    })) === 1)
+  comprobar('Reclamar el MISMO aviso otra vez falla: la clave primaria decide quién gana',
+    (await api('/rest/v1/event_reminders_sent', {
+      metodo: 'POST', datos: { event_id: idEventoAviso, fire_at: MOMENTO },
+    })).estado >= 400)
+  comprobar('Otro momento del mismo evento sí es otro aviso (mover el evento vuelve a avisar)',
+    (await api('/rest/v1/event_reminders_sent', {
+      metodo: 'POST', datos: { event_id: idEventoAviso, fire_at: '2027-01-10T08:30:00Z' },
+    })).estado < 400)
+  comprobar('A NO puede leer los avisos ya mandados de su propio evento',
+    filas(await api(`/rest/v1/event_reminders_sent?event_id=eq.${idEventoAviso}&select=event_id`, { token: tokA })) === 0)
+  comprobar('B (otro miembro) tampoco',
+    filas(await api(`/rest/v1/event_reminders_sent?event_id=eq.${idEventoAviso}&select=event_id`, { token: tokB })) === 0)
+  comprobar('A NO puede apuntar un aviso como mandado (para que no se mande)',
+    (await api('/rest/v1/event_reminders_sent', {
+      metodo: 'POST', token: tokA, datos: { event_id: idEventoAviso, fire_at: '2027-02-01T00:00:00Z' },
+    })).estado >= 400)
+  comprobar('A NO puede borrar los avisos mandados para que se manden otra vez',
+    filas(await api(`/rest/v1/event_reminders_sent?event_id=eq.${idEventoAviso}`, {
+      metodo: 'DELETE', token: tokA, cabeceras: REPRESENTACION,
+    })) <= 0)
+  comprobar('Tras los intentos de A, los dos avisos reclamados siguen ahí',
+    filas(await api(`/rest/v1/event_reminders_sent?event_id=eq.${idEventoAviso}&select=event_id`)) === 2)
+  await api(`/rest/v1/events?id=eq.${idEventoAviso}`, { metodo: 'DELETE', token: tokA })
+  comprobar('Al borrar el evento se van con él, por cascada',
+    filas(await api(`/rest/v1/event_reminders_sent?event_id=eq.${idEventoAviso}&select=event_id`)) === 0)
+
   // La columna que dice en el disco de quién está el archivo. Sin ella, el proxy
   // de lectura no sabría a quién pedirle el token prestado.
   console.log('\n== 12. Documentos con proveedor y dueño')

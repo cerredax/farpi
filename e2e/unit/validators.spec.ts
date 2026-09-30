@@ -65,7 +65,7 @@ test.describe('validateEventDraft', () => {
   const base = {
     title: 'Cita', description: '', date: '2026-08-03',
     all_day: false, start_time: '10:00', end_time: '', child_id: null, member_id: null,
-    kind: 'evento' as const, end_date: '', birth_year: '',
+    kind: 'evento' as const, end_date: '', birth_year: '', remind_before_minutes: null,
   }
 
   // Un cumpleaños es el nombre de alguien y, opcionalmente, el año en que
@@ -106,6 +106,19 @@ test.describe('validateEventDraft', () => {
     expect(validateEventDraft({ ...base, start_time: '10:00', end_time: '09:00' })).not.toBeNull()
     expect(validateEventDraft({ ...base, start_time: '10:00', end_time: '10:00' })).not.toBeNull()
     expect(validateEventDraft({ ...base, start_time: '10:00', end_time: '11:00' })).toBeNull()
+  })
+
+  test('un aviso pide la hora de inicio: sin ella no hay cuándo avisar', () => {
+    expect(validateEventDraft({ ...base, start_time: '', remind_before_minutes: 30 })).not.toBeNull()
+    expect(validateEventDraft({ ...base, start_time: '10:00', remind_before_minutes: 30 })).toBeNull()
+  })
+
+  test('sin aviso, un plan sin hora sigue siendo válido', () => {
+    expect(validateEventDraft({ ...base, start_time: '', remind_before_minutes: null })).toBeNull()
+  })
+
+  test('en todo el día el aviso se descarta y no estorba', () => {
+    expect(validateEventDraft({ ...base, all_day: true, start_time: '', remind_before_minutes: 30 })).toBeNull()
   })
 
   test('en eventos de todo el día las horas no importan', () => {

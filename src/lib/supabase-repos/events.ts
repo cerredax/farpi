@@ -1,5 +1,5 @@
 import { buildLocalDateTime } from '../date-utils'
-import { isRangeKind } from '../events'
+import { antelacionDelAviso, isRangeKind } from '../events'
 import { buildWeeklyDates, buildYearlyDates, sameDayInYear } from '../recurrence'
 import { createClient } from '../supabase/client'
 import { assertNoError, currentUserId } from './shared'
@@ -37,6 +37,7 @@ function eventInsert(familyId: string, userId: string, draft: EventDraft, groupI
     all_day: draft.all_day,
     kind: draft.kind,
     birth_year: birthYearFromDraft(draft),
+    remind_before_minutes: antelacionDelAviso(draft),
     color: null,
     recurrence_group_id: groupId,
     created_by: userId,
@@ -54,6 +55,7 @@ function eventUpdate(draft: EventDraft) {
     all_day: draft.all_day,
     kind: draft.kind,
     birth_year: birthYearFromDraft(draft),
+    remind_before_minutes: antelacionDelAviso(draft),
   }
 }
 

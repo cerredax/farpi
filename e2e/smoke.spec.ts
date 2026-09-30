@@ -258,6 +258,83 @@ test('en el móvil se puede pasar de semana en Comidas y volver a hoy', async ({
   await expect(page.getByRole('button', { name: 'Volver a hoy' })).toHaveCount(0)
 })
 
+// Pedir el aviso de un evento («30 minutos antes»). Se mira lo guardado y no solo
+// la pantalla: lo que el cron lee es la columna, y un selector que enseña «30
+// minutos antes» sin guardarlo avisaría a nadie.
+test('un plan con hora puede pedir que se avise antes, y se guarda', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
+  await sheet.locator('#event-title').fill('Pediatra de aviso')
+  await sheet.locator('#event-date').fill('2027-04-12')
+
+  // Sin hora no hay cuándo avisar: pedirlo y guardar dice qué falta.
+  await sheet.getByRole('button', { name: '30 minutos antes' }).click()
+  await sheet.locator(GUARDAR_EVENTO).click()
+  await expect(sheet.getByText('Pon la hora de inicio para que el aviso sepa cuándo llegar.')).toBeVisible()
+
+  await sheet.locator('#event-start').fill('10:30')
+  await sheet.locator(GUARDAR_EVENTO).click()
+  await expect(sheet).toHaveAttribute('inert', '')
+
+  const guardado = await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem('farpi_store_v1') ?? '{}').events ?? [])
+      .find((e: { title: string }) => e.title === 'Pediatra de aviso'))
+  expect(guardado.remind_before_minutes).toBe(30)
+})
+
+test('el aviso no se ofrece en un evento de todo el día ni en un cumpleaños', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
+  await expect(sheet.getByRole('button', { name: '30 minutos antes' })).toBeVisible()
+
+  // Todo el día: no hay hora de la que restar.
+  await sheet.getByRole('switch').click()
+  await expect(sheet.getByRole('button', { name: '30 minutos antes' })).toHaveCount(0)
+  await sheet.getByRole('switch').click()
+  await expect(sheet.getByRole('button', { name: '30 minutos antes' })).toBeVisible()
+
+  // Un cumpleaños ocupa el día entero y ya lo cuenta el resumen de las siete.
+  await sheet.locator('#event-kind').selectOption('cumple')
+  await expect(sheet.getByRole('button', { name: '30 minutos antes' })).toHaveCount(0)
+})
+
+test('un aviso pedido y luego pasado a «todo el día» se guarda sin aviso', async ({ page }) => {
+  await page.goto('/calendar')
+  await page.getByRole('button', { name: 'Apuntar algo' }).first().click()
+  const sheet = page.getByRole('dialog', { name: 'Apuntar en el calendario' })
+  await sheet.locator('#event-title').fill('Cambia de idea')
+  await sheet.locator('#event-date').fill('2027-04-13')
+  await sheet.locator('#event-start').fill('09:00')
+  await sheet.getByRole('button', { name: '1 hora antes' }).click()
+  await sheet.getByRole('switch').click() // ahora es de todo el día
+  await sheet.locator(GUARDAR_EVENTO).click()
+  await expect(sheet).toHaveAttribute('inert', '')
+
+  const guardado = await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem('farpi_store_v1') ?? '{}').events ?? [])
+      .find((e: { title: string }) => e.title === 'Cambia de idea'))
+  expect(guardado.all_day).toBe(true)
+  expect(guardado.remind_before_minutes).toBeNull()
+})
+
+// Los dos crons se llaman sin sesión —Vercel el de las siete, Supabase el de cada
+// evento—, así que el proxy los tiene que dejar pasar por el prefijo `/api/cron/` y
+// el `CRON_SECRET` es su única defensa. Aquí se comprueba lo que se puede sin base
+// real: que la ruta existe, que **no** se manda a nadie al login (un 307 con un
+// `fetch` que lo sigue parece un 200) y que sin el secreto correcto no atiende.
+for (const ruta of ['/api/cron/reminders', '/api/cron/event-reminders']) {
+  test(`${ruta} no atiende sin el secreto y no redirige al login`, async ({ request }) => {
+    const sinNada = await request.get(ruta, { maxRedirects: 0 })
+    // 503 si el servidor no tiene CRON_SECRET, 401 si lo tiene: las dos son un no.
+    expect([401, 503]).toContain(sinNada.status())
+
+    const conOtro = await request.get(ruta, { maxRedirects: 0, headers: { Authorization: 'Bearer secreto-que-no-es' } })
+    expect([401, 503]).toContain(conOtro.status())
+  })
+}
+
 // Crear una familia de más y volver a cerrarla, que es el caso por el que se
 // añadió el borrado: se crea una por probar y hasta ahora no había forma de
 // quitarla. El sheet la borra y la app salta sola a la que queda.

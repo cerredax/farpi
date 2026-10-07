@@ -235,9 +235,13 @@ export function HomeView() {
         open={apuntandoEnCesta}
         mode="create"
         titulo={cestaDestino ? t.inicio.anadirA(cestaDestino.name) : undefined}
+        listas={lists}
         historial={historialItems}
         onClose={() => setApuntandoEnCesta(false)}
-        onCreate={draft => { if (cestaDestino) createListItem(cestaDestino.id, draft) }}
+        onCreate={(draft, listaId) => {
+          const destino = listaId ?? cestaDestino?.id
+          if (destino) createListItem(destino, draft)
+        }}
         onUpdate={() => {}}
         onDelete={() => {}}
       />

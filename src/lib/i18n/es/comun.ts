@@ -109,4 +109,13 @@ export const comun = {
     noAutenticado: 'Usuario no autenticado',
     demoSinArchivos: 'En modo demo no se guardan archivos reales, así que no hay nada que abrir.',
   },
+
+  /** El botón del micrófono y por qué a veces no se puede dictar. */
+  dictado: {
+    dictar: 'Dictar con la voz',
+    escuchando: 'Escuchando… toca para parar',
+    permiso: 'No hay permiso para usar el micrófono. Actívalo en los ajustes del navegador para este sitio.',
+    nada: 'No he oído nada. Prueba otra vez.',
+    otro: 'No se pudo dictar ahora mismo. Escríbelo a mano.',
+  },
 }

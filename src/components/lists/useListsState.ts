@@ -34,7 +34,11 @@ export function useListsState() {
   function openEditItem(i: ListItem){ setEditingItem(i);     setItemSheetOpen(true) }
 
   function handleDeleteList(id: string)           { deleteList(id); setSelectedListId(null) }
-  function handleCreateItem(draft: ListItemDraft) { if (selectedListId) createListItem(selectedListId, draft) }
+  /** `listaId` llega cuando al dictar se dijo otra lista; si no, va a la que se está mirando. */
+  function handleCreateItem(draft: ListItemDraft, listaId?: string) {
+    const destino = listaId ?? selectedListId
+    if (destino) createListItem(destino, draft)
+  }
 
   // Al cerrar solo se baja la persiana: el ítem sigue puesto hasta que se abra
   // otro. Si se borrara aquí, el sheet se quedaría sin título y sin lista de

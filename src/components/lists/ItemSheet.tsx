@@ -1,18 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { FolderInput, Mic, Square } from 'lucide-react'
+import { FolderInput } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { Suggestions } from '@/components/ui/Suggestions'
-import { useDictado } from '@/hooks/useDictado'
+import { BotonMicrofono, ErrorDeDictado } from '@/components/ui/BotonMicrofono'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
-import { separarItems } from '@/lib/dictado'
 import { selectSuggestions } from '@/lib/selectors'
 import { validateListItemDraft } from '@/lib/validators'
 import { useT } from '@/lib/i18n/contexto'
-import type { ListItem, ListItemDraft } from '@/types'
+import type { List, ListItem, ListItemDraft } from '@/types'
+import { PropuestaDeItems, useDictarItems } from './useDictarItems'
 
 interface ItemSheetProps {
   open: boolean
@@ -28,6 +27,11 @@ interface ItemSheetProps {
    */
   titulo?: string
   /**
+   * Las listas de la casa, para que lo dictado pueda decir a cuál va («…a la
+   * ferretería»). Sin ellas se dicta igual y todo cae en la lista de siempre.
+   */
+  listas?: List[]
+  /**
    * Mandar el ítem a otra lista. **Sin él no hay botón**: con una sola lista no
    * hay a dónde mover, y desde Inicio esto se abre solo para apuntar.
    *
@@ -38,7 +42,8 @@ interface ItemSheetProps {
    */
   onMove?: () => void
   onClose: () => void
-  onCreate: (draft: ListItemDraft) => void
+  /** `listaId` solo llega si al dictar se dijo una lista; si no, la de siempre. */
+  onCreate: (draft: ListItemDraft, listaId?: string) => void
   onUpdate: (id: string, draft: ListItemDraft) => void
   onDelete: (id: string) => void
 }
@@ -50,7 +55,7 @@ function initDraft(mode: 'create' | 'edit', initial: ListItem | null | undefined
   return { text: mode === 'edit' && initial ? initial.text : '' }
 }
 
-export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
+export function ItemSheet({ open, mode, initial, historial = [], titulo, listas = [], onMove, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListItemDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -61,27 +66,16 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove,
 
   const sugerencias = selectSuggestions(historial, draft.text)
 
-  // Lo dictado puede ser varios ítems en una frase («leche, pan y huevos»). Solo
-  // entonces se parte: un ítem escrito a mano, «sal y pimienta», es uno. Se
-  // rearma en cada apertura con el mismo ajuste en render que usa `useSheetForm`.
-  const [porVoz, setPorVoz] = useState(false)
-  const [abiertoAntes, setAbiertoAntes] = useState(open)
-  if (open !== abiertoAntes) {
-    setAbiertoAntes(open)
-    if (open) setPorVoz(false)
-  }
-  const dictado = useDictado(texto => {
-    patch({ text: separarItems(texto).join(', ') || texto })
-    setPorVoz(true)
+  // Lo dictado no pasa por el campo de texto: se enseña aparte, partido en ítems y
+  // con su lista, y se guarda al confirmar. Un ítem escrito a mano sigue siendo uno.
+  const { dictado, propuesta, confirmar, descartar } = useDictarItems(listas, (items, listaId) => {
+    items.forEach(text => onCreate({ text }, listaId ?? undefined))
+    onClose()
   })
-  const aAnadir = mode === 'create' && porVoz ? separarItems(draft.text) : []
 
   const handleSubmit = submitHandler(valid => {
-    if (mode === 'create') {
-      // Lo que se enseña en la lista de «se añadirán» es lo que se guarda.
-      if (aAnadir.length > 1) aAnadir.forEach(text => onCreate({ ...valid, text }))
-      else onCreate(aAnadir.length === 1 ? { ...valid, text: aAnadir[0] } : valid)
-    } else if (initial) onUpdate(initial.id, valid)
+    if (mode === 'create') onCreate(valid)
+    else if (initial) onUpdate(initial.id, valid)
     onClose()
   })
 
@@ -93,7 +87,7 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove,
       footer={
         <SheetFooter
           form="item-form"
-          submitLabel={mode === 'create' ? (aAnadir.length > 1 ? t.anadirN(aAnadir.length) : t.anadir) : t.guardar}
+          submitLabel={mode === 'create' ? t.anadir : t.guardar}
           error={formError}
           onDelete={mode === 'edit'
             ? { confirming, onClick: handleDelete, idleLabel: t.eliminarItem, confirmLabel: t.confirmar }
@@ -120,34 +114,12 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, onMove,
           />
         </Field>
 
-        {/* Dictar solo al apuntar algo nuevo, y solo si el navegador sabe: sin
-            soporte no se enseña un botón que no puede hacer nada. */}
+        {/* Dictar solo al apuntar algo nuevo; sin soporte, el botón no se pinta. */}
         {mode === 'create' && dictado.soportado && (
           <div className="space-y-2">
-            <button
-              type="button"
-              onClick={dictado.escuchando ? dictado.parar : dictado.iniciar}
-              aria-pressed={dictado.escuchando}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-canvas text-sm font-semibold text-ink transition-colors hover:bg-surface"
-            >
-              {dictado.escuchando
-                ? <Square size={15} strokeWidth={2.2} aria-hidden />
-                : <Mic size={15} strokeWidth={2.2} aria-hidden />}
-              {dictado.escuchando ? t.escuchando : t.dictar}
-            </button>
-            {dictado.error && (
-              <p className="text-xs font-medium text-danger-strong">
-                {dictado.error === 'permiso' ? t.dictadoPermiso : dictado.error === 'nada' ? t.dictadoNada : t.dictadoOtro}
-              </p>
-            )}
-            {aAnadir.length > 1 && (
-              <div className="text-xs text-muted">
-                <p className="font-semibold text-ink">{t.seAnadiran(aAnadir.length)}</p>
-                <ul className="mt-1 list-disc pl-5">
-                  {aAnadir.map(item => <li key={item}>{item}</li>)}
-                </ul>
-              </div>
-            )}
+            <BotonMicrofono dictado={dictado} />
+            <ErrorDeDictado dictado={dictado} />
+            <PropuestaDeItems propuesta={propuesta} listas={listas} onConfirmar={confirmar} onDescartar={descartar} />
           </div>
         )}
 

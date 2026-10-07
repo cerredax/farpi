@@ -43,8 +43,9 @@ export function ListsView() {
           onToggle={s.toggleListItem}
           onQuantity={s.setListItemQuantity}
           historial={s.historialItems}
+          listas={s.lists}
           onOpenEdit={() => s.openEditList(s.selectedList!)}
-          onQuickAdd={text => s.handleCreateItem({ text })}
+          onQuickAdd={(text, listaId) => s.handleCreateItem({ text }, listaId)}
           onOpenEditItem={s.openEditItem}
         />
         {listSheet}

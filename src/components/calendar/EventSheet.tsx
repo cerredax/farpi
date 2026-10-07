@@ -1,12 +1,16 @@
 'use client'
 
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
+import { BotonMicrofono, ErrorDeDictado } from '@/components/ui/BotonMicrofono'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { DeleteButton } from '@/components/ui/DeleteButton'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
+import { useDictado } from '@/hooks/useDictado'
+import { buildAssignees } from '@/lib/assignees'
 import { ANTELACIONES_DE_AVISO } from '@/lib/constants'
+import { entenderEvento } from '@/lib/dictado'
 import { isRangeKind } from '@/lib/events'
 import type { Event, Child, EventDraft, FamilyMember } from '@/types'
 import { EventRecurrenceFields } from './EventRecurrenceFields'
@@ -51,6 +55,22 @@ export function EventSheet({
   const { firstFieldRef, ...s } = useEventSheet({
     open, mode, initial, defaultDate, defaultTime, defaultKind,
     onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
+  })
+
+  // Dictar un plan: «dentista mañana a las cinco de la tarde» rellena el título, el
+  // día y la hora. **No guarda**: deja el formulario puesto para que se revise, y lo
+  // que no se entendió no se toca. Solo para un plan, no para vacaciones o cumples.
+  const dictado = useDictado(texto => {
+    const personas = buildAssignees(members, kids)
+      .filter(a => a.key !== 'familia')
+      .map(a => ({ nombre: a.name, child_id: a.child_id, member_id: a.member_id }))
+    const e = entenderEvento(texto, new Date(), personas)
+    if (e.fecha) s.handleDateChange(e.fecha)
+    s.patch({
+      title: e.titulo || texto,
+      ...(e.hora ? { start_time: e.hora, all_day: false } : {}),
+      ...(e.persona ?? {}),
+    })
   })
 
   const esSerie = mode === 'edit' && !!initial?.recurrence_group_id && !!onDeleteSeries
@@ -153,6 +173,13 @@ export function EventSheet({
             className="field-input"
           />
         </Field>
+
+        {mode === 'create' && s.draft.kind === 'evento' && dictado.soportado && (
+          <div className="space-y-2">
+            <BotonMicrofono dictado={dictado} />
+            <ErrorDeDictado dictado={dictado} />
+          </div>
+        )}
 
         <Field label="Descripción (opcional)" htmlFor="event-description">
           <textarea id="event-description" value={s.draft.description} onChange={e => s.patch({ description: e.target.value })} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />

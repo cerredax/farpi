@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { Plus, ArrowLeft, ChevronDown, Pencil, Share2 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
+import { BotonMicrofono, ErrorDeDictado } from '@/components/ui/BotonMicrofono'
 import { Suggestions } from '@/components/ui/Suggestions'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
 import { selectListItemGroups, selectSuggestions } from '@/lib/selectors'
@@ -12,6 +13,7 @@ import { useIsClient } from '@/hooks/useIsClient'
 import { useT } from '@/lib/i18n/contexto'
 import type { List, ListItem } from '@/types'
 import { ListItemRow } from './ListItemRow'
+import { PropuestaDeItems, useDictarItems } from './useDictarItems'
 
 interface ListDetailViewProps {
   list: List
@@ -22,8 +24,10 @@ interface ListDetailViewProps {
   onToggle: (id: string) => void
   onQuantity: (id: string, quantity: number) => void
   onOpenEdit: () => void
-  /** Apuntar algo en esta lista desde la barra de abajo. */
-  onQuickAdd: (text: string) => void
+  /** Todas las listas de la casa: lo dictado puede decir a cuál va («…a la ferretería»). */
+  listas: List[]
+  /** Apuntar algo desde la barra de abajo. `listaId` solo llega si al dictar se dijo otra lista. */
+  onQuickAdd: (text: string, listaId?: string) => void
   onOpenEditItem: (item: ListItem) => void
 }
 
@@ -52,13 +56,18 @@ function GrupoTitulo({ titulo, cuenta, accion }: { titulo: string; cuenta?: numb
 }
 
 export function ListDetailView({
-  list, items, historial, onBack, onToggle, onQuantity, onOpenEdit, onQuickAdd, onOpenEditItem,
+  list, items, historial, listas, onBack, onToggle, onQuantity, onOpenEdit, onQuickAdd, onOpenEditItem,
 }: ListDetailViewProps) {
   const t = useT().listas.detalle
   const [busqueda, setBusqueda] = useState('')
   /** Lo que se está apuntando en la barra de abajo. */
   const [nuevo, setNuevo] = useState('')
   const campoNuevo = useRef<HTMLInputElement>(null)
+  // Apuntar hablando: se enseña lo entendido y se guarda al confirmar. Sin lista
+  // dicha cae en esta, que es la que se está mirando.
+  const { dictado, propuesta, confirmar, descartar } = useDictarItems(listas, (nuevos, listaId) => {
+    nuevos.forEach(text => onQuickAdd(text, listaId && listaId !== list.id ? listaId : undefined))
+  })
 
   /**
    * Si el navegador sabe compartir. **Se pregunta en el cliente y por eso hay
@@ -270,6 +279,8 @@ export function ListDetailView({
         className="space-y-2 border-t border-hairline px-4 pb-6 pt-2"
       >
         <Suggestions values={sugerencias} onPick={setNuevo} label={t.coincidencias} />
+        <PropuestaDeItems propuesta={propuesta} listas={listas} onConfirmar={confirmar} onDescartar={descartar} />
+        <ErrorDeDictado dictado={dictado} />
         <div className="flex items-center gap-2">
           <input
             ref={campoNuevo}
@@ -283,6 +294,7 @@ export function ListDetailView({
             required
             className="field-input flex-1"
           />
+          <BotonMicrofono dictado={dictado} variante="icono" />
           <button
             type="submit"
             aria-label={t.apuntarEn(list.name)}

@@ -95,4 +95,12 @@ export const comun: typeof es = {
     noAutenticado: 'You are not signed in',
     demoSinArchivos: 'Demo mode does not store real files, so there is nothing to open.',
   },
+
+  dictado: {
+    dictar: 'Dictate with your voice',
+    escuchando: 'Listening… tap to stop',
+    permiso: 'No permission to use the microphone. Turn it on in the browser settings for this site.',
+    nada: "Didn't hear anything. Try again.",
+    otro: "Couldn't dictate right now. Type it instead.",
+  },
 }

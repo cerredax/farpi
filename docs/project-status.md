@@ -56,11 +56,16 @@ recomendado».
   `+`, no con un tic). Se apunta escribiendo al pie, con sugerencias del historial; el sheet sirve
   para editar y para apuntar desde Inicio. La fila solo tiene marcar y unidades; mover y borrar
   están en el sheet. Se puede compartir lo pendiente con el diálogo del sistema.
-  El sheet de apuntar tiene **dictado por voz** (`useDictado`, `src/lib/dictado.ts`): «leche, pan y
-  huevos» sale como tres ítems, que se enseñan antes de guardar. Usa el reconocimiento del navegador
-  (en Chrome lo transcribe Google, y `/privacidad` lo dice) y por eso `Permissions-Policy` abre el
-  micrófono a `self`. **Sin probar en un móvil real ni en la TWA de Google Play.** Solo la compra;
-  las tareas no tienen dictado.
+  **Dictado por voz** (`useDictado`, `src/lib/dictado.ts`): un micrófono en la barra de apuntar de
+  cada lista, en el sheet de Inicio y en el formulario de un plan. En una lista, «leche, pan y huevos
+  a la compra» sale como tres ítems **que se enseñan antes de guardar** y van a la lista que se dijo
+  al final de la frase (si no se dijo ninguna, a la actual). En el calendario rellena título, día y
+  hora —«dentista mañana a las cinco de la tarde»— y **no guarda**: se revisa y se pulsa «Apuntar».
+  Usa el reconocimiento del navegador (en Chrome lo transcribe Google, y `/privacidad` lo dice), y
+  por eso `Permissions-Policy` abre el micrófono a `self`. Solo en lo que se apunta nuevo; las tareas
+  no tienen dictado. **Sin probar en un móvil real ni en la TWA de Google Play**: la suite lo cubre
+  con un reconocedor falso (`e2e/dictado.spec.ts`), que prueba todo lo de detrás del micrófono y no
+  que el micrófono entienda.
 - **Comidas**: día y semana, copiar día, y cinco franjas que se activan por familia en Ajustes
   (apagar una no borra lo apuntado). `Comedor` entra apagado. Comida y comedor llevan primero,
   segundo y postre. En móvil se pasa de semana. En escritorio una semana vacía solo enseña

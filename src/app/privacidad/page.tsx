@@ -94,6 +94,15 @@ export default function PrivacidadPage() {
         </p>
       </LegalSection>
 
+      <LegalSection heading="Dictado por voz">
+        <p>
+          Al apuntar algo en una lista puedes dictarlo con el micrófono. Farpi no graba ni guarda el audio: lo
+          transcribe el propio navegador, y en Chrome y Android lo hace el servicio de reconocimiento de voz de{' '}
+          <strong>Google</strong>, que recibe el audio mientras hablas. El micrófono solo se activa cuando pulsas el
+          botón de dictar, y puedes negar el permiso en el navegador sin perder nada de la app.
+        </p>
+      </LegalSection>
+
       <LegalSection heading="Proveedores y transferencias internacionales">
         <p>
           Usamos proveedores técnicos para prestar el servicio: Supabase para la base de datos, Google Drive para

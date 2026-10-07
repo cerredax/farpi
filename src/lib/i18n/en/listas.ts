@@ -58,6 +58,13 @@ export const listas: typeof es = {
     coincidencias: 'Matches',
     losQueMasApuntais: 'Your most added',
     moverAOtraLista: 'Move to another list',
+    dictar: 'Dictate with your voice',
+    escuchando: 'Listening… tap to stop',
+    seAnadiran: (n: number) => `${n} will be added:`,
+    anadirN: (n: number) => `Add ${n}`,
+    dictadoPermiso: 'No permission to use the microphone. Turn it on in the browser settings for this site.',
+    dictadoNada: "Didn't hear anything. Try again.",
+    dictadoOtro: "Couldn't dictate right now. Type it instead.",
   },
 
   listSheet: {

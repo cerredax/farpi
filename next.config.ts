@@ -133,10 +133,12 @@ const SECURITY_HEADERS = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   // Al salir a otro dominio no se filtra la ruta, que aquí lleva ids de familia.
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  // La app no usa cámara, micrófono, ubicación, pagos ni USB: que tampoco pueda
-  // nadie más. `interest-cohort` no se pone: Chrome ya no lo conoce y lo avisa
-  // como error en consola, que tumba `runtime.spec.ts`.
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
+  // La app no usa cámara, ubicación, pagos ni USB: que tampoco pueda nadie más.
+  // El micrófono sí, y solo ella (`self`): es el dictado de las listas
+  // (`useDictado`), y sin esto el navegador lo bloquea antes de preguntar.
+  // `interest-cohort` no se pone: Chrome ya no lo conoce y lo avisa como error en
+  // consola, que tumba `runtime.spec.ts`.
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=()' },
   // Una ventana que Farpi abra, o que abra a Farpi, no se queda con el control de
   // la otra si es de otro dominio. Las dos que abre la app son suyas: el
   // documento (`DocSheet`) y el consentimiento de Google, que va por redirección.

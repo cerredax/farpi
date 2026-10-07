@@ -61,6 +61,13 @@ export const listas = {
     coincidencias: 'Coincidencias',
     losQueMasApuntais: 'Los que más apuntáis',
     moverAOtraLista: 'Mover a otra lista',
+    dictar: 'Dictar con la voz',
+    escuchando: 'Escuchando… toca para parar',
+    seAnadiran: (n: number) => `Se añadirán ${n}:`,
+    anadirN: (n: number) => `Añadir ${n}`,
+    dictadoPermiso: 'No hay permiso para usar el micrófono. Actívalo en los ajustes del navegador para este sitio.',
+    dictadoNada: 'No he oído nada. Prueba otra vez.',
+    dictadoOtro: 'No se pudo dictar ahora mismo. Escríbelo a mano.',
   },
 
   listSheet: {

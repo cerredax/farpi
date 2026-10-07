@@ -51,6 +51,16 @@ export const inicio = {
     },
   },
 
+  /** La tarjeta que ofrece activar los avisos, mientras nadie los haya pedido. */
+  avisos: {
+    titulo: 'Activa los avisos',
+    explicacion: 'Te avisamos de los planes, tareas y cumpleaños de la casa en este móvil.',
+    activar: 'Activar avisos',
+    ahoraNo: 'Ahora no',
+    activando: 'Activando…',
+    noSePudo: 'No se pudo activar. Prueba desde Ajustes.',
+  },
+
   cesta: {
     titulo: 'Listas de casa',
     vacia: 'La cesta está vacía, de momento',

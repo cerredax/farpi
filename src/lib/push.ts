@@ -204,6 +204,42 @@ function marcarApagados(apagados: boolean): void {
   }
 }
 
+/**
+ * ¿Se le ofrece a esta persona activar los avisos desde Inicio?
+ *
+ * Solo cuando **nunca se le ha preguntado** (`default`): con el permiso concedido
+ * ya se ocupa `sincronizarPush`, y con el denegado pulsar no serviría de nada —el
+ * navegador no vuelve a preguntar—, así que insistir sería ruido. Pura y aquí para
+ * poder probarla sin navegador.
+ */
+export function ofrecerAvisos(estado: {
+  soportado: boolean
+  configurado: boolean
+  permiso: NotificationPermission | 'unsupported'
+  descartado: boolean
+}): boolean {
+  return estado.soportado && estado.configurado && estado.permiso === 'default' && !estado.descartado
+}
+
+const CLAVE_OFERTA_DESCARTADA = 'farpi_oferta_avisos_descartada'
+
+/** Que dijo «Ahora no» a la tarjeta de Inicio. Ajustes sigue ahí para cuando quiera. */
+export function ofertaDeAvisosDescartada(): boolean {
+  try {
+    return localStorage.getItem(CLAVE_OFERTA_DESCARTADA) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function descartarOfertaDeAvisos(): void {
+  try {
+    localStorage.setItem(CLAVE_OFERTA_DESCARTADA, '1')
+  } catch {
+    // Sin almacenamiento, la tarjeta volverá a salir: es lo peor que pasa.
+  }
+}
+
 /** Una sola reparación por pestaña: no hace falta repetirla en cada pantalla. */
 const CLAVE_SINCRONIZADO = 'farpi_avisos_sincronizados'
 

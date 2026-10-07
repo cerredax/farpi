@@ -45,6 +45,15 @@ export const inicio: typeof es = {
     },
   },
 
+  avisos: {
+    titulo: 'Turn on notifications',
+    explicacion: "We'll let you know about the household's plans, tasks and birthdays on this phone.",
+    activar: 'Turn on notifications',
+    ahoraNo: 'Not now',
+    activando: 'Turning on…',
+    noSePudo: "Couldn't turn them on. Try from Settings.",
+  },
+
   cesta: {
     titulo: 'Household lists',
     vacia: 'The basket is empty, for now',

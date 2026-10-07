@@ -158,7 +158,9 @@ recomendado».
 - **Notificaciones**: resumen de las siete (planes, tareas pendientes, cumpleaños de hoy y de
   mañana, papeles por caducar) y **aviso de cada evento**, cuyo disparador es un job de `pg_cron`
   en Supabase cada cinco minutos (programado el 30-09-2026; primera ejecución, 200). Los avisos se
-  reparan al abrir la app y se van al cerrar sesión. Detalle en `docs/notificaciones.md`.
+  reparan al abrir la app y se van al cerrar sesión. Inicio ofrece activarlos con un toque
+  mientras el navegador no haya preguntado nunca (`ActivarAvisos`). Detalle en
+  `docs/notificaciones.md`.
 - **Copia de seguridad** (Ajustes → Cuenta): un JSON con todo lo de la casa, sin los archivos de los
   documentos. No hay restaurar.
 

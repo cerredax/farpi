@@ -18,6 +18,7 @@ import { TodayMealsRow } from './TodayMealsRow'
 import { PendingItems } from './PendingItems'
 import { HomeTasks } from './HomeTasks'
 import { ExpiringDocs } from './ExpiringDocs'
+import { ActivarAvisos } from './ActivarAvisos'
 import { UpcomingEvents } from './UpcomingEvents'
 import { DayIllustration } from './DayIllustration'
 import { EventSheet } from '@/components/calendar/EventSheet'
@@ -190,6 +191,9 @@ export function HomeView() {
             palabra— de todo lo que hay debajo: un DNI vencido estropea el
             viaje del mes que viene, y la compra puede esperar al scroll. */}
         <ExpiringDocs docs={papeles} />
+
+        {/* Solo mientras nadie haya activado los avisos en este móvil. */}
+        <ActivarAvisos />
 
         {/* Después de hoy, lo que se toca a diario: la compra pendiente y las
             tareas. Lo que viene cierra. */}

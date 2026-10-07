@@ -1,5 +1,24 @@
 import { test, expect } from '@playwright/test'
-import { clavesDePushValidas, endpointDePushValido } from '@/lib/push'
+import { clavesDePushValidas, endpointDePushValido, ofrecerAvisos } from '@/lib/push'
+
+test.describe('ofrecerAvisos', () => {
+  const base = { soportado: true, configurado: true, permiso: 'default' as const, descartado: false }
+
+  test('se ofrece solo si nunca se ha preguntado', () => {
+    expect(ofrecerAvisos(base)).toBe(true)
+  })
+
+  test('no se ofrece con el permiso ya concedido ni denegado', () => {
+    expect(ofrecerAvisos({ ...base, permiso: 'granted' })).toBe(false)
+    expect(ofrecerAvisos({ ...base, permiso: 'denied' })).toBe(false)
+  })
+
+  test('no se ofrece sin soporte, sin configuración o si se descartó', () => {
+    expect(ofrecerAvisos({ ...base, soportado: false, permiso: 'unsupported' })).toBe(false)
+    expect(ofrecerAvisos({ ...base, configurado: false })).toBe(false)
+    expect(ofrecerAvisos({ ...base, descartado: true })).toBe(false)
+  })
+})
 
 // Lo que guarda `/api/push` no es un dato: es una URL que el servidor de Farpi
 // **visita**, una vez al día por suscripción, desde el cron. Así que estas reglas

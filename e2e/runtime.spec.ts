@@ -1350,8 +1350,16 @@ const MESES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
 
+/**
+ * El «hoy» de todos los tests de Finanzas de aquí abajo. La demo está sembrada en
+ * junio de 2026, con junio y julio cerrados, y estos tests cuentan meses hacia
+ * atrás desde septiembre («3 atrás» es junio). Con el reloj real fallaban en cuanto
+ * cambiaba el mes (7-10-2026): no era la app, era el test leyendo la fecha de hoy.
+ */
+const HOY_DE_FINANZAS = new Date('2026-09-15T12:00:00')
+
 function nombreDelMes(salto: number): string {
-  const hoy = new Date()
+  const hoy = HOY_DE_FINANZAS
   const destino = new Date(hoy.getFullYear(), hoy.getMonth() + salto, 1)
   return `${MESES[destino.getMonth()]} ${destino.getFullYear()}`
 }
@@ -1401,6 +1409,13 @@ async function abrirPartidas(page: import('@playwright/test').Page) {
     .getByRole('button', { name: /^Partidas/ })
   if (await toggle.getAttribute('aria-expanded') === 'false') await toggle.click()
 }
+
+// Desde aquí, todo lo que cuenta meses desde septiembre (sin sangrar, para no
+// reescribir 670 líneas): el reloj de cada test es el de `HOY_DE_FINANZAS`.
+test.describe('Finanzas con la demo de junio, a mediados de septiembre', () => {
+test.beforeEach(async ({ page }) => {
+  await page.clock.install({ time: HOY_DE_FINANZAS })
+})
 
 test('un mes cerrado enseña los fijos que tenía entonces, no los de hoy', async ({ page }) => {
   await page.goto('/finances')
@@ -2072,4 +2087,6 @@ test('un presupuesto aceptado se apunta en el mes que se paga', async ({ page })
   await page.waitForTimeout(500)
   await expect(page.getByRole('tab', { name: 'Este mes' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.locator('section[aria-label="El día a día"]')).toContainText('Pintar el salón')
+})
+
 })

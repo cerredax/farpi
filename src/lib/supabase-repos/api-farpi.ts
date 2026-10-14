@@ -17,7 +17,7 @@ import { textosDelNavegador } from '../i18n'
 export async function pedirApi<T>(
   url: string,
   cuerpo?: unknown,
-  metodo: 'GET' | 'POST' | 'DELETE' = 'POST',
+  metodo: 'GET' | 'POST' | 'PATCH' | 'DELETE' = 'POST',
 ): Promise<T> {
   const res = await fetch(url, {
     method: metodo,

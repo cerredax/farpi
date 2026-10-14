@@ -167,6 +167,17 @@ export const ajustes: typeof es = {
     noConfiguradas: 'Notifications are not set up yet.',
     permisoDenegado: 'Notification permission denied.',
     sinServiceWorker: 'The alerts could not be set up on this device. Reload the page and try again.',
+    estadoActivo: 'Turned on for this device.',
+    estadoInactivo: 'This device is not getting any alerts right now.',
+    cadaDispositivo: 'Each device has its own: what you choose here does not change the others.',
+    queAvisar: 'What you want to get',
+    resumen: 'Morning summary',
+    resumenDetalle: 'At 7: your plans and tasks for today and papers about to expire.',
+    eventos: 'Before each plan',
+    eventosDetalle: 'Only the plans where “Alert” was asked for.',
+    cumples: 'Birthdays',
+    cumplesDetalle: 'The day before and the same day, in the morning summary.',
+    noSeGuardo: 'The change could not be saved. Try again.',
   },
 
   almacen: {

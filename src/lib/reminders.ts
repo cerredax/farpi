@@ -194,6 +194,74 @@ export function avisoDelDia(datos: DatosDelAviso, ahora: Date, timeZone: string)
   return { title: tituloDelAviso(ahora, timeZone), body }
 }
 
+// ─── Qué avisos quiere cada dispositivo ───────────────────────────────────────
+
+/**
+ * Los tres avisos que se pueden apagar, por dispositivo (`push_subscriptions`).
+ *
+ * Son por dispositivo y no por cuenta porque la suscripción lo es: quien quiere
+ * el resumen en el móvil y nada en el portátil de la oficina lo tiene que poder
+ * decir. `cumples` cubre la felicitación de hoy y el de mañana, aunque vayan dentro
+ * del resumen de las siete: son lo único que a mucha gente le basta recibir.
+ */
+export interface PreferenciasDeAvisos {
+  resumen: boolean
+  eventos: boolean
+  cumples: boolean
+}
+
+/** Lo que había antes de poder elegir, y con lo que nace una suscripción nueva. */
+export const PREFERENCIAS_POR_DEFECTO: PreferenciasDeAvisos = { resumen: true, eventos: true, cumples: true }
+
+/** Las claves de `PreferenciasDeAvisos` y la columna de cada una. */
+export const COLUMNA_DE_PREFERENCIA = {
+  resumen: 'notify_daily',
+  eventos: 'notify_events',
+  cumples: 'notify_birthdays',
+} as const satisfies Record<keyof PreferenciasDeAvisos, string>
+
+/**
+ * Lo que llega por la red, reducido a lo que se puede guardar: solo claves
+ * conocidas y solo booleanos. `null` si no queda ninguna, para que la ruta
+ * conteste 400 en vez de un `update` vacío.
+ */
+export function preferenciasValidas(entrada: unknown): Partial<PreferenciasDeAvisos> | null {
+  if (typeof entrada !== 'object' || entrada === null) return null
+  const salida: Partial<PreferenciasDeAvisos> = {}
+  for (const clave of Object.keys(COLUMNA_DE_PREFERENCIA) as (keyof PreferenciasDeAvisos)[]) {
+    const valor = (entrada as Record<string, unknown>)[clave]
+    if (typeof valor === 'boolean') salida[clave] = valor
+    else if (valor !== undefined) return null
+  }
+  return Object.keys(salida).length > 0 ? salida : null
+}
+
+/**
+ * El resumen de las siete tal y como lo quiere un dispositivo, o `null` si no le
+ * toca ningún aviso hoy.
+ *
+ * Sin el resumen se queda solo lo de los cumpleaños; sin cumpleaños, el resumen
+ * pierde esas frases. Con las dos cosas apagadas no sale nada. Que el resultado
+ * esté vacío también es `null`: un aviso sin cuerpo es peor que callar.
+ */
+export function datosSegunPreferencias(
+  datos: DatosDelAviso,
+  preferencias: Pick<PreferenciasDeAvisos, 'resumen' | 'cumples'>,
+): DatosDelAviso | null {
+  const filtrados: DatosDelAviso = {
+    felicitacion: preferencias.cumples ? datos.felicitacion : '',
+    cumplesDeManana: preferencias.cumples ? (datos.cumplesDeManana ?? '') : '',
+    planes: preferencias.resumen ? datos.planes : [],
+    tareas: preferencias.resumen ? datos.tareas : 0,
+    documentosVencidos: preferencias.resumen ? datos.documentosVencidos : 0,
+    documentosPorVencer: preferencias.resumen ? datos.documentosPorVencer : 0,
+  }
+  const vacio =
+    !filtrados.felicitacion && !filtrados.cumplesDeManana && filtrados.planes.length === 0 &&
+    filtrados.tareas === 0 && filtrados.documentosVencidos === 0 && filtrados.documentosPorVencer === 0
+  return vacio ? null : filtrados
+}
+
 // ─── El aviso de un evento ────────────────────────────────────────────────────
 
 /**

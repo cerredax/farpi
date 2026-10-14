@@ -175,6 +175,17 @@ export const ajustes = {
     noConfiguradas: 'Las notificaciones aún no están configuradas.',
     permisoDenegado: 'Permiso de notificaciones denegado.',
     sinServiceWorker: 'No se pudo preparar el aviso en este dispositivo. Recarga la página y vuelve a intentarlo.',
+    estadoActivo: 'Activados en este dispositivo.',
+    estadoInactivo: 'Ahora mismo este dispositivo no recibe ningún aviso.',
+    cadaDispositivo: 'Cada dispositivo tiene los suyos: lo que elijas aquí no cambia los demás.',
+    queAvisar: 'Qué quieres recibir',
+    resumen: 'Resumen de cada mañana',
+    resumenDetalle: 'A las 7: tus planes y tareas de hoy y los papeles que caducan.',
+    eventos: 'Antes de cada plan',
+    eventosDetalle: 'Solo los planes en los que se pidió «Avisar».',
+    cumples: 'Cumpleaños',
+    cumplesDetalle: 'El día antes y el mismo día, en el resumen de la mañana.',
+    noSeGuardo: 'No se pudo guardar el cambio. Inténtalo de nuevo.',
   },
 
   /** Google Drive, la pestaña Sincronización. */

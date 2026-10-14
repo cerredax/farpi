@@ -5,7 +5,7 @@ import { enviarNotificacion, secretoCorrecto, ZONA_DE_LA_FAMILIA as REMINDER_TIM
 import { DIAS_AVISO_CADUCIDAD } from '@/lib/constants'
 import { fraseDeCumplesDeLaCasa, proximosCumples, type CumpleEnCasa } from '@/lib/birthdays'
 import { RANGE_KINDS } from '@/lib/events'
-import { avisoDelDia, esLaHoraDelAviso, type PlanDelAviso } from '@/lib/reminders'
+import { avisoDelDia, datosSegunPreferencias, esLaHoraDelAviso, type PlanDelAviso } from '@/lib/reminders'
 
 export const runtime = 'nodejs'
 
@@ -175,7 +175,7 @@ export async function GET(req: NextRequest) {
   }
   webpush.setVapidDetails(subject, publicKey, privateKey)
 
-  const { data: subs, error: subsError } = await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth')
+  const { data: subs, error: subsError } = await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth, notify_daily, notify_birthdays')
   if (subsError) return fallo('consulta de suscripciones', subsError.message)
   // Cada salida temprana se distingue de las demás: si todas devolvieran
   // `{ sent: 0 }`, la primera vez que esto se ejecute de verdad no habría forma
@@ -306,22 +306,22 @@ export async function GET(req: NextRequest) {
     // El texto entero lo escribe `reminders.ts`, con sus tests detrás. Aquí solo
     // se le pasa lo que se ha averiguado: qué hay hoy, cuántas tareas quedan, qué
     // papeles caducan y a quién hay que felicitar.
-    const { title, body } = avisoDelDia(
-      {
-        felicitacion: fraseDeCumplesDeLaCasa(cumplesHoy),
-        cumplesDeManana: fraseDeCumplesDeLaCasa(cumplesManana, 'Mañana'),
-        planes,
-        tareas: taskCount,
-        documentosVencidos: vencidos,
-        documentosPorVencer: porVencer,
-      },
-      new Date(),
-      REMINDER_TIME_ZONE,
-    )
-
-    const payload = JSON.stringify({ title, body, url: '/home' })
+    const datos = {
+      felicitacion: fraseDeCumplesDeLaCasa(cumplesHoy),
+      cumplesDeManana: fraseDeCumplesDeLaCasa(cumplesManana, 'Mañana'),
+      planes,
+      tareas: taskCount,
+      documentosVencidos: vencidos,
+      documentosPorVencer: porVencer,
+    }
 
     for (const sub of subs.filter(s => s.user_id === userId)) {
+      // Cada dispositivo recibe lo que ha elegido: con todo apagado, nada.
+      const suyos = datosSegunPreferencias(datos, { resumen: sub.notify_daily, cumples: sub.notify_birthdays })
+      if (!suyos) continue
+      const { title, body } = avisoDelDia(suyos, new Date(), REMINDER_TIME_ZONE)
+      const payload = JSON.stringify({ title, body, url: '/home' })
+
       // Enviar, y limpiar la suscripción que el navegador ya no conoce, es lo que
       // comparte con el aviso de cada evento (`lib/cron.ts`).
       const resultado = await enviarNotificacion(supabase, sub, payload)

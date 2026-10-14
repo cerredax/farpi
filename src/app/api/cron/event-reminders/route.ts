@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
   const usuarios = [...new Set((miembros ?? []).map(m => m.user_id))]
   const { data: suscripciones, error: suscripcionesError } = usuarios.length === 0
     ? { data: [], error: null }
-    : await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth').in('user_id', usuarios)
+    : await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth, notify_events').in('user_id', usuarios)
   if (suscripcionesError) return fallo('consulta de suscripciones', suscripcionesError.message)
 
   let sent = 0
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
 
     let enviadasDeEste = 0
     let fallidasDeEste = 0
-    for (const sub of (suscripciones ?? []).filter(s => deLaCasa.has(s.user_id))) {
+    for (const sub of (suscripciones ?? []).filter(s => deLaCasa.has(s.user_id) && s.notify_events)) {
       const resultado = await enviarNotificacion(supabase, sub, payload)
       if (resultado === 'enviada') enviadasDeEste++
       else if (resultado === 'caducada') caducadas++

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requiereSesion } from '@/lib/supabase/guard'
 import { clavesDePushValidas, endpointDePushValido } from '@/lib/push'
+import { COLUMNA_DE_PREFERENCIA, preferenciasValidas, type PreferenciasDeAvisos } from '@/lib/reminders'
 
 /**
  * ¿Qué direcciones tiene guardadas este usuario?
@@ -26,14 +27,60 @@ export async function GET(req: NextRequest) {
   // direcciones que el cron visita cada día, y aquí no se cuelan las de nadie más.
   const { data, error } = await supabase
     .from('push_subscriptions')
-    .select('endpoint')
+    .select('endpoint, notify_daily, notify_events, notify_birthdays')
     .eq('user_id', user.id)
   if (error) {
     console.error('[push] consulta de suscripciones:', error.message)
     return NextResponse.json({ error: 'No se pudo consultar la suscripción' }, { status: 500 })
   }
 
-  return NextResponse.json({ endpoints: (data ?? []).map(fila => fila.endpoint) })
+  // Las preferencias van por endpoint, igual que las suscripciones: cada
+  // dispositivo tiene las suyas, y es quien llama quien busca la de este.
+  const preferencias: Record<string, PreferenciasDeAvisos> = {}
+  for (const fila of data ?? []) {
+    preferencias[fila.endpoint] = { resumen: fila.notify_daily, eventos: fila.notify_events, cumples: fila.notify_birthdays }
+  }
+  return NextResponse.json({ endpoints: (data ?? []).map(fila => fila.endpoint), preferencias })
+}
+
+/**
+ * Qué avisos quiere este dispositivo. Solo toca las columnas de preferencias y
+ * solo la fila del propio usuario (`user_id` en el `update`, con la RLS detrás):
+ * ni se crea una suscripción desde aquí ni se puede tocar la de otra persona.
+ */
+export async function PATCH(req: NextRequest) {
+  const guardia = await requiereSesion(req)
+  if (guardia.fallo) return guardia.fallo
+  const { supabase, user } = guardia
+
+  const { endpoint, preferencias } = await req.json().catch(() => ({})) as { endpoint?: string; preferencias?: unknown }
+  const cambios = preferenciasValidas(preferencias)
+  if (typeof endpoint !== 'string' || !endpoint || !cambios) {
+    return NextResponse.json({ error: 'Preferencias inválidas' }, { status: 400 })
+  }
+
+  const fila: Record<string, boolean> = {}
+  for (const [clave, valor] of Object.entries(cambios)) {
+    fila[COLUMNA_DE_PREFERENCIA[clave as keyof PreferenciasDeAvisos]] = valor
+  }
+
+  const { data, error } = await supabase
+    .from('push_subscriptions')
+    .update(fila)
+    .eq('endpoint', endpoint)
+    .eq('user_id', user.id)
+    .select('id')
+  if (error) {
+    console.error('[push] preferencias de avisos:', error.message)
+    return NextResponse.json({ error: 'No se pudieron guardar las preferencias' }, { status: 500 })
+  }
+  // Sin fila no hay nada guardado: este dispositivo no está dado de alta en el
+  // servidor, y decir «hecho» dejaría el interruptor mintiendo.
+  if (!data || data.length === 0) {
+    return NextResponse.json({ error: 'Este dispositivo no tiene los avisos activados' }, { status: 404 })
+  }
+
+  return NextResponse.json({ ok: true })
 }
 
 /**

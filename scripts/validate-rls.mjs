@@ -961,6 +961,37 @@ async function main() {
     (await api('/rest/v1/documents?storage_path=eq.id-de-drive-de-d&select=storage_owner'))
       .cuerpo?.[0]?.storage_owner === null)
 
+  // ── 12 bis. Qué avisos quiere cada dispositivo (push_subscriptions) ──
+  // Las tres columnas `notify_*` las lee el cron antes de enviar. Lo que hay que
+  // probar es lo que una policy `for all` por `user_id` tiene que garantizar: que
+  // cada cual cambia las suyas, que un miembro de la misma casa no toca las de otro
+  // y que una fila nueva nace con todo encendido.
+  console.log('\n== 12 bis. Preferencias de avisos por dispositivo')
+  const endpointA = `https://fcm.googleapis.com/fcm/send/rls-${sufijo}`
+  const altaPush = await api('/rest/v1/push_subscriptions', {
+    metodo: 'POST', token: tokA, cabeceras: REPRESENTACION,
+    datos: { user_id: uidA, endpoint: endpointA, p256dh: 'p'.repeat(87), auth: 'a'.repeat(22) },
+  })
+  const filaPush = altaPush.cuerpo?.[0]
+  comprobar('A da de alta su dispositivo y nace con los tres avisos encendidos',
+    altaPush.estado < 400 && filaPush?.notify_daily === true && filaPush?.notify_events === true && filaPush?.notify_birthdays === true,
+    `estado ${altaPush.estado}`)
+  const apagaA = await api(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpointA)}`, {
+    metodo: 'PATCH', token: tokA, cabeceras: REPRESENTACION, datos: { notify_events: false },
+  })
+  comprobar('A apaga el aviso de cada plan en su dispositivo',
+    apagaA.cuerpo?.[0]?.notify_events === false && apagaA.cuerpo?.[0]?.notify_daily === true)
+  const apagaB = await api(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpointA)}`, {
+    metodo: 'PATCH', token: tokB, cabeceras: REPRESENTACION, datos: { notify_daily: false },
+  })
+  comprobar('B, de la misma familia, NO puede cambiar las preferencias del dispositivo de A',
+    filas(apagaB) === 0)
+  const vistoPorC = await api(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpointA)}&select=endpoint`, { token: tokC })
+  comprobar('Un ajeno NO ve el dispositivo de A', filas(vistoPorC) === 0)
+  const trasIntento = await api(`/rest/v1/push_subscriptions?endpoint=eq.${encodeURIComponent(endpointA)}&select=notify_daily,notify_events`, { token: tokA })
+  comprobar('Tras el intento de B, el dispositivo de A sigue como lo dejó',
+    trasIntento.cuerpo?.[0]?.notify_daily === true && trasIntento.cuerpo?.[0]?.notify_events === false)
+
   // ── 13. Cerrar una familia (delete_family) ──────────────────────────
   // `families` no tiene policy de `delete`, así que cerrar una casa va por RPC.
   // Lo que hay que comprobar es lo que la RPC añade y una policy no sabría: que

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
 import {
-  avisoDeEvento, avisoDelDia, avisosDeEventoPendientes, esLaHoraDelAviso, fraseDeLoDeHoy, fraseDeLoQueCaduca,
-  horaDelPlan, MARGEN_DEL_AVISO_MS, momentoDelAvisoDeEvento, tituloDelAviso,
+  avisoDeEvento, avisoDelDia, avisosDeEventoPendientes, datosSegunPreferencias, esLaHoraDelAviso, fraseDeLoDeHoy, fraseDeLoQueCaduca,
+  horaDelPlan, MARGEN_DEL_AVISO_MS, momentoDelAvisoDeEvento, preferenciasValidas, tituloDelAviso,
 } from '@/lib/reminders'
-import type { EventoConAviso, PlanDelAviso } from '@/lib/reminders'
+import type { DatosDelAviso, EventoConAviso, PlanDelAviso } from '@/lib/reminders'
 
 // El aviso de las siete de la mañana es lo único de Farpi que se lee sin abrir
 // Farpi, y lo escribe una función de Vercel que va en UTC. Las dos cosas que
@@ -288,5 +288,67 @@ test.describe('avisoDeEvento', () => {
   test('la hora es la de Madrid aunque el servidor vaya en UTC', () => {
     // 08:30 UTC son las 10:30 de Madrid en verano y las 09:30 en invierno.
     expect(avisoDeEvento(eventoA(30, { start_at: '2026-12-15T08:30:00Z' }), MADRID).body).toBe('En 30 minutos, a las 09:30.')
+  })
+})
+
+// ─── Qué avisos quiere cada dispositivo ───────────────────────────────────────
+
+test.describe('datosSegunPreferencias', () => {
+  const datos: DatosDelAviso = {
+    felicitacion: 'Hoy Leo cumple 5 años.',
+    cumplesDeManana: 'Mañana Ana cumple 40 años.',
+    planes: [plan('Fisio', '11:00')],
+    tareas: 2,
+    documentosVencidos: 1,
+    documentosPorVencer: 0,
+  }
+
+  test('con todo encendido no cambia nada', () => {
+    expect(datosSegunPreferencias(datos, { resumen: true, cumples: true })).toEqual(datos)
+  })
+
+  test('sin cumpleaños el resumen pierde solo esas frases', () => {
+    const d = datosSegunPreferencias(datos, { resumen: true, cumples: false })!
+    expect(d.felicitacion).toBe('')
+    expect(d.cumplesDeManana).toBe('')
+    expect(avisoDelDia(d, new Date('2026-09-15T05:00:00Z'), MADRID).body).not.toMatch(/cumple/)
+    expect(d.planes).toEqual(datos.planes)
+    expect(d.tareas).toBe(2)
+  })
+
+  test('sin resumen se queda solo lo de los cumpleaños', () => {
+    const d = datosSegunPreferencias(datos, { resumen: false, cumples: true })!
+    expect(d.planes).toEqual([])
+    expect(d.tareas).toBe(0)
+    expect(d.documentosVencidos).toBe(0)
+    expect(avisoDelDia(d, new Date('2026-09-15T05:00:00Z'), MADRID).body).toBe('Hoy Leo cumple 5 años. Mañana Ana cumple 40 años.')
+  })
+
+  test('con las dos cosas apagadas no sale ningún aviso', () => {
+    expect(datosSegunPreferencias(datos, { resumen: false, cumples: false })).toBeNull()
+  })
+
+  test('un aviso que se queda sin nada no sale', () => {
+    // Solo cumpleaños que hay, pero el dispositivo no los quiere y tampoco hay resumen que dar.
+    const soloCumple: DatosDelAviso = { ...datos, planes: [], tareas: 0, documentosVencidos: 0 }
+    expect(datosSegunPreferencias(soloCumple, { resumen: true, cumples: false })).toBeNull()
+  })
+})
+
+test.describe('preferenciasValidas', () => {
+  test('acepta una o varias claves booleanas', () => {
+    expect(preferenciasValidas({ cumples: false })).toEqual({ cumples: false })
+    expect(preferenciasValidas({ resumen: true, eventos: false })).toEqual({ resumen: true, eventos: false })
+  })
+
+  test('rechaza lo que no es un objeto, lo vacío y lo que no es booleano', () => {
+    for (const malo of [null, undefined, 'si', 3, [], {}, { resumen: 'no' }, { resumen: 1 }, { eventos: null }]) {
+      expect(preferenciasValidas(malo)).toBeNull()
+    }
+  })
+
+  test('ignora claves desconocidas, que no llegan a ninguna columna', () => {
+    expect(preferenciasValidas({ resumen: true, user_id: 'otro' })).toEqual({ resumen: true })
+    expect(preferenciasValidas({ user_id: 'otro' })).toBeNull()
   })
 })

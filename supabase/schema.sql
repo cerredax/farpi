@@ -722,6 +722,11 @@ create table if not exists public.push_subscriptions (
   endpoint    text not null unique,
   p256dh      text not null,
   auth        text not null,
+  -- Qué avisos recibe **este dispositivo**. Los lee el cron antes de enviar; una
+  -- fila nueva nace con todo encendido, que es lo que había antes de poder elegir.
+  notify_daily     boolean not null default true,  -- el resumen de las siete
+  notify_events    boolean not null default true,  -- el aviso de cada plan
+  notify_birthdays boolean not null default true,  -- cumpleaños, hoy y mañana
   created_at  timestamptz not null default now()
 );
 

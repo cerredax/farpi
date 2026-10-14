@@ -289,6 +289,23 @@ select user_id, created_at, left(endpoint, 40) from push_subscriptions;
 Una fila por dispositivo. Si falta la del móvil, es que ese móvil no está suscrito,
 diga lo que diga su pantalla de Ajustes.
 
+## Qué avisos quiere cada dispositivo
+
+En Ajustes, con los avisos activados, hay tres interruptores: **resumen de cada mañana**,
+**aviso de cada plan** y **cumpleaños**. Se guardan al tocarlos, sin botón, y **son del
+dispositivo, no de la cuenta**: viven en `push_subscriptions` (`notify_daily`,
+`notify_events`, `notify_birthdays`, todas `true` por defecto), una fila por navegador.
+
+- `PATCH /api/push` los cambia, solo en la fila del propio usuario, y contesta 404 si ese
+  navegador no está dado de alta (el interruptor vuelve atrás: no miente).
+- `GET /api/push` los devuelve por `endpoint`; `estadoDeAvisos()` (`lib/push.ts`) elige el de este
+  navegador. El alta (`POST`) no los toca, así que volver a activar conserva lo elegido.
+- El cron de las siete aplica `datosSegunPreferencias` (`lib/reminders.ts`) **por dispositivo**:
+  sin cumpleaños, el resumen pierde esas frases; sin resumen, queda solo lo de los cumpleaños; con
+  los dos apagados no sale nada. El de cada plan filtra por `notify_events`.
+- **Para aplicarlo en la base real**: las tres columnas, que salen de `git diff supabase/schema.sql`.
+  Hasta entonces las consultas de los dos crons fallan.
+
 ## Qué dice el aviso
 
 Desde el 15-09-2026 el aviso **nombra** lo que hay en vez de contarlo. El texto lo

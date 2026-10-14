@@ -1,5 +1,6 @@
 import { IS_DEMO_MODE } from './supabase/env'
 import { pedirApi } from './supabase-repos/api-farpi'
+import { PREFERENCIAS_POR_DEFECTO, type PreferenciasDeAvisos } from './reminders'
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''
 
@@ -341,7 +342,7 @@ export async function enablePush(): Promise<void> {
 }
 
 /**
- * ¿Está este dispositivo suscrito **de verdad**?
+ * ¿Está este dispositivo suscrito **de verdad**, y qué avisos quiere?
  *
  * Son dos preguntas y hay que hacer las dos: si el navegador tiene suscripción, y
  * si el servidor la tiene guardada. Fiarse solo de la primera —lo que hacía la
@@ -349,22 +350,35 @@ export async function enablePush(): Promise<void> {
  * porque el cron borra las suscripciones que el servidor de push da por muertas y
  * porque un alta pudo no llegar a guardarse.
  *
- * Si la consulta falla, la respuesta es `false`: quien llama enseñará «Activar», y
- * pulsarlo repara la situación en vez de dejarla como estaba.
+ * Si la consulta falla, la respuesta es «inactivo»: quien llama enseñará «Activar»,
+ * y pulsarlo repara la situación en vez de dejarla como estaba.
  */
-export async function pushActivo(): Promise<boolean> {
-  if (!pushSupported() || !pushConfigured()) return false
+export async function estadoDeAvisos(): Promise<{ activo: boolean; preferencias: PreferenciasDeAvisos }> {
+  const inactivo = { activo: false, preferencias: PREFERENCIAS_POR_DEFECTO }
+  if (!pushSupported() || !pushConfigured()) return inactivo
 
   const registration = await registroListo()
   const subscription = await registration.pushManager.getSubscription()
-  if (!subscription) return false
+  if (!subscription) return inactivo
 
   try {
-    const { endpoints } = await pedirApi<{ endpoints: string[] }>('/api/push', undefined, 'GET')
-    return endpoints.includes(subscription.endpoint)
+    const { endpoints, preferencias } = await pedirApi<{
+      endpoints: string[]
+      preferencias?: Record<string, PreferenciasDeAvisos>
+    }>('/api/push', undefined, 'GET')
+    if (!endpoints.includes(subscription.endpoint)) return inactivo
+    return { activo: true, preferencias: preferencias?.[subscription.endpoint] ?? PREFERENCIAS_POR_DEFECTO }
   } catch {
-    return false
+    return inactivo
   }
+}
+
+/** Guarda qué avisos quiere este dispositivo. Lanza si no se pudo: quien llama deshace el interruptor. */
+export async function guardarPreferenciasDeAvisos(cambios: Partial<PreferenciasDeAvisos>): Promise<void> {
+  const registration = await registroListo()
+  const subscription = await registration.pushManager.getSubscription()
+  if (!subscription) throw new Error('Este dispositivo no tiene los avisos activados')
+  await pedirApi('/api/push', { endpoint: subscription.endpoint, preferencias: cambios }, 'PATCH')
 }
 
 /** Cancela la suscripción local y la borra del backend. */

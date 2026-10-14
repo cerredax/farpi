@@ -169,8 +169,9 @@ recomendado».
   mañana, papeles por caducar) y **aviso de cada evento**, cuyo disparador es un job de `pg_cron`
   en Supabase cada cinco minutos (programado el 30-09-2026; primera ejecución, 200). Los avisos se
   reparan al abrir la app y se van al cerrar sesión. Inicio ofrece activarlos con un toque
-  mientras el navegador no haya preguntado nunca (`ActivarAvisos`). Detalle en
-  `docs/notificaciones.md`.
+  mientras el navegador no haya preguntado nunca (`ActivarAvisos`). Cada dispositivo elige en Ajustes
+  qué recibe (resumen de la mañana, aviso de cada plan, cumpleaños): tres columnas `notify_*` en
+  `push_subscriptions` que lee el cron. Detalle en `docs/notificaciones.md`.
 - **Copia de seguridad** (Ajustes → Cuenta): un JSON con todo lo de la casa, sin los archivos de los
   documentos. No hay restaurar.
 
@@ -255,6 +256,9 @@ pendiente.** Esta es la lista entera y no hay otra; el porqué de cada decisión
 
 En orden. Lo de abajo explica cada punto.
 
+00. **Aplicar en el SQL Editor las tres columnas `notify_*` de `push_subscriptions`** (el trozo sale de
+   `git diff supabase/schema.sql`) **y correr `node scripts/validate-rls.mjs`**: la §12 bis es nueva y
+   no se ha ejecutado. Mientras no estén, el cron de avisos falla con 500 («consulta de suscripciones»).
 0. **Probar el aviso de cada evento de punta a punta.** El job de `pg_cron` ya está programado y
    contestó 200; falta ver llegar un aviso: con los avisos activados en un móvil, apuntar un plan
    que empiece dentro de 20 minutos con «15 minutos antes».
@@ -316,7 +320,7 @@ Ninguno está decidido; en este orden de lo que más se nota:
 - **Escribir sin conexión**: no hay cola de cambios (lo más caro y lo que menos urge).
 - **Modo oscuro**: no hay ni `dark:` ni `prefers-color-scheme`; cambia el diseño de forma amplia y
   obligaría a repetir la medida de contraste.
-- **Avisos**: no se elige qué tipos recibir, ni se avisa de lo que añade otro miembro, ni hay aviso
+- **Avisos**: no se avisa de lo que añade otro miembro, ni hay aviso
   por tarea.
 - **Refrescar solas Finanzas, Documentos y Ajustes** (hoy solo `PORCIONES_DEL_DIA`).
 - **Deshacer un evento eliminado**, y que el resto de sheets no se cierren antes de saber si

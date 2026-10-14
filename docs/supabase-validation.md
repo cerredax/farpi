@@ -4,6 +4,13 @@ Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la últ
 relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
 día; aquí queda el recuento y lo que sigue vigilándose.
 
+## Pendiente de ejecutar: §12 bis (preferencias de avisos)
+
+Cinco comprobaciones nuevas sobre las columnas `notify_*` de `push_subscriptions` (nacen
+encendidas, el dueño las cambia, un miembro de su misma casa **no**, un ajeno no las ve). Escritas
+pero **sin correr**: necesitan primero las columnas en la base real. Al correrlas, sustituir este
+bloque por el recuento.
+
 ## Última ejecución: 206/206 (30-09-2026, el aviso de cada evento)
 
 Con `events.remind_before_minutes` y la tabla `event_reminders_sent`. **206/206 comprobaciones

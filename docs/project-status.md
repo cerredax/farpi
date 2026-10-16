@@ -302,9 +302,9 @@ En orden. Lo de abajo explica cada punto.
    normal; si no, pasarla a 429 (el comando está en `docs/produccion.md`).
 5. **El botón atrás de Android**: en una TWA sale de la app, y el código no tiene URL ni `popstate`
    en los formularios. Probarlo en un aparato antes de subir a Play.
-6. **Google Play**, siguiendo `docs/play-store.md`: versión 2 (2) preparada en producción,
-   solo para España, con notas y paquete ya guardados. La ficha y la prueba cerrada están en
-   revisión; incorporar producción exige reiniciarla y está pendiente de confirmación.
+6. **Google Play**, siguiendo `docs/play-store.md`: versión 2 (2) de producción y disponibilidad
+   solo en España enviadas a revisión. Google está ejecutando las comprobaciones previas y ya
+   no quedan cambios pendientes de envío. La publicación gestionada está desactivada.
    La asociación Android de `public/.well-known/assetlinks.json` está publicada y verificada
    por Google. La app aún no está publicada en Play.
 7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app, una
@@ -323,8 +323,8 @@ Es lo único que no ve ninguna herramienta.
 
 - **Google Play (TWA)**: el package name es **`farpi.app`**. El paquete Android 2 está generado y
   guardado en Play; abre `/home` de la web y delega notificaciones. La asociación con el dominio
-  está publicada. Producción está preparada solo para España y pendiente de envío; la ficha y
-  la prueba cerrada ya están en revisión. Todavía no está disponible públicamente en Play.
+  está publicada. Producción 2 (2), solo para España, está en revisión y se publicará al
+  aprobarse. Todavía no está disponible públicamente en Play.
 - **La portada en inglés**: preparada y sin traducir (`textos.ts` obliga a traducirlos todos).
   Va después de la app en inglés, y el texto de Omar lo tiene que dar por bueno él.
 - **La app en inglés**: faltan Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el

@@ -11,9 +11,9 @@ orden en que se hace, y lo que ya está hecho en el repositorio para que funcion
   destino `https://www.farpi.app/home`, SDK objetivo 36 y delegación de notificaciones activa.
 - El app bundle 2 (2) ya está en la biblioteca de Play y añadido a la versión de producción,
   con notas en castellano. La distribución está configurada **solo para España**.
-- La versión está guardada y lista para enviar. La ficha y la prueba cerrada ya tienen una
-  revisión en curso; incorporar producción requiere reiniciarla y puede aumentar la espera.
-  El envío de producción está pendiente de esa confirmación, no está publicado.
+- La versión 2 (2) y la incorporación de España están en **Cambios en revisión**. Google está
+  ejecutando las comprobaciones automáticas previas; ya no hay cambios pendientes de envío.
+  La publicación gestionada está desactivada: se publicará al aprobarse. Aún no está publicada.
 - `/.well-known/assetlinks.json` responde 200 en producción con la huella que muestra Google
   Play para la firma de la app. La API Digital Asset Links confirma la asociación.
 

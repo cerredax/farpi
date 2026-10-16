@@ -129,9 +129,9 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       registrado ahí y con sus nameservers— y se puso con
       `vercel dns add farpi.app @ TXT "google-site-verification=…"`. Si desaparece,
       Google des-verifica la propiedad y el Branding vuelve a dar error.
-- [ ] **Publicación en Play Store**: paquete **`farpi.app`**, versión 2 (2), preparado
-      para producción solo en España. La ficha y la prueba cerrada están en revisión;
-      añadir producción exige reiniciar esa revisión y está pendiente de confirmación.
+- [ ] **Publicación en Play Store**: paquete **`farpi.app`**, versión 2 (2) de producción,
+      solo para España, enviada a revisión. Google está ejecutando las comprobaciones previas.
+      La publicación gestionada está desactivada: se publicará al aprobarse.
       La asociación de dominio está publicada y validada por Google (16-10-2026).
       Pasos y estado en `docs/play-store.md`.
 

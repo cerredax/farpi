@@ -302,10 +302,11 @@ En orden. Lo de abajo explica cada punto.
    normal; si no, pasarla a 429 (el comando está en `docs/produccion.md`).
 5. **El botón atrás de Android**: en una TWA sale de la app, y el código no tiene URL ni `popstate`
    en los formularios. Probarlo en un aparato antes de subir a Play.
-6. **Google Play**, siguiendo `docs/play-store.md`: cuenta de desarrollador, Bubblewrap con
-   `farpi.app`, subir a prueba cerrada, la huella SHA-256 → `public/.well-known/assetlinks.json`
-   (hoy da 404, como es esperable), la ficha (falta el gráfico de 1024×500), una cuenta de
-   revisión en la base real (y borrarla después) y **12 testers durante 14 días**.
+6. **Google Play**, siguiendo `docs/play-store.md`: versión 2 (2) preparada en producción,
+   solo para España, con notas y paquete ya guardados. La ficha y la prueba cerrada están en
+   revisión; incorporar producción exige reiniciarla y está pendiente de confirmación.
+   La asociación Android de `public/.well-known/assetlinks.json` está publicada y verificada
+   por Google. La app aún no está publicada en Play.
 7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app, una
    sección de ayuda y un `robots.txt`.
 
@@ -320,9 +321,10 @@ Es lo único que no ve ninguna herramienta.
 
 ### 2. Decisión sin tomar
 
-- **Google Play (TWA)**: el package name es **`farpi.app`** (irreversible al publicar). Lo del
-  repositorio está hecho (`manifest.json`, `/borrar-cuenta`, `/.well-known/` fuera del proxy, la
-  guía). Falta lo que no vive aquí: cuenta, Bubblewrap, huella de la firma, ficha y prueba cerrada.
+- **Google Play (TWA)**: el package name es **`farpi.app`**. El paquete Android 2 está generado y
+  guardado en Play; abre `/home` de la web y delega notificaciones. La asociación con el dominio
+  está publicada. Producción está preparada solo para España y pendiente de envío; la ficha y
+  la prueba cerrada ya están en revisión. Todavía no está disponible públicamente en Play.
 - **La portada en inglés**: preparada y sin traducir (`textos.ts` obliga a traducirlos todos).
   Va después de la app en inglés, y el texto de Omar lo tiene que dar por bueno él.
 - **La app en inglés**: faltan Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el

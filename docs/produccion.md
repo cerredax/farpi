@@ -129,9 +129,11 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
       registrado ahí y con sus nameservers— y se puso con
       `vercel dns add farpi.app @ TXT "google-site-verification=…"`. Si desaparece,
       Google des-verifica la propiedad y el Branding vuelve a dar error.
-- [ ] **Play Store**: el *package name* es irreversible. Será **`farpi.app`**
-      (decidido el 28-09-2026). Todavía no se ha publicado, que es justo por lo que este
-      era el momento de cambiar el nombre.
+- [ ] **Publicación en Play Store**: paquete **`farpi.app`**, versión 2 (2), preparado
+      para producción solo en España. La ficha y la prueba cerrada están en revisión;
+      añadir producción exige reiniciar esa revisión y está pendiente de confirmación.
+      La asociación de dominio está publicada y validada por Google (16-10-2026).
+      Pasos y estado en `docs/play-store.md`.
 
 La etiqueta `appProperties.nido_family` de los archivos ya subidos **no se toca**: va
 dentro de cada archivo, en el Drive de su dueño, y reescribirla exigiría recorrer uno a

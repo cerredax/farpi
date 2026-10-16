@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "farpi.app",
+      "sha256_cert_fingerprints": [
+        "CC:60:C9:88:84:2D:21:1D:4E:17:E0:1F:C6:DD:33:E5:77:1B:62:F7:20:09:48:44:D3:4A:7E:D7:22:81:CC:3A"
+      ]
+    }
+  }
+]

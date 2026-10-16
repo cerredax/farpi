@@ -5,6 +5,18 @@ abre `https://www.farpi.app` a pantalla completa, sin la barra del navegador. No
 base de código: lo que se publica en Vercel es lo que se ve en la app. Esta guía es el
 orden en que se hace, y lo que ya está hecho en el repositorio para que funcione.
 
+## Estado actual (16-10-2026)
+
+- El proyecto Android está en `../farpi-android`: paquete `farpi.app`, versión 2,
+  destino `https://www.farpi.app/home`, SDK objetivo 36 y delegación de notificaciones activa.
+- El app bundle 2 (2) ya está en la biblioteca de Play y añadido a la versión de producción,
+  con notas en castellano. La distribución está configurada **solo para España**.
+- La versión está guardada y lista para enviar. La ficha y la prueba cerrada ya tienen una
+  revisión en curso; incorporar producción requiere reiniciarla y puede aumentar la espera.
+  El envío de producción está pendiente de esa confirmación, no está publicado.
+- `/.well-known/assetlinks.json` responde 200 en producción con la huella que muestra Google
+  Play para la firma de la app. La API Digital Asset Links confirma la asociación.
+
 ## Lo que ya está en el repositorio
 
 - **`public/manifest.json`** con `id: "/home"` —el mismo que tenían por defecto las PWA
@@ -12,9 +24,9 @@ orden en que se hace, y lo que ya está hecho en el repositorio para que funcion
   `categories`, los iconos `any` y `maskable` y las nueve capturas de `public/capturas/`.
 - **`/privacidad`**, **`/terminos`** y **`/borrar-cuenta`**, las tres sin sesión
   (`PUBLIC_ROUTES`). La última es la URL de borrado de cuenta que Play exige.
-- **`/.well-known/` fuera del proxy** (`src/proxy.ts`), para que `assetlinks.json` se
-  sirva sin redirigir al login. El archivo todavía no existe: necesita la huella de la
-  firma, que da Google (paso 4).
+- **`public/.well-known/assetlinks.json`**, con la huella pública de firma de Google Play,
+  y **`/.well-known/` fuera del proxy** (`src/proxy.ts`), para que se sirva sin redirigir
+  al login. Archivo y asociación con Google comprobados en producción.
 
 ## 1. Decisiones que no tienen vuelta atrás
 
@@ -69,7 +81,8 @@ Deja un `app-release-bundle.aab`, que es lo que se sube a Play.
 Sin este archivo, Android no se cree que la app y la web son la misma cosa y la TWA
 enseña la barra del navegador arriba.
 
-1. En Play Console → **Integridad de la app** → **Firma de apps**, copia la **huella
+1. En Play Console → **Protegida con Play** → **Protección de Play Store** →
+   **Gestiona la firma de aplicaciones de Play**, copia la **huella
    SHA-256 del certificado de firma de apps**. La de Google, no la de subida: la app que
    se instala la firma Google.
 2. Créalo en `public/.well-known/assetlinks.json`:

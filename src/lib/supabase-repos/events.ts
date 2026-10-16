@@ -2,7 +2,7 @@ import { buildLocalDateTime } from '../date-utils'
 import { antelacionDelAviso, isRangeKind } from '../events'
 import { buildWeeklyDates, buildYearlyDates, sameDayInYear } from '../recurrence'
 import { createClient } from '../supabase/client'
-import { assertNoError, currentUserId } from './shared'
+import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { Event, EventDraft } from '@/types'
 import type { EventsRepo } from '../repos/types'
 
@@ -62,9 +62,8 @@ function eventUpdate(draft: EventDraft) {
 export const eventsRepo: EventsRepo = {
   async getEvents(familyId: string): Promise<Event[]> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('events').select('*').eq('family_id', familyId).order('start_at')
-    assertNoError(error)
-    return data ?? []
+    return leerTodas<Event>(() => supabase.from('events').select('*', { count: 'exact' }).eq('family_id', familyId).order('start_at')
+      .order('id'))
   },
 
   async createEvent(familyId: string, draft: EventDraft): Promise<Event> {

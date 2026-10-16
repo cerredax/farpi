@@ -24,7 +24,8 @@ const MS_GUARDADO = 1500
  * armazón: cubre todas las pantallas sin repetirlo en cada una.
  */
 export function SaveStatus() {
-  const { isSaving, error, clearError, undoLabel, undo, clearUndo } = useStore()
+  const { isSaving, error: errorDeEscritura, avisoSincronizacion, clearError, undoLabel, undo, clearUndo } = useStore()
+  const error = errorDeEscritura ?? avisoSincronizacion
   const t = useT()
 
   /**
@@ -97,7 +98,7 @@ export function SaveStatus() {
           <>
             <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-danger-strong" strokeWidth={2.3} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-ink">{t.guardado.noSeHaGuardado}</p>
+              <p className="text-sm font-bold text-ink">{errorDeEscritura ? t.guardado.noSeHaGuardado : t.guardado.guardadoSinActualizar}</p>
               <p className="mt-0.5 text-xs leading-relaxed text-muted break-words">{error}</p>
             </div>
             <button

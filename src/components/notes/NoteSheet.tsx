@@ -35,7 +35,7 @@ interface NoteSheetProps {
   mode: 'create' | 'edit'
   initial?: Note | null
   onClose: () => void
-  onSave: (draft: NoteDraft) => void
+  onSave: (draft: NoteDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -52,17 +52,14 @@ function initDraft(mode: 'create' | 'edit', initial: Note | null | undefined): N
 }
 
 export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: NoteSheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<NoteDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<NoteDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
     validate: validateNoteDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => onSave(valid), onClose)
 
   // `null` es «sin haber pulsado»; `true`, copiado; `false`, el navegador no dejó.
   const [copiado, setCopiado] = useState<boolean | null>(null)
@@ -91,6 +88,7 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
       footer={
         <SheetFooter
           form="note-form"
+          disabled={guardando}
           submitLabel={mode === 'create' ? 'Crear nota' : 'Guardar'}
           error={formError}
           onDelete={mode === 'edit'

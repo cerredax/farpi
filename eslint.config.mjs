@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Caché y copias temporales de despliegue de Vercel.
+    ".vercel/**",
     // Scripts de build en Node (CommonJS) y artefactos de Playwright.
     "scripts/**",
     "test-results/**",

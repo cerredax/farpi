@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import webpush from 'web-push'
 import { createAdminClient, FALTA_SERVICE_ROLE, respuestaSinServiceRole } from '@/lib/supabase/admin'
 import { enviarNotificacion, secretoCorrecto, ZONA_DE_LA_FAMILIA } from '@/lib/cron'
+import { enviarAvisosPendientes } from '@/lib/envio-avisos'
 import { ANTELACIONES_DE_AVISO } from '@/lib/constants'
 import { avisoDeEvento, avisosDeEventoPendientes } from '@/lib/reminders'
 
@@ -66,66 +67,39 @@ export async function GET(req: NextRequest) {
   )
   if (pendientes.length === 0) return NextResponse.json({ ok: true, sent: 0, sinAvisos: true })
 
-  // **Reclamar antes de enviar.** La clave primaria de la tabla decide quién gana:
-  // si dos ejecuciones se solapan, o el cron llega dos veces, solo a una de ellas le
-  // devuelve la fila. Un `select` para mirar si ya se avisó y un `insert` después
-  // dejaría una ventana en la que las dos ven «no avisado».
-  const { data: reclamados, error: reclamarError } = await supabase
-    .from('event_reminders_sent')
-    .upsert(
-      pendientes.map(p => ({ event_id: p.evento.id, fire_at: p.fireAt })),
-      { onConflict: 'event_id,fire_at', ignoreDuplicates: true },
-    )
-    .select('event_id, fire_at')
-  if (reclamarError) return fallo('reclamar los avisos', reclamarError.message)
-
-  const mios = new Set((reclamados ?? []).map(r => `${r.event_id}|${new Date(r.fire_at).toISOString()}`))
-  const porMandar = pendientes.filter(p => mios.has(`${p.evento.id}|${p.fireAt}`))
-  if (porMandar.length === 0) return NextResponse.json({ ok: true, sent: 0, yaAvisados: pendientes.length })
-
-  // A toda la casa que tenga los avisos activados: los miembros de la familia del
-  // evento que tengan alguna suscripción.
-  const familias = [...new Set(porMandar.map(p => p.evento.family_id))]
-  const { data: miembros, error: miembrosError } = await supabase
-    .from('family_members')
-    .select('user_id, family_id')
-    .in('family_id', familias)
-  if (miembrosError) return fallo('consulta de miembros', miembrosError.message)
-
-  const usuarios = [...new Set((miembros ?? []).map(m => m.user_id))]
-  const { data: suscripciones, error: suscripcionesError } = usuarios.length === 0
-    ? { data: [], error: null }
-    : await supabase.from('push_subscriptions').select('user_id, endpoint, p256dh, auth, notify_events').in('user_id', usuarios)
-  if (suscripcionesError) return fallo('consulta de suscripciones', suscripcionesError.message)
-
-  let sent = 0
-  let fallidos = 0
-  let caducadas = 0
-
-  for (const { evento, fireAt } of porMandar) {
-    const { title, body } = avisoDeEvento(evento, ZONA_DE_LA_FAMILIA)
-    const payload = JSON.stringify({ title, body, url: '/calendar' })
-    const deLaCasa = new Set((miembros ?? []).filter(m => m.family_id === evento.family_id).map(m => m.user_id))
-
-    let enviadasDeEste = 0
-    let fallidasDeEste = 0
-    for (const sub of (suscripciones ?? []).filter(s => deLaCasa.has(s.user_id) && s.notify_events)) {
-      const resultado = await enviarNotificacion(supabase, sub, payload)
-      if (resultado === 'enviada') enviadasDeEste++
-      else if (resultado === 'caducada') caducadas++
-      else fallidasDeEste++
-    }
-    sent += enviadasDeEste
-    fallidos += fallidasDeEste
-
-    // Si no llegó a nadie **y hubo fallos**, se suelta el aviso reclamado: la
-    // siguiente vuelta, cinco minutos después y aún dentro del margen, lo reintenta.
-    // Si no había a quién mandárselo (nadie tiene los avisos activados) se queda
-    // reclamado: no hay nada que reintentar.
-    if (enviadasDeEste === 0 && fallidasDeEste > 0) {
-      await supabase.from('event_reminders_sent').delete().eq('event_id', evento.id).eq('fire_at', fireAt)
-    }
+  try {
+    const resultado = await enviarAvisosPendientes(pendientes, {
+      miembros: async familias => {
+        const { data, error } = await supabase.from('family_members')
+          .select('user_id, family_id').in('family_id', familias)
+        if (error) throw new Error(error.message)
+        return data ?? []
+      },
+      suscripciones: async usuarios => {
+        const { data, error } = await supabase.from('push_subscriptions')
+          .select('user_id, endpoint, p256dh, auth, notify_events').in('user_id', usuarios)
+        if (error) throw new Error(error.message)
+        return data ?? []
+      },
+      reclamar: async avisos => {
+        const { data, error } = await supabase.from('event_reminders_sent')
+          .upsert(avisos.map(p => ({ event_id: p.evento.id, fire_at: p.fireAt })),
+            { onConflict: 'event_id,fire_at', ignoreDuplicates: true })
+          .select('event_id, fire_at')
+        if (error) throw new Error(error.message)
+        return data ?? []
+      },
+      liberar: async ({ evento, fireAt }) => {
+        const { error } = await supabase.from('event_reminders_sent').delete()
+          .eq('event_id', evento.id).eq('fire_at', fireAt)
+        if (error) throw new Error(error.message)
+      },
+    }, async (sub, evento) => {
+      const { title, body } = avisoDeEvento(evento, ZONA_DE_LA_FAMILIA)
+      return enviarNotificacion(supabase, sub, JSON.stringify({ title, body, url: '/calendar' }))
+    })
+    return NextResponse.json({ ok: true, ...resultado })
+  } catch (error) {
+    return fallo('preparar y enviar los avisos', error instanceof Error ? error.message : String(error))
   }
-
-  return NextResponse.json({ ok: true, sent, fallidos, caducadas, avisos: porMandar.length })
 }

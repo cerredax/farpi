@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { useT } from '@/lib/i18n/contexto'
 import {
   pushSupported, pushConfigured, currentPermission, enablePush, disablePush, iosSinInstalar,
-  estadoDeAvisos, guardarPreferenciasDeAvisos,
+  estadoDeAvisos, guardarPreferenciasDeAvisos, probarAvisos,
 } from '@/lib/push'
 import { PREFERENCIAS_POR_DEFECTO, type PreferenciasDeAvisos } from '@/lib/reminders'
 
@@ -20,6 +20,8 @@ export function NotificationsCard() {
   const [preferencias, setPreferencias] = useState<PreferenciasDeAvisos>(PREFERENCIAS_POR_DEFECTO)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [probando, setProbando] = useState(false)
+  const [resultadoPrueba, setResultadoPrueba] = useState<'recibida' | 'sin-confirmacion' | null>(null)
   // Como `supported`: se resuelve una vez al montar, no en cada render.
   const [pendienteInstalar] = useState(() => iosSinInstalar())
 
@@ -47,6 +49,7 @@ export function NotificationsCard() {
   async function toggle() {
     setBusy(true)
     setError(null)
+    setResultadoPrueba(null)
     try {
       if (subscribed) {
         await disablePush()
@@ -62,6 +65,19 @@ export function NotificationsCard() {
       setError(err instanceof Error ? err.message : r.noSeCambio)
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function probar() {
+    setProbando(true)
+    setError(null)
+    setResultadoPrueba(null)
+    try {
+      setResultadoPrueba(await probarAvisos())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : r.noSeProbo)
+    } finally {
+      setProbando(false)
     }
   }
 
@@ -160,9 +176,20 @@ export function NotificationsCard() {
             </div>
           )}
 
+          {subscribed && (
+            <div className="space-y-2">
+              <Button onClick={probar} disabled={busy || probando} variant="secondary" fullWidth className="min-h-11">
+                {probando ? r.probando : r.probar}
+              </Button>
+              <p className="text-xs leading-relaxed text-muted" role="status">
+                {resultadoPrueba === 'recibida' ? r.pruebaRecibida : resultadoPrueba === 'sin-confirmacion' ? r.pruebaSinConfirmar : r.pruebaDetalle}
+              </p>
+            </div>
+          )}
+
           <Button
             onClick={toggle}
-            disabled={busy}
+            disabled={busy || probando}
             variant={subscribed ? 'secondary' : 'primary'}
             fullWidth
             className="min-h-11"

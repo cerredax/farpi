@@ -1,5 +1,5 @@
 import { createClient } from '../supabase/client'
-import { assertNoError, fail } from './shared'
+import { leerTodas, assertNoError, fail } from './shared'
 import { pedirApi } from './api-farpi'
 import type { Document, DocumentDraft } from '@/types'
 import type { DocumentsRepo } from '../repos/types'
@@ -31,13 +31,12 @@ function draftSinArchivo(draft: DocumentDraft): Omit<DocumentDraft, 'file'> {
 export const documentsRepo: DocumentsRepo = {
   async getDocuments(familyId: string): Promise<Document[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<Document>(() => supabase
       .from('documents')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('created_at', { ascending: false })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createDocument(familyId: string, draft: DocumentDraft): Promise<Document> {

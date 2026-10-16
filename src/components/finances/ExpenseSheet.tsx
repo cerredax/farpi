@@ -1,8 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { format } from 'date-fns'
 import { ChevronDown } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
+import { Button } from '@/components/ui/Button'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
@@ -12,8 +14,10 @@ import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { useStore } from '@/lib/store-context'
 import { resolveAssignee } from '@/lib/assignees'
 import { descripcionesFrecuentes, partidasPorUso } from '@/lib/budgets'
-import { getLocalDateString } from '@/lib/date-utils'
+import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
 import { centsToInput } from '@/lib/finanzas'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { validateExpenseDraft } from '@/lib/validators'
 import type { Budget, Expense, ExpenseDraft } from '@/types'
 
@@ -35,7 +39,7 @@ interface ExpenseSheetProps {
   fechaPorDefecto: string
   budgets: Budget[]
   onClose: () => void
-  onSave: (draft: ExpenseDraft) => void
+  onSave: (draft: ExpenseDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -104,8 +108,11 @@ function initDraft(
  * ninguna, y adivinarla sería apuntar mal en nombre de la comodidad.
  */
 export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets, onClose, onSave, onDelete }: ExpenseSheetProps) {
+  const t = useT()
+  const textos = t.finanzas.apunte
+  const idioma = useIdioma()
   const { members, kids, expenses } = useStore()
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ExpenseDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<ExpenseDraft>({
     open,
     initialDraft: () => initDraft(initial, empezado, fechaPorDefecto),
     validate: validateExpenseDraft,
@@ -114,18 +121,14 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
 
   const esIngreso = draft.kind === 'ingreso'
 
-  /**
-   * **Cuándo y quién, plegados en una línea** (28-09-2026). Casi todos los apuntes
-   * son de hoy y de la cuenta común, que es lo que viene puesto, y aun así eran
-   * dos bloques —una fecha y cuatro círculos— que había que pasar por encima para
-   * llegar al botón. Plegados dicen lo que valen («Hoy · Familia») y se abren al
-   * tocarlos. Se abren solos cuando lo puesto no es lo de siempre: al editar, o si
-   * el apunte nace en otro día porque se está mirando otro mes.
-   */
+  // Partida, fecha y persona se pueden revisar sin desplegarlas. Al editar o
+  // apuntar en otro mes se abren de entrada; cada apertura reinicia el acordeón.
   const hoy = getLocalDateString()
-  const [detallesAbiertos, setDetallesAbiertos] = useState(false)
-  const verDetalles = detallesAbiertos || !!initial || draft.date !== hoy
-  const quien = resolveAssignee(draft, members, kids)?.name ?? 'Familia'
+  const quien = resolveAssignee(draft, members, kids)?.name ?? t.comun.familia
+  const partida = budgets.find(budget => budget.id === draft.budget_id)?.name ?? textos.sinPartida
+  const fecha = draft.date === hoy ? textos.hoy : draft.date
+    ? format(parseLocalDate(draft.date), textos.formatoFecha, { locale: localeDeFechas(idioma) })
+    : textos.sinFecha
 
   // Las de su tipo: lo que se repite al apuntar gastos no tiene nada que ver con
   // lo que se repite al apuntar ingresos.
@@ -135,159 +138,121 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
   )
   const partidas = useMemo(() => partidasPorUso(budgets, expenses), [budgets, expenses])
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => onSave(valid), onClose)
 
   return (
     <BottomSheet
       open={open}
-      title={initial ? 'Editar apunte' : 'Nuevo apunte'}
+      title={initial ? textos.editar : textos.nuevo}
       onClose={onClose}
       footer={
         <SheetFooter
           form="expense-form"
-          submitLabel={initial ? 'Guardar' : esIngreso ? 'Apuntar ingreso' : 'Apuntar gasto'}
+          disabled={guardando}
+          submitLabel={initial ? textos.guardar : esIngreso ? textos.apuntarIngreso : textos.apuntarGasto}
           error={formError}
           onDelete={initial
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar apunte', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: textos.eliminar, confirmLabel: textos.confirmarEliminacion }
             : undefined}
         />
       }
     >
-      <form id="expense-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Qué es" spacing="group">
-          <div className="flex gap-2">
-            <SelectChip
-              selected={!esIngreso}
-              onClick={() => patch({ kind: 'gasto' })}
-            >
-              Un gasto
-            </SelectChip>
-            {/* Al pasar a ingreso se suelta la partida: si se quedara puesta, el
-                `check` de la base rechazaría la fila y el mock guardaría algo
-                distinto de lo que enseñó el formulario. */}
-            <SelectChip
-              selected={esIngreso}
-              onClick={() => patch({ kind: 'ingreso', budget_id: null })}
-            >
-              Un ingreso
-            </SelectChip>
-          </div>
-        </Field>
-
-        <Field label="Cuánto" htmlFor="expense-amount">
-          <input
-            id="expense-amount"
-            ref={firstFieldRef}
-            type="text"
-            inputMode="decimal"
-            value={draft.amount}
-            onChange={e => patch({ amount: e.target.value })}
-            placeholder="Ej: 24,90"
-            required
-            className="field-input"
-          />
-        </Field>
-
-        <Field label="Qué fue" htmlFor="expense-description" hint="(opcional)">
-          <input
-            id="expense-description"
-            type="text"
-            value={draft.description}
-            onChange={e => patch({ description: e.target.value })}
-            placeholder={esIngreso ? 'Ej: Devolución de la compra' : 'Ej: Compra semanal'}
-            className="field-input"
-          />
-        </Field>
-
-        {/* Lo de siempre, con su partida detrás. En un ingreso la partida no
-            viaja: ahí ni existe el campo, y mandarla rompería el `check` de la
-            base. */}
-        {sugerencias.length > 0 && (
-          <Suggestions
-            label="Lo de siempre"
-            values={sugerencias.map(x => x.texto)}
-            onPick={texto => {
-              const elegida = sugerencias.find(x => x.texto === texto)
-              patch(esIngreso
-                ? { description: texto }
-                : { description: texto, budget_id: elegida?.budgetId ?? null })
-            }}
-          />
-        )}
-
-        {/* Sin partida es una opción de verdad y va la primera: la mitad de los
-            gastos de una casa no caen en ninguna categoría, y obligar a elegir
-            una haría que se apuntaran mal o no se apuntaran. */}
-        {!esIngreso && (
-          <Field label="De qué partida sale" spacing="group">
-            <div className="flex flex-wrap gap-2">
-              <SelectChip selected={draft.budget_id === null} onClick={() => patch({ budget_id: null })}>
-                Sin partida
-              </SelectChip>
-              {partidas.map(budget => (
-                <SelectChip
-                  key={budget.id}
-                  selected={draft.budget_id === budget.id}
-                  onClick={() => patch({ budget_id: budget.id })}
-                >
-                  {budget.emoji && <span aria-hidden>{budget.emoji}</span>}
-                  {budget.name}
-                </SelectChip>
-              ))}
-            </div>
+      <form id="expense-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2">
+        <fieldset disabled={guardando} className="min-w-0 space-y-5">
+          <Field label={textos.cuanto} htmlFor="expense-amount">
+            <input
+              id="expense-amount"
+              ref={firstFieldRef}
+              type="text"
+              inputMode="decimal"
+              value={draft.amount}
+              onChange={e => patch({ amount: e.target.value })}
+              placeholder={textos.ejemploImporte}
+              required
+              className="field-input"
+            />
           </Field>
-        )}
 
-        {!verDetalles && (
-          <button
-            type="button"
-            onClick={() => setDetallesAbiertos(true)}
-            aria-expanded={false}
-            className="flex min-h-11 w-full items-center gap-1.5 text-left text-sm text-muted"
-          >
-            <span className="min-w-0 flex-1 truncate">
-              <span className="font-semibold text-ink">Hoy</span>
-              {' · '}
-              <span className="font-semibold text-ink">{quien}</span>
-            </span>
-            <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-primary-strong">
-              Cambiar fecha o persona
-              <ChevronDown size={14} strokeWidth={2.4} aria-hidden />
-            </span>
-          </button>
-        )}
+          {/* Lo de siempre, con su partida detrás. En un ingreso la partida no
+              viaja: ahí ni existe el campo, y mandarla rompería el `check` de la
+              base. */}
+          {sugerencias.length > 0 && (
+            <Suggestions
+              label={textos.loDeSiempre}
+              values={sugerencias.map(x => x.texto)}
+              onPick={texto => {
+                const elegida = sugerencias.find(x => x.texto === texto)
+                patch(esIngreso
+                  ? { description: texto }
+                  : { description: texto, budget_id: elegida?.budgetId ?? null })
+                firstFieldRef.current?.focus()
+              }}
+            />
+          )}
 
-        {verDetalles && (
-        <Field label="Cuándo" htmlFor="expense-date">
-          <input
-            id="expense-date"
-            type="date"
-            value={draft.date}
-            onChange={e => patch({ date: e.target.value })}
-            required
-            className="field-input"
-          />
-        </Field>
-        )}
+          <Field label={textos.queFue} htmlFor="expense-description" hint={textos.opcional}>
+            <input
+              id="expense-description"
+              type="text"
+              value={draft.description}
+              onChange={e => patch({ description: e.target.value })}
+              placeholder={esIngreso ? textos.ejemploIngreso : textos.ejemploGasto}
+              className="field-input"
+            />
+          </Field>
 
-        {verDetalles && (
-        <div className="space-y-2">
-          <AssigneePicker
-            value={draft}
-            onChange={asignado => patch(asignado)}
-            members={members}
-            kids={kids}
-          />
-          <p className="text-[10px] leading-relaxed text-muted">
-            {esIngreso
-              ? 'Quién lo ha traído. Con «Familia» queda como algo que entra a la cuenta común. Los ingresos no cuentan en el reparto de abajo, que es solo de gastos.'
-              : 'Quién puso el dinero. Con «Familia» queda como gasto de la cuenta común. Farpi no lleva cuentas de quién debe qué a quién: solo enseña el reparto.'}
-          </p>
-        </div>
-        )}
+          <details id="expense-details" key={String(open)} open={!!initial || fechaPorDefecto !== hoy} className="group">
+            <summary className="flex min-h-11 list-none items-center gap-2 py-2 [&::-webkit-details-marker]:hidden">
+              <span className="min-w-0 flex-1 break-words text-sm">
+                {!esIngreso && <span className="block font-semibold text-ink">{partida}</span>}
+                <span className="text-muted">{fecha}{' · '}{quien}</span>
+              </span>
+              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary-strong">
+                {textos.cambiar}
+                <ChevronDown size={14} strokeWidth={2.4} className="transition-transform group-open:rotate-180" aria-hidden />
+              </span>
+            </summary>
+            <div className="space-y-5 pt-3">
+              {/* Solo elegir una sugerencia o una partida la asigna. Abrir los
+                  detalles nunca cambia el valor inicial «Sin partida». */}
+              {!esIngreso && (
+                <Field label={textos.deQuePartida} spacing="group">
+                  <div className="flex flex-wrap gap-2">
+                    <SelectChip selected={draft.budget_id === null} onClick={() => patch({ budget_id: null })}>
+                      {textos.sinPartida}
+                    </SelectChip>
+                    {partidas.map(budget => (
+                      <SelectChip key={budget.id} selected={draft.budget_id === budget.id} onClick={() => patch({ budget_id: budget.id })}>
+                        {budget.emoji && <span aria-hidden>{budget.emoji}</span>}
+                        {budget.name}
+                      </SelectChip>
+                    ))}
+                  </div>
+                </Field>
+              )}
+              <Field label={textos.cuando} htmlFor="expense-date">
+                <input
+                  id="expense-date"
+                  type="date"
+                  value={draft.date}
+                  onChange={e => patch({ date: e.target.value })}
+                  onInvalid={e => e.currentTarget.closest('details')?.setAttribute('open', '')}
+                  required
+                  className="field-input"
+                />
+              </Field>
+              <div className="space-y-2">
+                <AssigneePicker value={draft} onChange={asignado => patch(asignado)} members={members} kids={kids} />
+                <p className="text-xs leading-relaxed text-muted">
+                  {esIngreso ? textos.quienIngreso : textos.quienGasto}
+                </p>
+              </div>
+            </div>
+          </details>
+          <Button type="button" variant="ghost" size="sm" fullWidth onClick={() => patch({ kind: esIngreso ? 'gasto' : 'ingreso', budget_id: null })}>
+            {esIngreso ? textos.volverAGastos : textos.cambiarAIngreso}
+          </Button>
+        </fieldset>
       </form>
     </BottomSheet>
   )

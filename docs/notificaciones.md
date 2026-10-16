@@ -2,6 +2,32 @@
 
 Estado y pasos para activar los recordatorios por notificación push.
 
+## Validación actual (15-10-2026)
+
+- Las preferencias por dispositivo están aplicadas en Supabase. La validación de permisos
+  pasa 211/211 comprobaciones; detalle en `docs/supabase-validation.md`.
+- La versión publicada consulta destinatarios y suscripciones antes de reclamar cada aviso.
+  `/api/salud` responde 200 y el job automático de eventos también ha respondido 200 tras el
+  despliegue. Los dos trabajos diarios de Vercel están activos a las 05:00 y 06:00 UTC.
+- Una prueba dirigida solo a la cuenta propietaria fue aceptada por el proveedor para las
+  dos suscripciones registradas (201), pero **el propietario no la recibió en su Android**,
+  abierto desde el icono de Farpi y con Ajustes indicando «Activados en este dispositivo».
+  La recepción sigue sin resolverse: el 201 no confirma entrega al navegador ni visibilidad.
+  En el siguiente intento, el propietario indicó que no veía el botón de prueba o aparecía
+  un error; falta distinguir ambos casos antes de dar por validada la prueba en ese Android.
+- Ajustes → Cuenta → Recordatorios incorpora **Probar en este dispositivo**. Reenvía las
+  claves actuales y solicita una prueba exclusivamente para la suscripción de ese navegador,
+  consultada con la sesión y la RLS del usuario; nunca ejecuta el cron ni avisa a la familia.
+  El worker confirma a la página después de resolver `showNotification`. Sin confirmación
+  en 20 segundos se muestra que no se ha podido verificar la recepción. Una confirmación
+  tampoco demuestra que Android haya enseñado el aviso: si falta, revisar sus permisos y
+  No molestar. Las suscripciones de otros dispositivos no reciben esta prueba.
+
+Comprobación local: `e2e/unit/prueba-avisos.spec.ts` cubre aislamiento entre cuentas,
+rechazos del proveedor y la confirmación del worker. Contra `npm run start`, Chrome recibió
+un push sintético por CDP, el worker confirmó la solicitud de mostrarlo, el precache estaba
+completo y el fallback sin conexión funcionó. Esto no sustituye la prueba en el móvil real.
+
 ## Qué está hecho (en el repo)
 
 - **Service worker** (`public/sw.js`): maneja `push` (muestra la notificación) y `notificationclick` (enfoca/abre la app).
@@ -193,7 +219,8 @@ avisa de lo que toque en ese momento. **Para apagarlo**: `select cron.unschedule
 
 **Lo que no cubre la suite**: que Supabase llame de verdad a Vercel. Los tests prueban cuándo
 toca avisar, que el formulario guarda la antelación y que la ruta rechaza sin secreto; el
-disparador y el envío push real solo se ven con el paso anterior.
+disparador se ha comprobado leyendo sus respuestas automáticas y el transporte con una prueba
+individual. Sigue pendiente confirmar en el móvil un aviso de evento programado completo.
 
 ## El botón que se quedaba en "Guardando…"
 
@@ -303,8 +330,12 @@ dispositivo, no de la cuenta**: viven en `push_subscriptions` (`notify_daily`,
 - El cron de las siete aplica `datosSegunPreferencias` (`lib/reminders.ts`) **por dispositivo**:
   sin cumpleaños, el resumen pierde esas frases; sin resumen, queda solo lo de los cumpleaños; con
   los dos apagados no sale nada. El de cada plan filtra por `notify_events`.
-- **Para aplicarlo en la base real**: las tres columnas, que salen de `git diff supabase/schema.sql`.
-  Hasta entonces las consultas de los dos crons fallan.
+- **Aplicado y validado en la base real** (15-10-2026): las tres columnas son booleanos
+  obligatorios con valor inicial `true`. La API REST las reconoce y el arnés de RLS pasa
+  **211/211** comprobaciones, incluidas las cinco de preferencias por dispositivo.
+- **El aviso se reclama después de leer sus destinatarios y suscripciones.** Si falla una
+  de esas lecturas, no se consume el aviso y la siguiente ejecución puede reintentarlo.
+  Lo comprueba `e2e/unit/envio-avisos.spec.ts`.
 
 ## Qué dice el aviso
 

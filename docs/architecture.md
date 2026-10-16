@@ -36,6 +36,15 @@ demo persiste en `localStorage` y sirve de fallback y de entorno de la suite e2e
   `Porcion` de `store-context.tsx`.
 - Una operación nueva se añade **primero al contrato** `repos/types.ts` y después a las
   **dos** implementaciones.
+- Las escrituras del store devuelven si se guardaron. Los formularios esperan ese resultado
+  antes de cerrar; un fallo conserva el borrador. `useSheetForm` bloquea envíos simultáneos.
+  `sincronizacion.ts` mantiene el orden de las escrituras y descarta lecturas obsoletas por
+  porción. Un fallo al refrescar después de guardar conserva el resultado de la escritura,
+  muestra un aviso distinto y reintenta solo las lecturas pendientes.
+- Los getters de colecciones usan `leerTodas`, en `supabase-repos/shared.ts`: reúnen las páginas
+  con un orden único y recuento exacto. El tamaño devuelto por el servidor puede ser inferior
+  al solicitado; `paginacion.ts` continúa hasta completar el recuento, sin devolver datos
+  parciales si una página falla. El historial completo sigue disponible para búsquedas y cuentas.
 - El deshacer lo sirve el store (`undoLabel` / `undo()` / `clearUndo()`). Devolver una tarea
   marcada no es solo desmarcarla: si se repite, marcarla no la completa sino que le empuja
   `due_date` a la siguiente vez. `restaurarTarea` compara con el estado anterior y revierte
@@ -56,7 +65,7 @@ Archivos: `src/lib/store/` (un módulo por dominio), `src/lib/store-context.tsx`
 `src/lib/family-config.ts`.
 
 Persistencia: clave `farpi_store_v1` en `localStorage`, con `SCHEMA_VER` en
-`src/lib/store/persist.ts` (hoy **17**, la de los ajustes de un fijo en un mes). Si cambia
+`src/lib/store/persist.ts` (hoy **19**, la del aviso de cada evento). Si cambia
 la forma de los datos, sube la versión y revisa la migración.
 
 El mock debe comportarse lo más parecido posible a Supabase:
@@ -974,6 +983,12 @@ plan»; lo que se iguala es cuánto cuentan, que es nada.
 - **Un fijo no cuelga de una partida.** Un fijo es exacto y una partida es para lo que varía.
   Colgar el alquiler de una partida la llenaría sola, sin que nadie haya apuntado nada, y la
   barra dejaría de medir lo único que sabe medir. Por eso `fixed_entries` no tiene `budget_id`.
+- **Dar de alta solo pide nombre e importe.** El bloque de origen prepara ingreso o gasto y el
+  título lo dice; tipo, icono y persona quedan en «Más opciones», con su valor en el resumen.
+  «Guardar y añadir otro» guarda el fijo antes de limpiar nombre, importe e icono, conserva
+  tipo y persona y devuelve el foco al nombre. Si falla, conserva el borrador. El botón
+  principal y Enter guardan y cierran; editar no ofrece continuar con otro. Los textos del
+  formulario están en los diccionarios de Finanzas, en castellano e inglés.
 - **Sin ningún fijo, la tarjeta del mes enseña otra cosa**: "Queda" sería el gasto del mes en
   negativo, que no significa nada y asusta a quien acaba de entrar. El número grande vuelve a ser
   lo gastado y debajo se ofrece ponerlos, que es además la única pista de que la cuenta existe.
@@ -994,7 +1009,7 @@ plan»; lo que se iguala es cuánto cuentan, que es nada.
 - **Un ingreso no puede colgar de una partida, y lo impide la base** (`check`
   `expenses_ingreso_sin_tope`): si un ingreso descontara de una partida, una devolución de 40 €
   "liberaría" 40 € de la compra sin que nadie haya dejado de comprar. El formulario ni pregunta
-  —el campo desaparece al elegir «Un ingreso»— y las dos implementaciones del repo fuerzan el
+  —el campo desaparece al elegir «Apuntar un ingreso»— y las dos implementaciones del repo fuerzan el
   `null` en vez de confiar en el formulario.
 - **El reparto de quién pagó es solo de gastos.** Con los ingresos dentro diría "Carlos 1.710 €"
   mezclando la nómina con la compra. Lo que entra se lee en «Fijos».
@@ -1042,6 +1057,12 @@ plan»; lo que se iguala es cuánto cuentan, que es nada.
   sugerir algo escrito una sola vez es el historial y no una sugerencia; y **traen su partida**,
   la de la última vez, porque quien apunta «Gasolina» la carga siempre al coche. La partida solo
   la trae quien elige una sugerencia, que es alguien diciendo «esto otra vez».
+- **El alta de un apunte empieza por el importe.** Los atajos habituales aparecen antes del
+  concepto opcional y al elegir uno el foco vuelve al importe. Partida, fecha y persona se
+  resumen en un bloque que se puede abrir y volver a plegar; al editar o apuntar en otro mes
+  empieza abierto. Reabrir un alta limpia el borrador y reinicia el bloque. El cambio a ingreso
+  es una acción secundaria que conserva importe y concepto y suelta la partida. Los textos
+  del formulario viven en los diccionarios de Finanzas en castellano e inglés.
 
 ### Buscar, y los presupuestos que te pasan de fuera
 
@@ -1573,6 +1594,9 @@ en un plan y solo con hora). Cuatro decisiones, cada una con su porqué:
   y la clave primaria como árbitro: ninguna ejecución solapada avisa dos veces. La tabla va con
   RLS **sin policies**, como `invite_sends`: si un miembro pudiera borrar sus filas, un aviso se
   mandaría otra vez.
+- **Los destinatarios se consultan antes de reclamar.** Si falla la lectura de miembros o
+  suscripciones, el aviso sigue pendiente para la siguiente ejecución. El orden y el filtrado
+  por familia y preferencia viven en `envio-avisos.ts`, con pruebas sin Supabase ni envíos reales.
 - **Avisa a toda la casa con los avisos activados**, como el resumen de las siete. Avisar solo a
   la persona asignada dejaba sin aviso a los eventos de un hijo (los hijos no tienen cuenta).
 - **No hay aviso en un evento de todo el día ni en un cumpleaños**: «30 minutos antes de las

@@ -41,6 +41,8 @@ yarn-error.log*
 !.env.example
 # vercel
 .vercel
+# Caché local generada por la CLI de Supabase.
+/supabase/.temp/
 
 # typescript
 *.tsbuildinfo

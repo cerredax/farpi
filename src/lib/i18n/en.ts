@@ -44,6 +44,7 @@ export const en: Diccionario = {
   },
 
   guardado: {
+    guardadoSinActualizar: 'Saved, refresh pending',
     noSeHaGuardado: 'Your change was not saved',
     cerrarAviso: 'Close notice',
     guardando: 'Saving…',

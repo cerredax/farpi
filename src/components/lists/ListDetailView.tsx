@@ -27,7 +27,7 @@ interface ListDetailViewProps {
   /** Todas las listas de la casa: lo dictado puede decir a cuál va («…a la ferretería»). */
   listas: List[]
   /** Apuntar algo desde la barra de abajo. `listaId` solo llega si al dictar se dijo otra lista. */
-  onQuickAdd: (text: string, listaId?: string) => void
+  onQuickAdd: (text: string, listaId?: string) => Promise<boolean>
   onOpenEditItem: (item: ListItem) => void
 }
 
@@ -63,11 +63,13 @@ export function ListDetailView({
   /** Lo que se está apuntando en la barra de abajo. */
   const [nuevo, setNuevo] = useState('')
   const campoNuevo = useRef<HTMLInputElement>(null)
+  const enviando = useRef(false)
+  const [guardando, setGuardando] = useState(false)
   // Apuntar hablando: se enseña lo entendido y se guarda al confirmar. Sin lista
   // dicha cae en esta, que es la que se está mirando.
-  const { dictado, propuesta, confirmar, descartar } = useDictarItems(listas, (nuevos, listaId) => {
-    nuevos.forEach(text => onQuickAdd(text, listaId && listaId !== list.id ? listaId : undefined))
-  })
+  const { dictado, propuesta, confirmar, descartar, guardando: dictadoGuardando } = useDictarItems(
+    listas, (text, listaId) => onQuickAdd(text, listaId && listaId !== list.id ? listaId : undefined),
+  )
 
   /**
    * Si el navegador sabe compartir. **Se pregunta en el cliente y por eso hay
@@ -266,12 +268,18 @@ export function ListDetailView({
         * ahí le comen sitio a la lista sin que nadie las haya pedido.
         */}
       <form
-        onSubmit={e => {
+        onSubmit={async e => {
           e.preventDefault()
           const texto = nuevo.trim()
-          if (!texto) return
-          onQuickAdd(texto)
-          setNuevo('')
+          if (!texto || enviando.current) return
+          enviando.current = true
+          setGuardando(true)
+          try {
+            if (await onQuickAdd(texto)) setNuevo(actual => actual.trim() === texto ? '' : actual)
+          } finally {
+            enviando.current = false
+            setGuardando(false)
+          }
           // El foco se va al botón al pulsarlo, y lo siguiente que se quiere
           // hacer es escribir otra cosa. Se devuelve a mano.
           campoNuevo.current?.focus()
@@ -279,7 +287,7 @@ export function ListDetailView({
         className="space-y-2 border-t border-hairline px-4 pb-6 pt-2"
       >
         <Suggestions values={sugerencias} onPick={setNuevo} label={t.coincidencias} />
-        <PropuestaDeItems propuesta={propuesta} listas={listas} onConfirmar={confirmar} onDescartar={descartar} />
+        <PropuestaDeItems propuesta={propuesta} listas={listas} onConfirmar={confirmar} onDescartar={descartar} guardando={dictadoGuardando} />
         <ErrorDeDictado dictado={dictado} />
         <div className="flex items-center gap-2">
           <input
@@ -297,6 +305,7 @@ export function ListDetailView({
           <BotonMicrofono dictado={dictado} variante="icono" />
           <button
             type="submit"
+            disabled={guardando || dictadoGuardando}
             aria-label={t.apuntarEn(list.name)}
             className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary-strong text-white transition-colors hover:bg-primary-strong/90"
           >

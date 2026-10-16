@@ -103,6 +103,7 @@ export function ImportarExtracto() {
       import_ref: fila.huella,
     })))
 
+    if (cuantos === null) return
     setApuntados(cuantos)
     setFilas([])
     setAvisos([])

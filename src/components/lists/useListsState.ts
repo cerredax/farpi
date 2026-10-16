@@ -37,7 +37,7 @@ export function useListsState() {
   /** `listaId` llega cuando al dictar se dijo otra lista; si no, va a la que se está mirando. */
   function handleCreateItem(draft: ListItemDraft, listaId?: string) {
     const destino = listaId ?? selectedListId
-    if (destino) createListItem(destino, draft)
+    return destino ? createListItem(destino, draft) : Promise.resolve(false)
   }
 
   // Al cerrar solo se baja la persiana: el ítem sigue puesto hasta que se abra

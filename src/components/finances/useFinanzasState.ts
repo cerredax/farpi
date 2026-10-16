@@ -424,8 +424,7 @@ export function useFinanzasState() {
     },
 
     guardarFijo(draft: FixedEntryDraft) {
-      if (editingFixed) updateFixedEntry(editingFixed.id, draft)
-      else createFixedEntry(draft)
+      return editingFixed ? updateFixedEntry(editingFixed.id, draft) : createFixedEntry(draft)
     },
     /**
      * Guardar el ajuste del mes que se está mirando. Si lo tecleado coincide con
@@ -434,17 +433,17 @@ export function useFinanzasState() {
      * volviera a abrirse sin lo que se acaba de escribir.
      */
     guardarAjuste(draft: FixedOverrideDraft) {
-      if (!ajustando?.fixedId) return
-      setFixedOverride(ajustando.fixedId, mes, draft)
+      if (!ajustando?.fixedId) return Promise.resolve(false)
+      return setFixedOverride(ajustando.fixedId, mes, draft)
     },
     /** Quitar el ajuste: ese mes vuelve a valer lo que diga la plantilla. */
     quitarAjuste() {
-      if (!ajustando?.fixedId) return
-      clearFixedOverride(ajustando.fixedId, mes)
+      if (!ajustando?.fixedId) return Promise.resolve(false)
+      return clearFixedOverride(ajustando.fixedId, mes)
     },
-    guardarApunte(draft: ExpenseDraft) {
-      if (editingExpense) updateExpense(editingExpense.id, draft)
-      else createExpense(draft)
+    async guardarApunte(draft: ExpenseDraft) {
+      const guardado = await (editingExpense ? updateExpense(editingExpense.id, draft) : createExpense(draft))
+      if (!guardado) return false
       // El que viene de un presupuesto se apunta desde otra pestaña, así que sin
       // esto se guarda y no se ve nada: ni la pestaña de «Presupuestos» lo enseña
       // ni tiene por qué caer en el mes que estuviera abierto. Se va a verlo donde
@@ -455,14 +454,13 @@ export function useFinanzasState() {
         setPrevisionAbierta(true)
         setPestaña('mes')
       }
+      return true
     },
     guardarPartida(draft: BudgetDraft) {
-      if (editingBudget) updateBudget(editingBudget.id, draft)
-      else createBudget(draft)
+      return editingBudget ? updateBudget(editingBudget.id, draft) : createBudget(draft)
     },
     guardarPedido(draft: QuoteDraft) {
-      if (editingQuote) updateQuote(editingQuote.id, draft)
-      else createQuote(draft)
+      return editingQuote ? updateQuote(editingQuote.id, draft) : createQuote(draft)
     },
 
     deleteFixedEntry, deleteExpense, deleteExpenses, deleteBudget, deleteQuote, setQuoteStatus,

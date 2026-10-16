@@ -1,6 +1,6 @@
 import { createClient } from '../supabase/client'
 import { normalizeMealSlots } from '../meal-slots'
-import { assertNoError, currentUserId, fail } from './shared'
+import { leerTodas, assertNoError, currentUserId, fail } from './shared'
 import type { Family, FamilyInvite, FamilyMember, MealSlot } from '@/types'
 import type { FamilyRepo, InvitesRepo, MembersRepo } from '../repos/types'
 import { textosDelNavegador } from '../i18n'
@@ -30,9 +30,9 @@ export const familyRepo: FamilyRepo = {
 
   async getFamilies(): Promise<Family[]> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('families').select('*').order('created_at')
-    assertNoError(error)
-    return (data ?? []).map(mapFamily)
+    const data = await leerTodas<FamilyRow>(() => supabase.from('families')
+      .select('*', { count: 'exact' }).order('created_at').order('id'))
+    return data.map(mapFamily)
   },
 
   async setFamilyName(familyId: string, name: string): Promise<Family> {
@@ -81,13 +81,12 @@ export const familyRepo: FamilyRepo = {
 export const membersRepo: MembersRepo = {
   async getMembers(familyId: string): Promise<FamilyMember[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<FamilyMember>(() => supabase
       .from('family_members')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('created_at')
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   // No falla si no hay sesión: quien llama solo quiere saber cuál de los
@@ -126,14 +125,13 @@ export const membersRepo: MembersRepo = {
 export const invitesRepo: InvitesRepo = {
   async getInvites(familyId: string): Promise<FamilyInvite[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<FamilyInvite>(() => supabase
       .from('family_invites')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createInvite(familyId: string, email: string): Promise<FamilyInvite> {

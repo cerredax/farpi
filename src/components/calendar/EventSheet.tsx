@@ -27,10 +27,10 @@ interface EventSheetProps {
   kids: Child[]
   members: FamilyMember[]
   onClose: () => void
-  onCreate: (draft: EventDraft) => void
-  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => void
-  onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
-  onUpdate: (id: string, draft: EventDraft) => void
+  onCreate: (draft: EventDraft) => Promise<Event | boolean | null>
+  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => Promise<Event[] | boolean>
+  onCreateYearlySeries?: (draft: EventDraft, endYear: number) => Promise<Event[] | boolean>
+  onUpdate: (id: string, draft: EventDraft) => Promise<boolean>
   onDelete: (id: string) => void
   onDeleteSeries?: (groupId: string) => void
   /**

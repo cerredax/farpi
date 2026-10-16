@@ -1,15 +1,14 @@
 import { getNextOccurrence } from '../recurrence'
 import { createClient } from '../supabase/client'
-import { assertNoError, currentUserId } from './shared'
+import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { Task, TaskDraft } from '@/types'
 import type { TasksRepo } from '../repos/types'
 
 export const tasksRepo: TasksRepo = {
   async getTasks(familyId: string): Promise<Task[]> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('tasks').select('*').eq('family_id', familyId).order('created_at')
-    assertNoError(error)
-    return data ?? []
+    return leerTodas<Task>(() => supabase.from('tasks').select('*', { count: 'exact' }).eq('family_id', familyId).order('created_at')
+      .order('id'))
   },
 
   async createTask(familyId: string, draft: TaskDraft): Promise<Task> {

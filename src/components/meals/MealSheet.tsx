@@ -25,8 +25,8 @@ interface MealSheetProps {
   /** Platos ya usados por la familia; de aquí salen las sugerencias. */
   historial?: string[]
   onClose: () => void
-  onCreate: (draft: MealDraft) => void
-  onUpdate: (id: string, draft: MealDraft) => void
+  onCreate: (draft: MealDraft) => Promise<boolean>
+  onUpdate: (id: string, draft: MealDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -98,7 +98,7 @@ export function MealSheet({
   // una merienda apuntada antes de ocultar la merienda no se podría ni abrir.
   const franjas = editableMealSlots(slots, mode === 'edit' ? initial?.slot : undefined)
 
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<MealDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<MealDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, franjas.map(f => f.key), defaultDate, defaultSlot),
     validate: validateMealDraft,
@@ -126,11 +126,9 @@ export function MealSheet({
     patch(mealSlotHasCourses(slot) ? { slot } : { slot, second_course: '', dessert: '' })
   }
 
-  const handleSubmit = submitHandler(valid => {
-    if (mode === 'create') onCreate(valid)
-    else if (initial) onUpdate(initial.id, valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => mode === 'create'
+    ? onCreate(valid)
+    : initial ? onUpdate(initial.id, valid) : false, onClose)
 
   return (
     <BottomSheet
@@ -140,6 +138,7 @@ export function MealSheet({
       footer={
         <SheetFooter
           form="meal-form"
+          disabled={guardando}
           submitLabel={mode === 'create' ? t.guardarComida : t.guardarCambios}
           error={formError}
           onDelete={mode === 'edit'

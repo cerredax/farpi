@@ -191,11 +191,11 @@ export function SettingsView() {
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
 
-  function handleCreateFamily(e: React.FormEvent) {
+  async function handleCreateFamily(e: React.FormEvent) {
     e.preventDefault()
     const name = newFamilyName.trim()
     if (!name) return
-    createFamily(name)
+    if (!await createFamily(name)) return
     setNewFamilyName('')
     setCreatingFamily(false)
   }

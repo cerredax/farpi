@@ -42,7 +42,7 @@ interface BudgetSheetProps {
   open: boolean
   initial?: Budget | null
   onClose: () => void
-  onSave: (draft: BudgetDraft) => void
+  onSave: (draft: BudgetDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -80,17 +80,14 @@ function initDraft(initial: Budget | null | undefined): BudgetDraft {
  * cerrados—, así que pregunta en vez de armarse al primer toque.
  */
 export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: BudgetSheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<BudgetDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<BudgetDraft>({
     open,
     initialDraft: () => initDraft(initial),
     validate: validateBudgetDraft,
   })
   const { preguntando, preguntar, cancelar, confirmar } = useSheetDeleteDialog({ open, initial, onDelete, onClose })
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => onSave(valid), onClose)
 
   return (
     <BottomSheet
@@ -102,6 +99,7 @@ export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: Budget
       ) : (
         <SheetFooter
           form="budget-form"
+          disabled={guardando}
           submitLabel={initial ? 'Guardar' : 'Crear partida'}
           error={formError}
           onDelete={initial ? { onClick: preguntar, idleLabel: 'Eliminar partida' } : undefined}

@@ -240,9 +240,9 @@ export function HomeView() {
         onClose={() => setApuntandoEnCesta(false)}
         onCreate={(draft, listaId) => {
           const destino = listaId ?? cestaDestino?.id
-          if (destino) createListItem(destino, draft)
+          return destino ? createListItem(destino, draft) : Promise.resolve(false)
         }}
-        onUpdate={() => {}}
+        onUpdate={async () => false}
         onDelete={() => {}}
       />
 

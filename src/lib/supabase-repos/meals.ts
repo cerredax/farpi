@@ -1,15 +1,14 @@
 import { getLocalDateString, parseLocalDate } from '../date-utils'
 import { createClient } from '../supabase/client'
-import { assertNoError, currentUserId } from './shared'
+import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { MealDraft, MealPlan } from '@/types'
 import type { MealsRepo } from '../repos/types'
 
 export const mealsRepo: MealsRepo = {
   async getMeals(familyId: string): Promise<MealPlan[]> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('meal_plans').select('*').eq('family_id', familyId).order('date')
-    assertNoError(error)
-    return data ?? []
+    return leerTodas<MealPlan>(() => supabase.from('meal_plans').select('*', { count: 'exact' }).eq('family_id', familyId).order('date')
+      .order('id'))
   },
 
   // Upsert por (familia, día, momento): solo hay una comida por hueco, así que

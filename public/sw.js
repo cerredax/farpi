@@ -124,7 +124,16 @@ self.addEventListener('push', event => {
     badge: '/icon-badge-96.png',
     data: { url: payload.url || '/home' },
   }
-  event.waitUntil(self.registration.showNotification(title, options))
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title, options)
+    // Solo las pruebas pedidas desde Ajustes: confirma recepción después de
+    // solicitar al sistema que muestre el aviso. No requiere ninguna escritura.
+    if (typeof payload.prueba !== 'string') return
+    const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const ventana of ventanas) {
+      ventana.postMessage({ tipo: 'farpi:prueba-avisos', prueba: payload.prueba })
+    }
+  })())
 })
 
 // El navegador puede renovar la suscripción cuando quiere (Chrome lo hace de vez

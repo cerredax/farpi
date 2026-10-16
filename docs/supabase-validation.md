@@ -4,14 +4,17 @@ Qué comprueba `scripts/validate-rls.mjs`, cómo lo comprueba y qué dio la últ
 relato de cada pasada —qué se rompió, qué se aprendió— está en el cuerpo del commit de ese
 día; aquí queda el recuento y lo que sigue vigilándose.
 
-## Pendiente de ejecutar: §12 bis (preferencias de avisos)
+## Última ejecución: 211/211 (15-10-2026, preferencias de avisos)
 
-Cinco comprobaciones nuevas sobre las columnas `notify_*` de `push_subscriptions` (nacen
-encendidas, el dueño las cambia, un miembro de su misma casa **no**, un ajeno no las ve). Escritas
-pero **sin correr**: necesitan primero las columnas en la base real. Al correrlas, sustituir este
-bloque por el recuento.
+**211/211 comprobaciones correctas**, con las tres columnas `notify_*` aplicadas en la base
+real como booleanos obligatorios con valor inicial `true`. La API REST también reconoce las
+tres columnas. Los usuarios y familias creados por el arnés se eliminaron al terminar.
 
-## Última ejecución: 206/206 (30-09-2026, el aviso de cada evento)
+La §12 bis comprueba cinco garantías: los tres avisos nacen encendidos, el dueño cambia sus
+preferencias, otro miembro de su casa no puede cambiarlas, un ajeno no ve su dispositivo y
+el intento del otro miembro deja las preferencias intactas.
+
+## Anterior: 206/206 (30-09-2026, el aviso de cada evento)
 
 Con `events.remind_before_minutes` y la tabla `event_reminders_sent`. **206/206 comprobaciones
 correctas**, las 186 anteriores más las 20 de la sección nueva (11c). Se aplicó el SQL antes de

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useT } from '@/lib/i18n/contexto'
 
@@ -19,6 +19,7 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
   const t = useT()
   const titleId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
+  const cerrar = useEffectEvent(onClose)
 
   /**
    * Escape cierra, el foco entra al abrir, **se queda dentro mientras está
@@ -53,7 +54,7 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
     }
 
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') { onClose(); return }
+      if (e.key === 'Escape') { cerrar(); return }
       if (e.key !== 'Tab') return
 
       const dentro = focusables()
@@ -87,7 +88,7 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
         disparador.focus()
       }
     }
-  }, [open, onClose])
+  }, [open])
 
   return (
     <>

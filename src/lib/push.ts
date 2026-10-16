@@ -1,6 +1,7 @@
 import { IS_DEMO_MODE } from './supabase/env'
 import { pedirApi } from './supabase-repos/api-farpi'
 import { PREFERENCIAS_POR_DEFECTO, type PreferenciasDeAvisos } from './reminders'
+import { textosDelNavegador } from './i18n'
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''
 
@@ -379,6 +380,35 @@ export async function guardarPreferenciasDeAvisos(cambios: Partial<PreferenciasD
   const subscription = await registration.pushManager.getSubscription()
   if (!subscription) throw new Error('Este dispositivo no tiene los avisos activados')
   await pedirApi('/api/push', { endpoint: subscription.endpoint, preferencias: cambios }, 'PATCH')
+}
+
+/** Espera la confirmación del worker de este navegador, no solo el 201 del proveedor. */
+export async function probarAvisos(): Promise<'recibida' | 'sin-confirmacion'> {
+  const registration = await registroListo()
+  const subscription = await registration.pushManager.getSubscription()
+  if (!subscription || currentPermission() !== 'granted') throw new Error(textosDelNavegador().ajustes.recordatorios.activarAntesDeProbar)
+
+  // Repara también las claves guardadas, sin cambiar las preferencias del dispositivo.
+  const json = subscription.toJSON()
+  await pedirApi('/api/push', { endpoint: json.endpoint, keys: json.keys })
+  const prueba = crypto.randomUUID()
+  let confirmar: (valor: 'recibida') => void
+  let reloj: ReturnType<typeof setTimeout>
+  const recibida = new Promise<'recibida' | 'sin-confirmacion'>(resolve => {
+    confirmar = resolve
+    reloj = setTimeout(() => resolve('sin-confirmacion'), 20_000)
+  })
+  const escuchar = (event: MessageEvent) => {
+    if (event.data?.tipo === 'farpi:prueba-avisos' && event.data.prueba === prueba) confirmar('recibida')
+  }
+  navigator.serviceWorker.addEventListener('message', escuchar)
+  try {
+    await pedirApi('/api/push/test', { endpoint: subscription.endpoint, prueba })
+    return await recibida
+  } finally {
+    clearTimeout(reloj!)
+    navigator.serviceWorker.removeEventListener('message', escuchar)
+  }
 }
 
 /** Cancela la suscripción local y la borra del backend. */

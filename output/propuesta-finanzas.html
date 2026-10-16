@@ -1,0 +1,225 @@
+<div id="farpi-flujos-finanzas" class="viz-dotted-background">
+  <style>
+    #farpi-flujos-finanzas { padding: 24px 12px; }
+    #farpi-flujos-finanzas .fp-muestras { display: grid; gap: 28px; justify-items: center; }
+    #farpi-flujos-finanzas .fp-app {
+      --fp-fondo: light-dark(#faf7f2, #252621);
+      --fp-panel: light-dark(#ffffff, #30332c);
+      --fp-texto: light-dark(#252525, #f3efe8);
+      --fp-secundario: light-dark(#6e6861, #c0bcb4);
+      --fp-borde: light-dark(#e4dfd6, #505449);
+      --fp-suave: light-dark(#f0ede8, #3b3f35);
+      --fp-verde: light-dark(#567653, #b7d2ad);
+      --fp-en-verde: light-dark(#ffffff, #1e321b);
+      --fp-seleccion: light-dark(#edf2e9, #3a4934);
+      --fp-error: light-dark(#a1392d, #ffb4a7);
+      box-sizing: border-box; width: 100%; max-width: 410px;
+      background: var(--fp-fondo); color: var(--fp-texto);
+      border: 1px solid var(--fp-borde); border-radius: 26px;
+      padding: 20px; font-family: Nunito, "Segoe UI", sans-serif;
+      font-size: 16px; line-height: 1.45; box-shadow: 0 8px 26px light-dark(#2525250c, #00000020);
+    }
+    #farpi-flujos-finanzas .fp-app * { box-sizing: border-box; }
+    #farpi-flujos-finanzas [hidden] { display: none !important; }
+    #farpi-flujos-finanzas .fp-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+    #farpi-flujos-finanzas .fp-marca { font-size: 15px; color: var(--fp-verde); font-weight: 700; }
+    #farpi-flujos-finanzas .fp-demo { font-size: 12px; color: var(--fp-secundario); }
+    #farpi-flujos-finanzas h2 { margin: 0 0 18px; font-size: 24px; line-height: 1.2; font-weight: 750; letter-spacing: -.5px; }
+    #farpi-flujos-finanzas p { margin: 0; }
+    #farpi-flujos-finanzas button, #farpi-flujos-finanzas input, #farpi-flujos-finanzas select { font: inherit; }
+    #farpi-flujos-finanzas button { min-height: 44px; color: inherit; }
+    #farpi-flujos-finanzas button:disabled { opacity: .55; cursor: not-allowed; }
+    #farpi-flujos-finanzas .fp-etiqueta { display: block; margin-bottom: 7px; font-size: 14px; font-weight: 700; }
+    #farpi-flujos-finanzas .fp-pista { color: var(--fp-secundario); font-size: 13px; }
+    #farpi-flujos-finanzas .fp-habituales { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
+    #farpi-flujos-finanzas .fp-chip { padding: 8px 12px; border: 1px solid var(--fp-borde); border-radius: 14px; background: var(--fp-panel); font-size: 14px; }
+    #farpi-flujos-finanzas .fp-chip[aria-pressed="true"] { border-color: var(--fp-verde); background: var(--fp-seleccion); color: var(--fp-verde); font-weight: 700; }
+    #farpi-flujos-finanzas .fp-campo { width: 100%; min-height: 46px; border: 1px solid var(--fp-borde); border-radius: 12px; padding: 10px 12px; color: var(--fp-texto); background: var(--fp-panel); }
+    #farpi-flujos-finanzas input::placeholder { color: var(--fp-secundario); opacity: 1; }
+    #farpi-flujos-finanzas .fp-importe { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 8px 16px; border: 1px solid var(--fp-borde); border-radius: 16px; background: var(--fp-panel); }
+    #farpi-flujos-finanzas .fp-importe input { width: 100%; min-width: 0; min-height: 54px; border: 0; background: transparent; color: var(--fp-texto); font-size: 36px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #farpi-flujos-finanzas .fp-euro { font-size: 24px; color: var(--fp-secundario); }
+    #farpi-flujos-finanzas .fp-espacio { margin-bottom: 16px; }
+    #farpi-flujos-finanzas .fp-contexto { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin: 12px 0 14px; }
+    #farpi-flujos-finanzas .fp-texto-boton { padding: 8px 0; border: 0; background: transparent; color: var(--fp-verde); font-size: 14px; font-weight: 700; text-align: left; }
+    #farpi-flujos-finanzas .fp-opciones { display: grid; gap: 12px; padding: 14px; margin-bottom: 16px; border-radius: 14px; background: var(--fp-suave); }
+    #farpi-flujos-finanzas .fp-principal { width: 100%; min-height: 50px; padding: 12px 14px; border: 0; border-radius: 14px; background: var(--fp-verde); color: var(--fp-en-verde); font-weight: 750; }
+    #farpi-flujos-finanzas .fp-secundaria { display: block; margin: 6px auto 0; border: 0; background: transparent; color: var(--fp-verde); font-size: 14px; }
+    #farpi-flujos-finanzas .fp-aviso { font-size: 14px; margin-top: 10px; color: var(--fp-verde); }
+    #farpi-flujos-finanzas .fp-error { font-size: 14px; margin-bottom: 10px; color: var(--fp-error); }
+    #farpi-flujos-finanzas .fp-fijos-intro { margin-bottom: 12px; color: var(--fp-secundario); font-size: 14px; }
+    #farpi-flujos-finanzas .fp-filas { background: var(--fp-panel); border: 1px solid var(--fp-borde); border-radius: 16px; overflow: hidden; }
+    #farpi-flujos-finanzas .fp-fila { display: grid; grid-template-columns: minmax(0, 1fr) 96px 12px; align-items: center; gap: 8px; padding: 12px; }
+    #farpi-flujos-finanzas .fp-fila + .fp-fila { border-top: 1px solid var(--fp-borde); }
+    #farpi-flujos-finanzas .fp-nombre { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--fp-texto); min-height: 44px; padding: 4px; }
+    #farpi-flujos-finanzas .fp-cantidad { min-width: 0; text-align: right; font-variant-numeric: tabular-nums; }
+    #farpi-flujos-finanzas .fp-anadir { width: 100%; margin-top: 6px; text-align: left; }
+    #farpi-flujos-finanzas details { margin-bottom: 15px; }
+    #farpi-flujos-finanzas summary { min-height: 44px; padding: 11px 0; color: var(--fp-verde); font-size: 14px; font-weight: 700; }
+    #farpi-flujos-finanzas .fp-total { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+    #farpi-flujos-finanzas .fp-total strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+    #farpi-flujos-finanzas .fp-efecto { margin: 0 0 18px; font-size: 13px; color: var(--fp-secundario); }
+    #farpi-flujos-finanzas .fp-oculto { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    @media (max-width: 380px) {
+      #farpi-flujos-finanzas { padding: 16px 6px; }
+      #farpi-flujos-finanzas .fp-app { padding: 16px; }
+      #farpi-flujos-finanzas .fp-fila { grid-template-columns: minmax(0, 1fr) 82px 10px; padding: 10px; gap: 5px; }
+    }
+  </style>
+  <div class="fp-muestras">
+    <section class="fp-app" aria-labelledby="fp-gasto-titulo">
+      <div class="fp-cabecera"><span class="fp-marca">farpi / finanzas</span><span class="fp-demo">Datos de ejemplo</span></div>
+      <h2 id="fp-gasto-titulo">Apuntar gasto</h2>
+      <form id="fp-gasto-form" novalidate>
+        <span class="fp-etiqueta" id="fp-habituales-label">Lo habitual</span>
+        <div class="fp-habituales" role="group" aria-labelledby="fp-habituales-label">
+          <button type="button" class="fp-chip cursor-interaction" data-habitual="Compra" data-partida="Alimentación" aria-pressed="true">Compra</button>
+          <button type="button" class="fp-chip cursor-interaction" data-habitual="Gasolina" data-partida="Transporte" aria-pressed="false">Gasolina</button>
+          <button type="button" class="fp-chip cursor-interaction" data-habitual="Farmacia" data-partida="Salud" aria-pressed="false">Farmacia</button>
+          <button type="button" class="fp-chip cursor-interaction" data-habitual="" data-partida="Sin partida" aria-pressed="false">Otro gasto</button>
+        </div>
+        <label class="fp-etiqueta" for="fp-importe">Cuánto</label>
+        <div class="fp-importe"><input id="fp-importe" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" required aria-describedby="fp-gasto-error"><span class="fp-euro">€</span></div>
+        <div class="fp-espacio"><label class="fp-etiqueta" for="fp-concepto">Qué fue <span class="fp-pista">· opcional</span></label><input id="fp-concepto" class="fp-campo" type="text" value="Compra" placeholder="Ej: compra semanal" maxlength="120"></div>
+        <div class="fp-contexto"><span id="fp-contexto-texto" class="fp-pista">Alimentación · Hoy · Familia</span><button type="button" id="fp-cambiar" class="fp-texto-boton cursor-interaction" aria-expanded="false" aria-controls="fp-gasto-opciones">Cambiar</button></div>
+        <div class="fp-opciones" id="fp-gasto-opciones" hidden>
+          <label><span class="fp-etiqueta" id="fp-partida-label">Partida</span><select class="fp-campo" id="fp-partida"><option>Sin partida</option><option selected>Alimentación</option><option>Transporte</option><option>Salud</option></select></label>
+          <label><span class="fp-etiqueta">Fecha</span><input id="fp-fecha" class="fp-campo" type="date" value="2026-10-15"></label>
+          <label><span class="fp-etiqueta">Quién lo paga</span><select id="fp-persona" class="fp-campo"><option>Familia</option><option>Yo</option><option>Mi pareja</option></select></label>
+        </div>
+        <p id="fp-gasto-error" class="fp-error" role="alert"></p>
+        <button class="fp-principal cursor-interaction" type="submit" id="fp-guardar-gasto">Apuntar gasto</button>
+        <button class="fp-secundaria cursor-interaction" type="button" id="fp-tipo">Apuntar un ingreso</button>
+        <p id="fp-gasto-aviso" class="fp-aviso" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="fp-app" aria-labelledby="fp-fijos-titulo">
+      <div class="fp-cabecera"><span class="fp-marca">farpi / fijos</span><span class="fp-demo">Datos de ejemplo</span></div>
+      <h2 id="fp-fijos-titulo">Añadir varios fijos</h2>
+      <p class="fp-fijos-intro">Gastos mensuales. Rellena solo los que uses.</p>
+      <form id="fp-fijos-form" novalidate>
+        <div class="fp-filas" id="fp-filas">
+          <div class="fp-fila"><input class="fp-nombre" aria-label="Nombre del primer fijo" value="Alquiler" maxlength="80"><input class="fp-campo fp-cantidad" type="text" inputmode="decimal" placeholder="—" aria-label="Importe mensual de Alquiler" autocomplete="off"><span class="fp-pista">€</span></div>
+          <div class="fp-fila"><input class="fp-nombre" aria-label="Nombre del segundo fijo" value="Internet" maxlength="80"><input class="fp-campo fp-cantidad" type="text" inputmode="decimal" placeholder="—" aria-label="Importe mensual de Internet" autocomplete="off"><span class="fp-pista">€</span></div>
+          <div class="fp-fila"><input class="fp-nombre" aria-label="Nombre del tercer fijo" value="Seguro" maxlength="80"><input class="fp-campo fp-cantidad" type="text" inputmode="decimal" placeholder="—" aria-label="Importe mensual de Seguro" autocomplete="off"><span class="fp-pista">€</span></div>
+        </div>
+        <button type="button" class="fp-texto-boton fp-anadir cursor-interaction" id="fp-anadir-fijo">+ Otro fijo</button>
+        <details><summary class="cursor-interaction">Más opciones · Familia</summary><div class="fp-opciones"><label><span class="fp-etiqueta">Quién paga estos fijos</span><select class="fp-campo"><option>Familia</option><option>Yo</option><option>Mi pareja</option></select></label></div></details>
+        <div class="fp-total"><span>Total al mes</span><strong id="fp-total">0,00 €</strong></div>
+        <p class="fp-efecto">Desde octubre. Se cuentan automáticamente cada mes. Los meses cerrados se conservan.</p>
+        <p id="fp-fijos-error" class="fp-error" role="alert"></p>
+        <button class="fp-principal cursor-interaction" type="submit" id="fp-guardar-fijos" disabled>Guardar fijos</button>
+        <p id="fp-fijos-aviso" class="fp-aviso" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </div>
+  <script>
+    (() => {
+      const raiz = document.getElementById('farpi-flujos-finanzas');
+      const buscar = selector => raiz.querySelector(selector);
+      const importe = buscar('#fp-importe');
+      const concepto = buscar('#fp-concepto');
+      const partida = buscar('#fp-partida');
+      const fecha = buscar('#fp-fecha');
+      const persona = buscar('#fp-persona');
+      const opciones = buscar('#fp-gasto-opciones');
+      const cambiar = buscar('#fp-cambiar');
+      const titulo = buscar('#fp-gasto-titulo');
+      const guardarGasto = buscar('#fp-guardar-gasto');
+      const tipo = buscar('#fp-tipo');
+      const filas = buscar('#fp-filas');
+      const guardarFijos = buscar('#fp-guardar-fijos');
+      const euros = new Intl.NumberFormat('es-ES', {style: 'currency', currency: 'EUR'});
+      let esIngreso = false;
+      let cantidadFilas = 3;
+
+      function centimos(texto) {
+        const limpio = texto.trim();
+        if (!/^\d+(?:[,.]\d{1,2})?$/.test(limpio)) return null;
+        const [entero, decimales = ''] = limpio.replace(',', '.').split('.');
+        const valor = Number(entero) * 100 + Number(decimales.padEnd(2, '0'));
+        return Number.isSafeInteger(valor) && valor > 0 ? valor : null;
+      }
+      function contexto() {
+        const dia = fecha.value === '2026-10-15' ? 'Hoy' : fecha.value ? new Intl.DateTimeFormat('es-ES', {day:'numeric', month:'short'}).format(new Date(fecha.value + 'T12:00:00')) : 'Sin fecha';
+        buscar('#fp-contexto-texto').textContent = [esIngreso ? null : partida.value, dia, persona.value].filter(Boolean).join(' · ');
+      }
+      raiz.querySelectorAll('[data-habitual]').forEach(boton => {
+        boton.addEventListener('click', () => {
+          raiz.querySelectorAll('[data-habitual]').forEach(item => item.setAttribute('aria-pressed', String(item === boton)));
+          concepto.value = boton.dataset.habitual;
+          partida.value = boton.dataset.partida;
+          buscar('#fp-gasto-aviso').textContent = '';
+          contexto();
+          importe.focus();
+        });
+      });
+      cambiar.addEventListener('click', () => {
+        opciones.hidden = !opciones.hidden;
+        cambiar.setAttribute('aria-expanded', String(!opciones.hidden));
+        cambiar.textContent = opciones.hidden ? 'Cambiar' : 'Listo';
+      });
+      [partida, fecha, persona].forEach(campo => campo.addEventListener('change', contexto));
+      tipo.addEventListener('click', () => {
+        esIngreso = !esIngreso;
+        titulo.textContent = esIngreso ? 'Apuntar ingreso' : 'Apuntar gasto';
+        guardarGasto.textContent = titulo.textContent;
+        tipo.textContent = esIngreso ? 'Volver a gastos' : 'Apuntar un ingreso';
+        buscar('.fp-habituales').hidden = esIngreso;
+        buscar('#fp-habituales-label').hidden = esIngreso;
+        partida.parentElement.hidden = esIngreso;
+        concepto.value = '';
+        raiz.querySelectorAll('[data-habitual]').forEach(item => item.setAttribute('aria-pressed', 'false'));
+        partida.value = 'Sin partida';
+        buscar('#fp-gasto-aviso').textContent = '';
+        contexto();
+      });
+      buscar('#fp-gasto-form').addEventListener('submit', evento => {
+        evento.preventDefault();
+        const valor = centimos(importe.value);
+        buscar('#fp-gasto-error').textContent = valor === null ? 'Escribe un importe mayor que cero, con hasta dos decimales.' : fecha.value ? '' : 'Elige una fecha.';
+        if (valor === null || !fecha.value) return;
+        buscar('#fp-gasto-aviso').textContent = `Vista previa: ${concepto.value.trim() || (esIngreso ? 'ingreso' : 'gasto')} de ${euros.format(valor / 100)} apuntado. Puedes añadir otro.`;
+        importe.value = '';
+        importe.focus();
+      });
+      function datosFijos() {
+        return Array.from(filas.children).map(fila => ({nombre: fila.querySelector('.fp-nombre').value.trim(), texto: fila.querySelector('.fp-cantidad').value.trim(), valor: centimos(fila.querySelector('.fp-cantidad').value)}));
+      }
+      function actualizarFijos() {
+        const datos = datosFijos();
+        const validos = datos.filter(fijo => fijo.nombre && fijo.valor !== null);
+        const invalido = datos.some(fijo => fijo.texto && (!fijo.nombre || fijo.valor === null));
+        buscar('#fp-total').textContent = euros.format(validos.reduce((suma, fijo) => suma + fijo.valor, 0) / 100);
+        guardarFijos.disabled = !validos.length || invalido;
+        guardarFijos.textContent = validos.length ? `Guardar ${validos.length} ${validos.length === 1 ? 'fijo' : 'fijos'}` : 'Guardar fijos';
+        buscar('#fp-fijos-error').textContent = invalido ? 'Revisa el nombre y el importe de las filas que has rellenado.' : '';
+        buscar('#fp-fijos-aviso').textContent = '';
+      }
+      filas.addEventListener('input', actualizarFijos);
+      buscar('#fp-anadir-fijo').addEventListener('click', () => {
+        const nueva = filas.firstElementChild.cloneNode(true);
+        cantidadFilas += 1;
+        const nombre = nueva.querySelector('.fp-nombre');
+        const cantidad = nueva.querySelector('.fp-cantidad');
+        nombre.value = '';
+        nombre.placeholder = 'Nombre del fijo';
+        nombre.setAttribute('aria-label', `Nombre del fijo ${cantidadFilas}`);
+        cantidad.value = '';
+        cantidad.setAttribute('aria-label', `Importe mensual del fijo ${cantidadFilas}`);
+        filas.appendChild(nueva);
+        nombre.focus();
+      });
+      buscar('#fp-fijos-form').addEventListener('submit', evento => {
+        evento.preventDefault();
+        actualizarFijos();
+        if (guardarFijos.disabled) return;
+        const validos = datosFijos().filter(fijo => fijo.nombre && fijo.valor !== null);
+        const total = validos.reduce((suma, fijo) => suma + fijo.valor, 0);
+        buscar('#fp-fijos-aviso').textContent = `Vista previa: ${validos.length} ${validos.length === 1 ? 'fijo guardado' : 'fijos guardados'} · ${euros.format(total / 100)} al mes.`;
+        guardarFijos.disabled = true;
+      });
+    })();
+  </script>
+</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { ShieldCheck, User } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { ColorPicker } from '@/components/ui/ColorPicker'
@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { PERSON_COLORS } from '@/lib/constants'
 import { isValidEmail } from '@/lib/validators'
+import { useT } from '@/lib/i18n/contexto'
 import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import type { FamilyMember } from '@/types'
 
@@ -29,9 +30,9 @@ interface MemberSheetProps {
   /** El color que se le está mostrando hoy, elegido o heredado de su posición. */
   defaultColor?: string
   onClose: () => void
-  onInvite: (email: string) => Promise<void>
-  onUpdate: (id: string, name: string, color: string | null) => void
-  onChangeRole?: (id: string, role: Role) => Promise<void>
+  onInvite: (email: string) => Promise<boolean>
+  onUpdate: (id: string, name: string, color: string | null) => Promise<boolean>
+  onChangeRole?: (id: string, role: Role) => Promise<boolean>
   /**
    * Si se ofrece "Quitar miembro". Lo valida `remove_family_member`, que exige
    * ser administrador **de esa familia**: sin esto, un miembro normal veía el
@@ -57,7 +58,8 @@ function initDraft(mode: Mode, initial: FamilyMember | null | undefined, default
 }
 
 export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, documentosSubidos = 0, defaultColor = PERSON_COLORS[0].value, puedeQuitar = true, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
-  const { draft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<MemberDraft>({
+  const t = useT()
+  const { draft, patch, formError, setFormError, firstFieldRef, submitHandler, guardando } = useSheetForm<MemberDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultColor),
     validate: d => mode === 'invite'
@@ -75,7 +77,6 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
   })
   const [role, setRole] = useState<Role>(initial?.role ?? 'member')
   const [roleError, setRoleError] = useState<string | null>(null)
-  const [isPending, startTransition] = useTransition()
 
   async function handleRoleChange(next: Role) {
     if (!initial || !onChangeRole || next === role) return
@@ -87,29 +88,16 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
     setRole(next)
     setRoleError(null)
     try {
-      await onChangeRole(initial.id, next)
+      if (!await onChangeRole(initial.id, next)) setRole(previous)
     } catch (err) {
       setRole(previous)
       setRoleError(err instanceof Error ? err.message : 'No se pudo cambiar el rol.')
     }
   }
 
-  const handleSubmit = submitHandler(valid => {
-    if (mode === 'invite') {
-      startTransition(async () => {
-        try {
-          await onInvite(valid.email.trim())
-          onClose()
-        } catch (err) {
-          setFormError(err instanceof Error ? err.message : 'Error al enviar la invitación')
-        }
-      })
-      return
-    }
-    if (!initial) return
-    onUpdate(initial.id, valid.name.trim(), valid.color)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => mode === 'invite'
+    ? onInvite(valid.email.trim())
+    : initial ? onUpdate(initial.id, valid.name.trim(), valid.color) : false, onClose)
 
   return (
     <BottomSheet
@@ -121,8 +109,8 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
       ) : (
         <SheetFooter
           form="member-form"
-          submitLabel={isPending ? 'Enviando…' : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
-          disabled={isPending}
+          submitLabel={guardando ? t.guardado.guardando : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
+          disabled={guardando}
           onDelete={mode === 'edit' && puedeQuitar ? { onClick: preguntar, idleLabel: 'Quitar miembro' } : undefined}
         />
       )}

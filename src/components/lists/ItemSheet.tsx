@@ -43,8 +43,8 @@ interface ItemSheetProps {
   onMove?: () => void
   onClose: () => void
   /** `listaId` solo llega si al dictar se dijo una lista; si no, la de siempre. */
-  onCreate: (draft: ListItemDraft, listaId?: string) => void
-  onUpdate: (id: string, draft: ListItemDraft) => void
+  onCreate: (draft: ListItemDraft, listaId?: string) => Promise<boolean>
+  onUpdate: (id: string, draft: ListItemDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -56,7 +56,7 @@ function initDraft(mode: 'create' | 'edit', initial: ListItem | null | undefined
 }
 
 export function ItemSheet({ open, mode, initial, historial = [], titulo, listas = [], onMove, onClose, onCreate, onUpdate, onDelete }: ItemSheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListItemDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<ListItemDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
     validate: validateListItemDraft,
@@ -68,16 +68,13 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, listas 
 
   // Lo dictado no pasa por el campo de texto: se enseña aparte, partido en ítems y
   // con su lista, y se guarda al confirmar. Un ítem escrito a mano sigue siendo uno.
-  const { dictado, propuesta, confirmar, descartar } = useDictarItems(listas, (items, listaId) => {
-    items.forEach(text => onCreate({ text }, listaId ?? undefined))
-    onClose()
-  })
+  const { dictado, propuesta, confirmar, descartar, guardando: dictadoGuardando } = useDictarItems(
+    listas, (text, listaId) => onCreate({ text }, listaId ?? undefined), onClose,
+  )
 
-  const handleSubmit = submitHandler(valid => {
-    if (mode === 'create') onCreate(valid)
-    else if (initial) onUpdate(initial.id, valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => mode === 'create'
+    ? onCreate(valid)
+    : initial ? onUpdate(initial.id, valid) : false, onClose)
 
   return (
     <BottomSheet
@@ -87,6 +84,7 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, listas 
       footer={
         <SheetFooter
           form="item-form"
+          disabled={guardando || dictadoGuardando}
           submitLabel={mode === 'create' ? t.anadir : t.guardar}
           error={formError}
           onDelete={mode === 'edit'
@@ -119,7 +117,7 @@ export function ItemSheet({ open, mode, initial, historial = [], titulo, listas 
           <div className="space-y-2">
             <BotonMicrofono dictado={dictado} />
             <ErrorDeDictado dictado={dictado} />
-            <PropuestaDeItems propuesta={propuesta} listas={listas} onConfirmar={confirmar} onDescartar={descartar} />
+            <PropuestaDeItems propuesta={propuesta} listas={listas} onConfirmar={confirmar} onDescartar={descartar} guardando={dictadoGuardando} />
           </div>
         )}
 

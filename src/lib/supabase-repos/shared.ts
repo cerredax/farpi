@@ -1,6 +1,24 @@
 import { createClient } from '../supabase/client'
 import { mensajeDeError } from '../errores'
 import { textosDelNavegador } from '../i18n'
+import { leerPaginas } from '../paginacion'
+
+interface ConsultaPaginable<T> {
+  range: (desde: number, hasta: number) => PromiseLike<{
+    data: T[] | null
+    error: { message: string; code?: string } | null
+    count: number | null
+  }>
+}
+
+/** Cada página conserva los filtros y el orden único de la consulta original. */
+export function leerTodas<T>(consulta: () => ConsultaPaginable<T>): Promise<T[]> {
+  return leerPaginas(async (desde, hasta) => {
+    const { data, error, count } = await consulta().range(desde, hasta)
+    assertNoError(error)
+    return { filas: data ?? [], total: count }
+  }, textosDelNavegador().comun.datos.lecturaIncompleta)
+}
 
 /**
  * Lo que comparten todos los repos de Supabase: cómo se falla y quién eres.

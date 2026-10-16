@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-09-30.
+Última revisión: 2026-10-16.
 
 Este documento cuenta **cómo está** Farpi y **qué falta**. El relato de cada cierre (qué estaba
 mal, qué se decidió, qué se descartó) vive en el **cuerpo de su commit** (`git log`), y el porqué
@@ -17,7 +17,7 @@ los ve igual sin conectar nada. La UI consume la frontera de repositorios y elig
 real o mock según `IS_DEMO_MODE`; el modo demo sigue funcionando como fallback y como entorno de
 pruebas (e2e).
 
-La base está validada con `node scripts/validate-rls.mjs`: **206/206** (30-09-2026). **Lo que queda
+La base está validada con `node scripts/validate-rls.mjs`: **211/211** (15-10-2026). **Lo que queda
 no es código de producto**: pruebas que piden un aparato delante, decisiones sin tomar,
 funcionalidades que no existen y los pasos de Google Play. La lista entera, en «Siguiente paso
 recomendado».
@@ -91,10 +91,17 @@ recomendado».
     cerrado se apunta pero no se editan fijos ni partidas. El cierre lo hacen el cron diario y
     la app al arrancar, y se puede adelantar a mano. Un mes pasado se puede poner a cero, y los
     apuntes de un mes se pueden borrar de una vez.
+    El alta empieza por el importe, con los atajos habituales antes del concepto opcional.
+    Partida, fecha y persona se resumen en un bloque plegable; al editar o apuntar en otro
+    mes empieza abierto. No se asigna ninguna partida hasta elegirla o tocar un atajo.
+    «Apuntar un ingreso» es una acción secundaria que suelta la partida elegida.
   - **Estadísticas**: siete bloques (tres del año natural, el ritmo del mes, los meses, el
     desglose y cada 100 € que entran), todo SVG a mano, sin librerías.
   - **Fijos**: la plantilla de lo que entra y sale todos los meses, y las partidas. «Entra» es
-    azul en los gráficos.
+    azul en los gráficos. El formulario empieza por nombre e importe; tipo, icono y persona
+    están en «Más opciones», con sus valores visibles en el resumen. «Guardar y añadir otro»
+    permite crear varios seguidos conservando tipo y persona y limpiando nombre, importe e
+    icono tras cada guardado correcto. Al editar solo se ofrece guardar el fijo actual.
   - **Presupuestos** (Beta): los que te pasan de fuera, agrupados por para qué son.
   - **Importar el extracto** (`/finances/importar`, Beta): Norma 43, `.txt` del Sabadell o Excel del
     BBVA, leído en el navegador. Nada entra sin confirmarlo; de la cuenta solo se guardan los
@@ -110,6 +117,12 @@ recomendado».
 - Guardar confirma («Guardado»), borrar desde una fila pide un segundo toque, cuatro borrados
   preguntan en un diálogo (lista, partida, persona, familia) y se puede deshacer marcar un ítem y
   eliminar una tarea, una nota o un ítem. Lo que apunta otra persona se ve sin recargar.
+- Los formularios esperan al resultado de la escritura y conservan el borrador si falla;
+  un doble envío no duplica el alta. También la barra de listas conserva lo escrito, y un
+  dictado parcialmente guardado permite reintentar solo los ítems pendientes. Si guardar
+  funciona pero falla el refresco, se avisa de que el cambio está guardado y se reintenta
+  únicamente la lectura. Abrir el calendario reinicia también la repetición; el refresco
+  automático conserva el foco del campo que se está escribiendo.
 - Los estados vacíos son el emoji y el título, sin párrafos de manual.
 
 ### Portada, acceso y marca
@@ -171,19 +184,27 @@ recomendado».
   reparan al abrir la app y se van al cerrar sesión. Inicio ofrece activarlos con un toque
   mientras el navegador no haya preguntado nunca (`ActivarAvisos`). Cada dispositivo elige en Ajustes
   qué recibe (resumen de la mañana, aviso de cada plan, cumpleaños): tres columnas `notify_*` en
-  `push_subscriptions` que lee el cron. Detalle en `docs/notificaciones.md`.
+  `push_subscriptions` que lee el cron, aplicadas y validadas en producción. El envío consulta
+  destinatarios y suscripciones antes de reclamar un aviso, para que una lectura fallida no
+  lo consuma. Ajustes permite probar un aviso solo en este dispositivo, con confirmación del
+  worker tras solicitar mostrarlo al sistema. **La recepción real en el Android del propietario
+  sigue pendiente: no vio la prueba aunque el proveedor aceptó los dos envíos.** La versión
+  publicada incluye las preferencias, la corrección del cron y la prueba por dispositivo. Detalle en
+  `docs/notificaciones.md`.
 - **Copia de seguridad** (Ajustes → Cuenta): un JSON con todo lo de la casa, sin los archivos de los
   documentos. No hay restaurar.
 
 ### Calidad, accesibilidad y pruebas
 
-- **1044 tests con el runner de Playwright** (único runner): **786 unitarios** de lógica pura en
-  `e2e/unit/` (`npm run test:unit`) y **258 de navegador**; 13 de ellos, los del recorrido de
+- **1137 tests con el runner de Playwright** (único runner): **849 unitarios** de lógica pura en
+  `e2e/unit/` (`npm run test:unit`) y **288 de navegador**; 13 de ellos, los del recorrido de
   idioma, van en `fixme` hasta que se migren sus pantallas. Este es el **único** sitio con el recuento
   exacto. Los de navegador son `smoke.spec.ts`, `runtime.spec.ts` (falla ante cualquier
-  `console.error`), `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
+  `console.error`), `guardado.spec.ts`, `dictado.spec.ts`, `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
   recorrido de idioma. `npm run test:e2e` los corre todos levantando el dev server en :3100.
-  Última pasada completa: 1031 pasan, 13 saltados, 0 fallos (30-09-2026).
+  Validación actual: suite completa con **1124 pruebas correctas y 13 saltadas** (16-10-2026),
+  lint, tipos y build correctos. El worker se ha probado contra el build servido, con push
+  sintético, confirmación y fallback sin conexión.
 - **Contraste medido y AA**: quedan 6 avisos deliberados (días fuera de mes del calendario y el `·`
   de `Garantias`). Reglas: el verde de marca no es color de texto (`primary-strong`), `faint` y
   `muted-soft` son para decoración, el color de una persona va de fondo y el nombre en tinta
@@ -209,6 +230,12 @@ recomendado».
 - **Invalidación por porción en el store**: cada escritura declara qué datos toca y solo se
   recargan esos (`runMutation(accion, ['tasks'])`). Dos escrituras recargan todo a propósito
   (borrar un hijo y echar a un miembro). Sin declarar nada se recarga todo.
+- **Coordinación de peticiones** (`src/lib/sincronizacion.ts`): las escrituras mantienen el
+  orden de los gestos y el estado de guardado incluye las que esperan turno. Las lecturas
+  anteriores a otra lectura o escritura de la misma porción no sustituyen su estado nuevo.
+- **Historial paginado**: los repositorios reúnen todas las páginas con orden único y recuento;
+  una respuesta limitada por Supabase no se presenta como el historial completo. La lógica
+  está en `src/lib/paginacion.ts`, comprobada también con un límite inferior al solicitado.
 - **Pendiente a propósito**: los getters no tienen ventana temporal (`expenses` es la tabla que
   más crece, ~1.000 filas al año, y varias cosas necesitan la historia entera) y no hay
   actualización optimista en los dos gestos más frecuentes. **Umbral escrito: revisarlo al pasar
@@ -240,8 +267,8 @@ recomendado».
 
 ### Validación Supabase
 
-Sin pendientes. Última pasada: **206/206** (30-09-2026), con el aviso de cada evento
-(`events.remind_before_minutes` y `event_reminders_sent`). Las pasadas anteriores, una a una y con
+Sin pendientes. Última pasada: **211/211** (15-10-2026), con las preferencias de avisos por
+dispositivo (`push_subscriptions.notify_*`). Las pasadas anteriores, una a una y con
 lo que cada comprobación protege, están en `docs/supabase-validation.md`, que es donde vive el
 detalle. Local y producción son el **mismo** proyecto Supabase. No se documentan URLs privadas,
 claves ni secretos en el repositorio.
@@ -256,11 +283,11 @@ pendiente.** Esta es la lista entera y no hay otra; el porqué de cada decisión
 
 En orden. Lo de abajo explica cada punto.
 
-00. **Aplicar en el SQL Editor las tres columnas `notify_*` de `push_subscriptions`** (el trozo sale de
-   `git diff supabase/schema.sql`) **y correr `node scripts/validate-rls.mjs`**: la §12 bis es nueva y
-   no se ha ejecutado. Mientras no estén, el cron de avisos falla con 500 («consulta de suscripciones»).
-0. **Probar el aviso de cada evento de punta a punta.** El job de `pg_cron` ya está programado y
-   contestó 200; falta ver llegar un aviso: con los avisos activados en un móvil, apuntar un plan
+0. **Resolver la recepción en Android y probar el aviso de cada evento de punta a punta.**
+   El job de `pg_cron` responde 200 y el proveedor aceptó la prueba individual para las dos
+   suscripciones de la cuenta propietaria, pero el móvil no la mostró. Probar desde Ajustes →
+   Cuenta → Recordatorios para comprobar la confirmación de ese dispositivo. Después falta
+   confirmar en el móvil un aviso programado: con los avisos activados, apuntar un plan
    que empiece dentro de 20 minutos con «15 minutos antes».
 1. **Smoke con una cuenta nueva en `www.farpi.app`** (`docs/produccion.md`, §5): registro con un
    correo nuevo, confirmación por email, crear familia, crear un evento, invitar a una segunda
@@ -323,8 +350,7 @@ Ninguno está decidido; en este orden de lo que más se nota:
 - **Avisos**: no se avisa de lo que añade otro miembro, ni hay aviso
   por tarea.
 - **Refrescar solas Finanzas, Documentos y Ajustes** (hoy solo `PORCIONES_DEL_DIA`).
-- **Deshacer un evento eliminado**, y que el resto de sheets no se cierren antes de saber si
-  guardó, como ya hace el de tareas.
+- **Deshacer un evento eliminado**.
 - **Repetición mensual de eventos**, una serie de verdad sin fin y avisar al editar de que el
   evento es de una serie.
 - **Comidas**: pasar los ingredientes a la lista de la compra y copiar una semana entera.

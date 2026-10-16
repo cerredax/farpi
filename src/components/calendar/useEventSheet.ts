@@ -21,10 +21,10 @@ interface Params {
   defaultDate?: Date
   defaultTime?: string
   onClose: () => void
-  onCreate: (draft: EventDraft) => void
-  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => void
-  onCreateYearlySeries?: (draft: EventDraft, endYear: number) => void
-  onUpdate: (id: string, draft: EventDraft) => void
+  onCreate: (draft: EventDraft) => Promise<Event | boolean | null>
+  onCreateSeries?: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => Promise<Event[] | boolean>
+  onCreateYearlySeries?: (draft: EventDraft, endYear: number) => Promise<Event[] | boolean>
+  onUpdate: (id: string, draft: EventDraft) => Promise<boolean>
   onDelete: (id: string) => void
   /**
    * Qué se está apuntando, cuando ya se sabe por dónde se ha entrado: el `+` de
@@ -102,7 +102,7 @@ export function useEventSheet({
   open, mode, initial, defaultDate, defaultTime, defaultKind,
   onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
 }: Params) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<EventDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<EventDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultDate, defaultTime, defaultKind),
     validate: validateEventDraft,
@@ -119,6 +119,18 @@ export function useEventSheet({
   const [recurrenceEndYear, setRecurrenceEndYear] = useState<number>(() => new Date().getFullYear() + 5)
   // Si nadie ha tocado los días a mano, cambiar la fecha los mueve con ella.
   const weekdaysTouchedRef = useRef(false)
+  const [abiertoAntes, setAbiertoAntes] = useState(open)
+  if (open !== abiertoAntes) {
+    setAbiertoAntes(open)
+    if (open) {
+      setRecurrence('none')
+      setRecurrenceWeekdays([])
+      setRecurrenceEnd('')
+      setRecurrenceEvery(1)
+      setRecurrenceEndYear(new Date().getFullYear() + 5)
+      setSeriesDeleteOpen(false)
+    }
+  }
 
   const esVacaciones = draft.kind === 'vacaciones'
   const esDescanso = draft.kind === 'descanso'
@@ -177,30 +189,30 @@ export function useEventSheet({
     ? 'El último día no puede ser anterior al primero'
     : null
 
-  const handleSubmit = submitHandler(valid => {
+  const handleSubmit = submitHandler(async valid => {
     // Lo que se guarda lleva título siempre, lo haya escrito alguien o no.
     const conTitulo = { ...valid, title: eventTitleOr(valid.kind, valid.title) }
     if (mode === 'edit') {
-      if (initial) onUpdate(initial.id, conTitulo)
-      onClose()
-      return
+      return initial ? onUpdate(initial.id, conTitulo) : false
     }
     // Un cumpleaños se repite todos los años por definición: el tipo manda
     // sobre el selector de recurrencia, que ni siquiera se enseña. Igual que
     // "vacaciones" manda que sean días completos.
     if (esCumple) {
-      onCreateYearlySeries?.(conTitulo, startYear + ANOS_DE_CUMPLE)
+      const creados = await onCreateYearlySeries?.(conTitulo, startYear + ANOS_DE_CUMPLE)
+      return Array.isArray(creados) ? creados.length > 0 : creados === true
     } else if (recurrence === 'weekly') {
-      if (seriesError) return
-      onCreateSeries?.(conTitulo, recurrenceWeekdays, finEfectivo, recurrenceEvery)
+      if (seriesError) return false
+      const creados = await onCreateSeries?.(conTitulo, recurrenceWeekdays, finEfectivo, recurrenceEvery)
+      return Array.isArray(creados) ? creados.length > 0 : creados === true
     } else if (recurrence === 'yearly') {
-      if (yearlyError) return
-      onCreateYearlySeries?.(conTitulo, recurrenceEndYear)
+      if (yearlyError) return false
+      const creados = await onCreateYearlySeries?.(conTitulo, recurrenceEndYear)
+      return Array.isArray(creados) ? creados.length > 0 : creados === true
     } else {
-      onCreate(conTitulo)
+      return !!await onCreate(conTitulo)
     }
-    onClose()
-  })
+  }, onClose)
 
   // En los de rango el título es opcional y se rellena solo con el nombre del
   // tipo. Lo usa la etiqueta del campo, que lo dice ahí mismo.
@@ -244,7 +256,7 @@ export function useEventSheet({
     recurrenceEndYear, setRecurrenceEndYear,
     handleDateChange,
     seriesCount, seriesError, startYear, yearlyCount, yearlyError, vacacionesError,
-    canSubmit, submitLabel,
+    canSubmit: canSubmit && !guardando, submitLabel,
     previewReady,
     previewDaysText: joinWeekdayNames(recurrenceWeekdays),
     previewEndText: format(parseLocalDate(finEfectivo), "d 'de' MMMM", { locale: es }),

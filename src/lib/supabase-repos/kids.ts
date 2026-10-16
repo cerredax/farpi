@@ -1,14 +1,13 @@
 import { createClient } from '../supabase/client'
-import { assertNoError } from './shared'
+import { leerTodas, assertNoError } from './shared'
 import type { Child, ChildDraft } from '@/types'
 import type { ChildrenRepo } from '../repos/types'
 
 export const childrenRepo: ChildrenRepo = {
   async getKids(familyId: string): Promise<Child[]> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('children').select('*').eq('family_id', familyId).order('created_at')
-    assertNoError(error)
-    return data ?? []
+    return leerTodas<Child>(() => supabase.from('children').select('*', { count: 'exact' }).eq('family_id', familyId).order('created_at')
+      .order('id'))
   },
 
   async createKid(familyId: string, draft: ChildDraft): Promise<Child> {

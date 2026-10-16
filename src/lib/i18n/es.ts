@@ -64,6 +64,7 @@ export const es = {
   },
 
   guardado: {
+    guardadoSinActualizar: 'Guardado, pendiente de actualizar',
     noSeHaGuardado: 'No se ha guardado el cambio',
     cerrarAviso: 'Cerrar aviso',
     guardando: 'Guardando…',

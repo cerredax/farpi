@@ -83,6 +83,7 @@ export const comun = {
   store: {
     familiaNoEncontrada: 'No se ha encontrado la familia activa',
     errorCargando: 'Error cargando los datos',
+    guardadoSinActualizar: 'El cambio está guardado. No se pudo actualizar la pantalla; se volverá a intentar automáticamente.',
     noSeGuardo: 'No se pudo guardar el cambio',
     noSeCreoFamilia: 'No se pudo crear la familia',
     unicaFamilia: 'No puedes eliminar tu única familia.',
@@ -101,6 +102,7 @@ export const comun = {
 
   /** Los de los repositorios, antes de llegar al store. */
   datos: {
+    lecturaIncompleta: 'La lectura de los datos quedó incompleta. Vuelve a intentarlo.',
     operacionFallida: 'No se pudo completar la operación',
     seleccionaUnArchivo: 'Selecciona un archivo para subirlo',
     noSeSubioADrive: 'No se pudo subir el archivo a Google Drive. Inténtalo de nuevo.',

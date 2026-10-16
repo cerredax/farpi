@@ -28,6 +28,33 @@ async function conVoz(page: Page, frase: string) {
   }, frase)
 }
 
+test('un dictado parcialmente guardado conserva solo los ítems pendientes al reintentar', async ({ page }) => {
+  await conVoz(page, 'linterna, termómetro y esparadrapo')
+  await page.goto('/lists')
+  await page.getByText('Farmacia', { exact: true }).first().click()
+  await page.getByRole('button', { name: 'Dictar con la voz' }).click()
+  await expect(page.getByText('Se añadirán 3:')).toBeVisible()
+  await page.evaluate(() => {
+    const original = crypto.randomUUID.bind(crypto)
+    let creados = 0
+    crypto.randomUUID = (() => {
+      if (++creados === 2) throw new Error('sin conexión')
+      return original()
+    }) as typeof crypto.randomUUID
+  })
+  await page.getByRole('button', { name: 'Añadir 3', exact: true }).click()
+  await expect(page.getByText('Se añadirán 2:')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Linterna', exact: true })).toBeVisible()
+  await page.evaluate(() => { delete (crypto as { randomUUID?: unknown }).randomUUID })
+  await page.getByRole('button', { name: 'Añadir 2', exact: true }).click()
+  for (const texto of ['Linterna', 'Termómetro', 'Esparadrapo']) {
+    await expect(page.getByRole('button', { name: texto, exact: true }).first()).toBeVisible()
+    expect(await page.evaluate(texto => JSON.parse(localStorage.getItem('farpi_store_v1') ?? '{}').listItems
+      .filter((i: { text: string }) => i.text === texto).length, texto)).toBe(1)
+  }
+  await expect(page.getByText('Se añadirán 2:')).toHaveCount(0)
+})
+
 test('dictar en una lista enseña los ítems y los guarda al confirmar', async ({ page }) => {
   await conVoz(page, 'Añade ibuprofeno, tiritas y gasas')
   await page.goto('/lists')

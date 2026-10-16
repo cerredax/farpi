@@ -18,12 +18,12 @@ interface FamilySheetProps {
   /** Si la familia tiene documentos, para avisar de que los archivos se quedan en Drive. */
   hayDocumentos: boolean
   onClose: () => void
-  onSave: (name: string) => void
+  onSave: (name: string) => Promise<boolean>
   onDelete: () => void
 }
 
 export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumentos, onClose, onSave, onDelete }: FamilySheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<{ name: string }>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<{ name: string }>({
     open,
     initialDraft: () => ({ name: family.name }),
     validate: d => validateFamilyName(d.name),
@@ -39,10 +39,7 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
     onClose,
   })
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid.name.trim())
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => onSave(valid.name.trim()), onClose)
 
   return (
     <BottomSheet
@@ -54,6 +51,7 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
       ) : (
         <SheetFooter
           form="family-form"
+          disabled={guardando}
           submitLabel="Guardar"
           onDelete={puedeEliminar ? { onClick: preguntar, idleLabel: 'Eliminar familia' } : undefined}
         />

@@ -4,6 +4,23 @@ Ejecutar en modo demo, sin Supabase configurado, en móvil o DevTools con ancho 
 
 ## 0. Validación técnica
 
+Regresiones de guardado: `e2e/guardado.spec.ts` comprueba borradores tras fallos, reintentos sin
+duplicados, persistencia, foco durante el refresco y reinicio de la repetición. El dictado
+parcial se comprueba en `e2e/dictado.spec.ts`. Las pruebas unitarias de `sincronizacion`,
+`paginacion` y `envio-avisos` cubren concurrencia, historial completo y fallos antes de reclamar
+recordatorios, sin tocar la base real ni enviar notificaciones.
+
+`e2e/unit/prueba-avisos.spec.ts` comprueba que la prueba de Ajustes solo alcanza una
+suscripción de la propia cuenta y que la confirmación llega del worker después de pedir
+mostrar el aviso. En un Android real, con el build publicado:
+
+- [ ] Ajustes → Cuenta → Recordatorios → **Probar en este dispositivo**: llega un aviso y
+      la pantalla confirma la recepción; ningún otro dispositivo recibe esa prueba.
+- [ ] Si Farpi confirma recepción pero no aparece el aviso, revisar los permisos de
+      notificaciones de Android y No molestar. La confirmación no acredita visibilidad.
+- [ ] Si el proveedor acepta pero el worker no confirma, la pantalla informa que no se ha
+      podido verificar la recepción; no presenta el envío como una entrega correcta.
+
 - [ ] `npm run lint` termina sin errores y sin warnings relevantes.
 - [ ] `npm run build` termina correctamente.
 - [ ] `npm run test:unit` — los tests de lógica pura, sin servidor (~2 s).
@@ -311,10 +328,20 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 
 **Fijos**
 
+El alta consecutiva, la edición, los fallos y reintentos, el doble envío, la persistencia,
+el idioma y los controles a 390 px están automatizados en `e2e/fijos.spec.ts`.
+
 - [ ] Se ven dos bloques —«Entra al mes» y «Sale al mes»— con las dos nóminas y los
       cuatro recibos de demo, cada uno con su total, y abajo «Para el mes».
 - [ ] Añadir un gasto fijo baja «Para el mes» y, al volver a «Este mes», baja también
       «queda», sin recargar.
+- [ ] El título indica si es un ingreso o gasto nuevo y solo aparecen nombre e importe.
+      «Más opciones» muestra el tipo, icono y persona actuales y permite cambiarlos al abrir.
+- [ ] «Guardar y añadir otro» mantiene el formulario abierto, confirma qué se guardó y deja
+      nombre, importe e icono limpios, con el foco en nombre. Conserva tipo y persona. Si falla
+      el guardado, mantiene todos los campos para reintentar sin duplicar.
+- [ ] Guardar con el botón principal o con Enter cierra el formulario. Al editar no aparece
+      «Guardar y añadir otro» y cambiar solo el importe conserva icono y persona.
 - [ ] Los iconos de gasto son **23** (14-09-2026), en filas de 8, 8 y 7: 🔌 para
       suministros, 📶 para el teléfono, 🧹 para limpieza, 🔁 para suscripciones, y 🏛️ y ⚽
       nuevos. No están 💡, 💧, 🔥, 📱, 🌐 ni 💳. 🧹 sale también en las partidas.
@@ -324,10 +351,10 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 - [ ] Cambiar de «Entra» a «Sale» dentro del sheet cambia los iconos que se ofrecen y el
       texto del botón, y el fijo salta de bloque al guardarlo.
 - [ ] Un fijo con persona pinta su punto de color y su nombre; sin persona no pinta nada.
-- [ ] El sheet **no pide fecha ni mes**, y avisa de que cambiar el importe cambia también
-      lo que dicen los meses pasados.
-- [ ] Ir a un mes de hace medio año: los fijos y «Para el mes» dicen exactamente lo mismo
-      que en el mes actual.
+- [ ] El sheet **no pide fecha ni mes**, explica que los meses cerrados conservan sus
+      importes y remite a «Este mes» para ajustar un único mes.
+- [ ] Un mes cerrado conserva sus fijos y «Para el mes» aunque cambie después el importe
+      habitual en «Fijos»; el mes abierto refleja el cambio.
 - [ ] Borrar todos los fijos deja «Este mes» enseñando lo gastado (no «queda»), con el pie
       que invita a ponerlos; volver a poner uno devuelve la cuenta completa.
 
@@ -466,6 +493,12 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
       la fila y la partida dicen el mismo número.
 - [ ] Un importe imposible (`gratis`, `0`, dos millones) no deja guardar y el mensaje
       distingue «no se entiende» de «como mucho un millón».
+- [ ] El formulario empieza por importe y permite guardar sin concepto ni partida. Los
+      atajos habituales aparecen antes del concepto, sin escoger ninguno al abrir. Elegir
+      uno rellena concepto y partida y lleva el foco al importe (`e2e/apuntes.spec.ts`).
+- [ ] El resumen de partida, fecha y persona se puede abrir y volver a plegar conservando
+      lo elegido. Al editar o apuntar en otro mes empieza abierto; reabrir un alta limpia los
+      campos. Una fecha vacía despliega los detalles para corregirla sin perder el borrador.
 - [ ] Pasarse de la partida lo dice **con palabras** («Te has pasado por 40 €»), no solo con
       el rojo, y la barra no se sale de la tarjeta.
 - [ ] Un gasto sin partida se puede apuntar y no cuenta para ninguna. **Debajo de la
@@ -482,7 +515,7 @@ se ven desde el primer momento**, en cualquier mes, porque no dependen de él.
 
 **Ingresos apuntados**
 
-- [ ] Elegir «Un ingreso» en el sheet **hace desaparecer** el campo de la partida (no lo deja
+- [ ] Elegir «Apuntar un ingreso» en el sheet **hace desaparecer** el campo de la partida (no lo deja
       apagado), y el botón pasa a decir «Apuntar ingreso».
 - [ ] El ingreso sale en la lista con un `+` delante y en verde, y **no** mueve ninguna
       barra de partida.

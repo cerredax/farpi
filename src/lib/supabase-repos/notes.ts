@@ -1,5 +1,5 @@
 import { createClient } from '../supabase/client'
-import { assertNoError, currentUserId } from './shared'
+import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { Note, NoteDraft } from '@/types'
 import type { NotesRepo } from '../repos/types'
 
@@ -15,14 +15,13 @@ import type { NotesRepo } from '../repos/types'
 export const notesRepo: NotesRepo = {
   async getNotes(familyId: string): Promise<Note[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<Note>(() => supabase
       .from('notes')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('pinned', { ascending: false })
       .order('updated_at', { ascending: false })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createNote(familyId: string, draft: NoteDraft): Promise<Note> {

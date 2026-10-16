@@ -1,12 +1,13 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as store from './store'
 import { mockRepos } from './mock-repos'
 import { supabaseRepos } from './supabase-repos'
 import { IS_DEMO_MODE } from './supabase/client'
 import { debeCerrarseElMesPasado } from './budgets'
 import { mensajeDeError } from './errores'
+import { crearCoordinador } from './sincronizacion'
 import { CargandoFarpi, ErrorDeArranque } from '@/components/layout/CargandoFarpi'
 import { useT } from './i18n/contexto'
 import { textosDelNavegador } from './i18n'
@@ -61,6 +62,7 @@ interface StoreValue {
   /** Hay una operación de escritura en curso. La UI lo usa para avisar. */
   isSaving: boolean
   error: string | null
+  avisoSincronizacion: string | null
   /** Descarta el error mostrado, al cerrarlo el usuario o al reintentar. */
   clearError: () => void
   /**
@@ -74,9 +76,9 @@ interface StoreValue {
   activeFamilyId: string
   families: Family[]
   switchFamily: (id: string) => void
-  createFamily: (name: string) => Promise<void>
+  createFamily: (name: string) => Promise<boolean>
   /** Cierra la familia activa y salta a otra. Falla si es la única. */
-  deleteFamily: () => Promise<void>
+  deleteFamily: () => Promise<boolean>
   family: Family
   members: FamilyMember[]
   /**
@@ -112,9 +114,9 @@ interface StoreValue {
    * para el mes en curso**: un mes terminado no se reabre nunca. Lo que sí se
    * puede con un mes pasado es dejarlo a cero, que vacía su plan sin borrarlo.
    */
-  closeMonthNow: (month: string) => Promise<void>
-  reopenMonth: (month: string) => Promise<void>
-  emptyMonth: (month: string) => Promise<void>
+  closeMonthNow: (month: string) => Promise<boolean>
+  reopenMonth: (month: string) => Promise<boolean>
+  emptyMonth: (month: string) => Promise<boolean>
   documents: Document[]
   /** Franjas de comida que la familia ve, normalizadas. Nunca está vacío. */
   mealSlots: MealSlot[]
@@ -122,84 +124,77 @@ interface StoreValue {
   todayMeals: MealPlan[]
   pendingTasks: Task[]
   pendingItems: PendingItem[]
-  updateFamilyName: (name: string) => Promise<void>
-  updateMealSlots: (slots: MealSlot[]) => Promise<void>
-  inviteMember: (email: string) => Promise<void>
-  updateMember: (id: string, name: string, color: string | null) => Promise<void>
-  updateMemberRole: (id: string, role: 'admin' | 'member') => Promise<void>
-  removeMember: (id: string) => Promise<void>
-  cancelInvite: (id: string) => Promise<void>
-  createKid: (draft: ChildDraft) => Promise<void>
-  updateKid: (id: string, draft: ChildDraft) => Promise<void>
-  deleteKid: (id: string) => Promise<void>
+  updateFamilyName: (name: string) => Promise<boolean>
+  updateMealSlots: (slots: MealSlot[]) => Promise<boolean>
+  inviteMember: (email: string) => Promise<boolean>
+  updateMember: (id: string, name: string, color: string | null) => Promise<boolean>
+  updateMemberRole: (id: string, role: 'admin' | 'member') => Promise<boolean>
+  removeMember: (id: string) => Promise<boolean>
+  cancelInvite: (id: string) => Promise<boolean>
+  createKid: (draft: ChildDraft) => Promise<boolean>
+  updateKid: (id: string, draft: ChildDraft) => Promise<boolean>
+  deleteKid: (id: string) => Promise<boolean>
   createEvent: (draft: EventDraft) => Promise<Event | null>
   createEventSeries: (draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) => Promise<Event[]>
   createYearlySeries: (draft: EventDraft, endYear: number) => Promise<Event[]>
-  updateEvent: (id: string, draft: EventDraft) => Promise<void>
-  deleteEvent: (id: string) => Promise<void>
-  deleteEventSeries: (groupId: string) => Promise<void>
+  updateEvent: (id: string, draft: EventDraft) => Promise<boolean>
+  deleteEvent: (id: string) => Promise<boolean>
+  deleteEventSeries: (groupId: string) => Promise<boolean>
   /** `true` si se guardó. El sheet de tareas se cierra solo entonces (ver `TaskSheet`). */
   createTask: (draft: TaskDraft) => Promise<boolean>
   updateTask: (id: string, draft: TaskDraft) => Promise<boolean>
-  deleteTask: (id: string) => Promise<void>
-  toggleTask: (id: string) => Promise<void>
-  createList: (draft: ListDraft) => Promise<void>
-  updateList: (id: string, draft: ListDraft) => Promise<void>
-  deleteList: (id: string) => Promise<void>
-  createListItem: (listId: string, draft: ListItemDraft) => Promise<void>
-  updateListItem: (id: string, draft: ListItemDraft) => Promise<void>
-  deleteListItem: (id: string) => Promise<void>
-  toggleListItem: (id: string) => Promise<void>
-  setListItemQuantity: (id: string, quantity: number) => Promise<void>
-  createMeal: (draft: MealDraft) => Promise<void>
-  copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => Promise<void>
-  updateMeal: (id: string, draft: MealDraft) => Promise<void>
-  deleteMeal: (id: string) => Promise<void>
-  createNote: (draft: NoteDraft) => Promise<void>
-  updateNote: (id: string, draft: NoteDraft) => Promise<void>
-  deleteNote: (id: string) => Promise<void>
-  createFixedEntry: (draft: FixedEntryDraft) => Promise<void>
-  updateFixedEntry: (id: string, draft: FixedEntryDraft) => Promise<void>
+  deleteTask: (id: string) => Promise<boolean>
+  toggleTask: (id: string) => Promise<boolean>
+  createList: (draft: ListDraft) => Promise<boolean>
+  updateList: (id: string, draft: ListDraft) => Promise<boolean>
+  deleteList: (id: string) => Promise<boolean>
+  createListItem: (listId: string, draft: ListItemDraft) => Promise<boolean>
+  updateListItem: (id: string, draft: ListItemDraft) => Promise<boolean>
+  deleteListItem: (id: string) => Promise<boolean>
+  toggleListItem: (id: string) => Promise<boolean>
+  setListItemQuantity: (id: string, quantity: number) => Promise<boolean>
+  createMeal: (draft: MealDraft) => Promise<boolean>
+  copyMealDay: (sourceDate: string, targetDate: string, repeatUntil?: string) => Promise<boolean>
+  updateMeal: (id: string, draft: MealDraft) => Promise<boolean>
+  deleteMeal: (id: string) => Promise<boolean>
+  createNote: (draft: NoteDraft) => Promise<boolean>
+  updateNote: (id: string, draft: NoteDraft) => Promise<boolean>
+  deleteNote: (id: string) => Promise<boolean>
+  createFixedEntry: (draft: FixedEntryDraft) => Promise<boolean>
+  updateFixedEntry: (id: string, draft: FixedEntryDraft) => Promise<boolean>
   /** Se lleva con él sus ajustes de mes, como el `on delete cascade` de la base. */
-  deleteFixedEntry: (id: string) => Promise<void>
+  deleteFixedEntry: (id: string) => Promise<boolean>
   /**
    * Ajustar lo que un fijo vale **en un mes suelto**, sin tocar la referencia.
    * Es lo que deja decir «la limpieza son 120, pero en septiembre fueron 150».
    */
-  setFixedOverride: (fixedEntryId: string, month: string, draft: FixedOverrideDraft) => Promise<void>
+  setFixedOverride: (fixedEntryId: string, month: string, draft: FixedOverrideDraft) => Promise<boolean>
   /** Quitar el ajuste: ese mes vuelve a valer lo que diga la plantilla. */
-  clearFixedOverride: (fixedEntryId: string, month: string) => Promise<void>
-  createBudget: (draft: BudgetDraft) => Promise<void>
-  updateBudget: (id: string, draft: BudgetDraft) => Promise<void>
+  clearFixedOverride: (fixedEntryId: string, month: string) => Promise<boolean>
+  createBudget: (draft: BudgetDraft) => Promise<boolean>
+  updateBudget: (id: string, draft: BudgetDraft) => Promise<boolean>
   /** Borra la partida. Sus gastos se quedan, sin partida. */
-  deleteBudget: (id: string) => Promise<void>
-  createExpense: (draft: ExpenseDraft) => Promise<void>
+  deleteBudget: (id: string) => Promise<boolean>
+  createExpense: (draft: ExpenseDraft) => Promise<boolean>
   /**
    * Una tanda entera, la que sale de revisar un extracto. Devuelve **cuántas
    * entraron de verdad**, que no es cuántas se mandaron: lo que ya estaba
    * apuntado de otra importación se queda fuera por la restricción de la base, y
    * la pantalla tiene que poder decirlo.
    */
-  createExpenses: (drafts: ExpenseDraft[]) => Promise<number>
-  updateExpense: (id: string, draft: ExpenseDraft) => Promise<void>
-  deleteExpense: (id: string) => Promise<void>
+  createExpenses: (drafts: ExpenseDraft[]) => Promise<number | null>
+  updateExpense: (id: string, draft: ExpenseDraft) => Promise<boolean>
+  deleteExpense: (id: string) => Promise<boolean>
   /** Vaciar «El día a día» de un mes. No toca los fijos ni las partidas. */
-  deleteExpenses: (ids: string[]) => Promise<void>
-  createQuote: (draft: QuoteDraft) => Promise<void>
-  updateQuote: (id: string, draft: QuoteDraft) => Promise<void>
-  deleteQuote: (id: string) => Promise<void>
-  setQuoteStatus: (id: string, status: QuoteStatus) => Promise<void>
-  /**
-   * Las dos únicas escrituras que **dicen si salieron bien**, porque el sheet de
-   * Documentos no se cierra hasta saberlo: subir un archivo de 20 MB puede
-   * tardar y puede fallar, y cerrar el sheet antes de tiempo tira el borrador
-   * —nombre, categoría, de quién, caducidad— justo cuando hay que reintentar.
-   * El resto sigue con `Promise<void>`: escriben una fila y el aviso global de
-   * `SaveStatus` basta.
-   */
+  deleteExpenses: (ids: string[]) => Promise<boolean>
+  createQuote: (draft: QuoteDraft) => Promise<boolean>
+  updateQuote: (id: string, draft: QuoteDraft) => Promise<boolean>
+  deleteQuote: (id: string) => Promise<boolean>
+  setQuoteStatus: (id: string, status: QuoteStatus) => Promise<boolean>
+  /** Como los demás formularios, espera la escritura y conserva el borrador si falla. */
   createDocument: (draft: DocumentDraft) => Promise<boolean>
   updateDocument: (id: string, draft: DocumentDraft) => Promise<boolean>
-  deleteDocument: (id: string) => Promise<void>
+  deleteDocument: (id: string) => Promise<boolean>
   getDocumentUrl: (document: Document) => Promise<string>
   /**
    * Si quien mira tiene su almacenamiento conectado. `null` mientras no se ha
@@ -333,6 +328,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [coordinador] = useState(() => crearCoordinador<Porcion>())
+  const [sinActualizar] = useState(() => new Set<Porcion>())
+  const [avisoSincronizacion, setAvisoSincronizacion] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [undoAction, setUndoAction] = useState<{ label: string; run: () => Promise<void> } | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
@@ -370,32 +368,36 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
    * necesita leer dos de ellas —la familia y los planes— y los `setState` de
    * React no se pueden leer justo después de llamarlos.
    */
-  const cargadores: Record<Porcion, () => Promise<unknown>> = useMemo(() => ({
-    family: async () => {
-      const f = await repos.family.getFamily(familyId)
-      if (!f) throw new Error(mensajes().familiaNoEncontrada)
-      setFamily(f)
-      return f
-    },
-    families:      async () => { const v = await repos.family.getFamilies();               setFamilies(v);     return v },
-    members:       async () => { const v = await repos.members.getMembers(familyId);       setMembers(v);      return v },
-    invites:       async () => { const v = await repos.invites.getInvites(familyId);       setInvites(v);      return v },
-    kids:          async () => { const v = await repos.children.getKids(familyId);         setKids(v);         return v },
-    events:        async () => { const v = await repos.events.getEvents(familyId);         setEvents(v);       return v },
-    tasks:         async () => { const v = await repos.tasks.getTasks(familyId);           setTasks(v);        return v },
-    lists:         async () => { const v = await repos.lists.getLists(familyId);           setLists(v);        return v },
-    listItems:     async () => { const v = await repos.listItems.getListItems(familyId);   setListItems(v);    return v },
-    meals:         async () => { const v = await repos.meals.getMeals(familyId);           setMeals(v);        return v },
-    notes:         async () => { const v = await repos.notes.getNotes(familyId);           setNotes(v);        return v },
-    fixedEntries:  async () => { const v = await repos.fixedEntries.getFixedEntries(familyId); setFixedEntries(v); return v },
-    fixedOverrides: async () => { const v = await repos.fixedOverrides.getFixedOverrides(familyId); setFixedOverrides(v); return v },
-    budgets:       async () => { const v = await repos.budgets.getBudgets(familyId);       setBudgets(v);      return v },
-    expenses:      async () => { const v = await repos.expenses.getExpenses(familyId);     setExpenses(v);     return v },
-    quotes:        async () => { const v = await repos.quotes.getQuotes(familyId);         setQuotes(v);       return v },
-    monthPlans:    async () => { const v = await repos.monthPlans.getMonthPlans(familyId); setMonthPlans(v);   return v },
-    documents:     async () => { const v = await repos.documents.getDocuments(familyId);   setDocuments(v);    return v },
-    currentUserId: async () => { const v = await repos.members.getCurrentUserId();          setCurrentUserId(v); return v },
-  }), [repos, familyId])
+  const cargadores: Record<Porcion, () => Promise<unknown>> = useMemo(() => {
+    function cargar<T>(porcion: Porcion, obtener: () => Promise<T>, aplicar: (valor: T) => void) {
+      return () => coordinador.leer(porcion, obtener, aplicar)
+    }
+    return {
+      family: cargar('family', async () => {
+        const f = await repos.family.getFamily(familyId)
+        if (!f) throw new Error(mensajes().familiaNoEncontrada)
+        return f
+      }, setFamily),
+      families: cargar('families', () => repos.family.getFamilies(), setFamilies),
+      members: cargar('members', () => repos.members.getMembers(familyId), setMembers),
+      invites: cargar('invites', () => repos.invites.getInvites(familyId), setInvites),
+      kids: cargar('kids', () => repos.children.getKids(familyId), setKids),
+      events: cargar('events', () => repos.events.getEvents(familyId), setEvents),
+      tasks: cargar('tasks', () => repos.tasks.getTasks(familyId), setTasks),
+      lists: cargar('lists', () => repos.lists.getLists(familyId), setLists),
+      listItems: cargar('listItems', () => repos.listItems.getListItems(familyId), setListItems),
+      meals: cargar('meals', () => repos.meals.getMeals(familyId), setMeals),
+      notes: cargar('notes', () => repos.notes.getNotes(familyId), setNotes),
+      fixedEntries: cargar('fixedEntries', () => repos.fixedEntries.getFixedEntries(familyId), setFixedEntries),
+      fixedOverrides: cargar('fixedOverrides', () => repos.fixedOverrides.getFixedOverrides(familyId), setFixedOverrides),
+      budgets: cargar('budgets', () => repos.budgets.getBudgets(familyId), setBudgets),
+      expenses: cargar('expenses', () => repos.expenses.getExpenses(familyId), setExpenses),
+      quotes: cargar('quotes', () => repos.quotes.getQuotes(familyId), setQuotes),
+      monthPlans: cargar('monthPlans', () => repos.monthPlans.getMonthPlans(familyId), setMonthPlans),
+      documents: cargar('documents', () => repos.documents.getDocuments(familyId), setDocuments),
+      currentUserId: cargar('currentUserId', () => repos.members.getCurrentUserId(), setCurrentUserId),
+    }
+  }, [repos, familyId, coordinador])
 
   /**
    * Recargar solo unas porciones, después de una escritura que se sabe qué toca.
@@ -407,11 +409,15 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
    * se abre la app.
    */
   const recargarPorciones = useCallback(async (porciones: Porcion[]) => {
-    await Promise.all(porciones.map(p => cargadores[p]()))
+    await Promise.all(porciones.map(async p => {
+      await cargadores[p]()
+      sinActualizar.delete(p)
+    }))
+    if (sinActualizar.size === 0) setAvisoSincronizacion(null)
     // Igual que en la carga completa: el mock vive en memoria y sin esto
     // recargar la página tira lo que acabas de escribir.
     if (IS_DEMO_MODE) store.persistAll()
-  }, [cargadores])
+  }, [cargadores, sinActualizar])
 
   const reload = useCallback(async () => {
     setIsLoading(true)
@@ -480,18 +486,15 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
    * ella escribe queda en `localStorage`, y se vuelve a leer de ahí antes de
    * pedir. Es también lo que permite probarlo sin servidor.
    */
-  const isSavingRef = useRef(false)
-  useEffect(() => { isSavingRef.current = isSaving }, [isSaving])
-
   useEffect(() => {
     if (isLoading) return
     let ultimo = Date.now()
     const refrescar = () => {
-      if (document.visibilityState !== 'visible' || isSavingRef.current) return
+      if (document.visibilityState !== 'visible' || coordinador.pendientes > 0) return
       if (Date.now() - ultimo < ESPERA_ENTRE_REFRESCOS) return
       ultimo = Date.now()
       if (IS_DEMO_MODE) store.loadFromStorage()
-      recargarPorciones(PORCIONES_DEL_DIA).catch(() => {})
+      recargarPorciones([...new Set([...PORCIONES_DEL_DIA, ...sinActualizar])]).catch(() => {})
     }
     const intervalo = window.setInterval(refrescar, CADA_CUANTO_SE_REFRESCA)
     document.addEventListener('visibilitychange', refrescar)
@@ -501,7 +504,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       document.removeEventListener('visibilitychange', refrescar)
       window.removeEventListener('online', refrescar)
     }
-  }, [isLoading, recargarPorciones])
+  }, [isLoading, recargarPorciones, coordinador, sinActualizar])
 
   /**
    * Preguntar por la conexión de almacenamiento. Si falla no se cuenta como
@@ -540,9 +543,10 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
    * relanzaba y nadie lo recogía, así que un fallo de red se quedaba en
    * silencio.
    *
-   * Devuelve lo que devolviera la acción, o `fallback` si falló, porque hay
+   * Devuelve lo que devolviera la acción, o `fallback` si falló la escritura, porque hay
    * escrituras cuyo resultado necesita la vista: crear un evento la lleva a su
-   * fecha. Las que no devuelven nada usan `runMutation`, aquí debajo.
+   * fecha. Un fallo de lectura posterior conserva ese resultado: se avisa y se
+   * reintenta solo la lectura. Las demás escrituras usan `runMutation`.
    */
   const runMutationWith = useCallback(async <T,>(
     action: () => Promise<T>,
@@ -552,31 +556,28 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
   ): Promise<T> => {
     setError(null)
     setUndoAction(null)
-    setIsSaving(true)
-    try {
-      const resultado = await action()
-      // Sin `porciones` se recarga todo, que es lo que hacían todas antes. No es
-      // un descuido dejarlas así: es lo que hay que hacer cuando una escritura
-      // toca de verdad media base —borrar un hijo o echar a alguien deja su
-      // asignación a `null` en eventos, tareas, documentos, fijos y gastos— y es
-      // además la red de seguridad de la escritura nueva que se escriba mañana:
-      // olvidarse de declarar cuesta una recarga de más, no un dato viejo en
-      // pantalla. Lo caro se declara; lo raro se recarga entero.
-      if (porciones) await recargarPorciones(porciones)
-      else await reload()
-      return resultado
-    } catch (err) {
-      setError(err instanceof Error ? mensajeDeError(err.message) : mensaje)
+    const afectadas = porciones ?? Object.keys(cargadores) as Porcion[]
+    const resultado = await coordinador.escribir(
+      action,
+      () => recargarPorciones(afectadas),
+      afectadas,
+      cantidad => setIsSaving(cantidad > 0),
+    )
+    if (!resultado.guardado) {
+      setError(resultado.error instanceof Error ? mensajeDeError(resultado.error.message) : mensaje)
       return fallback
-    } finally {
-      setIsSaving(false)
     }
-  }, [reload, recargarPorciones])
+    if ('errorDeLectura' in resultado) {
+      for (const porcion of afectadas) sinActualizar.add(porcion)
+      setAvisoSincronizacion(mensajes().guardadoSinActualizar)
+    }
+    return resultado.valor
+  }, [cargadores, coordinador, recargarPorciones, sinActualizar])
 
-  /** El caso corriente: se escribe y no hay nada que devolver. */
+  /** El caso corriente devuelve si se guardó, para decidir cuándo cerrar el formulario. */
   const runMutation = useCallback(
-    (action: () => Promise<unknown>, porciones?: Porcion[]): Promise<void> =>
-      runMutationWith<void>(async () => { await action() }, undefined, mensajes().noSeGuardo, porciones),
+    (action: () => Promise<unknown>, porciones?: Porcion[]): Promise<boolean> =>
+      runMutationWith<boolean>(async () => { await action(); return true }, false, mensajes().noSeGuardo, porciones),
     [runMutationWith],
   )
 
@@ -665,7 +666,8 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       isLoading,
       isSaving,
       error,
-      clearError: () => setError(null),
+      avisoSincronizacion,
+      clearError: () => { setError(null); setAvisoSincronizacion(null) },
       undoLabel: undoAction?.label ?? null,
       undo: async () => {
         const accion = undoAction
@@ -699,41 +701,18 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       todayMeals,
       pendingTasks,
       pendingItems,
-      // La única escritura que se queda fuera de `runMutationWith`: no puede
-      // recargar al terminar. `switchFamily` cambia la familia activa y con ella
-      // el `reload` del provider, que ya se dispara solo; recargar aquí sería
-      // hacerlo con el `familyId` viejo, el de la familia que acabas de dejar.
-      createFamily: async (name: string) => {
-        setError(null)
-        setIsSaving(true)
-        try {
-          const created = await repos.family.createFamily(name)
-          switchFamily(created.id)
-        } catch (err) {
-          setError(err instanceof Error ? mensajeDeError(err.message) : mensajes().noSeCreoFamilia)
-        } finally {
-          setIsSaving(false)
-        }
-      },
-      // Fuera de `runMutationWith` por lo mismo que `createFamily`: al terminar no
-      // hay nada que recargar con este `familyId`, porque la familia ya no está.
-      // Se salta a otra y el remonte del provider hace la carga buena.
-      deleteFamily: async () => {
-        setError(null)
-        setIsSaving(true)
-        try {
-          const otra = families.find(f => f.id !== familyId)
-          // La interfaz ya esconde el botón, y en Supabase manda la RPC. Esto es
-          // el tercer cerrojo, el que sostiene el modo demo.
-          if (!otra) throw new Error(mensajes().unicaFamilia)
-          await repos.family.deleteFamily(familyId)
-          switchFamily(otra.id)
-        } catch (err) {
-          setError(err instanceof Error ? mensajeDeError(err.message) : mensajes().noSeEliminoFamilia)
-        } finally {
-          setIsSaving(false)
-        }
-      },
+      // Cambiar de familia remonta el provider: estas escrituras no recargan
+      // los datos de la familia que se acaba de dejar.
+      createFamily: (name: string) => runMutation(async () => {
+        const created = await repos.family.createFamily(name)
+        switchFamily(created.id)
+      }, []),
+      deleteFamily: () => runMutation(async () => {
+        const otra = families.find(f => f.id !== familyId)
+        if (!otra) throw new Error(mensajes().unicaFamilia)
+        await repos.family.deleteFamily(familyId)
+        switchFamily(otra.id)
+      }, []),
       // El nombre de la familia se ve en dos sitios: la pantalla de Ajustes y el
       // selector de familias de la cabecera, que se pinta con `families`. Con una
       // sola porción, el selector seguiría diciendo el nombre viejo.
@@ -819,14 +798,16 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           async () => { await repos.tasks.deleteTask(id); return true }, false, mensajes().noSeGuardo, ['tasks'],
         )
         if (hecho && previa) setUndoAction({ label: mensajes().tareaEliminada, run: () => restaurarTareaEliminada(previa) })
+        return hecho
       },
       // Marcar una tarea es lo más fácil de hacer sin querer: es un círculo que
       // se toca al pasar el dedo por la lista. Se guarda cómo estaba antes para
       // poder devolverla, que hasta ahora no había manera si se repetía.
       toggleTask: async (id: string) => {
         const previo = tasks.find(t => t.id === id)
-        await runMutation(() => repos.tasks.toggleTask(id), ['tasks'])
-        if (previo) setUndoAction({ label: mensajes().hecho, run: () => restaurarTarea(previo) })
+        const hecho = await runMutation(() => repos.tasks.toggleTask(id), ['tasks'])
+        if (hecho && previo) setUndoAction({ label: mensajes().hecho, run: () => restaurarTarea(previo) })
+        return hecho
       },
       createList: (draft: ListDraft) => runMutation(() => repos.lists.createList(familyId, draft), ['lists']),
       updateList: (id: string, draft: ListDraft) => runMutation(() => repos.lists.updateList(id, draft), ['lists']),
@@ -844,6 +825,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           async () => { await repos.listItems.deleteListItem(id); return true }, false, mensajes().noSeGuardo, ['listItems'],
         )
         if (hecho && previo) setUndoAction({ label: mensajes().itemEliminado, run: () => restaurarItemEliminado(previo) })
+        return hecho
       },
       // El gesto más repetido de la app entera: un círculo que se toca en el súper,
       // con el móvil en una mano y el carro en la otra. Es el que más gana con esto.
@@ -855,6 +837,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           async () => { await repos.listItems.toggleListItem(id); return true }, false, mensajes().noSeGuardo, ['listItems'],
         )
         if (hecho && previo) setUndoAction({ label: mensajes().hecho, run: () => restaurarMarcaDeItem(previo) })
+        return hecho
       },
       setListItemQuantity: (id: string, quantity: number) =>
         runMutation(() => repos.listItems.setListItemQuantity(id, quantity), ['listItems']),
@@ -871,6 +854,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
           async () => { await repos.notes.deleteNote(id); return true }, false, mensajes().noSeGuardo, ['notes'],
         )
         if (hecho && previa) setUndoAction({ label: mensajes().notaEliminada, run: () => restaurarNotaEliminada(previa) })
+        return hecho
       },
       // Los fijos y las partidas no tocan lo apuntado, y por eso no recargan ni
       // `expenses` ni `monthPlans`: la plantilla de un mes en curso se calcula en
@@ -906,9 +890,9 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
       deleteBudget: (id: string) =>
         runMutation(() => repos.budgets.deleteBudget(id), ['budgets', 'expenses', 'monthPlans']),
       createExpense: (draft: ExpenseDraft) => runMutation(() => repos.expenses.createExpense(familyId, draft), ['expenses']),
-      createExpenses: (drafts: ExpenseDraft[]) => runMutationWith(
+      createExpenses: (drafts: ExpenseDraft[]) => runMutationWith<number | null>(
         async () => (await repos.expenses.createExpenses(familyId, drafts)).length,
-        0,
+        null,
         mensajes().noSeApuntaronMovimientos,
         ['expenses'],
       ),
@@ -951,6 +935,7 @@ export function StoreProvider({ children, familyId, switchFamily }: StoreProvide
     isLoading,
     isSaving,
     error,
+    avisoSincronizacion,
     reload,
     familyId,
     families,

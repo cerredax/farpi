@@ -30,8 +30,8 @@ interface ListSheetProps {
   /** Cuántos ítems tiene la lista que se edita: es lo que se lleva por delante borrarla. */
   itemsCount?: number
   onClose: () => void
-  onCreate: (draft: ListDraft) => void
-  onUpdate: (id: string, draft: ListDraft) => void
+  onCreate: (draft: ListDraft) => Promise<boolean>
+  onUpdate: (id: string, draft: ListDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -41,7 +41,7 @@ function initDraft(mode: 'create' | 'edit', initial: List | null | undefined): L
 }
 
 export function ListSheet({ open, mode, initial, itemsCount = 0, onClose, onCreate, onUpdate, onDelete }: ListSheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ListDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<ListDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
     validate: validateListDraft,
@@ -52,11 +52,9 @@ export function ListSheet({ open, mode, initial, itemsCount = 0, onClose, onCrea
   const { preguntando, preguntar, cancelar, confirmar } = useSheetDeleteDialog({ open, initial, onDelete, onClose })
   const t = useT().listas.listSheet
 
-  const handleSubmit = submitHandler(valid => {
-    if (mode === 'create') onCreate(valid)
-    else if (initial) onUpdate(initial.id, valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => mode === 'create'
+    ? onCreate(valid)
+    : initial ? onUpdate(initial.id, valid) : false, onClose)
 
   return (
     <BottomSheet
@@ -70,6 +68,7 @@ export function ListSheet({ open, mode, initial, itemsCount = 0, onClose, onCrea
       ) : (
         <SheetFooter
           form="list-form"
+          disabled={guardando}
           submitLabel={mode === 'create' ? t.crearLista : t.guardar}
           error={formError}
           onDelete={mode === 'edit' ? { onClick: preguntar, idleLabel: t.eliminarLista } : undefined}

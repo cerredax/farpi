@@ -72,6 +72,7 @@ export const comun: typeof es = {
   store: {
     familiaNoEncontrada: 'Your family could not be found',
     errorCargando: 'The data could not be loaded',
+    guardadoSinActualizar: 'Your change is saved. The screen could not refresh; it will retry automatically.',
     noSeGuardo: 'The change could not be saved',
     noSeCreoFamilia: 'The family could not be created',
     unicaFamilia: 'You cannot delete your only family.',
@@ -87,6 +88,7 @@ export const comun: typeof es = {
   },
 
   datos: {
+    lecturaIncompleta: 'Some data could not be loaded. Please try again.',
     operacionFallida: 'The operation could not be completed',
     seleccionaUnArchivo: 'Choose a file to upload',
     noSeSubioADrive: 'The file could not be uploaded to Google Drive. Please try again.',

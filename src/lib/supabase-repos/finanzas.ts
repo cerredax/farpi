@@ -1,6 +1,6 @@
 import { createClient } from '../supabase/client'
 import { parseAmountToCents } from '../finanzas'
-import { assertNoError, currentUserId } from './shared'
+import { leerTodas, assertNoError, currentUserId } from './shared'
 import type {
   Budget, BudgetDraft, Expense, ExpenseDraft, FixedEntry, FixedEntryDraft,
   FixedEntryOverride, FixedOverrideDraft,
@@ -33,13 +33,12 @@ function centimos(texto: string): number {
 export const fixedEntriesRepo: FixedEntriesRepo = {
   async getFixedEntries(familyId: string): Promise<FixedEntry[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<FixedEntry>(() => supabase
       .from('fixed_entries')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('sort_order', { ascending: true })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createFixedEntry(familyId: string, draft: FixedEntryDraft): Promise<FixedEntry> {
@@ -99,12 +98,11 @@ export const fixedEntriesRepo: FixedEntriesRepo = {
 export const fixedOverridesRepo: FixedOverridesRepo = {
   async getFixedOverrides(familyId: string): Promise<FixedEntryOverride[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<FixedEntryOverride>(() => supabase
       .from('fixed_entry_overrides')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async setFixedOverride(
@@ -144,13 +142,12 @@ export const fixedOverridesRepo: FixedOverridesRepo = {
 export const budgetsRepo: BudgetsRepo = {
   async getBudgets(familyId: string): Promise<Budget[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<Budget>(() => supabase
       .from('budgets')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('sort_order', { ascending: true })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createBudget(familyId: string, draft: BudgetDraft): Promise<Budget> {
@@ -206,13 +203,12 @@ export const budgetsRepo: BudgetsRepo = {
 export const expensesRepo: ExpensesRepo = {
   async getExpenses(familyId: string): Promise<Expense[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<Expense>(() => supabase
       .from('expenses')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('date', { ascending: false })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createExpense(familyId: string, draft: ExpenseDraft): Promise<Expense> {
@@ -308,14 +304,13 @@ export const quotesRepo: QuotesRepo = {
     const supabase = createClient()
     // Por título y precio, que es como los agrupa y ordena la pantalla. Quien
     // manda sigue siendo `agruparPresupuestos`, compartido con el mock.
-    const { data, error } = await supabase
+    return leerTodas<Quote>(() => supabase
       .from('quotes')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('title', { ascending: true })
       .order('amount_cents', { ascending: true })
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createQuote(familyId: string, draft: QuoteDraft): Promise<Quote> {
@@ -377,21 +372,19 @@ export const quotesRepo: QuotesRepo = {
  * precisamente lo que hace que un mes cerrado se pueda dar por bueno.
  *
  * Las líneas llegan en la misma consulta que la cabecera —un `select` anidado, no
- * dos viajes— y se reparten aquí. Una casa tiene doce meses al año con diez líneas
- * cada uno: no hay nada que paginar.
+ * dos viajes— y se reparten aquí. Las cabeceras se paginan como el resto del historial.
  */
 export const monthPlansRepo: MonthPlansRepo = {
   async getMonthPlans(familyId: string): Promise<MonthPlan[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const data = await leerTodas<Omit<MonthPlan, 'lines'> & { month_plan_lines: MonthPlanLine[] }>(() => supabase
       .from('month_plans')
-      .select('family_id, month, closed_at, month_plan_lines(*)')
+      .select('family_id, month, closed_at, month_plan_lines(*)', { count: 'exact' })
       .eq('family_id', familyId)
-      .order('month', { ascending: false })
-    assertNoError(error)
+      .order('month', { ascending: false }))
 
-    return (data ?? []).map(fila => {
-      const { month_plan_lines, ...plan } = fila as typeof fila & { month_plan_lines: MonthPlanLine[] }
+    return data.map(fila => {
+      const { month_plan_lines, ...plan } = fila
       return { ...plan, lines: month_plan_lines ?? [] }
     })
   },

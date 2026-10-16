@@ -39,8 +39,8 @@ export function useNotesState() {
   }
 
   function handleSave(draft: NoteDraft) {
-    if (sheetMode === 'edit' && editingNote) updateNote(editingNote.id, draft)
-    else createNote(draft)
+    if (sheetMode === 'edit' && editingNote) return updateNote(editingNote.id, draft)
+    return createNote(draft)
   }
 
   return {

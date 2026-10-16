@@ -17,7 +17,7 @@ interface QuoteSheetProps {
   /** Los trabajos ya apuntados, para poder añadir otro precio al mismo. */
   titulos: string[]
   onClose: () => void
-  onSave: (draft: QuoteDraft) => void
+  onSave: (draft: QuoteDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -47,17 +47,14 @@ function initDraft(initial: Quote | null | undefined): QuoteDraft {
  * espacios de más.
  */
 export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }: QuoteSheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<QuoteDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<QuoteDraft>({
     open,
     initialDraft: () => initDraft(initial),
     validate: validateQuoteDraft,
   })
   const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => onSave(valid), onClose)
 
   return (
     <BottomSheet
@@ -67,6 +64,7 @@ export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }
       footer={
         <SheetFooter
           form="quote-form"
+          disabled={guardando}
           submitLabel={initial ? 'Guardar' : 'Apuntar presupuesto'}
           error={formError}
           onDelete={initial

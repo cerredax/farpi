@@ -21,8 +21,8 @@ interface ChildSheetProps {
   kind: PersonKind
   initial?: Child | null
   onClose: () => void
-  onCreate: (draft: ChildDraft) => void
-  onUpdate: (id: string, draft: ChildDraft) => void
+  onCreate: (draft: ChildDraft) => Promise<boolean>
+  onUpdate: (id: string, draft: ChildDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -55,7 +55,7 @@ const TEXTOS: Record<PersonKind, { anadir: string; editar: string; eliminar: str
 
 export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpdate, onDelete }: ChildSheetProps) {
   const textos = TEXTOS[kind]
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<ChildDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<ChildDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, kind),
     validate: validateChildDraft,
@@ -66,11 +66,9 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
   // nada, pero lo que llevaba se queda sin dueño, y eso no se ve desde aquí.
   const { preguntando, preguntar, cancelar, confirmar } = useSheetDeleteDialog({ open, initial, onDelete, onClose })
 
-  const handleSubmit = submitHandler(valid => {
-    if (mode === 'create') onCreate(valid)
-    else if (initial) onUpdate(initial.id, valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => mode === 'create'
+    ? onCreate(valid)
+    : initial ? onUpdate(initial.id, valid) : false, onClose)
 
   // Mientras el sheet pregunta, la píldora de la cabecera se va: ya se está
   // dentro de la pregunta y volver a pulsarla no diría nada nuevo.
@@ -89,6 +87,7 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
       ) : (
         <SheetFooter
           form="child-form"
+          disabled={guardando}
           submitLabel={mode === 'create' ? textos.anadir : 'Guardar cambios'}
           error={formError}
         />

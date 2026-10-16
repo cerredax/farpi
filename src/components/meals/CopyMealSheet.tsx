@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Copy, Repeat } from 'lucide-react'
 import { format } from 'date-fns'
 import type { Locale } from 'date-fns'
@@ -10,6 +10,7 @@ import { SheetFooter } from '@/components/ui/SheetFooter'
 import { MEAL_SLOT_META } from '@/lib/constants'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
 import { mealCourses } from '@/lib/meal-slots'
+import { useSheetForm } from '@/hooks/useSheetForm'
 import { useIdioma, useT } from '@/lib/i18n/contexto'
 import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { MealPlan } from '@/types'
@@ -19,7 +20,7 @@ interface CopyMealSheetProps {
   sourceDate: string | null
   sourceMeals: MealPlan[]
   onClose: () => void
-  onCopy: (sourceDate: string, targetDate: string, repeatUntil?: string) => void
+  onCopy: (sourceDate: string, targetDate: string, repeatUntil?: string) => Promise<boolean>
 }
 
 function getNextDate(date: string): string {
@@ -38,9 +39,12 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   const t = diccionario.comidas.copiarSheet
   const locale = localeDeFechas(useIdioma())
   const defaultTargetDate = sourceDate ? getNextDate(sourceDate) : getLocalDateString()
-  const [targetDate, setTargetDate] = useState(defaultTargetDate)
-  const [repeatEveryDay, setRepeatEveryDay] = useState(false)
-  const [repeatUntil, setRepeatUntil] = useState(defaultTargetDate)
+  const { draft, patch, submitHandler, guardando } = useSheetForm({
+    open,
+    initialDraft: () => ({ targetDate: defaultTargetDate, repeatEveryDay: false, repeatUntil: defaultTargetDate }),
+    autoFocus: false,
+  })
+  const { targetDate, repeatEveryDay, repeatUntil } = draft
 
   const sortedMeals = useMemo(
     () => [...sourceMeals].sort((a, b) => MEAL_SLOT_META[a.slot].order - MEAL_SLOT_META[b.slot].order),
@@ -51,18 +55,16 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
   const invalidRepeatRange = repeatEveryDay && repeatUntil < targetDate
   const disabled = !sourceDate || !targetDate || !hasMeals || invalidRepeatRange
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (disabled || !sourceDate) return
-    onCopy(sourceDate, targetDate, repeatEveryDay ? repeatUntil : undefined)
-    onClose()
-  }
+  const handleSubmit = submitHandler(() => {
+    if (disabled || !sourceDate) return false
+    return onCopy(sourceDate, targetDate, repeatEveryDay ? repeatUntil : undefined)
+  }, onClose)
 
   const footer = (
     <SheetFooter
       form="copy-meal-form"
       submitLabel={repeatEveryDay ? t.copiarYRepetir : t.copiarMenu}
-      disabled={disabled}
+      disabled={disabled || guardando}
     />
   )
 
@@ -109,8 +111,8 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
             type="date"
             value={targetDate}
             onChange={e => {
-              setTargetDate(e.target.value)
-              if (!repeatEveryDay || repeatUntil < e.target.value) setRepeatUntil(e.target.value)
+              patch({ targetDate: e.target.value,
+                ...(!repeatEveryDay || repeatUntil < e.target.value ? { repeatUntil: e.target.value } : {}) })
             }}
             required
             className="field-input"
@@ -124,7 +126,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
           <input
             type="checkbox"
             checked={repeatEveryDay}
-            onChange={e => setRepeatEveryDay(e.target.checked)}
+            onChange={e => patch({ repeatEveryDay: e.target.checked })}
             className="mt-1 h-4 w-4 accent-primary"
           />
           <span className="flex-1">
@@ -145,7 +147,7 @@ export function CopyMealSheet({ open, sourceDate, sourceMeals, onClose, onCopy }
               type="date"
               value={repeatUntil}
               min={targetDate}
-              onChange={e => setRepeatUntil(e.target.value)}
+              onChange={e => patch({ repeatUntil: e.target.value })}
               required
               className="field-input"
             />

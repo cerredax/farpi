@@ -215,22 +215,25 @@ export function CalendarView() {
 
   async function handleCreate(draft: EventDraft) {
     const event = await createEvent(draft)
-    if (!event) return  // falló: el store ya muestra el motivo
+    if (!event) return false  // falló: el store ya muestra el motivo
     enfocarDia(parseISO(event.start_at))
+    return true
   }
 
   async function handleCreateSeries(draft: EventDraft, weekdays: number[], endDate: string, everyWeeks?: number) {
     const created = await createEventSeries(draft, weekdays, endDate, everyWeeks)
     if (created.length > 0) enfocarDia(parseISO(created[0].start_at))
+    return created.length > 0
   }
 
   async function handleCreateYearlySeries(draft: EventDraft, endYear: number) {
     const created = await createYearlySeries(draft, endYear)
-    if (created.length === 0) return
+    if (created.length === 0) return false
     // Se va al mes del primero, que es donde lo va a buscar quien acaba de
     // apuntarlo: un cumpleaños no sale en la lista, sale en su bloque, y el
     // bloque habla del mes que se está mirando.
     enfocarDia(parseISO(created[0].start_at))
+    return true
   }
 
   // "Vacaciones y descansos" vive con el mes y habla de él. Desde que la agenda

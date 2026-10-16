@@ -178,6 +178,13 @@ export const ajustes: typeof es = {
     cumples: 'Birthdays',
     cumplesDetalle: 'The day before and the same day, in the morning summary.',
     noSeGuardo: 'The change could not be saved. Try again.',
+    probar: 'Test on this device',
+    probando: 'Waiting for the alert…',
+    pruebaDetalle: 'Send a test only to this device to check whether alerts arrive.',
+    pruebaRecibida: 'Farpi received the test and asked to display it. If you cannot see it, check your phone’s notification permissions and Do Not Disturb mode.',
+    pruebaSinConfirmar: 'We could not confirm receipt. Check your connection and your phone’s notification permissions. You can also turn alerts off and on again here.',
+    noSeProbo: 'The test could not be sent. Try again.',
+    activarAntesDeProbar: 'Turn on alerts on this device before testing them.',
   },
 
   almacen: {

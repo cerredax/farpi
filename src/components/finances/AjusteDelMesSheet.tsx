@@ -18,9 +18,9 @@ interface AjusteDelMesSheetProps {
   /** «Septiembre 2026», ya capitalizado. Va en el título y en el campo. */
   nombreDelMes: string
   onClose: () => void
-  onSave: (draft: FixedOverrideDraft) => void
+  onSave: (draft: FixedOverrideDraft) => Promise<boolean>
   /** Quitar el ajuste. Solo se ofrece si ese mes tiene uno. */
-  onQuitar: () => void
+  onQuitar: () => Promise<boolean>
   /** Irse a la referencia, en «Fijos». Cierra este sheet y abre el del fijo. */
   onEditarFijo: () => void
 }
@@ -54,7 +54,7 @@ interface AjusteDelMesSheetProps {
 export function AjusteDelMesSheet({
   open, fijo, nombreDelMes, onClose, onSave, onQuitar, onEditarFijo,
 }: AjusteDelMesSheetProps) {
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<FixedOverrideDraft>({
+  const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<FixedOverrideDraft>({
     open,
     initialDraft: () => ({ amount: fijo ? centsToInput(fijo.amountCents) : '' }),
     validate: validateFixedOverrideDraft,
@@ -66,10 +66,7 @@ export function AjusteDelMesSheet({
   const referencia = fijo?.referenciaCents ?? null
   const mesEnMinuscula = nombreDelMes.split(' ')[0].toLowerCase()
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid)
-    onClose()
-  })
+  const handleSubmit = submitHandler(valid => onSave(valid), onClose)
 
   return (
     <BottomSheet
@@ -79,6 +76,7 @@ export function AjusteDelMesSheet({
       footer={
         <SheetFooter
           form="ajuste-mes-form"
+          disabled={guardando}
           submitLabel="Guardar"
           error={formError}
         />
@@ -111,7 +109,7 @@ export function AjusteDelMesSheet({
               type="button"
               variant="secondary"
               fullWidth
-              onClick={() => { onQuitar(); onClose() }}
+              onClick={async () => { if (await onQuitar()) onClose() }}
             >
               Volver a los {formatCents(referencia)}
             </Button>

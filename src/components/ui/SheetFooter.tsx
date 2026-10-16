@@ -8,6 +8,8 @@ interface SheetFooterProps {
   disabled?: boolean
   /** Mensaje de validación, encima del botón principal. */
   error?: string | null
+  /** Segundo envío del mismo formulario, identificado por su intención. */
+  secondarySubmit?: { label: string; value: string }
   /**
    * Botón de borrado al pie. Omitir en modo crear o cuando va en la cabecera.
    * `confirming` y `confirmLabel` son del doble toque; los borrados que
@@ -17,7 +19,7 @@ interface SheetFooterProps {
 }
 
 /** Pie fijo de los sheets: error de validación, acción principal y borrado opcional. */
-export function SheetFooter({ form, submitLabel, disabled, error, onDelete }: SheetFooterProps) {
+export function SheetFooter({ form, submitLabel, disabled, error, secondarySubmit, onDelete }: SheetFooterProps) {
   return (
     <div className="px-5 pb-8 pt-3 space-y-2">
       {/* `role="alert"` porque aparece **después** de pulsar Guardar: sin él, un
@@ -28,6 +30,11 @@ export function SheetFooter({ form, submitLabel, disabled, error, onDelete }: Sh
       <Button type="submit" form={form} fullWidth size="lg" disabled={disabled}>
         {submitLabel}
       </Button>
+      {secondarySubmit && (
+        <Button type="submit" form={form} name="accion" value={secondarySubmit.value} variant="secondary" fullWidth size="sm" disabled={disabled}>
+          {secondarySubmit.label}
+        </Button>
+      )}
       {onDelete && (
         <DeleteButton
           confirming={onDelete.confirming}

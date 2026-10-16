@@ -1,15 +1,14 @@
 import { MAX_UNIDADES } from '../constants'
 import { createClient } from '../supabase/client'
-import { assertNoError, currentUserId } from './shared'
+import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { List, ListDraft, ListItem, ListItemDraft } from '@/types'
 import type { ListItemsRepo, ListsRepo } from '../repos/types'
 
 export const listsRepo: ListsRepo = {
   async getLists(familyId: string): Promise<List[]> {
     const supabase = createClient()
-    const { data, error } = await supabase.from('lists').select('*').eq('family_id', familyId).order('created_at')
-    assertNoError(error)
-    return data ?? []
+    return leerTodas<List>(() => supabase.from('lists').select('*', { count: 'exact' }).eq('family_id', familyId).order('created_at')
+      .order('id'))
   },
 
   async createList(familyId: string, draft: ListDraft): Promise<List> {
@@ -40,13 +39,12 @@ export const listsRepo: ListsRepo = {
 export const listItemsRepo: ListItemsRepo = {
   async getListItems(familyId: string): Promise<ListItem[]> {
     const supabase = createClient()
-    const { data, error } = await supabase
+    return leerTodas<ListItem>(() => supabase
       .from('list_items')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('family_id', familyId)
       .order('sort_order')
-    assertNoError(error)
-    return data ?? []
+      .order('id'))
   },
 
   async createListItem(listId: string, familyId: string, draft: ListItemDraft): Promise<ListItem> {

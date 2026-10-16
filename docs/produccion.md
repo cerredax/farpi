@@ -2,7 +2,7 @@
 
 Estado y pasos para llevar Farpi a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-09-30.
+> Última actualización: 2026-10-15.
 
 ## 0. El cambio de nombre a Farpi
 
@@ -300,7 +300,7 @@ Build local de comprobación: `npm run build`.
 
 ## 4. Validación Supabase — COMPLETADA (2026-08-06)
 
-Resultados en **`docs/supabase-validation.md`**: 206/206 comprobaciones correctas, con el esquema entero validado (última pasada, 30-09-2026). Repetible con `node scripts/validate-rls.mjs`.
+Resultados en **`docs/supabase-validation.md`**: 211/211 comprobaciones correctas, incluidas las preferencias de avisos por dispositivo (última pasada, 15-10-2026). Repetible con `node scripts/validate-rls.mjs`.
 
 - [x] Cuatro usuarios y tres familias de prueba (creados y eliminados durante la ejecución).
 - [x] RLS por tabla y aislamiento entre familias, con sesiones de usuario reales.

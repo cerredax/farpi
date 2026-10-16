@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useConfirmAction } from './useConfirmAction'
+import { textosDelNavegador } from '@/lib/i18n'
 
 interface UseSheetFormOptions<D> {
   open: boolean
@@ -21,6 +22,8 @@ export function useSheetForm<D>({ open, initialDraft, validate, autoFocus = true
   const [draft, setDraft] = useState<D>(initialDraft)
   const [formError, setFormError] = useState<string | null>(null)
   const firstFieldRef = useRef<HTMLInputElement>(null)
+  const enviando = useRef(false)
+  const [guardando, setGuardando] = useState(false)
 
   // La `key` de las vistas remonta el sheet al editar cosas distintas, pero al
   // crear vale siempre lo mismo: sin esto, añadir dos ítems seguidos dejaba el
@@ -40,7 +43,9 @@ export function useSheetForm<D>({ open, initialDraft, validate, autoFocus = true
   useEffect(() => {
     // El retardo espera a que termine la animación de apertura del sheet;
     // enfocar antes hace que el teclado móvil abra a medias.
-    if (open && autoFocus) setTimeout(() => firstFieldRef.current?.focus(), 300)
+    if (!open || !autoFocus) return
+    const timer = setTimeout(() => firstFieldRef.current?.focus(), 300)
+    return () => clearTimeout(timer)
   }, [open, autoFocus])
 
   /** Actualiza campos sueltos del draft sin repetir el spread. */
@@ -51,25 +56,33 @@ export function useSheetForm<D>({ open, initialDraft, validate, autoFocus = true
   /**
    * Envuelve el onSubmit del form: valida y solo llama a `onValid` si pasa.
    *
-   * `onValid` puede ser asíncrono —lo es en Documentos, que espera a que el
-   * archivo termine de subir antes de cerrar el sheet— y entonces la promesa se
-   * suelta a propósito: quien la devuelve es el que sabe qué hacer con el fallo,
-   * y un `submit` no puede esperarla.
+   * Espera al guardado y conserva el borrador si falla. El bloqueo usa una ref
+   * además del botón: dos Enter seguidos pueden llegar antes del siguiente render.
    */
-  function submitHandler(onValid: (draft: D) => void | Promise<void>) {
-    return (e: React.FormEvent) => {
+  function submitHandler(onValid: (draft: D) => void | boolean | Promise<void | boolean>, onGuardado?: () => void) {
+    return async (e: React.FormEvent) => {
       e.preventDefault()
+      if (enviando.current) return
       const message = validate?.(draft) ?? null
       if (message) {
         setFormError(message)
         return
       }
       setFormError(null)
-      void onValid(draft)
+      enviando.current = true
+      setGuardando(true)
+      try {
+        if (await onValid(draft) !== false) onGuardado?.()
+      } catch (error) {
+        setFormError(error instanceof Error ? error.message : textosDelNavegador().comun.store.noSeGuardo)
+      } finally {
+        enviando.current = false
+        setGuardando(false)
+      }
     }
   }
 
-  return { draft, setDraft, patch, formError, setFormError, firstFieldRef, submitHandler }
+  return { draft, setDraft, patch, formError, setFormError, firstFieldRef, submitHandler, guardando }
 }
 
 interface UseSheetDeleteOptions {

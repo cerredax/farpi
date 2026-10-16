@@ -186,6 +186,13 @@ export const ajustes = {
     cumples: 'Cumpleaños',
     cumplesDetalle: 'El día antes y el mismo día, en el resumen de la mañana.',
     noSeGuardo: 'No se pudo guardar el cambio. Inténtalo de nuevo.',
+    probar: 'Probar en este dispositivo',
+    probando: 'Esperando el aviso…',
+    pruebaDetalle: 'Envía una prueba solo a este dispositivo para comprobar si llegan los avisos.',
+    pruebaRecibida: 'Farpi ha recibido la prueba y ha pedido mostrarla. Si no la ves, revisa los permisos de notificaciones del móvil y el modo No molestar.',
+    pruebaSinConfirmar: 'No hemos podido confirmar la recepción. Comprueba tu conexión y los permisos de notificaciones del móvil. También puedes desactivar y volver a activar los avisos aquí.',
+    noSeProbo: 'No se pudo enviar la prueba. Inténtalo de nuevo.',
+    activarAntesDeProbar: 'Activa los avisos en este dispositivo antes de probarlos.',
   },
 
   /** Google Drive, la pestaña Sincronización. */

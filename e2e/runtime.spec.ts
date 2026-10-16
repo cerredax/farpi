@@ -22,6 +22,11 @@ async function abrirTareasDelDia(raiz: Page | Locator) {
   if (await resumen.count() > 0) await resumen.first().click()
 }
 
+async function abrirDetallesDeApunte(page: Page) {
+  const detalles = page.locator('#expense-details')
+  if (await detalles.getAttribute('open') === null) await detalles.locator('summary').click()
+}
+
 /**
  * Se asegura de estar en la vista Mes.
  *
@@ -1210,6 +1215,7 @@ test('un gasto apuntado mueve la partida de la que sale', async ({ page }) => {
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()
   await page.locator('#expense-amount').fill('24,90')
   await page.locator('#expense-description').fill('Compra semanal')
+  await abrirDetallesDeApunte(page)
   await page.getByRole('button', { name: 'Compra', exact: true }).click()
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
@@ -1237,6 +1243,7 @@ test('una partida se abre y enseña en qué se ha ido', async ({ page }) => {
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()
   await page.locator('#expense-amount').fill('24,90')
   await page.locator('#expense-description').fill('Compra semanal')
+  await abrirDetallesDeApunte(page)
   await page.getByRole('button', { name: 'Compra', exact: true }).click()
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
@@ -1295,7 +1302,7 @@ test('los fijos dan la cuenta del mes, y un ingreso no toca las partidas', async
   // Un ingreso no pregunta por partida —el campo no está— y no mueve ninguna,
   // pero sí sube lo que queda del mes.
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()
-  await page.getByRole('button', { name: 'Un ingreso' }).click()
+  await page.getByRole('button', { name: 'Apuntar un ingreso', exact: true }).click()
   await expect(page.getByText('De qué partida sale')).toHaveCount(0)
   await page.locator('#expense-amount').fill('120')
   await page.locator('#expense-description').fill('Clases particulares')
@@ -1924,6 +1931,7 @@ test('cada partida dice cuánto ha cambiado desde el mes pasado', async ({ page 
   await page.getByRole('button', { name: 'Nuevo apunte' }).click()
   await page.locator('#expense-amount').fill('100')
   await page.locator('#expense-description').fill('Compra del mes')
+  await abrirDetallesDeApunte(page)
   await page.getByRole('dialog').getByRole('button', { name: /Compra/ }).click()
   await page.getByRole('button', { name: 'Apuntar gasto' }).click()
   await page.waitForTimeout(500)
@@ -2043,9 +2051,7 @@ test('lo que ya se apuntó otra vez se ofrece, con su partida', async ({ page })
   for (const dia of ['01', '08']) {
     await page.getByRole('button', { name: 'Nuevo apunte' }).click()
     await page.locator('#expense-amount').fill('62,40')
-    // La fecha va plegada cuando el apunte nace hoy (28-09-2026): se despliega.
-    const cambiar = page.getByRole('button', { name: /Cambiar fecha o persona/ })
-    if (await cambiar.count() > 0) await cambiar.click()
+    await abrirDetallesDeApunte(page)
     await page.locator('#expense-date').fill(`2026-09-${dia}`)
     await page.locator('#expense-description').fill('Compra semanal')
     await page.getByRole('button', { name: 'Compra', exact: true }).click()
@@ -2060,6 +2066,8 @@ test('lo que ya se apuntó otra vez se ofrece, con su partida', async ({ page })
   await sheet.getByRole('button', { name: 'Compra semanal' }).click()
 
   await expect(page.locator('#expense-description')).toHaveValue('Compra semanal')
+  await expect(sheet.locator('summary')).toContainText('Compra')
+  await abrirDetallesDeApunte(page)
   // Y la partida queda elegida sin tocarla: el chip de «Compra» se pinta como
   // seleccionado, que es lo que `SelectChip` hace con el fondo de marca.
   await expect(sheet.getByRole('button', { name: 'Compra', exact: true }))

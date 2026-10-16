@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { AssigneePicker } from '@/components/ui/AssigneePicker'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
@@ -8,7 +10,9 @@ import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { useStore } from '@/lib/store-context'
+import { resolveAssignee } from '@/lib/assignees'
 import { centsToInput } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import { validateFixedEntryDraft } from '@/lib/validators'
 import type { FixedEntry, FixedEntryDraft, MovementKind } from '@/types'
 
@@ -75,7 +79,7 @@ interface FixedEntrySheetProps {
   /** Con qué tipo nace uno nuevo: el del bloque desde el que se ha pulsado. */
   kindPorDefecto: MovementKind
   onClose: () => void
-  onSave: (draft: FixedEntryDraft) => void
+  onSave: (draft: FixedEntryDraft) => Promise<boolean>
   onDelete: (id: string) => void
 }
 
@@ -101,110 +105,151 @@ function initDraft(initial: FixedEntry | null | undefined, kindPorDefecto: Movem
  * vigencias por concepto y mes, que es la tabla que se descartó a cambio de que
  * nadie tenga que abrir septiembre.
  *
- * El tipo se elige arriba del todo porque cambia lo que significa todo lo demás,
- * incluidos los iconos que se ofrecen y el texto del botón. Se puede cambiar
- * después de creado: apuntar una nómina en el bloque de gastos es un error de un
- * toque y arreglarlo no debería obligar a borrar y volver a escribir.
+ * El bloque de origen decide el tipo y el título lo recuerda. Tipo, icono y
+ * persona se pueden cambiar en «Más opciones»; lo habitual solo pide nombre e
+ * importe. Al continuar con otro fijo se conserva el tipo y la persona, pero
+ * se limpian nombre, importe e icono para no copiar el recibo anterior.
  *
  * Tampoco hay partida a la que colgarlo: un fijo es exacto y una partida es para
  * lo que varía. Colgar el alquiler de una partida la llenaría sola, sin haber
  * apuntado nada.
  */
 export function FixedEntrySheet({ open, initial, kindPorDefecto, onClose, onSave, onDelete }: FixedEntrySheetProps) {
+  const t = useT()
+  const textos = t.finanzas.fijo
   const { members, kids } = useStore()
-  const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<FixedEntryDraft>({
+  const [mensajeGuardado, setMensajeGuardado] = useState<string | null>(null)
+  const enfocarSiguiente = useRef(false)
+  const { draft, setDraft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<FixedEntryDraft>({
     open,
     initialDraft: () => initDraft(initial, kindPorDefecto),
     validate: validateFixedEntryDraft,
   })
-  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose })
+
+  useEffect(() => {
+    // Espera al render que habilita el fieldset tras una escritura lenta.
+    if (open && !guardando && enfocarSiguiente.current) {
+      enfocarSiguiente.current = false
+      firstFieldRef.current?.focus()
+    }
+  }, [open, guardando, draft, firstFieldRef])
+
+  function cerrar() {
+    enfocarSiguiente.current = false
+    setMensajeGuardado(null)
+    onClose()
+  }
+  const { confirming, handleDelete } = useSheetDelete({ initial, onDelete, onClose: cerrar })
 
   const esIngreso = draft.kind === 'ingreso'
+  const quien = resolveAssignee(draft, members, kids)?.name ?? t.comun.familia
 
-  const handleSubmit = submitHandler(valid => {
-    onSave(valid)
-    onClose()
-  })
+  function handleSubmit(evento: FormEvent<HTMLFormElement>) {
+    // La intención pertenece a este envío, incluso si llega otro mientras se
+    // guarda. Enter y el botón principal guardan y cierran como hasta ahora.
+    const continuar = !initial && (evento.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'otro'
+    setMensajeGuardado(null)
+    return submitHandler(valid => onSave(valid), () => {
+      if (!continuar) {
+        cerrar()
+        return
+      }
+      enfocarSiguiente.current = true
+      setMensajeGuardado(textos.guardadoOtro(draft.name.trim()))
+      setDraft({ ...draft, name: '', amount: '', emoji: '💶' })
+    })(evento)
+  }
 
   return (
     <BottomSheet
       open={open}
-      title={initial ? 'Editar fijo' : 'Nuevo fijo'}
-      onClose={onClose}
+      title={initial ? textos.editar : esIngreso ? textos.nuevoIngreso : textos.nuevoGasto}
+      onClose={cerrar}
       footer={
         <SheetFooter
           form="fixed-entry-form"
-          submitLabel={initial ? 'Guardar' : esIngreso ? 'Añadir ingreso fijo' : 'Añadir gasto fijo'}
+          disabled={guardando}
+          submitLabel={initial ? textos.guardar : esIngreso ? textos.añadirIngreso : textos.añadirGasto}
+          secondarySubmit={!initial ? { label: textos.guardarOtro, value: 'otro' } : undefined}
           error={formError}
           onDelete={initial
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar fijo', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: textos.eliminar, confirmLabel: textos.confirmarEliminacion }
             : undefined}
         />
       }
     >
       <form id="fixed-entry-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Qué es" spacing="group">
-          <div className="flex gap-2">
-            {/* Al cambiar de tipo se reinicia el icono: los dos juegos no se
-                solapan del todo y quedarse con un 🏠 elegido para el alquiler
-                dentro de una nómina se lee como un error. */}
-            <SelectChip selected={esIngreso} onClick={() => patch({ kind: 'ingreso', emoji: '💶' })}>
-              Entra
-            </SelectChip>
-            <SelectChip selected={!esIngreso} onClick={() => patch({ kind: 'gasto', emoji: '💶' })}>
-              Sale
-            </SelectChip>
-          </div>
-        </Field>
+        {mensajeGuardado && <p role="status" className="text-sm font-semibold text-primary-strong">{mensajeGuardado}</p>}
 
-        <Field label="Nombre" htmlFor="fixed-entry-name">
-          <input
-            id="fixed-entry-name"
-            ref={firstFieldRef}
-            type="text"
-            value={draft.name}
-            onChange={e => patch({ name: e.target.value })}
-            placeholder={esIngreso ? 'Ej: Nómina de Carlos' : 'Ej: Alquiler'}
-            required
-            className="field-input"
-          />
-        </Field>
+        <fieldset disabled={guardando} className="min-w-0 space-y-5">
+          <Field label={textos.nombre} htmlFor="fixed-entry-name">
+            <input
+              id="fixed-entry-name"
+              ref={firstFieldRef}
+              type="text"
+              value={draft.name}
+              onChange={e => patch({ name: e.target.value })}
+              placeholder={esIngreso ? textos.ejemploIngreso : textos.ejemploGasto}
+              required
+              className="field-input"
+            />
+          </Field>
 
-        <Field label="Cuánto al mes" htmlFor="fixed-entry-amount">
-          <input
-            id="fixed-entry-amount"
-            type="text"
-            inputMode="decimal"
-            value={draft.amount}
-            onChange={e => patch({ amount: e.target.value })}
-            placeholder={esIngreso ? 'Ej: 1650' : 'Ej: 780'}
-            required
-            className="field-input"
-          />
-          <p className="text-[10px] leading-relaxed text-muted">
-            Cuenta todos los meses hasta que lo cambies, sin tener que apuntarlo.
-            Si lo cambias, los meses ya pasados también dirán el importe nuevo.
-            Para un mes suelto que salga distinto, tócalo en «Este mes».
-          </p>
-        </Field>
+          <Field label={textos.cuanto} htmlFor="fixed-entry-amount">
+            <input
+              id="fixed-entry-amount"
+              type="text"
+              inputMode="decimal"
+              value={draft.amount}
+              onChange={e => patch({ amount: e.target.value })}
+              placeholder={esIngreso ? textos.ejemploImporteIngreso : textos.ejemploImporteGasto}
+              required
+              className="field-input"
+            />
+            <p className="text-xs leading-relaxed text-muted">
+              {textos.funcionamiento}
+            </p>
+          </Field>
 
-        <Field label="Icono" spacing="group">
-          <EmojiPicker opciones={EMOJIS[draft.kind]} value={draft.emoji} onChange={emoji => patch({ emoji })} />
-        </Field>
-
-        <div className="space-y-2">
-          <AssigneePicker
-            value={draft}
-            onChange={asignado => patch(asignado)}
-            members={members}
-            kids={kids}
-          />
-          <p className="text-[10px] leading-relaxed text-muted">
-            {esIngreso
-              ? 'De quién es el ingreso. Con «Familia» queda como algo que entra a la cuenta común.'
-              : 'Quién lo paga. Con «Familia» queda como un recibo de la cuenta común, que es lo normal.'}
-          </p>
-        </div>
+          {/* El acordeón vuelve plegado al abrir el sheet, aunque se usara antes. */}
+          <details key={String(open)} className="group">
+            <summary className="flex min-h-11 list-none items-center gap-2 py-2 [&::-webkit-details-marker]:hidden">
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-primary-strong">{textos.masOpciones}</span>
+                <span className="block break-words text-xs text-muted">
+                  <span aria-hidden>{draft.emoji}</span>{' · '}{esIngreso ? textos.ingreso : textos.gasto}{' · '}{quien}
+                </span>
+              </span>
+              <ChevronDown size={16} className="shrink-0 text-muted transition-transform group-open:rotate-180" aria-hidden />
+            </summary>
+            <div className="space-y-5 pt-3">
+              <Field label={textos.queEs} spacing="group">
+                <div className="flex gap-2">
+                  <SelectChip selected={esIngreso} onClick={() => patch({ kind: 'ingreso', emoji: '💶' })}>
+                    {textos.entra}
+                  </SelectChip>
+                  <SelectChip selected={!esIngreso} onClick={() => patch({ kind: 'gasto', emoji: '💶' })}>
+                    {textos.sale}
+                  </SelectChip>
+                </div>
+              </Field>
+              <Field label={textos.icono} spacing="group">
+                <EmojiPicker opciones={EMOJIS[draft.kind]} value={draft.emoji} onChange={emoji => patch({ emoji })} />
+              </Field>
+              <div className="space-y-2">
+                <AssigneePicker
+                  value={draft}
+                  onChange={asignado => patch(asignado)}
+                  members={members}
+                  kids={kids}
+                />
+                <p className="text-xs leading-relaxed text-muted">
+                  {esIngreso ? textos.quienIngreso : textos.quienGasto}
+                </p>
+              </div>
+            </div>
+          </details>
+        </fieldset>
       </form>
     </BottomSheet>
   )

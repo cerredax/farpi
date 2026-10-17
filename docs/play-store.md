@@ -5,15 +5,18 @@ abre `https://www.farpi.app` a pantalla completa, sin la barra del navegador. No
 base de código: lo que se publica en Vercel es lo que se ve en la app. Esta guía es el
 orden en que se hace, y lo que ya está hecho en el repositorio para que funcione.
 
-## Estado actual (16-10-2026)
+## Estado actual (17-10-2026)
 
 - El proyecto Android está en `../farpi-android`: paquete `farpi.app`, versión 2,
   destino `https://www.farpi.app/home`, SDK objetivo 36 y delegación de notificaciones activa.
 - El app bundle 2 (2) ya está en la biblioteca de Play y añadido a la versión de producción,
   con notas en castellano. La distribución está configurada **solo para España**.
-- La versión 2 (2) y la incorporación de España están en **Cambios en revisión**. Google está
-  ejecutando las comprobaciones automáticas previas; ya no hay cambios pendientes de envío.
-  La publicación gestionada está desactivada: se publicará al aprobarse. Aún no está publicada.
+- Console ya muestra la última versión de producción **publicada al 100 %**, con la notificación
+  «Se ha publicado la actualización de la aplicación». Hay otros cambios listos para enviar a
+  revisión; esto no confirma que estén aplicados a la ficha pública.
+- Las 24 capturas actuales están preparadas en `google-play/capturas/`. La subida automática
+  quedó bloqueada por el permiso de archivos de la extensión de Chrome; se descartó la edición
+  incompleta y se conservaron las ocho capturas antiguas de la ficha.
 - `/.well-known/assetlinks.json` responde 200 en producción con la huella que muestra Google
   Play para la firma de la app. La API Digital Asset Links confirma la asociación.
 
@@ -112,9 +115,15 @@ enseña la barra del navegador arriba.
 
 ## 5. La ficha de la tienda
 
-- **Icono** 512×512 (`public/icon-512.png`), **gráfico destacado** 1024×500 (hay que
-  hacerlo) y **capturas** de móvil (las de `public/capturas/`, que regenera
-  `node scripts/gen-capturas.mjs`).
+- **Icono** 512×512 y **gráfico destacado** 1024×500: ya cargados en Console.
+- **Capturas de la ficha**: `node scripts/gen-capturas-play.mjs` genera ocho por formato en
+  `google-play/capturas/telefono/`, `tablet-7/` y `tablet-10/`. Teléfono y tablet de 7 pulgadas:
+  1080×1920; tablet de 10 pulgadas en horizontal: 1920×1080. PNG RGB sin transparencia, con
+  datos ficticios, reloj fijo y comprobaciones de carga, errores y desbordamiento. El orden
+  numerado es Inicio, Calendario, Listas, Tareas, Comidas, Finanzas, Notas y Documentos.
+  Hay que subir los PNG de cada carpeta a su sección en la ficha predeterminada, revisar y
+  guardar los cambios. No se actualizan automáticamente al desplegar la web ni al subir un AAB.
+  Las de la portada (`public/capturas/`) conservan su generador independiente.
 - **Política de privacidad**: `https://www.farpi.app/privacidad`.
 - **Borrado de cuenta**: `https://www.farpi.app/borrar-cuenta`. Si Play pregunta si se
   pueden borrar datos sin borrar la cuenta: sí, cada cosa se borra desde la app.

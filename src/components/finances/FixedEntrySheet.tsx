@@ -37,10 +37,8 @@ import type { FixedEntry, FixedEntryDraft, MovementKind } from '@/types'
 // alquiler— y las extraescolares (⚽), que acababan en el 🎒 del material del cole
 // siendo una cuota mensual por hijo.
 //
-// **Quedan 23 y no 24**, así que la última fila va con siete: es un hueco a la
-// espera, no un descuadre que arreglar metiendo cualquier cosa. Candidatos si
-// hace falta: 🦷 (la ortodoncia se paga clavada dos años y hoy cae en el 🏥 del
-// seguro médico) o 🐷 (lo que se aparta todos los meses a propósito).
+// Con el 🦷 (la ortodoncia se paga clavada dos años y caía en el 🏥 del seguro
+// médico) **son 24** y la rejilla de gastos cierra sus tres filas de ocho.
 //
 // Van agrupados por lo que son —la casa, moverse y los hijos, y el resto— y no en
 // el orden en que se fueron añadiendo, que es lo que había: quitando seis y
@@ -69,7 +67,7 @@ const EMOJIS: Record<MovementKind, string[]> = {
     // Moverse y los hijos.
     '🚗', '⛽', '🚌', '🎒', '🏫', '🍽️', '⚽', '🎵',
     // Salud, dinero y lo que queda.
-    '🏥', '🛡️', '🐾', '🏋️', '🏦', '🎬', '💶',
+    '🏥', '🦷', '🛡️', '🐾', '🏋️', '🏦', '🎬', '💶',
   ],
 }
 

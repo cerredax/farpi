@@ -21,7 +21,7 @@ const CONTACT = 'cerredax@gmail.com'
  */
 export default function BorrarCuentaPage() {
   return (
-    <LegalShell title="Borrar tu cuenta" updated="30 de septiembre de 2026">
+    <LegalShell title="Borrar tu cuenta" updated="17 de octubre de 2026">
       <p>
         Puedes borrar tu cuenta de Farpi y sus datos cuando quieras. Se hace desde la propia app, y si ya no
         puedes entrar, escribiéndonos.
@@ -36,6 +36,38 @@ export default function BorrarCuentaPage() {
           Si eres el <strong>único administrador</strong> de una familia en la que hay más personas, antes tendrás
           que nombrar a otro administrador en <strong>Ajustes → Familia</strong>: una familia no se puede quedar
           sin nadie que la gestione.
+        </p>
+      </LegalSection>
+
+      <LegalSection heading="Borrar datos sin darte de baja">
+        <p>
+          Si solo quieres quitar una parte de tus datos y seguir usando Farpi, puedes hacerlo desde la app:
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            <strong>Un plan, una tarea, un gasto, una nota, un documento…</strong>: ábrelo y pulsa{' '}
+            <strong>Eliminar</strong>. Al borrar la ficha de un documento, su archivo sigue en tu Drive.
+          </li>
+          <li>
+            <strong>Una familia entera</strong>, con todo lo que tiene dentro: <strong>Ajustes → Familia</strong>,
+            editar la familia y <strong>Eliminar familia</strong>. Solo pueden hacerlo los administradores y solo se
+            ofrece si perteneces a otra familia más.
+          </li>
+          <li>
+            <strong>Los avisos de este dispositivo</strong>: <strong>Ajustes → Cuenta → Notificaciones</strong>,
+            <strong> Desactivar notificaciones</strong>.
+          </li>
+          <li>
+            <strong>La conexión con tu Google Drive</strong>: <strong>Ajustes → Sincronización → Desconectar
+            Google Drive</strong>. No borra ningún archivo de tu Drive.
+          </li>
+        </ul>
+        <p>
+          Si necesitas borrar algo que no puedes quitar tú, escríbenos a{' '}
+          <a href={`mailto:${CONTACT}?subject=Borrar%20datos%20de%20Farpi`} className="font-semibold text-primary-strong">
+            {CONTACT}
+          </a>{' '}
+          indicando qué dato es.
         </p>
       </LegalSection>
 

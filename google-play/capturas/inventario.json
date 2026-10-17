@@ -1,0 +1,127 @@
+{
+  "generado": "2026-10-17T08:44:30.603Z",
+  "datos": "Demostración local, sin conexión a Supabase",
+  "fechaDemo": "2026-06-17T07:40:00.000Z",
+  "archivos": [
+    {
+      "archivo": "telefono/01-inicio.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/02-calendario.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/03-listas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/04-tareas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/05-comidas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/06-finanzas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/07-notas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "telefono/08-documentos.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/01-inicio.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/02-calendario.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/03-listas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/04-tareas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/05-comidas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/06-finanzas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/07-notas.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-7/08-documentos.png",
+      "ancho": 1080,
+      "alto": 1920
+    },
+    {
+      "archivo": "tablet-10/01-inicio.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/02-calendario.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/03-listas.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/04-tareas.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/05-comidas.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/06-finanzas.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/07-notas.png",
+      "ancho": 1920,
+      "alto": 1080
+    },
+    {
+      "archivo": "tablet-10/08-documentos.png",
+      "ancho": 1920,
+      "alto": 1080
+    }
+  ]
+}

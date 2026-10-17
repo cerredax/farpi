@@ -302,22 +302,32 @@ En orden. Lo de abajo explica cada punto.
    normal; si no, pasarla a 429 (el comando está en `docs/produccion.md`).
 5. **El botón atrás de Android**: en una TWA sale de la app, y el código no tiene URL ni `popstate`
    en los formularios. Probarlo en un aparato antes de subir a Play.
-6. **Google Play**, siguiendo `docs/play-store.md`: versión 2 (2) de producción y disponibilidad
-   solo en España enviadas a revisión. Google está ejecutando las comprobaciones previas y ya
-   no quedan cambios pendientes de envío. La publicación gestionada está desactivada.
+6. **Google Play**, siguiendo `docs/play-store.md`: Console muestra la última versión de
+   producción publicada al 100 % (17-10-2026), con otros cambios listos para enviar a revisión.
+   La distribución sigue configurada solo para España.
    La asociación Android de `public/.well-known/assetlinks.json` está publicada y verificada
-   por Google. La app aún no está publicada en Play: cuando lo esté, poner `PLAY_STORE_PUBLICADA = true`
+   por Google. Falta comprobar la ficha pública y poner `PLAY_STORE_PUBLICADA = true`
    en `src/lib/constants.ts` y la portada enlazará a la ficha en vez de decir «Próximamente».
-   **Antes del lanzamiento hay que corregir Seguridad de los datos en Play Console**: solo están
-   seleccionados nombre y correo, ambos como temporales y opcionales, y la vista previa afirma
-   que no se recogen datos. En realidad se conservan en Supabase. Faltan las categorías del
-   contenido familiar (finanzas, calendario, archivos y documentos, notas y demás contenido),
-   revisar los identificadores y el dictado por voz, y declarar el acceso con correo y contraseña
-   además de OAuth. La URL de borrado parcial apunta a `/borrar-cuenta`, que solo explica el
-   borrado de la cuenta: debe explicar también cómo borrar datos sin darse de baja.
-   La ficha tiene ocho capturas de teléfono; las de tablet de 7 y 10 pulgadas existen en
-   `../farpi-android` pero no están subidas. Conviene regenerar las capturas tras los cambios
-   recientes y poner Inicio, Calendario y Listas antes de Comidas.
+   **Hay que revisar Seguridad de los datos en Play Console**: el último
+   export revisado solo selecciona nombre, correo y documentos. Nombre y correo siguen como
+   temporales y opcionales, aunque se conservan en Supabase y se exigen al registrarse; falta
+   añadir Gestión de cuentas a sus fines. Documentos está seleccionado pero sin respuestas de
+   uso y gestión. Faltan las categorías del contenido familiar (finanzas, calendario, notas,
+   listas y demás contenido), los IDs de usuario y las fechas de nacimiento; también revisar
+   los identificadores de avisos, las imágenes y los documentos sanitarios, y el dictado por voz
+   con su proveedor. El acceso con correo y contraseña y OAuth ya está declarado.
+   `/borrar-cuenta` ya explica también cómo borrar datos sin darse de baja (17-10-2026), así
+   que la declaración opcional de borrado parcial ya puede añadirse al export tras desplegar.
+   `data_safety_farpi.csv` está en la raíz con las respuestas corregidas y el mismo esquema
+   de la plantilla oficial; el propietario confirma que está importado. Falta verificar la
+   vista previa y su guardado/envío en Console. Omite la declaración opcional de borrado parcial.
+   Para el dictado declara de forma conservadora
+   audio recogido y compartido con Google, sin asumir tratamiento exclusivamente temporal:
+   la conservación del proveedor no está confirmada y Farpi solo guarda la transcripción.
+   Las 24 capturas actuales están generadas y comprobadas en `google-play/capturas/`, con
+   Inicio, Calendario y Listas primero. Se regeneran con `scripts/gen-capturas-play.mjs`.
+   Falta subirlas: la extensión de Chrome bloqueó el acceso a archivos locales. Se descartó
+   la sustitución incompleta y la ficha conserva sus ocho capturas antiguas de teléfono.
 7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app y una
    sección de ayuda.
 
@@ -334,8 +344,8 @@ Es lo único que no ve ninguna herramienta.
 
 - **Google Play (TWA)**: el package name es **`farpi.app`**. El paquete Android 2 está generado y
   guardado en Play; abre `/home` de la web y delega notificaciones. La asociación con el dominio
-  está publicada. Producción 2 (2), solo para España, está en revisión y se publicará al
-  aprobarse. Todavía no está disponible públicamente en Play.
+  está publicada. Console muestra producción publicada al 100 %; falta comprobar la ficha
+  pública, actualizar el enlace de la portada y enviar los cambios pendientes de la ficha.
 - **La portada en inglés**: preparada y sin traducir (`textos.ts` obliga a traducirlos todos).
   Va después de la app en inglés, y el texto de Omar lo tiene que dar por bueno él.
 - **La app en inglés**: faltan Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el
@@ -376,8 +386,6 @@ Ninguno está decidido; en este orden de lo que más se nota:
 
 ### 5. Acabados de Finanzas
 
-- **La rejilla de iconos de un fijo va con un hueco**: son 23 y la última fila lleva siete.
-  Mejor candidato, 🦷.
 - **🏛️ y 🏦 se parecen** en la tipografía de Android; están separados en la rejilla para que no se
   comparen de un vistazo, pero el problema sigue ahí.
 

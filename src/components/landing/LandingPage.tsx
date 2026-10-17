@@ -6,6 +6,7 @@ import { AuthCard } from '@/components/auth/AuthCard'
 import { Garantias } from '@/components/ui/Garantias'
 import { DayIllustration } from '@/components/home/DayIllustration'
 import { getDayPeriodEnMadrid } from '@/lib/date-utils'
+import { PLAY_STORE_PUBLICADA, PLAY_STORE_URL } from '@/lib/constants'
 import { PORTADA_ES, type TextosPortada } from './textos'
 import capturaInicio from '../../../public/capturas/inicio.png'
 import capturaListas from '../../../public/capturas/listas.png'
@@ -183,13 +184,25 @@ export function LandingPage({ textos: t = PORTADA_ES }: { textos?: TextosPortada
             <div>
               <AuthCard modoInicial="signin" conGarantias={false} />
 
-              {/* Sin la insignia oficial de Google Play: enseñarla llevaría a
-                  pulsarla, y todavía no hay ficha a la que ir. Cuando la haya,
-                  este bloque se cambia por la insignia y su enlace. */}
-              <div className="mt-5 flex items-center justify-center gap-2.5">
-                <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted" />
-                <p className="text-xs font-semibold text-muted">{t.proximamentePlay}</p>
-              </div>
+              {/* El enlace a Google Play solo se enseña cuando la ficha existe
+                  (`PLAY_STORE_PUBLICADA`, en `constants.ts`): antes daría 404.
+                  Sin la insignia oficial, que exige sus guías de marca. Mientras
+                  tanto, el aviso de que viene. */}
+              {PLAY_STORE_PUBLICADA ? (
+                <a
+                  href={PLAY_STORE_URL}
+                  rel="noopener"
+                  className="mt-5 flex min-h-11 items-center justify-center gap-2.5 text-sm font-bold text-primary-strong hover:text-primary-deep"
+                >
+                  <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0" />
+                  {t.disponiblePlay}
+                </a>
+              ) : (
+                <div className="mt-5 flex items-center justify-center gap-2.5">
+                  <Smartphone size={16} strokeWidth={2.2} className="flex-shrink-0 text-muted" />
+                  <p className="text-xs font-semibold text-muted">{t.proximamentePlay}</p>
+                </div>
+              )}
             </div>
           </div>
         </section>

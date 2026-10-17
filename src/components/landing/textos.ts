@@ -38,6 +38,8 @@ export type TextosPortada = {
   titular: string
   entradilla: string
   proximamentePlay: string
+  /** El enlace a la ficha de Google Play, cuando ya está publicada. */
+  disponiblePlay: string
   /** El texto de Omar, contado como un reportaje: su primera frase en grande y el resto en columna. */
   historia: {
     frase: string
@@ -78,6 +80,7 @@ export const PORTADA_ES: TextosPortada = {
   entradilla:
     'Farpi es el espacio privado de tu familia: todos veis lo mismo sin tener que preguntar, y lo que hay que recordar deja de estar en la cabeza de uno solo.',
   proximamentePlay: 'Próximamente en Google Play',
+  disponiblePlay: 'Descárgala en Google Play',
   /**
    * El texto de Omar, y el único sitio de la página donde no habla la app.
    *

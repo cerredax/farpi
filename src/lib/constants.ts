@@ -369,3 +369,15 @@ export const ROUTES = {
   birthdays: '/birthdays',
   settings:  '/settings',
 } as const
+
+// ─── Google Play ──────────────────────────────────────────────────────────────
+
+/** La ficha de la app en Google Play. El paquete es el `package_name` de `assetlinks.json`. */
+export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=farpi.app'
+
+/**
+ * Pasar a `true` el día que Google apruebe la app y la ficha responda (hasta
+ * entonces el enlace daría 404). Mientras sea `false`, la portada dice
+ * «Próximamente en Google Play» y no enlaza a nada.
+ */
+export const PLAY_STORE_PUBLICADA = false

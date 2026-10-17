@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última revisión: 2026-10-16.
+Última revisión: 2026-10-17.
 
 Este documento cuenta **cómo está** Farpi y **qué falta**. El relato de cada cierre (qué estaba
 mal, qué se decidió, qué se descartó) vive en el **cuerpo de su commit** (`git log`), y el porqué
@@ -202,7 +202,7 @@ recomendado».
   exacto. Los de navegador son `smoke.spec.ts`, `runtime.spec.ts` (falla ante cualquier
   `console.error`), `guardado.spec.ts`, `dictado.spec.ts`, `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
   recorrido de idioma. `npm run test:e2e` los corre todos levantando el dev server en :3100.
-  Validación actual: suite completa con **1124 pruebas correctas y 13 saltadas** (16-10-2026),
+  Validación actual: suite completa con **1124 pruebas correctas y 13 saltadas** (17-10-2026),
   lint, tipos y build correctos. El worker se ha probado contra el build servido, con push
   sintético, confirmación y fallback sin conexión.
 - **Contraste medido y AA**: quedan 6 avisos deliberados (días fuera de mes del calendario y el `·`
@@ -306,9 +306,20 @@ En orden. Lo de abajo explica cada punto.
    solo en España enviadas a revisión. Google está ejecutando las comprobaciones previas y ya
    no quedan cambios pendientes de envío. La publicación gestionada está desactivada.
    La asociación Android de `public/.well-known/assetlinks.json` está publicada y verificada
-   por Google. La app aún no está publicada en Play.
-7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app, una
-   sección de ayuda y un `robots.txt`.
+   por Google. La app aún no está publicada en Play: cuando lo esté, poner `PLAY_STORE_PUBLICADA = true`
+   en `src/lib/constants.ts` y la portada enlazará a la ficha en vez de decir «Próximamente».
+   **Antes del lanzamiento hay que corregir Seguridad de los datos en Play Console**: solo están
+   seleccionados nombre y correo, ambos como temporales y opcionales, y la vista previa afirma
+   que no se recogen datos. En realidad se conservan en Supabase. Faltan las categorías del
+   contenido familiar (finanzas, calendario, archivos y documentos, notas y demás contenido),
+   revisar los identificadores y el dictado por voz, y declarar el acceso con correo y contraseña
+   además de OAuth. La URL de borrado parcial apunta a `/borrar-cuenta`, que solo explica el
+   borrado de la cuenta: debe explicar también cómo borrar datos sin darse de baja.
+   La ficha tiene ocho capturas de teléfono; las de tablet de 7 y 10 pulgadas existen en
+   `../farpi-android` pero no están subidas. Conviene regenerar las capturas tras los cambios
+   recientes y poner Inicio, Calendario y Listas antes de Comidas.
+7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app y una
+   sección de ayuda.
 
 ### 1. Hay que tener un aparato delante
 

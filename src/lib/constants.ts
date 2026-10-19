@@ -340,22 +340,22 @@ export const ANOS_DE_CUMPLE = 20
  * caso raro que validar. El servidor las repite en un `check` de la base.
  */
 export const ANTELACIONES_DE_AVISO = [
-  { minutos: 15, etiqueta: '15 minutos antes' },
-  { minutos: 30, etiqueta: '30 minutos antes' },
-  { minutos: 60, etiqueta: '1 hora antes' },
-  { minutos: 1440, etiqueta: '1 día antes' },
+  { minutos: 15 },
+  { minutos: 30 },
+  { minutos: 60 },
+  { minutos: 1440 },
 ] as const
 
 // ─── Finanzas ────────────────────────────────────────────────────────────────
 
 /**
- * En qué anda cada presupuesto pedido, con el nombre que se lee en la pantalla.
- * El orden es el del ciclo: se pide, y luego se acepta o se descarta.
+ * En qué anda cada presupuesto pedido. El orden es el del ciclo: se pide, y
+ * luego se acepta o se descarta. Los nombres, en `comun.estadosDePresupuesto`.
  */
-export const QUOTE_STATUSES: { value: QuoteStatus; label: string; corto: string }[] = [
-  { value: 'pedido',     label: 'Pedido',     corto: 'Decidiendo' },
-  { value: 'aceptado',   label: 'Aceptado',   corto: 'Aceptado' },
-  { value: 'descartado', label: 'Descartado', corto: 'Descartado' },
+export const QUOTE_STATUSES: { value: QuoteStatus }[] = [
+  { value: 'pedido' },
+  { value: 'aceptado' },
+  { value: 'descartado' },
 ]
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────

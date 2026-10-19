@@ -236,7 +236,11 @@ export function ExpenseSheet({ open, initial, empezado, fechaPorDefecto, budgets
                   type="date"
                   value={draft.date}
                   onChange={e => patch({ date: e.target.value })}
-                  onInvalid={e => e.currentTarget.closest('details')?.setAttribute('open', '')}
+                  onInvalid={e => {
+                    // Safari intenta enfocar el campo antes de que el `details` se abra y no lo logra.
+                    e.currentTarget.closest('details')?.setAttribute('open', '')
+                    e.currentTarget.focus()
+                  }}
                   required
                   className="field-input"
                 />

@@ -339,13 +339,11 @@ En orden. Lo de abajo explica cada punto.
 Es lo único que no ve ninguna herramienta.
 
 - **Safari de iOS**: el teclado, el `100vh` y la safe-area se comportan distinto que en Android.
-  Con WebKit de Playwright (iPhone 14, 19-10-2026) pasan 271 de los 275 de navegador. Dos
-  fallos son del arnés (el permiso `clipboard-write` y `TouchEvent` no existen ahí). Los otros
-  dos son de foco: Safari no enfoca un botón al pulsarlo, así que `BottomSheet` guarda `body`
-  como disparador y al cerrar el foco no vuelve al botón; y el foco a una fecha inválida dentro
-  de detalles plegados (`e2e/apuntes.spec.ts:119`) no queda fijado. Solo afectan a teclado o
-  lector de pantalla; sin corregir. No sustituye a un iPhone: teclado, `100vh` y safe-area siguen
-  sin probarse.
+  Con WebKit de Playwright (iPhone 14, 19-10-2026) pasan los de navegador salvo dos que son del
+  arnés (el permiso `clipboard-write` y `TouchEvent` no existen ahí). Los dos de foco que fallaban
+  se corrigieron: `BottomSheet` recuerda el último botón pulsado, porque Safari no lo enfoca y el
+  foco no volvía al cerrar, y la fecha inválida de `ExpenseSheet` se enfoca a mano. No sustituye a
+  un iPhone: teclado, `100vh` y safe-area siguen sin probarse.
 - **La PWA instalada**: icono, splash, el notch y la barra de abajo.
 - **El flujo de documentos con dos cuentas** (`docs/testing-checklist.md` §8.1): que A suba un
   papel a su Drive y B lo abra sin conectar nada.

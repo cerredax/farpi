@@ -15,6 +15,18 @@ interface BottomSheetProps {
   headerActions?: React.ReactNode
 }
 
+/**
+ * Safari no da foco a un botón al pulsarlo: al abrir el sheet `activeElement` es
+ * `body` y el foco no tendría adónde volver al cerrar. Por eso se recuerda el
+ * último botón o enlace pulsado, que es el que lo abrió.
+ */
+let ultimoPulsado: HTMLElement | null = null
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', e => {
+    ultimoPulsado = e.target instanceof Element ? e.target.closest<HTMLElement>('button, a[href]') : null
+  }, true)
+}
+
 export function BottomSheet({ open, title, onClose, children, footer, headerActions }: BottomSheetProps) {
   const t = useT()
   const titleId = useId()
@@ -41,7 +53,8 @@ export function BottomSheet({ open, title, onClose, children, footer, headerActi
   useEffect(() => {
     if (!open) return
 
-    const disparador = document.activeElement as HTMLElement | null
+    const activo = document.activeElement as HTMLElement | null
+    const disparador = activo && activo !== document.body ? activo : ultimoPulsado
     // El nodo se guarda aquí y no se lee de la ref en la limpieza: para entonces
     // puede haber cambiado, y es lo que avisa `react-hooks/exhaustive-deps`.
     const panel = panelRef.current

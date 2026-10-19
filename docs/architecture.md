@@ -2349,23 +2349,26 @@ librería traería rutas por idioma (`/en/home`) que una app privada no necesita
   de la casa. **Solo sale si hay entre qué elegir** (`idiomasParaElegir`): los idiomas de
   `IDIOMAS_OFRECIDOS` y, siempre, el que ya está puesto, para que nadie se quede atrapado en uno.
 
-**Qué está traducido** (30-09-2026): la navegación (las dos barras, la cabecera, «Más» y el pie
-de la cuenta), el aviso de guardado, el arranque, el marco de Ajustes (pestañas, títulos,
-avisos de administrador, Legal y modo demo), todos los validadores, los errores de Supabase y
-las etiquetas de la página (`metadatos`), y las pantallas de **Listas**, **Comidas**, **Tareas**, **Notas**, el acceso
-(`/auth/login`, callback, `/onboarding`) y las dos de fallo (`/offline`, `/no-disponible`).
-Los diccionarios se reparten en un archivo por pantalla, en `src/lib/i18n/es/` y `en/`.
-**El resto no**: Calendario, Finanzas, Documentos, Cumpleaños, el interior de
-Ajustes (`MemberSheet` y hermanos) e Inicio, que arrastra el sheet de Calendario.
-`e2e/idioma-recorrido.spec.ts` recorre las pantallas con la cookie en inglés y exige
-que no quede castellano; las pendientes están en su lista `SIN_MIGRAR`, y **una pantalla
-migrada se saca de esa lista** para que el test se lo exija.
+**Qué está traducido**: **todas las pantallas** —Inicio, Calendario, Tareas, Listas, Comidas,
+Finanzas (con el importador de extractos), Notas, Documentos, Cumpleaños y Ajustes—, la
+navegación (las dos barras, la cabecera, «Más» y el pie de la cuenta), el aviso de guardado, el
+arranque, todos los validadores, los errores de Supabase, las etiquetas de la página
+(`metadatos`), el acceso (`/auth/login`, callback, `/onboarding`) y las dos de fallo
+(`/offline`, `/no-disponible`). Los diccionarios se reparten en un archivo por pantalla, en
+`src/lib/i18n/es/` y `en/`.
+`e2e/idioma-recorrido.spec.ts` recorre las rutas con la cookie en inglés y exige que no quede
+castellano en el DOM (sheets cerrados y atributos incluidos). Su lista `SIN_MIGRAR` está
+**vacía**: una pantalla nueva sin diccionario se apunta ahí y se saca al migrarla, para que el
+test se lo exija. Lo escrito por la familia (títulos de notas, nombres de documentos, de
+personas…) lleva `translate="no"`: no es interfaz, y así tampoco lo toca el traductor del
+navegador. El test quita los datos de demo de cada texto **solo como palabra entera**: quitarlos
+de en medio partía palabras inglesas («Allowances» pierde su «low»).
 
-**Por eso el inglés no se ofrece** (`IDIOMAS_OFRECIDOS = ['es']`). Se prueba escribiendo la
-cookie `farpi_idioma=en` a mano, y es lo que hace `e2e/idioma.spec.ts`. Cuando esté todo, se
-añade `'en'` a esa lista y el selector aparece solo.
+**Aun así el inglés no se ofrece** (`IDIOMAS_OFRECIDOS = ['es']`), por lo que viene debajo. Se
+prueba escribiendo la cookie `farpi_idioma=en` a mano, y es lo que hace `e2e/idioma.spec.ts`.
+Cuando se decida lo de abajo, se añade `'en'` a esa lista y el selector aparece solo.
 
-**Cómo se trae una pantalla**, que es lo que queda por hacer:
+**Cómo se trae una pantalla nueva**:
 
 1. Sus textos a un bloque nuevo de `es.ts`, **copiados letra a letra**: la suite los busca por
    su texto, y un castellano que cambia de paso es una regresión que pasa por traducción.
@@ -2385,6 +2388,11 @@ añade `'en'` a esa lista y el selector aparece solo.
   catálogo). Para traducir los primeros, la RPC tendría que lanzar un código y no una frase.
 - **El dinero se escribe a mano** en `finanzas.ts` (`1.234,56 €`), una decisión medida que se
   tomó sin pensar en otros formatos. En inglés sale igual.
+- **Lo que se guarda o se compara por su texto**, que traducirlo cambiaría comportamiento: el
+  título por defecto de un evento sin título («Vacaciones», «Descanso», «Festivo»,
+  `eventTitleOr` en `events.ts`, que `holidayName` compara) y los conceptos de reserva del
+  lector del extracto del banco (`CONCEPTOS_COMUNES` en `n43.ts`, que `leerN43` también compara).
+  Los conceptos que trae el banco son contenido de la familia y no se traducen.
 - **La vista previa de un enlace en inglés.** Las etiquetas del layout raíz (descripción,
   `openGraph`, `twitter`) salen del diccionario con `generateMetadata` desde el 29-09-2026,
   pero WhatsApp y Google entran sin cookie y ven siempre el castellano. Para que un enlace se

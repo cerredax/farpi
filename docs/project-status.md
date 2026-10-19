@@ -207,7 +207,7 @@ recomendado».
   exacto. Los de navegador son `smoke.spec.ts`, `runtime.spec.ts` (falla ante cualquier
   `console.error`), `guardado.spec.ts`, `dictado.spec.ts`, `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
   recorrido de idioma. `npm run test:e2e` los corre todos levantando el dev server en :3100.
-  Validación actual: suite completa con **1126 pruebas correctas y 11 saltadas** (19-10-2026),
+  Validación actual: suite completa con **1137 pruebas correctas y ninguna saltada** (19-10-2026),
   lint, tipos y build correctos. El worker se ha probado contra el build servido, con push
   sintético, confirmación y fallback sin conexión.
 - **Contraste medido y AA**: quedan 6 avisos deliberados (días fuera de mes del calendario y el `·`
@@ -368,10 +368,12 @@ Es lo único que no ve ninguna herramienta.
   la ficha por revisar en Console.
 - **La portada en inglés**: preparada y sin traducir (`textos.ts` obliga a traducirlos todos).
   Va después de la app en inglés, y el texto de Omar lo tiene que dar por bueno él.
-- **La app en inglés**: faltan Calendario, Finanzas, Documentos, Cumpleaños, el
-  interior de Ajustes e Inicio (`e2e/idioma-recorrido.spec.ts` los lista en `SIN_MIGRAR`). Antes de
-  ofrecerlo hay que decidir lo que no es traducir: el aviso de las siete y los correos no saben el
-  idioma de cada móvil, las RPC lanzan frases en castellano y el dinero se escribe a la española.
+- **La app en inglés**: todas las pantallas están traídas al diccionario y
+  `e2e/idioma-recorrido.spec.ts` (con `SIN_MIGRAR` vacío) exige que no quede castellano. Falta
+  decidir lo que no es traducir antes de ofrecerlo (`IDIOMAS_OFRECIDOS`): el aviso de las siete y los
+  correos no saben el idioma de cada móvil, las RPC lanzan frases en castellano, el dinero se escribe a
+  la española y hay títulos por defecto que se guardan o se comparan por su texto
+  («Vacaciones», «Festivo»; el detalle, en `docs/architecture.md`).
 
 ### 3. Funcionalidad que no existe
 

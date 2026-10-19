@@ -82,7 +82,12 @@ const PANTALLAS: Pantalla[] = [
 async function textosEnCastellano(page: Page): Promise<string[]> {
   return page.evaluate(({ datos, palabras }) => {
     const soloCastellano = new Set(palabras)
-    const quitaDatos = (texto: string) => datos.reduce((resto, dato) => resto.split(dato).join(' '), texto)
+    // Un dato de demo solo se quita **como palabra entera**: quitarlo de en medio de otra
+    // partía palabras inglesas («Allowances» pierde su «low», la prioridad de una tarea,
+    // y queda «Al ances», con un «al» que suena a castellano).
+    const escapa = (texto: string) => texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const patrones = datos.map(dato => new RegExp(`(?<![\\p{L}\\p{N}])${escapa(dato)}(?![\\p{L}\\p{N}])`, 'gu'))
+    const quitaDatos = (texto: string) => patrones.reduce((resto, patron) => resto.replace(patron, ' '), texto)
     const suenaACastellano = (texto: string) => {
       const resto = quitaDatos(texto)
       if (/[áéíóúñ¿¡ü]/i.test(resto)) return true
@@ -111,18 +116,13 @@ async function textosEnCastellano(page: Page): Promise<string[]> {
 }
 
 /**
- * Las pantallas que aún tienen castellano dentro (30-09-2026), a la espera de
- * migrarse a `useT()`. **Se van quitando de aquí una a una**: al sacar una ruta,
- * el recorrido pasa a exigirle que no quede ni un texto en castellano.
- *
- * Inicio arrastra los sheets de Calendario y de Tareas; Ajustes, `MemberSheet` y
- * sus hermanos. Mientras estén aquí, el inglés no se ofrece (`IDIOMAS_OFRECIDOS`).
+ * Las pantallas que aún tienen castellano dentro, a la espera de migrarse a
+ * `useT()`. Está vacía desde que se trajo la última (Calendario, Finanzas,
+ * Documentos, Cumpleaños, Ajustes e Inicio): ya no hay ninguna que se salte el
+ * recorrido. Si se añade una pantalla nueva sin diccionario, se apunta aquí y
+ * se saca al migrarla, para que el recorrido se lo exija.
  */
-const SIN_MIGRAR = new Set([
-  '/home', '/calendar', '/finances', '/finances/importar', '/docs', '/birthdays',
-  '/settings', '/settings?seccion=familia', '/settings?seccion=casa', '/settings?seccion=cuenta',
-  '/settings?seccion=legal',
-])
+const SIN_MIGRAR = new Set<string>([])
 
 test.describe('la app en inglés', () => {
   test.beforeEach(async ({ page }) => {

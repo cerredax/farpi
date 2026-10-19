@@ -104,7 +104,7 @@ npm run build          # build de producción
 npm run start          # sirve el build (comprobar cabeceras y service worker de verdad)
 npm run lint           # eslint (flat config, eslint.config.mjs)
 npm run test:unit      # 849 tests de lógica pura (~2 s, sin servidor)
-npm run test:e2e       # suite completa: 1137 (849 unitarios + 288 de navegador, 11 en fixme; levanta dev en :3100 en modo demo forzado)
+npm run test:e2e       # suite completa: 1137 (849 unitarios + 288 de navegador, ninguno en fixme; levanta dev en :3100 en modo demo forzado)
 
 node scripts/validate-rls.mjs      # valida RLS/RPCs contra el Supabase real
 node scripts/gen-vapid.cjs         # par de claves VAPID para las push (no caducan; rotarlas invalida las suscripciones)
@@ -274,11 +274,12 @@ Si tocas el esquema: edita `supabase/schema.sql` **y** aplica el trozo suelto en
 - Contratos de repositorios en `src/lib/repos/types.ts`.
 - **Los textos van al diccionario, `src/lib/i18n/es.ts`**, y a la vez a `en.ts` (el tipo no
   deja olvidarse): `const t = useT()` en un componente, y los textos del dispositivo como
-  último parámetro en lo que no lo es (`validators.ts`, `errores.ts`). Hoy solo está
-  traducido el primer tramo; una pantalla que se toque es buena ocasión para traerla, con
-  el castellano **copiado letra a letra**. El idioma es del dispositivo (cookie
-  `farpi_idioma`) y el inglés no se ofrece hasta que esté todo. Detalle en
-  `docs/architecture.md`, «La app en otro idioma».
+  último parámetro en lo que no lo es (`validators.ts`, `errores.ts`). **Todas las pantallas
+  están ya en el diccionario**: un texto nuevo no se escribe dentro del componente, y el
+  castellano que ya está se **copia letra a letra** si se mueve (la suite lo busca por su
+  texto). `e2e/idioma-recorrido.spec.ts` exige que no quede castellano con la cookie en
+  inglés. El idioma es del dispositivo (cookie `farpi_idioma`) y el inglés no se ofrece hasta
+  decidir lo que no es traducir. Detalle en `docs/architecture.md`, «La app en otro idioma».
 - Todos los sheets usan `src/components/ui/BottomSheet.tsx` (patrón `form` + `footer` fijo), con `useSheetForm`/`useSheetDelete` para el estado. No crear overlays propios.
 - **Un sheet no va dentro de un contenedor con `space-y-*`**: va fuera, como hermano suyo,
   con la pantalla envuelta en un fragmento. Un `BottomSheet` cerrado es `fixed bottom-0`

@@ -3,6 +3,8 @@ import { format, isWeekend, parseISO } from 'date-fns'
 import { eventColor, fondoDePersona, fondoDePersonaApagado } from '@/lib/assignees'
 import { eventoYaPasado, franjasDeAusencia, holidayName, isHoliday, isPlan, isRestDay, isVacation, topeDeFranjas, vacationEdges } from '@/lib/events'
 import { FAMILY_COLOR } from '@/lib/constants'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
 import { DayActivity, marcasDelDia, resumenDelDia } from './DayActivity'
 
@@ -196,6 +198,8 @@ export function DayCell({
   onCreate,
   onOpenEvent,
 }: DayCellProps) {
+  const t = useT()
+  const idioma = useIdioma()
   const vacaciones = events.filter(isVacation)
   const descansos = events.filter(isRestDay)
   // Los planes son lo que no es una ausencia: las ausencias ya las cuenta la
@@ -285,7 +289,7 @@ export function DayCell({
       : 'lg:shadow-[inset_0_0_0_2px_var(--color-primary-line)]'
     : ''
 
-  const fecha = day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+  const fecha = format(day, t.calendario.formatos.celda, { locale: localeDeFechas(idioma) })
   const resumen = resumenDelDia({
     planes: events.length - vacaciones.length - descansos.length,
     tareas: tasks.length,

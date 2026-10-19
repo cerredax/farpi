@@ -66,6 +66,8 @@ export const acceso: typeof es = {
     invitacionCancelada: 'The invitation was cancelled. Ask for a new one.',
     invitacionFallida: 'The invitation could not be accepted. Ask whoever invited you to send it again.',
     sesionFallida: 'Could not sign you in from the link.',
+    sesionFallidaOtroNavegador:
+      'This link only signs you in on the browser where you started. If you just created your account, it is already confirmed: sign in with your email and password. If you were resetting your password, request it again from that same browser.',
     enlaceCaducado: 'The link has expired or was already used. Ask for a new one to continue.',
     enlaceInvalido: 'The link could not be validated. Ask for a new one to continue.',
 

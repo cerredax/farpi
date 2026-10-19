@@ -19,10 +19,8 @@ orden en que se hace, y lo que ya está hecho en el repositorio para que funcion
 - La declaración corregida de Seguridad de los datos está visible en la ficha pública:
   trece tipos de datos, audio compartido para el dictado, cifrado en tránsito y solicitud de
   borrado (19-10-2026). No se ha confirmado la conservación del audio por su proveedor.
-- Las 24 capturas actuales están preparadas en `google-play/capturas/`. La subida automática
-  quedó bloqueada por el permiso de archivos de la extensión de Chrome; se descartó la edición
-  incompleta y se conservaron las ocho capturas antiguas de la ficha. La ficha pública todavía
-  muestra el marco antiguo; el navegador no está conectado para sustituirlas (19-10-2026).
+- Las 24 capturas actuales de `google-play/capturas/` están subidas a la ficha: lo confirma el
+  propietario (19-10-2026). Yo no he comprobado la ficha pública después de la subida.
 - `/.well-known/assetlinks.json` responde 200 en producción con la huella que muestra Google
   Play para la firma de la app. La API Digital Asset Links confirma la asociación.
 

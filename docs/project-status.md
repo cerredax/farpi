@@ -328,9 +328,8 @@ En orden. Lo de abajo explica cada punto.
    la conservación del proveedor no está confirmada y Farpi solo guarda la transcripción.
    Las 24 capturas actuales están generadas y comprobadas en `google-play/capturas/`, con
    Inicio, Calendario y Listas primero. Se regeneran con `scripts/gen-capturas-play.mjs`.
-   Falta subirlas: la ficha pública aún enseña capturas con el marco antiguo. La extensión
-   bloqueó el acceso a archivos locales el 17-10-2026 y el navegador no está conectado el
-   19-10-2026. Se descartó la sustitución incompleta y las capturas actuales siguen intactas.
+   El propietario confirma que ya están subidas a la ficha (19-10-2026); sin comprobar
+   desde aquí en la ficha pública.
 7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app y una
    sección de ayuda.
 

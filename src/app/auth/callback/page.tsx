@@ -128,7 +128,9 @@ function CallbackHandler() {
         return
       }
 
-      setError(t.sesionFallida)
+      // Con `?code=` (PKCE) el fallo es casi siempre abrir el enlace en otro navegador
+      // o dispositivo que el del registro: la cuenta ya está confirmada y falta solo entrar.
+      setError(params.get('code') ? t.sesionFallidaOtroNavegador : t.sesionFallida)
     }
 
     void procesar()

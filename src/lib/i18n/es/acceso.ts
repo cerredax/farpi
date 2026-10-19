@@ -71,6 +71,9 @@ export const acceso = {
     invitacionCancelada: 'La invitación se canceló. Pide que te manden otra.',
     invitacionFallida: 'No se ha podido aceptar la invitación. Pide a quien te invitó que te la mande otra vez.',
     sesionFallida: 'No se ha podido iniciar la sesión desde el enlace.',
+    /** El `?code=` solo lo canjea el navegador donde se empezó: abierto en otro, no hay sesión que abrir. */
+    sesionFallidaOtroNavegador:
+      'Este enlace solo abre la sesión en el navegador donde empezaste. Si acabas de crear tu cuenta, ya está confirmada: entra con tu correo y contraseña. Si estabas recuperando la contraseña, pídela de nuevo desde ese mismo navegador.',
     enlaceCaducado: 'El enlace ha caducado o ya se había usado. Pide uno nuevo para continuar.',
     enlaceInvalido: 'No se ha podido validar el enlace. Pide uno nuevo para continuar.',
 

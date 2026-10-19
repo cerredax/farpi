@@ -299,12 +299,17 @@ En orden. Lo de abajo explica cada punto.
    persona y cerrar sesión. La última pasada entera fue el 15-09-2026 y la de una cuenta nueva no
    consta nunca.
 2. **Comprobar el cron de las siete** en los logs de Vercel (`/api/cron/reminders`): uno de los dos
-   de cada mañana tiene que decir `fueraDeHora: true` y el otro traer `sent`.
+   de cada mañana tiene que decir `fueraDeHora: true` y el otro traer `sent`. Los logs de Vercel
+   (Hobby) solo guardan cerca de una hora: hay que mirarlos justo después de las 05:00 o las
+   06:00 UTC (`vercel logs --environment production --since 1h --json`). El 19-10-2026 el
+   disparador de `pg_cron` de los avisos de eventos respondía 200 cada cinco minutos.
 3. **Probar en el móvil que los avisos se reparan solos** (`docs/notificaciones.md`, «Que no haya
    que volver a activarlas»): borrar la fila de `push_subscriptions` y abrir la app, y tiene que
    volver; cerrar sesión, y tiene que irse.
-4. **Firewall**: mirar en Vercel → Firewall si la regla «Limite API» (modo `log`) salta con el uso
-   normal; si no, pasarla a 429 (el comando está en `docs/produccion.md`).
+4. **Firewall**: «Limite API» sigue en modo `log` y no ha saltado en las últimas 24 h (19-10-2026:
+   1,1 mil peticiones permitidas y pico de 305 por hora en toda la web, frente al tope de 100 por
+   minuto y por IP). Falta pasarla a 429, con los comandos de `docs/produccion.md`; es un cambio
+   en producción y queda a la espera del visto bueno del propietario.
 5. **El botón atrás de Android**: en una TWA sale de la app, y el código no tiene URL ni `popstate`
    en los formularios. Probarlo en un aparato antes de subir a Play.
 6. **Google Play**, siguiendo `docs/play-store.md`: Console muestra la última versión de

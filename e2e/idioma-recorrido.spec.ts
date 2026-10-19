@@ -119,7 +119,7 @@ async function textosEnCastellano(page: Page): Promise<string[]> {
  * sus hermanos. Mientras estén aquí, el inglés no se ofrece (`IDIOMAS_OFRECIDOS`).
  */
 const SIN_MIGRAR = new Set([
-  '/home', '/calendar', '/finances', '/finances/importar', '/notes', '/docs', '/birthdays',
+  '/home', '/calendar', '/finances', '/finances/importar', '/docs', '/birthdays',
   '/settings', '/settings?seccion=familia', '/settings?seccion=casa', '/settings?seccion=cuenta',
   '/settings?seccion=legal',
 ])

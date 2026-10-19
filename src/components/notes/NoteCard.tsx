@@ -1,6 +1,7 @@
 'use client'
 
 import { Pin } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 import type { Note } from '@/types'
 
 interface NoteCardProps {
@@ -34,6 +35,7 @@ interface NoteCardProps {
  * vida de la nota no sale a cuenta. Fijar se marca al escribirla.
  */
 export function NoteCard({ note, onEdit }: NoteCardProps) {
+  const t = useT().notas
   return (
     <button
       onClick={onEdit}
@@ -43,7 +45,11 @@ export function NoteCard({ note, onEdit }: NoteCardProps) {
         {note.emoji && (
           <span className="flex-shrink-0 text-lg leading-tight" aria-hidden>{note.emoji}</span>
         )}
-        <p className="min-w-0 flex-1 text-sm font-bold leading-tight text-ink">{note.title}</p>
+        {/* Lo escrito por la familia no se traduce —ni por la app ni por el
+            traductor del navegador, que le cambiaría la clave del wifi—, y el
+            recorrido en inglés (`idioma-recorrido.spec.ts`) tampoco lo cuenta
+            como interfaz: para eso es `translate="no"`. */}
+        <p translate="no" className="min-w-0 flex-1 text-sm font-bold leading-tight text-ink">{note.title}</p>
         {/* La chincheta y no una etiqueta con la palabra: es la única marca de
             la tarjeta, así que no compite con nada y no hace falta explicarla.
             El `role="img"` va con el `aria-label` y no sobra: un `<svg>` suelto
@@ -51,12 +57,12 @@ export function NoteCard({ note, onEdit }: NoteCardProps) {
             hay quien se salta el nombre y la nota fijada no se oye distinta de
             las demás. */}
         {note.pinned && (
-          <Pin size={14} strokeWidth={2.4} className="mt-0.5 flex-shrink-0 text-primary-strong" role="img" aria-label="Fijada" />
+          <Pin size={14} strokeWidth={2.4} className="mt-0.5 flex-shrink-0 text-primary-strong" role="img" aria-label={t.fijada} />
         )}
       </div>
 
       {note.body && (
-        <p className="line-clamp-6 whitespace-pre-wrap break-words text-xs leading-relaxed text-muted">
+        <p translate="no" className="line-clamp-6 whitespace-pre-wrap break-words text-xs leading-relaxed text-muted">
           {note.body}
         </p>
       )}

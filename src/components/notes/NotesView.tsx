@@ -4,6 +4,7 @@ import { NoteCard } from './NoteCard'
 import { NoteSheet } from './NoteSheet'
 import { useNotesState } from './useNotesState'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useT } from '@/lib/i18n/contexto'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 
 /**
@@ -25,6 +26,7 @@ import { ViewHeader } from '@/components/ui/ViewHeader'
  * la clave del wifi de casa; no es un gestor de contraseñas.
  */
 export function NotesView() {
+  const t = useT().notas
   const s = useNotesState()
 
   // El sheet va **fuera** del contenedor con `space-y-*`, como hermano suyo: ahí
@@ -37,22 +39,22 @@ export function NotesView() {
     <>
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-6xl lg:px-6">
         <ViewHeader
-          resumen={`${s.notes.length} nota${s.notes.length !== 1 ? 's' : ''} de la familia`}
+          resumen={t.resumen(s.notes.length)}
           buscador={s.puedeBuscar ? {
             value: s.busqueda,
             onChange: s.setBusqueda,
-            placeholder: `Buscar en ${s.notes.length} notas…`,
-            ariaLabel: 'Buscar notas',
+            placeholder: t.buscarEn(s.notes.length),
+            ariaLabel: t.buscar,
           } : null}
           onAdd={s.openCreate}
-          addLabel="Nueva nota"
+          addLabel={t.nuevaNota}
         />
 
         {s.filtered.length === 0 ? (
           <EmptyState
             emoji="📝"
-            title={s.busqueda.trim() ? 'Ninguna nota coincide' : 'Sin notas'}
-            description={s.busqueda.trim() ? `Ninguna coincide con «${s.busqueda.trim()}»` : undefined}
+            title={s.busqueda.trim() ? t.ningunaCoincide : t.sinNotas}
+            description={s.busqueda.trim() ? t.ningunaCoincideCon(s.busqueda.trim()) : undefined}
           />
         ) : (
           /* `items-start` para que una nota corta no se estire hasta el alto de la

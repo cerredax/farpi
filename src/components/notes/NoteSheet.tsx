@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { useT } from '@/lib/i18n/contexto'
 import { validateNoteDraft } from '@/lib/validators'
 import type { Note, NoteDraft } from '@/types'
 
@@ -52,6 +53,7 @@ function initDraft(mode: 'create' | 'edit', initial: Note | null | undefined): N
 }
 
 export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: NoteSheetProps) {
+  const t = useT().notas.sheet
   const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<NoteDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -83,29 +85,29 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Nueva nota' : 'Editar nota'}
+      title={mode === 'create' ? t.nueva : t.editar}
       onClose={onClose}
       footer={
         <SheetFooter
           form="note-form"
           disabled={guardando}
-          submitLabel={mode === 'create' ? 'Crear nota' : 'Guardar'}
+          submitLabel={mode === 'create' ? t.crear : t.guardar}
           error={formError}
           onDelete={mode === 'edit'
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar nota', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: t.eliminar, confirmLabel: t.confirmarEliminacion }
             : undefined}
         />
       }
     >
       <form id="note-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Título" htmlFor="note-title">
+        <Field label={t.titulo} htmlFor="note-title">
           <input
             id="note-title"
             ref={firstFieldRef}
             type="text"
             value={draft.title}
             onChange={e => patch({ title: e.target.value })}
-            placeholder="Ej: Wifi de casa"
+            placeholder={t.tituloEjemplo}
             required
             className="field-input"
           />
@@ -117,13 +119,13 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
             llavero azul" no es un campo—, y en cuanto hubiera que elegir entre
             "teléfono" y "contraseña" habría que decidir dónde cae el código de
             la alarma, que es las dos cosas. */}
-        <Field label="Contenido" htmlFor="note-body" hint="(opcional)">
+        <Field label={t.contenido} htmlFor="note-body" hint={t.opcional}>
           <textarea
             id="note-body"
             value={draft.body}
             onChange={e => patch({ body: e.target.value })}
             rows={6}
-            placeholder={'Red: FARPI_2G\nClave: …'}
+            placeholder={t.contenidoEjemplo}
             className="field-input resize-none"
           />
           {/* Lo que se apunta en una nota es, casi siempre, algo para pegar en otro
@@ -133,7 +135,7 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
           {mode === 'edit' && draft.body.trim() && (
             <Button type="button" variant="secondary" size="sm" onClick={copiar} className="gap-1.5">
               {copiado ? <Check size={14} strokeWidth={2.4} aria-hidden /> : <Copy size={14} strokeWidth={2.4} aria-hidden />}
-              {copiado === null ? 'Copiar contenido' : copiado ? 'Copiado' : 'No se pudo copiar'}
+              {copiado === null ? t.copiarContenido : copiado ? t.copiado : t.noSePudoCopiar}
             </Button>
           )}
         </Field>
@@ -147,14 +149,14 @@ export function NoteSheet({ open, mode, initial, onClose, onSave, onDelete }: No
             filas de emoji, un chip de un toque se queda fuera de la pantalla en un
             móvil de 390 px. Y sin párrafo debajo:
             «Fijar» y «Arriba del todo» ya lo dicen. */}
-        <Field label="Fijar" spacing="group">
+        <Field label={t.fijar} spacing="group">
           <SelectChip selected={draft.pinned} onClick={() => patch({ pinned: !draft.pinned })}>
             <Pin size={13} strokeWidth={2.4} aria-hidden />
-            Arriba del todo
+            {t.arribaDelTodo}
           </SelectChip>
         </Field>
 
-        <Field label="Icono" spacing="group">
+        <Field label={t.icono} spacing="group">
           <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
         </Field>
       </form>

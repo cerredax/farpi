@@ -132,9 +132,9 @@ recomendado».
   Omar y seis preguntas. «Ya tengo cuenta» abre el acceso habitual. El registro usa una sola
   instancia de `AuthCard`, inicialmente en crear cuenta; `/auth/login` sigue abriendo Entrar.
   Los textos viven en `src/components/landing/textos.ts`. Rediseño del 17-10-2026 con enlace
-  a Google Play activado el 19-10-2026. Validación: lint, build y suite completa correctos;
-  también se ha comprobado el formulario real servido desde el build en móvil. Publicación
-  mediante el despliegue automático de `main` en Vercel.
+  a Google Play activado el 19-10-2026. Publicada en `www.farpi.app` mediante el despliegue
+  automático de `main` en Vercel (`0fbb2c0`). Lint, build y suite completa correctos; comprobados
+  también el enlace de descarga, el formulario real y el diseño público en móvil y escritorio.
 - **Las capturas salen de la app de verdad**: `node scripts/gen-capturas.mjs` las genera contra el
   modo demo con el reloj congelado en el 17-06-2026 (nueve capturas y `public/og.png`; la portada
   usa tres, las otras van a la ficha de Play). Se importan en vez de pedirse por ruta (la caché de
@@ -314,26 +314,23 @@ En orden. Lo de abajo explica cada punto.
    por Google. La ficha pública responde 200 y muestra Farpi (19-10-2026), además de la
    confirmación del propietario de que ya está publicada.
    `PLAY_STORE_PUBLICADA = true` activa el enlace a `farpi.app` en Google Play desde la portada.
-   **Hay que revisar Seguridad de los datos en Play Console**: el último
-   export revisado solo selecciona nombre, correo y documentos. Nombre y correo siguen como
-   temporales y opcionales, aunque se conservan en Supabase y se exigen al registrarse; falta
-   añadir Gestión de cuentas a sus fines. Documentos está seleccionado pero sin respuestas de
-   uso y gestión. Faltan las categorías del contenido familiar (finanzas, calendario, notas,
-   listas y demás contenido), los IDs de usuario y las fechas de nacimiento; también revisar
-   los identificadores de avisos, las imágenes y los documentos sanitarios, y el dictado por voz
-   con su proveedor. El acceso con correo y contraseña y OAuth ya está declarado.
+   **La declaración corregida de Seguridad de los datos ya está publicada**: la ficha pública
+   de Google Play muestra los trece tipos preparados en `data_safety_farpi.csv` (19-10-2026).
+   Nombre, correo e IDs de usuario figuran con Funcionalidad y Gestión de la cuenta; el resto
+   del contenido aparece opcional. Audio está declarado como recogido y compartido para el
+   dictado; también aparecen el cifrado en tránsito y la solicitud de borrado.
    `/borrar-cuenta` ya explica también cómo borrar datos sin darse de baja (17-10-2026), así
    que la declaración opcional de borrado parcial ya puede añadirse al export tras desplegar.
-   `data_safety_farpi.csv` está en la raíz con las respuestas corregidas y el mismo esquema
-   de la plantilla oficial; el propietario confirma que está importado. Falta verificar la
-   vista previa y su guardado/envío en Console. Omite la declaración opcional de borrado parcial.
-   Para el dictado declara de forma conservadora
+   `data_safety_farpi.csv` conserva en la raíz las respuestas importadas y el mismo esquema
+   de la plantilla oficial. Omite la declaración opcional de borrado parcial. Para el dictado
+   declara de forma conservadora
    audio recogido y compartido con Google, sin asumir tratamiento exclusivamente temporal:
    la conservación del proveedor no está confirmada y Farpi solo guarda la transcripción.
    Las 24 capturas actuales están generadas y comprobadas en `google-play/capturas/`, con
    Inicio, Calendario y Listas primero. Se regeneran con `scripts/gen-capturas-play.mjs`.
-   Falta subirlas: la extensión de Chrome bloqueó el acceso a archivos locales. Se descartó
-   la sustitución incompleta y la ficha conserva sus ocho capturas antiguas de teléfono.
+   Falta subirlas: la ficha pública aún enseña capturas con el marco antiguo. La extensión
+   bloqueó el acceso a archivos locales el 17-10-2026 y el navegador no está conectado el
+   19-10-2026. Se descartó la sustitución incompleta y las capturas actuales siguen intactas.
 7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app y una
    sección de ayuda.
 

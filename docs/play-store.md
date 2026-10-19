@@ -16,9 +16,13 @@ orden en que se hace, y lo que ya está hecho en el repositorio para que funcion
   revisión; esto no confirma que estén aplicados a la ficha pública.
 - La ficha pública de `farpi.app` responde 200 y muestra Farpi; el propietario confirma la
   publicación. La nueva portada ofrece «Descárgala en Google Play» con el enlace directo.
+- La declaración corregida de Seguridad de los datos está visible en la ficha pública:
+  trece tipos de datos, audio compartido para el dictado, cifrado en tránsito y solicitud de
+  borrado (19-10-2026). No se ha confirmado la conservación del audio por su proveedor.
 - Las 24 capturas actuales están preparadas en `google-play/capturas/`. La subida automática
   quedó bloqueada por el permiso de archivos de la extensión de Chrome; se descartó la edición
-  incompleta y se conservaron las ocho capturas antiguas de la ficha.
+  incompleta y se conservaron las ocho capturas antiguas de la ficha. La ficha pública todavía
+  muestra el marco antiguo; el navegador no está conectado para sustituirlas (19-10-2026).
 - `/.well-known/assetlinks.json` responde 200 en producción con la huella que muestra Google
   Play para la firma de la app. La API Digital Asset Links confirma la asociación.
 

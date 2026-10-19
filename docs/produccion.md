@@ -19,8 +19,8 @@ que no es código va por su cuenta, y cada línea tiene su propio riesgo:
 - [x] **Repositorio de GitHub**: renombrado a `cerredax/farpi` (31-08-2026), y el remoto
       local apuntado al nombre nuevo. GitHub deja redirección permanente desde el viejo, y
       **por eso mismo** había que actualizar el remoto: si no, todo sigue funcionando y te
-      quedas años apuntando a un nombre que ya no existe sin enterarte. Queda comprobar
-      que Vercel sigue viendo el repositorio (Settings → Git) en el próximo despliegue.
+      quedas años apuntando a un nombre que ya no existe sin enterarte. La conexión con Vercel
+      queda confirmada por el despliegue automático correcto de `0fbb2c0` (19-10-2026).
 - [x] **Dominio**: `www.farpi.app` sirviendo desde el **15-09-2026**, con el ápice
       redirigido a él con un 308. Los cinco sitios de abajo dicen ya lo mismo y las tres
       pruebas del final pasan. Registrado el 31-08-2026.
@@ -297,6 +297,11 @@ El proyecto está vinculado a Vercel y a GitHub (`cerredax/farpi`).
 - **Manual**: `vercel --prod` (requiere Vercel CLI: `npm i -g vercel`).
 
 Build local de comprobación: `npm run build`.
+
+La portada nueva y el enlace de Google Play están publicados en `www.farpi.app` desde el
+19-10-2026 (`0fbb2c0`, despliegue de Vercel correcto). Comprobados públicamente la respuesta
+200, el enlace a la ficha, la imagen inicial, el salto al registro y el formulario real,
+en móvil y escritorio, sin enviar formularios ni escribir en Supabase.
 
 ---
 

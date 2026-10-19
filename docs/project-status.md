@@ -328,8 +328,9 @@ En orden. Lo de abajo explica cada punto.
    la conservación del proveedor no está confirmada y Farpi solo guarda la transcripción.
    Las 24 capturas actuales están generadas y comprobadas en `google-play/capturas/`, con
    Inicio, Calendario y Listas primero. Se regeneran con `scripts/gen-capturas-play.mjs`.
-   El propietario confirma que ya están subidas a la ficha (19-10-2026); sin comprobar
-   desde aquí en la ficha pública.
+   Ya están subidas a la ficha (comprobado en la ficha pública el 19-10-2026), pero **en otro
+   orden**: Inicio, Calendario, Comidas, Finanzas, Documentos, Listas, Notas y Tareas. Reordenarlas
+   en Console para que Listas sea la tercera.
 7. Sin prisa: reglas por comercio al importar (quitarían la Beta), el mes fantasma por la app y una
    sección de ayuda.
 
@@ -338,6 +339,13 @@ En orden. Lo de abajo explica cada punto.
 Es lo único que no ve ninguna herramienta.
 
 - **Safari de iOS**: el teclado, el `100vh` y la safe-area se comportan distinto que en Android.
+  Con WebKit de Playwright (iPhone 14, 19-10-2026) pasan 271 de los 275 de navegador. Dos
+  fallos son del arnés (el permiso `clipboard-write` y `TouchEvent` no existen ahí). Los otros
+  dos son de foco: Safari no enfoca un botón al pulsarlo, así que `BottomSheet` guarda `body`
+  como disparador y al cerrar el foco no vuelve al botón; y el foco a una fecha inválida dentro
+  de detalles plegados (`e2e/apuntes.spec.ts:119`) no queda fijado. Solo afectan a teclado o
+  lector de pantalla; sin corregir. No sustituye a un iPhone: teclado, `100vh` y safe-area siguen
+  sin probarse.
 - **La PWA instalada**: icono, splash, el notch y la barra de abajo.
 - **El flujo de documentos con dos cuentas** (`docs/testing-checklist.md` §8.1): que A suba un
   papel a su Drive y B lo abra sin conectar nada.

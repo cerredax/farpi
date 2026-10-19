@@ -4,6 +4,7 @@ import type {
 } from '@/types'
 import { getLocalDateString } from './date-utils'
 import { safeFileName } from './text'
+import { textosDelNavegador, type Diccionario } from './i18n'
 
 /**
  * La copia de seguridad de una familia.
@@ -128,18 +129,21 @@ export function nombreDeArchivo(nombreFamilia: string, ahora: Date = new Date())
  * que hace que una copia de seguridad dé confianza: "descargar una copia" no
  * dice si están los documentos.
  */
-export function resumenDeExportacion(datos: DatosParaExportar): string {
+export function resumenDeExportacion(
+  datos: DatosParaExportar,
+  t: Diccionario['ajustes']['copia']['resumen'] = textosDelNavegador().ajustes.copia.resumen,
+): string {
   const partes: string[] = []
-  const cuenta = (n: number, singular: string, plural: string) => {
-    if (n > 0) partes.push(`${n} ${n === 1 ? singular : plural}`)
+  const cuenta = (n: number, frase: (n: number) => string) => {
+    if (n > 0) partes.push(frase(n))
   }
-  cuenta(datos.members.length + datos.kids.length, 'persona', 'personas')
-  cuenta(datos.events.length, 'evento', 'eventos')
-  cuenta(datos.tasks.length, 'tarea', 'tareas')
-  cuenta(datos.listItems.length, 'artículo', 'artículos')
-  cuenta(datos.meals.length, 'comida', 'comidas')
-  cuenta(datos.notes.length, 'nota', 'notas')
-  cuenta(datos.expenses.length, 'apunte', 'apuntes')
-  cuenta(datos.documents.length, 'documento', 'documentos')
+  cuenta(datos.members.length + datos.kids.length, t.personas)
+  cuenta(datos.events.length, t.eventos)
+  cuenta(datos.tasks.length, t.tareas)
+  cuenta(datos.listItems.length, t.articulos)
+  cuenta(datos.meals.length, t.comidas)
+  cuenta(datos.notes.length, t.notas)
+  cuenta(datos.expenses.length, t.apuntes)
+  cuenta(datos.documents.length, t.documentos)
   return partes.join(' · ')
 }

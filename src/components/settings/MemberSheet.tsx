@@ -59,12 +59,13 @@ function initDraft(mode: Mode, initial: FamilyMember | null | undefined, default
 
 export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, documentosSubidos = 0, defaultColor = PERSON_COLORS[0].value, puedeQuitar = true, onClose, onInvite, onUpdate, onChangeRole, onRemove }: MemberSheetProps) {
   const t = useT()
+  const m = t.ajustes.miembros
   const { draft, patch, formError, setFormError, firstFieldRef, submitHandler, guardando } = useSheetForm<MemberDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultColor),
     validate: d => mode === 'invite'
-      ? (isValidEmail(d.email) ? null : 'Introduce un email válido.')
-      : (d.name.trim() ? null : 'El nombre no puede estar vacío.'),
+      ? (isValidEmail(d.email) ? null : m.emailInvalido)
+      : (d.name.trim() ? null : m.nombreVacio),
   })
   // Quitar a alguien no borra contenido, pero le cierra la puerta de la familia
   // y deja sin abrir los papeles que estén en su Drive. Nada de eso se ve desde
@@ -81,7 +82,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
   async function handleRoleChange(next: Role) {
     if (!initial || !onChangeRole || next === role) return
     if (next === 'member' && isOnlyAdmin) {
-      setRoleError('La familia debe tener al menos un administrador.')
+      setRoleError(m.alMenosUnAdmin)
       return
     }
     const previous = role
@@ -91,7 +92,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
       if (!await onChangeRole(initial.id, next)) setRole(previous)
     } catch (err) {
       setRole(previous)
-      setRoleError(err instanceof Error ? err.message : 'No se pudo cambiar el rol.')
+      setRoleError(err instanceof Error ? err.message : m.noSeCambioElRol)
     }
   }
 
@@ -102,28 +103,26 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
   return (
     <BottomSheet
       open={open}
-      title={preguntando ? 'Quitar miembro' : mode === 'invite' ? 'Invitar persona' : 'Editar miembro'}
+      title={preguntando ? m.quitarMiembro : mode === 'invite' ? m.invitarPersona : m.editarMiembro}
       onClose={preguntando ? cancelar : onClose}
       footer={preguntando ? (
-        <ConfirmDeleteFooter confirmLabel="Sí, quitar de la familia" onConfirm={confirmar} onCancel={cancelar} />
+        <ConfirmDeleteFooter confirmLabel={m.confirmarQuitar} onConfirm={confirmar} onCancel={cancelar} />
       ) : (
         <SheetFooter
           form="member-form"
-          submitLabel={guardando ? t.guardado.guardando : mode === 'invite' ? 'Enviar invitación' : 'Guardar'}
+          submitLabel={guardando ? t.guardado.guardando : mode === 'invite' ? m.enviarInvitacion : m.guardar}
           disabled={guardando}
-          onDelete={mode === 'edit' && puedeQuitar ? { onClick: preguntar, idleLabel: 'Quitar miembro' } : undefined}
+          onDelete={mode === 'edit' && puedeQuitar ? { onClick: preguntar, idleLabel: m.quitarMiembro } : undefined}
         />
       )}
     >
       {preguntando ? (
         <ConfirmDeleteBody>
           <p>
-            <strong className="text-ink">{initial?.display_name}</strong> deja de tener acceso a
-            esta familia. Su cuenta no se toca: puedes volver a invitarla cuando quieras.
+            <strong translate="no" className="text-ink">{initial?.display_name}</strong>{m.dejaDeTenerAcceso}
           </p>
           <p>
-            Lo que tuviera asignado <strong className="text-ink">no se borra</strong>: se queda en
-            su sitio, sin nadie asignado.
+            {m.loAsignadoAntes}<strong className="text-ink">{m.noSeBorra}</strong>{m.loAsignadoDespues}
           </p>
           {/* Los documentos que subió están en **su** Google Drive, y Farpi los
               sirve con un permiso que le pide prestado. Si sale, ese permiso deja
@@ -133,25 +132,22 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
               hace falta saberlo y aún se puede no hacerlo. */}
           {documentosSubidos > 0 && (
             <p>
-              {documentosSubidos === 1
-                ? 'El documento que subió está'
-                : `Los ${documentosSubidos} documentos que subió están`} en su Google Drive, así que{' '}
-              <strong className="text-ink">dejarán de abrirse en Farpi</strong>. La ficha se queda
-              en Documentos, pero el archivo ya no se puede servir.
+              {m.documentosAntes(documentosSubidos)}
+              <strong className="text-ink">{m.documentosFuerte}</strong>{m.documentosDespues}
             </p>
           )}
         </ConfirmDeleteBody>
       ) : (
         <form id="member-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
           {mode === 'invite' ? (
-            <Field label="Email" htmlFor="member-email">
+            <Field label={m.email} htmlFor="member-email">
               <input
                 id="member-email"
                 ref={firstFieldRef}
                 type="email"
                 value={draft.email}
                 onChange={e => { patch({ email: e.target.value }); setFormError(null) }}
-                placeholder="correo@ejemplo.com"
+                placeholder={m.emailEjemplo}
                 required
                 className="field-input"
               />
@@ -159,38 +155,38 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
                 <p className="text-[11px] text-danger-strong font-medium">{formError}</p>
               ) : (
                 <p className="text-[10px] text-muted">
-                  En modo demo, la invitación no se envía. El email queda guardado como referencia.
+                  {m.enModoDemo}
                 </p>
               )}
             </Field>
           ) : (
-            <Field label="Nombre" htmlFor="member-name">
+            <Field label={m.nombre} htmlFor="member-name">
               <input
                 id="member-name"
                 ref={firstFieldRef}
                 type="text"
                 value={draft.name}
                 onChange={e => patch({ name: e.target.value })}
-                placeholder="Nombre visible"
+                placeholder={m.nombreVisible}
                 required
                 className="field-input"
               />
 
               <div className="space-y-1.5 pt-2">
-                <label className="field-label">Color</label>
+                <label className="field-label">{m.color}</label>
                 <ColorPicker value={draft.color} onChange={color => patch({ color })} />
                 <p className="text-[10px] text-muted">
-                  Identifica a esta persona en el calendario y en los documentos.
+                  {m.colorExplicacion}
                 </p>
               </div>
 
               {onChangeRole && (
                 <div className="space-y-1.5 pt-2">
-                  <label className="field-label">Rol</label>
+                  <label className="field-label">{m.rol}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {([
-                      { value: 'admin' as Role, label: 'Administrador', icon: ShieldCheck },
-                      { value: 'member' as Role, label: 'Miembro', icon: User },
+                      { value: 'admin' as Role, label: m.administrador, icon: ShieldCheck },
+                      { value: 'member' as Role, label: m.miembro, icon: User },
                     ]).map(({ value, label, icon: Icon }) => (
                       <button
                         key={value}
@@ -206,7 +202,7 @@ export function MemberSheet({ open, mode, initial, isOnlyAdmin = false, document
                   </div>
                   {roleError
                     ? <p className="text-[11px] text-danger-strong font-medium">{roleError}</p>
-                    : <p className="text-[10px] text-muted">Los administradores gestionan miembros, invitaciones y ajustes de la familia.</p>
+                    : <p className="text-[10px] text-muted">{m.rolExplicacion}</p>
                   }
                 </div>
               )}

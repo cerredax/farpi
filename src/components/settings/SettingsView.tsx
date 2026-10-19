@@ -186,7 +186,7 @@ export function SettingsView() {
     listas: lists.length,
     comidas: meals.length,
     documentos: documents.length,
-  })
+  }, t.ajustes.familia.resumen)
 
   const [newFamilyName, setNewFamilyName] = useState('')
   const [creatingFamily, setCreatingFamily] = useState(false)
@@ -349,7 +349,7 @@ export function SettingsView() {
                       onClick={() => f.id !== activeFamilyId && switchFamily(f.id)}
                       className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-surface ${f.id === activeFamilyId ? 'bg-hairline' : 'hover:bg-canvas'}`}
                     >
-                      <span className="text-sm font-semibold text-ink">{f.name}</span>
+                      <span translate="no" className="text-sm font-semibold text-ink">{f.name}</span>
                       {f.id === activeFamilyId && (
                         <span className="text-xs font-bold text-primary-strong uppercase tracking-wide">{t.ajustes.activa}</span>
                       )}

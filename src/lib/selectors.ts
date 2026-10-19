@@ -3,6 +3,7 @@ import { eventCoversDay, isAbsence, isBirthday, isDigestPlan } from './events'
 import { DIAS_AVISO_CADUCIDAD, DIAS_VALIDEZ_INVITACION, DOC_CATEGORIES, MEAL_SLOTS, TASK_PRIORITIES } from './constants'
 import { assigneeKeyOf } from './assignees'
 import { normalizaParaBuscar } from './text'
+import { textosDelNavegador, type Diccionario } from './i18n'
 import type { DocCategory, Document, Event, MealPlan, MealSlot, Note, Task, TaskPriority, ListItem, List, PendingItem, ItemMatch } from '@/types'
 
 const TASK_PRIORITY_WEIGHT = Object.fromEntries(
@@ -576,21 +577,21 @@ export function selectFamilySummary(counts: {
   listas: number
   comidas: number
   documentos: number
-}): string | null {
-  const partes: [number, string, string][] = [
-    [counts.personas,   'persona',   'personas'],
-    [counts.eventos,    'evento',    'eventos'],
-    [counts.tareas,     'tarea',     'tareas'],
-    [counts.listas,     'lista',     'listas'],
-    [counts.comidas,    'comida',    'comidas'],
-    [counts.documentos, 'documento', 'documentos'],
+}, t: Diccionario['ajustes']['familia']['resumen'] = textosDelNavegador().ajustes.familia.resumen): string | null {
+  const partes: [number, (n: number) => string][] = [
+    [counts.personas,   t.personas],
+    [counts.eventos,    t.eventos],
+    [counts.tareas,     t.tareas],
+    [counts.listas,     t.listas],
+    [counts.comidas,    t.comidas],
+    [counts.documentos, t.documentos],
   ]
 
   const textos = partes
     .filter(([n]) => n > 0)
-    .map(([n, uno, varios]) => `${n} ${n === 1 ? uno : varios}`)
+    .map(([n, frase]) => frase(n))
 
   if (textos.length === 0) return null
   if (textos.length === 1) return textos[0]
-  return `${textos.slice(0, -1).join(', ')} y ${textos[textos.length - 1]}`
+  return `${textos.slice(0, -1).join(', ')} ${t.y} ${textos[textos.length - 1]}`
 }

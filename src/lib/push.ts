@@ -163,7 +163,7 @@ async function registroListo(): Promise<ServiceWorkerRegistration> {
   let reloj: ReturnType<typeof setTimeout>
   const seAcabaElTiempo = new Promise<never>((_, reject) => {
     reloj = setTimeout(
-      () => reject(new Error('No se pudo preparar el aviso en este dispositivo. Recarga la página y vuelve a intentarlo.')),
+      () => reject(new Error(textosDelNavegador().ajustes.recordatorios.sinServiceWorker)),
       ESPERA_SW_MS,
     )
   })
@@ -316,11 +316,12 @@ export async function darDeBajaEsteDispositivo(): Promise<void> {
 
 /** Pide permiso, se suscribe a push y guarda la suscripción en el backend. */
 export async function enablePush(): Promise<void> {
-  if (!pushSupported()) throw new Error('Tu navegador no admite notificaciones.')
-  if (!pushConfigured()) throw new Error('Las notificaciones aún no están configuradas.')
+  const r = textosDelNavegador().ajustes.recordatorios
+  if (!pushSupported()) throw new Error(r.noAdmite)
+  if (!pushConfigured()) throw new Error(r.noConfiguradas)
 
   const permission = await Notification.requestPermission()
-  if (permission !== 'granted') throw new Error('Permiso de notificaciones denegado.')
+  if (permission !== 'granted') throw new Error(r.permisoDenegado)
 
   const registration = await registroListo()
   const existing = await registration.pushManager.getSubscription()

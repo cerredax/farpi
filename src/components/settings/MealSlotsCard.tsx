@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/Card'
 import { MEAL_SLOTS } from '@/lib/constants'
+import { useT } from '@/lib/i18n/contexto'
 import { canHideMealSlot, toggleMealSlot } from '@/lib/meal-slots'
 import type { MealSlot } from '@/types'
 
@@ -29,12 +30,13 @@ interface MealSlotsCardProps {
  * entera lo comparte, así que el cambio va a la base igual que el nombre.
  */
 export function MealSlotsCard({ slots, onChange, puedeCambiar = true }: MealSlotsCardProps) {
+  const t = useT()
   return (
     <Card padded={false}>
       {/* Solo la parte que no es obvia: que son las de Comidas ya lo dice el
           rótulo de la sección, y decirlo aquí gastaba tres líneas a 390 px. */}
       <p className="px-4 pt-3 pb-2 text-xs text-muted">
-        Quitar una no borra lo apuntado en ella: vuelve si la activas.
+        {t.ajustes.franjas.quitarNoBorra}
       </p>
 
       <ul className="border-t border-hairline divide-y divide-hairline">
@@ -49,7 +51,7 @@ export function MealSlotsCard({ slots, onChange, puedeCambiar = true }: MealSlot
                 type="button"
                 role="switch"
                 aria-checked={activa}
-                aria-label={slot.label}
+                aria-label={t.comun.franjas[slot.key]}
                 disabled={bloqueada}
                 onClick={() => onChange(toggleMealSlot(slots, slot.key))}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas disabled:cursor-not-allowed disabled:hover:bg-transparent"
@@ -60,11 +62,11 @@ export function MealSlotsCard({ slots, onChange, puedeCambiar = true }: MealSlot
 
                 <span className="min-w-0 flex-1">
                   <span className={`block text-sm font-semibold ${activa ? 'text-ink' : 'text-muted'}`}>
-                    {slot.label}
+                    {t.comun.franjas[slot.key]}
                   </span>
                   {esLaUltima && (
                     <span className="mt-0.5 block text-[11px] leading-snug text-muted">
-                      Tiene que quedar al menos una franja
+                      {t.ajustes.franjas.alMenosUna}
                     </span>
                   )}
                 </span>

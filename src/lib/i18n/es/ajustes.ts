@@ -61,6 +61,16 @@ export const ajustes = {
     nombreEntreComillas: (nombre: string) => `«${nombre}»`,
     conTodoLoSuyo: (contenido: string) => ` con todo lo suyo: ${contenido}.`,
     queEstaVacia: ', que está vacía.',
+    /** Lo que se lleva por delante cerrarla (`selectFamilySummary`): cada parte entera y la «y» que cierra la lista. */
+    resumen: {
+      personas: (n: number) => (n === 1 ? '1 persona' : `${n} personas`),
+      eventos: (n: number) => (n === 1 ? '1 evento' : `${n} eventos`),
+      tareas: (n: number) => (n === 1 ? '1 tarea' : `${n} tareas`),
+      listas: (n: number) => (n === 1 ? '1 lista' : `${n} listas`),
+      comidas: (n: number) => (n === 1 ? '1 comida' : `${n} comidas`),
+      documentos: (n: number) => (n === 1 ? '1 documento' : `${n} documentos`),
+      y: 'y',
+    },
     noSePuedeDeshacer: 'No se puede deshacer.',
     archivosEnDrive: 'Los archivos siguen en el Google Drive de quien los subió: lo que se borra aquí es su ficha.',
     unicaFamilia:

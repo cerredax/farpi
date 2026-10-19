@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Download } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -14,6 +15,7 @@ interface BeforeInstallPromptEvent extends Event {
  * evento: allí se instala con "Añadir a pantalla de inicio" desde Safari.
  */
 export function InstallPWA() {
+  const t = useT()
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function InstallPWA() {
       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary-strong px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-deep"
     >
       <Download size={16} strokeWidth={2.4} />
-      Instalar Farpi en el dispositivo
+      {t.ajustes.instalar}
     </button>
   )
 }

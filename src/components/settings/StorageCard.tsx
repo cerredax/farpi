@@ -5,6 +5,7 @@ import { HardDrive, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { useStore } from '@/lib/store-context'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * Google Drive en Ajustes, la pestaña "Sincronización" entera.
@@ -22,6 +23,7 @@ import { useConfirmAction } from '@/hooks/useConfirmAction'
  * ofreciendo conectar, sin obligar a pasar por aquí.
  */
 export function StorageCard() {
+  const a = useT().ajustes.almacen
   const { storageConnection, reloadStorageConnection, connectStorageUrl, disconnectStorage } = useStore()
   const { confirming, requestConfirm, resetConfirm } = useConfirmAction()
   const [ocupado, setOcupado] = useState(false)
@@ -43,7 +45,7 @@ export function StorageCard() {
     try {
       await disconnectStorage()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo desconectar.')
+      setError(err instanceof Error ? err.message : a.noSeDesconecto)
     } finally {
       setOcupado(false)
     }
@@ -57,10 +59,9 @@ export function StorageCard() {
             <HardDrive size={18} strokeWidth={2.3} />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-black text-ink">Google Drive</p>
+            <p className="text-sm font-black text-ink">{a.titulo}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted">
-              Los documentos que subas se guardan en tu propio Drive, no en Farpi. La familia los
-              ve igual sin conectar nada: conectar hace falta para subir, no para mirar.
+              {a.sinConectar}
             </p>
           </div>
         </div>
@@ -70,7 +71,7 @@ export function StorageCard() {
             href={connectStorageUrl}
             className="flex w-full items-center justify-center rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
           >
-            Conectar Google Drive
+            {a.conectar}
           </a>
         )}
       </Card>
@@ -84,13 +85,13 @@ export function StorageCard() {
           <HardDrive size={18} strokeWidth={2.3} />
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-black text-ink">Google Drive</p>
+          <p className="text-sm font-black text-ink">{a.titulo}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted">
             {storageConnection.revocada
-              ? 'La conexión ya no vale. Los documentos que subiste siguen en tu Drive, pero la familia no puede abrirlos hasta que vuelvas a dar permiso.'
+              ? a.revocada
               : storageConnection.email
-                ? `Los documentos que subes se guardan en ${storageConnection.email}.`
-                : 'Los documentos que subes se guardan en tu Google Drive.'}
+                ? a.seGuardanEn(storageConnection.email)
+                : a.seGuardanEnTuDrive}
           </p>
         </div>
       </div>
@@ -100,7 +101,7 @@ export function StorageCard() {
           href={connectStorageUrl}
           className="flex w-full items-center justify-center rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
         >
-          Volver a conectar
+          {a.volverAConectar}
         </a>
       ) : (
         <>
@@ -112,13 +113,12 @@ export function StorageCard() {
             className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 ${confirming ? 'bg-danger-strong text-white' : 'border border-line text-muted hover:bg-surface'}`}
           >
             {ocupado && <Loader2 size={14} className="animate-spin" />}
-            {confirming ? 'Confirmar: los demás dejarán de ver tus documentos' : 'Desconectar Google Drive'}
+            {confirming ? a.confirmarDesconectar : a.desconectar}
           </button>
           {/* Desconectar no borra nada de nadie, y hay que decirlo: lo que se
               pierde no es el archivo, es que Farpi pueda enseñárselo a la familia. */}
           <p className="text-[10px] leading-relaxed text-muted">
-            No se borra ningún archivo de tu Drive. Los documentos que subiste dejarán de poder abrirse en Farpi
-            hasta que vuelvas a conectarlo.
+            {a.noSeBorraNada}
           </p>
         </>
       )}

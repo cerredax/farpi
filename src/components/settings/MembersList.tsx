@@ -2,6 +2,7 @@ import { Pencil, UserPlus, X } from 'lucide-react'
 import type { Child, FamilyMember, FamilyInvite } from '@/types'
 import { defaultMemberColor, memberColor, textColorOn } from '@/lib/assignees'
 import { invitacionCaducada } from '@/lib/selectors'
+import { useT } from '@/lib/i18n/contexto'
 
 interface MembersListProps {
   members: FamilyMember[]
@@ -28,6 +29,7 @@ function initials(name: string) {
 }
 
 export function MembersList({ members, invites, kids, puedeGestionar, miMemberId, onEdit, onInvite, onCancelInvite }: MembersListProps) {
+  const m = useT().ajustes.miembros
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
       {members.map((member, i) => {
@@ -41,9 +43,9 @@ export function MembersList({ members, invites, kids, puedeGestionar, miMemberId
               {initials(member.display_name)}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-ink text-sm leading-tight truncate">{member.display_name}</p>
+              <p translate="no" className="font-semibold text-ink text-sm leading-tight truncate">{member.display_name}</p>
               <p className="text-xs text-muted mt-0.5">
-                {member.role === 'admin' ? 'Administrador' : 'Miembro'}
+                {member.role === 'admin' ? m.administrador : m.miembro}
               </p>
             </div>
             {/* A ti siempre; a los demás, solo un administrador. Es lo mismo
@@ -51,7 +53,7 @@ export function MembersList({ members, invites, kids, puedeGestionar, miMemberId
             {(puedeGestionar || member.id === miMemberId) && (
               <button
                 onClick={() => onEdit(member)}
-                aria-label={`Editar ${member.display_name}`}
+                aria-label={m.editarA(member.display_name)}
                 className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface transition-colors flex-shrink-0"
               >
                 <Pencil size={15} strokeWidth={1.8} />
@@ -83,17 +85,17 @@ export function MembersList({ members, invites, kids, puedeGestionar, miMemberId
                   caducada ? 'bg-danger-soft text-danger-strong' : 'bg-sand/30 text-sand-strong'
                 }`}
               >
-                {caducada ? 'Caducada' : 'Pendiente'}
+                {caducada ? m.caducada : m.pendiente}
               </span>
             </div>
             <p className="text-xs text-muted mt-0.5">
-              {caducada ? 'Ya no se puede aceptar: vuelve a invitar' : 'Invitación enviada'}
+              {caducada ? m.yaNoSePuedeAceptar : m.invitacionEnviada}
             </p>
           </div>
           {puedeGestionar && (
             <button
               onClick={() => onCancelInvite(invite.id)}
-              aria-label={`Cancelar invitación a ${invite.email}`}
+              aria-label={m.cancelarInvitacionA(invite.email)}
               className="w-11 h-11 flex items-center justify-center rounded-full text-muted hover:text-danger-strong hover:bg-danger-soft transition-colors flex-shrink-0"
             >
               <X size={15} strokeWidth={1.8} />
@@ -112,7 +114,7 @@ export function MembersList({ members, invites, kids, puedeGestionar, miMemberId
           <span className="w-9 h-9 rounded-full border-2 border-dashed border-primary-strong flex items-center justify-center flex-shrink-0">
             <UserPlus size={16} strokeWidth={1.8} />
           </span>
-          <span className="text-sm font-semibold">Invitar persona</span>
+          <span className="text-sm font-semibold">{m.invitarPersona}</span>
         </button>
       </div>
       )}

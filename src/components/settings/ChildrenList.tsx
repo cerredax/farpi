@@ -1,7 +1,9 @@
 import { Pencil, UserPlus } from 'lucide-react'
 import { differenceInYears, differenceInMonths, parseISO, format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { textColorOn } from '@/lib/assignees'
+import type { Diccionario } from '@/lib/i18n'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { Child, PersonKind } from '@/types'
 
 interface ChildrenListProps {
@@ -12,27 +14,21 @@ interface ChildrenListProps {
   onAdd: () => void
 }
 
-function getAge(birthDate: string | null): string {
+function getAge(birthDate: string | null, p: Diccionario['ajustes']['personasSinCuenta']): string {
   if (!birthDate) return ''
   const birth = parseISO(birthDate)
   const years = differenceInYears(new Date(), birth)
-  if (years === 0) {
-    const months = differenceInMonths(new Date(), birth)
-    return months === 1 ? '1 mes' : `${months} meses`
-  }
-  return years === 1 ? '1 año' : `${years} años`
-}
-
-// El vacío de los adultos decía "otros adultos", que era como se llamaba su
-// bloque antes de pasar a "Adultos sin cuenta". Dos nombres para lo mismo en la
-// misma pantalla.
-const TEXTOS: Record<PersonKind, { vacio: string; anadir: string }> = {
-  hijo:   { vacio: 'Aún no hay hijos',                 anadir: 'Añadir hijo' },
-  adulto: { vacio: 'Aún no hay adultos sin cuenta',    anadir: 'Añadir adulto' },
+  if (years === 0) return p.edadEnMeses(differenceInMonths(new Date(), birth))
+  return p.edadEnAnos(years)
 }
 
 export function ChildrenList({ kids, kind, onEdit, onAdd }: ChildrenListProps) {
-  const textos = TEXTOS[kind]
+  // El vacío de los adultos decía "otros adultos", que era como se llamaba su
+  // bloque antes de pasar a "Adultos sin cuenta". Dos nombres para lo mismo en la
+  // misma pantalla.
+  const p = useT().ajustes.personasSinCuenta
+  const locale = localeDeFechas(useIdioma())
+  const textos = p[kind]
 
   return (
     <div className="bg-white rounded-2xl border border-surface shadow-sm overflow-hidden">
@@ -51,13 +47,13 @@ export function ChildrenList({ kids, kind, onEdit, onAdd }: ChildrenListProps) {
             {child.name.charAt(0).toUpperCase()}
           </span>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-ink text-sm leading-tight">{child.name}</p>
+            <p translate="no" className="font-bold text-ink text-sm leading-tight">{child.name}</p>
             {child.birth_date && (
               // De un hijo interesa la edad; de un adulto, la fecha para
               // acordarse del cumpleaños. Poner "78 años" ahí no dice nada.
               <p className="text-xs text-muted mt-0.5">
-                {format(parseISO(child.birth_date), 'd MMM yyyy', { locale: es })}
-                {child.kind === 'hijo' && ` · ${getAge(child.birth_date)}`}
+                {format(parseISO(child.birth_date), p.formatoFecha, { locale })}
+                {child.kind === 'hijo' && ` · ${getAge(child.birth_date, p)}`}
               </p>
             )}
           </div>

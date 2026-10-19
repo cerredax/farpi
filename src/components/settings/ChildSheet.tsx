@@ -10,6 +10,7 @@ import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import { textColorOn } from '@/lib/assignees'
 import { PERSON_COLORS } from '@/lib/constants'
 import { validateChildDraft } from '@/lib/validators'
+import { useT } from '@/lib/i18n/contexto'
 import type { Child, ChildDraft, PersonKind } from '@/types'
 
 type Mode = 'create' | 'edit'
@@ -34,27 +35,9 @@ function initDraft(mode: Mode, initial: Child | null | undefined, kind: PersonKi
   return { name: '', birth_date: '', color: PERSON_COLORS[0].value, kind }
 }
 
-const TEXTOS: Record<PersonKind, { anadir: string; editar: string; eliminar: string; confirmar: string; placeholder: string; sinNombre: string }> = {
-  hijo: {
-    anadir: 'Añadir hijo',
-    editar: 'Editar hijo',
-    eliminar: 'Eliminar hijo',
-    confirmar: 'Sí, eliminar al hijo',
-    placeholder: 'Nombre del niño o niña',
-    sinNombre: 'Nombre del hijo',
-  },
-  adulto: {
-    anadir: 'Añadir adulto',
-    editar: 'Editar adulto',
-    eliminar: 'Eliminar adulto',
-    confirmar: 'Sí, eliminar al adulto',
-    placeholder: 'Abuela, tío, canguro…',
-    sinNombre: 'Nombre del adulto',
-  },
-}
-
 export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpdate, onDelete }: ChildSheetProps) {
-  const textos = TEXTOS[kind]
+  const p = useT().ajustes.personasSinCuenta
+  const textos = p[kind]
   const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<ChildDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, kind),
@@ -73,7 +56,7 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
   // Mientras el sheet pregunta, la píldora de la cabecera se va: ya se está
   // dentro de la pregunta y volver a pulsarla no diría nada nuevo.
   const deleteAction = mode === 'edit' && !preguntando ? (
-    <DeleteButton variant="header" onClick={preguntar} idleLabel="Eliminar" />
+    <DeleteButton variant="header" onClick={preguntar} idleLabel={p.eliminar} />
   ) : undefined
 
   return (
@@ -88,7 +71,7 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
         <SheetFooter
           form="child-form"
           disabled={guardando}
-          submitLabel={mode === 'create' ? textos.anadir : 'Guardar cambios'}
+          submitLabel={mode === 'create' ? textos.anadir : p.guardarCambios}
           error={formError}
         />
       )}
@@ -96,25 +79,21 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
       {preguntando ? (
         <ConfirmDeleteBody>
           <p>
-            <strong className="text-ink">{initial?.name}</strong> deja de estar en la familia y de
-            poder elegirse al asignar nada.
+            <strong translate="no" className="text-ink">{initial?.name}</strong>{p.dejaDeEstar}
           </p>
           <p>
-            Lo que tuviera asignado —eventos, tareas, documentos y apuntes de Finanzas—{' '}
-            <strong className="text-ink">no se borra</strong>: se queda en su sitio, sin nadie
-            asignado.
+            {p.loAsignadoAntes}<strong className="text-ink">{p.noSeBorra}</strong>{p.loAsignadoDespues}
           </p>
         </ConfirmDeleteBody>
       ) : (
         <form id="child-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
           {kind === 'adulto' && (
             <p className="rounded-2xl bg-canvas px-4 py-3 text-xs text-muted leading-relaxed">
-              No entra en la app ni recibe invitación: sirve para asignarle eventos, tareas
-              y documentos. Para dar acceso a alguien, invítalo por correo desde Adultos.
+              {p.explicacionAdulto}
             </p>
           )}
 
-          <Field label="Nombre" htmlFor="child-name">
+          <Field label={p.nombre} htmlFor="child-name">
             <input
               id="child-name"
               ref={firstFieldRef}
@@ -127,7 +106,7 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
             />
           </Field>
 
-          <Field label="Fecha de nacimiento" htmlFor="child-birth">
+          <Field label={p.fechaDeNacimiento} htmlFor="child-birth">
             <input
               id="child-birth"
               type="date"
@@ -137,7 +116,7 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
             />
           </Field>
 
-          <Field label="Color" spacing="group">
+          <Field label={p.color} spacing="group">
             <ColorPicker value={draft.color} onChange={color => patch({ color })} />
           </Field>
 
@@ -149,8 +128,8 @@ export function ChildSheet({ open, mode, kind, initial, onClose, onCreate, onUpd
               {draft.name ? draft.name.charAt(0).toUpperCase() : '?'}
             </span>
             <div>
-              <p className="font-bold text-ink text-sm">{draft.name || textos.sinNombre}</p>
-              <p className="text-xs text-muted">{draft.birth_date || 'Fecha de nacimiento'}</p>
+              <p translate={draft.name ? 'no' : undefined} className="font-bold text-ink text-sm">{draft.name || textos.sinNombre}</p>
+              <p className="text-xs text-muted">{draft.birth_date || p.fechaDeNacimiento}</p>
             </div>
           </div>
         </form>

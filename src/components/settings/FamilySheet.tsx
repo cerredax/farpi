@@ -6,6 +6,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import { validateFamilyName } from '@/lib/validators'
+import { useT } from '@/lib/i18n/contexto'
 import type { Family } from '@/types'
 
 interface FamilySheetProps {
@@ -23,6 +24,7 @@ interface FamilySheetProps {
 }
 
 export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumentos, onClose, onSave, onDelete }: FamilySheetProps) {
+  const f = useT().ajustes.familia
   const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<{ name: string }>({
     open,
     initialDraft: () => ({ name: family.name }),
@@ -44,16 +46,16 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
   return (
     <BottomSheet
       open={open}
-      title={preguntando ? 'Eliminar familia' : 'Editar familia'}
+      title={preguntando ? f.eliminar : f.editar}
       onClose={preguntando ? cancelar : onClose}
       footer={preguntando ? (
-        <ConfirmDeleteFooter confirmLabel="Sí, borrarla con todo" onConfirm={confirmar} onCancel={cancelar} />
+        <ConfirmDeleteFooter confirmLabel={f.confirmarEliminar} onConfirm={confirmar} onCancel={cancelar} />
       ) : (
         <SheetFooter
           form="family-form"
           disabled={guardando}
-          submitLabel="Guardar"
-          onDelete={puedeEliminar ? { onClick: preguntar, idleLabel: 'Eliminar familia' } : undefined}
+          submitLabel={f.guardar}
+          onDelete={puedeEliminar ? { onClick: preguntar, idleLabel: f.eliminar } : undefined}
         />
       )}
     >
@@ -64,30 +66,28 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
       {preguntando ? (
         <ConfirmDeleteBody>
           <p>
-            {contenido
-              ? <>Se borra <strong className="text-ink">«{family.name}»</strong> con todo lo suyo: {contenido}.</>
-              : <>Se borra <strong className="text-ink">«{family.name}»</strong>, que está vacía.</>}{' '}
-            <strong className="text-ink">No se puede deshacer.</strong>
+            {f.seBorra}<strong translate="no" className="text-ink">{f.nombreEntreComillas(family.name)}</strong>
+            {contenido ? f.conTodoLoSuyo(contenido) : f.queEstaVacia}{' '}
+            <strong className="text-ink">{f.noSePuedeDeshacer}</strong>
           </p>
           {/* Solo si los hay: en una familia sin documentos, hablar de Drive es
               una pregunta que nadie se ha hecho. */}
           {hayDocumentos && (
             <p>
-              Los archivos siguen en el Google Drive de quien los subió: lo que se borra aquí es su
-              ficha.
+              {f.archivosEnDrive}
             </p>
           )}
         </ConfirmDeleteBody>
       ) : (
         <form id="family-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-4">
-          <Field label="Nombre" htmlFor="family-name">
+          <Field label={f.nombre} htmlFor="family-name">
             <input
               id="family-name"
               ref={firstFieldRef}
               type="text"
               value={draft.name}
               onChange={e => patch({ name: e.target.value })}
-              placeholder="Ej: Familia de Omar, Sofía y Cris"
+              placeholder={f.nombreEjemplo}
               required
               className="field-input"
             />
@@ -98,8 +98,7 @@ export function FamilySheet({ open, family, contenido, puedeEliminar, hayDocumen
               justo lo que no se entendía. */}
           {!puedeEliminar && (
             <p className="text-[10px] leading-relaxed text-muted">
-              Esta es tu única familia, así que no se puede eliminar: Farpi siempre trabaja dentro de
-              una. Crea otra antes, o borra tu cuenta para dejarlo todo.
+              {f.unicaFamilia}
             </p>
           )}
         </form>

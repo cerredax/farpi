@@ -5,6 +5,7 @@ import { Download } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { useStore } from '@/lib/store-context'
 import { construirExportacion, nombreDeArchivo, resumenDeExportacion } from '@/lib/export'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * Descargar una copia de todo.
@@ -19,6 +20,7 @@ import { construirExportacion, nombreDeArchivo, resumenDeExportacion } from '@/l
  * `docs/project-status.md`, que es donde sirve de algo si un día no hay app.
  */
 export function BackupCard() {
+  const c = useT().ajustes.copia
   const {
     family, members, invites, kids, allEvents, tasks, lists, allListItems,
     meals, notes, fixedEntries, budgets, expenses, quotes, documents,
@@ -49,7 +51,7 @@ export function BackupCard() {
       window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
       setHecho(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo preparar la copia.')
+      setError(err instanceof Error ? err.message : c.noSePreparo)
     }
   }
 
@@ -60,10 +62,9 @@ export function BackupCard() {
           <Download size={18} strokeWidth={2.3} />
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-black text-ink">Copia de seguridad</p>
+          <p className="text-sm font-black text-ink">{c.titulo}</p>
           <p className="mt-1 text-xs leading-relaxed text-muted">
-            Un archivo con todo lo de la familia: personas, calendario, tareas, listas, comidas y las fichas de
-            los documentos.
+            {c.explicacion}
           </p>
         </div>
       </div>
@@ -74,23 +75,22 @@ export function BackupCard() {
         onBlur={() => setHecho(false)}
         className="w-full rounded-xl border border-line py-2.5 text-sm font-semibold text-primary-strong transition-colors hover:bg-primary-tint"
       >
-        Descargar una copia de todo
+        {c.descargar}
       </button>
 
       {/* El recuento, a secas y como un albarán. Es lo que hace que una copia dé
           confianza: "descargar una copia" no dice si va vacía. Sin prosa alrededor,
           que la cabecera ya ha dicho qué lleva. */}
-      <p className="text-[10px] text-muted">{resumenDeExportacion(datos)}</p>
+      <p className="text-[10px] text-muted">{resumenDeExportacion(datos, c.resumen)}</p>
 
       {/* El archivo lleva DNI, informes médicos y fechas de nacimiento de los
           niños. No se cifra a propósito —una contraseña que se olvida convierte la
           copia en nada— así que al menos se dice dónde guardarlo. */}
       <p className="text-[10px] leading-relaxed text-muted">
-        Sin cifrar y con datos de la familia dentro: guárdalo donde guardarías los papeles. Los archivos de los
-        documentos no van en la copia; están en Google Drive.
+        {c.sinCifrar}
       </p>
 
-      {hecho && <p className="text-[11px] font-semibold text-primary-strong">Copia descargada.</p>}
+      {hecho && <p className="text-[11px] font-semibold text-primary-strong">{c.descargada}</p>}
       {error && <p className="text-[11px] font-medium text-danger-strong">{error}</p>}
     </Card>
   )

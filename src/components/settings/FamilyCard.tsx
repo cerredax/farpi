@@ -1,4 +1,5 @@
 import { Home, Pencil } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 import type { Family } from '@/types'
 
 interface FamilyCardProps {
@@ -20,6 +21,7 @@ interface FamilyCardProps {
  * pantalla, a dos dedos de distancia, y la segunda además dice las invitaciones.
  */
 export function FamilyCard({ family, onEdit }: FamilyCardProps) {
+  const t = useT()
   return (
     <div className="flex items-center gap-4 rounded-2xl border border-surface bg-white p-4 shadow-sm">
       <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary-tint">
@@ -30,11 +32,11 @@ export function FamilyCard({ family, onEdit }: FamilyCardProps) {
           editar, que desde el 09-09-2026 solo abre un administrador—. Con esto
           basta el ratón encima, y un lector de pantalla lee el nombre completo
           igualmente porque el texto está en el DOM. */}
-      <p title={family.name} className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
+      <p translate="no" title={family.name} className="min-w-0 flex-1 truncate text-base font-extrabold leading-tight text-ink">{family.name}</p>
       {onEdit && (
         <button
           onClick={onEdit}
-          aria-label="Editar familia"
+          aria-label={t.ajustes.familia.editar}
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-all hover:bg-surface hover:text-ink active:scale-95"
         >
           <Pencil size={17} strokeWidth={1.8} />

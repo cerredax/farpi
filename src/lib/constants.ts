@@ -180,11 +180,12 @@ export const MEAL_SLOT_META = Object.fromEntries(
 
 // ─── Tareas ───────────────────────────────────────────────────────────────────
 
-export const TASK_RECURRENCES: { value: TaskRecurrence; label: string; shortLabel: string }[] = [
-  { value: 'none',    label: 'No se repite', shortLabel: '' },
-  { value: 'daily',   label: 'Diaria',       shortLabel: 'Diaria' },
-  { value: 'weekly',  label: 'Semanal',      shortLabel: 'Semanal' },
-  { value: 'monthly', label: 'Mensual',      shortLabel: 'Mensual' },
+/** El orden de los botones del sheet. Los nombres, en `comun.recurrencias`. */
+export const TASK_RECURRENCES: { value: TaskRecurrence }[] = [
+  { value: 'none' },
+  { value: 'daily' },
+  { value: 'weekly' },
+  { value: 'monthly' },
 ]
 
 /**
@@ -202,11 +203,13 @@ export const TASK_RECURRENCES: { value: TaskRecurrence; label: string; shortLabe
  * dice **de quién es algo**, y la prioridad es un grado, no una identidad. En la
  * lista sigue habiendo señal de color, pero como banda al borde de la tarjeta
  * (`PRIORITY_BORDER` en `TaskItem`), que no se confunde con un punto con nombre.
+ *
+ * Los nombres, en `comun.prioridades`: aquí solo vive el orden.
  */
-export const TASK_PRIORITIES: { value: TaskPriority; label: string }[] = [
-  { value: 'high',   label: 'Alta'  },
-  { value: 'medium', label: 'Media' },
-  { value: 'low',    label: 'Baja'  },
+export const TASK_PRIORITIES: { value: TaskPriority }[] = [
+  { value: 'high' },
+  { value: 'medium' },
+  { value: 'low' },
 ]
 
 /**

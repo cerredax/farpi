@@ -1,4 +1,6 @@
 import { EXTENSION_POR_MIME } from './constants'
+import { documentos } from './i18n/es/documentos'
+import type { Diccionario } from './i18n'
 import type { DocMimeType } from '@/types'
 
 /** Pone en mayúscula la primera letra. Útil para las fechas que date-fns devuelve en minúscula. */
@@ -62,12 +64,12 @@ export function nombreDeDescarga(nombre: string, mime: string): string {
  * PDF · 350 KB» es lo que de verdad se sabe del archivo, y lo demás —cómo se
  * llama el papel— está en el campo de al lado.
  */
-export function etiquetaDeTipo(mime: string): string {
-  if (mime === 'application/pdf') return 'Documento PDF'
-  if (mime === 'image/jpeg') return 'Imagen JPG'
-  if (mime === 'image/png') return 'Imagen PNG'
-  if (mime.startsWith('image/')) return 'Imagen'
-  return 'Archivo'
+export function etiquetaDeTipo(mime: string, t: Diccionario['documentos']['tipos'] = documentos.tipos): string {
+  if (mime === 'application/pdf') return t.pdf
+  if (mime === 'image/jpeg') return t.jpg
+  if (mime === 'image/png') return t.png
+  if (mime.startsWith('image/')) return t.imagen
+  return t.archivo
 }
 
 /** Tamaño de archivo legible: "820 KB", "1.4 MB". */

@@ -1,11 +1,12 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { FileTypeIcon } from './FileTypeIcon'
 import { fondoDePersona } from '@/lib/assignees'
 import { DOC_CATEGORY, FAMILY_COLOR } from '@/lib/constants'
 import { docCategoryOf, selectExpiryState } from '@/lib/selectors'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { formatFileSize } from '@/lib/text'
 import type { Document } from '@/types'
 
@@ -25,8 +26,12 @@ interface DocCardProps {
 
 /** Tarjeta de documento en el listado, con categoría, dueño y metadatos. */
 export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardProps) {
+  const t = useT()
+  const locale = localeDeFechas(useIdioma())
   const categoria = docCategoryOf(doc)
-  const { label: etiqueta, emoji } = DOC_CATEGORY[categoria]
+  const etiqueta = t.comun.categoriasDeDocumento[categoria]
+  const { emoji } = DOC_CATEGORY[categoria]
+  const fecha = (iso: string) => format(parseISO(iso), t.documentos.tarjeta.formatoFecha, { locale })
   const caducidad = selectExpiryState(doc.expires_on)
 
   return (
@@ -41,9 +46,9 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-ink text-sm leading-tight truncate">{doc.name}</p>
+        <p translate="no" className="font-bold text-ink text-sm leading-tight truncate">{doc.name}</p>
         {doc.description && (
-          <p className="text-xs text-muted mt-0.5 truncate">{doc.description}</p>
+          <p translate="no" className="text-xs text-muted mt-0.5 truncate">{doc.description}</p>
         )}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           {/* La categoría, solo su icono y sin la palabra (09-09-2026). Era una
@@ -82,12 +87,13 @@ export function DocCard({ doc, assigneeName, assigneeColor, onEdit }: DocCardPro
               avisa por su cuenta, vale hasta que un día no vale. */}
           {caducidad && doc.expires_on && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${CADUCIDAD_ESTILO[caducidad]}`}>
-              {caducidad === 'caducado' ? 'Caducó el' : 'Caduca el'}{' '}
-              {format(parseISO(doc.expires_on), 'd MMM yyyy', { locale: es })}
+              {caducidad === 'caducado'
+                ? t.documentos.tarjeta.caducoEl(fecha(doc.expires_on))
+                : t.documentos.tarjeta.caducaEl(fecha(doc.expires_on))}
             </span>
           )}
           <span className="text-[10px] text-muted">
-            {formatFileSize(doc.size_bytes)} · {format(parseISO(doc.created_at), 'd MMM yyyy', { locale: es })}
+            {formatFileSize(doc.size_bytes)} · {fecha(doc.created_at)}
           </span>
         </div>
       </div>

@@ -15,6 +15,7 @@ import { etiquetaDeTipo, formatFileSize } from '@/lib/text'
 import { guardaBorrador, recuperaBorrador } from '@/lib/borrador-documento'
 import { validateDocumentFile } from '@/lib/validators'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { useT } from '@/lib/i18n/contexto'
 
 const EMPTY_DRAFT: DocumentDraft = {
   name: '',
@@ -60,10 +61,12 @@ interface DocSheetProps {
 }
 
 export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, onDelete, onOpenFile, conexion = null, connectUrl = null }: DocSheetProps) {
+  const tt = useT()
+  const t = tt.documentos.sheet
   const { draft, setDraft, patch, formError, setFormError, firstFieldRef, submitHandler } = useSheetForm<DocumentDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
-    validate: d => (d.name.trim() ? null : 'El nombre es obligatorio.'),
+    validate: d => (d.name.trim() ? null : t.nombreObligatorio),
   })
   const { confirming: confirmDelete, handleDelete } = useSheetDelete({
     initial,
@@ -169,14 +172,14 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
     // rama el hueco del archivo lo ocupa el cartel de `ConnectStorage` y el
     // mensaje del campo no llegaría a pintarse.
     if (faltaConectar) {
-      setFormError('Conecta tu Google Drive para poder subir el documento.')
+      setFormError(t.conectaParaSubir)
       return
     }
     // El archivo que no vale ya lo dice el campo: repetirlo aquí lo taparía con
     // un «selecciona un archivo» que no es lo que pasa.
     if (fileError) return
     if (mode === 'create' && !selectedFile) {
-      setFileError('Selecciona un archivo.')
+      setFileError(t.seleccionaArchivo)
       return
     }
 
@@ -202,7 +205,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
       else window.location.href = url
     } catch (err) {
       win?.close()
-      setOpenError(err instanceof Error ? err.message : 'No se pudo abrir el documento')
+      setOpenError(err instanceof Error ? err.message : t.noSeAbrio)
     } finally {
       setOpening(false)
     }
@@ -211,7 +214,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Añadir documento' : 'Editar documento'}
+      title={mode === 'create' ? t.anadir : t.editar}
       onClose={onClose}
       footer={
         <SheetFooter
@@ -220,19 +223,19 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
             guardando
               // Al crear se está subiendo el archivo y puede tardar; al editar
               // solo se cambia la ficha, que es una fila.
-              ? (mode === 'create' ? 'Subiendo el archivo…' : 'Guardando…')
-              : (mode === 'create' ? 'Guardar documento' : 'Guardar cambios')
+              ? (mode === 'create' ? t.subiendo : t.guardando)
+              : (mode === 'create' ? t.guardarDocumento : t.guardarCambios)
           }
           error={formError}
           disabled={guardando}
           onDelete={mode === 'edit' && onDelete
-            ? { confirming: confirmDelete, onClick: handleDelete, idleLabel: 'Eliminar documento', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming: confirmDelete, onClick: handleDelete, idleLabel: t.eliminar, confirmLabel: t.confirmarEliminacion }
             : undefined}
         />
       }
     >
       <form id="doc-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Archivo" spacing="group">
+        <Field label={t.archivo} spacing="group">
           {faltaConectar && conexion ? (
             <ConnectStorage
               conexion={conexion}
@@ -248,7 +251,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
               >
                 <Upload size={18} className="text-primary-strong flex-shrink-0" />
                 <span className="text-sm text-muted truncate flex-1">
-                  {fileName || 'Seleccionar archivo…'}
+                  {fileName || t.seleccionarArchivo}
                 </span>
               </button>
               {/* Los tipos y el límite salen de donde ya están escritos: el
@@ -258,7 +261,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
               <input ref={fileRef} type="file" accept={VALID_MIME_TYPES.join(',')} className="hidden" onChange={handleFile} />
               {fileError
                 ? <p className="text-[10px] text-danger-strong font-semibold">{fileError}</p>
-                : <p className="text-[10px] text-muted">PDF, JPG o PNG. Tamaño máximo: {MAX_DOC_SIZE / 1024 / 1024} MB.</p>
+                : <p className="text-[10px] text-muted">{t.tiposAdmitidos(MAX_DOC_SIZE / 1024 / 1024)}</p>
               }
             </>
           ) : (
@@ -273,7 +276,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                     nombre del archivo no está en la base —se queda en el Drive de
                     su dueño— y el del documento ya se lee en el campo de abajo. */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-ink font-medium truncate">{etiquetaDeTipo(draft.mime_type)}</p>
+                  <p className="text-sm text-ink font-medium truncate">{etiquetaDeTipo(draft.mime_type, tt.documentos.tipos)}</p>
                   <p className="text-xs text-muted">{formatFileSize(draft.size_bytes)}</p>
                 </div>
               </div>
@@ -285,8 +288,8 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
                   className="w-full flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-primary-strong transition-colors hover:bg-primary-tint disabled:opacity-60"
                 >
                   {opening
-                    ? <><Loader2 size={15} className="animate-spin" /> Abriendo…</>
-                    : <><ExternalLink size={15} strokeWidth={2.3} /> Abrir documento</>
+                    ? <><Loader2 size={15} className="animate-spin" /> {t.abriendo}</>
+                    : <><ExternalLink size={15} strokeWidth={2.3} /> {t.abrir}</>
                   }
                 </button>
               )}
@@ -295,14 +298,14 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
           )}
         </Field>
 
-        <Field label="Nombre" htmlFor="doc-name">
+        <Field label={t.nombre} htmlFor="doc-name">
           <input
             id="doc-name"
             ref={firstFieldRef}
             type="text"
             value={draft.name}
             onChange={e => patch({ name: e.target.value })}
-            placeholder="Ej: Cartilla de vacunas"
+            placeholder={t.nombreEjemplo}
             required
             className="field-input"
           />
@@ -311,13 +314,13 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
         {/* La misma pastilla que los filtros de la pantalla (`CategoryChip`):
             elegir «Salud» al guardar y filtrar por «Salud» son el mismo gesto
             sobre la misma cosa, y se habían quedado con dos aspectos distintos. */}
-        <Field label="Categoría" spacing="group">
+        <Field label={t.categoria} spacing="group">
           <div className="flex flex-wrap gap-2">
             {DOC_CATEGORIES.map(cat => (
               <CategoryChip
                 key={cat.key}
                 category={cat.key}
-                label={cat.label}
+                label={tt.comun.categoriasDeDocumento[cat.key]}
                 selected={draft.category === cat.key}
                 onClick={() => patch({ category: cat.key })}
               />
@@ -333,17 +336,17 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
           onChange={patch}
           members={members}
           kids={kids}
-          label="De quién es"
-          hint="(opcional)"
+          label={t.deQuienEs}
+          hint={t.opcional}
         />
 
-        <Field label="Descripción" htmlFor="doc-description" hint="(opcional)">
+        <Field label={t.descripcion} htmlFor="doc-description" hint={t.opcional}>
           <input
             id="doc-description"
             type="text"
             value={draft.description}
             onChange={e => patch({ description: e.target.value })}
-            placeholder="Ej: Revisión 2026"
+            placeholder={t.descripcionEjemplo}
             className="field-input"
           />
         </Field>
@@ -352,7 +355,7 @@ export function DocSheet({ open, mode, initial, kids, members, onClose, onSave, 
             poner fecha convertiría subir un papel en un interrogatorio. Los que
             sí caducan —DNI, seguro, ITV— son justo los que se pasan sin avisar,
             y de esta fecha tira el aviso diario. */}
-        <Field label="Caduca el" htmlFor="doc-expires" hint="(opcional)">
+        <Field label={t.caducaEl} htmlFor="doc-expires" hint={t.opcional}>
           <input
             id="doc-expires"
             type="date"

@@ -1,6 +1,7 @@
 'use client'
 
 import { HardDriveUpload } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 import type { StorageConnection } from '@/types'
 
 interface ConnectStorageProps {
@@ -32,18 +33,19 @@ interface ConnectStorageProps {
  * es `faltaConectar` en `DocSheet`.
  */
 export function ConnectStorage({ conexion, connectUrl, onIrAConectar }: ConnectStorageProps) {
+  const t = useT().documentos.conectar
   return (
     <div className="space-y-2 rounded-xl border border-line bg-canvas px-4 py-3">
       <p className="text-sm font-bold text-ink">
-        {conexion.revocada ? 'Vuelve a conectar tu Google Drive' : 'Conecta tu Google Drive'}
+        {conexion.revocada ? t.tituloRevocada : t.titulo}
       </p>
       <p className="text-xs leading-relaxed text-muted">
         {conexion.revocada
           // Que se haya caído la conexión no es culpa de nadie —pasa al revisar
           // los permisos de la cuenta de Google— pero sí tiene una consecuencia
           // que hay que decir, porque afecta a los demás y no se ve.
-          ? 'Los documentos que subiste siguen en tu Drive, pero la familia no puede abrirlos hasta que vuelvas a dar permiso.'
-          : 'Los documentos que subas se guardarán en tu Drive. El resto de la familia los verá en Farpi como siempre, sin conectar nada.'}
+          ? t.explicacionRevocada
+          : t.explicacion}
       </p>
       <a
         href={connectUrl}
@@ -51,7 +53,7 @@ export function ConnectStorage({ conexion, connectUrl, onIrAConectar }: ConnectS
         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-deep"
       >
         <HardDriveUpload size={16} strokeWidth={2.3} />
-        {conexion.revocada ? 'Volver a conectar' : 'Conectar Google Drive'}
+        {conexion.revocada ? t.botonRevocada : t.boton}
       </a>
     </div>
   )

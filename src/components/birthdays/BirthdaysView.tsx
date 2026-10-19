@@ -5,9 +5,11 @@ import Link from 'next/link'
 import { EventSheet } from '@/components/calendar/EventSheet'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ViewHeader } from '@/components/ui/ViewHeader'
-import { agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple, edadEnPalabras } from '@/lib/birthdays'
+import { agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple } from '@/lib/birthdays'
 import { DIAS_LISTA_CUMPLES, MINIMO_PARA_BUSCAR, ROUTES } from '@/lib/constants'
 import { getLocalDateString } from '@/lib/date-utils'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { useStore } from '@/lib/store-context'
 import { normalizaParaBuscar } from '@/lib/text'
 import type { CumpleEnCasa } from '@/lib/birthdays'
@@ -56,6 +58,8 @@ import type { Event } from '@/types'
  * entera (`EventSeriesDelete`).
  */
 export function BirthdaysView() {
+  const t = useT().cumpleanos
+  const locale = localeDeFechas(useIdioma())
   const { kids, members, allEvents, createEvent, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editando, setEditando] = useState<Event | null>(null)
@@ -76,8 +80,8 @@ export function BirthdaysView() {
     const visibles = buscando
       ? cumples.filter(cumple => normalizaParaBuscar(cumple.nombre).includes(termino))
       : cumples
-    return agrupaCumplesPorMes(visibles, hoy)
-  }, [cumples, buscando, termino, hoy])
+    return agrupaCumplesPorMes(visibles, hoy, locale)
+  }, [cumples, buscando, termino, hoy, locale])
 
   function abrirAlta() {
     setEditando(null)
@@ -100,7 +104,7 @@ export function BirthdaysView() {
     const contenido = (
       <>
         <span className="w-20 flex-shrink-0 text-xs font-bold text-primary-strong">
-          {diaDeCumple(fecha, dias)}
+          {diaDeCumple(fecha, dias, t, locale)}
         </span>
         {/**
           * **El nombre en tinta y nada delante** (14-09-2026, segunda vuelta del
@@ -125,10 +129,10 @@ export function BirthdaysView() {
           * que distinguirla de otras cosas: los planes de Inicio y la agenda del
           * calendario. Aquí lo que se viene a leer es un nombre y un día.
           */}
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{nombre}</span>
+        <span translate="no" className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{nombre}</span>
         {edad !== null && (
           <span className="flex-shrink-0 pl-2 text-xs font-semibold text-muted">
-            cumple {edadEnPalabras(edad)}
+            {t.cumpleEdad(edad)}
           </span>
         )}
       </>
@@ -144,7 +148,7 @@ export function BirthdaysView() {
           <button
             type="button"
             onClick={() => abrirEdicion(id)}
-            aria-label={`Editar el cumpleaños de ${nombre}`}
+            aria-label={t.editarElDe(nombre)}
             className={clase}
           >
             {contenido}
@@ -156,7 +160,7 @@ export function BirthdaysView() {
              de las cinco secciones, y la fecha de nacimiento está en Familia. */
           <Link
             href={`${ROUTES.settings}?seccion=familia`}
-            aria-label={`Cambiar la fecha de nacimiento de ${nombre} en Ajustes`}
+            aria-label={t.cambiarFechaDe(nombre)}
             className={clase}
           >
             {contenido}
@@ -180,24 +184,24 @@ export function BirthdaysView() {
           mismo ancho que usa el detalle de una lista, que es la misma forma. */}
       <div className="max-w-lg mx-auto px-4 py-6 space-y-5 lg:max-w-3xl lg:px-6">
         <ViewHeader
-          resumen={`${cumples.length} cumpleaños en los próximos doce meses`}
+          resumen={t.resumen(cumples.length)}
           buscador={puedeBuscar ? {
             value: busqueda,
             onChange: setBusqueda,
-            placeholder: `Buscar en ${cumples.length} cumpleaños…`,
-            ariaLabel: 'Buscar un cumpleaños por nombre',
+            placeholder: t.buscarEn(cumples.length),
+            ariaLabel: t.buscarPorNombre,
           } : null}
           onAdd={abrirAlta}
-          addLabel="Apuntar un cumpleaños"
+          addLabel={t.apuntar}
         />
 
         {cumples.length === 0 ? (
-          <EmptyState emoji="🎂" title="Sin cumpleaños" />
+          <EmptyState emoji="🎂" title={t.sinCumpleanos} />
         ) : meses.length === 0 ? (
           <EmptyState
             emoji="🔍"
-            title="Sin coincidencias"
-            description={`Nadie con «${busqueda.trim()}» en el nombre`}
+            title={t.sinCoincidencias}
+            description={t.nadieCon(busqueda.trim())}
           />
         ) : (
           meses.map(mes => (

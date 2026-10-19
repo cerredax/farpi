@@ -1,4 +1,6 @@
-import { leerN43, type CuentaN43, type LecturaN43, type MovimientoN43 } from './n43'
+import {
+  leerN43, TEXTOS_DE_EXTRACTO, type CuentaN43, type LecturaN43, type MovimientoN43, type TextosDeExtracto,
+} from './n43'
 import { normalizaParaBuscar } from './text'
 import { esZip, leerXlsx, type FilasXlsx } from './xlsx'
 
@@ -26,17 +28,20 @@ import { esZip, leerXlsx, type FilasXlsx } from './xlsx'
  * Se decide por lo que hay dentro y **nunca por la extensión**: el Sabadell y la
  * norma llegan los dos como `.txt`, y un zip es un Excel se llame como se llame.
  */
-export async function leerArchivoDeExtracto(bytes: Uint8Array): Promise<LecturaN43> {
+export async function leerArchivoDeExtracto(
+  bytes: Uint8Array,
+  textos: TextosDeExtracto = TEXTOS_DE_EXTRACTO,
+): Promise<LecturaN43> {
   if (esZip(bytes)) {
     let filas: FilasXlsx
     try {
       filas = await leerXlsx(bytes)
     } catch {
-      return { ok: false, error: 'No se ha podido abrir: parece un archivo comprimido, pero no un Excel' }
+      return { ok: false, error: textos.noEsExcel }
     }
-    return leerBbva(filas)
+    return leerBbva(filas, textos)
   }
-  return leerExtracto(comoTexto(bytes))
+  return leerExtracto(comoTexto(bytes), textos)
 }
 
 /**
@@ -45,9 +50,9 @@ export async function leerArchivoDeExtracto(bytes: Uint8Array): Promise<LecturaN
  * Se distinguen por la primera línea: la de la norma empieza por un código de
  * registro de dos cifras y la del Sabadell por una fecha con barras.
  */
-export function leerExtracto(contenido: string): LecturaN43 {
+export function leerExtracto(contenido: string, textos: TextosDeExtracto = TEXTOS_DE_EXTRACTO): LecturaN43 {
   const primera = contenido.split(/\r?\n/).find(linea => linea.trim() !== '') ?? ''
-  return LINEA_SABADELL.test(primera) ? leerSabadell(contenido) : leerN43(contenido)
+  return LINEA_SABADELL.test(primera) ? leerSabadell(contenido, textos) : leerN43(contenido, textos)
 }
 
 /**
@@ -83,13 +88,13 @@ const CAMPOS_SABADELL = 7
 /** Así empieza una línea de este formato: la fecha con barras y la primera `|`. */
 const LINEA_SABADELL = /^\d{2}\/\d{2}\/\d{4}\|/
 
-export function leerSabadell(contenido: string): LecturaN43 {
+export function leerSabadell(contenido: string, textos: TextosDeExtracto = TEXTOS_DE_EXTRACTO): LecturaN43 {
   const lineas = contenido
     .split(/\r?\n/)
     .map((texto, indice) => ({ texto, numero: indice + 1 }))
     .filter(({ texto }) => texto.trim() !== '')
 
-  if (lineas.length === 0) return { ok: false, error: 'El archivo está vacío' }
+  if (lineas.length === 0) return { ok: false, error: textos.archivoVacio }
 
   const leidos: ConSaldo[] = []
   for (const { texto, numero } of lineas) {
@@ -99,12 +104,12 @@ export function leerSabadell(contenido: string): LecturaN43 {
     const saldoCents = centimos(campos[4] ?? '')
 
     if (campos.length < CAMPOS_SABADELL || !fecha || importeCents === null || saldoCents === null) {
-      return { ok: false, error: `La línea ${numero} no tiene la forma del extracto del Sabadell` }
+      return { ok: false, error: textos.sabadellMalFormado(numero) }
     }
 
     const concepto = campos[1].trim()
     leidos.push({
-      donde: `la línea ${numero}`,
+      donde: textos.sabadellLinea(numero),
       saldoCents,
       movimiento: {
         fecha,
@@ -123,7 +128,7 @@ export function leerSabadell(contenido: string): LecturaN43 {
     })
   }
 
-  return { ok: true, extracto: cuentaConSaldos(leidos.reverse(), ENTIDAD_SABADELL) }
+  return { ok: true, extracto: cuentaConSaldos(leidos.reverse(), ENTIDAD_SABADELL, textos) }
 }
 
 /** La entidad del Sabadell en el registro de bancos. El fichero no trae la cuenta. */
@@ -165,11 +170,11 @@ function conceptoSabadell(concepto: string, referencia: string): string {
 /** La entidad del BBVA en el registro de bancos. El Excel no trae la cuenta. */
 const ENTIDAD_BBVA = '0182'
 
-export function leerBbva(filas: FilasXlsx): LecturaN43 {
+export function leerBbva(filas: FilasXlsx, textos: TextosDeExtracto = TEXTOS_DE_EXTRACTO): LecturaN43 {
   const nombres = filas.map(fila => fila.map(celda => normalizaParaBuscar(celda).trim()))
   const cabecera = nombres.findIndex(fila => ['fecha', 'concepto', 'importe', 'disponible'].every(n => fila.includes(n)))
   if (cabecera < 0) {
-    return { ok: false, error: 'Este Excel no tiene las columnas del extracto del BBVA: Fecha, Concepto, Importe y Disponible' }
+    return { ok: false, error: textos.bbvaSinColumnas }
   }
 
   const col = (nombre: string) => nombres[cabecera].indexOf(nombre)
@@ -190,13 +195,13 @@ export function leerBbva(filas: FilasXlsx): LecturaN43 {
     const importeCents = importeDeCelda(fila[cImporte] ?? '')
     const saldoCents = importeDeCelda(fila[cDisponible] ?? '')
     if (!fecha || importeCents === null || saldoCents === null) {
-      return { ok: false, error: `La fila ${numero} del Excel no tiene la forma del extracto del BBVA` }
+      return { ok: false, error: textos.bbvaFilaMalFormada(numero) }
     }
     if (cDivisa >= 0 && fila[cDivisa] && fila[cDivisa].trim() !== 'EUR') otraDivisa = true
 
     const concepto = (fila[cConcepto] ?? '').replace(/\s+/g, ' ').trim()
     leidos.push({
-      donde: `la fila ${numero} del Excel`,
+      donde: textos.bbvaFila(numero),
       saldoCents,
       movimiento: {
         fecha,
@@ -212,10 +217,10 @@ export function leerBbva(filas: FilasXlsx): LecturaN43 {
     })
   }
 
-  if (leidos.length === 0) return { ok: false, error: 'El Excel no trae ningún movimiento' }
+  if (leidos.length === 0) return { ok: false, error: textos.bbvaSinMovimientos }
 
-  const extracto = cuentaConSaldos(leidos.reverse(), ENTIDAD_BBVA)
-  if (otraDivisa) extracto.avisos.unshift('Hay movimientos que no van en euros y Farpi solo lleva euros')
+  const extracto = cuentaConSaldos(leidos.reverse(), ENTIDAD_BBVA, textos)
+  if (otraDivisa) extracto.avisos.unshift(textos.otraDivisa)
   return { ok: true, extracto }
 }
 
@@ -281,11 +286,11 @@ interface ConSaldo {
  * un movimiento o se lee mal un importe, la cadena se rompe justo ahí y sale en
  * `avisos`, igual que un descuadre de la norma.
  */
-function cuentaConSaldos(leidos: ConSaldo[], entidad: string) {
+function cuentaConSaldos(leidos: ConSaldo[], entidad: string, textos: TextosDeExtracto) {
   const avisos: string[] = []
   for (let i = 1; i < leidos.length; i++) {
     if (leidos[i - 1].saldoCents + conSigno(leidos[i].movimiento) !== leidos[i].saldoCents) {
-      avisos.push(`El saldo de ${leidos[i].donde} no sale de sumar su movimiento al anterior: puede faltar algún movimiento entre medias`)
+      avisos.push(textos.saldoEncadenado(leidos[i].donde))
     }
   }
 

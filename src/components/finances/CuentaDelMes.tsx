@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { SelectorDeMes } from './SelectorDeMes'
 import { formatCents } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import type { Aportacion, CuentaDelMes as Cuenta, FijoDelMes } from '@/lib/budgets'
 
 interface CuentaDelMesProps {
@@ -106,6 +107,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
   // rato el 04-09-2026 y se volvió atrás el mismo día: con los cuatro recibos y las
   // dos nóminas desplegados, la tarjeta se come media pantalla antes de llegar a las
   // partidas, y lo que la tarjeta tiene que dar de un vistazo es la cifra grande.
+  const t = useT().finanzas.cuenta
   const [abierta, setAbierta] = useState(false)
   const panelId = useId()
   const signo = (centimos: number) => formatCents(tono === 'sale' ? -centimos : centimos)
@@ -155,7 +157,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
                       ve yéndose a «Fijos». */}
                   {fijo.referenciaCents !== null && (
                     <span className="block truncate text-[11px] text-muted">
-                      suele ser {signo(fijo.referenciaCents)}
+                      {t.sueleSer(signo(fijo.referenciaCents))}
                     </span>
                   )}
                 </span>
@@ -175,7 +177,7 @@ function LineaDeFijos({ etiqueta, importe, tono, fijos, onAjustar }: {
                   <button
                     type="button"
                     onClick={() => onAjustar(fijo)}
-                    aria-label={`Ajustar ${fijo.name} en este mes`}
+                    aria-label={t.ajustarEnEsteMes(fijo.name)}
                     className="-mx-1 flex min-h-9 w-full items-baseline gap-2 rounded-lg px-1 py-1 text-left transition-colors hover:bg-canvas active:bg-canvas"
                   >
                     {contenido}
@@ -262,6 +264,7 @@ export function CuentaDelMes({
   cuenta, fijos, nombreDelMes, meses, mes, mesActual, onElegirMes, reparto,
   copiaVacia, previsionAbierta, onVerPrevision, onPonerFijos, onAjustarFijo,
 }: CuentaDelMesProps) {
+  const t = useT().finanzas
   const { hayFijos, queda, gastosApuntados, ingresosApuntados } = cuenta
   const enNumerosRojos = hayFijos && queda < 0
   // Ya vienen ordenados de `plantillaDelMes`, primero los que entran: filtrar
@@ -276,7 +279,7 @@ export function CuentaDelMes({
   const porVenirVacio = porVenir && gastosApuntados === 0 && ingresosApuntados === 0
 
   return (
-    <section aria-label="Resumen del mes" className="rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
+    <section aria-label={t.cuenta.aria} className="rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
       <SelectorDeMes mes={mes} mesActual={mesActual} meses={meses} onElegir={onElegirMes} />
 
       <div className="text-center">
@@ -292,15 +295,15 @@ export function CuentaDelMes({
         <p className="text-[13px] text-muted">
           {!hayFijos
             ? porVenirVacio
-              ? 'aún no ha empezado'
+              ? t.cuenta.aunNoHaEmpezado
               : porVenir
                 // Ni «gastado este mes» —el mes no ha llegado— ni un cero: es lo
                 // que ya sabes que va a salir de ahí.
-                ? 'apuntado para ese mes'
-                : 'gastado este mes'
+                ? t.cuenta.apuntadoParaEseMes
+                : t.cuenta.gastadoEsteMes
             : porVenir
-              ? (queda < 0 ? 'de más ese mes' : 'quedaría ese mes')
-              : (queda < 0 ? 'de más este mes' : 'queda este mes')}
+              ? (queda < 0 ? t.cuenta.deMasEseMes : t.cuenta.quedariaEseMes)
+              : (queda < 0 ? t.cuenta.deMasEsteMes : t.cuenta.quedaEsteMes)}
         </p>
       </div>
 
@@ -308,13 +311,13 @@ export function CuentaDelMes({
         <p className="mt-1 text-center text-[13px] text-muted">
           {cuenta.origen === 'copia'
             ? copiaVacia
-              ? 'De este mes no se guardó ningún fijo ni ninguna partida.'
-              : 'Mes cerrado: los fijos y las partidas son los que había entonces.'
+              ? t.cuenta.copiaVacia
+              : t.cuenta.mesCerrado
             : porVenir
               ? previsionAbierta
-                ? 'Es lo que quedaría si nada cambia.'
-                : 'Lo que ya has apuntado para un mes que no ha llegado.'
-              : 'De este mes no se guardó el plan, así que no se puede decir qué quedó.'}
+                ? t.cuenta.previsionAbierta
+                : t.cuenta.previsionCerrada
+              : t.cuenta.sinPlan}
         </p>
       )}
 
@@ -329,7 +332,7 @@ export function CuentaDelMes({
           onClick={onVerPrevision}
           className="mt-1 min-h-11 w-full text-center text-[13px] font-semibold text-primary-strong"
         >
-          {previsionAbierta ? 'Ocultar las cuentas' : `Ver las cuentas de ${nombreDelMes.split(' ')[0].toLowerCase()}`}
+          {previsionAbierta ? t.cuenta.ocultarCuentas : t.cuenta.verCuentas(t.fechas.mesEnFrase(nombreDelMes))}
         </button>
       )}
 
@@ -342,23 +345,23 @@ export function CuentaDelMes({
         <div className="mt-3 space-y-1 border-t border-hairline pt-2.5">
           {/* Un tipo sin ninguna línea no se hace desplegable: se abriría vacío. */}
           {ingresos.length > 0 ? (
-            <LineaDeFijos etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} onAjustar={onAjustarFijo} />
+            <LineaDeFijos etiqueta={t.cuenta.ingresosFijos} importe={cuenta.ingresosFijos} tono="entra" fijos={ingresos} onAjustar={onAjustarFijo} />
           ) : (
-            <Linea etiqueta="Ingresos fijos" importe={cuenta.ingresosFijos} tono="entra" />
+            <Linea etiqueta={t.cuenta.ingresosFijos} importe={cuenta.ingresosFijos} tono="entra" />
           )}
           {gastos.length > 0 ? (
-            <LineaDeFijos etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" fijos={gastos} onAjustar={onAjustarFijo} />
+            <LineaDeFijos etiqueta={t.cuenta.gastosFijos} importe={cuenta.gastosFijos} tono="sale" fijos={gastos} onAjustar={onAjustarFijo} />
           ) : (
-            <Linea etiqueta="Gastos fijos" importe={cuenta.gastosFijos} tono="sale" />
+            <Linea etiqueta={t.cuenta.gastosFijos} importe={cuenta.gastosFijos} tono="sale" />
           )}
           <div className="flex items-baseline justify-between gap-3 border-t border-hairline pt-1 text-[13px]">
-            <span className="truncate font-semibold text-muted">Para el mes</span>
+            <span className="truncate font-semibold text-muted">{t.cuenta.paraElMes}</span>
             <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(cuenta.paraElMes)}</span>
           </div>
           {ingresosApuntados > 0 && (
-            <Linea etiqueta="Ingresos apuntados" importe={ingresosApuntados} tono="entra" />
+            <Linea etiqueta={t.cuenta.ingresosApuntados} importe={ingresosApuntados} tono="entra" />
           )}
-          <Linea etiqueta="Gastos apuntados" importe={gastosApuntados} tono="sale" />
+          <Linea etiqueta={t.cuenta.gastosApuntados} importe={gastosApuntados} tono="sale" />
         </div>
       ) : cuenta.origen === 'plantilla' ? (
         <button
@@ -366,9 +369,8 @@ export function CuentaDelMes({
           onClick={onPonerFijos}
           className="mt-2 min-h-11 w-full border-t border-hairline pt-2.5 text-left text-[13px] text-muted"
         >
-          Pon tus ingresos y gastos de todos los meses en{' '}
-          <span className="font-semibold text-primary-strong">Fijos</span> y aquí
-          verás cuánto queda.
+          {t.cuenta.ponerFijos.antes}
+          <span className="font-semibold text-primary-strong">{t.cuenta.ponerFijos.fijos}</span>{t.cuenta.ponerFijos.despues}
         </button>
       ) : null}
 

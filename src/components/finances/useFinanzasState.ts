@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useT } from '@/lib/i18n/contexto'
 import { useStore } from '@/lib/store-context'
 import {
   agrupaApuntesPorDia, agrupaApuntesPorMes, apuntesDelMes, buscaApuntes,
@@ -42,6 +43,8 @@ export function useFinanzasState() {
     createExpense, updateExpense, deleteExpense, deleteExpenses,
     createQuote, updateQuote, deleteQuote, setQuoteStatus,
   } = useStore()
+  // Cómo se llama lo que no tiene nombre propio en el reparto (sin partida, otras, de casa).
+  const textosReparto = useT().finanzas.reparto
 
   const hoy = getLocalDateString(new Date())
 
@@ -114,7 +117,10 @@ export function useFinanzasState() {
     () => budgets.reduce((total, b) => total + b.monthly_limit_cents, 0),
     [budgets],
   )
-  const repartoPorPersona = useMemo(() => repartoDelMes(expenses, mes, members, kids), [expenses, mes, members, kids])
+  const repartoPorPersona = useMemo(
+    () => repartoDelMes(expenses, mes, members, kids, textosReparto),
+    [expenses, mes, members, kids, textosReparto],
+  )
   // Seis meses **hasta hoy**, no hasta el mes que se esté mirando. La tendencia
   // es de la casa, no del mes: mirando junio, cortarla en junio escondía julio,
   // agosto y septiembre y dejaba una sola barra, que no es una tendencia.
@@ -128,14 +134,16 @@ export function useFinanzasState() {
   const reparto = useMemo(() => {
     const anterior = mesVecino(mes, -1)
     return conVariacion(
-      repartoPorPartida(plantilla, expenses, mes),
+      repartoPorPartida(plantilla, expenses, mes, undefined, textosReparto),
       repartoPorPartida(
         plantillaDelMes(anterior, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans),
         expenses,
         anterior,
+        undefined,
+        textosReparto,
       ),
     )
-  }, [plantilla, expenses, mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans])
+  }, [plantilla, expenses, mes, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, textosReparto])
 
   // Los tres datos de «Estadísticas» que no salen de la serie ni del reparto.
   const acumulado = useMemo(() => gastoAcumulado(expenses, mes), [expenses, mes])
@@ -167,9 +175,9 @@ export function useFinanzasState() {
   const repartoDelAño = useMemo(
     () => repartoAcumulado(
       delAño.meses.map(m => m.mes),
-      mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses,
+      mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses, undefined, textosReparto,
     ),
-    [delAño, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses],
+    [delAño, mesActual, fixedEntries, fixedOverrides, budgets, monthPlans, expenses, textosReparto],
   )
   const repetidos = useMemo(() => conceptosRepetidos(expenses, añoActual), [expenses, añoActual])
 

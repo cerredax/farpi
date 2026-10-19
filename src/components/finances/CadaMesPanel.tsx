@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { resolveAssignee } from '@/lib/assignees'
 import { formatCents } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import type { Budget, Child, FamilyMember, FixedEntry, MovementKind } from '@/types'
 
 interface CadaMesPanelProps {
@@ -168,24 +169,24 @@ export function CadaMesPanel({
   ingresos, gastos, partidas, totalIngresos, totalGastos, totalPartidas, paraElMes,
   members, kids, onNuevoFijo, onEditarFijo, onNuevaPartida, onEditarPartida,
 }: CadaMesPanelProps) {
+  const t = useT().finanzas
   return (
     <div className="space-y-5">
       <p className="px-1 text-xs text-muted">
-        Cómo suele ser un mes en esta casa. Se copia a cada mes que empieza;
-        cambiarlo no toca los meses que ya terminaron.
+        {t.plantilla.intro}
       </p>
 
-      <section aria-label="Entra al mes" className="space-y-2">
+      <section aria-label={t.plantilla.entra} className="space-y-2">
         <Cabecera
-          titulo="Entra al mes"
+          titulo={t.plantilla.entra}
           total={ingresos.length > 0 ? formatCents(totalIngresos) : null}
-          etiquetaNuevo="Nuevo ingreso"
+          etiquetaNuevo={t.plantilla.nuevoIngreso}
           onNuevo={() => onNuevoFijo('ingreso')}
         />
         {ingresos.length === 0 ? (
           <EmptyState
             emoji="💼"
-            title="Sin ingresos fijos"
+            title={t.plantilla.sinIngresos}
           />
         ) : (
           <Lista>
@@ -196,17 +197,17 @@ export function CadaMesPanel({
         )}
       </section>
 
-      <section aria-label="Sale al mes" className="space-y-2">
+      <section aria-label={t.plantilla.sale} className="space-y-2">
         <Cabecera
-          titulo="Sale al mes"
+          titulo={t.plantilla.sale}
           total={gastos.length > 0 ? formatCents(-totalGastos) : null}
-          etiquetaNuevo="Nuevo gasto"
+          etiquetaNuevo={t.plantilla.nuevoGasto}
           onNuevo={() => onNuevoFijo('gasto')}
         />
         {gastos.length === 0 ? (
           <EmptyState
             emoji="🏠"
-            title="Sin gastos fijos"
+            title={t.plantilla.sinGastos}
           />
         ) : (
           <Lista>
@@ -217,17 +218,17 @@ export function CadaMesPanel({
         )}
       </section>
 
-      <section aria-label="Partidas de cada mes" className="space-y-2">
+      <section aria-label={t.plantilla.ariaPartidas} className="space-y-2">
         <Cabecera
-          titulo="Se reparte en"
+          titulo={t.plantilla.seReparte}
           total={partidas.length > 0 ? formatCents(totalPartidas) : null}
-          etiquetaNuevo="Nueva partida"
+          etiquetaNuevo={t.partida.nueva}
           onNuevo={onNuevaPartida}
         />
         {partidas.length === 0 ? (
           <EmptyState
             emoji="🎯"
-            title="Sin partidas"
+            title={t.partidas.vacia}
           />
         ) : (
           <Lista>
@@ -241,8 +242,8 @@ export function CadaMesPanel({
       {(ingresos.length > 0 || gastos.length > 0) && (
         <div className="flex items-baseline justify-between gap-3 rounded-2xl border border-surface bg-white px-4 py-3 shadow-sm">
           <div className="min-w-0">
-            <p className="text-sm font-bold text-ink">Para el mes</p>
-            <p className="mt-0.5 text-[13px] text-muted">Lo que queda antes de gastar nada.</p>
+            <p className="text-sm font-bold text-ink">{t.cuenta.paraElMes}</p>
+            <p className="mt-0.5 text-[13px] text-muted">{t.plantilla.queQueda}</p>
           </div>
           <span className={`flex-shrink-0 text-lg font-extrabold tabular-nums ${paraElMes < 0 ? 'text-danger-strong' : 'text-ink'}`}>
             {formatCents(paraElMes)}

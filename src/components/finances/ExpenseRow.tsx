@@ -1,9 +1,10 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { resolveAssignee } from '@/lib/assignees'
 import { formatCents } from '@/lib/finanzas'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { Budget, Child, Expense, FamilyMember } from '@/types'
 
 interface ExpenseRowProps {
@@ -38,6 +39,8 @@ interface ExpenseRowProps {
  * repetirlo en cada fila sería ruido.
  */
 export function ExpenseRow({ expense, budgets, members, kids, conFecha = true, onEdit }: ExpenseRowProps) {
+  const t = useT().finanzas
+  const locale = localeDeFechas(useIdioma())
   const budget = budgets.find(b => b.id === expense.budget_id)
   const quienPago = resolveAssignee(expense, members, kids)
   const esIngreso = expense.kind === 'ingreso'
@@ -49,10 +52,10 @@ export function ExpenseRow({ expense, budgets, members, kids, conFecha = true, o
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-ink">
-          {expense.description ?? (budget ? budget.name : esIngreso ? 'Ingreso' : 'Gasto')}
+          {expense.description ?? (budget ? budget.name : esIngreso ? t.lista.ingreso : t.lista.gasto)}
         </p>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
-          {conFecha && <span>{format(parseISO(expense.date), 'd MMM', { locale: es })}</span>}
+          {conFecha && <span>{format(parseISO(expense.date), t.fechas.diaCorto, { locale })}</span>}
           {budget && (
             <span className="truncate">
               {budget.emoji ? `${budget.emoji} ` : ''}{budget.name}

@@ -1,11 +1,12 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { ChevronDown } from 'lucide-react'
 import { useId, useState } from 'react'
 import { resolveAssignee } from '@/lib/assignees'
 import { formatCents } from '@/lib/finanzas'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { ResumenPartida } from '@/lib/budgets'
 import type { Child, Expense, FamilyMember } from '@/types'
 
@@ -31,6 +32,8 @@ function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
   kids: Child[]
   onEdit: () => void
 }) {
+  const t = useT().finanzas
+  const locale = localeDeFechas(useIdioma())
   const quienPago = resolveAssignee(apunte, members, kids)
 
   return (
@@ -40,10 +43,10 @@ function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
       className="flex w-full items-baseline gap-2 rounded-lg px-1 py-1.5 text-left text-[13px] transition-colors hover:bg-canvas active:bg-canvas"
     >
       <span className="w-12 flex-shrink-0 tabular-nums text-muted">
-        {format(parseISO(apunte.date), 'd MMM', { locale: es })}
+        {format(parseISO(apunte.date), t.fechas.diaCorto, { locale })}
       </span>
       <span className="min-w-0 flex-1 truncate text-muted">
-        {apunte.description ?? 'Gasto'}
+        {apunte.description ?? t.lista.gasto}
       </span>
       {quienPago && (
         <span
@@ -90,6 +93,7 @@ function LineaDeLaPartida({ apunte, members, kids, onEdit }: {
  */
 export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: BudgetBarProps) {
   const { partida, apuntes, gastado, restante, porcentaje, pasado } = resumen
+  const t = useT().finanzas
   const [abierta, setAbierta] = useState(false)
   const panelId = useId()
 
@@ -101,7 +105,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
         {partida.emoji && <span className="flex-shrink-0 text-base leading-none" aria-hidden>{partida.emoji}</span>}
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{partida.name}</span>
         <span className="flex-shrink-0 text-xs font-bold text-ink">{formatCents(gastado)}</span>
-        <span className="flex-shrink-0 text-xs text-muted">de {formatCents(partida.limiteCents)}</span>
+        <span className="flex-shrink-0 text-xs text-muted">{t.barra.de(formatCents(partida.limiteCents))}</span>
       </div>
 
       {/* `aria-hidden` porque la barra no dice nada que no esté escrito encima y
@@ -121,8 +125,8 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
   const pie = (
     <span className={`text-[13px] ${pasado ? 'font-semibold text-danger-strong' : 'text-muted'}`}>
       {pasado
-        ? `Te has pasado por ${formatCents(-restante)}`
-        : `Quedan ${formatCents(restante)}`}
+        ? t.barra.pasado(formatCents(-restante))
+        : t.barra.quedan(formatCents(restante))}
     </span>
   )
 
@@ -157,7 +161,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
       {abierta && (
         <div id={panelId} className="border-t border-hairline pt-1.5">
           {apuntes.length === 0 ? (
-            <p className="px-1 py-1.5 text-[13px] text-muted">Nada apuntado en esta partida.</p>
+            <p className="px-1 py-1.5 text-[13px] text-muted">{t.barra.vacia}</p>
           ) : (
             <ul className="-mx-1">
               {apuntes.map(apunte => (
@@ -179,7 +183,7 @@ export function BudgetBar({ resumen, members, kids, onEdit, onEditApunte }: Budg
               onClick={onEdit}
               className="mt-1 min-h-11 px-1 text-[13px] font-semibold text-primary-strong"
             >
-              Editar partida
+              {t.partida.editar}
             </button>
           )}
         </div>

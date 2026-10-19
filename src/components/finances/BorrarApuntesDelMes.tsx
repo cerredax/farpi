@@ -6,6 +6,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Button } from '@/components/ui/Button'
 import { soloGastos, soloIngresos, sumaDe } from '@/lib/budgets'
 import { formatCents } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import type { Expense } from '@/types'
 
 interface BorrarApuntesDelMesProps {
@@ -44,6 +45,7 @@ interface BorrarApuntesDelMesProps {
  * el sitio donde menos gracia hace un botón de borrar.
  */
 export function BorrarApuntesDelMes({ apuntes, nombreDelMes, onBorrar }: BorrarApuntesDelMesProps) {
+  const t = useT().finanzas.borrar
   const [abierto, setAbierto] = useState(false)
 
   if (apuntes.length === 0) return null
@@ -61,13 +63,13 @@ export function BorrarApuntesDelMes({ apuntes, nombreDelMes, onBorrar }: BorrarA
           className="flex items-center gap-1.5"
         >
           <Trash2 size={13} strokeWidth={2.4} aria-hidden />
-          Borrar los apuntes del mes
+          {t.boton}
         </Button>
       </div>
 
       <BottomSheet
         open={abierto}
-        title="Borrar los apuntes del mes"
+        title={t.boton}
         onClose={() => setAbierto(false)}
         footer={
           <div className="space-y-2 px-5 py-4">
@@ -76,14 +78,14 @@ export function BorrarApuntesDelMes({ apuntes, nombreDelMes, onBorrar }: BorrarA
               onClick={() => { onBorrar(apuntes.map(a => a.id)); setAbierto(false) }}
               className="w-full rounded-2xl bg-danger-strong py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
             >
-              {apuntes.length === 1 ? 'Sí, borrar el apunte' : `Sí, borrar los ${apuntes.length}`}
+              {apuntes.length === 1 ? t.confirmarUno : t.confirmarVarios(apuntes.length)}
             </button>
             <button
               type="button"
               onClick={() => setAbierto(false)}
               className="w-full rounded-2xl py-3 text-sm font-semibold text-muted transition-colors hover:bg-surface"
             >
-              Cancelar
+              {t.cancelar}
             </button>
           </div>
         }
@@ -93,20 +95,19 @@ export function BorrarApuntesDelMes({ apuntes, nombreDelMes, onBorrar }: BorrarA
               mirar: quien abre esto con el mes equivocado lo ve en el importe
               antes que en el nombre del mes. */}
           <p>
-            Se borra{apuntes.length === 1 ? ' ' : 'n '}
+            {t.seBorra(apuntes.length)}
             <strong className="text-ink">
-              {apuntes.length === 1 ? 'el único apunte' : `los ${apuntes.length} apuntes`}
-            </strong>{' '}
-            de <strong className="text-ink">{nombreDelMes}</strong>:{' '}
-            {gastado > 0 && <>{formatCents(gastado)} de gastos</>}
-            {gastado > 0 && ingresado > 0 && ' y '}
-            {ingresado > 0 && <>{formatCents(ingresado)} de ingresos</>}.
+              {t.losApuntes(apuntes.length)}
+            </strong>
+            {t.de}<strong className="text-ink">{nombreDelMes}</strong>{t.abrir}
+            {gastado > 0 && t.gastos(formatCents(gastado))}
+            {gastado > 0 && ingresado > 0 && t.y}
+            {ingresado > 0 && t.ingresos(formatCents(ingresado))}{t.cierre}
           </p>
           <p>
-            Los fijos y las partidas <strong className="text-ink">no se tocan</strong>: esto
-            vacía el día a día, no el plan del mes.
+            {t.noTocan.antes}<strong className="text-ink">{t.noTocan.fuerte}</strong>{t.noTocan.despues}
           </p>
-          <p className="text-danger-strong">Esto no se puede deshacer.</p>
+          <p className="text-danger-strong">{t.sinVuelta}</p>
         </div>
       </BottomSheet>
     </>

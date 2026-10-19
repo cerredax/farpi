@@ -7,6 +7,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetDeleteDialog, useSheetForm } from '@/hooks/useSheetForm'
 import { centsToInput } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import { validateBudgetDraft } from '@/lib/validators'
 import type { Budget, BudgetDraft } from '@/types'
 
@@ -80,6 +81,8 @@ function initDraft(initial: Budget | null | undefined): BudgetDraft {
  * cerrados—, así que pregunta en vez de armarse al primer toque.
  */
 export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: BudgetSheetProps) {
+  const t = useT().finanzas
+  const textos = t.partida
   const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<BudgetDraft>({
     open,
     initialDraft: () => initDraft(initial),
@@ -92,64 +95,61 @@ export function BudgetSheet({ open, initial, onClose, onSave, onDelete }: Budget
   return (
     <BottomSheet
       open={open}
-      title={preguntando ? 'Eliminar partida' : initial ? 'Editar partida' : 'Nueva partida'}
+      title={preguntando ? textos.eliminar : initial ? textos.editar : textos.nueva}
       onClose={preguntando ? cancelar : onClose}
       footer={preguntando ? (
-        <ConfirmDeleteFooter confirmLabel="Sí, eliminar la partida" onConfirm={confirmar} onCancel={cancelar} />
+        <ConfirmDeleteFooter confirmLabel={textos.confirmarEliminar} onConfirm={confirmar} onCancel={cancelar} />
       ) : (
         <SheetFooter
           form="budget-form"
           disabled={guardando}
-          submitLabel={initial ? 'Guardar' : 'Crear partida'}
+          submitLabel={initial ? textos.guardar : textos.crear}
           error={formError}
-          onDelete={initial ? { onClick: preguntar, idleLabel: 'Eliminar partida' } : undefined}
+          onDelete={initial ? { onClick: preguntar, idleLabel: textos.eliminar } : undefined}
         />
       )}
     >
       {preguntando ? (
         <ConfirmDeleteBody>
           <p>
-            Se quita la partida <strong className="text-ink">«{initial?.name}»</strong> y su tope al
-            mes.
+            {textos.quitar.antes}<strong className="text-ink">{t.entrecomillar(initial?.name ?? '')}</strong>{textos.quitar.despues}
           </p>
           <p>
-            Los gastos que tenía <strong className="text-ink">se quedan apuntados</strong> y pasan a
-            «Sin partida»; los meses ya cerrados siguen enseñándola tal como estaba.
+            {textos.seQuedan.antes}<strong className="text-ink">{textos.seQuedan.fuerte}</strong>{textos.seQuedan.despues}
           </p>
         </ConfirmDeleteBody>
       ) : (
         <form id="budget-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-          <Field label="Nombre" htmlFor="budget-name">
+          <Field label={textos.nombre} htmlFor="budget-name">
             <input
               id="budget-name"
               ref={firstFieldRef}
               type="text"
               value={draft.name}
               onChange={e => patch({ name: e.target.value })}
-              placeholder="Ej: Compra"
+              placeholder={textos.ejemploNombre}
               required
               className="field-input"
             />
           </Field>
 
-          <Field label="Al mes" htmlFor="budget-limit">
+          <Field label={textos.alMes} htmlFor="budget-limit">
             <input
               id="budget-limit"
               type="text"
               inputMode="decimal"
               value={draft.monthly_limit}
               onChange={e => patch({ monthly_limit: e.target.value })}
-              placeholder="Ej: 300"
+              placeholder={textos.ejemploAlMes}
               required
               className="field-input"
             />
             <p className="text-[10px] leading-relaxed text-muted">
-              Vale todos los meses hasta que lo cambies. Cambiarlo no toca lo ya
-              apuntado.
+              {textos.vale}
             </p>
           </Field>
 
-          <Field label="Icono" spacing="group">
+          <Field label={textos.icono} spacing="group">
             <EmojiPicker opciones={EMOJIS} value={draft.emoji} onChange={emoji => patch({ emoji })} />
           </Field>
         </form>

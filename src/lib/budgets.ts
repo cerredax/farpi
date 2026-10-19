@@ -1,4 +1,4 @@
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, type Locale } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { resolveAssignee } from './assignees'
 import { normalizaParaBuscar } from './text'
@@ -54,9 +54,22 @@ export function mesVecino(mes: string, salto: 1 | -1): string {
  * los doce**, pero otras locales suyas abrevian «sept.» y un punto suelto a 10 px
  * es ruido que además roba una letra de mes.
  */
-export function mesCorto(mes: string): string {
-  return format(parseISO(`${mes}-01`), 'LLL', { locale: es }).replace('.', '')
+export function mesCorto(mes: string, locale: Locale = es): string {
+  return format(parseISO(`${mes}-01`), 'LLL', { locale }).replace('.', '')
 }
+
+/**
+ * Los nombres que `repartoPorPartida`, `repartoAcumulado` y `repartoDelMes` ponen a
+ * lo que no tiene uno propio. Son castellano por defecto, como los de `validators.ts`;
+ * la pantalla pasa los de su idioma (`finanzas.reparto` del diccionario).
+ */
+export interface TextosDelReparto {
+  sinPartida: string
+  otras: string
+  deCasa: string
+}
+
+const TEXTOS_DEL_REPARTO: TextosDelReparto = { sinPartida: 'Sin partida', otras: 'Otras', deCasa: 'De casa' }
 
 /**
  * Cuántos meses por delante del de hoy se ofrecen siempre, aunque estén vacíos.
@@ -842,6 +855,7 @@ export function repartoPorPartida(
   expenses: Expense[],
   mes: string,
   maximo = 7,
+  textos: TextosDelReparto = TEXTOS_DEL_REPARTO,
 ): TrozoDelReparto[] {
   const gastos = soloGastos(apuntesDelMes(expenses, mes))
   const fijos = plantilla.fijos.filter(f => f.kind === 'gasto')
@@ -872,7 +886,7 @@ export function repartoPorPartida(
 
   const sinPartida = sumaDe(gastos.filter(g => !g.budget_id))
   if (sinPartida > 0) {
-    trozos.push({ key: 'sin-partida', nombre: 'Sin partida', emoji: null, total: sinPartida, porcentaje: 0, variacion: null })
+    trozos.push({ key: 'sin-partida', nombre: textos.sinPartida, emoji: null, total: sinPartida, porcentaje: 0, variacion: null })
   }
 
   trozos.sort((a, b) => b.total - a.total)
@@ -882,7 +896,7 @@ export function repartoPorPartida(
   if (resto.length > 0) {
     visibles.push({
       key: 'otras',
-      nombre: resto.length === 1 ? resto[0].nombre : 'Otras',
+      nombre: resto.length === 1 ? resto[0].nombre : textos.otras,
       emoji: resto.length === 1 ? resto[0].emoji : null,
       total: sumaDe2(resto),
       porcentaje: 0,
@@ -963,6 +977,7 @@ export function repartoAcumulado(
   planes: MonthPlan[],
   expenses: Expense[],
   maximo = 7,
+  textos: TextosDelReparto = TEXTOS_DEL_REPARTO,
 ): TrozoDelReparto[] {
   /** nombre normalizado -> lo acumulado, con el nombre y el emoji tal y como se escribieron. */
   const porNombre = new Map<string, { nombre: string; emoji: string | null; total: number }>()
@@ -995,7 +1010,7 @@ export function repartoAcumulado(
       if (partida.budgetId === null) continue
       suma(partida.name, partida.emoji, sumaDe(gastos.filter(g => g.budget_id === partida.budgetId)))
     }
-    suma('Sin partida', null, sumaDe(gastos.filter(g => !g.budget_id)))
+    suma(textos.sinPartida, null, sumaDe(gastos.filter(g => !g.budget_id)))
   }
 
   const trozos: TrozoDelReparto[] = [...porNombre.entries()]
@@ -1019,7 +1034,7 @@ export function repartoAcumulado(
   if (resto.length > 0) {
     visibles.push({
       key: 'otras',
-      nombre: 'Otras',
+      nombre: textos.otras,
       emoji: null,
       total: resto.reduce((s, t) => s + t.total, 0),
       porcentaje: 0,
@@ -1238,6 +1253,7 @@ export function repartoDelMes(
   mes: string,
   members: FamilyMember[],
   kids: Child[],
+  textos: Pick<TextosDelReparto, 'deCasa'> = TEXTOS_DEL_REPARTO,
 ): Aportacion[] {
   const acumulado = new Map<string, Aportacion>()
 
@@ -1250,7 +1266,7 @@ export function repartoDelMes(
     } else {
       acumulado.set(key, {
         key,
-        nombre: persona?.name ?? 'De casa',
+        nombre: persona?.name ?? textos.deCasa,
         color: persona?.color ?? null,
         total: gasto.amount_cents,
       })

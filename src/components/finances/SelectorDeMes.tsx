@@ -1,10 +1,11 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { mesVecino } from '@/lib/budgets'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { capitalize } from '@/lib/text'
 
 interface SelectorDeMesProps {
@@ -17,10 +18,6 @@ interface SelectorDeMesProps {
   onElegir: (mes: string) => void
 }
 
-/** «Junio 2026». Es el rótulo, el nombre accesible y lo que buscan los tests. */
-function nombreLargo(mes: string): string {
-  return capitalize(format(parseISO(`${mes}-01`), 'MMMM yyyy', { locale: es }))
-}
 
 /**
  * Con qué mes se está: dos flechas y el nombre, que **se toca y despliega la
@@ -51,8 +48,13 @@ function nombreLargo(mes: string): string {
  * elegir, y por eso la lista puede ser finita sin encerrar a nadie.
  */
 export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMesProps) {
+  const t = useT().finanzas
+  const locale = localeDeFechas(useIdioma())
   const [abierto, setAbierto] = useState(false)
   const caja = useRef<HTMLDivElement>(null)
+
+  /** «Junio 2026». Es el rótulo, el nombre accesible y lo que buscan los tests. */
+  const nombreLargo = (mes: string) => capitalize(format(parseISO(`${mes}-01`), t.fechas.mesAnio, { locale }))
 
   useEffect(() => {
     if (!abierto) return
@@ -75,7 +77,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
       <button
         type="button"
         onClick={() => onElegir(mesVecino(mes, -1))}
-        aria-label="Mes anterior"
+        aria-label={t.selector.anterior}
         className={FLECHA}
       >
         <ChevronLeft size={18} strokeWidth={2.4} />
@@ -108,7 +110,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
           // que es el orden en el que se busca un mes hacia atrás.
           <div
             role="menu"
-            aria-label="Elegir mes"
+            aria-label={t.selector.elegir}
             // `min-w-52` y no menos: «Septiembre 2026» con su «hoy» al lado se
             // partía en dos renglones y la lista dejaba de leerse como una lista.
             className="absolute left-1/2 top-full z-30 mt-1 max-h-64 min-w-52 -translate-x-1/2 overflow-y-auto rounded-2xl border border-surface bg-white py-1 shadow-lg"
@@ -128,7 +130,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
                 {/* El de hoy, dicho con una palabra y no solo con un color: es el
                     sitio al que se vuelve y tiene que encontrarse de un vistazo en
                     una lista de nombres que se parecen todos. */}
-                {m === mesActual && <span className="flex-shrink-0 text-[11px] font-bold text-muted">hoy</span>}
+                {m === mesActual && <span className="flex-shrink-0 text-[11px] font-bold text-muted">{t.selector.hoy}</span>}
               </button>
             ))}
           </div>
@@ -138,7 +140,7 @@ export function SelectorDeMes({ mes, mesActual, meses, onElegir }: SelectorDeMes
       <button
         type="button"
         onClick={() => onElegir(mesVecino(mes, 1))}
-        aria-label="Mes siguiente"
+        aria-label={t.selector.siguiente}
         className={FLECHA}
       >
         <ChevronRight size={18} strokeWidth={2.4} />

@@ -27,6 +27,60 @@ import type { MovementKind } from '@/types'
 const ANCHO = 80
 
 /**
+ * Lo que dicen los lectores de extractos cuando algo no cuadra, para enseñarlo en
+ * pantalla. Castellano por defecto, como `validators.ts`: la pantalla de importar
+ * pasa los de su idioma (`finanzas.extracto` del diccionario) y los tests, ninguno.
+ * Lo usan también `leerSabadell` y `leerBbva`, en `extractos.ts`.
+ */
+export interface TextosDeExtracto {
+  archivoVacio: string
+  lineaLarga: (numero: number, largo: number, ancho: number) => string
+  cuentaNoEnEuros: (divisa: string) => string
+  movimientoSinCuenta: (numero: number) => string
+  conceptoSinMovimiento: (numero: number) => string
+  cierreSinCuenta: (numero: number) => string
+  registroDesconocido: (numero: number, tipo: string) => string
+  sinSaldoFinal: (cola: string) => string
+  sinCuentas: string
+  recuentoNoCuadra: (cola: string, segunElBanco: number, leidos: number) => string
+  sumasNoCoinciden: (cola: string) => string
+  saldoFinalNoCuadra: (cola: string) => string
+  noEsExcel: string
+  sabadellMalFormado: (numero: number) => string
+  sabadellLinea: (numero: number) => string
+  bbvaSinColumnas: string
+  bbvaFilaMalFormada: (numero: number) => string
+  bbvaFila: (numero: number) => string
+  bbvaSinMovimientos: string
+  otraDivisa: string
+  saldoEncadenado: (donde: string) => string
+}
+
+export const TEXTOS_DE_EXTRACTO: TextosDeExtracto = {
+  archivoVacio: 'El archivo está vacío',
+  lineaLarga: (numero, largo, ancho) => `La línea ${numero} mide ${largo} caracteres y la norma son ${ancho}: esto no parece un fichero de la Norma 43`,
+  cuentaNoEnEuros: divisa => `Hay una cuenta que no va en euros (divisa ${divisa}) y Farpi solo lleva euros`,
+  movimientoSinCuenta: numero => `La línea ${numero} es un movimiento que no cuelga de ninguna cuenta`,
+  conceptoSinMovimiento: numero => `La línea ${numero} amplía un concepto y no hay ningún movimiento delante`,
+  cierreSinCuenta: numero => `La línea ${numero} cierra una cuenta que no estaba abierta`,
+  registroDesconocido: (numero, tipo) => `La línea ${numero} empieza por "${tipo}", que no es un registro de la Norma 43`,
+  sinSaldoFinal: cola => `El extracto de la cuenta terminada en ${cola} se corta sin su saldo final, así que no se ha podido comprobar que estén todos los movimientos`,
+  sinCuentas: 'El archivo no trae ninguna cuenta',
+  recuentoNoCuadra: (cola, segunElBanco, leidos) => `En la cuenta terminada en ${cola} el banco dice que hay ${segunElBanco} movimientos y se han leído ${leidos}`,
+  sumasNoCoinciden: cola => `En la cuenta terminada en ${cola} las sumas no coinciden con las del banco`,
+  saldoFinalNoCuadra: cola => `En la cuenta terminada en ${cola} el saldo final no sale de sumar los movimientos al inicial`,
+  noEsExcel: 'No se ha podido abrir: parece un archivo comprimido, pero no un Excel',
+  sabadellMalFormado: numero => `La línea ${numero} no tiene la forma del extracto del Sabadell`,
+  sabadellLinea: numero => `la línea ${numero}`,
+  bbvaSinColumnas: 'Este Excel no tiene las columnas del extracto del BBVA: Fecha, Concepto, Importe y Disponible',
+  bbvaFilaMalFormada: numero => `La fila ${numero} del Excel no tiene la forma del extracto del BBVA`,
+  bbvaFila: numero => `la fila ${numero} del Excel`,
+  bbvaSinMovimientos: 'El Excel no trae ningún movimiento',
+  otraDivisa: 'Hay movimientos que no van en euros y Farpi solo lleva euros',
+  saldoEncadenado: donde => `El saldo de ${donde} no sale de sumar su movimiento al anterior: puede faltar algún movimiento entre medias`,
+}
+
+/**
  * Los conceptos comunes del anexo 2, que son los mismos en todas las entidades.
  *
  * Están porque el registro de movimiento **no trae texto**: el «concepto» de
@@ -125,12 +179,12 @@ export type LecturaN43 =
  * quien abre el archivo es quien sabe con qué codificación leerlo. Aquí solo se
  * parte en líneas, y da igual si el fichero trae saltos de Windows o de Unix.
  */
-export function leerN43(contenido: string): LecturaN43 {
+export function leerN43(contenido: string, textos: TextosDeExtracto = TEXTOS_DE_EXTRACTO): LecturaN43 {
   const lineas = contenido
     .split(/\r?\n/)
     .filter(linea => linea.trim() !== '')
 
-  if (lineas.length === 0) return { ok: false, error: 'El archivo está vacío' }
+  if (lineas.length === 0) return { ok: false, error: textos.archivoVacio }
 
   const cuentas: CuentaN43[] = []
   const avisos: string[] = []
@@ -139,7 +193,7 @@ export function leerN43(contenido: string): LecturaN43 {
   for (const [indice, cruda] of lineas.entries()) {
     const numero = indice + 1
     if (cruda.length > ANCHO) {
-      return { ok: false, error: `La línea ${numero} mide ${cruda.length} caracteres y la norma son ${ANCHO}: esto no parece un fichero de la Norma 43` }
+      return { ok: false, error: textos.lineaLarga(numero, cruda.length, ANCHO) }
     }
     // Las líneas cortas se rellenan en vez de rechazarse: hay bancos que no
     // completan con espacios hasta la posición 80 y el fichero es válido igual.
@@ -151,7 +205,7 @@ export function leerN43(contenido: string): LecturaN43 {
         if (abierta) cuentas.push(abierta)
         const divisa = campo(linea, 48, 50)
         if (divisa !== DIVISA_EURO) {
-          avisos.push(`Hay una cuenta que no va en euros (divisa ${divisa}) y Farpi solo lleva euros`)
+          avisos.push(textos.cuentaNoEnEuros(divisa))
         }
         abierta = {
           cuenta: campo(linea, 3, 20),
@@ -168,7 +222,7 @@ export function leerN43(contenido: string): LecturaN43 {
 
       case '22': {
         if (!abierta) {
-          return { ok: false, error: `La línea ${numero} es un movimiento que no cuelga de ninguna cuenta` }
+          return { ok: false, error: textos.movimientoSinCuenta(numero) }
         }
         const conceptoComun = campo(linea, 23, 24)
         abierta.movimientos.push({
@@ -189,7 +243,7 @@ export function leerN43(contenido: string): LecturaN43 {
       case '23': {
         const movimiento = abierta?.movimientos.at(-1)
         if (!movimiento) {
-          return { ok: false, error: `La línea ${numero} amplía un concepto y no hay ningún movimiento delante` }
+          return { ok: false, error: textos.conceptoSinMovimiento(numero) }
         }
         // Los dos trozos de 38 del complementario son un texto partido por la
         // mitad, no dos datos: van seguidos. **Y se juntan en crudo**, sin
@@ -207,7 +261,7 @@ export function leerN43(contenido: string): LecturaN43 {
 
       case '33': {
         if (!abierta) {
-          return { ok: false, error: `La línea ${numero} cierra una cuenta que no estaba abierta` }
+          return { ok: false, error: textos.cierreSinCuenta(numero) }
         }
         abierta.saldoFinalCents = conSigno(campo(linea, 59, 59), importe(campo(linea, 60, 73)))
         avisos.push(...cuadrar(abierta, {
@@ -215,7 +269,7 @@ export function leerN43(contenido: string): LecturaN43 {
           totalDebe: importe(campo(linea, 26, 39)),
           apuntesHaber: Number(campo(linea, 40, 44)),
           totalHaber: importe(campo(linea, 45, 58)),
-        }))
+        }, textos))
         cuentas.push(abierta)
         abierta = null
         break
@@ -229,19 +283,19 @@ export function leerN43(contenido: string): LecturaN43 {
         break
 
       default:
-        return { ok: false, error: `La línea ${numero} empieza por "${tipo}", que no es un registro de la Norma 43` }
+        return { ok: false, error: textos.registroDesconocido(numero, tipo) }
     }
   }
 
   // Una cuenta sin su registro final no es un error: hay ficheros cortados por
   // la mitad y sus movimientos valen. Pero no se ha podido cuadrar, y eso se dice.
   if (abierta) {
-    avisos.push(`El extracto de la cuenta terminada en ${abierta.cuenta.slice(-4)} se corta sin su saldo final, así que no se ha podido comprobar que estén todos los movimientos`)
+    avisos.push(textos.sinSaldoFinal(abierta.cuenta.slice(-4)))
     cuentas.push(abierta)
   }
 
   if (cuentas.length === 0) {
-    return { ok: false, error: 'El archivo no trae ninguna cuenta' }
+    return { ok: false, error: textos.sinCuentas }
   }
 
   return { ok: true, extracto: { cuentas, avisos } }
@@ -259,6 +313,7 @@ export function leerN43(contenido: string): LecturaN43 {
 function cuadrar(
   cuenta: CuentaN43,
   final: { apuntesDebe: number; totalDebe: number; apuntesHaber: number; totalHaber: number },
+  textos: TextosDeExtracto,
 ): string[] {
   const avisos: string[] = []
   const cola = cuenta.cuenta.slice(-4)
@@ -268,15 +323,15 @@ function cuadrar(
   const suma = (movimientos: MovimientoN43[]) => movimientos.reduce((total, m) => total + m.amountCents, 0)
 
   if (gastos.length !== final.apuntesDebe || ingresos.length !== final.apuntesHaber) {
-    avisos.push(`En la cuenta terminada en ${cola} el banco dice que hay ${final.apuntesDebe + final.apuntesHaber} movimientos y se han leído ${cuenta.movimientos.length}`)
+    avisos.push(textos.recuentoNoCuadra(cola, final.apuntesDebe + final.apuntesHaber, cuenta.movimientos.length))
   }
   if (suma(gastos) !== final.totalDebe || suma(ingresos) !== final.totalHaber) {
-    avisos.push(`En la cuenta terminada en ${cola} las sumas no coinciden con las del banco`)
+    avisos.push(textos.sumasNoCoinciden(cola))
   }
 
   const esperado = cuenta.saldoInicialCents + suma(ingresos) - suma(gastos)
   if (cuenta.saldoFinalCents !== null && esperado !== cuenta.saldoFinalCents) {
-    avisos.push(`En la cuenta terminada en ${cola} el saldo final no sale de sumar los movimientos al inicial`)
+    avisos.push(textos.saldoFinalNoCuadra(cola))
   }
 
   return avisos

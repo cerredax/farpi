@@ -4,6 +4,7 @@ import { Eraser, Lock, LockOpen } from 'lucide-react'
 import { useState } from 'react'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Button } from '@/components/ui/Button'
+import { useT } from '@/lib/i18n/contexto'
 
 interface CierreDelMesProps {
   /** Aún no está cerrado y ya ha empezado, así que se puede dar por cerrado. */
@@ -83,6 +84,7 @@ export function CierreDelMes({
   sePuedeCerrar, sePuedeReabrir, sePuedePonerACero, nombreDelMes,
   onCerrar, onReabrir, onPonerACero,
 }: CierreDelMesProps) {
+  const t = useT().finanzas.cierre
   const [pendiente, setPendiente] = useState<Pendiente>(null)
 
   if (!sePuedeCerrar && !sePuedeReabrir && !sePuedePonerACero) return null
@@ -94,36 +96,35 @@ export function CierreDelMes({
   }
 
   return (
-    <section aria-label="Cierre del mes" className="flex flex-col items-center border-t border-hairline pt-3">
+    <section aria-label={t.aria} className="flex flex-col items-center border-t border-hairline pt-3">
       {sePuedePonerACero ? (
         <Button variant="secondary" size="sm" onClick={() => setPendiente('cero')} className="flex items-center gap-1.5">
           <Eraser size={13} strokeWidth={2.4} aria-hidden />
-          Poner el mes a cero
+          {t.ponerACero}
         </Button>
       ) : sePuedeCerrar ? (
         <Button variant="warn" size="sm" onClick={() => setPendiente('cerrar')} className="flex items-center gap-1.5">
           <Lock size={13} strokeWidth={2.4} aria-hidden />
-          Cerrar mes
+          {t.cerrar}
         </Button>
       ) : (
         <>
           <Button variant="secondary" size="sm" onClick={onReabrir} className="flex items-center gap-1.5">
             <LockOpen size={13} strokeWidth={2.4} aria-hidden />
-            Reabrir mes
+            {t.reabrir}
           </Button>
           {/* Este sí se queda: no hay diálogo donde contarlo, porque deshacerlo
               no pide confirmación —no pierde nada— y la pega es de tiempo, no de
               lo que va a pasar al pulsar. */}
           <p className="mt-1 px-1 text-center text-[11px] leading-relaxed text-muted">
-            Este mes está cerrado a mano. Solo se puede deshacer mientras siga siendo el
-            mes en curso.
+            {t.aMano}
           </p>
         </>
       )}
 
       <BottomSheet
         open={pendiente !== null}
-        title={pendiente === 'cero' ? 'Poner el mes a cero' : 'Cerrar mes'}
+        title={pendiente === 'cero' ? t.ponerACero : t.cerrar}
         onClose={() => setPendiente(null)}
         footer={
           <div className="space-y-2 px-5 py-4">
@@ -134,14 +135,14 @@ export function CierreDelMes({
                 pendiente === 'cero' ? 'bg-danger-strong hover:opacity-90' : 'bg-primary-strong hover:bg-primary-deep'
               }`}
             >
-              {pendiente === 'cero' ? 'Sí, ponerlo a cero' : 'Sí, cerrar el mes'}
+              {pendiente === 'cero' ? t.confirmarCero : t.confirmarCerrar}
             </button>
             <button
               type="button"
               onClick={() => setPendiente(null)}
               className="w-full rounded-2xl py-3 text-sm font-semibold text-muted transition-colors hover:bg-surface"
             >
-              Cancelar
+              {t.cancelar}
             </button>
           </div>
         }
@@ -150,20 +151,17 @@ export function CierreDelMes({
           {pendiente === 'cero' ? (
             <>
               <p>
-                Se quitan los fijos y las partidas que se le guardaron a{' '}
-                <strong className="text-ink">{nombreDelMes}</strong>, y el mes queda como
-                si no se hubiera cerrado: en cero, y diciéndolo.
+                {t.cero.antes}
+                <strong className="text-ink">{nombreDelMes}</strong>{t.cero.despues}
               </p>
-              <p>Lo que se apuntó ese mes <strong className="text-ink">no se toca</strong>.</p>
+              <p>{t.ceroApuntes.antes}<strong className="text-ink">{t.ceroApuntes.fuerte}</strong>.</p>
             </>
           ) : (
             <>
               <p>
-                Se guardan en <strong className="text-ink">{nombreDelMes}</strong> los
-                fijos y las partidas de ahora mismo. A partir de ahí este mes deja de
-                moverse cuando cambies la plantilla en «Fijos».
+                {t.cerrarMes.antes}<strong className="text-ink">{nombreDelMes}</strong>{t.cerrarMes.despues}
               </p>
-              <p>No hace falta hacerlo: el día 1 se cierra solo.</p>
+              <p>{t.sinHacerlo}</p>
             </>
           )}
         </div>

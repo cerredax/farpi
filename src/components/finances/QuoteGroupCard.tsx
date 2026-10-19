@@ -1,10 +1,11 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Check, Plus, X } from 'lucide-react'
 import { estaCaducado, type GrupoDePresupuestos } from '@/lib/quotes'
 import { formatCents } from '@/lib/finanzas'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { Quote, QuoteStatus } from '@/types'
 
 interface QuoteGroupCardProps {
@@ -42,6 +43,9 @@ interface QuoteGroupCardProps {
  * de ese presupuesto, no del trabajo.
  */
 export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: QuoteGroupCardProps) {
+  const t = useT()
+  const textos = t.finanzas.presupuesto
+  const locale = localeDeFechas(useIdioma())
   return (
     <section
       aria-label={grupo.titulo}
@@ -50,7 +54,7 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
       <header className="flex items-baseline justify-between gap-2 border-b border-hairline px-4 py-3">
         <h3 className="min-w-0 flex-1 truncate text-sm font-bold text-ink">{grupo.titulo}</h3>
         <span className={`flex-shrink-0 text-[11px] font-bold uppercase tracking-wide ${grupo.decidido ? 'text-primary-strong' : 'text-muted'}`}>
-          {grupo.decidido ? 'Decidido' : `${grupo.quotes.length} presupuesto${grupo.quotes.length !== 1 ? 's' : ''}`}
+          {grupo.decidido ? textos.decidido : textos.cuantos(grupo.quotes.length)}
         </span>
       </header>
 
@@ -69,12 +73,12 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
                     {quote.provider}
                     {quote.status === 'aceptado' && (
                       <span className="flex-shrink-0 rounded-full bg-primary-tint px-1.5 py-0.5 text-[10px] font-bold text-primary-strong">
-                        Aceptado
+                        {t.comun.estadosDePresupuesto.aceptado.nombre}
                       </span>
                     )}
                     {quote.id === grupo.masBaratoId && (
                       <span className="flex-shrink-0 rounded-full bg-primary-tint px-1.5 py-0.5 text-[10px] font-bold text-primary-strong">
-                        Más barato
+                        {textos.masBarato}
                       </span>
                     )}
                   </p>
@@ -84,11 +88,12 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
                     </span>
                     {quote.valid_until && (
                       <span className={caducado ? 'font-semibold text-danger-strong' : ''}>
-                        {caducado ? 'Caducó el ' : 'Vale hasta el '}
-                        {format(parseISO(quote.valid_until), 'd MMM', { locale: es })}
+                        {(caducado ? textos.caduco : textos.valeHasta)(
+                          format(parseISO(quote.valid_until), t.finanzas.fechas.diaCorto, { locale }),
+                        )}
                       </span>
                     )}
-                    {descartado && <span>Descartado</span>}
+                    {descartado && <span>{t.comun.estadosDePresupuesto.descartado.nombre}</span>}
                   </p>
                 </button>
 
@@ -99,7 +104,7 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
                   <button
                     type="button"
                     onClick={() => onStatus(quote.id, quote.status === 'aceptado' ? 'pedido' : 'aceptado')}
-                    aria-label={quote.status === 'aceptado' ? `Deshacer aceptar ${quote.provider}` : `Aceptar ${quote.provider}`}
+                    aria-label={quote.status === 'aceptado' ? textos.deshacerAceptar(quote.provider) : textos.aceptar(quote.provider)}
                     aria-pressed={quote.status === 'aceptado'}
                     className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
                       quote.status === 'aceptado' ? 'bg-primary-strong text-white' : 'bg-canvas text-muted hover:bg-surface'
@@ -110,7 +115,7 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
                   <button
                     type="button"
                     onClick={() => onStatus(quote.id, descartado ? 'pedido' : 'descartado')}
-                    aria-label={descartado ? `Deshacer descartar ${quote.provider}` : `Descartar ${quote.provider}`}
+                    aria-label={descartado ? textos.deshacerDescartar(quote.provider) : textos.descartar(quote.provider)}
                     aria-pressed={descartado}
                     className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
                       descartado ? 'bg-surface text-ink' : 'bg-canvas text-muted hover:bg-surface'
@@ -130,11 +135,11 @@ export function QuoteGroupCard({ grupo, hoy, onEdit, onStatus, onApuntar }: Quot
                   <button
                     type="button"
                     onClick={() => onApuntar(quote)}
-                    aria-label={`Apuntar el gasto de ${quote.provider}`}
+                    aria-label={textos.apuntarGastoDe(quote.provider)}
                     className="flex min-h-11 items-center gap-1 px-2 text-xs font-bold text-primary-strong"
                   >
                     <Plus size={14} strokeWidth={2.6} aria-hidden />
-                    Apuntar el gasto
+                    {textos.apuntarGasto}
                   </button>
                 </div>
               )}

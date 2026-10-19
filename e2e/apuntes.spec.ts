@@ -174,7 +174,7 @@ test('el apunte cabe a 320 y 390 px y mantiene controles de 44 px al desplegarlo
 test('el formulario de apuntes usa los textos del idioma del dispositivo', async ({ page, context }) => {
   await context.addCookies([{ name: 'farpi_idioma', value: 'en', domain: 'localhost', path: '/' }])
   await page.goto('/finances')
-  await page.getByRole('button', { name: 'Nuevo apunte', exact: true }).click()
+  await page.getByRole('button', { name: 'New entry', exact: true }).click()
   const dialogo = page.getByRole('dialog', { name: 'New entry', exact: true })
   await expect(dialogo.locator('summary')).toContainText('No allowance')
   await expect(dialogo.locator('summary')).toContainText('Today · Family')

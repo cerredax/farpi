@@ -1,10 +1,11 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { mediaQueQueda, mesCorto } from '@/lib/budgets'
 import { formatCents, formatCentsCorto } from '@/lib/finanzas'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { capitalize } from '@/lib/text'
 import type {
   ConceptoRepetido, CuentasDelAño, MesDeLaSerie, PartidaQueSePasa, RepartoDeLoQueEntra,
@@ -76,6 +77,7 @@ function RitmoDelMes({ acumulado, ritmo, diaDeHoy }: {
   ritmo: number[]
   diaDeHoy: number
 }) {
+  const t = useT().finanzas.resumen
   const dias = acumulado.length
   const hasta = Math.min(diaDeHoy, dias)
   const llevas = acumulado[hasta - 1] ?? 0
@@ -96,8 +98,8 @@ function RitmoDelMes({ acumulado, ritmo, diaDeHoy }: {
   return (
     <div className="space-y-3">
       <p className="text-[13px] text-muted">
-        A día {hasta} llevas <span className="font-bold text-ink">{formatCents(llevas)}</span>.
-        {' '}A estas alturas sueles llevar {formatCents(sueles)}.
+        {t.aDia(hasta)}<span className="font-bold text-ink">{formatCents(llevas)}</span>.
+        {' '}{t.aEstasAlturas(formatCents(sueles))}
       </p>
 
       <svg viewBox={`0 0 ${ANCHO} ${ALTO + 16}`} className="w-full" aria-hidden>
@@ -134,11 +136,11 @@ function RitmoDelMes({ acumulado, ritmo, diaDeHoy }: {
       <div className="flex justify-center gap-4 text-[13px] text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-0.5 w-4 rounded-full bg-chart-sale" aria-hidden />
-          Este mes
+          {t.esteMes}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-0.5 w-4 rounded-full bg-line-strong" aria-hidden />
-          Lo de siempre
+          {t.loDeSiempre}
         </span>
       </div>
     </div>
@@ -209,6 +211,8 @@ function RitmoDelMes({ acumulado, ritmo, diaDeHoy }: {
  * de cada mes. Es la regla de siempre: el dibujo acompaña, los números se escriben.
  */
 function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
+  const t = useT().finanzas
+  const locale = localeDeFechas(useIdioma())
   // La escala la manda lo que más se mueve en cualquiera de las tres series.
   const tope = Math.max(...serie.flatMap(m => [m.entra, m.sale, m.queda]), 1)
   /**
@@ -343,7 +347,7 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
           {serie.map(m => (
             <div key={m.mes} className="text-center" style={{ width: ANCHO_MES }}>
               <p className={`text-[13px] ${m.mes === mes ? 'font-bold text-ink' : 'font-semibold text-muted'}`}>
-                {mesCorto(m.mes)}
+                {mesCorto(m.mes, locale)}
               </p>
             </div>
           ))}
@@ -361,39 +365,39 @@ function QuedaPorMes({ serie, mes }: { serie: MesDeLaSerie[]; mes: string }) {
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[13px] text-muted">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-chart-entra" aria-hidden />
-          Entra
+          {t.resumen.entra}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-chart-sale" aria-hidden />
-          Sale
+          {t.resumen.sale}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="relative flex h-2.5 w-4 items-center" aria-hidden>
             <span className="h-0.5 w-full rounded-full bg-ink" />
             <span className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-ink" />
           </span>
-          Queda
+          {t.resumen.queda}
         </span>
       </div>
 
       <details className="mt-3">
         <summary className="cursor-pointer list-none text-center text-[13px] text-primary-strong">
-          Ver los números
+          {t.resumen.verNumeros}
         </summary>
         <table className="mt-2 w-full text-[13px]">
           <thead>
             <tr className="text-muted">
-              <th scope="col" className="py-1 text-left font-semibold">Mes</th>
-              <th scope="col" className="py-1 text-right font-semibold">Entra</th>
-              <th scope="col" className="py-1 text-right font-semibold">Sale</th>
-              <th scope="col" className="py-1 text-right font-semibold">Queda</th>
+              <th scope="col" className="py-1 text-left font-semibold">{t.resumen.mes}</th>
+              <th scope="col" className="py-1 text-right font-semibold">{t.resumen.entra}</th>
+              <th scope="col" className="py-1 text-right font-semibold">{t.resumen.sale}</th>
+              <th scope="col" className="py-1 text-right font-semibold">{t.resumen.queda}</th>
             </tr>
           </thead>
           <tbody>
             {serie.map(m => (
               <tr key={m.mes} className="border-t border-hairline">
                 <th scope="row" className="py-1 text-left font-normal text-muted">
-                  {capitalize(format(parseISO(`${m.mes}-01`), 'LLLL', { locale: es }))}
+                  {capitalize(format(parseISO(`${m.mes}-01`), t.fechas.mes, { locale }))}
                 </th>
                 <td className="py-1 text-right tabular-nums text-ink">{formatCents(m.entra)}</td>
                 <td className="py-1 text-right tabular-nums text-ink">{formatCents(-m.sale)}</td>
@@ -456,6 +460,7 @@ function EnQueSeVa({ reparto, sePasan = [], mesAnterior }: {
    */
   mesAnterior?: string
 }) {
+  const t = useT().finanzas.resumen
   const total = reparto.reduce((t, r) => t + r.total, 0)
 
   // El tono baja con el orden: el mayor va a plena intensidad y el último al 35 %.
@@ -480,7 +485,7 @@ function EnQueSeVa({ reparto, sePasan = [], mesAnterior }: {
   return (
     <div className="space-y-4">
       <p className="text-[13px] text-muted">
-        Se han ido <span className="font-bold text-ink">{formatCents(total)}</span>
+        {t.seHanIdo}<span className="font-bold text-ink">{formatCents(total)}</span>
       </p>
 
       {/* `aria-hidden`: cada trozo está escrito debajo con su nombre, su importe y su
@@ -520,12 +525,12 @@ function EnQueSeVa({ reparto, sePasan = [], mesAnterior }: {
                   cuál sin pararse a pensarlo. */}
               {trozo.variacion !== null && trozo.variacion !== 0 && (
                 <span className="block text-[13px] text-muted">
-                  {Math.abs(trozo.variacion)} % {trozo.variacion > 0 ? 'más' : 'menos'} que en {mesAnterior}
+                  {t.variacion(Math.abs(trozo.variacion), trozo.variacion > 0, mesAnterior ?? '')}
                 </span>
               )}
             </span>
             <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(trozo.total)}</span>
-            <span className="w-10 flex-shrink-0 text-right tabular-nums text-muted">{trozo.porcentaje} %</span>
+            <span className="w-10 flex-shrink-0 text-right tabular-nums text-muted">{t.pct(trozo.porcentaje)}</span>
           </li>
         ))}
       </ul>
@@ -538,8 +543,7 @@ function EnQueSeVa({ reparto, sePasan = [], mesAnterior }: {
         <div className="space-y-1 border-t border-hairline pt-3 text-[13px] text-muted">
           {sePasan.map(p => (
             <p key={p.nombre}>
-              <span className="font-semibold text-ink">{p.nombre}</span> se pasó {p.veces} de
-              los últimos {p.de} meses.
+              <span className="font-semibold text-ink">{p.nombre}</span>{t.sePaso(p.veces, p.de)}
             </p>
           ))}
         </div>
@@ -573,49 +577,50 @@ function EnQueSeVa({ reparto, sePasan = [], mesAnterior }: {
  * siempre en esta pantalla.
  */
 function DeCadaCien({ entrada }: { entrada: RepartoDeLoQueEntra }) {
+  const t = useT().finanzas.resumen
   const { entra, gastosFijos, enPartidas, otrosGastos, queda } = entrada
   const trozos = [
-    { key: 'fijos', nombre: 'Gastos fijos', valor: gastosFijos, color: 'var(--color-chart-sale)', opacidad: 1 },
-    { key: 'partidas', nombre: 'Partidas', valor: enPartidas, color: 'var(--color-chart-sale)', opacidad: 0.7 },
-    { key: 'otros', nombre: 'Lo demás', valor: otrosGastos, color: 'var(--color-chart-sale)', opacidad: 0.4 },
-    { key: 'queda', nombre: 'Queda', valor: queda, color: 'var(--color-chart-entra)', opacidad: 1 },
-  ].filter(t => t.valor > 0)
+    { key: 'fijos', nombre: t.gastosFijos, valor: gastosFijos, color: 'var(--color-chart-sale)', opacidad: 1 },
+    { key: 'partidas', nombre: t.partidas, valor: enPartidas, color: 'var(--color-chart-sale)', opacidad: 0.7 },
+    { key: 'otros', nombre: t.loDemas, valor: otrosGastos, color: 'var(--color-chart-sale)', opacidad: 0.4 },
+    { key: 'queda', nombre: t.queda, valor: queda, color: 'var(--color-chart-entra)', opacidad: 1 },
+  ].filter(trozo => trozo.valor > 0)
 
   // El ancho se reparte sobre lo que se pinta, no sobre lo que entra: en un mes
   // pasado de vueltas «queda» está fuera y los tres de gasto tienen que llenar la
   // barra igual, o quedaría un hueco que no significa nada.
-  const pintado = trozos.reduce((total, t) => total + t.valor, 0) || 1
+  const pintado = trozos.reduce((total, trozo) => total + trozo.valor, 0) || 1
 
   return (
     <div className="space-y-3">
       <p className="text-[13px] text-muted">
-        Entran <span className="font-bold text-ink">{formatCents(entra)}</span>
+        {t.entran}<span className="font-bold text-ink">{formatCents(entra)}</span>
         {queda < 0
-          ? <> y se van <span className="font-bold text-danger-strong">{formatCents(-queda)}</span> de más.</>
-          : <> y se queda el <span className="font-bold text-ink">{Math.round((queda / entra) * 100)} %</span>.</>}
+          ? <>{t.seVan.antes}<span className="font-bold text-danger-strong">{formatCents(-queda)}</span>{t.seVan.despues}</>
+          : <>{t.seQueda.antes}<span className="font-bold text-ink">{t.pct(Math.round((queda / entra) * 100))}</span>{t.seQueda.despues}</>}
       </p>
 
       <div className="flex h-4 w-full overflow-hidden rounded-full bg-canvas" aria-hidden>
-        {trozos.map(t => (
+        {trozos.map(trozo => (
           <div
-            key={t.key}
-            style={{ width: `${(t.valor / pintado) * 100}%`, backgroundColor: t.color, opacity: t.opacidad }}
+            key={trozo.key}
+            style={{ width: `${(trozo.valor / pintado) * 100}%`, backgroundColor: trozo.color, opacity: trozo.opacidad }}
           />
         ))}
       </div>
 
       <ul className="space-y-1.5">
-        {trozos.map(t => (
-          <li key={t.key} className="flex items-baseline gap-2 text-[13px]">
+        {trozos.map(trozo => (
+          <li key={trozo.key} className="flex items-baseline gap-2 text-[13px]">
             <span
               className="h-2 w-2 flex-shrink-0 self-center rounded-sm"
-              style={{ backgroundColor: t.color, opacity: t.opacidad }}
+              style={{ backgroundColor: trozo.color, opacity: trozo.opacidad }}
               aria-hidden
             />
-            <span className="min-w-0 flex-1 truncate text-muted">{t.nombre}</span>
-            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(t.valor)}</span>
+            <span className="min-w-0 flex-1 truncate text-muted">{trozo.nombre}</span>
+            <span className="flex-shrink-0 font-bold tabular-nums text-ink">{formatCents(trozo.valor)}</span>
             <span className="w-9 flex-shrink-0 text-right tabular-nums text-muted">
-              {Math.round((t.valor / entra) * 100)} %
+              {t.pct(Math.round((trozo.valor / entra) * 100))}
             </span>
           </li>
         ))}
@@ -659,6 +664,7 @@ function Bloque({ titulo, children }: { titulo: string; children: React.ReactNod
  * de los que han pasado, y por eso hay que decirlo.
  */
 function ElAño({ cuentas }: { cuentas: CuentasDelAño }) {
+  const t = useT().finanzas.resumen
   const { entra, sale, queda, meses, media } = cuentas
 
   return (
@@ -668,9 +674,9 @@ function ElAño({ cuentas }: { cuentas: CuentasDelAño }) {
           — y «queda» sin saber cuánto entró no se puede juzgar. */}
       <div className="flex gap-2">
         {([
-          { rotulo: 'Ha entrado', valor: entra, clase: 'text-primary-strong' },
-          { rotulo: 'Ha salido', valor: -sale, clase: 'text-ink' },
-          { rotulo: 'Se ha quedado', valor: queda, clase: queda < 0 ? 'text-danger-strong' : 'text-ink' },
+          { rotulo: t.haEntrado, valor: entra, clase: 'text-primary-strong' },
+          { rotulo: t.haSalido, valor: -sale, clase: 'text-ink' },
+          { rotulo: t.seHaQuedado, valor: queda, clase: queda < 0 ? 'text-danger-strong' : 'text-ink' },
         ]).map(c => (
           <div key={c.rotulo} className="min-w-0 flex-1">
             <p className="text-[11px] font-bold uppercase tracking-wide text-muted">{c.rotulo}</p>
@@ -685,14 +691,14 @@ function ElAño({ cuentas }: { cuentas: CuentasDelAño }) {
       </div>
 
       <p className="border-t border-hairline pt-2.5 text-[13px] text-muted">
-        {meses.length === 1 ? 'Sobre 1 mes' : `Sobre ${meses.length} meses`}
+        {t.sobre(meses.length)}
         {meses.length > 1 && (
           <>
-            {media < 0 ? ', de media se van ' : ', de media quedan '}
+            {media < 0 ? t.mediaSeVan : t.mediaQuedan}
             <span className={`font-bold ${media < 0 ? 'text-danger-strong' : 'text-ink'}`}>
               {formatCents(Math.abs(media))}
             </span>
-            {media < 0 ? ' de más al mes' : ' al mes'}
+            {media < 0 ? t.mediaDeMasAlMes : t.mediaAlMes}
           </>
         )}
         .
@@ -723,6 +729,7 @@ function ElAño({ cuentas }: { cuentas: CuentasDelAño }) {
  * el que el anillo de «en qué se va» no colorea cada trozo distinto.
  */
 function LoQueSeRepite({ conceptos }: { conceptos: ConceptoRepetido[] }) {
+  const t = useT().finanzas.resumen
   return (
     <ul className="divide-y divide-hairline">
       {conceptos.map(c => (
@@ -732,7 +739,7 @@ function LoQueSeRepite({ conceptos }: { conceptos: ConceptoRepetido[] }) {
             {/* Las veces y la media, en una línea a media voz: son el porqué de la
                 cifra de la derecha, no otra cifra que comparar. */}
             <span className="block text-[13px] text-muted">
-              {c.veces} veces · {formatCents(c.media)} de media
+              {t.veces(c.veces, formatCents(c.media))}
             </span>
           </span>
           <span className="flex-shrink-0 text-sm font-bold tabular-nums text-ink">
@@ -802,6 +809,7 @@ export function ResumenPanel({
   serie, reparto, mes, nombreDelMes, acumulado, ritmo, diaDeHoy, esMesActual,
   sePasan, entrada, mesAnterior, delAño, repartoDelAño, repetidos,
 }: ResumenPanelProps) {
+  const t = useT().finanzas.resumen
   const media = mediaQueQueda(serie)
   // El ritmo solo se enseña donde significa algo: en el mes en curso y habiendo
   // meses cerrados con los que compararse. En un mes cerrado la pregunta «¿voy
@@ -827,9 +835,9 @@ export function ResumenPanel({
           Va primero y sin condición: mientras haya un mes con datos hay algo que
           decir, y si no lo hay, lo dice. Es además el único que no depende de qué
           mes se esté mirando. */}
-      <Bloque titulo={`En ${delAño.año}`}>
+      <Bloque titulo={t.enAnio(delAño.año)}>
         {delAño.meses.length === 0 ? (
-          <EmptyState emoji="📅" title="Todavía no hay ningún mes cerrado" />
+          <EmptyState emoji="📅" title={t.sinMesCerrado} />
         ) : (
           <ElAño cuentas={delAño} />
         )}
@@ -839,7 +847,7 @@ export function ResumenPanel({
           el aviso de las partidas que se pasan, que es del mes. Con un solo mes no
           se pinta: sería el bloque de abajo repetido palabra por palabra. */}
       {repartoDelAño.length > 0 && delAño.meses.length > 1 && (
-        <Bloque titulo={`En ${delAño.año}: en qué se va`}>
+        <Bloque titulo={t.enAnioEnQueSeVa(delAño.año)}>
           <EnQueSeVa reparto={repartoDelAño} />
         </Bloque>
       )}
@@ -848,17 +856,17 @@ export function ResumenPanel({
           nos va sin darnos cuenta?»— y una casa que apunta poco no lo verá nunca,
           que está bien: sin conceptos repetidos no hay hábito que contar. */}
       {repetidos.length > 0 && (
-        <Bloque titulo={`En ${delAño.año}: lo que más se repite`}>
+        <Bloque titulo={t.enAnioSeRepite(delAño.año)}>
           <LoQueSeRepite conceptos={repetidos} />
         </Bloque>
       )}
 
       {/* ── Los meses ──────────────────────────────────────────────────── */}
-      <Bloque titulo="Cómo van los meses">
+      <Bloque titulo={t.comoVanLosMeses}>
         {serie.length === 0 ? (
           <EmptyState
             emoji="📈"
-            title="Todavía no hay meses que comparar"
+            title={t.sinMeses}
           />
         ) : (
           <div className="space-y-3">
@@ -866,11 +874,11 @@ export function ResumenPanel({
                 otra vez, dicho como si fuera una conclusión. */}
             {serie.length > 1 && (
               <p className="text-[13px] text-muted">
-                {media < 0 ? 'De media se van ' : 'De media quedan '}
+                {media < 0 ? t.deMediaSeVan : t.deMediaQuedan}
                 <span className={`font-bold ${media < 0 ? 'text-danger-strong' : 'text-ink'}`}>
                   {formatCents(Math.abs(media))}
                 </span>
-                {media < 0 ? ' de más al mes.' : ' al mes.'}
+                {media < 0 ? t.deMasAlMes : t.alMes}
               </p>
             )}
             <QuedaPorMes serie={serie} mes={mes} />
@@ -880,16 +888,16 @@ export function ResumenPanel({
 
       {/* ── El mes que se está mirando ─────────────────────────────────── */}
       {hayRitmo && (
-        <Bloque titulo="Cómo va el mes">
+        <Bloque titulo={t.comoVaElMes}>
           <RitmoDelMes acumulado={acumulado} ritmo={ritmo} diaDeHoy={diaDeHoy} />
         </Bloque>
       )}
 
-      <Bloque titulo={`${nombreDelMes}: en qué se va`}>
+      <Bloque titulo={t.enQueSeVa(nombreDelMes)}>
         {reparto.length === 0 ? (
           <EmptyState
             emoji="🧾"
-            title="Nada gastado este mes"
+            title={t.nadaGastado}
           />
         ) : (
           <EnQueSeVa reparto={reparto} sePasan={sePasan} mesAnterior={mesAnterior} />
@@ -900,7 +908,7 @@ export function ResumenPanel({
           vez de enseñar un hueco: es lo que pasa en un mes sin fijos puestos, que
           ya tiene su propio aviso en «Este mes». */}
       {entrada && (
-        <Bloque titulo={`${nombreDelMes}: de cada 100 € que entran`}>
+        <Bloque titulo={t.deCadaCien(nombreDelMes)}>
           <DeCadaCien entrada={entrada} />
         </Bloque>
       )}

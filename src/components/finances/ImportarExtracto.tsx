@@ -1,7 +1,6 @@
 'use client'
 
 import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { BetaBadge } from '@/components/ui/BetaBadge'
@@ -12,6 +11,8 @@ import { mesDe, plantillaDelMes } from '@/lib/budgets'
 import { getLocalDateString } from '@/lib/date-utils'
 import { formatCents } from '@/lib/finanzas'
 import { leerArchivoDeExtracto } from '@/lib/extractos'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { resumenDeRevision, revisarExtracto, type FilaDeRevision } from '@/lib/importacion'
 import { capitalize } from '@/lib/text'
 
@@ -35,6 +36,8 @@ import { capitalize } from '@/lib/text'
  */
 export function ImportarExtracto() {
   const { budgets, expenses, fixedEntries, fixedOverrides, monthPlans, createExpenses, isSaving } = useStore()
+  const t = useT().finanzas
+  const locale = localeDeFechas(useIdioma())
 
   const [nombreDelArchivo, setNombreDelArchivo] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +60,7 @@ export function ImportarExtracto() {
     setApuntados(null)
     setNombreDelArchivo(archivo.name)
 
-    const lectura = await leerArchivoDeExtracto(new Uint8Array(await archivo.arrayBuffer()))
+    const lectura = await leerArchivoDeExtracto(new Uint8Array(await archivo.arrayBuffer()), t.extracto)
     if (!lectura.ok) {
       setError(lectura.error)
       setAvisos([])
@@ -74,7 +77,9 @@ export function ImportarExtracto() {
 
     setError(null)
     setAvisos(lectura.extracto.avisos)
-    setFilas(revisarExtracto(lectura.extracto, { apuntes: expenses, huellasApuntadas, fijos, partidas: budgets }))
+    setFilas(revisarExtracto(lectura.extracto, {
+      apuntes: expenses, huellasApuntadas, fijos, partidas: budgets, textos: t.importar.revision,
+    }))
   }
 
   function marcar(huella: string, marcada: boolean) {
@@ -119,11 +124,11 @@ export function ImportarExtracto() {
         <Link
           href="/finances"
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink"
-          aria-label="Volver a Finanzas"
+          aria-label={t.importar.volver}
         >
           <ArrowLeft size={20} />
         </Link>
-        <h2 className="text-base font-bold text-ink">Traer el extracto del banco</h2>
+        <h2 className="text-base font-bold text-ink">{t.diaADia.traerExtracto}</h2>
         <BetaBadge />
       </div>
 
@@ -132,19 +137,18 @@ export function ImportarExtracto() {
           {apuntados !== null && (
             <p className="rounded-2xl border border-primary-line bg-primary-tint px-4 py-3 text-sm font-semibold text-ink">
               {apuntados === 0
-                ? 'No ha entrado ninguno: ya estaban todos apuntados.'
-                : `Ya están apuntados ${apuntados} ${apuntados === 1 ? 'movimiento' : 'movimientos'}.`}
+                ? t.importar.ningunoEntro
+                : t.importar.yaApuntados(apuntados)}
             </p>
           )}
 
           <div className="rounded-2xl border border-line bg-white px-4 py-6 text-center">
             <FileText size={28} className="mx-auto mb-3 text-muted" aria-hidden />
-            <p className="text-base font-bold text-ink">Elige el archivo del banco</p>
+            <p className="text-base font-bold text-ink">{t.importar.eligeArchivo}</p>
             {/* Dónde está el archivo es lo único que hay que saber para usar esta
                 pantalla, y no se puede adivinar: va aquí y no en la ayuda. */}
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-              En la banca online, en la descarga de movimientos: el formato «Norma 43»
-              o «Cuaderno 43». Del Sabadell vale también su .txt, y del BBVA, su Excel.
+              {t.importar.ayuda}
             </p>
           </div>
 
@@ -153,7 +157,7 @@ export function ImportarExtracto() {
               es un control por debajo del mínimo táctil: lo cazaría
               `e2e/movil.spec.ts`, y con razón. */}
           <Button fullWidth size="lg" onClick={() => archivoRef.current?.click()}>
-            Elegir el archivo
+            {t.importar.elegirBoton}
           </Button>
           <input
             ref={archivoRef}
@@ -184,7 +188,7 @@ export function ImportarExtracto() {
           {avisos.length > 0 && (
             <div className="space-y-2 rounded-2xl border border-sand bg-warm px-4 py-3">
               <p className="flex items-center gap-2 text-sm font-bold text-ink">
-                <TriangleAlert size={16} aria-hidden /> Mira esto antes de apuntar
+                <TriangleAlert size={16} aria-hidden /> {t.importar.miraEsto}
               </p>
               {avisos.map(aviso => (
                 <p key={aviso} className="text-xs text-ink">{aviso}</p>
@@ -193,16 +197,16 @@ export function ImportarExtracto() {
           )}
 
           <p className="text-xs text-muted">
-            {resumen.total} {resumen.total === 1 ? 'movimiento' : 'movimientos'} en el archivo.
-            {resumen.cubiertosPorFijo > 0 && ` ${resumen.cubiertosPorFijo} ya están en Fijos.`}
-            {resumen.yaApuntados > 0 && ` ${resumen.yaApuntados} ya estaban apuntados.`}
-            {resumen.traspasos > 0 && ` ${resumen.traspasos} parecen traspasos entre cuentas tuyas.`}
+            {t.importar.enElArchivo(resumen.total)}
+            {resumen.cubiertosPorFijo > 0 && t.importar.cubiertosPorFijo(resumen.cubiertosPorFijo)}
+            {resumen.yaApuntados > 0 && t.importar.yaEstabanApuntados(resumen.yaApuntados)}
+            {resumen.traspasos > 0 && t.importar.traspasos(resumen.traspasos)}
           </p>
 
           {porDia.map(([dia, delDia]) => (
             <section key={dia} className="space-y-2">
               <h3 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
-                {capitalize(format(parseISO(dia), "EEEE d 'de' MMMM", { locale: es }))}
+                {capitalize(format(parseISO(dia), t.fechas.diaLargo, { locale }))}
               </h3>
 
               <ul className="overflow-hidden rounded-2xl border border-surface bg-white shadow-sm divide-y divide-hairline">
@@ -214,13 +218,13 @@ export function ImportarExtracto() {
                         checked={fila.marcada}
                         onChange={event => marcar(fila.huella, event.target.checked)}
                         className="h-5 w-5 accent-[var(--color-primary-strong)]"
-                        aria-label={`Apuntar ${fila.descripcion || 'este movimiento'} de ${formatCents(fila.movimiento.amountCents)}`}
+                        aria-label={t.importar.apuntarAria(fila.descripcion || t.importar.esteMovimiento, formatCents(fila.movimiento.amountCents))}
                       />
                     </label>
 
                     <div className="min-w-0 flex-1 py-1.5">
                       <p className="truncate text-sm font-semibold text-ink">
-                        {fila.descripcion || 'Movimiento'}
+                        {fila.descripcion || t.importar.movimiento}
                       </p>
                       {fila.explicacion && (
                         <p className="mt-0.5 text-[11px] text-muted">{fila.explicacion}</p>
@@ -229,10 +233,10 @@ export function ImportarExtracto() {
                         <select
                           value={fila.budgetId ?? ''}
                           onChange={event => ponerPartida(fila.huella, event.target.value || null)}
-                          aria-label={`Partida de ${fila.descripcion || 'este movimiento'}`}
+                          aria-label={t.importar.partidaAria(fila.descripcion || t.importar.esteMovimiento)}
                           className="mt-1.5 min-h-11 w-full max-w-[12rem] rounded-xl border border-line bg-canvas px-2 text-xs text-ink"
                         >
-                          <option value="">Sin partida</option>
+                          <option value="">{t.apunte.sinPartida}</option>
                           {budgets.map(partida => (
                             <option key={partida.id} value={partida.id}>
                               {partida.emoji ? `${partida.emoji} ` : ''}{partida.name}
@@ -254,11 +258,11 @@ export function ImportarExtracto() {
           <div className="space-y-2 pt-2">
             <Button fullWidth size="lg" onClick={() => void apuntar()} disabled={isSaving || resumen.entran === 0}>
               {resumen.entran === 0
-                ? 'No has marcado ninguno'
-                : `Apuntar ${resumen.entran} ${resumen.entran === 1 ? 'movimiento' : 'movimientos'}`}
+                ? t.importar.ninguno
+                : t.importar.apuntarN(resumen.entran)}
             </Button>
             <Button fullWidth variant="ghost" onClick={() => { setFilas([]); setAvisos([]); setNombreDelArchivo(null) }}>
-              Dejarlo
+              {t.importar.dejarlo}
             </Button>
           </div>
         </>

@@ -8,6 +8,7 @@ import { Suggestions } from '@/components/ui/Suggestions'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import { QUOTE_STATUSES } from '@/lib/constants'
 import { centsToInput } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import { validateQuoteDraft } from '@/lib/validators'
 import type { Quote, QuoteDraft } from '@/types'
 
@@ -47,6 +48,8 @@ function initDraft(initial: Quote | null | undefined): QuoteDraft {
  * espacios de más.
  */
 export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }: QuoteSheetProps) {
+  const t = useT()
+  const textos = t.finanzas.presupuesto
   const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<QuoteDraft>({
     open,
     initialDraft: () => initDraft(initial),
@@ -59,65 +62,65 @@ export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }
   return (
     <BottomSheet
       open={open}
-      title={initial ? 'Editar presupuesto' : 'Nuevo presupuesto'}
+      title={initial ? textos.editar : textos.nuevo}
       onClose={onClose}
       footer={
         <SheetFooter
           form="quote-form"
           disabled={guardando}
-          submitLabel={initial ? 'Guardar' : 'Apuntar presupuesto'}
+          submitLabel={initial ? textos.guardar : textos.apuntar}
           error={formError}
           onDelete={initial
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar presupuesto', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: textos.eliminar, confirmLabel: textos.confirmarEliminacion }
             : undefined}
         />
       }
     >
       <form id="quote-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label="Para qué es" htmlFor="quote-title">
+        <Field label={textos.paraQue} htmlFor="quote-title">
           <input
             id="quote-title"
             ref={firstFieldRef}
             type="text"
             value={draft.title}
             onChange={e => patch({ title: e.target.value })}
-            placeholder="Ej: Cambiar la caldera"
+            placeholder={textos.ejemploParaQue}
             required
             className="field-input"
           />
           <Suggestions
             values={titulos}
             onPick={titulo => patch({ title: titulo })}
-            label="Para algo que ya tienes apuntado"
+            label={textos.sugerencias}
           />
         </Field>
 
-        <Field label="Quién lo pasa" htmlFor="quote-provider">
+        <Field label={textos.quien} htmlFor="quote-provider">
           <input
             id="quote-provider"
             type="text"
             value={draft.provider}
             onChange={e => patch({ provider: e.target.value })}
-            placeholder="Ej: Fontanería López"
+            placeholder={textos.ejemploQuien}
             required
             className="field-input"
           />
         </Field>
 
-        <Field label="Cuánto" htmlFor="quote-amount">
+        <Field label={textos.cuanto} htmlFor="quote-amount">
           <input
             id="quote-amount"
             type="text"
             inputMode="decimal"
             value={draft.amount}
             onChange={e => patch({ amount: e.target.value })}
-            placeholder="Ej: 2400"
+            placeholder={textos.ejemploCuanto}
             required
             className="field-input"
           />
         </Field>
 
-        <Field label="El precio vale hasta" htmlFor="quote-valid" hint="(opcional)">
+        <Field label={textos.validoHasta} htmlFor="quote-valid" hint={textos.opcional}>
           <input
             id="quote-valid"
             type="date"
@@ -127,7 +130,7 @@ export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }
           />
         </Field>
 
-        <Field label="Cómo está" spacing="group">
+        <Field label={textos.comoEsta} spacing="group">
           <div className="flex flex-wrap gap-2">
             {QUOTE_STATUSES.map(estado => (
               <SelectChip
@@ -135,19 +138,19 @@ export function QuoteSheet({ open, initial, titulos, onClose, onSave, onDelete }
                 selected={draft.status === estado.value}
                 onClick={() => patch({ status: estado.value })}
               >
-                {estado.label}
+                {t.comun.estadosDePresupuesto[estado.value].nombre}
               </SelectChip>
             ))}
           </div>
         </Field>
 
-        <Field label="Notas" htmlFor="quote-notes" hint="(opcional)">
+        <Field label={textos.notas} htmlFor="quote-notes" hint={textos.opcional}>
           <textarea
             id="quote-notes"
             value={draft.notes}
             onChange={e => patch({ notes: e.target.value })}
             rows={3}
-            placeholder="Qué incluye, cuánto tardan, qué dijeron…"
+            placeholder={textos.ejemploNotas}
             className="field-input resize-none"
           />
         </Field>

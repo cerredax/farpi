@@ -176,8 +176,8 @@ test('el formulario de fijos cabe a 390 px y sus controles llegan a 44 px, tambi
 test('los textos del formulario de fijos siguen el idioma del dispositivo', async ({ page, context }) => {
   await context.addCookies([{ name: 'farpi_idioma', value: 'en', domain: 'localhost', path: '/' }])
   await page.goto('/finances')
-  await page.getByRole('tab', { name: 'Fijos', exact: true }).click()
-  await page.getByRole('region', { name: 'Sale al mes' }).getByRole('button', { name: 'Nuevo gasto', exact: true }).click()
+  await page.getByRole('tab', { name: 'Recurring', exact: true }).click()
+  await page.getByRole('region', { name: 'Goes out each month' }).getByRole('button', { name: 'New expense', exact: true }).click()
   const sheet = page.getByRole('dialog', { name: 'New recurring expense', exact: true })
   await expect(sheet.getByRole('button', { name: 'Save and add another' })).toBeVisible()
   await expect(sheet.locator('summary')).toContainText('More options')

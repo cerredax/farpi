@@ -54,4 +54,376 @@ export const finanzas = {
     quienIngreso: 'De quién es el ingreso. Con «Familia» queda como algo que entra a la cuenta común.',
     quienGasto: 'Quién lo paga. Con «Familia» queda como un recibo de la cuenta común, que es lo normal.',
   },
+
+  /** Patrones de `date-fns` y lo que depende del orden de las palabras de una fecha. */
+  fechas: {
+    mesAnio: 'MMMM yyyy',
+    mes: 'MMMM',
+    diaDeLista: 'EEEE d',
+    diaCorto: 'd MMM',
+    diaLargo: "EEEE d 'de' MMMM",
+    /** «Septiembre 2026» dicho en mitad de una frase: «septiembre». */
+    mesEnFrase: (nombreDelMes: string) => nombreDelMes.split(' ')[0].toLowerCase(),
+  },
+
+  /** Cuando una función de `budgets.ts` tiene que poner nombre a lo que no tiene. */
+  reparto: {
+    sinPartida: 'Sin partida',
+    otras: 'Otras',
+    deCasa: 'De casa',
+  },
+
+  /** `entrecomillar('Compra')` -> «Compra». */
+  entrecomillar: (texto: string) => `«${texto}»`,
+
+  /** `FinancesView`: la cabecera, las pestañas y «Este mes». */
+  vista: {
+    resumenMes: (n: number) => `${n} apunte${n === 1 ? '' : 's'} este mes`,
+    resumenEstadisticas: (n: number) => `${n} mes${n === 1 ? '' : 'es'} con datos`,
+    resumenFijos: (fijos: number, partidas: number) => `${fijos} fijos · ${partidas} partidas`,
+    resumenPresupuestos: (n: number) => `${n} trabajo${n === 1 ? '' : 's'} presupuestado${n === 1 ? '' : 's'}`,
+    altaApunte: 'Nuevo apunte',
+    altaFijo: 'Nuevo gasto fijo',
+    altaPedido: 'Nuevo presupuesto pedido',
+    buscar: (n: number) => `Buscar en ${n} apuntes…`,
+    buscarAria: 'Buscar en los apuntes',
+    seccionesAria: 'Secciones de finanzas',
+    pestañas: {
+      mes: 'Este mes',
+      resumen: 'Estadísticas',
+      plantilla: 'Fijos',
+      presupuestos: 'Presupuestos',
+    },
+    hoy: 'Hoy',
+    ayer: 'Ayer',
+  },
+
+  /** Los resultados de una búsqueda: «3 apuntes con «dentista». Se han ido 90 €». */
+  busqueda: {
+    aria: 'Resultados de la búsqueda',
+    sinCoincidencias: 'Sin coincidencias',
+    ningunApunte: (busqueda: string) => `Ningún apunte con «${busqueda}»`,
+    apuntes: (n: number) => (n === 1 ? '1 apunte' : `${n} apuntes`),
+    con: (busqueda: string) => ` con «${busqueda}»`,
+    seHanIdo: '. Se han ido ',
+    yEntraron: ' y entraron ',
+    entraron: '. Entraron ',
+  },
+
+  /** Las partidas del mes, plegadas o desplegadas, y su hueco vacío. */
+  partidas: {
+    titulo: 'Partidas',
+    aria: 'Partidas del mes',
+    ariaCuantoQueda: 'Cuánto queda en cada partida',
+    deMas: (importe: string) => `${importe} de más`,
+    /** «quedan 120 €»: la palabra va antes o después del importe según el idioma. */
+    quedan: 'quedan',
+    quedanAlFinal: false as boolean,
+    vacia: 'Sin partidas',
+    cerradaSinPartidas: 'Ese mes se cerró sin partidas',
+    sinPlan: 'De ese mes no se guardó el plan',
+  },
+
+  diaADia: {
+    titulo: 'El día a día',
+    nadaPorVenir: 'Nada apuntado todavía',
+    nadaEsteMes: 'Nada apuntado este mes',
+    nadaEseMes: 'Nada apuntado ese mes',
+    traerExtracto: 'Traer el extracto del banco',
+  },
+
+  presupuestos: {
+    intro: 'Lo que cuesta algo que aún no has hecho: el fontanero, el dentista, la reforma. Apunta varios para lo mismo y se comparan solos.',
+    vacio: 'Sin presupuestos pedidos',
+  },
+
+  /** Una fila de apunte cuando no trae descripción ni partida. */
+  lista: {
+    gasto: 'Gasto',
+    ingreso: 'Ingreso',
+  },
+
+  /** `AjusteDelMesSheet`: lo que un fijo costó en un mes. */
+  ajuste: {
+    titulo: (fijo: string, mes: string) => `${fijo} en ${mes}`,
+    tituloSinFijo: 'Ajustar el mes',
+    guardar: 'Guardar',
+    cuanto: (mes: string) => `Cuánto ha sido en ${mes}`,
+    conReferencia: (mes: string, referencia: string) => `Solo para ${mes}. La referencia sigue siendo ${referencia} al mes y los demás meses no se tocan.`,
+    sinReferencia: (mes: string, esIngreso: boolean) => `Solo para ${mes}: los demás meses siguen con ${esIngreso ? 'lo que entra' : 'lo que sale'} de siempre.`,
+    volverA: (importe: string) => `Volver a los ${importe}`,
+    cambiarCadaMes: 'Cambiar cuánto es cada mes',
+  },
+
+  /** `BorrarApuntesDelMes`: vaciar «El día a día» de un mes. */
+  borrar: {
+    boton: 'Borrar los apuntes del mes',
+    confirmarUno: 'Sí, borrar el apunte',
+    confirmarVarios: (n: number) => `Sí, borrar los ${n}`,
+    cancelar: 'Cancelar',
+    seBorra: (n: number): string => (n === 1 ? 'Se borra ' : 'Se borran '),
+    losApuntes: (n: number) => (n === 1 ? 'el único apunte' : `los ${n} apuntes`),
+    de: ' de ',
+    abrir: ': ',
+    gastos: (importe: string) => `${importe} de gastos`,
+    y: ' y ',
+    ingresos: (importe: string) => `${importe} de ingresos`,
+    cierre: '.',
+    noTocan: {
+      antes: 'Los fijos y las partidas ',
+      fuerte: 'no se tocan',
+      despues: ': esto vacía el día a día, no el plan del mes.',
+    },
+    sinVuelta: 'Esto no se puede deshacer.',
+  },
+
+  /** `CierreDelMes`: cerrar, reabrir o poner a cero. */
+  cierre: {
+    aria: 'Cierre del mes',
+    ponerACero: 'Poner el mes a cero',
+    cerrar: 'Cerrar mes',
+    reabrir: 'Reabrir mes',
+    aMano: 'Este mes está cerrado a mano. Solo se puede deshacer mientras siga siendo el mes en curso.',
+    confirmarCero: 'Sí, ponerlo a cero',
+    confirmarCerrar: 'Sí, cerrar el mes',
+    cancelar: 'Cancelar',
+    cero: {
+      antes: 'Se quitan los fijos y las partidas que se le guardaron a ',
+      despues: ', y el mes queda como si no se hubiera cerrado: en cero, y diciéndolo.',
+    },
+    ceroApuntes: {
+      antes: 'Lo que se apuntó ese mes ',
+      fuerte: 'no se toca',
+    },
+    cerrarMes: {
+      antes: 'Se guardan en ',
+      despues: ' los fijos y las partidas de ahora mismo. A partir de ahí este mes deja de moverse cuando cambies la plantilla en «Fijos».',
+    },
+    sinHacerlo: 'No hace falta hacerlo: el día 1 se cierra solo.',
+  },
+
+  /** `CuentaDelMes`: la tarjeta con lo que queda. */
+  cuenta: {
+    aria: 'Resumen del mes',
+    aunNoHaEmpezado: 'aún no ha empezado',
+    apuntadoParaEseMes: 'apuntado para ese mes',
+    gastadoEsteMes: 'gastado este mes',
+    deMasEseMes: 'de más ese mes',
+    quedariaEseMes: 'quedaría ese mes',
+    deMasEsteMes: 'de más este mes',
+    quedaEsteMes: 'queda este mes',
+    copiaVacia: 'De este mes no se guardó ningún fijo ni ninguna partida.',
+    mesCerrado: 'Mes cerrado: los fijos y las partidas son los que había entonces.',
+    previsionAbierta: 'Es lo que quedaría si nada cambia.',
+    previsionCerrada: 'Lo que ya has apuntado para un mes que no ha llegado.',
+    sinPlan: 'De este mes no se guardó el plan, así que no se puede decir qué quedó.',
+    ocultarCuentas: 'Ocultar las cuentas',
+    verCuentas: (mes: string) => `Ver las cuentas de ${mes}`,
+    ingresosFijos: 'Ingresos fijos',
+    gastosFijos: 'Gastos fijos',
+    paraElMes: 'Para el mes',
+    ingresosApuntados: 'Ingresos apuntados',
+    gastosApuntados: 'Gastos apuntados',
+    sueleSer: (importe: string) => `suele ser ${importe}`,
+    ajustarEnEsteMes: (nombre: string) => `Ajustar ${nombre} en este mes`,
+    ponerFijos: {
+      antes: 'Pon tus ingresos y gastos de todos los meses en ',
+      fijos: 'Fijos',
+      despues: ' y aquí verás cuánto queda.',
+    },
+  },
+
+  /** `SelectorDeMes`. */
+  selector: {
+    anterior: 'Mes anterior',
+    siguiente: 'Mes siguiente',
+    elegir: 'Elegir mes',
+    hoy: 'hoy',
+  },
+
+  /** `CadaMesPanel`, la pestaña «Fijos». */
+  plantilla: {
+    intro: 'Cómo suele ser un mes en esta casa. Se copia a cada mes que empieza; cambiarlo no toca los meses que ya terminaron.',
+    entra: 'Entra al mes',
+    nuevoIngreso: 'Nuevo ingreso',
+    sinIngresos: 'Sin ingresos fijos',
+    sale: 'Sale al mes',
+    nuevoGasto: 'Nuevo gasto',
+    sinGastos: 'Sin gastos fijos',
+    seReparte: 'Se reparte en',
+    ariaPartidas: 'Partidas de cada mes',
+    queQueda: 'Lo que queda antes de gastar nada.',
+  },
+
+  /** `BudgetBar`: una partida con su barra. */
+  barra: {
+    de: (limite: string) => `de ${limite}`,
+    pasado: (importe: string) => `Te has pasado por ${importe}`,
+    quedan: (importe: string) => `Quedan ${importe}`,
+    vacia: 'Nada apuntado en esta partida.',
+  },
+
+  /** `BudgetSheet`. */
+  partida: {
+    nueva: 'Nueva partida',
+    editar: 'Editar partida',
+    eliminar: 'Eliminar partida',
+    confirmarEliminar: 'Sí, eliminar la partida',
+    guardar: 'Guardar',
+    crear: 'Crear partida',
+    quitar: {
+      antes: 'Se quita la partida ',
+      despues: ' y su tope al mes.',
+    },
+    seQuedan: {
+      antes: 'Los gastos que tenía ',
+      fuerte: 'se quedan apuntados',
+      despues: ' y pasan a «Sin partida»; los meses ya cerrados siguen enseñándola tal como estaba.',
+    },
+    nombre: 'Nombre',
+    ejemploNombre: 'Ej: Compra',
+    alMes: 'Al mes',
+    ejemploAlMes: 'Ej: 300',
+    vale: 'Vale todos los meses hasta que lo cambies. Cambiarlo no toca lo ya apuntado.',
+    icono: 'Icono',
+  },
+
+  /** `QuoteSheet` y `QuoteGroupCard`: los presupuestos que te pasan. */
+  presupuesto: {
+    nuevo: 'Nuevo presupuesto',
+    editar: 'Editar presupuesto',
+    apuntar: 'Apuntar presupuesto',
+    guardar: 'Guardar',
+    eliminar: 'Eliminar presupuesto',
+    confirmarEliminacion: 'Confirmar eliminación',
+    paraQue: 'Para qué es',
+    ejemploParaQue: 'Ej: Cambiar la caldera',
+    sugerencias: 'Para algo que ya tienes apuntado',
+    quien: 'Quién lo pasa',
+    ejemploQuien: 'Ej: Fontanería López',
+    cuanto: 'Cuánto',
+    ejemploCuanto: 'Ej: 2400',
+    validoHasta: 'El precio vale hasta',
+    opcional: '(opcional)',
+    comoEsta: 'Cómo está',
+    notas: 'Notas',
+    ejemploNotas: 'Qué incluye, cuánto tardan, qué dijeron…',
+    decidido: 'Decidido',
+    cuantos: (n: number) => `${n} presupuesto${n !== 1 ? 's' : ''}`,
+    masBarato: 'Más barato',
+    caduco: (fecha: string) => `Caducó el ${fecha}`,
+    valeHasta: (fecha: string) => `Vale hasta el ${fecha}`,
+    deshacerAceptar: (proveedor: string) => `Deshacer aceptar ${proveedor}`,
+    aceptar: (proveedor: string) => `Aceptar ${proveedor}`,
+    deshacerDescartar: (proveedor: string) => `Deshacer descartar ${proveedor}`,
+    descartar: (proveedor: string) => `Descartar ${proveedor}`,
+    apuntarGastoDe: (proveedor: string) => `Apuntar el gasto de ${proveedor}`,
+    apuntarGasto: 'Apuntar el gasto',
+  },
+
+  /** `ResumenPanel`, la pestaña «Estadísticas». */
+  resumen: {
+    enAnio: (anio: string) => `En ${anio}`,
+    enAnioEnQueSeVa: (anio: string) => `En ${anio}: en qué se va`,
+    enAnioSeRepite: (anio: string) => `En ${anio}: lo que más se repite`,
+    sinMesCerrado: 'Todavía no hay ningún mes cerrado',
+    comoVanLosMeses: 'Cómo van los meses',
+    sinMeses: 'Todavía no hay meses que comparar',
+    deMediaSeVan: 'De media se van ',
+    deMediaQuedan: 'De media quedan ',
+    deMasAlMes: ' de más al mes.',
+    alMes: ' al mes.',
+    comoVaElMes: 'Cómo va el mes',
+    enQueSeVa: (mes: string) => `${mes}: en qué se va`,
+    nadaGastado: 'Nada gastado este mes',
+    deCadaCien: (mes: string) => `${mes}: de cada 100 € que entran`,
+    pct: (n: number) => `${n} %`,
+    // Ritmo del mes
+    aDia: (dia: number) => `A día ${dia} llevas `,
+    aEstasAlturas: (importe: string) => `A estas alturas sueles llevar ${importe}.`,
+    esteMes: 'Este mes',
+    loDeSiempre: 'Lo de siempre',
+    // Barras de los meses
+    entra: 'Entra',
+    sale: 'Sale',
+    queda: 'Queda',
+    verNumeros: 'Ver los números',
+    mes: 'Mes',
+    // En qué se va
+    seHanIdo: 'Se han ido ',
+    variacion: (n: number, mas: boolean, mes: string) => `${n} % ${mas ? 'más' : 'menos'} que en ${mes}`,
+    sePaso: (veces: number, de: number) => ` se pasó ${veces} de los últimos ${de} meses.`,
+    // De cada 100 € que entran
+    gastosFijos: 'Gastos fijos',
+    partidas: 'Partidas',
+    loDemas: 'Lo demás',
+    entran: 'Entran ',
+    seVan: { antes: ' y se van ', despues: ' de más.' },
+    seQueda: { antes: ' y se queda el ', despues: '.' },
+    // El año
+    haEntrado: 'Ha entrado',
+    haSalido: 'Ha salido',
+    seHaQuedado: 'Se ha quedado',
+    sobre: (n: number) => (n === 1 ? 'Sobre 1 mes' : `Sobre ${n} meses`),
+    mediaSeVan: ', de media se van ',
+    mediaQuedan: ', de media quedan ',
+    mediaDeMasAlMes: ' de más al mes',
+    mediaAlMes: ' al mes',
+    // Lo que más se repite
+    veces: (n: number, media: string) => `${n} veces · ${media} de media`,
+  },
+
+  /** `ImportarExtracto`, la pantalla de traer el extracto del banco. */
+  importar: {
+    volver: 'Volver a Finanzas',
+    ningunoEntro: 'No ha entrado ninguno: ya estaban todos apuntados.',
+    yaApuntados: (n: number) => `Ya están apuntados ${n} ${n === 1 ? 'movimiento' : 'movimientos'}.`,
+    eligeArchivo: 'Elige el archivo del banco',
+    ayuda: 'En la banca online, en la descarga de movimientos: el formato «Norma 43» o «Cuaderno 43». Del Sabadell vale también su .txt, y del BBVA, su Excel.',
+    elegirBoton: 'Elegir el archivo',
+    miraEsto: 'Mira esto antes de apuntar',
+    enElArchivo: (n: number) => `${n} ${n === 1 ? 'movimiento' : 'movimientos'} en el archivo.`,
+    cubiertosPorFijo: (n: number) => ` ${n} ya están en Fijos.`,
+    yaEstabanApuntados: (n: number) => ` ${n} ya estaban apuntados.`,
+    traspasos: (n: number) => ` ${n} parecen traspasos entre cuentas tuyas.`,
+    esteMovimiento: 'este movimiento',
+    apuntarAria: (descripcion: string, importe: string) => `Apuntar ${descripcion} de ${importe}`,
+    partidaAria: (descripcion: string) => `Partida de ${descripcion}`,
+    movimiento: 'Movimiento',
+    ninguno: 'No has marcado ninguno',
+    apuntarN: (n: number) => `Apuntar ${n} ${n === 1 ? 'movimiento' : 'movimientos'}`,
+    dejarlo: 'Dejarlo',
+    /** Por qué una fila no viene marcada (`TextosDeRevision`, en `importacion.ts`). */
+    revision: {
+      yaImportado: 'Ya se apuntó en una importación anterior',
+      yaHayApunte: (importe: string, descripcion: string | null) => `Ya hay un apunte de ese día por ${importe}${descripcion ? `: «${descripcion}»` : ''}`,
+      traspaso: 'Parece dinero movido entre dos cuentas tuyas, no un gasto',
+      enUnFijo: (nombre: string, importe: string) => `Esto suele estar en «${nombre}» (${importe})`,
+    },
+  },
+
+  /** Lo que dicen los lectores del extracto cuando algo no cuadra (`TextosDeExtracto`, en `n43.ts`). */
+  extracto: {
+    archivoVacio: 'El archivo está vacío',
+    lineaLarga: (numero: number, largo: number, ancho: number) => `La línea ${numero} mide ${largo} caracteres y la norma son ${ancho}: esto no parece un fichero de la Norma 43`,
+    cuentaNoEnEuros: (divisa: string) => `Hay una cuenta que no va en euros (divisa ${divisa}) y Farpi solo lleva euros`,
+    movimientoSinCuenta: (numero: number) => `La línea ${numero} es un movimiento que no cuelga de ninguna cuenta`,
+    conceptoSinMovimiento: (numero: number) => `La línea ${numero} amplía un concepto y no hay ningún movimiento delante`,
+    cierreSinCuenta: (numero: number) => `La línea ${numero} cierra una cuenta que no estaba abierta`,
+    registroDesconocido: (numero: number, tipo: string) => `La línea ${numero} empieza por "${tipo}", que no es un registro de la Norma 43`,
+    sinSaldoFinal: (cola: string) => `El extracto de la cuenta terminada en ${cola} se corta sin su saldo final, así que no se ha podido comprobar que estén todos los movimientos`,
+    sinCuentas: 'El archivo no trae ninguna cuenta',
+    recuentoNoCuadra: (cola: string, segunElBanco: number, leidos: number) => `En la cuenta terminada en ${cola} el banco dice que hay ${segunElBanco} movimientos y se han leído ${leidos}`,
+    sumasNoCoinciden: (cola: string) => `En la cuenta terminada en ${cola} las sumas no coinciden con las del banco`,
+    saldoFinalNoCuadra: (cola: string) => `En la cuenta terminada en ${cola} el saldo final no sale de sumar los movimientos al inicial`,
+    noEsExcel: 'No se ha podido abrir: parece un archivo comprimido, pero no un Excel',
+    sabadellMalFormado: (numero: number) => `La línea ${numero} no tiene la forma del extracto del Sabadell`,
+    sabadellLinea: (numero: number) => `la línea ${numero}`,
+    bbvaSinColumnas: 'Este Excel no tiene las columnas del extracto del BBVA: Fecha, Concepto, Importe y Disponible',
+    bbvaFilaMalFormada: (numero: number) => `La fila ${numero} del Excel no tiene la forma del extracto del BBVA`,
+    bbvaFila: (numero: number) => `la fila ${numero} del Excel`,
+    bbvaSinMovimientos: 'El Excel no trae ningún movimiento',
+    otraDivisa: 'Hay movimientos que no van en euros y Farpi solo lleva euros',
+    saldoEncadenado: (donde: string) => `El saldo de ${donde} no sale de sumar su movimiento al anterior: puede faltar algún movimiento entre medias`,
+  },
 }

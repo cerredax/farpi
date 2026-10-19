@@ -48,9 +48,30 @@ export interface FilaDeRevision {
   budgetId: string | null
 }
 
+/**
+ * Las líneas que explican por qué una fila no viene marcada. Castellano por defecto,
+ * como `validators.ts`; la pantalla pasa las de su idioma (`finanzas.importar.revision`).
+ */
+export interface TextosDeRevision {
+  yaImportado: string
+  /** `importe` ya escrito («34,12 €») y la descripción del apunte, si la tiene. */
+  yaHayApunte: (importe: string, descripcion: string | null) => string
+  traspaso: string
+  enUnFijo: (nombre: string, importe: string) => string
+}
+
+const TEXTOS_DE_REVISION: TextosDeRevision = {
+  yaImportado: 'Ya se apuntó en una importación anterior',
+  yaHayApunte: (importe, descripcion) => `Ya hay un apunte de ese día por ${importe}${descripcion ? `: «${descripcion}»` : ''}`,
+  traspaso: 'Parece dinero movido entre dos cuentas tuyas, no un gasto',
+  enUnFijo: (nombre, importe) => `Esto suele estar en «${nombre}» (${importe})`,
+}
+
 export interface ContextoDeRevision {
   /** Lo que ya está apuntado en la familia. Se mira la fecha y el importe. */
   apuntes: Expense[]
+  /** Cómo se escriben las explicaciones de cada fila. Sin esto, en castellano. */
+  textos?: TextosDeRevision
   /** Las huellas de lo que entró en importaciones anteriores. */
   huellasApuntadas?: Set<string>
   /** Los fijos **del mes que se está importando**, ya resueltos con su ajuste. */
@@ -88,6 +109,7 @@ function margenDe(fijoCents: number): number {
 const DIAS_DE_TRASPASO = 3
 
 export function revisarExtracto(extracto: ExtractoN43, contexto: ContextoDeRevision): FilaDeRevision[] {
+  const textos = contexto.textos ?? TEXTOS_DE_REVISION
   const espejos = traspasosEntreCuentas(extracto.cuentas)
   // Los apuntes que ya ha tapado una fila. **Un apunte tapa a uno y no a los que
   // se le parezcan**: si el extracto trae dos bizums de 40 € del mismo día y en
@@ -115,22 +137,22 @@ export function revisarExtracto(extracto: ExtractoN43, contexto: ContextoDeRevis
       // primera: si un movimiento ya está apuntado, da igual que además parezca
       // un fijo, porque lo que hay que decir es que ya está.
       if (contexto.huellasApuntadas?.has(huella)) {
-        return { ...fila, marcada: false, motivo: 'ya-apuntado' as const, explicacion: 'Ya se apuntó en una importación anterior' }
+        return { ...fila, marcada: false, motivo: 'ya-apuntado' as const, explicacion: textos.yaImportado }
       }
 
       const aMano = apunteQueYaEsta(movimiento, contexto.apuntes, gastados)
       if (aMano) {
         gastados.add(aMano.id)
-        return { ...fila, marcada: false, motivo: 'ya-apuntado' as const, explicacion: `Ya hay un apunte de ese día por ${formatCents(movimiento.amountCents)}${aMano.description ? `: «${aMano.description}»` : ''}` }
+        return { ...fila, marcada: false, motivo: 'ya-apuntado' as const, explicacion: textos.yaHayApunte(formatCents(movimiento.amountCents), aMano.description) }
       }
 
       if (espejos.has(huella)) {
-        return { ...fila, marcada: false, motivo: 'traspaso' as const, explicacion: 'Parece dinero movido entre dos cuentas tuyas, no un gasto' }
+        return { ...fila, marcada: false, motivo: 'traspaso' as const, explicacion: textos.traspaso }
       }
 
       const fijo = fijoQueLoCubre(movimiento, contexto.fijos)
       if (fijo) {
-        return { ...fila, marcada: false, motivo: 'cubierto-por-fijo' as const, explicacion: `Esto suele estar en «${fijo.name}» (${formatCents(fijo.amountCents)})` }
+        return { ...fila, marcada: false, motivo: 'cubierto-por-fijo' as const, explicacion: textos.enUnFijo(fijo.name, formatCents(fijo.amountCents)) }
       }
 
       return { ...fila, marcada: true, motivo: null, explicacion: null }

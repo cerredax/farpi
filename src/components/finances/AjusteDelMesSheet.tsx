@@ -7,6 +7,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { useSheetForm } from '@/hooks/useSheetForm'
 import { centsToInput, formatCents } from '@/lib/finanzas'
+import { useT } from '@/lib/i18n/contexto'
 import { validateFixedOverrideDraft } from '@/lib/validators'
 import type { FijoDelMes } from '@/lib/budgets'
 import type { FixedOverrideDraft } from '@/types'
@@ -60,30 +61,32 @@ export function AjusteDelMesSheet({
     validate: validateFixedOverrideDraft,
   })
 
+  const t = useT().finanzas
+  const textos = t.ajuste
   const esIngreso = fijo?.kind === 'ingreso'
   // Solo hay referencia que enseñar cuando este mes lleva ajuste: sin él, la
   // cifra del campo **es** la referencia y repetirla debajo sería ruido.
   const referencia = fijo?.referenciaCents ?? null
-  const mesEnMinuscula = nombreDelMes.split(' ')[0].toLowerCase()
+  const mesEnMinuscula = t.fechas.mesEnFrase(nombreDelMes)
 
   const handleSubmit = submitHandler(valid => onSave(valid), onClose)
 
   return (
     <BottomSheet
       open={open}
-      title={fijo ? `${fijo.name} en ${mesEnMinuscula}` : 'Ajustar el mes'}
+      title={fijo ? textos.titulo(fijo.name, mesEnMinuscula) : textos.tituloSinFijo}
       onClose={onClose}
       footer={
         <SheetFooter
           form="ajuste-mes-form"
           disabled={guardando}
-          submitLabel="Guardar"
+          submitLabel={textos.guardar}
           error={formError}
         />
       }
     >
       <form id="ajuste-mes-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-2 space-y-5">
-        <Field label={`Cuánto ha sido en ${mesEnMinuscula}`} htmlFor="ajuste-mes-amount">
+        <Field label={textos.cuanto(mesEnMinuscula)} htmlFor="ajuste-mes-amount">
           <input
             id="ajuste-mes-amount"
             ref={firstFieldRef}
@@ -96,8 +99,8 @@ export function AjusteDelMesSheet({
           />
           <p className="text-[10px] leading-relaxed text-muted">
             {referencia !== null
-              ? `Solo para ${mesEnMinuscula}. La referencia sigue siendo ${formatCents(referencia)} al mes y los demás meses no se tocan.`
-              : `Solo para ${mesEnMinuscula}: los demás meses siguen con ${esIngreso ? 'lo que entra' : 'lo que sale'} de siempre.`}
+              ? textos.conReferencia(mesEnMinuscula, formatCents(referencia))
+              : textos.sinReferencia(mesEnMinuscula, esIngreso)}
           </p>
         </Field>
 
@@ -111,7 +114,7 @@ export function AjusteDelMesSheet({
               fullWidth
               onClick={async () => { if (await onQuitar()) onClose() }}
             >
-              Volver a los {formatCents(referencia)}
+              {textos.volverA(formatCents(referencia))}
             </Button>
           )}
 
@@ -123,7 +126,7 @@ export function AjusteDelMesSheet({
             onClick={onEditarFijo}
             className="flex min-h-11 w-full items-center justify-center gap-1 text-[13px] font-semibold text-primary-strong"
           >
-            Cambiar cuánto es cada mes
+            {textos.cambiarCadaMes}
             <ArrowRight size={14} strokeWidth={2.6} aria-hidden />
           </button>
         </div>

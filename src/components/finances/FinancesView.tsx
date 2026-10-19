@@ -1,7 +1,6 @@
 'use client'
 
 import { format, parseISO, subDays } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { useState } from 'react'
 import { ChevronDown, Plus } from 'lucide-react'
 import { AjusteDelMesSheet } from './AjusteDelMesSheet'
@@ -25,6 +24,9 @@ import { ViewHeader } from '@/components/ui/ViewHeader'
 import { mesVecino } from '@/lib/budgets'
 import { getLocalDateString, parseLocalDate } from '@/lib/date-utils'
 import { formatCents } from '@/lib/finanzas'
+import type { Diccionario } from '@/lib/i18n'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { capitalize } from '@/lib/text'
 
 /**
@@ -80,11 +82,11 @@ type EstadoFinanzas = ReturnType<typeof useFinanzasState>
  * que en las demás pantallas lleva «6 listas de la familia»: aquí no hay una sola
  * cosa que contar, así que cada pestaña cuenta la suya.
  */
-const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => string> = {
-  mes: s => `${s.delMes.length} apunte${s.delMes.length === 1 ? '' : 's'} este mes`,
-  resumen: s => `${s.serie.length} mes${s.serie.length === 1 ? '' : 'es'} con datos`,
-  plantilla: s => `${s.ingresosFijos.length + s.gastosFijos.length} fijos · ${s.partidasPlantilla.length} partidas`,
-  presupuestos: s => `${s.grupos.length} trabajo${s.grupos.length === 1 ? '' : 's'} presupuestado${s.grupos.length === 1 ? '' : 's'}`,
+const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas, t: Diccionario['finanzas']['vista']) => string> = {
+  mes: (s, t) => t.resumenMes(s.delMes.length),
+  resumen: (s, t) => t.resumenEstadisticas(s.serie.length),
+  plantilla: (s, t) => t.resumenFijos(s.ingresosFijos.length + s.gastosFijos.length, s.partidasPlantilla.length),
+  presupuestos: (s, t) => t.resumenPresupuestos(s.grupos.length),
 }
 
 /**
@@ -98,15 +100,17 @@ const RESUMEN_DE_PESTAÑA: Record<PestañaFinanzas, (s: EstadoFinanzas) => strin
  * En «Estadísticas» abre un apunte, igual que en «Este mes»: es lo mismo que se está
  * mirando, y un `+` que no hiciera nada sería peor que uno que hace lo obvio.
  */
-const ETIQUETA_DE_ALTA: Record<PestañaFinanzas, string> = {
-  mes: 'Nuevo apunte',
-  resumen: 'Nuevo apunte',
-  plantilla: 'Nuevo gasto fijo',
-  presupuestos: 'Nuevo presupuesto pedido',
+const ETIQUETA_DE_ALTA: Record<PestañaFinanzas, 'altaApunte' | 'altaFijo' | 'altaPedido'> = {
+  mes: 'altaApunte',
+  resumen: 'altaApunte',
+  plantilla: 'altaFijo',
+  presupuestos: 'altaPedido',
 }
 
 export function FinancesView() {
   const s = useFinanzasState()
+  const t = useT().finanzas
+  const locale = localeDeFechas(useIdioma())
 
   /**
    * Si las partidas están desplegadas. Vive aquí y no en `useFinanzasState`
@@ -120,7 +124,7 @@ export function FinancesView() {
    */
   const [partidasAbiertas, setPartidasAbiertas] = useState(false)
 
-  const nombreDelMes = capitalize(format(parseISO(`${s.mes}-01`), 'MMMM yyyy', { locale: es }))
+  const nombreDelMes = capitalize(format(parseISO(`${s.mes}-01`), t.fechas.mesAnio, { locale }))
 
   /**
    * El rótulo de un día en «El día a día». «Hoy» y «Ayer» tienen nombre y se
@@ -134,9 +138,9 @@ export function FinancesView() {
    */
   const ayer = getLocalDateString(subDays(parseLocalDate(s.hoy), 1))
   const rotuloDeDia = (fecha: string) => {
-    if (fecha === s.hoy) return 'Hoy'
-    if (fecha === ayer) return 'Ayer'
-    return capitalize(format(parseISO(fecha), 'EEEE d', { locale: es }))
+    if (fecha === s.hoy) return t.vista.hoy
+    if (fecha === ayer) return t.vista.ayer
+    return capitalize(format(parseISO(fecha), t.fechas.diaDeLista, { locale }))
   }
 
   /**
@@ -147,8 +151,8 @@ export function FinancesView() {
    */
   const rotuloDeMes = (mes: string) => capitalize(format(
     parseISO(`${mes}-01`),
-    mes.slice(0, 4) === s.hoy.slice(0, 4) ? 'MMMM' : 'MMMM yyyy',
-    { locale: es },
+    mes.slice(0, 4) === s.hoy.slice(0, 4) ? t.fechas.mes : t.fechas.mesAnio,
+    { locale },
   ))
 
   return (
@@ -164,7 +168,7 @@ export function FinancesView() {
             botón flotante, que es justo la divergencia que `ViewHeader` vino a
             cerrar. El resumen cambia con la pestaña porque el `+` también. */}
         <ViewHeader
-          resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s)}
+          resumen={RESUMEN_DE_PESTAÑA[s.pestaña](s, t.vista)}
           // **El buscador, solo en «Este mes»** (14-09-2026), que es donde están los
           // apuntes: en «Fijos» hay seis líneas que se leen de un vistazo y en
           // «Estadísticas» no hay lista que filtrar. Era la única pantalla de
@@ -174,8 +178,8 @@ export function FinancesView() {
           buscador={s.pestaña === 'mes' && s.puedeBuscar ? {
             value: s.busqueda,
             onChange: s.setBusqueda,
-            placeholder: `Buscar en ${s.totalApuntes} apuntes…`,
-            ariaLabel: 'Buscar en los apuntes',
+            placeholder: t.vista.buscar(s.totalApuntes),
+            ariaLabel: t.vista.buscarAria,
           } : null}
           // El `+` sale en todos los meses, también en los que no han llegado
           // (04-09-2026). Antes no: se daba por hecho que un gasto con fecha de
@@ -188,7 +192,7 @@ export function FinancesView() {
             else if (s.pestaña === 'presupuestos') s.abrirPedido(null)
             else s.abrirApunte(null)
           }}
-          addLabel={ETIQUETA_DE_ALTA[s.pestaña]}
+          addLabel={t.vista[ETIQUETA_DE_ALTA[s.pestaña]]}
         />
 
         {/* **Una barra segmentada, no cuatro píldoras sueltas** (14-09-2026).
@@ -229,7 +233,7 @@ export function FinancesView() {
             palabras. Es la variante `lg:` de siempre: el valor base no se toca. */}
         <div
           role="tablist"
-          aria-label="Secciones de finanzas"
+          aria-label={t.vista.seccionesAria}
           className="flex gap-1 rounded-2xl bg-surface p-1 lg:w-fit"
         >
           {/* **Cuatro nombres y no cuatro frases** (14-09-2026, pedido). Los de
@@ -254,10 +258,10 @@ export function FinancesView() {
               se está hablando lo dice la tarjeta de debajo con su nombre grande,
               que es donde se mira. */}
           {([
-            { key: 'mes', label: 'Este mes' },
-            { key: 'resumen', label: 'Estadísticas' },
-            { key: 'plantilla', label: 'Fijos' },
-            { key: 'presupuestos', label: 'Presupuestos' },
+            { key: 'mes', label: t.vista.pestañas.mes },
+            { key: 'resumen', label: t.vista.pestañas.resumen },
+            { key: 'plantilla', label: t.vista.pestañas.plantilla },
+            { key: 'presupuestos', label: t.vista.pestañas.presupuestos },
           ] as { key: PestañaFinanzas; label: string }[]).map(p => (
             <button
               key={p.key}
@@ -291,29 +295,29 @@ export function FinancesView() {
               encima de una lista que cruza julio y septiembre sería una cifra que
               no habla de lo que hay debajo. */}
           {s.buscando ? (
-            <section aria-label="Resultados de la búsqueda" className="space-y-5">
+            <section aria-label={t.busqueda.aria} className="space-y-5">
               {s.encontrados.length === 0 ? (
                 <EmptyState
                   emoji="🔍"
-                  title="Sin coincidencias"
-                  description={`Ningún apunte con «${s.busqueda.trim()}»`}
+                  title={t.busqueda.sinCoincidencias}
+                  description={t.busqueda.ningunApunte(s.busqueda.trim())}
                 />
               ) : (
                 <>
                   {/* La cifra es la mitad de la razón para buscar: «¿cuánto
                       llevamos en el dentista?» no se contesta con una lista. */}
                   <p className="px-1 text-[13px] text-muted">
-                    {s.encontrados.length === 1 ? '1 apunte' : `${s.encontrados.length} apuntes`}
-                    {' con «'}{s.busqueda.trim()}{'»'}
+                    {t.busqueda.apuntes(s.encontrados.length)}
+                    {t.busqueda.con(s.busqueda.trim())}
                     {s.encontrado.gastado > 0 && (
                       <>
-                        {'. Se han ido '}
+                        {t.busqueda.seHanIdo}
                         <span className="font-bold text-ink">{formatCents(s.encontrado.gastado)}</span>
                       </>
                     )}
                     {s.encontrado.ingresado > 0 && (
                       <>
-                        {s.encontrado.gastado > 0 ? ' y entraron ' : '. Entraron '}
+                        {s.encontrado.gastado > 0 ? t.busqueda.yEntraron : t.busqueda.entraron}
                         <span className="font-bold text-primary-strong">{formatCents(s.encontrado.ingresado)}</span>
                       </>
                     )}
@@ -357,7 +361,7 @@ export function FinancesView() {
                   repartir un mes que no existe es ruido. Con la previsión abierta
                   vuelven, que es lo que se ha ido a ver. */}
               {(!s.esPorVenir || s.previsionAbierta) && (
-                <section aria-label="Partidas del mes" className="space-y-2">
+                <section aria-label={t.partidas.aria} className="space-y-2">
                   <div className="flex items-center justify-between gap-3 px-1">
                     {/* **Plegadas al entrar** (14-09-2026, pedido). Ocupaban media
                         pantalla de móvil entre la cuenta del mes y el día a día: con
@@ -384,7 +388,7 @@ export function FinancesView() {
                         aria-controls="partidas-del-mes"
                         className="-ml-2 flex min-h-11 items-center gap-1.5 px-2 text-xs font-bold uppercase tracking-widest text-muted transition-colors hover:text-ink"
                       >
-                        Partidas
+                        {t.partidas.titulo}
                         {s.resumen.length > 0 && (
                           <span className="tabular-nums">({s.resumen.length})</span>
                         )}
@@ -419,7 +423,7 @@ export function FinancesView() {
                         className="-mr-2 flex min-h-11 items-center gap-1 px-2 text-xs font-bold text-primary-strong"
                       >
                         <Plus size={14} strokeWidth={2.6} aria-hidden />
-                        Nueva partida
+                        {t.partida.nueva}
                       </button>
                     )}
                   </div>
@@ -431,17 +435,21 @@ export function FinancesView() {
                       partida, sin barra y sin apuntes, cabe en el hueco que dejaba el
                       título solo. Tocar el título sigue abriendo el detalle. */}
                   {!partidasAbiertas && s.resumen.length > 0 && (
-                    <ul aria-label="Cuánto queda en cada partida" className="flex flex-wrap gap-x-3 gap-y-1 px-1">
+                    <ul aria-label={t.partidas.ariaCuantoQueda} className="flex flex-wrap gap-x-3 gap-y-1 px-1">
                       {s.resumen.map(r => (
                         <li key={r.partida.key} className="text-[13px] text-muted">
                           {r.partida.emoji && <span aria-hidden>{r.partida.emoji} </span>}
                           {r.partida.name}:{' '}
                           {r.pasado ? (
                             <span className="font-semibold tabular-nums text-danger-strong">
-                              {formatCents(Math.abs(r.restante))} de más
+                              {t.partidas.deMas(formatCents(Math.abs(r.restante)))}
                             </span>
                           ) : (
-                            <>quedan <span className="font-semibold tabular-nums text-ink">{formatCents(r.restante)}</span></>
+                            <>
+                              {!t.partidas.quedanAlFinal && `${t.partidas.quedan} `}
+                              <span className="font-semibold tabular-nums text-ink">{formatCents(r.restante)}</span>
+                              {t.partidas.quedanAlFinal && ` ${t.partidas.quedan}`}
+                            </>
                           )}
                         </li>
                       ))}
@@ -460,10 +468,10 @@ export function FinancesView() {
                         <EmptyState
                           emoji="🎯"
                           title={s.planVivo
-                            ? 'Sin partidas'
+                            ? t.partidas.vacia
                             : s.planCongelado
-                              ? 'Ese mes se cerró sin partidas'
-                              : 'De ese mes no se guardó el plan'}
+                              ? t.partidas.cerradaSinPartidas
+                              : t.partidas.sinPlan}
                         />
                       ) : (
                         s.resumen.map(r => (
@@ -484,9 +492,9 @@ export function FinancesView() {
                 </section>
               )}
 
-              <section aria-label="El día a día" className="space-y-2">
+              <section aria-label={t.diaADia.titulo} className="space-y-2">
                 <h2 className="px-1 text-xs font-bold uppercase tracking-widest text-muted">
-                  El día a día {s.delMes.length > 0 && <span className="text-muted">({s.delMes.length})</span>}
+                  {t.diaADia.titulo} {s.delMes.length > 0 && <span className="text-muted">({s.delMes.length})</span>}
                 </h2>
 
                 {/* En un mes que no ha llegado el hueco **invita**, no explica
@@ -498,8 +506,8 @@ export function FinancesView() {
                   <EmptyState
                     emoji={s.esPorVenir ? '📆' : '🧾'}
                     title={s.esPorVenir
-                      ? 'Nada apuntado todavía'
-                      : s.esMesActual ? 'Nada apuntado este mes' : 'Nada apuntado ese mes'}
+                      ? t.diaADia.nadaPorVenir
+                      : s.esMesActual ? t.diaADia.nadaEsteMes : t.diaADia.nadaEseMes}
                   />
                 ) : (
                   /* Repartido por días desde el 14-09-2026, con la cifra de cada uno.
@@ -523,7 +531,7 @@ export function FinancesView() {
                     lo que aún no ha pasado. */}
                 {!s.esPorVenir && (
                   <div className="flex items-center gap-2">
-                    <SectionLink href="/finances/importar">Traer el extracto del banco</SectionLink>
+                    <SectionLink href="/finances/importar">{t.diaADia.traerExtracto}</SectionLink>
                     <BetaBadge />
                   </div>
                 )}
@@ -579,7 +587,7 @@ export function FinancesView() {
             delAño={s.delAño}
             repartoDelAño={s.repartoDelAño}
             repetidos={s.repetidos}
-            mesAnterior={format(parseISO(`${mesVecino(s.mes, -1)}-01`), 'MMMM', { locale: es })}
+            mesAnterior={format(parseISO(`${mesVecino(s.mes, -1)}-01`), t.fechas.mes, { locale })}
           />
         </div>
 
@@ -613,14 +621,13 @@ export function FinancesView() {
         >
           <p className="px-1 text-xs text-muted">
             <BetaBadge />{' '}
-            Lo que cuesta algo que aún no has hecho: el fontanero, el dentista, la
-            reforma. Apunta varios para lo mismo y se comparan solos.
+            {t.presupuestos.intro}
           </p>
 
           {s.grupos.length === 0 ? (
             <EmptyState
               emoji="📄"
-              title="Sin presupuestos pedidos"
+              title={t.presupuestos.vacio}
             />
           ) : (
             s.grupos.map(grupo => (

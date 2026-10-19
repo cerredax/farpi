@@ -1,6 +1,8 @@
 import { eventColor, resolveAssignee } from '@/lib/assignees'
 import { FAMILY_COLOR } from '@/lib/constants'
 import { eventoYaPasado, isPlan } from '@/lib/events'
+import { calendario as es } from '@/lib/i18n/es/calendario'
+import type { Diccionario } from '@/lib/i18n'
 import type { Child, Event, EventKind, FamilyMember, Task } from '@/types'
 
 /**
@@ -112,16 +114,16 @@ export function resumenDelDia({ planes, tareas, vacaciones, descansos, familia }
    * fuera y por lo mismo. Lo decide `familyAbsenceKind`.
    */
   familia?: EventKind | null
-}): string {
+}, t: Diccionario['calendario'] = es): string {
   const partes: string[] = []
-  if (planes > 0) partes.push(`${planes} plan${planes === 1 ? '' : 'es'}`)
-  if (tareas > 0) partes.push(`${tareas} tarea${tareas === 1 ? '' : 's'}`)
+  if (planes > 0) partes.push(t.resumen.planes(planes))
+  if (tareas > 0) partes.push(t.tareas(tareas))
   if (familia) {
     // Sin nadie en casa se dice una vez y en palabras, no contando cabezas:
     // "3 de vacaciones" obliga a saberse cuántos adultos hay para entender que
     // están todos, que es justo lo que hay que decir. Es lo mismo que hace la
     // franja amarilla, dicho para quien no la ve.
-    partes.push(familia === 'vacaciones' ? 'la familia de vacaciones' : 'la familia descansando')
+    partes.push(familia === 'vacaciones' ? t.resumen.familiaDeVacaciones : t.resumen.familiaDescansando)
   }
   // Y **después** quien está fuera aparte de ellos, que hasta el 12-09-2026 iba
   // en un `else` y se perdía entero: con la casa de descanso, el de la abuela no
@@ -130,10 +132,10 @@ export function resumenDelDia({ planes, tareas, vacaciones, descansos, familia }
   //
   // Las ausencias se dicen con número: el tinte avisa de que hay alguien fuera,
   // pero no de cuántos, y el color de la celda ya no es de nadie en concreto.
-  const mas = familia ? ' más' : ''
-  if (vacaciones > 0) partes.push(`${vacaciones}${mas} de vacaciones`)
-  if (descansos > 0) partes.push(`${descansos}${mas} descansando`)
-  return partes.length > 0 ? partes.join(', ') : 'sin planes'
+  const mas = Boolean(familia)
+  if (vacaciones > 0) partes.push(t.resumen.deVacaciones(vacaciones, mas))
+  if (descansos > 0) partes.push(t.resumen.descansando(descansos, mas))
+  return partes.length > 0 ? partes.join(', ') : t.resumen.sinPlanes
 }
 
 export function DayActivity({ marcas }: { marcas: Marca[] }) {

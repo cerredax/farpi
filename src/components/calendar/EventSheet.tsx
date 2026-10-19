@@ -12,6 +12,7 @@ import { buildAssignees } from '@/lib/assignees'
 import { ANTELACIONES_DE_AVISO } from '@/lib/constants'
 import { entenderEvento } from '@/lib/dictado'
 import { isRangeKind } from '@/lib/events'
+import { useT } from '@/lib/i18n/contexto'
 import type { Event, Child, EventDraft, FamilyMember } from '@/types'
 import { EventRecurrenceFields } from './EventRecurrenceFields'
 import { EventSeriesDelete } from './EventSeriesDelete'
@@ -52,6 +53,9 @@ export function EventSheet({
 }: EventSheetProps) {
   // El ref sale del objeto: dentro, cualquier `s.loQueSea` se lee como acceder
   // a un ref durante el render y el linter lo para, con razón.
+  const tt = useT()
+  const tc = tt.calendario
+  const t = tc.evento
   const { firstFieldRef, ...s } = useEventSheet({
     open, mode, initial, defaultDate, defaultTime, defaultKind,
     onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
@@ -61,7 +65,7 @@ export function EventSheet({
   // día y la hora. **No guarda**: deja el formulario puesto para que se revise, y lo
   // que no se entendió no se toca. Solo para un plan, no para vacaciones o cumples.
   const dictado = useDictado(texto => {
-    const personas = buildAssignees(members, kids)
+    const personas = buildAssignees(members, kids, tt.comun.familia)
       .filter(a => a.key !== 'familia')
       .map(a => ({ nombre: a.name, child_id: a.child_id, member_id: a.member_id }))
     const e = entenderEvento(texto, new Date(), personas)
@@ -83,10 +87,10 @@ export function EventSheet({
         s.seriesDeleteOpen ? 'bg-danger-strong text-white' : 'text-danger-strong hover:bg-danger-soft'
       }`}
     >
-      Eliminar
+      {t.eliminar}
     </button>
   ) : (
-    <DeleteButton variant="header" confirming={s.confirmDelete} onClick={s.handleDelete} idleLabel="Eliminar" confirmLabel="Confirmar" />
+    <DeleteButton variant="header" confirming={s.confirmDelete} onClick={s.handleDelete} idleLabel={t.eliminar} confirmLabel={t.confirmar} />
   )
 
   return (
@@ -94,11 +98,11 @@ export function EventSheet({
       open={open}
       title={
         mode !== 'create'
-          ? 'Editar lo apuntado'
+          ? t.editar
           // Con el tipo ya decidido, el título dice qué se está apuntando: el
           // sheet abre sin el selector, así que "Apuntar en el calendario" sería
           // lo único de la pantalla que no habla de cumpleaños.
-          : defaultKind === 'cumple' ? 'Apuntar un cumpleaños' : 'Apuntar en el calendario'
+          : defaultKind === 'cumple' ? t.apuntarCumple : t.apuntarEnElCalendario
       }
       onClose={onClose}
       headerActions={headerActions}
@@ -130,7 +134,7 @@ export function EventSheet({
             es la de por defecto. Un desplegable ocupa una línea, y sobre todo
             aguanta el quinto y el sexto tipo sin volver a reordenar nada. */}
         {mode === 'create' && !defaultKind && (
-          <Field label="Qué es" htmlFor="event-kind">
+          <Field label={t.queEs} htmlFor="event-kind">
             <select
               id="event-kind"
               value={s.draft.kind}
@@ -151,25 +155,25 @@ export function EventSheet({
               }}
               className="field-input"
             >
-              <option value="evento">Un plan</option>
-              <option value="vacaciones">Vacaciones</option>
-              <option value="descanso">Descanso</option>
-              <option value="festivo">Festivo</option>
-              <option value="cumple">Cumpleaños</option>
+              <option value="evento">{t.tipos.evento}</option>
+              <option value="vacaciones">{t.tipos.vacaciones}</option>
+              <option value="descanso">{t.tipos.descanso}</option>
+              <option value="festivo">{t.tipos.festivo}</option>
+              <option value="cumple">{t.tipos.cumple}</option>
             </select>
           </Field>
         )}
 
         {/* En vacaciones y descansos el título sobra: el tipo ya dice lo que es,
             y el placeholder enseña con qué nombre se va a guardar. */}
-        <Field label={s.esCumple ? 'De quién' : s.tituloOpcional ? 'Título (opcional)' : 'Título'} htmlFor="event-title">
+        <Field label={s.esCumple ? t.deQuien : s.tituloOpcional ? t.tituloOpcional : t.titulo} htmlFor="event-title">
           <input
             id="event-title"
             ref={firstFieldRef}
             type="text"
             value={s.draft.title}
             onChange={e => s.patch({ title: e.target.value })}
-            placeholder={s.esVacaciones ? 'Vacaciones' : s.esDescanso ? 'Descanso' : s.esFestivo ? 'Festivo' : s.esCumple ? 'Abuela Carmen' : '¿Qué ocurre?'}
+            placeholder={s.esVacaciones ? t.placeholders.vacaciones : s.esDescanso ? t.placeholders.descanso : s.esFestivo ? t.placeholders.festivo : s.esCumple ? t.placeholders.cumple : t.placeholders.evento}
             className="field-input"
           />
         </Field>
@@ -181,20 +185,20 @@ export function EventSheet({
           </div>
         )}
 
-        <Field label="Descripción (opcional)" htmlFor="event-description">
-          <textarea id="event-description" value={s.draft.description} onChange={e => s.patch({ description: e.target.value })} placeholder="Lugar, notas…" rows={2} className="field-input resize-none" />
+        <Field label={t.descripcion} htmlFor="event-description">
+          <textarea id="event-description" value={s.draft.description} onChange={e => s.patch({ description: e.target.value })} placeholder={t.descripcionPlaceholder} rows={2} className="field-input resize-none" />
         </Field>
 
         {/* Fechas. En vacaciones o descansos son un rango de días; en un plan, uno con horas. */}
         {s.esDeRango ? (
           <div className="flex gap-3">
             <div className="flex-1">
-              <Field label="Desde" htmlFor="event-date">
+              <Field label={t.desde} htmlFor="event-date">
                 <input id="event-date" type="date" value={s.draft.date} onChange={e => s.handleDateChange(e.target.value)} className="field-input" />
               </Field>
             </div>
             <div className="flex-1">
-              <Field label="Hasta" htmlFor="event-end-date">
+              <Field label={t.hasta} htmlFor="event-end-date">
                 <input id="event-end-date" type="date" value={s.draft.end_date} min={s.draft.date} onChange={e => s.patch({ end_date: e.target.value })} className="field-input" />
               </Field>
             </div>
@@ -211,12 +215,12 @@ export function EventSheet({
              baja un renglón y la fila queda descuadrada contra la del día. */
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <Field label="Día" htmlFor="event-date">
+              <Field label={t.dia} htmlFor="event-date">
                 <input id="event-date" type="date" value={s.draft.date} onChange={e => s.handleDateChange(e.target.value)} className="field-input" />
               </Field>
             </div>
             <div className="flex-1">
-              <Field label="Año de nacimiento (opcional)" htmlFor="event-birth-year">
+              <Field label={t.anoDeNacimiento} htmlFor="event-birth-year">
                 <input
                   id="event-birth-year"
                   type="number"
@@ -234,12 +238,12 @@ export function EventSheet({
         ) : (
           <div className="flex gap-3 items-end">
             <div className="flex-1">
-              <Field label="Fecha" htmlFor="event-date">
+              <Field label={t.fecha} htmlFor="event-date">
                 <input id="event-date" type="date" value={s.draft.date} onChange={e => s.handleDateChange(e.target.value)} className="field-input" />
               </Field>
             </div>
             <div className="flex flex-col items-center gap-1.5 pb-0.5">
-              <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">Todo el día</span>
+              <span className="text-[10px] font-bold text-muted uppercase tracking-widest whitespace-nowrap">{tc.todoElDia}</span>
               {/* El interruptor se ve igual —44×24— pero lo que se toca es el
                   botón entero, 44×44: es el único control de la app que no puede
                   engordar sin dejar de parecer un interruptor, así que el pill
@@ -266,12 +270,12 @@ export function EventSheet({
         {!s.draft.all_day && !s.esVacaciones && (
           <div className="flex gap-3">
             <div className="flex-1">
-              <Field label="Inicio" htmlFor="event-start">
+              <Field label={t.inicio} htmlFor="event-start">
                 <input id="event-start" type="time" value={s.draft.start_time} onChange={e => s.patch({ start_time: e.target.value })} className="field-input" />
               </Field>
             </div>
             <div className="flex-1">
-              <Field label="Fin" htmlFor="event-end">
+              <Field label={t.fin} htmlFor="event-end">
                 <input id="event-end" type="time" value={s.draft.end_time} onChange={e => s.patch({ end_time: e.target.value })} className="field-input" />
               </Field>
             </div>
@@ -285,10 +289,10 @@ export function EventSheet({
             resumen del día. Sin aviso es lo normal y lo que viene puesto: nada
             cambia para quien no lo toca. */}
         {s.draft.kind === 'evento' && !s.draft.all_day && (
-          <Field label="Avisar" spacing="group">
+          <Field label={t.avisar} spacing="group">
             <div className="flex flex-wrap gap-2">
               <SelectChip selected={s.draft.remind_before_minutes === null} onClick={() => s.patch({ remind_before_minutes: null })}>
-                Sin aviso
+                {t.sinAviso}
               </SelectChip>
               {ANTELACIONES_DE_AVISO.map(a => (
                 <SelectChip
@@ -296,12 +300,12 @@ export function EventSheet({
                   selected={s.draft.remind_before_minutes === a.minutos}
                   onClick={() => s.patch({ remind_before_minutes: a.minutos })}
                 >
-                  {a.etiqueta}
+                  {t.antelaciones[a.minutos]}
                 </SelectChip>
               ))}
             </div>
             {s.draft.remind_before_minutes !== null && (
-              <p className="text-xs text-muted">Le llega a quien tenga los avisos activados en Ajustes.</p>
+              <p className="text-xs text-muted">{t.leLlega}</p>
             )}
           </Field>
         )}

@@ -173,6 +173,11 @@ export const calendario: typeof es = {
     apuntarFestivo: 'Add bank holiday',
     apuntar: 'Add',
 
+    avisar: 'Remind',
+    sinAviso: 'No reminder',
+    antelaciones: { 15: '15 minutes before', 30: '30 minutes before', 60: '1 hour before', 1440: '1 day before' },
+    leLlega: 'Goes to anyone with reminders turned on in Settings.',
+
     errores: {
       algunDia: 'Pick at least one day',
       fechaDeFin: 'Give an end date',
@@ -198,7 +203,12 @@ export const calendario: typeof es = {
     repetirLosDias: 'Repeat on',
     terminaEl: 'Ends on',
     repetirHastaElAno: 'Repeat until the year',
-    semanal: (dias: string, fin: string) => `will be added on ${dias} until ${fin}.`,
+    cada: 'Every',
+    cadaSemana: 'Week',
+    cadaDosSemanas: '2 weeks',
+    opcional: '(optional)',
+    semanal: (dias: string, fin: string, alternas: boolean, sinFin: boolean) =>
+      `will be added on ${dias}${alternas ? ', every other week,' : ''} ${sinFin ? 'for the next 52 weeks, until' : 'until'} ${fin}.`,
     anual: (ano: number) => `will be added on the same day every year until ${ano}.`,
     seCrearan: (n: number) => (n === 1 ? '1 event will be created.' : `${n} events will be created.`),
     elEvento: 'The event',

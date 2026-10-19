@@ -11,7 +11,6 @@ import {
   parseISO,
   startOfDay,
 } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { SearchField } from '@/components/ui/SearchField'
 import type { Event, Child, FamilyMember, Task } from '@/types'
@@ -20,6 +19,8 @@ import { buildAssignees, eventColor, fondoDePersona, fondoDePersonaApagado, reso
 import { getLocalDateString } from '@/lib/date-utils'
 import { eventCoversDay, eventoYaPasado, isHoliday, isPlan } from '@/lib/events'
 import { capitalize } from '@/lib/text'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { DayTasks } from './DayTasks'
 
 /**
@@ -112,13 +113,14 @@ function sortEvents(events: Event[]): Event[] {
  * arreglaron el 26-08-2026.
  */
 export function EventRow({ event, kids, members, onEdit, mostrarPersona = true }: { event: Event; kids: Child[]; members: FamilyMember[]; onEdit: (event: Event) => void; mostrarPersona?: boolean }) {
+  const t = useT()
   const asignado = resolveAssignee(event, members, kids)
   // Un festivo no es de nadie: ni lleva el amarillo de "Familia" —que lo
   // confundiría con algo de toda la casa— ni dice un nombre. Dice lo que es.
   const festivo = isHoliday(event)
   const color = festivo ? 'var(--color-line)' : eventColor(event, members, kids)
-  const hora = event.all_day ? 'Todo el día' : format(parseISO(event.start_at), 'HH:mm')
-  const quien = festivo ? 'Festivo' : asignado?.name ?? 'Familia'
+  const hora = event.all_day ? t.calendario.todoElDia : format(parseISO(event.start_at), 'HH:mm')
+  const quien = festivo ? t.calendario.festivo : asignado?.name ?? t.comun.familia
   // Lo que ya ha pasado se apaga: el color de la persona, más suave, y el título
   // en gris. **No** se baja la opacidad de la fila entera: eso se comía también el
   // contraste del texto, y «¿a qué hora fue?» se sigue leyendo (`muted` da 4,8:1).
@@ -188,7 +190,9 @@ function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onAdd, onT
    */
   ancla?: boolean
 }) {
-  const dayLabel = capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))
+  const t = useT().calendario
+  const locale = localeDeFechas(useIdioma())
+  const dayLabel = capitalize(format(day, t.formatos.dia, { locale }))
   // Hoy se marca en el chip de la fecha y no en el rótulo, que
   // ya dice "Hoy": es donde lo marca Google y donde lo busca el
   // ojo cuando la lista lleva rato deslizándose.
@@ -219,7 +223,7 @@ function FilaDia({ day, events, tasks, kids, members, hoyStr, onEdit, onAdd, onT
           aria-hidden
           className={`mt-0.5 text-[9px] font-bold uppercase leading-none ${hoy ? 'text-hoy-strong' : 'text-muted'}`}
         >
-          {format(day, 'EEE', { locale: es })}
+          {format(day, 'EEE', { locale })}
         </span>
       </span>
 
@@ -257,6 +261,9 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
    * igual que la vista del calendario: se entra por la pregunta de siempre.
    */
   const [eje, setEje] = useState<'dia' | 'persona'>('dia')
+  const t = useT().calendario
+  const tc = useT().comun
+  const locale = localeDeFechas(useIdioma())
   const rangeStart = startOfDay(desde)
   const rangeEnd = addDays(rangeStart, DIAS_POR_DELANTE)
 
@@ -305,7 +312,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
   // nuevo. No hace falta un mapa ni reordenar nada.
   const tramos: { titulo: string; dias: typeof conAlgo }[] = []
   for (const grupo of conAlgo) {
-    const titulo = tramoDeAgenda(grupo.day, rangeStart)
+    const titulo = tramoDeAgenda(grupo.day, rangeStart, new Date(), t, locale)
     const ultimo = tramos[tramos.length - 1]
     if (ultimo && ultimo.titulo === titulo) ultimo.dias.push(grupo)
     else tramos.push({ titulo, dias: [grupo] })
@@ -315,7 +322,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
    * Las personas de la casa con lo suyo, en el orden de siempre: familia,
    * adultos, hijos. Quien no tiene nada en el tramo no sale.
    */
-  const personas = buildAssignees(members, kids)
+  const personas = buildAssignees(members, kids, tc.familia)
   const gruposPersona = agruparPorPersona(conAlgo, personas)
 
   /**
@@ -390,8 +397,8 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
               // calendario…" se cortaba a media palabra —"Buscar en todo el
               // ca"—. Que la búsqueda mira **todo** el calendario, pasado
               // incluido, lo dice el rótulo de los resultados.
-              placeholder="Buscar…"
-              ariaLabel="Buscar en el calendario"
+              placeholder={t.agenda.buscar}
+              ariaLabel={t.agenda.buscarEnElCalendario}
               className="min-w-0 flex-1"
             />
           )}
@@ -407,7 +414,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
               como el estado, no como la acción. Aquí lo blanco es lo que hay. */}
           {mereceEje && !buscando && !todoVacio && (
             <div className="ml-auto flex flex-shrink-0 gap-1 rounded-2xl bg-surface p-1">
-              {([['dia', 'Por día'], ['persona', 'Por persona']] as const).map(([valor, texto]) => (
+              {([['dia', t.agenda.ejes.dia], ['persona', t.agenda.ejes.persona]] as const).map(([valor, texto]) => (
                 <button
                   key={valor}
                   type="button"
@@ -432,14 +439,14 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
       {buscando ? (
         <section className="space-y-2">
           <h2 className={ROTULO}>
-            {coincidencias.length} resultado{coincidencias.length !== 1 ? 's' : ''} en todo el calendario
+            {t.agenda.resultados(coincidencias.length)}
           </h2>
           {coincidencias.length === 0 ? (
             <div className={TARJETA}>
               <EmptyState
                 emoji="🔍"
-                title="Sin coincidencias"
-                description={`Ningún evento con «${buscador!.valor.trim()}»`}
+                title={t.agenda.sinCoincidencias}
+                description={t.agenda.ningunEventoCon(buscador!.valor.trim())}
               />
             </div>
           ) : (
@@ -448,7 +455,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
                 {coincidencias.map(event => (
                   <li key={event.id} className="px-2 py-1.5">
                     <p className="px-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">
-                      {capitalize(format(parseISO(event.start_at), "EEEE d 'de' MMMM yyyy", { locale: es }))}
+                      {capitalize(format(parseISO(event.start_at), t.formatos.resultado, { locale }))}
                     </p>
                     <EventRow event={event} kids={kids} members={members} onEdit={onEdit} />
                   </li>
@@ -469,8 +476,8 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
               el 09-09-2026, y se salva porque no explica, llama. */}
           <EmptyState
             emoji="✨"
-            title="Sin planes"
-            action={<span className="text-sm font-semibold text-primary-strong">Apuntar algo</span>}
+            title={t.agenda.sinPlanes}
+            action={<span className="text-sm font-semibold text-primary-strong">{t.apuntarAlgo}</span>}
           />
         </button>
       ) : eje === 'persona' ? (
@@ -480,7 +487,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
            es de toda la casa va en su propio grupo, "Familia", y el primero: no
            es de nadie en particular pero afecta a todos, y colgarlo del último
            sería esconder la cena de los abuelos debajo del pequeño. */
-        <section aria-label="Agenda por persona" className="space-y-4">
+        <section aria-label={t.agenda.porPersona} className="space-y-4">
           {gruposPersona.map(grupo => (
             <section key={grupo.persona.key} aria-label={grupo.persona.name} className="space-y-2">
               {/* El nombre sobre su color, como en la fila del evento y en la
@@ -524,7 +531,7 @@ export function AgendaList({ desde, focusDay, events, kids, members, tasks = [],
            tira de siete días de arriba —el segundo navegador de la pantalla— y
            la tarjeta del día elegido, que repetía como bloque lo que la lista ya
            dice como fila. De siete bandas apiladas a dos: cabecera y lista. */
-        <section aria-label="Agenda" className="space-y-4">
+        <section aria-label={t.agenda.nombre} className="space-y-4">
           {tramos.map(tramo => (
             /* El nombre accesible repite el rótulo visible a propósito: nombra el
                bloque mejor que un genérico y es el asidero de los tests, que

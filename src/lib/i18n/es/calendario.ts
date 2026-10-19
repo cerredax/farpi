@@ -196,6 +196,12 @@ export const calendario = {
     apuntarFestivo: 'Apuntar festivo',
     apuntar: 'Apuntar',
 
+    /** El aviso de un plan con hora, por los minutos de antelación (ver `ANTELACIONES_DE_AVISO`). */
+    avisar: 'Avisar',
+    sinAviso: 'Sin aviso',
+    antelaciones: { 15: '15 minutos antes', 30: '30 minutos antes', 60: '1 hora antes', 1440: '1 día antes' },
+    leLlega: 'Le llega a quien tenga los avisos activados en Ajustes.',
+
     errores: {
       algunDia: 'Selecciona al menos un día',
       fechaDeFin: 'Indica la fecha de fin',
@@ -223,8 +229,17 @@ export const calendario = {
     repetirLosDias: 'Repetir los días',
     terminaEl: 'Termina el',
     repetirHastaElAno: 'Repetir hasta el año',
-    /** Va detrás del título del evento, en negrita. `dias` llega ya unido ("lunes y jueves"). */
-    semanal: (dias: string, fin: string) => `se añadirá los ${dias} hasta el ${fin}.`,
+    /** Cada semana o una sí y otra no, en el selector de la serie. */
+    cada: 'Cada',
+    cadaSemana: 'Semana',
+    cadaDosSemanas: '2 semanas',
+    opcional: '(opcional)',
+    /**
+     * Va detrás del título del evento, en negrita. `dias` llega ya unido ("lunes y jueves").
+     * `alternas`: una semana sí y otra no. `sinFin`: no se ha puesto fecha y se llena el máximo.
+     */
+    semanal: (dias: string, fin: string, alternas: boolean, sinFin: boolean) =>
+      `se añadirá los ${dias}${alternas ? ', una semana sí y otra no,' : ''} ${sinFin ? 'durante las próximas 52 semanas, hasta' : 'hasta'} el ${fin}.`,
     anual: (ano: number) => `se añadirá cada año el mismo día hasta ${ano}.`,
     seCrearan: (n: number) => (n === 1 ? 'Se crearán 1 evento.' : `Se crearán ${n} eventos.`),
     elEvento: 'El evento',

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { format, isToday, isWeekend } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Cake } from 'lucide-react'
 import { eventColor, fondoDePersona, fondoDePersonaApagado, resolveAssignee } from '@/lib/assignees'
 import { eventCoversDay, eventoYaPasado, holidayName, isAbsence, isBirthday, isHoliday, isVacation } from '@/lib/events'
@@ -10,6 +9,8 @@ import { getLocalDateString } from '@/lib/date-utils'
 import { partirEventosDelDia, rangoHorario, repartirSolapados, type BloqueDia } from '@/lib/timeline'
 import { capitalize } from '@/lib/text'
 import { useSwipe } from '@/hooks/useSwipe'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 
 /**
@@ -82,6 +83,7 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
   members: FamilyMember[]
   onEdit: (event: Event) => void
 }) {
+  const t = useT().comun
   const { event, inicio, fin, columna, columnas } = bloque
   const color = eventColor(event, members, kids)
   const asignado = resolveAssignee(event, members, kids)
@@ -92,7 +94,7 @@ function EventBlock({ bloque, desde, kids, members, onEdit }: {
   const hora = format(new Date(event.start_at), 'HH:mm')
   // Lo que no es de nadie dice "Familia", como en la lista y en la celda del mes:
   // el punto de color solo habla si te sabes la paleta.
-  const quien = asignado?.name ?? 'Familia'
+  const quien = asignado?.name ?? t.familia
   const ancho = 100 / columnas
   // Un bloque que ya ha acabado: el mismo color, más suave, y el título en gris.
   const pasado = eventoYaPasado(event, new Date())
@@ -179,6 +181,9 @@ interface TimelineProps {
 }
 
 export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, onAdd, onPrev, onNext }: TimelineProps) {
+  const tt = useT()
+  const t = tt.calendario
+  const locale = localeDeFechas(useIdioma())
   const scrollerRef = useRef<HTMLDivElement>(null)
   // La hora actual se lee en el cliente y se refresca cada minuto: pintada en el
   // servidor saldría con la hora del servidor y se quedaría clavada.
@@ -326,7 +331,7 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
           return (
             <div key={day.toISOString()} className="flex flex-col items-center gap-0.5 py-2" style={{ gridColumn: i + 2, gridRow: 1 }}>
               <span className={`text-[10px] font-bold uppercase tracking-widest ${hoy ? 'text-hoy-strong' : 'text-muted'}`}>
-                {capitalize(format(day, days.length === 1 ? 'EEEE' : 'EEE', { locale: es }))}
+                {capitalize(format(day, days.length === 1 ? 'EEEE' : 'EEE', { locale }))}
               </span>
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ${
@@ -357,7 +362,7 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
                 blanco en la celda, para que no se transparente la columna que
                 pasa por debajo, y encima el mismo `bg-canvas/50` de la fila. */}
             <span className="absolute inset-0 bg-canvas/50" aria-hidden />
-            <span className="relative">Todo el día</span>
+            <span className="relative">{t.todoElDia}</span>
           </span>
           {porDia.map(({ day, festivos, ausencias, cumples: cumplesDelDia, todoElDia, tasks: delDia }, i) => (
             <div key={day.toISOString()} className="flex flex-col gap-0.5 px-1 py-1" style={{ gridColumn: i + 2, gridRow: 1 }}>
@@ -372,14 +377,14 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
                 </span>
               ))}
               {ausencias.map(event => {
-                const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
+                const quien = resolveAssignee(event, members, kids)?.name ?? tt.comun.familia
                 return (
                   <span
                     key={event.id}
                     className="etiqueta-persona px-1 py-0.5 text-[10px]"
                     style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
                   >
-                    {quien}{isVacation(event) ? ' · vacaciones' : ' · descansa'}
+                    {isVacation(event) ? t.ausencia.vacaciones(quien) : t.ausencia.descanso(quien)}
                   </span>
                 )
               })}
@@ -413,7 +418,7 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
               ))}
               {delDia.length > 0 && (
                 <span className="px-1 text-[10px] font-bold text-muted">
-                  {delDia.length} tarea{delDia.length === 1 ? '' : 's'}
+                  {t.tareas(delDia.length)}
                 </span>
               )}
             </div>
@@ -484,7 +489,7 @@ export function Timeline({ days, events, cumples, kids, members, tasks, onEdit, 
                   key={`apuntar-${hora}`}
                   type="button"
                   onClick={() => onAdd(day, hora)}
-                  aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })} a las ${String(hora).padStart(2, '0')}:00`}
+                  aria-label={t.apuntarAlgoALas(format(day, t.formatos.diaYMes, { locale }), `${String(hora).padStart(2, '0')}:00`)}
                   className="absolute inset-x-0"
                   style={{ top: enHoras(i), height: enHoras(1) }}
                 />

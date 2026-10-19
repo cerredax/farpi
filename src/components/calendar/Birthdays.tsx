@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { format, isPast, isToday, isTomorrow, parseISO, startOfDay } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { format, isPast, isToday, isTomorrow, parseISO, startOfDay, type Locale } from 'date-fns'
 import { Cake, ChevronDown } from 'lucide-react'
 import { extractDate } from '@/lib/date-utils'
 import { eventColor, fondoDePersona } from '@/lib/assignees'
 import { edadEnPalabras } from '@/lib/birthdays'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
+import type { Diccionario } from '@/lib/i18n'
 import { SeccionPlegable } from './SeccionPlegable'
 import type { Event, Child, FamilyMember } from '@/types'
 
@@ -70,10 +72,10 @@ interface BirthdaysProps {
  * misma escala que usa `Availability` para una ausencia de un día, porque un
  * cumpleaños es exactamente eso: un día.
  */
-function cuando(fecha: Date): string {
-  if (isToday(fecha)) return 'hoy'
-  if (isTomorrow(fecha)) return 'mañana'
-  return `el ${format(fecha, 'd MMM', { locale: es })}`
+function cuando(fecha: Date, t: Diccionario['calendario'], locale: Locale): string {
+  if (isToday(fecha)) return t.cumples.hoy
+  if (isTomorrow(fecha)) return t.cumples.manana
+  return t.cumples.el(format(fecha, t.formatos.diaYMesCorto, { locale }))
 }
 
 /** Si un cumpleaños ya pasó. Hoy no cuenta: hoy es para felicitar. */
@@ -97,20 +99,24 @@ function FilaCumple({ cumple, kids, members, onEdit, apagado }: {
   onEdit: (event: Event) => void
   apagado: boolean
 }) {
+  const tt = useT()
+  const t = tt.calendario
+  const locale = localeDeFechas(useIdioma())
   const fecha = parseISO(extractDate(cumple.start_at))
   // La edad solo si la sabemos: de quien no es de la casa casi nunca hay año de
   // nacimiento, y "Abuela Carmen · el 12 sept" ya sirve para acordarse, que es
   // para lo que está el bloque.
   const edad = cumple.birth_year
-    ? `, ${edadEnPalabras(fecha.getFullYear() - cumple.birth_year)}`
-    : ''
+    ? edadEnPalabras(fecha.getFullYear() - cumple.birth_year, tt.cumpleanos)
+    : null
+  const detalle = t.cumples.cuandoYEdad(cuando(fecha, t, locale), edad)
 
   return (
     <li>
       <button
         type="button"
         onClick={() => onEdit(cumple)}
-        aria-label={`Editar el cumpleaños de ${cumple.title}: ${cuando(fecha)}${edad}`}
+        aria-label={t.cumples.editar(cumple.title, detalle)}
         className={`flex min-h-8 w-full items-center gap-2 rounded-xl px-1 text-left transition-colors hover:bg-surface ${
           // El fondo de color de la etiqueta se queda: es lo que dice que el lila
           // es un cumpleaños y no una persona. Lo que baja es el conjunto, que es
@@ -130,7 +136,7 @@ function FilaCumple({ cumple, kids, members, onEdit, apagado }: {
           >
             {cumple.title}
           </span>
-          <span className="text-muted"> · {cuando(fecha)}{edad}</span>
+          <span className="text-muted"> · {detalle}</span>
         </span>
       </button>
     </li>
@@ -139,6 +145,7 @@ function FilaCumple({ cumple, kids, members, onEdit, apagado }: {
 
 export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
   const [verPasados, setVerPasados] = useState(false)
+  const t = useT().calendario
 
   if (cumples.length === 0) return null
 
@@ -161,7 +168,7 @@ export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
        ninguno todavía— la lista sale entera y el número la cuenta entera: ahí
        no hay dos grupos que distinguir y decir "0" sobre un bloque con cinco
        filas dentro sería mentir. */
-    <SeccionPlegable titulo="Cumpleaños" cuantos={hayCorte ? proximos.length : cumples.length}>
+    <SeccionPlegable titulo={t.cumples.titulo} cuantos={hayCorte ? proximos.length : cumples.length}>
       <ul>
         {(hayCorte ? proximos : cumples).map(cumple => (
           <FilaCumple
@@ -191,7 +198,7 @@ export function Birthdays({ cumples, kids, members, onEdit }: BirthdaysProps) {
               className={`flex-shrink-0 transition-transform ${verPasados ? 'rotate-180' : ''}`}
               aria-hidden
             />
-            {pasados.length === 1 ? '1 que ya pasó' : `${pasados.length} que ya pasaron`}
+            {t.cumples.yaPasaron(pasados.length)}
           </button>
 
           {verPasados && (

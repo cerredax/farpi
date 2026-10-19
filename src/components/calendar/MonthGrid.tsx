@@ -3,6 +3,7 @@ import { DayCell } from './DayCell'
 import type { Child, Event, FamilyMember, Task } from '@/types'
 import { carrilDeAusencias, eventCoversDay, familyAbsenceEdges, familyAbsenceKind, franjasDeAusencia, topeDeFranjas } from '@/lib/events'
 import { getLocalDateString } from '@/lib/date-utils'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * El mes como mapa: sirve para saber dónde hay algo y para ir allí, no para
@@ -18,8 +19,6 @@ import { getLocalDateString } from '@/lib/date-utils'
  * mudó a `WeekStrip`, que es quien la necesita, y con ella se fueron las dos
  * densidades: la ancha con títulos dentro de las celdas no la usaba nadie.
  */
-
-const DAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 interface MonthGridProps {
   currentMonth: Date
@@ -44,6 +43,7 @@ function getMonthDays(month: Date): Date[] {
 }
 
 export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, members, onSelectDay, onCreateDay, onOpenEvent }: MonthGridProps) {
+  const t = useT().calendario
   const days = getMonthDays(currentMonth)
   const hoyStr = getLocalDateString(new Date())
 
@@ -110,9 +110,11 @@ export function MonthGrid({ currentMonth, selectedDay, events, tasks, kids, memb
        líneas, y a 52 px de celda las dos se fundían en ruido. */
     <div className="rejilla-mes">
       <div className="grid grid-cols-7 border-b border-line">
-        {DAY_LABELS.map((label, i) => (
+        {t.iniciales.map((label, i) => (
           <div
-            key={label}
+            // El índice y no la letra: en inglés se repiten («T» y «S» salen dos
+            // veces) y React se queja de claves duplicadas.
+            key={i}
             // Sábado y domingo también en la cabecera: la trama empieza en las
             // letras, que si no la columna arranca a media altura. Aquí se mira el
             // índice de columna y no una fecha —no hay ninguna—: son las dos

@@ -15,10 +15,11 @@ import {
   startOfMonth,
   startOfWeek,
 } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { ChevronRight } from 'lucide-react'
 import { capitalize } from '@/lib/text'
 import { useStore } from '@/lib/store-context'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { getLocalDateString } from '@/lib/date-utils'
 import { selectEventMatches, selectPendingTasks, selectVisibleAbsences, selectVisibleBirthdays } from '@/lib/selectors'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
@@ -52,6 +53,8 @@ import type { Event, EventDraft } from '@/types'
  */
 export function CalendarView() {
   const { kids, members, allEvents, tasks, toggleTask, createEvent, createEventSeries, createYearlySeries, updateEvent, deleteEvent, deleteEventSeries } = useStore()
+  const t = useT().calendario
+  const locale = localeDeFechas(useIdioma())
 
   const today = new Date()
 
@@ -329,16 +332,16 @@ export function CalendarView() {
    * navegar, que es lo que haría escribirlo largo mientras quepa.
    */
   const [titulo, unidad] = (() => {
-    if (!conEje) return [capitalize(format(currentMonth, esEscritorio ? 'MMMM yyyy' : 'MMM yyyy', { locale: es })), 'Mes']
+    if (!conEje) return [capitalize(format(currentMonth, esEscritorio ? t.formatos.mesLargo : t.formatos.mesCorto, { locale })), 'mes' as const]
     if (vista === 'dia') {
-      return [capitalize(format(selectedDay, esEscritorio ? "EEEE, d 'de' MMMM" : 'EEE, d MMM', { locale: es })), 'Día']
+      return [capitalize(format(selectedDay, esEscritorio ? t.formatos.diaLargo : t.formatos.diaCorto, { locale })), 'dia' as const]
     }
 
     const [primero, ultimo] = [diasDelEje[0], diasDelEje[diasDelEje.length - 1]]
     const mismoMes = isSameMonth(primero, ultimo)
-    const desde = format(primero, mismoMes ? 'd' : (esEscritorio ? "d 'de' MMM" : 'd MMM'), { locale: es })
-    const hasta = format(ultimo, esEscritorio ? "d 'de' MMMM" : 'd MMM', { locale: es })
-    return [capitalize(`${desde} – ${hasta}`), 'Semana']
+    const desde = format(primero, mismoMes ? 'd' : (esEscritorio ? t.formatos.semanaDesdeOtroMes : t.formatos.semanaDesdeOtroMesCorto), { locale })
+    const hasta = format(ultimo, esEscritorio ? t.formatos.semanaHasta : t.formatos.semanaHastaCorto, { locale })
+    return [capitalize(`${desde} – ${hasta}`), 'semana' as const]
   })()
 
   /**
@@ -521,7 +524,7 @@ export function CalendarView() {
                        * invitación vuelve a hacer falta. En escritorio, solo.
                        */}
                       <p className="border-t border-hairline px-4 py-2.5 text-xs text-muted">
-                        Elige un día para ver qué tiene.
+                        {t.mes.eligeUnDia}
                       </p>
                     </div>
                   )}
@@ -535,7 +538,7 @@ export function CalendarView() {
                       onClick={() => setVista('agenda')}
                       className="flex min-h-11 w-full items-center gap-0.5 px-1 text-xs font-semibold text-primary-strong"
                     >
-                      Ver todo lo que viene
+                      {t.mes.verTodoLoQueViene}
                       <ChevronRight size={14} strokeWidth={2.6} aria-hidden />
                     </button>
                   </div>

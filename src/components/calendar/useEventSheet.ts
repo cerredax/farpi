@@ -2,12 +2,13 @@
 
 import { useRef, useState } from 'react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { ANOS_DE_CUMPLE } from '@/lib/constants'
 import { extractDate, extractTime, parseLocalDate } from '@/lib/date-utils'
 import { buildWeeklyDates, joinWeekdayNames, maxWeeklyEndDate, weekdayOf } from '@/lib/recurrence'
 import { daysBetween, eventTitleOr, isRangeKind } from '@/lib/events'
 import { validateEventDraft } from '@/lib/validators'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
 import type { Event, EventDraft } from '@/types'
 
@@ -102,6 +103,9 @@ export function useEventSheet({
   open, mode, initial, defaultDate, defaultTime, defaultKind,
   onClose, onCreate, onCreateSeries, onCreateYearlySeries, onUpdate, onDelete,
 }: Params) {
+  const tc = useT().calendario
+  const t = tc.evento
+  const locale = localeDeFechas(useIdioma())
   const { draft, patch, formError, firstFieldRef, submitHandler, guardando } = useSheetForm<EventDraft>({
     open,
     initialDraft: () => initDraft(mode, initial, defaultDate, defaultTime, defaultKind),
@@ -171,10 +175,10 @@ export function useEventSheet({
     : 0
 
   const seriesError: string | null = recurrence === 'weekly' ? (() => {
-    if (recurrenceWeekdays.length === 0) return 'Selecciona al menos un día'
-    if (recurrenceEnd && recurrenceEnd < draft.date) return 'La fecha de fin debe ser posterior a la fecha de inicio'
-    if (recurrenceEnd > maxWeeklyEndDate(draft.date)) return 'El período máximo es 52 semanas'
-    if (seriesCount === 0) return 'No se crearán eventos con esta configuración'
+    if (recurrenceWeekdays.length === 0) return t.errores.algunDia
+    if (recurrenceEnd && recurrenceEnd < draft.date) return t.errores.finAntesDelInicio
+    if (recurrenceEnd > maxWeeklyEndDate(draft.date)) return t.errores.maximo52Semanas
+    if (seriesCount === 0) return t.errores.ningunEvento
     return null
   })() : null
 
@@ -182,11 +186,11 @@ export function useEventSheet({
   const startYear = parseInt(draft.date.slice(0, 4), 10)
   const yearlyCount = recurrence === 'yearly' ? recurrenceEndYear - startYear + 1 : 0
   const yearlyError: string | null = recurrence === 'yearly'
-    ? (recurrenceEndYear < startYear ? 'El año final debe ser igual o posterior al año de inicio' : null)
+    ? (recurrenceEndYear < startYear ? t.errores.anoFinal : null)
     : null
 
   const vacacionesError = esDeRango && draft.end_date && draft.end_date < draft.date
-    ? 'El último día no puede ser anterior al primero'
+    ? t.errores.ultimoDia
     : null
 
   const handleSubmit = submitHandler(async valid => {
@@ -229,18 +233,18 @@ export function useEventSheet({
   // unidad que ya usaban las vacaciones: una serie no son "12 eventos", son los
   // 12 días en los que eso pasa.
   const submitLabel = mode === 'edit'
-    ? 'Guardar cambios'
+    ? t.guardarCambios
     : esCumple
-    ? 'Apuntar cumpleaños'
+    ? t.apuntarCumpleanos
     : esDeRango
       ? (diasVacaciones > 0
-          ? `Apuntar ${diasVacaciones} día${diasVacaciones !== 1 ? 's' : ''}`
-          : esVacaciones ? 'Apuntar vacaciones' : esDescanso ? 'Apuntar descanso' : 'Apuntar festivo')
+          ? t.apuntarDias(diasVacaciones)
+          : esVacaciones ? t.apuntarVacaciones : esDescanso ? t.apuntarDescanso : t.apuntarFestivo)
       : recurrence === 'weekly' && seriesCount > 0
-        ? `Apuntar ${seriesCount} días`
+        ? t.apuntarDias(seriesCount)
         : recurrence === 'yearly' && yearlyCount > 0
-          ? `Apuntar ${yearlyCount} día${yearlyCount !== 1 ? 's' : ''}`
-          : 'Apuntar'
+          ? t.apuntarDias(yearlyCount)
+          : t.apuntar
 
   const previewReady = recurrence === 'weekly' && recurrenceWeekdays.length > 0 && seriesCount > 0
 
@@ -258,8 +262,8 @@ export function useEventSheet({
     seriesCount, seriesError, startYear, yearlyCount, yearlyError, vacacionesError,
     canSubmit: canSubmit && !guardando, submitLabel,
     previewReady,
-    previewDaysText: joinWeekdayNames(recurrenceWeekdays),
-    previewEndText: format(parseLocalDate(finEfectivo), "d 'de' MMMM", { locale: es }),
+    previewDaysText: joinWeekdayNames(recurrenceWeekdays, tc.semana),
+    previewEndText: format(parseLocalDate(finEfectivo), tc.formatos.diaYMes, { locale }),
     maxEnd: maxWeeklyEndDate(draft.date),
   }
 }

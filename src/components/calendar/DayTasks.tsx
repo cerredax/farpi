@@ -5,6 +5,7 @@ import { AlertTriangle, ChevronDown } from 'lucide-react'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { TAREAS_PARA_PLEGAR } from '@/lib/constants'
 import { fondoDePersona, resolveAssignee } from '@/lib/assignees'
+import { useT } from '@/lib/i18n/contexto'
 import type { Child, FamilyMember, Task } from '@/types'
 
 /**
@@ -27,6 +28,7 @@ function TaskRow({ task, kids, members, atrasada, onToggle, mostrarPersona }: {
   onToggle: (id: string) => void
   mostrarPersona: boolean
 }) {
+  const t = useT().calendario
   const asignado = resolveAssignee(task, members, kids)
 
   return (
@@ -34,7 +36,7 @@ function TaskRow({ task, kids, members, atrasada, onToggle, mostrarPersona }: {
       <CircleCheck
         checked={false}
         onClick={() => onToggle(task.id)}
-        ariaLabel={`Marcar "${task.title}" como completada`}
+        ariaLabel={t.tareasDelDia.marcar(task.title)}
         size="sm"
         // w-8 y no el w-12 por defecto: la fila ya va sangrada, y esos 16 px de
         // más salían del título. Sigue midiendo 32×44, muy por encima de 24×24.
@@ -57,7 +59,7 @@ function TaskRow({ task, kids, members, atrasada, onToggle, mostrarPersona }: {
       {/* Icono y no la palabra "Atrasada": en un móvil de 390 px, la etiqueta se
           comía media fila. El nombre completo va en la etiqueta accesible. */}
       {atrasada && (
-        <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger-strong" aria-label="Atrasada" />
+        <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger-strong" aria-label={t.tareasDelDia.atrasada} />
       )}
     </div>
   )
@@ -78,9 +80,10 @@ function TaskSummary({ total, atrasadas, abierto, onToggle }: {
   // todo lo arrastrado— el número va una sola vez y dentro de la frase. Decir
   // "6 tareas pendientes" y al lado "6 atrasadas" repetía el seis y no cabía a
   // 390 px: el propio resumen salía cortado en "6 tareas pendie…".
+  const t = useT().calendario
   const todasTarde = atrasadas === total
-  const etiqueta = todasTarde ? `${total} tareas atrasadas` : `${total} tareas`
-  const insignia = !todasTarde && atrasadas > 0 ? `${atrasadas} atrasada${atrasadas === 1 ? '' : 's'}` : null
+  const etiqueta = todasTarde ? t.tareasDelDia.todasAtrasadas(total) : t.tareas(total)
+  const insignia = !todasTarde && atrasadas > 0 ? t.tareasDelDia.atrasadas(atrasadas) : null
   const enRojo = !abierto && todasTarde && atrasadas > 0
 
   return (
@@ -99,7 +102,7 @@ function TaskSummary({ total, atrasadas, abierto, onToggle }: {
       </span>
       {enRojo && <AlertTriangle size={13} strokeWidth={2.6} className="flex-shrink-0 text-danger-strong" aria-hidden />}
       <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${enRojo ? 'text-danger-strong' : 'text-muted'}`}>
-        {abierto ? 'Ocultar las tareas' : etiqueta}
+        {abierto ? t.tareasDelDia.ocultar : etiqueta}
       </span>
       {!abierto && insignia && (
         <span className="flex flex-shrink-0 items-center gap-1 text-[11px] font-bold text-danger-strong">

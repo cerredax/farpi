@@ -1,5 +1,7 @@
-import { format, isSameMonth, isToday, isTomorrow, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { format, isSameMonth, isToday, isTomorrow, parseISO, type Locale } from 'date-fns'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
+import type { Diccionario } from '@/lib/i18n'
 import { Armchair, Palmtree } from 'lucide-react'
 import { extractDate, getLocalDateString } from '@/lib/date-utils'
 import { buildAssignees, fondoDePersona } from '@/lib/assignees'
@@ -60,8 +62,8 @@ interface AvailabilityProps {
 }
 
 /** "15 ago". El mes abreviado porque la fila es estrecha y se lee igual. */
-function diaYMes(fecha: Date): string {
-  return format(fecha, 'd MMM', { locale: es })
+function diaYMes(fecha: Date, t: Diccionario['calendario'], locale: Locale): string {
+  return format(fecha, t.formatos.diaYMesCorto, { locale })
 }
 
 /**
@@ -80,32 +82,36 @@ function diaYMes(fecha: Date): string {
  * una ausencia terminada dice su rango, como la que aún no ha llegado: la
  * diferencia entre las dos la pone la fecha, que está escrita.
  */
-function estadoDe(event: Event): string {
+function estadoDe(event: Event, t: Diccionario['calendario'], locale: Locale): string {
   const inicio = parseISO(extractDate(event.start_at))
   const fin = parseISO(extractDate(event.end_at ?? event.start_at))
-  const verbo = isVacation(event) ? 'de vacaciones ' : 'descansa '
+  const verbo = isVacation(event) ? t.ausencias.vacaciones : t.ausencias.descanso
 
   if (extractDate(event.start_at) === getLocalDateString(fin)) {
-    if (isToday(inicio)) return `${verbo}hoy`
-    if (isTomorrow(inicio)) return `${verbo}mañana`
-    return `${verbo}el ${diaYMes(inicio)}`
+    if (isToday(inicio)) return verbo.hoy
+    if (isTomorrow(inicio)) return verbo.manana
+    return verbo.el(diaYMes(inicio, t, locale))
   }
 
   const hoy = getLocalDateString(new Date())
   const enCurso = extractDate(event.start_at) <= hoy && getLocalDateString(fin) >= hoy
-  if (enCurso) return `${verbo}hasta el ${diaYMes(fin)}`
+  if (enCurso) return verbo.hasta(diaYMes(fin, t, locale))
 
-  const desde = isSameMonth(inicio, fin) ? format(inicio, 'd', { locale: es }) : diaYMes(inicio)
-  return `${verbo}del ${desde} al ${diaYMes(fin)}`
+  const desde = isSameMonth(inicio, fin) ? format(inicio, 'd', { locale }) : diaYMes(inicio, t, locale)
+  return verbo.del(desde, diaYMes(fin, t, locale))
 }
 
 export function Availability({ ausencias, kids, members, onEdit }: AvailabilityProps) {
+  const tt = useT()
+  const t = tt.calendario
+  const locale = localeDeFechas(useIdioma())
+
   if (ausencias.length === 0) return null
 
-  const grupos = agruparAusenciasPorPersona(ausencias, buildAssignees(members, kids))
+  const grupos = agruparAusenciasPorPersona(ausencias, buildAssignees(members, kids, tt.comun.familia))
 
   return (
-    <SeccionPlegable titulo="Vacaciones y descansos">
+    <SeccionPlegable titulo={t.ausencias.titulo}>
       <ul>
         {grupos.map(({ persona, ausencias: suyas }) => (
           <li key={persona.key} className="flex items-start gap-2 px-1 py-0.5">
@@ -138,7 +144,7 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
                 // café, es que ese día no puedes contar con esa persona. Y a 13 px
                 // una taza y una palmera se confunden.
                 const Icono = isVacation(a) ? Palmtree : Armchair
-                const estado = estadoDe(a)
+                const estado = estadoDe(a, t, locale)
 
                 return (
                   <button
@@ -147,7 +153,7 @@ export function Availability({ ausencias, kids, members, onEdit }: AvailabilityP
                     onClick={() => onEdit(a)}
                     // La etiqueta accesible dice la frase entera, con el nombre:
                     // fuera de la fila, "descansa el 22 sep" no dice de quién es.
-                    aria-label={`Editar ${a.title}: ${persona.name} ${estado}`}
+                    aria-label={t.ausencias.editar(a.title, persona.name, estado)}
                     // El fondo es lo que separa una pastilla de la siguiente
                     // ahora que no hay punto volado entre ellas: dos frases
                     // seguidas sobre el blanco se leían como una sola.

@@ -1,7 +1,8 @@
 'use client'
 
 import { format, isToday } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { Cake } from 'lucide-react'
 import { eventColor, fondoDePersona, fondoDePersonaApagado, resolveAssignee } from '@/lib/assignees'
 import { eventCoversDay, eventoYaPasado, holidayName, isAbsence, isBirthday, isHoliday, isPlan, isVacation } from '@/lib/events'
@@ -60,6 +61,9 @@ interface DayPanelProps {
 }
 
 export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, onAdd, onToggleTask }: DayPanelProps) {
+  const tt = useT()
+  const c = tt.calendario
+  const locale = localeDeFechas(useIdioma())
   const diaStr = getLocalDateString(day)
   const hoyStr = getLocalDateString(new Date())
 
@@ -81,9 +85,9 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
   const etiqueta = 'etiqueta-persona px-1.5 py-0.5 text-[11px]'
 
   return (
-    <section aria-label={`Qué hay el ${format(day, "d 'de' MMMM", { locale: es })}`} className="border-t border-hairline px-3 py-3">
+    <section aria-label={c.panelDelDia.queHay(format(day, c.formatos.diaYMes, { locale }))} className="border-t border-hairline px-3 py-3">
       <h3 className={`mb-2 px-1 text-xs font-bold uppercase tracking-widest ${isToday(day) ? 'text-hoy-strong' : 'text-muted'}`}>
-        {capitalize(format(day, "EEEE d 'de' MMMM", { locale: es }))}
+        {capitalize(format(day, c.formatos.dia, { locale }))}
       </h3>
 
       {(festivos.length > 0 || ausencias.length > 0 || cumplesDelDia.length > 0) && (
@@ -92,18 +96,18 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
               no hay trabajo ni colegio. Igual que en el eje de horas. */}
           {festivos.map(event => (
             <span key={event.id} className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-muted">
-              {holidayName(event) ?? 'Festivo'}
+              {holidayName(event) ?? c.festivo}
             </span>
           ))}
           {ausencias.map(event => {
-            const quien = resolveAssignee(event, members, kids)?.name ?? 'Familia'
+            const quien = resolveAssignee(event, members, kids)?.name ?? tt.comun.familia
             return (
               <span
                 key={event.id}
                 className={etiqueta}
                 style={{ backgroundColor: fondoDePersona(eventColor(event, members, kids)) }}
               >
-                {quien}{isVacation(event) ? ' · vacaciones' : ' · descansa'}
+                {isVacation(event) ? c.ausencia.vacaciones(quien) : c.ausencia.descanso(quien)}
               </span>
             )
           })}
@@ -138,7 +142,7 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
           vacío". El "Nada apuntado." sí sigue siendo solo del día vacío: es la
           respuesta, no la invitación. */}
       <div className="flex items-center gap-2 px-1 py-1">
-        {vacio && <p className="flex-1 text-sm text-muted">Nada apuntado.</p>}
+        {vacio && <p className="flex-1 text-sm text-muted">{c.panelDelDia.nadaApuntado}</p>}
         {/* La etiqueta dice el día, como los huecos del eje de horas: en la
             pantalla hay otro botón de apuntar —el `+` de la cabecera— y a
             oídas los dos sonaban igual sin decir dónde caería lo apuntado. */}
@@ -146,10 +150,10 @@ export function DayPanel({ day, events, cumples, tasks, kids, members, onEdit, o
           variant="secondary"
           size="sm"
           className={vacio ? undefined : 'ml-auto'}
-          aria-label={`Apuntar algo el ${format(day, "d 'de' MMMM", { locale: es })}`}
+          aria-label={c.apuntarAlgoEl(format(day, c.formatos.diaYMes, { locale }))}
           onClick={() => onAdd(day)}
         >
-          Apuntar algo
+          {c.apuntarAlgo}
         </Button>
       </div>
     </section>

@@ -300,7 +300,7 @@ export function DayCell({
     vacaciones: ausencias.filter(isVacation).length,
     descansos: ausencias.filter(isRestDay).length,
     familia: ausenciaFamiliar?.kind ?? null,
-  })
+  }, t.calendario)
 
   return (
     /**
@@ -478,7 +478,7 @@ export function DayCell({
             // a las 9:00".
             aria-label={event.all_day
               ? event.title
-              : `${event.title}, a las ${format(parseISO(event.start_at), 'H:mm')}`}
+              : t.calendario.celda.aLas(event.title, format(parseISO(event.start_at), 'H:mm'))}
             /**
              * **El color va al fondo del título, no en un punto aparte**
              * (26-08-2026). El punto de 6 px era una segunda cosa que mirar para
@@ -537,12 +537,12 @@ export function DayCell({
             onDoubleClick={e => e.stopPropagation()}
             className="min-h-4 rounded pl-2.5 text-left text-[10px] font-bold leading-tight text-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-strong"
           >
-            +{planes.length - MAX_TITULOS} más
+            {t.calendario.celda.mas(planes.length - MAX_TITULOS)}
           </button>
         )}
         {tasks.length > 0 && (
           <span className="pl-2.5 text-[10px] font-bold leading-tight text-muted" aria-hidden>
-            {tasks.length} tarea{tasks.length === 1 ? '' : 's'}
+            {t.calendario.tareas(tasks.length)}
           </span>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { useT } from '@/lib/i18n/contexto'
 
 /**
  * La cabecera del calendario: dónde estás, cómo moverte, qué enseñar y cómo
@@ -30,9 +31,6 @@ import { ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
  */
 export type VistaCalendario = 'agenda' | 'dia' | 'semana' | 'mes'
 
-const NOMBRES: Record<VistaCalendario, string> = {
-  agenda: 'Agenda', dia: 'Día', semana: 'Semana', mes: 'Mes',
-}
 
 /**
  * El selector de vista en móvil: **un botón que dice cuál está puesta** y
@@ -57,6 +55,7 @@ function SelectorDeVista({ vista, vistas, onVista }: {
   vistas: VistaCalendario[]
   onVista: (vista: VistaCalendario) => void
 }) {
+  const t = useT().calendario
   const [abierto, setAbierto] = useState(false)
   const caja = useRef<HTMLDivElement>(null)
 
@@ -86,14 +85,14 @@ function SelectorDeVista({ vista, vistas, onVista }: {
         aria-expanded={abierto}
         className="flex h-11 items-center gap-1 rounded-2xl bg-surface px-2.5 text-sm font-bold text-ink transition-colors active:bg-line"
       >
-        {NOMBRES[vista]}
+        {t.vistas[vista]}
         <ChevronDown size={16} strokeWidth={2.5} className={`text-muted transition-transform ${abierto ? 'rotate-180' : ''}`} aria-hidden />
       </button>
 
       {abierto && (
         <div
           role="menu"
-          aria-label="Qué enseña el calendario"
+          aria-label={t.cabecera.queEnsena}
           className="absolute right-0 top-full z-30 mt-1 min-w-36 overflow-hidden rounded-2xl border border-surface bg-white py-1 shadow-lg"
         >
           {vistas.map(valor => (
@@ -107,7 +106,7 @@ function SelectorDeVista({ vista, vistas, onVista }: {
                 vista === valor ? 'text-primary-strong' : 'text-ink'
               }`}
             >
-              {NOMBRES[valor]}
+              {t.vistas[valor]}
             </button>
           ))}
         </div>
@@ -130,7 +129,7 @@ interface CalendarHeaderProps {
   /** Qué vistas se ofrecen. Móvil y escritorio no ofrecen las mismas. */
   vistas: VistaCalendario[]
   /** Qué recorren las flechas, para su etiqueta accesible: "Semana anterior". */
-  unidad: string
+  unidad: 'mes' | 'semana' | 'dia'
   onPrev: () => void
   onNext: () => void
   /**
@@ -148,15 +147,16 @@ interface CalendarHeaderProps {
 
 export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev, onNext, onHoy, fueraDeHoy, onAdd }: CalendarHeaderProps) {
 
-  const FLECHA = 'flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
+  const t = useT().calendario
+  const FLECHA ='flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-line active:bg-grip'
 
   const anterior = (
-    <button type="button" onClick={onPrev} aria-label={`${unidad} anterior`} className={FLECHA}>
+    <button type="button" onClick={onPrev} aria-label={t.cabecera.anterior[unidad]} className={FLECHA}>
       <ChevronLeft size={20} strokeWidth={2} />
     </button>
   )
   const siguiente = (
-    <button type="button" onClick={onNext} aria-label={`${unidad} siguiente`} className={FLECHA}>
+    <button type="button" onClick={onNext} aria-label={t.cabecera.siguiente[unidad]} className={FLECHA}>
       <ChevronRight size={20} strokeWidth={2} />
     </button>
   )
@@ -214,7 +214,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
             onClick={onHoy}
             className="h-9 flex-shrink-0 rounded-full bg-surface px-3 text-xs font-bold text-ink transition-colors hover:bg-line active:bg-grip"
           >
-            Hoy
+            {t.cabecera.hoy}
           </button>
         )}
 
@@ -231,7 +231,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
                 vista === valor ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
               }`}
             >
-              {NOMBRES[valor]}
+              {t.vistas[valor]}
             </button>
           ))}
         </div>
@@ -241,7 +241,7 @@ export function CalendarHeader({ titulo, vista, onVista, vistas, unidad, onPrev,
         <button
           type="button"
           onClick={onAdd}
-          aria-label="Apuntar algo"
+          aria-label={t.apuntarAlgo}
           className="ml-1 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary-strong text-white shadow-md transition-all hover:bg-primary-deep active:scale-95 lg:ml-2"
         >
           <Plus size={20} strokeWidth={2.5} />

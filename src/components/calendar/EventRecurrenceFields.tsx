@@ -2,18 +2,11 @@
 
 import { Field } from '@/components/ui/Field'
 import { SelectChip } from '@/components/ui/SelectChip'
+import { useT } from '@/lib/i18n/contexto'
 import type { useEventSheet } from './useEventSheet'
 
-// L M X J V S D → getDay(): lunes=1 … domingo=0
-const WEEKDAY_BUTTONS = [
-  { label: 'L', day: 1 },
-  { label: 'M', day: 2 },
-  { label: 'X', day: 3 },
-  { label: 'J', day: 4 },
-  { label: 'V', day: 5 },
-  { label: 'S', day: 6 },
-  { label: 'D', day: 0 },
-]
+// De lunes a domingo → getDay(): lunes=1 … domingo=0. La letra de cada uno sale de `iniciales`.
+const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0]
 
 // Sin el ref: aquí no hay campo que enfocar al abrir, y arrastrarlo haría que
 // cualquier `s.loQueSea` contara como leer un ref durante el render.
@@ -28,15 +21,16 @@ type EstadoSheet = Omit<ReturnType<typeof useEventSheet>, 'firstFieldRef'>
  * separado a propósito.
  */
 export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
+  const t = useT().calendario
   return (
     <div className="space-y-3">
-      <label className="field-label">Repetición</label>
+      <label className="field-label">{t.repeticion.titulo}</label>
 
       <div className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1">
         {([
-          { valor: 'none' as const, etiqueta: 'No se repite', onClick: s.setNone },
-          { valor: 'weekly' as const, etiqueta: 'Cada semana', onClick: s.setWeekly },
-          { valor: 'yearly' as const, etiqueta: 'Cada año', onClick: s.setYearly },
+          { valor: 'none' as const, etiqueta: t.repeticion.opciones.none, onClick: s.setNone },
+          { valor: 'weekly' as const, etiqueta: t.repeticion.opciones.weekly, onClick: s.setWeekly },
+          { valor: 'yearly' as const, etiqueta: t.repeticion.opciones.yearly, onClick: s.setYearly },
         ]).map(({ valor, etiqueta, onClick }) => (
           <button
             key={valor}
@@ -53,9 +47,9 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
 
       {s.recurrence === 'weekly' && (
         <div className="space-y-4">
-          <Field label="Repetir los días" spacing="group">
+          <Field label={t.repeticion.repetirLosDias} spacing="group">
             <div className="flex gap-1">
-              {WEEKDAY_BUTTONS.map(({ label, day }) => (
+              {WEEKDAYS.map(day => (
                 <button
                   key={day}
                   type="button"
@@ -66,7 +60,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
                       : 'bg-canvas border border-line text-muted hover:border-primary-strong'
                   }`}
                 >
-                  {label}
+                  {t.iniciales[(day + 6) % 7]}
                 </button>
               ))}
             </div>
@@ -74,14 +68,14 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
 
           {/* Cada semana o una sí y una no: el turno de trabajo de quien libra
               alternos, o la recogida del cole de cada quince días. */}
-          <Field label="Cada" spacing="group">
+          <Field label={t.repeticion.cada} spacing="group">
             <div className="flex gap-2">
-              <SelectChip selected={s.recurrenceEvery === 1} onClick={() => s.setRecurrenceEvery(1)}>Semana</SelectChip>
-              <SelectChip selected={s.recurrenceEvery === 2} onClick={() => s.setRecurrenceEvery(2)}>2 semanas</SelectChip>
+              <SelectChip selected={s.recurrenceEvery === 1} onClick={() => s.setRecurrenceEvery(1)}>{t.repeticion.cadaSemana}</SelectChip>
+              <SelectChip selected={s.recurrenceEvery === 2} onClick={() => s.setRecurrenceEvery(2)}>{t.repeticion.cadaDosSemanas}</SelectChip>
             </div>
           </Field>
 
-          <Field label="Termina el" htmlFor="event-rec-end" hint="(opcional)">
+          <Field label={t.repeticion.terminaEl} htmlFor="event-rec-end" hint={t.repeticion.opcional}>
             <input
               id="event-rec-end"
               type="date"
@@ -96,8 +90,8 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
           {s.previewReady && (
             <SeriesPreview
               titulo={s.draft.title}
-              frase={`se añadirá los ${s.previewDaysText}${s.recurrenceEvery === 2 ? ', una semana sí y otra no,' : ''} ${s.sinFin ? 'durante las próximas 52 semanas, hasta' : 'hasta'} el ${s.previewEndText}.`}
-              total={`Se crearán ${s.seriesCount} eventos.`}
+              frase={t.repeticion.semanal(s.previewDaysText, s.previewEndText, s.recurrenceEvery === 2, s.sinFin)}
+              total={t.repeticion.seCrearan(s.seriesCount)}
             />
           )}
 
@@ -107,7 +101,7 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
 
       {s.recurrence === 'yearly' && (
         <div className="space-y-4">
-          <Field label="Repetir hasta el año" htmlFor="event-rec-year">
+          <Field label={t.repeticion.repetirHastaElAno} htmlFor="event-rec-year">
             <select
               id="event-rec-year"
               value={s.recurrenceEndYear}
@@ -123,8 +117,8 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
           {s.yearlyCount > 0 && !s.yearlyError && (
             <SeriesPreview
               titulo={s.draft.title}
-              frase={`se añadirá cada año el mismo día hasta ${s.recurrenceEndYear}.`}
-              total={`Se crearán ${s.yearlyCount} evento${s.yearlyCount !== 1 ? 's' : ''}.`}
+              frase={t.repeticion.anual(s.recurrenceEndYear)}
+              total={t.repeticion.seCrearan(s.yearlyCount)}
             />
           )}
 
@@ -137,13 +131,14 @@ export function EventRecurrenceFields({ s }: { s: EstadoSheet }) {
 
 /** Lo que va a pasar, en una frase, antes de que pase. */
 function SeriesPreview({ titulo, frase, total }: { titulo: string; frase: string; total: string }) {
+  const t = useT().calendario.repeticion
   return (
     <div className="rounded-2xl bg-primary-tint border border-primary/25 p-3.5 space-y-1">
       <p className="text-sm text-ink leading-snug">
-        <span className="font-semibold">{titulo.trim() || 'El evento'}</span>{' '}{frase}
+        <span className="font-semibold">{titulo.trim() || t.elEvento}</span>{' '}{frase}
       </p>
       <p className="text-sm font-bold text-primary-strong">{total}</p>
-      <p className="text-xs text-muted">Podrás editar cada evento por separado.</p>
+      <p className="text-xs text-muted">{t.porSeparado}</p>
     </div>
   )
 }

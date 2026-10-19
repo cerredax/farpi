@@ -2,7 +2,7 @@
 
 Estado y pasos para llevar Farpi a producción en Vercel + Supabase. Marca las casillas a medida que las completes.
 
-> Última actualización: 2026-10-15.
+> Última actualización: 2026-10-19.
 
 ## 0. El cambio de nombre a Farpi
 
@@ -389,8 +389,9 @@ datos médicos y DNI dentro; mandar trazas a un tercero cuesta más de lo que re
 - [x] Backup/export de datos de la familia (27-08-2026). Desde Ajustes, un JSON con todo
   lo de la casa; la lógica, en `src/lib/export.ts`. No se lleva los archivos de los
   documentos, que viven en el Drive de quien los sube y tienen su propia papelera.
-- [ ] Publicar en Google Play como TWA: package name (`farpi.app`), SHA-256 de la firma,
-  `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`.
+- [x] Publicar en Google Play como TWA: package name (`farpi.app`), SHA-256 de la firma,
+  `public/.well-known/assetlinks.json` y la guía `docs/play-store.md`. Producción publicada en
+  Console y confirmada por el propietario; enlace de descarga activado en la portada el 19-10-2026.
 - [x] **El aviso de cada evento** (30-09-2026), tres pasos y por este orden: (1) aplicar en el
   SQL Editor el delta de `supabase/schema.sql` —la columna `events.remind_before_minutes`, su
   `check` y la tabla `event_reminders_sent`—, **hecho el 30-09-2026**; (2) `node

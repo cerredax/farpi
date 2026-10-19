@@ -127,15 +127,20 @@ recomendado».
 
 ### Portada, acceso y marca
 
-- **`/` pública** (`LandingPage.tsx`): titular con el formulario de acceso al lado, el texto de
-  Omar contado como reportaje, tres capturas y seis preguntas, y «Próximamente en Google Play»
-  sin enlace. Los textos, en `src/components/landing/textos.ts`. El formulario es el mismo
-  `AuthCard` que usa `/auth/login`; no hay copia.
+- **`/` pública** (`LandingPage.tsx`): titular y explicación concreta junto a Inicio, botón
+  «Crear mi familia», capturas de Listas y Calendario, registro y después el texto íntegro de
+  Omar y seis preguntas. «Ya tengo cuenta» abre el acceso habitual. El registro usa una sola
+  instancia de `AuthCard`, inicialmente en crear cuenta; `/auth/login` sigue abriendo Entrar.
+  Los textos viven en `src/components/landing/textos.ts`. Rediseño del 17-10-2026 con enlace
+  a Google Play activado el 19-10-2026. Validación: lint, build y suite completa correctos;
+  también se ha comprobado el formulario real servido desde el build en móvil. Publicación
+  mediante el despliegue automático de `main` en Vercel.
 - **Las capturas salen de la app de verdad**: `node scripts/gen-capturas.mjs` las genera contra el
   modo demo con el reloj congelado en el 17-06-2026 (nueve capturas y `public/og.png`; la portada
   usa tres, las otras van a la ficha de Play). Se importan en vez de pedirse por ruta (la caché de
   imágenes de Next no se entera si no). **Si se regeneran, se revisan las notas de `textos.ts`**,
-  que citan lo que se ve. Regeneradas el 30-09-2026 tras los cambios del calendario.
+  que citan lo que se ve. Las tres de la portada están actualizadas con las capturas del
+  17-10-2026; la primera se carga con prioridad alta al estar en la presentación.
 - **El texto de Omar lo escribió él**: no se «mejora la redacción» y una traducción la tiene que dar
   por buena él. Va sin caja, sin firma y sin foto.
 - **Reglas de contenido**: se dice «casa» y no «hogar» (la marca es «¿Qué tenemos que saber hoy en
@@ -202,7 +207,7 @@ recomendado».
   exacto. Los de navegador son `smoke.spec.ts`, `runtime.spec.ts` (falla ante cualquier
   `console.error`), `guardado.spec.ts`, `dictado.spec.ts`, `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
   recorrido de idioma. `npm run test:e2e` los corre todos levantando el dev server en :3100.
-  Validación actual: suite completa con **1124 pruebas correctas y 13 saltadas** (17-10-2026),
+  Validación actual: suite completa con **1124 pruebas correctas y 13 saltadas** (19-10-2026),
   lint, tipos y build correctos. El worker se ha probado contra el build servido, con push
   sintético, confirmación y fallback sin conexión.
 - **Contraste medido y AA**: quedan 6 avisos deliberados (días fuera de mes del calendario y el `·`
@@ -306,8 +311,9 @@ En orden. Lo de abajo explica cada punto.
    producción publicada al 100 % (17-10-2026), con otros cambios listos para enviar a revisión.
    La distribución sigue configurada solo para España.
    La asociación Android de `public/.well-known/assetlinks.json` está publicada y verificada
-   por Google. Falta comprobar la ficha pública y poner `PLAY_STORE_PUBLICADA = true`
-   en `src/lib/constants.ts` y la portada enlazará a la ficha en vez de decir «Próximamente».
+   por Google. La ficha pública responde 200 y muestra Farpi (19-10-2026), además de la
+   confirmación del propietario de que ya está publicada.
+   `PLAY_STORE_PUBLICADA = true` activa el enlace a `farpi.app` en Google Play desde la portada.
    **Hay que revisar Seguridad de los datos en Play Console**: el último
    export revisado solo selecciona nombre, correo y documentos. Nombre y correo siguen como
    temporales y opcionales, aunque se conservan en Supabase y se exigen al registrarse; falta
@@ -344,8 +350,9 @@ Es lo único que no ve ninguna herramienta.
 
 - **Google Play (TWA)**: el package name es **`farpi.app`**. El paquete Android 2 está generado y
   guardado en Play; abre `/home` de la web y delega notificaciones. La asociación con el dominio
-  está publicada. Console muestra producción publicada al 100 %; falta comprobar la ficha
-  pública, actualizar el enlace de la portada y enviar los cambios pendientes de la ficha.
+  está publicada. Console muestra producción publicada al 100 % y el propietario confirma
+  la ficha pública. El enlace de la portada está activado; quedan los cambios pendientes de
+  la ficha por revisar en Console.
 - **La portada en inglés**: preparada y sin traducir (`textos.ts` obliga a traducirlos todos).
   Va después de la app en inglés, y el texto de Omar lo tiene que dar por bueno él.
 - **La app en inglés**: faltan Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el

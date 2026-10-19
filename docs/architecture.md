@@ -2247,56 +2247,37 @@ de pantalla, no la lógica.
 
 ### La portada
 
-**No tiene botones que lleven al login: tiene el formulario.** Quien llega puede entrar sin cambiar
-de página, que es donde se pierde la gente.
+**El producto se ve antes de pedir una cuenta.** La primera sección muestra el lema, una
+explicación concreta, el botón «Crear mi familia» y una captura real de Inicio. Después van las
+notas sobre lo que enseña, Listas y Calendario, el registro, la historia de Omar y las preguntas.
+Este orden se aplica tanto en móvil como en escritorio; en móvil la primera captura empieza
+dentro de la primera pantalla.
 
-Eso obligó a que hubiera **un solo formulario de autenticación** en todo el proyecto,
-`src/components/auth/AuthCard.tsx`, que montan `/auth/login` y `LandingPage`. Copiarlo era la
-opción rápida y la peor: dos formularios divergen en cuanto alguien toca un mensaje de error, y a
-partir de ahí uno de los dos miente. `/auth/login` sigue existiendo aunque la portada ya no lo
-enlace —es donde aterrizan las invitaciones, la confirmación de cuenta y los enlaces de recuperar
-contraseña— pero ya solo aporta su maqueta.
+**El registro sigue en la propia portada.** «Crear mi familia» lleva al ancla `#entrar`, donde
+`AuthCard` abre en `signup`. Los enlaces «Ya tengo cuenta» llevan a `/auth/login`, que abre en
+`signin` y también recibe invitaciones, confirmaciones y recuperación de contraseña. Ambos usan
+`src/components/auth/AuthCard.tsx`; no hay otra implementación ni se cambia la lógica de acceso.
+En la portada se monta una sola instancia, para conservar etiquetas e IDs únicos.
 
-**Y se pinta una sola vez en la página.** No es una preferencia: la tarjeta anterior, que solo
-tenía botones, salía dos veces —una para móvil, otra para escritorio— y con un formulario dentro
-eso duplica los `id` de los campos, que es lo que ata cada `label` con el suyo. Dos «Correo
-electrónico» con el mismo `id` y quien navega con lector de pantalla acaba escribiendo en el que no
-ve. Se escribe justo después del titular, así que es lo segundo en móvil y la columna de la
-derecha en escritorio sin colocar nada a mano.
+El formulario no es `sticky`. Las secciones aprovechan el ancho disponible y los botones de
+registro del principio y del final permiten volver a él sin buscarlo. Los controles conservan
+un mínimo de 44×44 px, salvo la excepción del correo inline en el texto personal.
 
-**Y no se ancla al bajar** (28-09-2026). Estuvo `sticky` en escritorio desde el 01-09-2026, para
-poder entrar desde cualquier punto, y el precio era meter todo lo demás en una columna de 760 px.
-Omar eligió lo contrario: que el texto, las capturas y las preguntas ocupen el ancho entero, y que
-quien quiera entrar desde abajo suba, como ya pasaba en móvil.
+La identidad sigue siendo la misma:
 
-**Lo que la saca de plantilla**, que se decidió el 28-09-2026 después de que a unos amigos de Omar
-les pareciera hecha con IA:
+- **El texto de Omar se conserva íntegro**, como reportaje, sin caja, foto ni firma a mano.
+  Va después del producto y el registro. Sus palabras no se reescriben ni se traducen sin él.
+- **Tres capturas reales**: las notas describen lo que se ve, como el pediatra de las 10:30.
+  Se importan para que sus URLs cambien al regenerarlas. Inicio usa carga inmediata y prioridad
+  alta porque ahora aparece en la primera pantalla.
+- **Fraunces** en titulares y texto personal; Nunito en los controles y en la app.
+- **Los títulos no llevan punto final**; lo comprueba `e2e/unit/portada-textos.spec.ts`.
+- **Seis preguntas abiertas**, sin secciones de funciones genéricas ni testimonios inventados.
 
-- **Menos secciones, y ninguna de las de siempre.** Fuera «Cómo funciona» en tres pasos, las
-  funciones con iconos y las preguntas plegadas: es la página que sale al pedirle a cualquiera una
-  landing. Quedan cuatro piezas: el titular con el formulario, el texto de Omar, lo que se ve al
-  abrir la app y las preguntas, abiertas.
-- **El texto de Omar va arriba y como reportaje, no como carta.** El disfraz de «carta del
-  fundador» (título, frase destacada, fondo cálido, firma) era lo que olía a plantilla, no sus
-  palabras. Ahora su primera frase va en grande y el resto en columna. Sin foto ni firma a mano,
-  porque no las quiere.
-- **La app se enseña con lo que se ve de verdad**: tres capturas, y las notas nombran lo que hay en
-  ellas (el pediatra de las 10:30), no lo que la app "permite hacer".
-- **Una segunda letra** (Fraunces) para titulares y para el texto de Omar, solo en la portada. Con
-  una sola letra redonda y todo en gris pequeño, nada parecía decidido por nadie.
-- **Los títulos no llevan punto final**, y lo vigila `e2e/unit/portada-textos.spec.ts`.
-
-En la barra de arriba **no queda ningún enlace de cuenta**, ni tampoco las secciones. Se probó dejar un «Entrar» que fuera un
-ancla a `#entrar`, para poder volver al formulario desde el final de la página en móvil, y se
-quitó: seguía leyéndose como el botón de login de siempre, que es justo lo que la portada ya no
-quiere ser. El precio es que en móvil, muy abajo, hay que subir para volver al formulario; el `id`
-sigue ahí por si algún día se enlaza de otra forma.
-
-Efecto lateral que conviene saber: la portada dejó de ser una página inerte y carga el cliente de
-Supabase. Y en **modo demo** enseña el aviso de «Modo local activo» en vez del formulario, que es
-lo mismo que hace `/auth/login` y lo que ve la suite e2e. **Por eso la suite no mide el
-formulario**: sus 44 px y su validación se comprueban a mano, con credenciales
-(`docs/testing-checklist.md`).
+En modo demo `AuthCard` muestra «Modo local activo» en lugar del formulario. La suite ordinaria
+comprueba el ancla, las capturas, el orden y el acceso a 1440 y 1023 px. Los controles y el
+desbordamiento se han comprobado también con el formulario real desde el build a 390 px, sin
+enviar formularios ni escribir en Supabase. Las altas reales siguen en el checklist de producción.
 
 ### La portada en otro idioma
 

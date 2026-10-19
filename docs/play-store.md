@@ -5,7 +5,7 @@ abre `https://www.farpi.app` a pantalla completa, sin la barra del navegador. No
 base de código: lo que se publica en Vercel es lo que se ve en la app. Esta guía es el
 orden en que se hace, y lo que ya está hecho en el repositorio para que funcione.
 
-## Estado actual (17-10-2026)
+## Estado actual (19-10-2026)
 
 - El proyecto Android está en `../farpi-android`: paquete `farpi.app`, versión 2,
   destino `https://www.farpi.app/home`, SDK objetivo 36 y delegación de notificaciones activa.
@@ -14,6 +14,8 @@ orden en que se hace, y lo que ya está hecho en el repositorio para que funcion
 - Console ya muestra la última versión de producción **publicada al 100 %**, con la notificación
   «Se ha publicado la actualización de la aplicación». Hay otros cambios listos para enviar a
   revisión; esto no confirma que estén aplicados a la ficha pública.
+- La ficha pública de `farpi.app` responde 200 y muestra Farpi; el propietario confirma la
+  publicación. La nueva portada ofrece «Descárgala en Google Play» con el enlace directo.
 - Las 24 capturas actuales están preparadas en `google-play/capturas/`. La subida automática
   quedó bloqueada por el permiso de archivos de la extensión de Chrome; se descartó la edición
   incompleta y se conservaron las ocho capturas antiguas de la ficha.

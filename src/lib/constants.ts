@@ -376,8 +376,7 @@ export const ROUTES = {
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=farpi.app'
 
 /**
- * Pasar a `true` el día que Google apruebe la app y la ficha responda (hasta
- * entonces el enlace daría 404). Mientras sea `false`, la portada dice
- * «Próximamente en Google Play» y no enlaza a nada.
+ * Publicación confirmada por el propietario el 19-10-2026. La portada ofrece
+ * el enlace directo a la ficha de la app.
  */
-export const PLAY_STORE_PUBLICADA = false
+export const PLAY_STORE_PUBLICADA = true

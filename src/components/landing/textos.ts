@@ -37,6 +37,8 @@ export type TextosPortada = {
   irAlInicio: string
   titular: string
   entradilla: string
+  acciones: { crear: string; entrar: string; ver: string }
+  registro: { titulo: string; texto: string }
   proximamentePlay: string
   /** El enlace a la ficha de Google Play, cuando ya está publicada. */
   disponiblePlay: string
@@ -78,7 +80,16 @@ export const PORTADA_ES: TextosPortada = {
   // es cambiar un texto. Y va igual en `LoginHero`: si se toca uno, el otro.
   titular: 'Qué tenemos que saber hoy en casa',
   entradilla:
-    'Farpi es el espacio privado de tu familia: todos veis lo mismo sin tener que preguntar, y lo que hay que recordar deja de estar en la cabeza de uno solo.',
+    'El calendario, las tareas, la compra y los gastos de vuestra casa, juntos y compartidos.',
+  acciones: {
+    crear: 'Crear mi familia',
+    entrar: 'Ya tengo cuenta',
+    ver: 'Ver cómo es',
+  },
+  registro: {
+    titulo: 'Un espacio para vuestra casa',
+    texto: 'Empieza con tu cuenta e invita a los demás. Todos veis lo mismo y lo que hay que recordar deja de estar en la cabeza de uno solo.',
+  },
   proximamentePlay: 'Próximamente en Google Play',
   disponiblePlay: 'Descárgala en Google Play',
   /**

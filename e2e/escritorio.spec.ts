@@ -85,35 +85,25 @@ async function ajustesSeccionesYPanel(page: import('@playwright/test').Page) {
 test.describe('escritorio a 1440 px', () => {
   test.use({ viewport: { width: 1440, height: 900 }, isMobile: false, hasTouch: false })
 
-  // La portada no lleva SideNav ni BottomNav, pero es la pantalla que más se
-  // juega: quien llega tiene que poder entrar sin buscar. En escritorio el
-  // formulario va a la derecha del titular, en la primera pantalla.
-  //
-  // Y **ya no se ancla al bajar** (28-09-2026): estuvo `sticky` desde el
-  // 01-09-2026 y obligaba a meter todo lo demás en una columna estrecha. Ahora
-  // el texto de Omar, las capturas y las preguntas ocupan el ancho entero, y una
-  // tarjeta pegada se montaría encima de ellos. Las dos mitades se comprueban.
-  test('la portada pone el acceso al lado del titular, y el resto a todo el ancho', async ({ page }) => {
+  test('la portada enseña la app junto al titular y permite llegar al registro', async ({ page }) => {
     await page.goto('/')
     await page.waitForTimeout(800)
 
-    // La tarjeta es el hijo del ancla `#entrar`. Se busca así y no por su
-    // contenido porque ese contenido cambia con el modo: el formulario con
-    // credenciales, el aviso de modo local sin ellas.
-    const tarjeta = page.locator('#entrar > div').first()
-    await expect(tarjeta).toBeInViewport()
-
-    const caja = (await tarjeta.boundingBox())!
+    const captura = page.getByRole('img', { name: /Pantalla de Inicio/ })
+    await expect(captura).toBeInViewport()
+    const caja = (await captura.boundingBox())!
     const titular = (await page.getByRole('heading', { level: 1 }).boundingBox())!
-    expect(caja.width, 'el acceso ocupa más que una columna').toBeLessThan(420)
-    expect(caja.x, 'el acceso ya no va a la derecha del titular').toBeGreaterThanOrEqual(titular.x + titular.width)
+    expect(caja.x, 'la captura se monta sobre el titular').toBeGreaterThanOrEqual(titular.x + titular.width)
+    await expect(page.getByRole('link', { name: 'Crear mi familia', exact: true }).first()).toBeInViewport()
 
     const historia = (await page.locator('#por-que').boundingBox())!
     expect(historia.width, 'el texto de Omar vuelve a ir en una columna estrecha').toBeGreaterThan(1000)
 
-    await page.evaluate(() => window.scrollBy(0, 2500))
-    await page.waitForTimeout(600)
-    await expect(tarjeta, 'el acceso vuelve a ir anclado y pisaría el contenido').not.toBeInViewport()
+    const orden = await page.evaluate(() => ['asi-se-ve', 'entrar', 'por-que'].map(id => document.getElementById(id)!.offsetTop))
+    expect(orden[0]).toBeLessThan(orden[1])
+    expect(orden[1]).toBeLessThan(orden[2])
+    await page.getByRole('link', { name: 'Crear mi familia', exact: true }).first().click()
+    await expect(page.locator('#entrar').getByText('Crea tu cuenta', { exact: true })).toBeInViewport()
   })
 
   // Ajustes fue la última pantalla atada a `max-w-lg`: 512 px de contenido en
@@ -448,20 +438,15 @@ test.describe('escritorio a 1440 px', () => {
 test.describe('justo por debajo de lg, a 1023 px', () => {
   test.use({ viewport: { width: 1023, height: 900 }, isMobile: false, hasTouch: false })
 
-  test('la portada no saca la columna anclada, pero el acceso sigue arriba', async ({ page }) => {
+  test('la portada apila el producto y mantiene accesible el registro por debajo de lg', async ({ page }) => {
     await page.goto('/')
     await page.waitForTimeout(800)
 
-    // Sin columna: la tarjeta ocupa el ancho del texto, no 22 rem a un lado.
-    const tarjeta = page.locator('#entrar > div').first()
-    const ancho = (await tarjeta.boundingBox())!.width
-    expect(ancho, 'la columna de escritorio se ha colado por debajo de lg').toBeGreaterThan(500)
-
-    // Y sigue siendo lo segundo de la página, justo debajo del titular: por
-    // encima de "Así se ve", que es la primera sección del cuerpo.
-    const acceso = (await tarjeta.boundingBox())!.y
-    const primeraSeccion = (await page.locator('#asi-se-ve').boundingBox())!.y
-    expect(acceso).toBeLessThan(primeraSeccion)
+    const titular = (await page.getByRole('heading', { level: 1 }).boundingBox())!
+    const captura = (await page.getByRole('img', { name: /Pantalla de Inicio/ }).boundingBox())!
+    expect(captura.y).toBeGreaterThan(titular.y + titular.height)
+    await page.getByRole('link', { name: 'Crear mi familia', exact: true }).first().click()
+    await expect(page.locator('#entrar').getByText('Crea tu cuenta', { exact: true })).toBeInViewport()
   })
 
   test('sigue la barra de abajo y no aparece la lateral', async ({ page }) => {

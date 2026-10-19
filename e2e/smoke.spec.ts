@@ -18,10 +18,16 @@ test('la portada enseña el acceso y las capturas cargan', async ({ page }) => {
   // prueba de que la portada monta `AuthCard` y no una copia suya.
   await expect(page.locator('#entrar').getByText('Modo local activo')).toBeVisible()
 
-  // Y en la barra no queda **ningún** enlace de cuenta: ni al login ni al
-  // formulario de aquí abajo. Aquí ya no se navega para entrar, se entra.
-  await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'Crear cuenta' })).toHaveCount(0)
+  await expect(page.locator('#entrar').getByText('Crea tu cuenta', { exact: true })).toBeVisible()
+  await expect(page.locator('#entrar')).toHaveCount(1)
+  await expect(page.locator('header').getByRole('link', { name: 'Ya tengo cuenta' })).toHaveAttribute('href', '/auth/login')
+  const descarga = page.getByRole('link', { name: 'Descárgala en Google Play', exact: true })
+  await expect(descarga).toBeVisible()
+  await expect(descarga).toHaveAttribute('href', 'https://play.google.com/store/apps/details?id=farpi.app')
+  // El botón principal lleva al registro de esta página, sin perder el contexto.
+  await page.getByRole('link', { name: 'Crear mi familia', exact: true }).first().click()
+  await expect(page).toHaveURL(/#entrar$/)
+  await expect(page.locator('#entrar').getByText('Crea tu cuenta', { exact: true })).toBeInViewport()
 
   const primera = page.getByRole('img', { name: /Pantalla de Inicio/ })
   await expect(primera).toBeVisible()

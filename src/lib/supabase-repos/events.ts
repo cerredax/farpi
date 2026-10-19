@@ -25,25 +25,6 @@ function endAtFromDraft(draft: EventDraft): string | null {
   return !draft.all_day && draft.end_time ? localDateTimeToIso(draft.date, draft.end_time) : null
 }
 
-function eventInsert(familyId: string, userId: string, draft: EventDraft, groupId: string | null = null) {
-  return {
-    family_id: familyId,
-    child_id: draft.child_id,
-    member_id: draft.member_id,
-    title: draft.title.trim(),
-    description: draft.description.trim() || null,
-    start_at: localDateTimeToIso(draft.date, draft.all_day ? '00:00' : (draft.start_time || '00:00')),
-    end_at: endAtFromDraft(draft),
-    all_day: draft.all_day,
-    kind: draft.kind,
-    birth_year: birthYearFromDraft(draft),
-    remind_before_minutes: antelacionDelAviso(draft),
-    color: null,
-    recurrence_group_id: groupId,
-    created_by: userId,
-  }
-}
-
 function eventUpdate(draft: EventDraft) {
   return {
     child_id: draft.child_id,
@@ -56,6 +37,16 @@ function eventUpdate(draft: EventDraft) {
     kind: draft.kind,
     birth_year: birthYearFromDraft(draft),
     remind_before_minutes: antelacionDelAviso(draft),
+  }
+}
+
+function eventInsert(familyId: string, userId: string, draft: EventDraft, groupId: string | null = null) {
+  return {
+    family_id: familyId,
+    ...eventUpdate(draft),
+    color: null,
+    recurrence_group_id: groupId,
+    created_by: userId,
   }
 }
 

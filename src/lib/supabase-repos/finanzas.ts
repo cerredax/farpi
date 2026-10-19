@@ -30,6 +30,52 @@ function centimos(texto: string): number {
   return parseAmountToCents(texto) ?? 0
 }
 
+function camposDeFijo(draft: FixedEntryDraft) {
+  return {
+    kind: draft.kind,
+    name: draft.name.trim(),
+    emoji: draft.emoji || null,
+    amount_cents: centimos(draft.amount),
+    child_id: draft.child_id,
+    member_id: draft.member_id,
+  }
+}
+
+function camposDePartida(draft: BudgetDraft) {
+  return {
+    name: draft.name.trim(),
+    emoji: draft.emoji || null,
+    monthly_limit_cents: centimos(draft.monthly_limit),
+  }
+}
+
+/** Sin `import_ref`: solo lo escriben las altas, editar un apunte no lo toca. */
+function camposDeApunte(draft: ExpenseDraft) {
+  return {
+    // Un ingreso nunca cuelga de una partida. Lo fuerza también el `check`
+    // `expenses_ingreso_sin_tope`, pero enviarlo bien de aquí evita un 400
+    // que la pantalla tendría que traducir a algo que nadie entendería.
+    budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
+    child_id: draft.child_id,
+    member_id: draft.member_id,
+    kind: draft.kind,
+    amount_cents: centimos(draft.amount),
+    date: draft.date,
+    description: draft.description.trim() || null,
+  }
+}
+
+function camposDePresupuesto(draft: QuoteDraft) {
+  return {
+    title: draft.title.trim(),
+    provider: draft.provider.trim(),
+    amount_cents: centimos(draft.amount),
+    status: draft.status,
+    valid_until: draft.valid_until || null,
+    notes: draft.notes.trim() || null,
+  }
+}
+
 export const fixedEntriesRepo: FixedEntriesRepo = {
   async getFixedEntries(familyId: string): Promise<FixedEntry[]> {
     const supabase = createClient()
@@ -57,12 +103,7 @@ export const fixedEntriesRepo: FixedEntriesRepo = {
       .from('fixed_entries')
       .insert({
         family_id: familyId,
-        kind: draft.kind,
-        name: draft.name.trim(),
-        emoji: draft.emoji || null,
-        amount_cents: centimos(draft.amount),
-        child_id: draft.child_id,
-        member_id: draft.member_id,
+        ...camposDeFijo(draft),
         sort_order: count ?? 0,
         created_by: userId,
       })
@@ -76,14 +117,7 @@ export const fixedEntriesRepo: FixedEntriesRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('fixed_entries')
-      .update({
-        kind: draft.kind,
-        name: draft.name.trim(),
-        emoji: draft.emoji || null,
-        amount_cents: centimos(draft.amount),
-        child_id: draft.child_id,
-        member_id: draft.member_id,
-      })
+      .update(camposDeFijo(draft))
       .eq('id', id)
     assertNoError(error)
   },
@@ -166,9 +200,7 @@ export const budgetsRepo: BudgetsRepo = {
       .from('budgets')
       .insert({
         family_id: familyId,
-        name: draft.name.trim(),
-        emoji: draft.emoji || null,
-        monthly_limit_cents: centimos(draft.monthly_limit),
+        ...camposDePartida(draft),
         sort_order: count ?? 0,
         created_by: userId,
       })
@@ -182,11 +214,7 @@ export const budgetsRepo: BudgetsRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('budgets')
-      .update({
-        name: draft.name.trim(),
-        emoji: draft.emoji || null,
-        monthly_limit_cents: centimos(draft.monthly_limit),
-      })
+      .update(camposDePartida(draft))
       .eq('id', id)
     assertNoError(error)
   },
@@ -218,16 +246,7 @@ export const expensesRepo: ExpensesRepo = {
       .from('expenses')
       .insert({
         family_id: familyId,
-        // Un ingreso nunca cuelga de una partida. Lo fuerza también el `check`
-        // `expenses_ingreso_sin_tope`, pero enviarlo bien de aquí evita un 400
-        // que la pantalla tendría que traducir a algo que nadie entendería.
-        budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
-        child_id: draft.child_id,
-        member_id: draft.member_id,
-        kind: draft.kind,
-        amount_cents: centimos(draft.amount),
-        date: draft.date,
-        description: draft.description.trim() || null,
+        ...camposDeApunte(draft),
         import_ref: draft.import_ref ?? null,
         created_by: userId,
       })
@@ -250,13 +269,7 @@ export const expensesRepo: ExpensesRepo = {
       // pudiera chocar.
       .upsert(drafts.map(draft => ({
         family_id: familyId,
-        budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
-        child_id: draft.child_id,
-        member_id: draft.member_id,
-        kind: draft.kind,
-        amount_cents: centimos(draft.amount),
-        date: draft.date,
-        description: draft.description.trim() || null,
+        ...camposDeApunte(draft),
         import_ref: draft.import_ref ?? null,
         created_by: userId,
       })), { onConflict: 'family_id,import_ref', ignoreDuplicates: true })
@@ -269,15 +282,7 @@ export const expensesRepo: ExpensesRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('expenses')
-      .update({
-        budget_id: draft.kind === 'ingreso' ? null : draft.budget_id,
-        child_id: draft.child_id,
-        member_id: draft.member_id,
-        kind: draft.kind,
-        amount_cents: centimos(draft.amount),
-        date: draft.date,
-        description: draft.description.trim() || null,
-      })
+      .update(camposDeApunte(draft))
       .eq('id', id)
     assertNoError(error)
   },
@@ -320,12 +325,7 @@ export const quotesRepo: QuotesRepo = {
       .from('quotes')
       .insert({
         family_id: familyId,
-        title: draft.title.trim(),
-        provider: draft.provider.trim(),
-        amount_cents: centimos(draft.amount),
-        status: draft.status,
-        valid_until: draft.valid_until || null,
-        notes: draft.notes.trim() || null,
+        ...camposDePresupuesto(draft),
         created_by: userId,
       })
       .select('*')
@@ -338,14 +338,7 @@ export const quotesRepo: QuotesRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('quotes')
-      .update({
-        title: draft.title.trim(),
-        provider: draft.provider.trim(),
-        amount_cents: centimos(draft.amount),
-        status: draft.status,
-        valid_until: draft.valid_until || null,
-        notes: draft.notes.trim() || null,
-      })
+      .update(camposDePresupuesto(draft))
       .eq('id', id)
     assertNoError(error)
   },

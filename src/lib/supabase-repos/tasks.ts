@@ -4,6 +4,20 @@ import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { Task, TaskDraft } from '@/types'
 import type { TasksRepo } from '../repos/types'
 
+/** Los campos que se escriben igual al crear y al editar. */
+function camposDeTarea(draft: TaskDraft) {
+  return {
+    child_id: draft.child_id,
+    member_id: draft.member_id,
+    title: draft.title.trim(),
+    notes: draft.notes.trim() || null,
+    priority: draft.priority,
+    due_date: draft.due_date || null,
+    recurrence: draft.recurrence,
+    recurrence_end: draft.recurrence_end || null,
+  }
+}
+
 export const tasksRepo: TasksRepo = {
   async getTasks(familyId: string): Promise<Task[]> {
     const supabase = createClient()
@@ -18,14 +32,7 @@ export const tasksRepo: TasksRepo = {
       .from('tasks')
       .insert({
         family_id: familyId,
-        child_id: draft.child_id,
-        member_id: draft.member_id,
-        title: draft.title.trim(),
-        notes: draft.notes.trim() || null,
-        priority: draft.priority,
-        due_date: draft.due_date || null,
-        recurrence: draft.recurrence,
-        recurrence_end: draft.recurrence_end || null,
+        ...camposDeTarea(draft),
         created_by: userId,
       })
       .select('*')
@@ -38,16 +45,7 @@ export const tasksRepo: TasksRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('tasks')
-      .update({
-        child_id: draft.child_id,
-        member_id: draft.member_id,
-        title: draft.title.trim(),
-        notes: draft.notes.trim() || null,
-        priority: draft.priority,
-        due_date: draft.due_date || null,
-        recurrence: draft.recurrence,
-        recurrence_end: draft.recurrence_end || null,
-      })
+      .update(camposDeTarea(draft))
       .eq('id', id)
     assertNoError(error)
   },

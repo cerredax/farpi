@@ -4,6 +4,17 @@ import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { MealDraft, MealPlan } from '@/types'
 import type { MealsRepo } from '../repos/types'
 
+function camposDeComida(draft: MealDraft) {
+  return {
+    date: draft.date,
+    slot: draft.slot,
+    name: draft.name.trim(),
+    second_course: draft.second_course.trim() || null,
+    dessert: draft.dessert.trim() || null,
+    notes: draft.notes.trim() || null,
+  }
+}
+
 export const mealsRepo: MealsRepo = {
   async getMeals(familyId: string): Promise<MealPlan[]> {
     const supabase = createClient()
@@ -20,12 +31,7 @@ export const mealsRepo: MealsRepo = {
       .from('meal_plans')
       .upsert({
         family_id: familyId,
-        date: draft.date,
-        slot: draft.slot,
-        name: draft.name.trim(),
-        second_course: draft.second_course.trim() || null,
-        dessert: draft.dessert.trim() || null,
-        notes: draft.notes.trim() || null,
+        ...camposDeComida(draft),
         created_by: userId,
       }, { onConflict: 'family_id,date,slot' })
       .select('*')
@@ -38,14 +44,7 @@ export const mealsRepo: MealsRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('meal_plans')
-      .update({
-        date: draft.date,
-        slot: draft.slot,
-        name: draft.name.trim(),
-        second_course: draft.second_course.trim() || null,
-        dessert: draft.dessert.trim() || null,
-        notes: draft.notes.trim() || null,
-      })
+      .update(camposDeComida(draft))
       .eq('id', id)
     assertNoError(error)
   },

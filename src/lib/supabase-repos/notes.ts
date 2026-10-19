@@ -3,6 +3,17 @@ import { leerTodas, assertNoError, currentUserId } from './shared'
 import type { Note, NoteDraft } from '@/types'
 import type { NotesRepo } from '../repos/types'
 
+function camposDeNota(draft: NoteDraft) {
+  return {
+    title: draft.title.trim(),
+    // Vacío es `null`, no cadena vacía: la columna admite nulo y así el
+    // mock y esto devuelven lo mismo.
+    body: draft.body.trim() || null,
+    emoji: draft.emoji || null,
+    pinned: draft.pinned,
+  }
+}
+
 /**
  * Las notas de la familia. La tabla más sencilla de todo el proyecto: no tiene
  * hijos, ni asignado, ni fecha, ni serie.
@@ -31,12 +42,7 @@ export const notesRepo: NotesRepo = {
       .from('notes')
       .insert({
         family_id: familyId,
-        title: draft.title.trim(),
-        // Vacío es `null`, no cadena vacía: la columna admite nulo y así el
-        // mock y esto devuelven lo mismo.
-        body: draft.body.trim() || null,
-        emoji: draft.emoji || null,
-        pinned: draft.pinned,
+        ...camposDeNota(draft),
         created_by: userId,
       })
       .select('*')
@@ -49,12 +55,7 @@ export const notesRepo: NotesRepo = {
     const supabase = createClient()
     const { error } = await supabase
       .from('notes')
-      .update({
-        title: draft.title.trim(),
-        body: draft.body.trim() || null,
-        emoji: draft.emoji || null,
-        pinned: draft.pinned,
-      })
+      .update(camposDeNota(draft))
       .eq('id', id)
     assertNoError(error)
   },

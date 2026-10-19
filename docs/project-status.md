@@ -296,8 +296,14 @@ En orden. Lo de abajo explica cada punto.
    que empiece dentro de 20 minutos con «15 minutos antes».
 1. **Smoke con una cuenta nueva en `www.farpi.app`** (`docs/produccion.md`, §5): registro con un
    correo nuevo, confirmación por email, crear familia, crear un evento, invitar a una segunda
-   persona y cerrar sesión. La última pasada entera fue el 15-09-2026 y la de una cuenta nueva no
-   consta nunca.
+   persona y cerrar sesión. La última pasada entera fue el 15-09-2026. El 19-10-2026 se probó
+   solo el principio: el registro con un correo nuevo funciona y el correo de confirmación llega
+   con el diseño de Farpi, pero el enlace ya salía como caducado o usado (`otp_expired`) a los
+   pocos minutos de enviarlo, sin que nadie lo hubiera abierto a propósito. Sospecha, sin
+   comprobar: el filtro de seguridad del buzón lo abrió antes (un correo de empresa). Queda sin
+   probar a entrar con esa cuenta, crear familia y evento, e invitar. **La cuenta de prueba
+   `omar.garcia+farpismoke1@confia.es` sigue en Supabase de producción** y hay que borrarla desde
+   Authentication → Users.
 2. **Comprobar el cron de las siete** en los logs de Vercel (`/api/cron/reminders`): uno de los dos
    de cada mañana tiene que decir `fueraDeHora: true` y el otro traer `sent`. Los logs de Vercel
    (Hobby) solo guardan cerca de una hora: hay que mirarlos justo después de las 05:00 o las

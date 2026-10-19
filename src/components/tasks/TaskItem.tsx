@@ -1,10 +1,12 @@
 import { parseISO, isBefore, isToday, startOfDay, format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import type { Locale } from 'date-fns'
 import { Repeat2 } from 'lucide-react'
 import type { Child, FamilyMember, Task, TaskPriority } from '@/types'
-import { MS_CONFIRMAR_BORRADO, TASK_RECURRENCES } from '@/lib/constants'
+import { MS_CONFIRMAR_BORRADO } from '@/lib/constants'
 import { fondoDePersona, resolveAssignee } from '@/lib/assignees'
 import { useConfirmAction } from '@/hooks/useConfirmAction'
+import { useIdioma, useT } from '@/lib/i18n/contexto'
+import { localeDeFechas } from '@/lib/i18n/fechas'
 import { CircleCheck } from '@/components/ui/CircleCheck'
 import { DeleteButton } from '@/components/ui/DeleteButton'
 
@@ -23,12 +25,15 @@ const PRIORITY_BORDER: Record<TaskPriority, string> = {
   low:    'border-l-primary',
 }
 
-function formatDue(dateStr: string): { label: string; overdue: boolean } {
+function formatDue(
+  dateStr: string,
+  textos: { hoy: string; formatoVencimiento: string },
+  locale: Locale,
+): { label: string; overdue: boolean; today: boolean } {
   const d = parseISO(dateStr)
   const today = startOfDay(new Date())
-  if (isToday(d)) return { label: 'Hoy', overdue: false }
-  if (isBefore(d, today)) return { label: format(d, 'd MMM', { locale: es }), overdue: true }
-  return { label: format(d, 'd MMM', { locale: es }), overdue: false }
+  if (isToday(d)) return { label: textos.hoy, overdue: false, today: true }
+  return { label: format(d, textos.formatoVencimiento, { locale }), overdue: isBefore(d, today), today: false }
 }
 
 /**
@@ -41,7 +46,9 @@ function formatDue(dateStr: string): { label: string; overdue: boolean } {
  * `MS_CONFIRMAR_BORRADO`.
  */
 export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: TaskItemProps) {
-  const due = task.due_date ? formatDue(task.due_date) : null
+  const t = useT()
+  const idioma = useIdioma()
+  const due = task.due_date ? formatDue(task.due_date, t.tareas.tarjeta, localeDeFechas(idioma)) : null
   const asignado = resolveAssignee(task, members, kids)
   // Quién la marcó. Solo una tarea que se completa del todo lo guarda: una que se
   // repite no se completa, le empuja la fecha, y ahí no queda a nombre de nadie.
@@ -57,7 +64,7 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
       <CircleCheck
         checked={task.completed}
         onClick={onToggle}
-        ariaLabel={task.completed ? 'Marcar como pendiente' : 'Marcar como completada'}
+        ariaLabel={task.completed ? t.tareas.tarjeta.marcarPendiente : t.tareas.tarjeta.marcarCompletada}
       />
 
       {/* Content — tap to edit */}
@@ -97,14 +104,14 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
               <p className="text-xs text-muted truncate max-w-[160px]">{task.notes}</p>
             )}
             {hechaPor && (
-              <span className="text-[10px] font-bold text-muted">Hecha por {hechaPor}</span>
+              <span className="text-[10px] font-bold text-muted">{t.tareas.tarjeta.hechaPor(hechaPor)}</span>
             )}
             {due && (
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                   due.overdue
                     ? 'bg-danger-soft text-danger-strong'
-                    : due.label === 'Hoy'
+                    : due.today
                     ? 'bg-danger-soft text-accent-strong'
                     : 'bg-surface text-muted'
                 }`}
@@ -115,7 +122,7 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
             {task.recurrence !== 'none' && (
               <span className="flex items-center gap-0.5 text-[10px] font-bold text-primary-strong">
                 <Repeat2 size={11} strokeWidth={2.5} />
-                {TASK_RECURRENCES.find(r => r.value === task.recurrence)?.shortLabel}
+                {t.comun.recurrencias[task.recurrence]}
               </span>
             )}
           </div>
@@ -129,10 +136,10 @@ export function TaskItem({ task, kids, members, onToggle, onEdit, onDelete }: Ta
           variant="inline"
           confirming={confirming}
           onClick={() => requestConfirm(() => onDelete(task.id))}
-          idleLabel="Eliminar"
-          confirmLabel="Borrar"
-          ariaLabel={`Eliminar la tarea ${task.title}`}
-          confirmAriaLabel={`Confirmar que se elimina la tarea ${task.title}`}
+          idleLabel={t.tareas.tarjeta.eliminar}
+          confirmLabel={t.tareas.tarjeta.borrar}
+          ariaLabel={t.tareas.tarjeta.eliminarLaTarea(task.title)}
+          confirmAriaLabel={t.tareas.tarjeta.confirmarEliminar(task.title)}
         />
       </div>
     </div>

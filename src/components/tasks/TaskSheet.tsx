@@ -7,6 +7,7 @@ import { Field } from '@/components/ui/Field'
 import { SheetFooter } from '@/components/ui/SheetFooter'
 import { TASK_PRIORITIES, TASK_RECURRENCES } from '@/lib/constants'
 import { useSheetDelete, useSheetForm } from '@/hooks/useSheetForm'
+import { useT } from '@/lib/i18n/contexto'
 import { validateTaskDraft } from '@/lib/validators'
 import type { Child, FamilyMember, Task, TaskDraft } from '@/types'
 
@@ -47,6 +48,8 @@ function initDraft(mode: Mode, initial: Task | null | undefined): TaskDraft {
 }
 
 export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreate, onUpdate, onDelete }: TaskSheetProps) {
+  const tt = useT()
+  const t = tt.tareas.sheet
   const { draft, patch, formError, firstFieldRef, submitHandler } = useSheetForm<TaskDraft>({
     open,
     initialDraft: () => initDraft(mode, initial),
@@ -83,30 +86,30 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
   return (
     <BottomSheet
       open={open}
-      title={mode === 'create' ? 'Nueva tarea' : 'Editar tarea'}
+      title={mode === 'create' ? t.nueva : t.editar}
       onClose={onClose}
       footer={
         <SheetFooter
           form="task-form"
-          submitLabel={guardando ? 'Guardando…' : mode === 'create' ? 'Crear tarea' : 'Guardar cambios'}
+          submitLabel={guardando ? t.guardando : mode === 'create' ? t.crear : t.guardarCambios}
           disabled={guardando}
           error={formError}
           onDelete={mode === 'edit'
-            ? { confirming, onClick: handleDelete, idleLabel: 'Eliminar tarea', confirmLabel: 'Confirmar eliminación' }
+            ? { confirming, onClick: handleDelete, idleLabel: t.eliminar, confirmLabel: t.confirmarEliminacion }
             : undefined}
         />
       }
     >
       <form id="task-form" onSubmit={handleSubmit} className="px-5 pt-1 pb-4 space-y-5">
 
-        <Field label="Tarea" htmlFor="task-title">
+        <Field label={t.tarea} htmlFor="task-title">
           <input
             id="task-title"
             ref={firstFieldRef}
             type="text"
             value={draft.title}
             onChange={e => patch({ title: e.target.value })}
-            placeholder="¿Qué hay que hacer?"
+            placeholder={t.tareaEjemplo}
             required
             className="field-input"
           />
@@ -121,7 +124,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
             que ahorraban un toque para añadir dos controles fijos y un estado
             —pulsado, sin pulsar, y qué pasa si la fecha del campo es justo esa—
             a la pregunta más sencilla del formulario. */}
-        <Field label={hasRecurrence ? 'Empieza el' : 'Vencimiento'} htmlFor="task-due" spacing="group">
+        <Field label={hasRecurrence ? t.empiezaEl : t.vencimiento} htmlFor="task-due" spacing="group">
           <input
             id="task-due"
             type="date"
@@ -141,7 +144,7 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
             fila de arriba. Con círculos eran dos filas idénticas seguidas y el
             punto de "Media" era el amarillo exacto de "toda la familia". Mismo
             control que Repetición, que está justo debajo. */}
-        <Field label="Prioridad" spacing="group">
+        <Field label={t.prioridad} spacing="group">
           <div className="grid grid-cols-3 gap-1.5">
             {TASK_PRIORITIES.map(opt => (
               <button
@@ -154,13 +157,13 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
                     : 'bg-canvas text-muted border border-line'
                 }`}
               >
-                {opt.label}
+                {tt.comun.prioridades[opt.value]}
               </button>
             ))}
           </div>
         </Field>
 
-        <Field label="Repetición" spacing="group">
+        <Field label={t.repeticion} spacing="group">
           <div className="grid grid-cols-4 gap-1.5">
             {TASK_RECURRENCES.map(opt => (
               <button
@@ -173,14 +176,14 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
                     : 'bg-canvas text-muted border border-line'
                 }`}
               >
-                {opt.label}
+                {tt.comun.recurrencias[opt.value]}
               </button>
             ))}
           </div>
         </Field>
 
         {hasRecurrence && (
-          <Field label="Termina el" htmlFor="task-rec-end" hint="(opcional)">
+          <Field label={t.terminaEl} htmlFor="task-rec-end" hint={t.opcional}>
             <input
               id="task-rec-end"
               type="date"
@@ -194,12 +197,12 @@ export function TaskSheet({ open, mode, initial, kids, members, onClose, onCreat
 
         {/* Las notas cierran el sheet: son el campo que menos se rellena, y
             ocupaban el segundo sitio, que es de la fecha. */}
-        <Field label="Notas" htmlFor="task-notes">
+        <Field label={t.notas} htmlFor="task-notes">
           <textarea
             id="task-notes"
             value={draft.notes}
             onChange={e => patch({ notes: e.target.value })}
-            placeholder="Detalles opcionales…"
+            placeholder={t.notasEjemplo}
             rows={2}
             className="field-input resize-none"
           />

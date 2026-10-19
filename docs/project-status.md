@@ -207,7 +207,7 @@ recomendado».
   exacto. Los de navegador son `smoke.spec.ts`, `runtime.spec.ts` (falla ante cualquier
   `console.error`), `guardado.spec.ts`, `dictado.spec.ts`, `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
   recorrido de idioma. `npm run test:e2e` los corre todos levantando el dev server en :3100.
-  Validación actual: suite completa con **1124 pruebas correctas y 13 saltadas** (19-10-2026),
+  Validación actual: suite completa con **1125 pruebas correctas y 12 saltadas** (19-10-2026),
   lint, tipos y build correctos. El worker se ha probado contra el build servido, con push
   sintético, confirmación y fallback sin conexión.
 - **Contraste medido y AA**: quedan 6 avisos deliberados (días fuera de mes del calendario y el `·`
@@ -368,7 +368,7 @@ Es lo único que no ve ninguna herramienta.
   la ficha por revisar en Console.
 - **La portada en inglés**: preparada y sin traducir (`textos.ts` obliga a traducirlos todos).
   Va después de la app en inglés, y el texto de Omar lo tiene que dar por bueno él.
-- **La app en inglés**: faltan Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el
+- **La app en inglés**: faltan Calendario, Finanzas, Notas, Documentos, Cumpleaños, el
   interior de Ajustes e Inicio (`e2e/idioma-recorrido.spec.ts` los lista en `SIN_MIGRAR`). Antes de
   ofrecerlo hay que decidir lo que no es traducir: el aviso de las siete y los correos no saben el
   idioma de cada móvil, las RPC lanzan frases en castellano y el dinero se escribe a la española.

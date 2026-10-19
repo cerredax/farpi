@@ -7,6 +7,7 @@ import { useStore } from '@/lib/store-context'
 import { selectTaskGroups, selectTaskMatches, selectTasksOf } from '@/lib/selectors'
 import { assigneesConTareas } from '@/lib/assignees'
 import { MINIMO_PARA_BUSCAR } from '@/lib/constants'
+import { useT } from '@/lib/i18n/contexto'
 import { ViewHeader } from '@/components/ui/ViewHeader'
 import { OffDayConfirmDialog } from './OffDayConfirmDialog'
 import { TaskItem } from './TaskItem'
@@ -16,6 +17,8 @@ import { SelectChip } from '@/components/ui/SelectChip'
 import type { Task, TaskDraft } from '@/types'
 
 export function TasksView() {
+  const tt = useT()
+  const t = tt.tareas
   const { tasks, kids, members, currentMember, createTask, updateTask, deleteTask, toggleTask } = useStore()
 
   const [sheetOpen, setSheetOpen]             = useState(false)
@@ -33,7 +36,7 @@ export function TasksView() {
   // persona (o todas de la casa) el filtro no separaría nada. Y si la persona
   // elegida se queda sin tareas —se reasignó la última—, se vuelve a «Todas» en
   // vez de dejar una lista vacía sin botón que la explique.
-  const personas = assigneesConTareas(tasks, members, kids)
+  const personas = assigneesConTareas(tasks, members, kids, tt.comun.familia)
   const hayQueFiltrar = personas.length > 1
   const personaActiva = hayQueFiltrar && personas.some(p => p.key === persona) ? persona : null
   const { pending, completed } = selectTaskGroups(selectTaskMatches(selectTasksOf(tasks, personaActiva), busqueda))
@@ -57,7 +60,7 @@ export function TasksView() {
 
   const tituloCompletadas = (
     <>
-      <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Completadas</h2>
+      <h2 className="text-xs font-bold uppercase tracking-widest text-muted">{t.completadas}</h2>
       <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{completed.length}</span>
     </>
   )
@@ -84,15 +87,15 @@ export function TasksView() {
             pone `AppShell`. */}
         <div className="mb-4">
           <ViewHeader
-            resumen={`${tasks.length} tarea${tasks.length !== 1 ? 's' : ''} de la familia`}
+            resumen={t.resumen(tasks.length)}
             buscador={puedeBuscar ? {
               value: busqueda,
               onChange: setBusqueda,
-              placeholder: `Buscar en ${tasks.length} tareas…`,
-              ariaLabel: 'Buscar tareas',
+              placeholder: t.buscarEn(tasks.length),
+              ariaLabel: t.buscar,
             } : null}
             onAdd={openCreate}
-            addLabel="Nueva tarea"
+            addLabel={t.nuevaTarea}
           />
           {/* «¿Qué me toca a mí?» es lo primero que se pregunta en una casa con más
               de una persona. Los chips van en su propia fila con scroll lateral: en
@@ -101,14 +104,14 @@ export function TasksView() {
               en el color de cada persona: el nombre sobre su color no llega al
               contraste con texto blanco (ver `fondoDePersona`). */}
           {hayQueFiltrar && (
-            <div role="group" aria-label="Filtrar por persona" className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <div role="group" aria-label={t.filtrarPorPersona} className="mt-3 flex gap-2 overflow-x-auto pb-1">
               <div className="flex-shrink-0">
-                <SelectChip selected={personaActiva === null} onClick={() => setPersona(null)}>Todas</SelectChip>
+                <SelectChip selected={personaActiva === null} onClick={() => setPersona(null)}>{t.todas}</SelectChip>
               </div>
               {personas.map(p => (
                 <div key={p.key} className="flex-shrink-0">
                   <SelectChip selected={personaActiva === p.key} onClick={() => setPersona(p.key)}>
-                    {currentMember && p.member_id === currentMember.id ? 'Mías' : p.name}
+                    {currentMember && p.member_id === currentMember.id ? t.mias : p.name}
                   </SelectChip>
                 </div>
               ))}
@@ -118,7 +121,7 @@ export function TasksView() {
 
         <section className="space-y-2 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
           <div className="flex items-center justify-between px-1 mb-3 lg:col-span-2 lg:mb-0">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">Pendientes</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted">{t.pendientes}</h2>
             {pending.length > 0 && (
               <span className="text-xs font-bold text-muted bg-line rounded-full px-2 py-0.5">{pending.length}</span>
             )}
@@ -131,11 +134,11 @@ export function TasksView() {
                para qué sirve la pantalla se fue con las demás el 09-09-2026. */
             <div className="bg-white rounded-2xl border border-surface shadow-sm lg:col-span-2">
               {buscando ? (
-                <EmptyState emoji="🔍" title="Sin coincidencias" description={`Ninguna tarea pendiente con «${busqueda.trim()}»`} />
+                <EmptyState emoji="🔍" title={t.sinCoincidencias} description={t.ningunaPendienteCon(busqueda.trim())} />
               ) : tasks.length === 0 ? (
-                <EmptyState emoji="🗒️" title="Sin tareas todavía" />
+                <EmptyState emoji="🗒️" title={t.sinTareas} />
               ) : (
-                <EmptyState emoji="✅" title="Todo al día" />
+                <EmptyState emoji="✅" title={t.todoAlDia} />
               )}
             </div>
           ) : (

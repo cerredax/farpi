@@ -2352,12 +2352,12 @@ librería traería rutas por idioma (`/en/home`) que una app privada no necesita
 **Qué está traducido** (30-09-2026): la navegación (las dos barras, la cabecera, «Más» y el pie
 de la cuenta), el aviso de guardado, el arranque, el marco de Ajustes (pestañas, títulos,
 avisos de administrador, Legal y modo demo), todos los validadores, los errores de Supabase y
-las etiquetas de la página (`metadatos`), y las pantallas de **Listas**, **Comidas**, el acceso
+las etiquetas de la página (`metadatos`), y las pantallas de **Listas**, **Comidas**, **Tareas**, el acceso
 (`/auth/login`, callback, `/onboarding`) y las dos de fallo (`/offline`, `/no-disponible`).
 Los diccionarios se reparten en un archivo por pantalla, en `src/lib/i18n/es/` y `en/`.
-**El resto no**: Calendario, Tareas, Finanzas, Notas, Documentos, Cumpleaños, el interior de
-Ajustes (`MemberSheet` y hermanos) e Inicio, que arrastra los sheets de Calendario y de
-Tareas. `e2e/idioma-recorrido.spec.ts` recorre las pantallas con la cookie en inglés y exige
+**El resto no**: Calendario, Finanzas, Notas, Documentos, Cumpleaños, el interior de
+Ajustes (`MemberSheet` y hermanos) e Inicio, que arrastra el sheet de Calendario.
+`e2e/idioma-recorrido.spec.ts` recorre las pantallas con la cookie en inglés y exige
 que no quede castellano; las pendientes están en su lista `SIN_MIGRAR`, y **una pantalla
 migrada se saca de esa lista** para que el test se lo exija.
 

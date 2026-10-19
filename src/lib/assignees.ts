@@ -218,9 +218,10 @@ export function assigneesConTareas(
   tareas: { child_id: string | null; member_id: string | null }[],
   members: FamilyMember[],
   kids: Child[],
+  familia?: string,
 ): Assignee[] {
   const claves = new Set(tareas.map(assigneeKeyOf))
-  return buildAssignees(members, kids).filter(a => claves.has(a.key))
+  return buildAssignees(members, kids, familia).filter(a => claves.has(a.key))
 }
 
 /** La opción que corresponde al estado actual de un draft. */

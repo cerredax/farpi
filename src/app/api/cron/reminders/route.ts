@@ -320,7 +320,9 @@ export async function GET(req: NextRequest) {
       const suyos = datosSegunPreferencias(datos, { resumen: sub.notify_daily, cumples: sub.notify_birthdays })
       if (!suyos) continue
       const { title, body } = avisoDelDia(suyos, new Date(), REMINDER_TIME_ZONE)
-      const payload = JSON.stringify({ title, body, url: '/home' })
+      // Si el día trae una felicitación, el aviso se presenta con la tarta y no con el sol.
+      const tipo = suyos.felicitacion ? 'cumple' : 'dia'
+      const payload = JSON.stringify({ title, body, url: '/home', tipo })
 
       // Enviar, y limpiar la suscripción que el navegador ya no conoce, es lo que
       // comparte con el aviso de cada evento (`lib/cron.ts`).

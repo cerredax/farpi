@@ -104,8 +104,18 @@ self.addEventListener('fetch', event => {
 })
 
 // ── Notificaciones push ─────────────────────────────────────────
-// El servidor envía { title, body, url }. Mostramos la notificación
+// El servidor envía { title, body, url, tipo }. Mostramos la notificación
 // y, al pulsarla, enfocamos una pestaña abierta o abrimos la app.
+//
+// El título no lleva «Farpi»: el sistema ya enseña de quién es el aviso (el icono
+// y, según el navegador, el nombre de la página), y repetirlo le quita un renglón
+// al título que importa. Lo que sí se pone es un emoji por tipo de aviso, que es
+// lo que se reconoce de un vistazo en la pantalla de bloqueo.
+const EMOJI_POR_TIPO = { dia: '☀️', cumple: '🎂', evento: '⏰' }
+// Los dos resúmenes de la mañana llevan la imagen de marca al desplegarse; el aviso
+// de un plan no: es de última hora, y ahí lo único que importa es qué y cuándo.
+const RESUMENES = ['dia', 'cumple']
+
 self.addEventListener('push', event => {
   let payload = {}
   try {
@@ -113,10 +123,20 @@ self.addEventListener('push', event => {
   } catch {
     payload = { body: event.data ? event.data.text() : '' }
   }
-  const title = payload.title || 'Farpi'
+  const emoji = EMOJI_POR_TIPO[payload.tipo]
+  const titulo = payload.title || 'Farpi'
+  const title = emoji ? `${emoji} ${titulo}` : titulo
   const options = {
     body: payload.body || '',
     icon: '/icon-192.png',
+    lang: 'es',
+    timestamp: Date.now(),
+    vibrate: [120, 60, 120],
+    // El resumen de las siete sustituye al de ayer si sigue sin abrir, en vez de
+    // apilarse debajo; `renotify` hace que el de hoy suene igualmente.
+    ...(RESUMENES.includes(payload.tipo)
+      ? { tag: 'farpi-dia', renotify: true, image: '/aviso-banner.png' }
+      : {}),
     // El badge no es el icono: es la marca monocroma de la barra de estado de
     // Android, que el sistema tiñe usando solo el canal alfa. Con `icon-192`
     // —lo que había hasta el 15-09-2026— lo que quedaba arriba era la silueta

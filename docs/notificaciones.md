@@ -360,6 +360,17 @@ Y el precio, que se aceptó a sabiendas: **el aviso se lee en la pantalla de blo
 así que el título de un plan se ve sin desbloquear el teléfono. Si algún día eso
 estorba, lo que hay que cambiar es `fraseDeLoDeHoy`, en un solo sitio.
 
+**Cómo se ve** lo decide `public/sw.js`, no el texto. El payload lleva `tipo` (`dia` o
+`cumple` o `evento`) y el worker antepone un emoji al título (☀️ el resumen, 🎂 el resumen de
+un día con felicitación, ⏰ el aviso de un plan). El título **no lleva «Farpi»**: el icono ya
+dice de quién es. Los dos resúmenes llevan `tag` + `renotify`, para sustituir al de ayer si no
+se abrió, y la imagen de marca `public/aviso-banner.png` (2:1, la genera `gen-icons.cjs` y no
+entra en `PRECACHE`); el de un plan no lleva ni una cosa ni otra: dos planes a la misma hora
+se taparían, y a última hora solo importa qué y cuándo. **Lo que no se puede cambiar desde aquí** es el nombre de la página
+que algunos navegadores enseñan bajo el título (Chrome en escritorio, o en Android sin la app
+instalada): lo pone el navegador. Con la app instalada, o desde Google Play, enseña «Farpi»
+en su lugar.
+
 El **badge** —el iconito de la barra de estado de Android— es `icon-badge-96.png`,
 monocromo sobre transparente, porque el sistema solo mira el canal alfa y lo tiñe él:
 con el icono a color lo que se veía era la silueta de la caja del icono. Lo genera

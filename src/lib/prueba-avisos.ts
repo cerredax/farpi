@@ -20,7 +20,7 @@ export async function enviarPruebaDeAviso(
 
   try {
     await enviar({ endpoint: data.endpoint, keys: { p256dh: data.p256dh, auth: data.auth } }, JSON.stringify({
-      title: 'Farpi - Prueba de avisos',
+      title: 'Prueba de avisos',
       body: 'La prueba ha llegado a este dispositivo.',
       url: '/settings?seccion=cuenta',
       prueba,

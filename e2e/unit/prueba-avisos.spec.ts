@@ -73,7 +73,7 @@ for (const codigo of [404, 410, 403, 503]) {
 }
 
 // El worker de producción: un 201 del proveedor no sirve como confirmación.
-function prepararWorker(mostrar: () => Promise<void>) {
+function prepararWorker(mostrar: (titulo: string, opciones: Record<string, unknown>) => Promise<void>) {
   const escuchas: Record<string, (evento: unknown) => void> = {}
   const mensajes: unknown[] = []
   runInNewContext(readFileSync('public/sw.js', 'utf8'), {
@@ -110,6 +110,25 @@ test('los avisos habituales siguen mostrándose sin generar confirmaciones de pr
   await worker.push({ title: 'Dentista', body: 'Dentro de media hora', url: '/calendar' })
   expect(mostrados).toBe(1)
   expect(worker.mensajes).toEqual([])
+})
+
+test('el resumen del día y el aviso de un plan llevan su emoji, y solo el resumen sustituye al anterior', async () => {
+  const mostrados: { titulo: string; opciones: Record<string, unknown> }[] = []
+  const worker = prepararWorker(async (titulo, opciones) => { mostrados.push({ titulo, opciones }) })
+  await worker.push({ title: 'Martes 15', body: 'Dentista, a las 16:30.', url: '/home', tipo: 'dia' })
+  await worker.push({ title: 'Martes 15', body: 'Hoy Leo cumple 5 años.', url: '/home', tipo: 'cumple' })
+  await worker.push({ title: 'Dentista', body: 'En 30 minutos, a las 16:30.', url: '/calendar', tipo: 'evento' })
+  await worker.push({ title: 'Prueba de avisos', url: '/settings?seccion=cuenta' })
+
+  expect(mostrados.map(m => m.titulo)).toEqual(['☀️ Martes 15', '🎂 Martes 15', '⏰ Dentista', 'Prueba de avisos'])
+  for (const resumen of mostrados.slice(0, 2)) {
+    expect(resumen.opciones).toMatchObject({ tag: 'farpi-dia', renotify: true, icon: '/icon-192.png', image: '/aviso-banner.png' })
+  }
+  // Dos planes a la misma hora no pueden taparse entre sí, y van sin imagen.
+  for (const suelto of mostrados.slice(2)) {
+    expect(suelto.opciones.tag).toBeUndefined()
+    expect(suelto.opciones.image).toBeUndefined()
+  }
 })
 
 test.describe('confirmación en el dispositivo', () => {

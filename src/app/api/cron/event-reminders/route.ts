@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
       },
     }, async (sub, evento) => {
       const { title, body } = avisoDeEvento(evento, ZONA_DE_LA_FAMILIA)
-      return enviarNotificacion(supabase, sub, JSON.stringify({ title, body, url: '/calendar' }))
+      return enviarNotificacion(supabase, sub, JSON.stringify({ title, body, url: '/calendar', tipo: 'evento' }))
     })
     return NextResponse.json({ ok: true, ...resultado })
   } catch (error) {

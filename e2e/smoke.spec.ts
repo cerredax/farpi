@@ -534,6 +534,32 @@ test('un cumpleaños sin año de nacimiento se felicita sin edad', async ({ page
   await expect(page.getByText('Hoy es el cumple de Nico del cole')).toBeVisible()
 })
 
+// Si hoy cumplen varios, Inicio los junta en una tarjeta en vez de apilar una por
+// cabeza, y cada fila se toca para cambiarla (26-10-2026).
+test('varios cumpleaños de hoy se agrupan en Inicio y se editan al tocarlos', async ({ page }) => {
+  const hoy = new Date()
+  const iso = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
+
+  for (const nombre of ['Abuela Carmen', 'Nico del cole']) {
+    await page.goto('/calendar')
+    await page.getByRole('button', { name: 'Apuntar algo', exact: true }).first().click()
+    await page.locator('#event-kind').selectOption('cumple')
+    await page.locator('#event-title').fill(nombre)
+    await page.locator('#event-date').fill(iso)
+    await page.locator(GUARDAR_EVENTO).click()
+    // El bloque de cumpleaños del calendario confirma que se guardó.
+    await expect(page.getByRole('heading', { name: /Cumpleaños/ })).toBeVisible()
+  }
+
+  await page.goto('/home')
+  await expect(page.getByText('Hoy cumplen años')).toBeVisible()
+  // Ya no es una frase por persona.
+  await expect(page.getByText('Hoy es el cumple de Nico del cole')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Editar el cumpleaños de Nico del cole' }).click()
+  await expect(page.locator('#event-title')).toHaveValue('Nico del cole')
+})
+
 /**
  * La pantalla de Cumpleaños: los doce meses que vienen, de una vez.
  *
@@ -729,8 +755,10 @@ test('elegir un día del mes enseña qué hay ese día', async ({ page }) => {
   await expect(panel).toBeVisible()
   await expect(panel.getByText('Nada apuntado.')).toBeVisible()
 
-  // Y desde ahí se apunta algo en ese día, sin pasar por el `+` de arriba.
-  await panel.getByRole('button', { name: /^Apuntar algo el/ }).click()
+  // El panel no lleva botón de apuntar (26-10-2026): para eso está el `+` de la
+  // cabecera, que apunta en el día elegido.
+  await expect(panel.getByRole('button', { name: /Apuntar algo/ })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Apuntar algo', exact: true }).first().click()
   await expect(page.getByRole('dialog', { name: 'Apuntar en el calendario' })).toBeVisible()
   await page.keyboard.press('Escape')
 

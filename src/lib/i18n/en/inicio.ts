@@ -17,7 +17,7 @@ export const inicio: typeof es = {
   cumpleHoy: {
     deNombre: (nombre: string) => `It's ${nombre}'s birthday today`,
     conEdad: (nombre: string, edad: number) => `${nombre} turns ${edad} today`,
-  },
+    varios: 'Birthdays today',  },
 
   tareasDeHoy: {
     marcarCompletada: (titulo: string) => `Mark "${titulo}" as done`,

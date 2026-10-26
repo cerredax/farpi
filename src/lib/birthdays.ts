@@ -243,6 +243,36 @@ export function fraseDeCumplesDeLaCasa(cumples: CumpleEnCasa[], cuando: 'Hoy' | 
   return `${cuando} cumplen años ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}.`
 }
 
+/** Un día con cumpleaños, con quienes los cumplen dentro. */
+export interface DiaDeCumples {
+  /** El día, `yyyy-MM-dd`. Es la clave del grupo. */
+  fecha: string
+  /** Cuántos días faltan. `0` = hoy. */
+  dias: number
+  cumples: CumpleEnCasa[]
+}
+
+/**
+ * Los cumpleaños juntos por día, en el orden en que vienen.
+ *
+ * Cuando dos personas cumplen el mismo día, el bloque de Inicio decía el día dos
+ * veces ("Mañana Ana", "Mañana Leo") en vez de una. Como `agrupaCumplesPorMes`,
+ * **cuenta con que la lista llega ordenada por fecha**, que es lo que devuelve
+ * `cumplesDeLaCasa`: cierra el grupo en cuanto cambia el día.
+ */
+export function agrupaCumplesPorDia(cumples: CumpleEnCasa[]): DiaDeCumples[] {
+  const dias: DiaDeCumples[] = []
+  for (const cumple of cumples) {
+    const ultimo = dias[dias.length - 1]
+    if (ultimo && ultimo.fecha === cumple.fecha) {
+      ultimo.cumples.push(cumple)
+      continue
+    }
+    dias.push({ fecha: cumple.fecha, dias: cumple.dias, cumples: [cumple] })
+  }
+  return dias
+}
+
 /** Un mes de la lista de Cumpleaños, con los suyos dentro. */
 export interface MesDeCumples {
   /** `yyyy-MM`. Es la clave del grupo en la lista. */

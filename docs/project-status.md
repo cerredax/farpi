@@ -194,20 +194,24 @@ recomendado».
   lo consuma. Ajustes permite probar un aviso solo en este dispositivo, con confirmación del
   worker tras solicitar mostrarlo al sistema. **La recepción real en el Android del propietario
   sigue pendiente: no vio la prueba aunque el proveedor aceptó los dos envíos.** La versión
-  publicada incluye las preferencias, la corrección del cron y la prueba por dispositivo. Detalle en
-  `docs/notificaciones.md`.
+  publicada incluye las preferencias, la corrección del cron y la prueba por dispositivo. El aviso
+  lleva emoji por tipo y, el resumen de la mañana, la imagen de marca (sin verlo aún en un móvil
+  real). Detalle en `docs/notificaciones.md`.
+- **Cumpleaños en Inicio**: si hoy cumplen varios, una sola tarjeta con una fila por persona; los
+  que vienen se agrupan por día. Se tocan para editarlos: el apuntado abre el formulario del
+  calendario y el de casa, su ficha.
 - **Copia de seguridad** (Ajustes → Cuenta): un JSON con todo lo de la casa, sin los archivos de los
   documentos. No hay restaurar.
 
 ### Calidad, accesibilidad y pruebas
 
-- **1137 tests con el runner de Playwright** (único runner): **849 unitarios** de lógica pura en
-  `e2e/unit/` (`npm run test:unit`) y **288 de navegador**; 13 de ellos, los del recorrido de
+- **1141 tests con el runner de Playwright** (único runner): **852 unitarios** de lógica pura en
+  `e2e/unit/` (`npm run test:unit`) y **289 de navegador**; 13 de ellos, los del recorrido de
   idioma, van en `fixme` hasta que se migren sus pantallas. Este es el **único** sitio con el recuento
   exacto. Los de navegador son `smoke.spec.ts`, `runtime.spec.ts` (falla ante cualquier
   `console.error`), `guardado.spec.ts`, `dictado.spec.ts`, `movil.spec.ts` (390×844), `escritorio.spec.ts` (1440 y 1023 px) y el
   recorrido de idioma. `npm run test:e2e` los corre todos levantando el dev server en :3100.
-  Validación actual: suite completa con **1137 pruebas correctas y ninguna saltada** (19-10-2026),
+  Validación actual: suite completa con **1141 pruebas correctas y ninguna saltada** (26-10-2026),
   lint, tipos y build correctos. El worker se ha probado contra el build servido, con push
   sintético, confirmación y fallback sin conexión.
 - **Contraste medido y AA**: quedan 6 avisos deliberados (días fuera de mes del calendario y el `·`

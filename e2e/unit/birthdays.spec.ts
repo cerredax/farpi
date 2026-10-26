@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple, edadEnPalabras, fraseDeCumplesDeLaCasa, proximoCumple, proximosCumples } from '@/lib/birthdays'
+import { agrupaCumplesPorDia, agrupaCumplesPorMes, cumplesDeLaCasa, diaDeCumple, edadEnPalabras, fraseDeCumplesDeLaCasa, proximoCumple, proximosCumples } from '@/lib/birthdays'
 import { event } from './fixtures'
 import type { CumpleEnCasa } from '@/lib/birthdays'
 import type { Child } from '@/types'
@@ -220,5 +220,26 @@ test.describe('agrupaCumplesPorMes', () => {
 
   test('sin cumpleaños no hay meses', () => {
     expect(agrupaCumplesPorMes([], HOY)).toEqual([])
+  })
+})
+
+// El bloque de "lo que viene" de Inicio dice el día una vez aunque cumplan varios.
+test.describe('agrupaCumplesPorDia', () => {
+  const cumple = (nombre: string, fecha: string, dias: number): CumpleEnCasa =>
+    ({ id: nombre, nombre, fecha, dias, edad: null, color: null, apuntado: true })
+
+  test('junta a quienes cumplen el mismo día, en el orden en que vienen', () => {
+    const dias = agrupaCumplesPorDia([
+      cumple('Ana', '2026-08-28', 1),
+      cumple('Leo', '2026-08-28', 1),
+      cumple('Eva', '2026-09-02', 6),
+    ])
+    expect(dias.map(d => d.fecha)).toEqual(['2026-08-28', '2026-09-02'])
+    expect(dias.map(d => d.dias)).toEqual([1, 6])
+    expect(dias.map(d => d.cumples.map(c => c.nombre))).toEqual([['Ana', 'Leo'], ['Eva']])
+  })
+
+  test('sin cumpleaños no hay días', () => {
+    expect(agrupaCumplesPorDia([])).toEqual([])
   })
 })

@@ -14,7 +14,7 @@ export const calendario = {
   formatos: {
     /** "Martes 25 de agosto": el rótulo de un día en la agenda y en el panel del día. */
     dia: "EEEE d 'de' MMMM",
-    /** "25 de agosto": dentro de una frase ("Qué hay el…", "Apuntar algo el…"). */
+    /** "25 de agosto": dentro de una frase ("Qué hay el…"). */
     diaYMes: "d 'de' MMMM",
     /** "15 ago": las pastillas estrechas (ausencias, cumpleaños). */
     diaYMesCorto: 'd MMM',
@@ -61,7 +61,6 @@ export const calendario = {
   },
 
   apuntarAlgo: 'Apuntar algo',
-  apuntarAlgoEl: (fecha: string) => `Apuntar algo el ${fecha}`,
   apuntarAlgoALas: (fecha: string, hora: string) => `Apuntar algo el ${fecha} a las ${hora}`,
   todoElDia: 'Todo el día',
   festivo: 'Festivo',

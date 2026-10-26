@@ -48,7 +48,6 @@ export const calendario: typeof es = {
   },
 
   apuntarAlgo: 'Add something',
-  apuntarAlgoEl: (fecha: string) => `Add something on ${fecha}`,
   apuntarAlgoALas: (fecha: string, hora: string) => `Add something on ${fecha} at ${hora}`,
   todoElDia: 'All day',
   festivo: 'Bank holiday',

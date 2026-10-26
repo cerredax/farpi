@@ -4,12 +4,14 @@ import { memo } from 'react'
 import { PartyPopper } from 'lucide-react'
 import { HomeSection } from '@/components/ui/HomeSection'
 import { SectionLink } from '@/components/ui/SectionLink'
-import { diaDeCumple, type CumpleEnCasa } from '@/lib/birthdays'
+import { agrupaCumplesPorDia, diaDeCumple, type CumpleEnCasa } from '@/lib/birthdays'
 import { useIdioma, useT } from '@/lib/i18n/contexto'
 import { localeDeFechas } from '@/lib/i18n/fechas'
 
 interface UpcomingBirthdaysProps {
   cumples: CumpleEnCasa[]
+  /** Abre el cumpleaños para cambiarlo. Qué formulario sale lo decide Inicio. */
+  onOpen: (cumple: CumpleEnCasa) => void
 }
 
 /**
@@ -27,7 +29,7 @@ interface UpcomingBirthdaysProps {
  * cumpleaños apuntados. Un pie fijo dejaba sin salida el caso de la familia que
  * solo apunta cumpleaños de fuera.
  */
-export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: UpcomingBirthdaysProps) {
+export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples, onOpen }: UpcomingBirthdaysProps) {
   const t = useT()
   const locale = localeDeFechas(useIdioma())
   if (cumples.length === 0) return null
@@ -46,23 +48,40 @@ export const UpcomingBirthdays = memo(function UpcomingBirthdays({ cumples }: Up
         ? <SectionLink href="/calendar">{t.inicio.verCalendario}</SectionLink>
         : <SectionLink href="/settings">{t.inicio.cumples.verLaFamilia}</SectionLink>}
     >
+      {/* Un grupo por día (26-10-2026): si cumplen dos el mismo, el día se dice una
+          vez y los nombres van debajo uno de otro. */}
       <ul className="divide-y divide-hairline">
-        {cumples.map(({ id, nombre, fecha, edad, dias }) => (
-          <li key={id} className="flex items-baseline gap-2 px-4 py-3">
-            <span className="text-xs font-bold text-primary-strong">{diaDeCumple(fecha, dias, t.cumpleanos, locale)}</span>
-            {/* El nombre va en texto corriente, no en la etiqueta de persona que
-                usan la agenda o las tareas. Ahí el color contesta "¿de quién es
-                esto?" entre cosas de varios; aquí la fila entera **es** la
-                persona, no hay nada que atribuir, y la etiqueta solo pintaba de
-                colores el único dato de la línea. */}
-            <span className="min-w-0 truncate text-sm font-semibold text-ink">{nombre}</span>
-            {/* Sin año de nacimiento no hay edad que decir, y "cumple años" a
-                secas es ruido: la fila ya dice el día y de quién. */}
-            {edad !== null && (
-              <span className="ml-auto flex-shrink-0 text-xs font-semibold text-muted">
-                {t.cumpleanos.cumpleEdad(edad)}
-              </span>
-            )}
+        {agrupaCumplesPorDia(cumples).map(({ fecha, dias, cumples: delDia }) => (
+          <li key={fecha} className="flex items-start gap-2 px-4">
+            <span className="flex min-h-11 w-20 flex-shrink-0 items-center text-xs font-bold text-primary-strong">
+              {diaDeCumple(fecha, dias, t.cumpleanos, locale)}
+            </span>
+            <ul className="min-w-0 flex-1">
+              {delDia.map(cumple => (
+                <li key={cumple.id}>
+                  {/* Se toca para cambiarlo, y `min-h-11` son los 44 px del criterio
+                      de la casa. El nombre va en texto corriente, no en la etiqueta
+                      de persona que usan la agenda o las tareas: ahí el color
+                      contesta "¿de quién es esto?" entre cosas de varios; aquí la
+                      fila entera **es** la persona. */}
+                  <button
+                    type="button"
+                    onClick={() => onOpen(cumple)}
+                    aria-label={t.cumpleanos.editarElDe(cumple.nombre)}
+                    className="flex min-h-11 w-full items-center gap-2 text-left"
+                  >
+                    <span translate="no" className="min-w-0 truncate text-sm font-semibold text-ink">{cumple.nombre}</span>
+                    {/* Sin año de nacimiento no hay edad que decir, y "cumple años" a
+                        secas es ruido: la fila ya dice el día y de quién. */}
+                    {cumple.edad !== null && (
+                      <span className="ml-auto flex-shrink-0 text-xs font-semibold text-muted">
+                        {t.cumpleanos.cumpleEdad(cumple.edad)}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </li>
         ))}
       </ul>

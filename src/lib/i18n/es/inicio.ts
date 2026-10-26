@@ -22,7 +22,8 @@ export const inicio = {
     deNombre: (nombre: string) => `Hoy es el cumple de ${nombre}`,
     conEdad: (nombre: string, edad: number) =>
       `Hoy ${nombre} cumple ${edad === 1 ? '1 año' : `${edad} años`}`,
-  },
+    /** El título de la tarjeta cuando hoy cumplen varios. */
+    varios: 'Hoy cumplen años',  },
 
   tareasDeHoy: {
     marcarCompletada: (titulo: string) => `Marcar "${titulo}" como completada`,

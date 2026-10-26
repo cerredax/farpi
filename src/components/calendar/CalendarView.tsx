@@ -500,7 +500,6 @@ export function CalendarView() {
                       kids={kids}
                       members={members}
                       onEdit={openEdit}
-                      onAdd={openCreate}
                       onToggleTask={toggleTask}
                     />
                   </div>

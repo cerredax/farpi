@@ -9,7 +9,7 @@ import { useIsClient } from '@/hooks/useIsClient'
 import { getDayPeriod, getGreeting } from '@/lib/date-utils'
 import { capitalize } from '@/lib/text'
 import { selectExpiringDocs, selectTodayEvents, selectTodayTasks, selectUpcomingEvents } from '@/lib/selectors'
-import { cumplesDeLaCasa } from '@/lib/birthdays'
+import { cumplesDeLaCasa, type CumpleEnCasa } from '@/lib/birthdays'
 import { TodayEvents } from './TodayEvents'
 import { TodayBirthdays } from './TodayBirthdays'
 import { UpcomingBirthdays } from './UpcomingBirthdays'
@@ -24,12 +24,13 @@ import { DayIllustration } from './DayIllustration'
 import { EventSheet } from '@/components/calendar/EventSheet'
 import { OffDayConfirmDialog } from '@/components/tasks/OffDayConfirmDialog'
 import { ItemSheet } from '@/components/lists/ItemSheet'
-import type { Event, Task } from '@/types'
+import { ChildSheet } from '@/components/settings/ChildSheet'
+import type { Child, Event, Task } from '@/types'
 
 export function HomeView() {
   const t = useT()
   const locale = localeDeFechas(useIdioma())
-  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, documents, lists, allListItems, toggleTask, toggleListItem, createListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries } = useStore()
+  const { kids, members, allEvents, pendingTasks, todayMeals, pendingItems, documents, lists, allListItems, toggleTask, toggleListItem, createListItem, createEvent, updateEvent, deleteEvent, deleteEventSeries, createKid, updateKid, deleteKid } = useStore()
   const [confirmTask, setConfirmTask] = useState<Task | null>(null)
   /** Si está abierto el sheet de apuntar algo en la cesta. */
   const [apuntandoEnCesta, setApuntandoEnCesta] = useState(false)
@@ -43,6 +44,26 @@ export function HomeView() {
    * del calendario, que es donde se ve dónde cae.
    */
   const [eventoAbierto, setEventoAbierto] = useState<Event | null>(null)
+  /** La persona de casa cuyo cumpleaños se está cambiando: se cambia en su ficha. */
+  const [hijoAbierto, setHijoAbierto] = useState<Child | null>(null)
+
+  /**
+   * Tocar un cumpleaños lo abre **donde vive**, sin salir de Inicio. Un cumpleaños
+   * apuntado es un evento y se edita con el formulario del calendario; el de quien
+   * es de la casa no está apuntado en ningún sitio, se deduce de su fecha de
+   * nacimiento, y esa se cambia en su ficha (`ChildSheet`, el de Ajustes). Mandar
+   * los dos al mismo formulario obligaría a dar de alta a la abuela como persona
+   * de la familia (ver `lib/birthdays.ts`).
+   */
+  function abrirCumple(cumple: CumpleEnCasa) {
+    if (cumple.apuntado) {
+      const evento = allEvents.find(e => e.id === cumple.id)
+      if (evento) setEventoAbierto(evento)
+      return
+    }
+    const hijo = kids.find(k => k.id === cumple.id)
+    if (hijo) setHijoAbierto(hijo)
+  }
 
   function handleTaskToggle(id: string) {
     const task = pendingTasks.find(t => t.id === id)
@@ -180,7 +201,7 @@ export function HomeView() {
 
             {/* Las etiquetas de los hijos vivían aquí debajo: ocupaban una fila
                 entera para repetir nombres que ya salen en cada plan. */}
-            <TodayBirthdays cumples={cumplesHoy} />
+            <TodayBirthdays cumples={cumplesHoy} onOpen={abrirCumple} />
             <TodayEvents events={todayEvents} kids={kids} members={members} calmMessage={calmMessage} onOpen={setEventoAbierto} ahora={ahora} />
             <TodayTasks tasks={tareasHoy} onToggle={handleTaskToggle} />
             <TodayMealsRow meals={todayMeals} />
@@ -205,7 +226,7 @@ export function HomeView() {
         />
         <HomeTasks pendingTasks={tareasResto} onToggle={handleTaskToggle} />
         <UpcomingEvents events={upcoming} kids={kids} members={members} onOpen={setEventoAbierto} />
-        <UpcomingBirthdays cumples={cumplesProximos} />
+        <UpcomingBirthdays cumples={cumplesProximos} onOpen={abrirCumple} />
       </div>
 
       {/* La `key` cuelga del evento para que el formulario arranque con lo que
@@ -224,6 +245,22 @@ export function HomeView() {
         onUpdate={updateEvent}
         onDelete={deleteEvent}
         onDeleteSeries={deleteEventSeries}
+      />
+
+      {/* La ficha de una persona de casa, la misma de Ajustes y solo en modo
+          edición: aquí se llega para cambiar una fecha de nacimiento mal puesta.
+          `onCreate` va porque el contrato lo pide, y la `key` cuelga de la
+          persona por lo mismo que la del plan. */}
+      <ChildSheet
+        key={hijoAbierto ? `hijo-${hijoAbierto.id}` : 'sin-hijo'}
+        open={!!hijoAbierto}
+        mode="edit"
+        kind={hijoAbierto?.kind ?? 'hijo'}
+        initial={hijoAbierto}
+        onClose={() => setHijoAbierto(null)}
+        onCreate={createKid}
+        onUpdate={updateKid}
+        onDelete={deleteKid}
       />
 
       {/* El mismo sheet de la pantalla de listas, en modo crear y con la cesta

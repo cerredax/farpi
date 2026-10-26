@@ -1190,7 +1190,9 @@ test('en Inicio, tocar un plan de hoy lo abre para editarlo', async ({ page }) =
 
   // Y lo que se guarda desde aquí se queda guardado.
   await page.locator('#event-title').fill('Ecografía de las 12')
-  await page.getByRole('button', { name: 'Guardar cambios' }).click()
+  // Por el formulario y no por el texto: Inicio lleva también el sheet de la ficha
+  // de una persona (cerrado), y su botón se llama igual.
+  await page.locator('button[type="submit"][form="event-form"]').click()
   await expect(page.getByRole('button', { name: /Ecografía de las 12/ }).first()).toBeVisible()
 })
 
